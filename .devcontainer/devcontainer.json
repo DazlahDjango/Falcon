@@ -1,0 +1,93 @@
+{
+    "name": "Falcon PMS Development Environment",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/postgresql:1": {
+            "version": "15"
+        },
+        "ghcr.io/devcontainers/features/redis:1": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    },
+    "postCreateCommand": "cp -n .env.example .env || true && pip install -r requirements/development.txt && python manage.py migrate",
+    "postStartCommand": "python manage.py runserver 0.0.0.0:8000 &",
+    "forwardPorts": [8000, 5432, 6379],
+    "portsAttributes": {
+        "8000": {
+            "label": "Django Server",
+            "onAutoForward": "notify"
+        },
+        "5432": {
+            "label": "postgreSQL",
+            "onAutoForward": "silent"
+        },
+        "6379": {
+            "label": "Redis",
+            "onAutoForward": "silent"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "ms-vscode.live-share",
+                "batisteo.vscode-django",
+                "cstrap.python-snippets",
+                "mtxr.sqltools",
+                "mtxr.sqltools-driver-pg",
+                "eamodio.gitlens",
+                "github.copilot",
+                "donjayamanne.python-extension-pack",
+                "alexcvzz.vscode-sqlite",
+                "wholroyd.jinja",
+                "samuelcolvin.jinjahtml"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enable": true,
+                "python.linting.flake8Enabled": true,
+                "python.formatting.provider": "black",
+                "editor.formatOnSave": true,
+                "editor.rulers": [88],
+                "files.associations": {
+                    "**/*.html": "django-html",
+                    "**/*.jinja": "jinja-html",
+                    "**/*.jinja2": "jinja-html"
+                },
+                "[python]": {
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": "explicit"
+                    },
+                    "editor.defaultFormatter": "ms-python.black-formatter"
+                },
+                "sqltools.connections": [
+                    {
+                        "name": "Falcon PostgreSQL",
+                        "driver": "PostgreSQL",
+                        "server": "localhost",
+                        "port": 5432,
+                        "database": "falcon_pms",
+                        "username": "Dazlah",
+                        "password": "Dazl2006"
+                    }
+                ],
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": true,
+                "python.testing.nosetestsEnabled": true
+            }
+        }
+    },
+    "workspaceFolder": "/workspace/falcon-pms",
+    "remoteUser": "vscode",
+    "mounts": ["source=${localWorkspaceFolderBasename}-postgres-data,target=/var/lib/postgresql/data,type=volume"],
+    "remoteEnv": {
+        "DJANGO_ENV": "development",
+        "PYTHONUNBUFFERED": "1"
+    }
+}

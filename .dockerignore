@@ -1,0 +1,111 @@
+# Version control
+.git
+.github
+.gitignore
+.gitattributes
+.dockerignore
+
+# Virtual Environment (your falc folder)
+falc/
+falc-env/
+venv/
+env/
+ENV/
+*.egg-info/
+
+# Environment files (don't copy secrets into image)
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+*.cover
+htmlcov/
+
+# Project specific (runtime generated)
+logs/
+staticfiles/
+media/
+*.db
+db.sqlite3
+wastes/
+*.log
+*.pot
+
+# Docker volumes
+.docker-volumes/
+.docker/data/
+
+# Documentation (not needed in production image)
+docs/
+*.md
+!.env.example
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+README.md
+LiCENSE
+
+# Tests
+tests/
+test_*.py
+fixtures/
+*.test.py
+
+# Frontend (if applicable)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+node_modules/
+
+# Backups
+*.bak
+*.backup
+*.sql.gz
+*.sql
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker files (don't copy other Dockerfiles)
+docker-compose*.yml
+Dockerfile*
+!Dockerfile
+!Dockerfile.nginx
+
+# Security
+safety-project.ini
+security.txt
+
+# Local development configs
+.pre-commit-config.yaml
+.pylintrc
+.flake8
+.editorconfig
+
+# Keep these
+!requirements/
+!apps/
+!config/
+!templates/
+!static/
+!manage.py
+!.env.example

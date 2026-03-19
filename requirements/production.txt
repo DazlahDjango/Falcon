@@ -1,0 +1,9 @@
+# Inherit base requirements
+-r base.txt
+
+# Production server
+gunicorn==25.1.0
+uvicorn==0.41.0
+
+# Performance monitoring
+prometheus-client==0.24.1
