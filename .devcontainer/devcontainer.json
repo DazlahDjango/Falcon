@@ -4,15 +4,6 @@
         "dockerfile": "Dockerfile",
         "context": ".."
     },
-    "features": {
-        "ghcr.io/devcontainers/features/postgresql:1": {
-            "version": "15"
-        },
-        "ghcr.io/devcontainers/features/redis:1": {
-            "version": "latest"
-        },
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
-    },
     "postCreateCommand": "cp -n .env.example .env || true && pip install -r requirements/development.txt && python manage.py migrate",
     "postStartCommand": "python manage.py runserver 0.0.0.0:8000 &",
     "forwardPorts": [8000, 5432, 6379],
@@ -83,7 +74,7 @@
             }
         }
     },
-    "workspaceFolder": "/workspace/falcon-pms",
+    "workspaceFolder": "/workspaces/falcon-pms",
     "remoteUser": "vscode",
     "mounts": ["source=${localWorkspaceFolderBasename}-postgres-data,target=/var/lib/postgresql/data,type=volume"],
     "remoteEnv": {

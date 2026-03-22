@@ -12,7 +12,7 @@ services:
     environment:
       - DJANGO_ENV=development
       - PYTHONUNBUFFERED=1
-    network_mode: service:db
+    network_mode: DB_HOST=db
     command: sleep infinity
 
   db:
