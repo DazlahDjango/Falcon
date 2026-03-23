@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-{
-    "name": "Falcon PMS Development environment",
-    "dockerComposeFile": "docker-compose.yml",
-    "service": "app",
-    "workspaceFolder": "/workspaces/falcon-pms",
-    "postCreateCommand": "pip install -r requirements/development.txt",
-    "forwardPorts": [8000, 5432, 6379],
-    "remoteUser": "vscode"
-=======
 {
     "name": "Falcon PMS Development Environment",
     "build": {
@@ -91,5 +81,4 @@
         "DJANGO_ENV": "development",
         "PYTHONUNBUFFERED": "1"
     }
->>>>>>> d90f1917d5924b006e3d600e78eae230e532a2cc
 }
