@@ -1,3 +1,7 @@
 from django.shortcuts import render
 
-# Create your views here.
+def home_view(request):
+    """
+    A simple landing page to welcome users and avoid 404s on the root URL.
+    """
+    return render(request, 'home.html')

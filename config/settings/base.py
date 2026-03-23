@@ -96,7 +96,7 @@ THIRD_PARTY_APPS = [
     # 'django_fsm',
     'viewflow',
     # Notifications
-    'notifications',
+    # 'notifications',
     'django_apscheduler',
     # Reporting
     'easy_pdf',
@@ -149,8 +149,7 @@ MIDDLEWARE = [
     # Security and monitoring
     'axes.middleware.AxesMiddleware',
     'auditlog.middleware.AuditlogMiddleware',
-    # Multy tenancy
-    'django_multitenant.middlewares.MultitenantMiddleware',
+    # 'django_multitenant.middlewares.MultitenantMiddleware',
     # Rate limiting
     'django_ratelimit.middleware.RatelimitMiddleware',
 ]

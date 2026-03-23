@@ -25,8 +25,10 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=[permissions.AllowAny]
 )
+from apps.core.views import home_view
 
 urlpatterns = [
+    path('', home_view, name='home'),
     path(settings.ADMIN_URL, admin.site.urls),  # Added trailing slash
     # Health
     path('health/', include('health_check.urls')),
