@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from .user import User
-
-__all__ = ['User']
-=======
 from .base import UUIDModel, TimestampModel, SoftDeleteModel, TenantAwareModel, AuditModel, BaseModel
 from .user import User
 from .roles import Role
@@ -37,4 +32,3 @@ __all__ = [
     # Preferences
     'UserPreference', 'TenantPreference',
 ]
->>>>>>> d90f1917d5924b006e3d600e78eae230e532a2cc
