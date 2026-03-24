@@ -37,6 +37,7 @@ DEBUG_TOOLBAR_CONFIG = {
     'DISABLE_PANELS': {
         'debug_toolbar.panels.redirects.RedirectsPanel',
     },
+    'IS_RUNNING_TESTS': False,
 }
 # EMAIL CONF
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
