@@ -1,0 +1,247 @@
+apps/accounts/
+├── __init__.py
+├── apps.py
+├── admin.py
+├── constants.py                         # Role constants, MFA types, etc.
+├── exceptions.py                        # Custom exceptions
+├── signals.py
+├── tasks.py
+├── urls.py                              # App-level URL routing
+├── validators.py                        # Password, email validators
+│
+├── models/                               # Models directory
+│   ├── __init__.py
+│   ├── base.py                          # Base abstract models
+│   ├── user.py                          # User model (custom)
+│   ├── role.py                          # Role definitions
+│   ├── permission.py                    # Custom permissions
+│   ├── profile.py                       # User profile (extended info)
+│   ├── session.py                       # User session tracking
+│   ├── mfa.py                           # MFA devices (TOTP, backup codes)
+│   ├── login_attempt.py                 # Login attempt tracking (for axes)
+│   ├── audit.py                         # User action audit logs
+│   └── preferences.py                   # User notification preferences
+│
+├── managers/                             # Custom managers
+│   ├── __init__.py
+│   ├── base.py                          # Base manager with tenant filtering
+│   ├── user.py                          # User queryset methods
+│   ├── active.py                        # Active users only
+│   ├── tenant.py                        # Tenant-aware manager
+│   └── permission.py                    # Permission querysets
+│
+├── services/                             # Business logic layer
+│   ├── __init__.py
+│   ├── auth/
+│   │   ├── __init__.py
+│   │   ├── authentication.py            # Core auth logic
+│   │   ├── jwt.py                       # JWT generation/validation
+│   │   ├── mfa.py                       # MFA verification
+│   │   ├── password.py                  # Password reset, validation
+│   │   └── session.py                   # Session management
+│   ├── registration/
+│   │   ├── __init__.py
+│   │   ├── user_registration.py         # New user registration
+│   │   ├── tenant_registration.py       # New tenant registration
+│   │   └── invitation.py                # User invitations
+│   ├── authorization/
+│   │   ├── __init__.py
+│   │   ├── rbac.py                      # Role-based access control
+│   │   ├── permissions.py               # Permission checking
+│   │   └── tenant_access.py             # Tenant isolation checks
+│   ├── profile/
+│   │   ├── __init__.py
+│   │   ├── profile_manager.py           # Profile CRUD
+│   │   ├── avatar.py                    # Avatar upload/processing
+│   │   └── preferences.py               # User preferences
+│   ├── audit/
+│   │   ├── __init__.py
+│   │   ├── logger.py                    # Audit logging service
+│   │   └── reporter.py                  # Audit report generation
+│   └── sso/
+│       ├── __init__.py
+│       ├── oauth.py                     # OAuth2 providers
+│       ├── saml.py                      # SAML integration
+│       └── ldap.py                      # LDAP authentication
+│
+├── api/                                  # REST API (DRF)
+│   ├── __init__.py
+│   ├── v1/
+│   │   ├── __init__.py
+│   │   ├── urls.py                      # v1 API routing
+│   │   ├── serializers/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py                  # Login, register, refresh serializers
+│   │   │   ├── user.py                  # User CRUD serializers
+│   │   │   ├── role.py                  # Role serializers
+│   │   │   ├── profile.py               # Profile serializers
+│   │   │   ├── mfa.py                   # MFA serializers
+│   │   │   ├── password.py              # Password reset serializers
+│   │   │   └── audit.py                 # Audit serializers
+│   │   ├── views/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py                  # Login, logout, refresh endpoints
+│   │   │   ├── users.py                 # User CRUD endpoints
+│   │   │   ├── roles.py                 # Role management (admin only)
+│   │   │   ├── profile.py               # Profile management
+│   │   │   ├── mfa.py                   # MFA enrollment/verification
+│   │   │   ├── password.py              # Password reset, change
+│   │   │   ├── invitations.py           # User invitations
+│   │   │   └── audit.py                 # Audit logs (admin only)
+│   │   ├── permissions/
+│   │   │   ├── __init__.py
+│   │   │   ├── roles.py                 # Role-based permissions
+│   │   │   ├── tenant.py                # Tenant isolation permissions
+│   │   │   └── objects.py               # Object-level permissions
+│   │   ├── throttles/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py                  # Rate limiting for auth endpoints
+│   │   │   └── user.py                  # User endpoint throttling
+│   │   └── filters/
+│   │       ├── __init__.py
+│   │       ├── user.py                  # User filtering
+│   │       └── audit.py                 # Audit log filtering
+│   └── v2/                               # Reserved for future ML/AI
+│       └── __init__.py
+│
+├── consumers/                            # WebSocket consumers (real-time)
+│   ├── __init__.py
+│   ├── auth.py                          # Auth WebSocket (login status)
+│   ├── notifications.py                 # Real-time user notifications
+│   ├── presence.py                      # User presence tracking
+│   └── middleware.py                    # WebSocket auth middleware
+│
+├── middleware/                           # Custom middleware
+│   ├── __init__.py
+│   ├── auth.py                          # JWT/session validation
+│   ├── tenant.py                        # Tenant resolution for accounts
+│   ├── audit.py                         # User action auditing
+│   └── rate_limit.py                    # Rate limiting by user
+│
+├── templates/                            # Server-side templates (admin/email)
+│   ├── accounts/
+│   │   ├── email/
+│   │   │   ├── welcome.html             # Welcome email
+│   │   │   ├── password_reset.html      # Password reset email
+│   │   │   ├── mfa_setup.html           # MFA setup email
+│   │   │   ├── invitation.html          # User invitation email
+│   │   │   └── login_alert.html         # New login alert email
+│   │   └── admin/
+│   │       ├── user_list.html
+│   │       ├── user_detail.html
+│   │       └── audit_log.html
+│
+├── static/                               # Frontend assets (if needed)
+│   └── accounts/
+│       ├── js/
+│       │   ├── auth.js                  # Auth UI logic
+│       │   ├── mfa.js                   # MFA UI
+│       │   └── profile.js               # Profile UI
+│       └── css/
+│           └── accounts.css
+│
+├── frontend/                             # Modern frontend (React/Vue components)
+│   ├── components/
+│   │   ├── auth/
+│   │   │   ├── Login.jsx                # Login component
+│   │   │   ├── Register.jsx             # Registration
+│   │   │   ├── MFAVerify.jsx            # MFA verification
+│   │   │   ├── MFASetup.jsx             # MFA enrollment
+│   │   │   ├── PasswordReset.jsx
+│   │   │   └── ForgotPassword.jsx
+│   │   ├── profile/
+│   │   │   ├── ProfileView.jsx
+│   │   │   ├── ProfileEdit.jsx
+│   │   │   ├── AvatarUpload.jsx
+│   │   │   └── Preferences.jsx
+│   │   ├── admin/
+│   │   │   ├── UserList.jsx
+│   │   │   ├── UserDetail.jsx
+│   │   │   ├── RoleManager.jsx
+│   │   │   └── AuditLog.jsx
+│   │   └── common/
+│   │       ├── ProtectedRoute.jsx       # Route guard
+│   │       ├── RoleGuard.jsx            # Role-based rendering
+│   │       └── TenantGuard.jsx          # Tenant isolation guard
+│   ├── hooks/
+│   │   ├── useAuth.js                   # Auth state hook
+│   │   ├── useMFA.js                    # MFA hook
+│   │   ├── usePermissions.js            # Permission checking hook
+│   │   └── useWebSocket.js              # WebSocket connection hook
+│   ├── contexts/
+│   │   ├── AuthContext.jsx              # Auth provider
+│   │   ├── TenantContext.jsx            # Tenant context
+│   │   └── PermissionContext.jsx        # Permission context
+│   ├── services/
+│   │   ├── api.js                       # API client
+│   │   ├── auth.js                      # Auth API calls
+│   │   ├── websocket.js                 # WebSocket client
+│   │   └── storage.js                   # Token storage (secure)
+│   └── utils/
+│       ├── tokens.js                    # JWT handling
+│       ├── encryption.js                # Client-side encryption
+│       └── validators.js                # Form validators
+│
+├── management/                           # Django management commands
+│   ├── __init__.py
+│   ├── commands/
+│   │   ├── __init__.py
+│   │   ├── create_superuser_tenant.py   # Create superuser with tenant
+│   │   ├── clean_expired_sessions.py    # Clean expired sessions
+│   │   ├── rotate_secrets.py            # Rotate JWT secrets
+│   │   └── sync_roles.py                # Sync predefined roles
+│
+├── migrations/                           # Database migrations
+│   ├── __init__.py
+│   └── ... (auto-generated)
+│
+└── tests/                                # Comprehensive tests
+    ├── __init__.py
+    ├── conftest.py                       # Test fixtures
+    ├── factories/
+    │   ├── __init__.py
+    │   ├── user_factory.py
+    │   ├── role_factory.py
+    │   ├── mfa_factory.py
+    │   └── session_factory.py
+    ├── unit/
+    │   ├── test_models/
+    │   │   ├── test_user.py
+    │   │   ├── test_role.py
+    │   │   ├── test_mfa.py
+    │   │   └── test_session.py
+    │   ├── test_managers/
+    │   │   ├── test_user_manager.py
+    │   │   └── test_tenant_manager.py
+    │   └── test_services/
+    │       ├── test_auth.py
+    │       ├── test_mfa.py
+    │       ├── test_permissions.py
+    │       └── test_audit.py
+    ├── integration/
+    │   ├── test_api/
+    │   │   ├── test_auth_endpoints.py
+    │   │   ├── test_user_endpoints.py
+    │   │   ├── test_role_endpoints.py
+    │   │   ├── test_mfa_endpoints.py
+    │   │   └── test_audit_endpoints.py
+    │   ├── test_websocket/
+    │   │   ├── test_auth_ws.py
+    │   │   └── test_notifications.py
+    │   └── test_workflows/
+    │       ├── test_registration_flow.py
+    │       └── test_invitation_flow.py
+    ├── security/
+    │   ├── test_tenant_isolation.py
+    │   ├── test_role_isolation.py
+    │   ├── test_jwt_security.py
+    │   ├── test_mfa_required.py
+    │   ├── test_rate_limiting.py
+    │   ├── test_password_policy.py
+    │   └── test_audit_logging.py
+    ├── performance/
+    │   ├── test_auth_performance.py
+    │   └── test_user_query_count.py
+    └── e2e/
+        ├── test_user_journey.py
+        └── test_admin_journey.py
