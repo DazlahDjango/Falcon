@@ -1,0 +1,502 @@
+Falcon Platform Management System Architecture(Hybrid development of SaaS engine)
+
+falcon_pms/
+├── manage.py
+├── pyproject.toml                    # Modern Python project config (replace requirements)
+├── .env.example
+├── docker-compose.yml
+├── docker-compose.override.yml       # Dev overrides
+├── Dockerfile
+├── Dockerfile.celery                  # Separate celery image
+├── .pre-commit-config.yaml           # Code quality hooks
+├── .gitignore
+├── README.md
+├── CONTRIBUTING.md
+├── CHANGELOG.md
+│
+├── config/                            # Project configuration (refined)
+│   ├── __init__.py
+│   ├── settings/
+│   │   ├── __init__.py
+│   │   ├── base.py                    # Base settings (My principle enforced)
+│   │   ├── development.py
+│   │   ├── staging.py
+│   │   ├── production.py
+│   │   └── test.py                    # Test settings with isolation
+│   ├── urls/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── v1.py                  # v1 API endpoints
+│   │   │   └── v2.py                  # Reserved for ML/AI
+│   │   ├── admin.py                   # Admin URLs (customizable)
+│   │   └── health.py                  # Health check endpoints
+│   ├── wsgi.py
+│   ├── asgi.py
+│   ├── celery.py
+│   └── middleware/
+│       ├── __init__.py
+│       ├── tenant.py                  # Tenant resolution
+│       ├── audit.py                   # Request auditing
+│       ├── security.py                # Security headers
+│       └── rate_limit.py              # Rate limiting by tenant
+│
+├── apps/
+│   ├── __init__.py
+│   │
+│   ├── core/                           # Core functionality (reorganized)
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py                # Abstract base models
+│   │   │   ├── tenant_mixin.py        # Tenant-aware mixin
+│   │   │   ├── audit_mixin.py         # Audit logging mixin
+│   │   │   ├── soft_delete.py         # Soft delete mixin
+│   │   │   └── uuid_model.py          # UUID primary key base
+│   │   ├── managers/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── tenant_manager.py      # Auto-filter by tenant
+│   │   │   └── query_count.py         # Debug query tracking
+│   │   ├── exceptions/
+│   │   │   ├── __init__.py
+│   │   │   ├── tenant.py
+│   │   │   ├── security.py
+│   │   │   └── business.py
+│   │   ├── constants/
+│   │   │   ├── __init__.py
+│   │   │   ├── sectors.py             # NGO, commercial, public, consulting
+│   │   │   ├── kpi_types.py           # Count, percentage, financial, etc.
+│   │   │   ├── roles.py               # System roles
+│   │   │   └── notification_triggers.py
+│   │   └── utils/
+│   │       ├── __init__.py
+│   │       ├── cache.py               # Tenant-aware caching
+│   │       ├── validators.py
+│   │       └── helpers.py
+│   │
+│   ├── tenant/                         # Multi-tenancy (renamed from organisations)
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── client.py              # Client organization (renamed)
+│   │   │   ├── subscription.py        # Plans, billing, features
+│   │   │   ├── domain.py              # Custom domains
+│   │   │   └── settings.py            # Tenant-specific settings
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── provisioning.py        # New tenant setup
+│   │   │   ├── isolation.py           # RLS/Schema management
+│   │   │   └── billing.py             # Stripe integration
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── serializers.py
+│   │   │   ├── views.py
+│   │   │   └── permissions.py
+│   │   └── tasks.py
+│   │
+│   ├── accounts/                       # User & auth (refined)
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── user.py
+│   │   │   ├── role.py                # Role definitions
+│   │   │   ├── permission.py          # Custom permissions
+│   │   │   ├── profile.py             # User profile
+│   │   │   ├── mfa.py                 # MFA devices
+│   │   │   └── session.py             # Session tracking
+│   │   ├── managers/
+│   │   │   ├── __init__.py
+│   │   │   └── user.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── registration.py
+│   │   │   ├── mfa.py
+│   │   │   ├── sso.py                 # SSO integration
+│   │   │   └── permissions.py         # Permission checking
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── v1/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── auth.py            # Login, logout, refresh
+│   │   │   │   ├── users.py
+│   │   │   │   ├── roles.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── permissions.py
+│   │   │   │   └── urls.py
+│   │   ├── signals.py
+│   │   ├── tasks.py
+│   │   └── validators.py
+│   │
+│   ├── structure/                      # Org structure (new, replaces organisations dept)
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── department.py
+│   │   │   ├── team.py
+│   │   │   ├── hierarchy.py           # Reporting structure
+│   │   │   └── position.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── hierarchy_builder.py   # Build org tree
+│   │   │   └── reporting_chain.py
+│   │   └── api/
+│   │
+│   ├── kpi/                            # KPI engine (consolidated)
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── framework.py           # KPI frameworks per sector
+│   │   │   ├── definition.py          # KPI definition (renamed)
+│   │   │   ├── target.py              # Annual targets
+│   │   │   ├── phasing.py             # Monthly distribution
+│   │   │   ├── actual.py              # Monthly actuals
+│   │   │   ├── validation.py          # Validation records
+│   │   │   ├── category.py            # KPI categories
+│   │   │   └── template.py            # Sector templates
+│   │   ├── engine/                     # Calculation core (refined)
+│   │   │   ├── __init__.py
+│   │   │   ├── calculator.py          # Main calculation orchestrator
+│   │   │   ├── formulas.py            # Formula implementations
+│   │   │   ├── traffic_light.py       # Green/Yellow/Red logic
+│   │   │   ├── aggregator.py          # Roll-up calculations
+│   │   │   └── phasing_engine.py      # Target phasing logic
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── import_export.py
+│   │   │   ├── validation.py          # Supervisor validation logic
+│   │   │   ├── cascade.py             # Target cascading
+│   │   │   └── scoring.py             # Weighted scoring
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── v1/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── kpis.py
+│   │   │   │   ├── targets.py
+│   │   │   │   ├── actuals.py
+│   │   │   │   ├── validation.py
+│   │   │   │   ├── dashboards.py
+│   │   │   │   └── urls.py
+│   │   └── tasks.py
+│   │
+│   ├── workflows/                      # Approval & validation flows
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── submission.py
+│   │   │   ├── approval.py
+│   │   │   ├── comment.py
+│   │   │   └── escalation.py
+│   │   ├── flows/                      # Viewflow definitions
+│   │   │   ├── __init__.py
+│   │   │   ├── kpi_validation.py
+│   │   │   ├── performance_review.py
+│   │   │   ├── pip_approval.py
+│   │   │   └── target_cascade.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── orchestrator.py
+│   │   │   ├── notifications.py
+│   │   │   └── reminders.py
+│   │   └── api/
+│   │
+│   ├── reviews/                        # Performance reviews & PIPs
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── cycle.py               # Review cycles
+│   │   │   ├── self_assessment.py
+│   │   │   ├── supervisor_review.py
+│   │   │   ├── pip.py                 # Performance Improvement Plans
+│   │   │   ├── feedback.py            # 360 feedback
+│   │   │   └── rating.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── calculator.py          # Final score calculation
+│   │   │   ├── calibration.py         # Calibration sessions
+│   │   │   └── pip_tracker.py
+│   │   └── api/
+│   │
+│   ├── mission/                        # Mission Status Reports (new)
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── report.py
+│   │   │   ├── section.py
+│   │   │   ├── commentary.py
+│   │   │   └── template.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── generator.py
+│   │   │   ├── exporter.py            # PDF export
+│   │   │   └── ai_summary.py          # v2: AI-generated summaries
+│   │   └── api/
+│   │
+│   ├── tasks/                          # Tasks & dependencies (renamed)
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── task.py
+│   │   │   ├── dependency.py
+│   │   │   ├── assignment.py
+│   │   │   └── status.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── dependency_graph.py
+│   │   │   └── notifications.py
+│   │   └── api/
+│   │
+│   ├── dashboard/                      # Hierarchical dashboards
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── views/                      # Class-based views
+│   │   │   ├── __init__.py
+│   │   │   ├── executive.py
+│   │   │   ├── manager.py
+│   │   │   ├── team.py
+│   │   │   └── individual.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── hierarchy_service.py   # Core drill-down logic
+│   │   │   ├── aggregator.py
+│   │   │   ├── cache_service.py
+│   │   │   └── widgets.py
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── v1/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── team_dashboard.py
+│   │   │   │   ├── executive.py
+│   │   │   │   ├── widgets.py
+│   │   │   │   └── urls.py
+│   │   └── templatetags/
+│   │
+│   ├── reports/                        # Analytics & exports
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── generators/
+│   │   │   ├── __init__.py
+│   │   │   ├── pdf.py
+│   │   │   ├── excel.py
+│   │   │   ├── powerpoint.py
+│   │   │   └── csv.py
+│   │   ├── analytics/
+│   │   │   ├── __init__.py
+│   │   │   ├── trends.py
+│   │   │   ├── compliance.py
+│   │   │   ├── heatmap.py
+│   │   │   └── predictive.py          # v2: ML predictions
+│   │   ├── queries/
+│   │   │   ├── __init__.py
+│   │   │   ├── kpi_aggregates.py
+│   │   │   └── performance_trends.py
+│   │   └── tasks.py
+│   │
+│   ├── notifications/                  # Notification engine
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── template.py
+│   │   │   ├── queue.py
+│   │   │   ├── delivery.py
+│   │   │   └── preference.py
+│   │   ├── channels/
+│   │   │   ├── __init__.py
+│   │   │   ├── email.py
+│   │   │   ├── sms.py
+│   │   │   ├── in_app.py
+│   │   │   └── webhook.py
+│   │   ├── consumers/                  # WebSocket consumers
+│   │   │   ├── __init__.py
+│   │   │   └── notification.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── dispatcher.py
+│   │   │   ├── scheduler.py
+│   │   │   └── batch.py
+│   │   └── tasks.py
+│   │
+│   └── ml/                              # v2: ML/AI module (new)
+│       ├── __init__.py
+│       ├── apps.py
+│       ├── models/
+│       │   ├── __init__.py
+│       │   ├── prediction.py
+│       │   ├── anomaly.py
+│       │   └── insight.py
+│       ├── pipelines/
+│       │   ├── __init__.py
+│       │   ├── kpi_forecast.py
+│       │   ├── risk_detection.py
+│       │   └── sentiment.py
+│       └── services/
+│
+├── libs/                               # Shared libraries (refined)
+│   ├── __init__.py
+│   ├── security/
+│   │   ├── __init__.py
+│   │   ├── encryption.py              # Field-level encryption
+│   │   ├── audit.py                   # Audit decorators
+│   │   ├── rate_limit.py              # Rate limiting utils
+│   │   └── sanitizers.py
+│   ├── storage/
+│   │   ├── __init__.py
+│   │   ├── s3.py                      # S3 client with encryption
+│   │   ├── tenant_storage.py          # Tenant-isolated storage
+│   │   └── presigned.py
+│   ├── cache/
+│   │   ├── __init__.py
+│   │   ├── tenant_cache.py            # Tenant-aware caching
+│   │   └── invalidator.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── date_utils.py
+│       ├── math_utils.py
+│       ├── validators.py
+│       ├── decorators.py
+│       └── context_managers.py
+│
+├── static/                             # Static files (refined)
+│   ├── global/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── img/
+│   └── tenant/                         # Tenant-specific static
+│       └── {tenant_id}/
+│
+├── media/                              # User uploads
+│   └── tenants/
+│       └── {tenant_id}/                # Tenant-isolated
+│           ├── evidence/
+│           ├── reports/
+│           └── avatars/
+│
+├── templates/                          # Templates (refined)
+│   ├── base/
+│   │   ├── base.html
+│   │   ├── header.html
+│   │   └── footer.html
+│   ├── errors/
+│   │   ├── 400.html
+│   │   ├── 403.html
+│   │   ├── 404.html
+│   │   └── 500.html
+│   ├── email/
+│   │   ├── base.html
+│   │   ├── kpi_validation.html
+│   │   ├── review_reminder.html
+│   │   └── pip_notification.html
+│   └── components/
+│
+├── fixtures/                           # Initial data (refined)
+│   ├── roles.yaml
+│   ├── sectors.yaml
+│   ├── kpi_templates/
+│   │   ├── commercial.yaml
+│   │   ├── ngo.yaml
+│   │   ├── public_sector.yaml
+│   │   └── consulting.yaml
+│   └── notification_templates.yaml
+│
+├── scripts/                            # Utility scripts (refined)
+│   ├── deployment/
+│   │   ├── deploy.sh
+│   │   ├── rollback.sh
+│   │   └── health_check.sh
+│   ├── maintenance/
+│   │   ├── backup.py
+│   │   ├── clean_uploads.py
+│   │   └── archive_old_data.py
+│   └── seed/
+│       ├── seed_dev.py
+│       └── seed_demo_tenants.py
+│
+├── tests/                              # Comprehensive testing (refined)
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── factories/
+│   │   ├── __init__.py
+│   │   ├── tenant.py
+│   │   ├── user.py
+│   │   ├── kpi.py
+│   │   ├── review.py
+│   │   └── task.py
+│   ├── unit/
+│   │   ├── test_models/
+│   │   │   ├── test_tenant.py
+│   │   │   ├── test_kpi.py
+│   │   │   └── test_workflow.py
+│   │   ├── test_services/
+│   │   │   ├── test_calculator.py
+│   │   │   ├── test_phasing.py
+│   │   │   └── test_hierarchy.py
+│   │   └── test_utils/
+│   ├── integration/
+│   │   ├── test_api/
+│   │   │   ├── test_kpi_endpoints.py
+│   │   │   ├── test_dashboard.py
+│   │   │   └── test_auth.py
+│   │   ├── test_workflows/
+│   │   │   ├── test_validation_flow.py
+│   │   │   └── test_review_flow.py
+│   │   └── test_calculations/
+│   ├── security/
+│   │   ├── test_tenant_isolation.py
+│   │   ├── test_authorization.py
+│   │   ├── test_encryption.py
+│   │   ├── test_rate_limiting.py
+│   │   └── test_audit_log.py
+│   ├── performance/
+│   │   ├── test_query_count.py
+│   │   ├── test_caching.py
+│   │   └── test_load.py
+│   └── e2e/
+│       ├── test_onboarding.py
+│       └── test_full_cycle.py
+│
+├── docs/                               # Documentation (refined)
+│   ├── api/
+│   │   ├── v1/
+│   │   └── v2/
+│   ├── architecture/
+│   │   ├── multi_tenancy.md
+│   │   ├── security.md
+│   │   └── data_flow.md
+│   ├── deployment/
+│   │   ├── aws.md
+│   │   ├── docker.md
+│   │   └── kubernetes.md
+│   ├── development/
+│   │   ├── setup.md
+│   │   ├── testing.md
+│   │   └── contributing.md
+│   └── user_guides/
+│
+├── .github/                            # CI/CD
+│   ├── workflows/
+│   │   ├── test.yml
+│   │   ├── security.yml
+│   │   ├── deploy_staging.yml
+│   │   └── deploy_production.yml
+│   ├── ISSUE_TEMPLATE/
+│   └── PULL_REQUEST_TEMPLATE.md
+│
+├── .pre-commit-config.yaml
+├── .dockerignore
+├── .flake8
+├── .pylintrc
+├── mypy.ini
+├── pytest.ini
+└── sonar-project.properties

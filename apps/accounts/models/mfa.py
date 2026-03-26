@@ -3,7 +3,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from .base import BaseModel
-from .user import User
 
 
 class MFADevice(BaseModel):
@@ -11,7 +10,7 @@ class MFADevice(BaseModel):
     MFA devices for user authentication.
     Supports TOTP, SMS, Email, and Hardware tokens.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mfa_devices', verbose_name=_('user'))
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='auth_devices', verbose_name=_('user'))
     
     # Device type
     DEVICE_TOTP = 'totp'
@@ -88,7 +87,7 @@ class MFADevice(BaseModel):
         self.save(update_fields=['is_verified', 'verified_at'])
 
 class MFABackupCode(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='backup_codes', verbose_name=_('user'))
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='backup_codes', verbose_name=_('user'))
     # Code fields
     code = models.CharField(_('backup code'), max_length=10, unique=True, db_index=True)
     code_hash = models.CharField(_('code hash'), max_length=128, help_text='Hashed code for security')
@@ -138,7 +137,7 @@ class MFABackupCode(BaseModel):
         return codes
     
 class MFAAuditLog(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mfa_audit_logs', verbose_name=_('user'))
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='mfa_audit_logs', verbose_name=_('user'))
     device = models.ForeignKey(MFADevice, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
     # Event type
     EVENT_ATTEMPT = 'attempt'

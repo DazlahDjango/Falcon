@@ -41,6 +41,7 @@ env = environ.Env(
     RATELIMIT_ENABLE=(bool, True),
 )
 
+
 # .env file
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
@@ -96,7 +97,7 @@ THIRD_PARTY_APPS = [
     # 'django_fsm',
     'viewflow',
     # Notifications
-    # 'notifications',
+    'notifications',
     'django_apscheduler',
     # Reporting
     'easy_pdf',
@@ -149,9 +150,10 @@ MIDDLEWARE = [
     # Security and monitoring
     'axes.middleware.AxesMiddleware',
     'auditlog.middleware.AuditlogMiddleware',
-    # 'django_multitenant.middlewares.MultitenantMiddleware',
+    'django_multitenant.middlewares.MultitenantMiddleware',
     # Rate limiting
     'django_ratelimit.middleware.RatelimitMiddleware',
+    # Custom middleware
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -197,6 +199,22 @@ DATABASES = {
 
 # DATABASE_ROUTERS = ['django_multitenant.middlewares.TenantRouter']
 
+# ============================================================
+# Frontend Configuration (for email links, redirects, etc.)
+# ============================================================
+
+# Base URL for the frontend application
+# Used for:
+# - Email verification links
+# - Password reset links  
+# - OAuth redirect URIs
+# - Invitation links
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+# Optional: Different URLs for different environments
+FRONTEND_VERIFY_URL = os.environ.get('FRONTEND_VERIFY_URL', f"{FRONTEND_URL}/verify-email")
+FRONTEND_RESET_PASSWORD_URL = os.environ.get('FRONTEND_RESET_PASSWORD_URL', f"{FRONTEND_URL}/reset-password")
+FRONTEND_INVITE_URL = os.environ.get('FRONTEND_INVITE_URL', f"{FRONTEND_URL}/accept-invite")
 
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -227,6 +245,69 @@ AUTH_PASSWORD_VALIDATORS = [
     # {'NAME': 'apps.accounts.validators.UppercaseValidator'},  # Custom
     # {'NAME': 'apps.accounts.validators.SpecialCharValidator'},  # Custom
 ]
+
+# OAuth Configuration for SSO (Phase 5 - Advanced Features)
+OAUTH_PROVIDERS = {
+    # Google OAuth2
+    'google': {
+        'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
+        'client_secret': os.environ.get('GOOGLE_CLIENT_SECRET', ''),
+        'auth_url': 'https://accounts.google.com/o/oauth2/v2/auth',
+        'token_url': 'https://oauth2.googleapis.com/token',
+        'userinfo_url': 'https://www.googleapis.com/oauth2/v3/userinfo',
+        'redirect_uri': os.environ.get('GOOGLE_REDIRECT_URI', ''),
+        'scope': 'openid email profile',
+        'state': None,  # Optional: for CSRF protection
+    },
+    
+    # Microsoft / Azure AD OAuth2
+    'microsoft': {
+        'client_id': os.environ.get('MICROSOFT_CLIENT_ID', ''),
+        'client_secret': os.environ.get('MICROSOFT_CLIENT_SECRET', ''),
+        'auth_url': 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+        'token_url': 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+        'userinfo_url': 'https://graph.microsoft.com/v1.0/me',
+        'redirect_uri': os.environ.get('MICROSOFT_REDIRECT_URI', ''),
+        'scope': 'openid email profile User.Read',
+        'state': None,
+    },
+    
+    # GitHub OAuth2
+    'github': {
+        'client_id': os.environ.get('GITHUB_CLIENT_ID', ''),
+        'client_secret': os.environ.get('GITHUB_CLIENT_SECRET', ''),
+        'auth_url': 'https://github.com/login/oauth/authorize',
+        'token_url': 'https://github.com/login/oauth/access_token',
+        'userinfo_url': 'https://api.github.com/user',
+        'redirect_uri': os.environ.get('GITHUB_REDIRECT_URI', ''),
+        'scope': 'read:user user:email',
+        'state': None,
+    },
+    
+    # LinkedIn OAuth2
+    'linkedin': {
+        'client_id': os.environ.get('LINKEDIN_CLIENT_ID', ''),
+        'client_secret': os.environ.get('LINKEDIN_CLIENT_SECRET', ''),
+        'auth_url': 'https://www.linkedin.com/oauth/v2/authorization',
+        'token_url': 'https://www.linkedin.com/oauth/v2/accessToken',
+        'userinfo_url': 'https://api.linkedin.com/v2/userinfo',
+        'redirect_uri': os.environ.get('LINKEDIN_REDIRECT_URI', ''),
+        'scope': 'openid profile email',
+        'state': None,
+    },
+    
+    # Facebook OAuth2
+    'facebook': {
+        'client_id': os.environ.get('FACEBOOK_CLIENT_ID', ''),
+        'client_secret': os.environ.get('FACEBOOK_CLIENT_SECRET', ''),
+        'auth_url': 'https://www.facebook.com/v18.0/dialog/oauth',
+        'token_url': 'https://graph.facebook.com/v18.0/oauth/access_token',
+        'userinfo_url': 'https://graph.facebook.com/me',
+        'redirect_uri': os.environ.get('FACEBOOK_REDIRECT_URI', ''),
+        'scope': 'email public_profile',
+        'state': None,
+    },
+}
 
 
 # Internationalization
@@ -537,7 +618,7 @@ EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@falconpms.com')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='operations@falconigc.com')
 
 # ----------------------------------------------------------------------------
 # API DOCUMENTATION (Swagger/OpenAPI)

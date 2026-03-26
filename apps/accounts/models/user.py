@@ -53,6 +53,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     locked_until = models.DateTimeField(_('locked until'), null=True, blank=True)
     
     # MFA fields
+    mfa_devices = models.ManyToManyField('accounts.MFADevice', related_name='users', blank=True)
     mfa_enabled = models.BooleanField(_('MFA enabled'), default=False)
     mfa_secret = models.CharField(_('MFA secret'), max_length=32, blank=True)
     mfa_backup_codes = models.JSONField(_('backup codes'), default=list, blank=True)
