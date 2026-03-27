@@ -122,7 +122,7 @@ THIRD_PARTY_APPS = [
 ]
 
 PROJECT_APPS = [
-    'apps.accounts',
+    'apps.accounts.apps.AccountsConfig',
     'apps.core',
     'apps.dashboard',
     'apps.kpi',

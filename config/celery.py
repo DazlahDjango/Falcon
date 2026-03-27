@@ -22,39 +22,97 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Load task modules from all registered Django app configs
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
-
-@app.task(bind=True, ignore_result=True)
-def debug_task(self):
-    print(f'Request: {self.request!r}')
-
-
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    # Calls test('hello') every 10 seconds
-    sender.add_periodic_task(10.0, test.s('hello'), name='hello every 10')
+app.conf.beat_schedule = {
+    # Session cleanup - every hour
+    'cleanup-expired-sessions': {
+        'task': 'accounts.cleanup_expired_sessions',
+        'schedule': crontab(minute=0, hour='*/1'),  # Every hour
+        'options': {'expires': 3600},
+    },
     
-    # Calls test('world') every 30 seconds (with expiration)
-    sender.add_periodic_task(30.0, test.s('world'), expires=10, name='hello every 30')
+    # Token blacklist cleanup - daily at midnight
+    'cleanup-expired-blacklist': {
+        'task': 'accounts.cleanup_expired_blacklist',
+        'schedule': crontab(minute=0, hour=0),  # Daily at midnight
+        'options': {'expires': 86400},
+    },
     
-    # Executes backup_database() at 2:00 AM daily
-    sender.add_periodic_task(
-        crontab(hour=2, minute=0), 
-        backup_database.s(), 
-        name='backup_database_daily'
-    )
+    # Audit log cleanup - monthly
+    'cleanup-old-audit-logs': {
+        'task': 'accounts.cleanup_old_audit_logs',
+        'schedule': crontab(minute=0, hour=2, day_of_month=1),  # 1st day of month at 2 AM
+        'options': {'expires': 86400},
+        'kwargs': {'retention_days': 365},
+    },
+    
+    # Login attempts cleanup - weekly
+    'cleanup-old-login-attempts': {
+        'task': 'accounts.cleanup_old_login_attempts',
+        'schedule': crontab(minute=0, hour=3, day_of_week=0),  # Sunday at 3 AM
+        'options': {'expires': 86400},
+        'kwargs': {'retention_days': 90},
+    },
+    
+    # Unlock locked accounts - every 15 minutes
+    'unlock-locked-accounts': {
+        'task': 'accounts.unlock_locked_accounts',
+        'schedule': crontab(minute='*/15'),  # Every 15 minutes
+        'options': {'expires': 900},
+    },
+    
+    # Inactive user reminders - weekly
+    'remind-inactive-users': {
+        'task': 'accounts.remind_inactive_users',
+        'schedule': crontab(minute=0, hour=9, day_of_week=1),  # Monday at 9 AM
+        'options': {'expires': 86400},
+        'kwargs': {'days_inactive': 30},
+    },
+    
+    # Password expiry check - daily
+    'check-password-expiry': {
+        'task': 'accounts.check_password_expiry',
+        'schedule': crontab(minute=0, hour=8),  # Daily at 8 AM
+        'options': {'expires': 86400},
+        'kwargs': {'expiry_days': 90},
+    },
+}
 
+# Optional: Configure task time limits
+app.conf.task_time_limit = 30 * 60  # 30 minutes
+app.conf.task_soft_time_limit = 25 * 60  # 25 minutes
 
-@app.task
-def test(arg):
-    print(f"Test task: {arg}")
-    return arg
+# Optional: Configure task result expiration
+app.conf.result_expires = 24 * 60 * 60  # 24 hours
 
+# Optional: Configure task tracking
+app.conf.task_track_started = True
+app.conf.task_send_sent_event = True
 
-@app.task
-def backup_database():
-    print('Backing up database at 2:00 AM')
-    # TODO: Implement actual database backup logic
-    # You could call a management command here
-    # from django.core.management import call_command
-    # call_command('dbbackup')
-    return "Database backup completed"
+# Optional: Configure task queues (if using multiple queues)
+app.conf.task_queues = {
+    'default': {
+        'exchange': 'default',
+        'routing_key': 'default',
+    },
+    'high_priority': {
+        'exchange': 'high_priority',
+        'routing_key': 'high_priority',
+    },
+    'email': {
+        'exchange': 'email',
+        'routing_key': 'email',
+    },
+    'cleanup': {
+        'exchange': 'cleanup',
+        'routing_key': 'cleanup',
+    },
+}
+
+# Optional: Configure task routing
+app.conf.task_routes = {
+    'accounts.send_*': {'queue': 'email'},
+    'accounts.cleanup_*': {'queue': 'cleanup'},
+    'accounts.unlock_*': {'queue': 'cleanup'},
+    'accounts.remind_*': {'queue': 'email'},
+    'accounts.check_*': {'queue': 'cleanup'},
+}

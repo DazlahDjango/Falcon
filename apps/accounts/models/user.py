@@ -2,6 +2,7 @@
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
+from datetime import timedelta
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, EmailValidator
 from .base import BaseModel
@@ -51,6 +52,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     last_login_agent = models.CharField(_('last login user agent'), max_length=500, blank=True)
     login_attempts = models.PositiveSmallIntegerField(_('login attempts'), default=0)
     locked_until = models.DateTimeField(_('locked until'), null=True, blank=True)
+    password_last_changed = models.DateTimeField(default=timezone.now)
     
     # MFA fields
     mfa_devices = models.ManyToManyField('accounts.MFADevice', related_name='users', blank=True)
@@ -162,3 +164,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         if obj and hasattr(obj, 'tenant_id') and obj.tenant_id != self.tenant_id:
             return False
         return self.has_perm(permission_codename, obj)
+    
+    def is_password_expired(self, expiry_days=90):
+        expiry_date = self.password_last_changed + timedelta(days=expiry_days)
+        return timezone.now() > expiry_date
