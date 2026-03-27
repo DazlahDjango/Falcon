@@ -358,11 +358,45 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'apps.accounts.api.v1.throttles.AnonRateThrottle',
+        'apps.accounts.api.v1.throttles.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        # Base throttles
+        'anon': '100/day',           # Anonymous users
+        'user': '1000/day',          # Authenticated users
+        # Auth endpoints
+        'login': '5/minute',         # Login attempts
+        'register': '3/hour',        # Registrations
+        'password_reset': '3/hour',  # Password reset requests
+        'email_verification': '2/hour',  # Email verification resend
+        'session_refresh': '10/minute',  # Session refresh
+        # MFA endpoints
+        'mfa': '5/minute',           # MFA verification
+        'mfa_enrollment': '3/hour',  # MFA enrollment
+        'mfa_backup': '10/hour',     # Backup code attempts
+        # Endpoint throttles
+        'sensitive': '30/minute',    # Sensitive endpoints
+        'admin': '200/hour',         # Admin endpoints
+        'bulk': '5/hour',            # Bulk operations
+        'report': '10/hour',         # Report generation
+        # User management
+        'user_creation': '5/hour',   # User signup
+        'profile_update': '30/hour', # Profile updates
+        'invitation': '20/hour',     # Invitation sending
+        # Tenant throttles
+        'tenant': '5000/hour',       # Per tenant overall
+        'tenant_user_creation': '50/day',  # New users per tenant
+        'tenant_api': '10000/day',   # API calls per tenant
+    },
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.openapi.AutoSchema',
     'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%S%z',
     'COERCE_DECIMAL_TO_STRING': False,
 }
@@ -631,6 +665,9 @@ SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
     'SCHEMA_PATH_PREFIX': '/api/v[0-9]',
     'SECURITY': [{'BearerAuth': []}],
+    'TAGS': [
+        {'name': 'auth', 'description': 'Authentication endpoints'},
+    ],
 }
 
 SWAGGER_SETTINGS = {
