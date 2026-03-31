@@ -1,4 +1,4 @@
-from .base import BaseFilter, DataRangeFilter, SearchFilter, OrderingFilter
+from .base import BaseFilter, DateRangeFilter, SearchFilter, OrderingFilter
 from .user import UserFilter
 from .profile import ProfileFilter
 from .session import SessionFilter
@@ -7,7 +7,7 @@ from .audit import AuditLogFilter
 
 __all__ = [
     # Base
-    'BaseFilter', 'DataRangeFilter', 'SearchFilter', 'OrderingFilter',
+    'BaseFilter', 'DateRangeFilter', 'SearchFilter', 'OrderingFilter',
     # User
     'UserFilter',
     # Profile

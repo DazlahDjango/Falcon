@@ -8,25 +8,38 @@ from apps.accounts.managers import UserSessionManager
 logger = logging.getLogger(__name__)
 
 class SessionService:
-    def create_session(self, user: User, session_key: str = None, jwt_token_id: str = None,ip_address: str = None, user_agent: str = None, mfa_verified: bool = False, **kwargs) -> UserSession:
+    def __init__(self):
+        pass
+    
+    def create_session(self, user: User, session_key: str = None, jwt_token_id: str = None,
+                       ip_address: str = None, user_agent: str = None, 
+                       mfa_verified: bool = False, **kwargs) -> UserSession:
+        """Create a new session for a user."""
         device_info = self._parse_user_agent(user_agent) if user_agent else {}
         is_trusted = self._is_trusted_device(user, ip_address, user_agent)
-        session = UserSessionManager.create_session(
+        session = UserSession.objects.create(
             user=user,
+            tenant_id=user.tenant_id,
             session_key=session_key or str(uuid.uuid4()),
-            jwt_token_id=jwt_token_id,
-            ip_address=ip_address,
+            jwt_token_id=jwt_token_id or '',
+            ip_address=ip_address or '',
             user_agent=user_agent[:500] if user_agent else '',
             device_type=device_info.get('device_type', ''),
             browser=device_info.get('browser', ''),
             os=device_info.get('os', ''),
+            login_time=timezone.now(),
+            last_activity=timezone.now(),
+            expires_at=timezone.now() + timezone.timedelta(days=7),
+            status='active',
             is_trusted_device=is_trusted,
             mfa_verified=mfa_verified,
             **kwargs
         )
+        
         if session_key:
             user.current_session_key = session_key
             user.save(update_fields=['current_session_key'])
+        
         self._enforce_session_limit(user)
         return session
     
@@ -93,7 +106,10 @@ class SessionService:
             return None
         
     def cleanup_expired_sessions(self) -> int:
-        return UserSessionManager.cleanup_expired()
+        return UserSession.objects.filter(
+            expires_at__lt=timezone.now(),
+            status='active'
+        ).update(status='expired')
     
     def _parse_user_agent(self, user_agent_string: str) -> Dict[str, str]:
         try:
@@ -111,8 +127,15 @@ class SessionService:
             }
         
     def _is_trusted_device(self, user: User, ip_address: str, user_agent: str) -> bool:
-        existing = UserSession.objects.filter(
-            user=user, ip_address=ip_address, user_agent=user_agent[:500], status='active', is_trusted_device=True
+        if not ip_address or not user_agent:
+            return False
+        
+        return UserSession.objects.filter(
+            user=user, 
+            ip_address=ip_address, 
+            user_agent=user_agent[:500] if user_agent else '', 
+            status='active', 
+            is_trusted_device=True
         ).exists()
 
     def _enforce_session_limit(self, user: User, max_sessions: int = 5):

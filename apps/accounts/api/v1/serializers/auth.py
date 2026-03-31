@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _ 
 from .base import BaseSerializer
+from .user import UserMinimalSerializer
 
 class LoginSerializer(BaseSerializer):
     email = serializers.EmailField(required=True, write_only=True)
@@ -12,7 +13,7 @@ class LoginSerializer(BaseSerializer):
             raise serializers.ValidationError(_("Email and password are required"))
         return attrs
 
-class LoginResponseSerializer(BaseSerializer):
+class LoginResponseSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()
     access_expires_in = serializers.IntegerField()
@@ -20,9 +21,36 @@ class LoginResponseSerializer(BaseSerializer):
     token_type = serializers.CharField(default='Bearer')
     session_id = serializers.CharField()
     user = serializers.SerializerMethodField()
+    
     def get_user(self, obj):
-        from .user import UserMinimalSerializer
-        return UserMinimalSerializer(obj.get('user')).data if obj.get('user') else None
+        user = obj.get('user')
+        if not user:
+            return None
+        if hasattr(user, 'id'):
+            return {
+                'id': str(user.id),  # Convert UUID to string
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': user.role,
+                'is_superuser': user.is_superuser,
+                'is_verified': user.is_verified,
+                'tenant_id': str(user.tenant_id) if user.tenant_id else None,  # Convert if exists
+            }
+        if isinstance(user, dict):
+            return {
+                'id': str(user.get('id')) if user.get('id') else None,
+                'email': user.get('email'),
+                'first_name': user.get('first_name', ''),
+                'last_name': user.get('last_name', ''),
+                'role': user.get('role'),
+                'is_superuser': user.get('is_superuser', False),
+                'is_verified': user.get('is_verified', False),
+                'tenant_id': str(user.get('tenant_id')) if user.get('tenant_id') else None,
+            }
+        
+        # If user is a model instance, use the serializer
+        return UserMinimalSerializer(user).data
     
 class MFATokenSerializer(BaseSerializer):
     requires_mfa =serializers.BooleanField(default=True)

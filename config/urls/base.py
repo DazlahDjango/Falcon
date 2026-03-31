@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.core.exceptions import ImproperlyConfigured
+from django.views.generic import TemplateView
 import warnings
 
 # API Docs
@@ -37,6 +37,8 @@ urlpatterns = [
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('api/schema/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    # API/V1 URLs patterns
+    path('', include('apps.accounts.urls')),
 ]
 
 # Debug toolbar in development
@@ -60,3 +62,5 @@ if getattr(settings, 'DJANGO_ENV', 'development') == 'production' and settings.A
         "Set ADMIN_URL in your .env file to a custom value (e.g., 'x7k9m2p4r8').",
         UserWarning
     )
+
+# Error handlers

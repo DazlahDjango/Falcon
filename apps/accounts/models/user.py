@@ -16,6 +16,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     phone_number = models.CharField(_('phone number'), max_length=20, blank=True, validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter valid phone number')])
     first_name = models.CharField(_('first name'), max_length=50, blank=True)
     last_name = models.CharField(_('last name'), max_length=50, blank=True)
+    department = models.CharField(_('department'), max_length=100, blank=True)
     
     # Roles and permissions
     ROLE_SUPER_ADMIN = 'super_admin'

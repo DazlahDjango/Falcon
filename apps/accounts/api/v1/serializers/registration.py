@@ -60,7 +60,7 @@ class InvitationSerializer(BaseSerializer):
     email = serializers.EmailField(required=True)
     role = serializers.ChoiceField(choices=UserRoles.CHOICES, default=UserRoles.STAFF)
     message = serializers.CharField(required=False, allow_blank=True, max_length=500)
-    # department_id = serializers.UUIDField(required=False)
+    department_id = serializers.UUIDField(required=False)
 
 class InvitationAcceptSerializer(BaseSerializer):
     token = serializers.CharField(required=True)

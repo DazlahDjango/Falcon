@@ -9,7 +9,7 @@ class BaseFilter(filters.FilterSet):
     class Meta:
         abstract = True
 
-class DataRangeFilter(filters.FilterSet):
+class DateRangeFilter(filters.FilterSet):
     start_date = filters.DateFilter(method='filter_start_date')
     end_date = filters.DateFilter(method='filter_end_date')
 

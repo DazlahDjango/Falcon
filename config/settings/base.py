@@ -154,6 +154,12 @@ MIDDLEWARE = [
     # Rate limiting
     'django_ratelimit.middleware.RatelimitMiddleware',
     # Custom middleware
+    # Accounts
+    'apps.accounts.middleware.TenantMiddleware',
+    'apps.accounts.middleware.SessionMiddleware',
+    'apps.accounts.middleware.AuditMiddleware',
+    'apps.accounts.middleware.SecurityMiddleware',
+    'apps.accounts.middleware.TenantAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -209,7 +215,7 @@ DATABASES = {
 # - Password reset links  
 # - OAuth redirect URIs
 # - Invitation links
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 
 # Optional: Different URLs for different environments
 FRONTEND_VERIFY_URL = os.environ.get('FRONTEND_VERIFY_URL', f"{FRONTEND_URL}/verify-email")

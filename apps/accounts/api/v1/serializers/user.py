@@ -6,12 +6,16 @@ from apps.accounts.validators import validate_password_strength
 from .base import DynamicFieldsModelSerializer, AuditSerializer
 
 class UserMinimalSerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
+    id = serializers.UUIDField(format='hex')  # ✅ Converts UUID to string
+    tenant_id = serializers.UUIDField(format='hex', source='tenant.id', read_only=True)
+    
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'full_name', 'role']
+        fields = [
+            'id', 'email', 'first_name', 'last_name', 'role', 'full_name',
+            'is_superuser', 'is_verified', 'tenant_id'
+        ]
         read_only_fields = fields
-    
     def get_full_name(self, obj):
         return obj.get_full_name()
     

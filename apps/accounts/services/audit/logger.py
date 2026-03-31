@@ -1,5 +1,6 @@
 import logging
 from typing import Optional, Dict, Any
+from django.db import transaction
 from django.utils import timezone
 from apps.accounts.models import AuditLog
 from apps.accounts.services.authorization.tenant_access import TenantAccessService
@@ -15,20 +16,34 @@ class AuditService:
             if isinstance(old_value, dict) and isinstance(new_value, dict):
                 changes = self._compute_changes(old_value, new_value)
         
-        return AuditLog.log(
-            user=user,
-            action=action,
-            action_type=action_type,
-            request=request,
-            severity=severity,
-            metadata=metadata or {},
-            old_value=old_value,
-            new_value=new_value,
-            changes=changes,
-            content_type=content_type,
-            object_id=object_id,
-            object_repr=object_repr
-        )
+        log_data = {
+            'user': user,
+            'action': action,
+            'action_type': action_type,
+            'severity': severity,
+            'metadata': metadata or {},
+            'old_value': old_value,
+            'new_value': new_value,
+            'changes': changes,
+            'content_type': content_type,
+            'object_id': str(object_id) if object_id else None,
+            'object_repr': object_repr,
+        }
+        if request:
+            log_data['ip_address'] = self._get_client_ip(request)
+            log_data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:500]
+            log_data['referer'] = request.META.get('HTTP_REFERER', '')[:500]
+            log_data['request_method'] = request.method
+            log_data['request_path'] = request.path
+            log_data['session_key'] = request.session.session_key or ''
+        transaction.on_commit(lambda: self._create_audit_log(log_data))
+
+    def _create_audit_log(self, log_data: Dict):
+        try:
+            AuditLog.objects.create(**log_data)
+            logger.debug(f"Audit log created: {log_data.get('action')}")
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {str(e)}")
     
     def log_login(self, user, request, success: bool = True, failure_reason: str = None):
         return self.log(
