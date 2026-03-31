@@ -10,7 +10,7 @@ import uuid
 
 class User(BaseModel, AbstractUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=False, default=uuid.uuid4)
+    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, default=uuid.uuid4, help_text=_("The unique UUID of the Organisation/Tenant this user belongs to."))
     email = models.EmailField(_('email address'), unique=True, db_index=True, validators=[EmailValidator()])
     username = models.CharField(_('username'), max_length=50, unique=True, db_index=True, validators=[RegexValidator(r'^[\w.@+-]+\Z', 'Enter a valid username.')])
     phone_number = models.CharField(_('phone number'), max_length=20, blank=True, validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter valid phone number')])

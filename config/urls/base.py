@@ -32,6 +32,7 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),  # Added trailing slash
     # Health
     path('health/', include('health_check.urls')),
+    path('api/v1/', include(('config.urls.api', 'v1'))),
     # API Docs
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

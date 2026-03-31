@@ -1,24 +1,45 @@
+"""
+Hierarchy model for reporting structure
+"""
+
 from django.db import models
-from django.conf import settings
-from apps.core.models import BaseModel
-from apps.organisations.managers.structure import HierarchyManager
-from .organisation import Organisation
+from .base import BaseModel
+
 
 class Hierarchy(BaseModel):
     """
-    Defines the reporting lines and supervisors for users in the organisation.
-    Crucial for validations and KPI workflows.
+    Represents reporting relationships between users
     """
-    objects = HierarchyManager()
-
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, related_name='hierarchies')
-    subordinate = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reporting_line')
-    supervisor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.RESTRICT, related_name='subordinates')
-
+    organisation = models.ForeignKey(
+        'Organisation',
+        on_delete=models.CASCADE,
+        related_name='hierarchies',
+        null=True,  # Temporary for migration
+        blank=True
+    )
+    employee = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='reporting_to',
+        null=True,  # Temporary for migration
+        blank=True
+    )
+    supervisor = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='supervises',
+        null=True,  # Temporary for migration
+        blank=True
+    )
+    level = models.PositiveSmallIntegerField(default=1, help_text="Level in hierarchy (1=CEO, higher numbers are deeper)")
+    
     class Meta:
-        verbose_name = "Hierarchy"
-        verbose_name_plural = "Hierarchies"
-        unique_together = ('subordinate', 'supervisor')
-
+        unique_together = [['organisation', 'employee', 'supervisor']]
+        ordering = ['level', 'employee__email']
+        indexes = [
+            models.Index(fields=['organisation', 'employee']),
+            models.Index(fields=['organisation', 'supervisor']),
+        ]
+    
     def __str__(self):
-        return f"Supervisor: {self.supervisor} -> Subordinate: {self.subordinate}"
+        return f"{self.employee} reports to {self.supervisor}"

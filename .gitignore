@@ -195,4 +195,4 @@ pyvenv.cfg
 static_root/
 media_root/
 files/
-archive/
+archive/frontend/dist/

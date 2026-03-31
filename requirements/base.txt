@@ -21,6 +21,7 @@ django-otp==1.7.0
 pyotp==2.9.0
 bcrypt==5.0.0
 cryptography==46.0.5
+django-ratelimit==4.1.0
 
 # Multi-tenancy
 django-multitenant==4.1.1
@@ -80,3 +81,4 @@ jsonfield==3.2.0
 
 # Health Checks
 django-health-check==3.16.0
+stripe==14.4.1

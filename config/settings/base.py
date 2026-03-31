@@ -702,3 +702,9 @@ CSP_DEFAULT_SRC = ("'self'",)
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'",)  # Allow inline for development
 CSP_SCRIPT_SRC = ("'self'",)
 CSP_IMG_SRC = ("'self'", "data:",)
+# ----------------------------------------------------------------------------
+# STRIPE BILLING CONFIGURATION
+# ----------------------------------------------------------------------------
+STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='')
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')

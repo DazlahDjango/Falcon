@@ -16,6 +16,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     curl \
     wget \
     git \
+    nodejs \
+    npm \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
