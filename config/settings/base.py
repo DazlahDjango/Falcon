@@ -160,6 +160,9 @@ MIDDLEWARE = [
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
+    # Organisations Tenant Middleware (ADD THESE TWO)
+    'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
+    'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

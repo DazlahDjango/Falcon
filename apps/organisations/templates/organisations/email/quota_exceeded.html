@@ -1,0 +1,32 @@
+{% extends "organisations/email/base.html" %}
+
+{% block title %}Quota Limit Exceeded{% endblock %}
+
+{% block header_title %}Quota Limit Exceeded ⚠️{% endblock %}
+
+{% block content %}
+<h2>Hello {{ organisation_name }},</h2>
+
+<p>Your organisation has exceeded the <strong>{{ quota_type }} limit</strong> for your current plan.</p>
+
+<div class="warning-box">
+    <strong>⚠️ Quota Details:</strong><br>
+    <strong>Quota Type:</strong> {{ quota_type|title }}<br>
+    <strong>Current Usage:</strong> {{ current_value }} / {{ max_value }}<br>
+    <strong>Plan:</strong> {{ plan_name }}
+</div>
+
+<p>To continue using Falcon PMS without interruption, please consider:</p>
+<ul>
+    <li>Upgrading to a higher plan</li>
+    <li>Reducing usage to stay within your current limit</li>
+    <li>Contacting support for a custom solution</li>
+</ul>
+
+<p>
+    <a href="{{ upgrade_url }}" class="button">Upgrade Plan →</a>
+</p>
+
+<p>Best regards,<br>
+<strong>The Falcon PMS Team</strong></p>
+{% endblock %}
