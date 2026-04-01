@@ -1,0 +1,32 @@
+{% extends "organisations/email/base.html" %}
+
+{% block title %}Domain Verified Successfully{% endblock %}
+
+{% block header_title %}Domain Verified ✅{% endblock %}
+
+{% block content %}
+<h2>Hello {{ organisation_name }},</h2>
+
+<p>Great news! Your custom domain <strong>{{ domain_name }}</strong> has been successfully verified.</p>
+
+<div class="success-box">
+    ✅ Your domain is now active and ready to use.
+</div>
+
+<div class="info-box">
+    <strong>📋 Domain Details:</strong><br>
+    <strong>Domain:</strong> {{ domain_name }}<br>
+    <strong>Status:</strong> Verified<br>
+    <strong>SSL Status:</strong> {{ ssl_status|default:"Active" }}
+</div>
+
+<p>You can now access Falcon PMS at:</p>
+<p><strong><a href="https://{{ domain_name }}">https://{{ domain_name }}</a></strong></p>
+
+<p>
+    <a href="{{ dashboard_url }}" class="button">Go to Dashboard →</a>
+</p>
+
+<p>Best regards,<br>
+<strong>The Falcon PMS Team</strong></p>
+{% endblock %}
