@@ -54,6 +54,7 @@ export const organisationApi = {
   getOne: (id) => api.get(`/organisations/organisations/${id}/`),
   update: (id, data) => api.patch(`/organisations/organisations/${id}/`, data),
   delete: (id) => api.delete(`/organisations/organisations/${id}/`),
+  getCurrent: () => api.get('/organisations/tenants/current/'),
 };
 
 // Department API
@@ -81,6 +82,24 @@ export const teamApi = {
   create: (data) => api.post('/organisations/teams/', data),
   update: (id, data) => api.patch(`/organisations/teams/${id}/`, data),
   delete: (id) => api.delete(`/organisations/teams/${id}/`),
+};
+
+// Location API
+export const locationApi = {
+  getAll: (params) => api.get('/organisations/locations/', { params }),
+  getOne: (id) => api.get(`/organisations/locations/${id}/`),
+  create: (data) => api.post('/organisations/locations/', data),
+  update: (id, data) => api.patch(`/organisations/locations/${id}/`, data),
+  delete: (id) => api.delete(`/organisations/locations/${id}/`),
+};
+
+// Document API
+export const documentApi = {
+  getAll: (params) => api.get('/organisations/documents/', { params }),
+  getOne: (id) => api.get(`/organisations/documents/${id}/`),
+  create: (data) => api.post('/organisations/documents/', data),
+  update: (id, data) => api.patch(`/organisations/documents/${id}/`, data),
+  delete: (id) => api.delete(`/organisations/documents/${id}/`),
 };
 
 // Subscription API
@@ -112,7 +131,7 @@ export const domainApi = {
 // Contact API
 export const contactApi = {
   getAll: () => api.get('/organisations/contacts/'),
-  create: (data) => api.post('/organisations/contacts/', data),
+  create: (data) => api.post('/organisations/contacts/', data), 
   update: (id, data) => api.patch(`/organisations/contacts/${id}/`, data),
   delete: (id) => api.delete(`/organisations/contacts/${id}/`),
 };

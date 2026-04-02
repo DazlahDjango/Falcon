@@ -131,8 +131,55 @@ function App() {
             <OrgChart />
           </div>
         ) : (
-          <div className="card">
-            <p>Welcome to Falcon! Please sign in to view your organisation.</p>
+          <div className="card" style={{ maxWidth: '400px', margin: '0 auto' }}>
+            <h3>Sign In to Falcon</h3>
+            <p>Please sign in to view your organisation chart and data.</p>
+            <form 
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const email = e.target.email.value;
+                const password = e.target.password.value;
+                try {
+                  const res = await fetch('/api/v1/auth/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    localStorage.setItem('access_token', data.access);
+                    if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
+                    window.location.reload();
+                  } else {
+                    alert(data.detail || 'Login failed. Check credentials.');
+                  }
+                } catch (err) {
+                  alert('Network Error: ' + err.message);
+                }
+              }} 
+              style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}
+            >
+              <input 
+                name="email" 
+                type="email" 
+                placeholder="Email address" 
+                required 
+                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white', outline: 'none' }} 
+              />
+              <input 
+                name="password" 
+                type="password" 
+                placeholder="Password" 
+                required 
+                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white', outline: 'none' }} 
+              />
+              <button 
+                type="submit" 
+                style={{ padding: '0.75rem', borderRadius: '0.5rem', background: '#6366f1', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold', marginTop: '0.5rem' }}
+              >
+                Sign In
+              </button>
+            </form>
           </div>
         )}
       </main>

@@ -36,9 +36,10 @@ urlpatterns = [
     # API Docs
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('api/schema/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('api/schema/', schema_view.without_ui (cache_timeout=0), name='schema-json'),
     # API/V1 URLs patterns
     path('', include('apps.accounts.urls')),
+    path('api/v1/organisations/', include('apps.organisations.api.v1.urls')),
 ]
 
 # Debug toolbar in development
@@ -63,4 +64,4 @@ if getattr(settings, 'DJANGO_ENV', 'development') == 'production' and settings.A
         UserWarning
     )
 
-# Error handlers
+# Error handlers 
