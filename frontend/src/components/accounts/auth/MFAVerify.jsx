@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import MFAForm from './components/MFAForm';
+import { MFAForm } from './components/MFAForm';
 import { verifyMfa, clearMfaState } from '../../store/slices/authSlice';
 import { showAlert } from '../../store/slices/uiSlice';
 
