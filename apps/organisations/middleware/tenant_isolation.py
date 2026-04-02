@@ -24,7 +24,7 @@ class TenantIsolationMiddleware(MiddlewareMixin):
         Set up tenant isolation before the view is called
         """
         # Skip for public endpoints
-        public_paths = ['/api/v1/organisations/register/', '/admin/', '/health/']
+        public_paths = ['/api/v1/organisations/register/', '/api/v1/organisations/organisations/', '/admin/', '/health/']
         if any(request.path.startswith(path) for path in public_paths):
             return
 

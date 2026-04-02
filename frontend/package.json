@@ -28,6 +28,7 @@
         "date-fns": "^3.3.1",
         "formik": "^2.4.5",
         "jwt-decode": "^4.0.0",
+        "lucide-react": "^1.7.0",
         "react": "^18.2.0",
         "react-chartjs-2": "^5.2.0",
         "react-dom": "^18.2.0",
@@ -80,7 +81,9 @@
     },
     "jest": {
         "testEnvironment": "jsdom",
-        "setupFilesAfterEnv": ["<rootDir>/src/tests/setup.js"],
+        "setupFilesAfterEnv": [
+            "<rootDir>/src/tests/setup.js"
+        ],
         "moduleNameMapper": {
             "\\.(css|less|scss|sass)$": "identity-obj-proxy",
             "\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/src/tests/__mocks__/fileMock.js"
