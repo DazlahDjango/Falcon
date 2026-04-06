@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { formatDistanceToNow } from 'date-fns';
 import { FiBell, FiCheck, FiX, FiChevronRight } from 'react-icons/fi';
-import { fetchNotifications, markAsRead, markAllAsRead } from '../../../store/slices/notificationSlice';
+import { fetchNotifications, markAsRead, markAllAsRead } from '../../../../store/accounts/slice/notificationSlice';
 
 const NotificationList = ({ limit = 10, showHeader = true }) => {
     const navigate = useNavigate();

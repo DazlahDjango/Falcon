@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { 
     FiUser, FiSettings, FiShield, FiBell, FiHelpCircle, FiLogOut, FiChevronDown, FiActivity, FiLock
 } from "react-icons/fi";
-import { logout } from '../../../store/slices/authSlice';
-import { showAlert } from '../../../store/slices/uiSlice';
+import { logout } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
 
 const UserMenu = () => {
     const [isOpen, setIsOpen] = useEffect(false);
@@ -149,4 +149,4 @@ const UserMenu = () => {
         </div>
     );
 };
-export { UserMenu }
+export default UserMenu;

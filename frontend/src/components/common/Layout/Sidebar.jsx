@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer,
-    FiUsers
 } from 'react-icons/fi';
 const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
     const [expandedMenus, setExpandedMenus] = useState({});

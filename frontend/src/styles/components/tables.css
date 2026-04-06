@@ -1,0 +1,273 @@
+/* ============================================================================
+ * Table Container
+ * ============================================================================ */
+
+.table-container {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    background: var(--card-bg);
+}
+
+/* ============================================================================
+ * Base Table
+ * ============================================================================ */
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+}
+
+.data-table th,
+.data-table td {
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.data-table th {
+    background-color: var(--bg-secondary);
+    font-weight: var(--font-semibold);
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.data-table tbody tr {
+    transition: background-color var(--transition-fast);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--hover-bg);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ============================================================================
+ * Table Variants
+ * ============================================================================ */
+
+.table-striped tbody tr:nth-child(even) {
+    background-color: var(--bg-secondary);
+}
+
+.table-bordered {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid var(--border-light);
+}
+
+.table-compact th,
+.table-compact td {
+    padding: var(--spacing-2) var(--spacing-3);
+}
+
+/* ============================================================================
+ * Sortable Headers
+ * ============================================================================ */
+
+.sortable-header {
+    background: none;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    cursor: pointer;
+    font-weight: var(--font-semibold);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    padding: 0;
+}
+
+.sortable-header:hover {
+    color: var(--primary);
+}
+
+/* ============================================================================
+ * Checkbox Column
+ * ============================================================================ */
+
+.table-checkbox {
+    width: 40px;
+    text-align: center;
+}
+
+.table-checkbox input {
+    cursor: pointer;
+}
+
+/* ============================================================================
+ * Table Actions
+ * ============================================================================ */
+
+.table-actions {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+.table-actions .action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-1);
+    border-radius: var(--radius-sm);
+    color: var(--gray-500);
+    transition: all var(--transition-fast);
+}
+
+.table-actions .action-btn:hover {
+    background-color: var(--hover-bg);
+    color: var(--primary);
+}
+
+.table-actions .action-btn.delete:hover {
+    color: var(--danger);
+}
+
+/* ============================================================================
+ * Table Pagination
+ * ============================================================================ */
+
+.table-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-4);
+    border-top: 1px solid var(--border-light);
+    background: var(--card-bg);
+}
+
+.pagination-info {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: var(--spacing-1) var(--spacing-2);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    transition: all var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--hover-bg);
+    border-color: var(--border-medium);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: var(--spacing-1);
+}
+
+.pagination-page {
+    min-width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.pagination-page:hover {
+    background-color: var(--hover-bg);
+}
+
+.pagination-page.active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+/* ============================================================================
+ * Empty State
+ * ============================================================================ */
+
+.table-empty {
+    text-align: center;
+    padding: var(--spacing-12);
+    color: var(--text-tertiary);
+}
+
+.table-loading {
+    text-align: center;
+    padding: var(--spacing-12);
+}
+
+/* ============================================================================
+ * Responsive Table
+ * ============================================================================ */
+
+@media (max-width: 768px) {
+    .data-table {
+        display: block;
+    }
+    
+    .data-table thead {
+        display: none;
+    }
+    
+    .data-table tbody,
+    .data-table tr,
+    .data-table td {
+        display: block;
+    }
+    
+    .data-table tr {
+        margin-bottom: var(--spacing-4);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+    
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-2) var(--spacing-3);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: var(--font-semibold);
+        color: var(--text-secondary);
+    }
+    
+    .data-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .table-pagination {
+        flex-direction: column;
+        gap: var(--spacing-4);
+    }
+}

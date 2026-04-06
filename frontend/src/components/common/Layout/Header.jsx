@@ -2,18 +2,18 @@ import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown } from "react-icons/fi";
-import { logout } from '../../../store/slices/authSlice';
-import { markAllRead, fetchUnreadCount } from '../../../store/slices/notificationSlice';
-import { showAlert } from '../../../store/slices/uiSlice';
-import { useWebSocket } from '../../../hooks/useWebSocket';
-import { formatDate } from '../../../utils/formatters';
+import { logout } from '../../../store/accounts/slice/authSlice';
+import { markAllAsRead, fetchUnreadCount } from '../../../store/accounts/slice/notificationSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import { useWebSocket } from '../../../hooks/accounts/useWebSocket';
+import { formatDate } from '../../../utils/accounts/formatters';
 
 const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed}) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const userMenuRef = useRef(null);
-    const notificationRef = useRef(null);
+    const notificationsRef = useRef(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { unreadCount, notifications } = useSelector((state) => state.notifications);
@@ -24,7 +24,7 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
             if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
                 setShowUserMenu(false);
             }
-            if (notificationRef.current && !notificationRef.current.contains(even.target)) {
+            if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
                 setShowNotifications(false);
             }
         };
@@ -56,7 +56,7 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
         }
     };
     const handleMarkAllRead = () => {
-        dispatch(markAllRead());
+        dispatch(markAllAsRead());
         setShowNotifications(false);
     };
     const handleViewAllNotifications = () => {

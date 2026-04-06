@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiChevronRight, FiUser, FiArrowUp } from 'react-icons/fi';
-import { fetchReportingChain } from '../../../store/slices/teamSlice';
+import { fetchReportingChain } from '../../../../store/accounts/slice/teamSlice';
 import { SkeletonLoader } from '../../../common/Feedback/LoadingScreen';
 
 const ReportingChain = ({ userId }) => {

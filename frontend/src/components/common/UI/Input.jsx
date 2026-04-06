@@ -89,4 +89,4 @@ const Input = ({
     );
 };
 
-export { Input };
+export default Input;

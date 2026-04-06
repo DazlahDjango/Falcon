@@ -73,4 +73,4 @@ const Button = ({
         </button>
     );
 };
-export { Button };
+export default Button;

@@ -38,4 +38,4 @@ const Badge = ({
         </span>
     );
 };
-export { Badge };
+export default Badge;

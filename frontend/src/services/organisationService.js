@@ -1,8 +1,9 @@
 import { organisationApi, departmentApi, locationApi, documentApi } from './api';
+import { getAccessToken } from './accounts/storage/secureStorage';
 
 export const organisationService = {
   async getCurrent() {
-    const token = localStorage.getItem('access_token');
+    const token = await getAccessToken();
     if (!token) {
       return { data: null };
     }

@@ -6,6 +6,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from apps.core.views import health_check
 import warnings
 
 # API Docs
@@ -38,8 +39,9 @@ urlpatterns = [
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('api/schema/', schema_view.without_ui (cache_timeout=0), name='schema-json'),
     # API/V1 URLs patterns
-    path('', include('apps.accounts.urls')),
+    path('api/v1/', include('apps.accounts.urls')),
     path('api/v1/organisations/', include('apps.organisations.api.v1.urls')),
+    path('api/v1/health/', health_check, name='api-health')
 ]
 
 # Debug toolbar in development

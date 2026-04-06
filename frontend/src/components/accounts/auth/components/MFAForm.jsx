@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiLock } from "react-icons/fi";
-import { Spinner } from '../../../common/UI/Spinner';
+import Spinner from '../../../common/UI/Spinner';
 
 const MFAForm = ({ onSubmit, isLoading, timeLeft, canResend, onResend }) => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -85,4 +85,4 @@ const MFAForm = ({ onSubmit, isLoading, timeLeft, canResend, onResend }) => {
         </form>
     );
 };
-export { MFAForm };
+export default MFAForm;

@@ -61,4 +61,4 @@ const Card = ({
         </div>
     );
 };
-export { Card };
+export default Card;

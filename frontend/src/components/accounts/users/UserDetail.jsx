@@ -5,7 +5,7 @@ import {
     FiMail, FiPhone, FiCalendar, FiBriefcase, FiUsers, 
     FiEdit, FiArrowLeft, FiMoreVertical, FiActivity 
 } from 'react-icons/fi';
-import { fetchUserById } from '../../store/slices/userSlice';
+import { fetchUserById } from '../../../store/accounts/slice/userSlice';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
 import UserRoleBadge from './components/UserRoleBadge';
 import UserStatusBadge from './components/UserStatusBadge';
@@ -16,7 +16,7 @@ const UserDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { selectedUser, isLoading } = useSelector((state) => state.users);
+    const { selectedUser, isLoading } = useSelector((state) => state.user);
     const { user: currentUser } = useSelector((state) => state.auth);
     const [showActions, setShowActions] = useState();
     useEffect(() => {

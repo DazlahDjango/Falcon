@@ -1,0 +1,249 @@
+
+/* ============================================================================
+ * Modal Overlay
+ * ============================================================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal-backdrop);
+    animation: fadeIn var(--transition-normal);
+}
+
+/* ============================================================================
+ * Modal Container
+ * ============================================================================ */
+
+.modal-container {
+    background: var(--card-bg);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideInUp var(--transition-normal);
+    position: relative;
+    z-index: var(--z-modal);
+}
+
+/* Modal Sizes */
+.modal-sm {
+    width: 400px;
+}
+
+.modal-md {
+    width: 600px;
+}
+
+.modal-lg {
+    width: 800px;
+}
+
+.modal-xl {
+    width: 1000px;
+}
+
+.modal-full {
+    width: 90vw;
+    height: 90vh;
+}
+
+/* ============================================================================
+ * Modal Header
+ * ============================================================================ */
+
+.modal-header {
+    padding: var(--spacing-4) var(--spacing-5);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-1);
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+/* ============================================================================
+ * Modal Body
+ * ============================================================================ */
+
+.modal-body {
+    padding: var(--spacing-5);
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* ============================================================================
+ * Modal Footer
+ * ============================================================================ */
+
+.modal-footer {
+    padding: var(--spacing-4) var(--spacing-5);
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+}
+
+/* ============================================================================
+ * Confirmation Dialog
+ * ============================================================================ */
+
+.confirmation-dialog {
+    text-align: center;
+}
+
+.dialog-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--spacing-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.dialog-icon-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.dialog-icon-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.dialog-icon-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+}
+
+.dialog-icon-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.dialog-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.dialog-message {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-6);
+}
+
+.dialog-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    justify-content: center;
+}
+
+/* ============================================================================
+ * Drawer (Side Modal)
+ * ============================================================================ */
+
+.modal-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 400px;
+    background: var(--card-bg);
+    box-shadow: var(--shadow-xl);
+    transform: translateX(100%);
+    transition: transform var(--transition-normal);
+    z-index: var(--z-modal);
+}
+
+.modal-drawer.open {
+    transform: translateX(0);
+}
+
+.modal-drawer .modal-header {
+    padding: var(--spacing-4);
+}
+
+.modal-drawer .modal-body {
+    padding: var(--spacing-4);
+}
+
+/* ============================================================================
+ * Responsive
+ * ============================================================================ */
+
+@media (max-width: 768px) {
+    .modal-sm,
+    .modal-md,
+    .modal-lg,
+    .modal-xl {
+        width: 90vw;
+    }
+    
+    .modal-container {
+        max-height: 80vh;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+    
+    .modal-drawer {
+        width: 85vw;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-container {
+        width: 95vw;
+        border-radius: var(--radius-lg);
+    }
+    
+    .modal-header {
+        padding: var(--spacing-3);
+    }
+    
+    .modal-body {
+        padding: var(--spacing-3);
+    }
+    
+    .modal-footer {
+        padding: var(--spacing-3);
+    }
+}

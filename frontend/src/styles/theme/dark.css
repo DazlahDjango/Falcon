@@ -1,0 +1,72 @@
+.dark-mode {
+    /* Background Colors */
+    --bg-primary: #1f2937;
+    --bg-secondary: #111827;
+    --bg-tertiary: #0f172a;
+    --bg-inverse: #ffffff;
+    
+    /* Text Colors */
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-tertiary: #9ca3af;
+    --text-inverse: #111827;
+    
+    /* Border Colors */
+    --border-light: #374151;
+    --border-medium: #4b5563;
+    --border-dark: #6b7280;
+    
+    /* Shadow Colors */
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    
+    /* Card Background */
+    --card-bg: #1f2937;
+    
+    /* Input Background */
+    --input-bg: #374151;
+    
+    /* Hover States */
+    --hover-bg: #374151;
+    
+    /* Active States */
+    --active-bg: #4b5563;
+    
+    /* Disabled States */
+    --disabled-bg: #374151;
+    --disabled-text: #6b7280;
+}
+
+/* Apply dark mode variables to root when dark mode is active */
+.dark-mode {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Dark mode specific overrides */
+.dark-mode .card,
+.dark-mode .modal-content,
+.dark-mode .dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-light);
+}
+
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+    background-color: var(--input-bg);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+.dark-mode table {
+    background-color: var(--card-bg);
+}
+
+.dark-mode .table-row:hover {
+    background-color: var(--hover-bg);
+}

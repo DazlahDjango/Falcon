@@ -116,4 +116,4 @@ const PasswordStrength = ({ password, onStrengthChange, className = '' }) => {
     );
 };
 
-export { PasswordStrength };
+export default PasswordStrength;

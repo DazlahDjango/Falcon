@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FiMail, FiUser, FiSend } from 'react-icons/fi';
-import { Modal } from '../../../common/UI/Modal';
-import { Spinner } from '../../../common/UI/Spinner';
-import { inviteUser } from '../../../store/slices/userSlice';
-import { showAlert } from '../../../store/slices/uiSlice';
+import { inviteUser } from '../../../../store/accounts/slice/userSlice'; 
+import { showAlert } from '../../../../store/accounts/slice/uiSlice'; 
+import Modal from '../../../common/UI/Modal';
+import Spinner from '../../../common/UI/Spinner';
 
 const InviteUserModal = ({ isOpen, onClose, onSuccess }) => {
     const dispatch = useDispatch();

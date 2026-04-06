@@ -1,0 +1,38 @@
+{% extends "email/base.html" %}
+
+{% block title %}New Login Alert{% endblock %}
+
+{% block header %}New Login Detected{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ user.first_name|default:user.username }},</h2>
+
+<p>We noticed a new login to your Falcon PMS account.</p>
+
+<div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+    <p style="margin: 0;"><strong>📱 Device:</strong> {{ device_info }}</p>
+    <p style="margin: 8px 0 0 0;"><strong>📍 Location:</strong> {{ location }}</p>
+    <p style="margin: 8px 0 0 0;"><strong>🌐 IP Address:</strong> {{ ip_address }}</p>
+    <p style="margin: 8px 0 0 0;"><strong>🕐 Time:</strong> {{ login_time }}</p>
+</div>
+
+<p>If this was you, you can ignore this message.</p>
+
+<div style="text-align: center;">
+    <a href="{{ security_url }}" class="button">Review Security Settings</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">If you don't recognize this login, please:</p>
+<ul class="text-muted">
+    <li>Change your password immediately</li>
+    <li>Enable Two-Factor Authentication</li>
+    <li>Contact our support team</li>
+</ul>
+
+<p class="text-muted">
+    Best regards,<br>
+    The Falcon PMS Team
+</p>
+{% endblock %}

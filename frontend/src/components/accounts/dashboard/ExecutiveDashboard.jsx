@@ -9,7 +9,7 @@ import ActivityTimeline from './components/ActivityTimeline';
 import { 
     fetchOrgStats, fetchDepartmentPerformance, 
     fetchExecutiveKPIs, fetchOrgActivities 
-} from '../../store/slices/executiveSlice';
+} from '../../../store/accounts/slice/executiveSlice';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 

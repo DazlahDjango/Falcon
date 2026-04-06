@@ -1,0 +1,42 @@
+{% extends "email/base.html" %}
+
+{% block title %}Setup Two-Factor Authentication{% endblock %}
+
+{% block header %}Secure Your Account{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ user.first_name|default:user.username }},</h2>
+
+<p>You've enabled Two-Factor Authentication (MFA) for your Falcon PMS account.</p>
+
+<p>To complete the setup, please scan the QR code below with your authenticator app:</p>
+
+<div style="background-color: #f3f4f6; padding: 24px; text-align: center; border-radius: 12px; margin: 16px 0;">
+    <img src="{{ qr_code_url }}" alt="QR Code" style="max-width: 200px; height: auto;">
+</div>
+
+<p>Or enter this secret key manually:</p>
+<div style="background-color: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-family: monospace; font-size: 14px; margin: 8px 0;">
+    {{ secret_key }}
+</div>
+
+<div style="text-align: center;">
+    <a href="{{ setup_url }}" class="button">Complete Setup</a>
+</div>
+
+<div class="divider"></div>
+
+<div style="background-color: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0;">
+    <p style="margin: 0; color: #92400e;"><strong>⚠️ Important:</strong></p>
+    <p style="margin: 8px 0 0 0; color: #b45309;">Save your backup codes in a secure place. You'll need them if you lose access to your authenticator app.</p>
+</div>
+
+<p class="text-muted">
+    If you didn't enable MFA, please contact support immediately.
+</p>
+
+<p class="text-muted">
+    Best regards,<br>
+    The Falcon PMS Team
+</p>
+{% endblock %}

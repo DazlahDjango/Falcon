@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import { PasswordStrength } from '../../../common/Forms/PasswordStrength';
-import { Spinner } from '../../../common/UI/Spinner';
+import PasswordStrength from '../../../common/Forms/PasswordStrength';
+import Spinner from '../../../common/UI/Spinner';
 const RegisterForm = ({ onSubmit, isLoading }) => {
     const [formData, setFormData] = useState({
         firstName: '',
@@ -150,4 +150,4 @@ const RegisterForm = ({ onSubmit, isLoading }) => {
         </form>
     );
 };
-export { RegisterForm };
+export default RegisterForm;

@@ -1,11 +1,22 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useAuthContext } from '../../../contexts/accounts/AuthContext';
 import UserDashboard from './UserDashboard';
 import TeamDashboard from './TeamDashboard';
 import ExecutiveDashboard from './ExecutiveDashboard';
+import AdminDashboard from '../admin/AdminDashboard';
 
 const Dashboard = () => {
-    const { user } = useSelector((state) => state.auth);
+    const { user, isLoading } = useAuthContext();
+    
+    // Show loading while checking auth
+    if (isLoading || !user) {
+        return <div>Loading dashboard...</div>;
+    }
+    
+    // Render based on role
+    if (user?.role === 'super_admin') {
+        return <AdminDashboard />;
+    }
     if (user?.role === 'executive' || user?.role === 'client_admin') {
         return <ExecutiveDashboard />;
     }
@@ -14,4 +25,5 @@ const Dashboard = () => {
     }
     return <UserDashboard />;
 };
+
 export default Dashboard;

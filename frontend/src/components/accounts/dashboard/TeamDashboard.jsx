@@ -5,7 +5,7 @@ import StatsWidget from './components/StatsWidget';
 import ActivityTimeline from './components/ActivityTimeline';
 import QuickActions from './components/QuickActions';
 import KPIProgress from './components/KPIProgress';
-import { fetchTeamStats, fetchTeamMembers, fetchTeamActivities } from '../../store/slices/teamSlice';
+import { fetchTeamStats, fetchTeamMembers, fetchTeamActivities } from '../../../store/accounts/slice/teamSlice';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
 import UserCard from '../users/components/UserCard';
 

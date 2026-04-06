@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiEdit, FiSave, FiX, FiUser, FiMail, FiPhone, FiBriefcase } from 'react-icons/fi';
-import { updateProfile } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
+import { updateProfile } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import AvatarUpload from './components/AvatarUpload';
 
 const UserProfile = () => {

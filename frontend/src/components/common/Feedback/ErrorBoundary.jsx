@@ -87,4 +87,4 @@ export const withErrorBoundary = (Component, errorHandler = null) => {
     );
 };
 
-export { ErrorBoundary };
+export default ErrorBoundary;

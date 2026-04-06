@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { MFAForm } from './components/MFAForm';
-import { verifyMfa, clearMfaState } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
+import MFAForm from './components/MFAForm';
+import { verifyMfa, clearMfaState } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
 
 const MFAVerify = () => {
     const navigate = useNavigate();
@@ -83,4 +83,4 @@ const MFAVerify = () => {
         </div>
     );
 };
-export { MFAVerify };
+export default MFAVerify;

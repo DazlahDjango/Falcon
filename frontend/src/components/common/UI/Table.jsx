@@ -180,4 +180,4 @@ const Table = ({
         </div>
     );
 };
-export { Table };
+export default Table;

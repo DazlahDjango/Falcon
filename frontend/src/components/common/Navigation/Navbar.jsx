@@ -210,4 +210,4 @@ const Navbar = ({ user, onMenuClick }) => {
         </>
     );
 };
-export { Navbar };
+export default Navbar;

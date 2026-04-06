@@ -46,4 +46,4 @@ const QRCode = ({ value, size = 200, label = null, className= ''}) => {
         </div>
     );
 };
-export { QRCode }
+export default QRCode;

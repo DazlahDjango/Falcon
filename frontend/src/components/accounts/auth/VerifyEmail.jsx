@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FiMail, FiCheckCircle, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
-import { verifyEmail, resendVerification } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
-import { Spinner } from '../../common/UI/Spinner';
+import { verifyEmail, resendVerification } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import Spinner from '../../common/UI/Spinner';
 
 const VerifyEmail = () => {
     const [searchParams] = useSearchParams();
@@ -145,4 +145,4 @@ const VerifyEmail = () => {
         </div>
     );
 };
-export { verifyEmail };
+export default VerifyEmail;

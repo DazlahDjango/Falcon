@@ -24,4 +24,4 @@ const AuthLayout = () => {
         </div>
     );
 };
-export { AuthLayout };
+export default AuthLayout;

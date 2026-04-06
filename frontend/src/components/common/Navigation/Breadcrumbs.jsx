@@ -91,4 +91,4 @@ const Breadcrumbs = () => {
         </nav>
     );
 };
-export { Breadcrumbs };
+export default Breadcrumbs;

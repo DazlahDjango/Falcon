@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiCamera, FiX } from 'react-icons/fi';
-import { uploadAvatar, removeAvatar } from '../../../store/slices/authSlice';
-import { showAlert } from '../../../store/slices/uiSlice';
-import { Spinner } from '../../../common/UI/Spinner';
+import { uploadAvatar, removeAvatar } from '../../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../../store/accounts/slice/uiSlice';
+import Spinner from '../../../common/UI/Spinner';
 
 const AvatarUpload = () => {
     const dispatch = useDispatch();
@@ -25,7 +25,7 @@ const AvatarUpload = () => {
             return;
         }
         setIsUploading(true);
-        const formData = new formData();
+        const formData = new FormData();
         formData.append('avatar', file);
         try {
             await dispatch(uploadAvatar(formData)).unwrap();

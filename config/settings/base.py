@@ -85,8 +85,8 @@ THIRD_PARTY_APPS = [
     # CORS
     'corsheaders',
     # Multi-tenancy (RLS)
-    'django_multitenant',
-    'django_rls',
+    # 'django_multitenant',
+    # 'django_rls',
     # Security
     'axes',  # Login attempt monitoring
     'guardian',  # Object-level permissions
@@ -150,7 +150,7 @@ MIDDLEWARE = [
     # Security and monitoring
     'axes.middleware.AxesMiddleware',
     'auditlog.middleware.AuditlogMiddleware',
-    'django_multitenant.middlewares.MultitenantMiddleware',
+    # 'django_multitenant.middlewares.MultitenantMiddleware',
     # Rate limiting
     'django_ratelimit.middleware.RatelimitMiddleware',
     # Custom middleware
@@ -161,8 +161,8 @@ MIDDLEWARE = [
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
     # Organisations Tenant Middleware (ADD THESE TWO)
-    'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
-    'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
+    # 'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
+    # 'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

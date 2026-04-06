@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { RegisterForm } from './components/RegisterForm';
-import { register, clearError } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
+import RegisterForm from './components/RegisterForm';
+import { register, clearError } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -45,4 +45,4 @@ const Register = () => {
         </div>
     );
 };
-export { Register }
+export default Register;

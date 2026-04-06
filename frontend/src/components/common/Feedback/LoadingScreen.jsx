@@ -107,4 +107,4 @@ export const SkeletonLoader = ({
         </div>
     );
 };
-export { LoadingScreen };
+export default SkeletonLoader;

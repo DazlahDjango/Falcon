@@ -1,0 +1,32 @@
+{% extends "email/base.html" %}
+
+{% block title %}We Miss You!{% endblock %}
+
+{% block header %}We Miss You!{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ user.first_name|default:user.username }},</h2>
+
+<p>We noticed you haven't logged into Falcon PMS for {{ days_inactive }} days. We'd love to see you back!</p>
+
+<p>Here's what's new:</p>
+
+<ul style="margin: 16px 0; padding-left: 20px;">
+    <li>✨ New KPI tracking features</li>
+    <li>📊 Enhanced reporting dashboard</li>
+    <li>👥 Improved team collaboration tools</li>
+</ul>
+
+<div style="text-align: center;">
+    <a href="{{ login_url }}" class="button">Log In Now</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">If you're having trouble accessing your account, our support team is ready to help.</p>
+
+<p class="text-muted">
+    Best regards,<br>
+    The Falcon PMS Team
+</p>
+{% endblock %}

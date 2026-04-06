@@ -65,4 +65,4 @@ export const ErrorEmptyState = ({ error, onRetry, ...props }) => (
     />
 );
 
-export { EmptyState };
+export default EmptyState;

@@ -1,0 +1,35 @@
+{% extends "email/base.html" %}
+
+{% block title %}You've Been Invited!{% endblock %}
+
+{% block header %}Join Falcon PMS{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello,</h2>
+
+<p><strong>{{ invited_by.first_name|default:invited_by.username }}</strong> has invited you to join <strong>{{ organization_name|default:'Falcon PMS' }}</strong> as a <strong>{{ role_display }}</strong>.</p>
+
+{% if message %}
+<div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+    <p style="margin: 0; color: #374151;"><strong>Personal message from {{ invited_by.first_name }}:</strong></p>
+    <p style="margin: 8px 0 0 0; color: #4b5563;">{{ message }}</p>
+</div>
+{% endif %}
+
+<p>Click the button below to accept the invitation and create your account:</p>
+
+<div style="text-align: center;">
+    <a href="{{ invitation_url }}" class="button">Accept Invitation</a>
+</div>
+
+<p class="text-muted">This invitation will expire in <strong>{{ expiry_days }} days</strong>.</p>
+
+<div class="divider"></div>
+
+<p class="text-muted">If you're not expecting this invitation, please ignore this email.</p>
+
+<p class="text-muted">
+    Best regards,<br>
+    The Falcon PMS Team
+</p>
+{% endblock %}

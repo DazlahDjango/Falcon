@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { FiMail, FiArrowLeft } from "react-icons/fi";
-import { forgotPassword } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
-import { Spinner } from '../../common/UI/Spinner';
+import { forgotPassword } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import Spinner from '../../common/UI/Spinner';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -83,4 +83,4 @@ const ForgotPassword = () => {
         </div>
     );
 };
-export { ForgotPassword };
+export default ForgotPassword;

@@ -6,7 +6,7 @@ import ActivityTimeline from './components/ActivityTimeline';
 import QuickActions from './components/QuickActions';
 import KPIProgress from './components/KPIProgress';
 import NotificationList from './components/NotificationList';
-import { fetchUserStats, fetchUserKPIs, fetchUserActivities } from '../../store/slices/dashboardSlice';
+import { fetchUserStats, fetchUserKPIs, fetchUserActivities } from '../../../store/accounts/slice/dashboardSlice';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
 
 const UserDashboard = () => {

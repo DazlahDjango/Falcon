@@ -135,4 +135,4 @@ export const LogoutConfirmation = ({ isOpen, onClose, onConfirm, loading = false
         loading={loading}
     />
 );
-export { ConfirmationDialog };
+export default ConfirmationDialog;

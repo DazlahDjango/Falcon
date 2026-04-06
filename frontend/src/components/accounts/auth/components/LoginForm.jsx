@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import { Spinner } from '../../../common/UI/Spinner';
+import Spinner from '../../../common/UI/Spinner';
 
-const LoginForm = ({ onSubmit, isLoading }) => {
+const LoginForm = ({ onSubmit, isLoading, error }) => {
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -29,6 +29,7 @@ const LoginForm = ({ onSubmit, isLoading }) => {
     };
     return (
         <form onSubmit={handleSubmit} className="auth-form">
+            {error && <div className="input-feedback error" style={{ marginBottom: '1rem' }}>{error}</div>}
             <div className="form-group">
                 <label htmlFor="email">Email Address</label>
                 <div className="input-wrapper">
@@ -79,4 +80,4 @@ const LoginForm = ({ onSubmit, isLoading }) => {
         </form>
     );
 };
-export { LoginForm };
+export default LoginForm;

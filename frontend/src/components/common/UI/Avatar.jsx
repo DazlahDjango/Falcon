@@ -60,4 +60,4 @@ const Avatar = ({
     );
 };
 
-export { Avatar };
+export default Avatar;

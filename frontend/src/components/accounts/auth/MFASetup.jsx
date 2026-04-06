@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { MFASetupForm } from './components/MFASetupForm';
-import { QRCode } from './components/QRCode';
-import { setupMfa, verifyMfaSetup, disableMfa } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
-import { Spinner } from '../../common/UI/Spinner';
+import MFASetupForm from './components/MFASetupForm';
+import QRCode from './components/QRCode';
+import { setupMfa, verifyMfaSetup, disableMfa } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import Spinner from '../../common/UI/Spinner';
 
 const MFASetup = () => {
     const navigate = useNavigate();
@@ -137,4 +137,4 @@ const MFASetup = () => {
         </div>
     );
 };
-export { MFASetup };
+export default MFASetup;

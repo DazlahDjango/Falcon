@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiPlus, FiSearch, FiFilter, FiDownload } from 'react-icons/fi';
-import { fetchUsers, deleteUser, setFilters, resetFilters } from '../../store/slices/userSlice';
+import { fetchUsers, deleteUser, setFilters, resetFilters } from '../../../store/accounts/slice/userSlice';
 import UserCard from './components/UserCard';
 import UserFilters from './components/UserFilters';
 import InviteUserModal from './components/InviteUserModal';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
-import { EmptyState } from '../../common/Feedback/EmptyState';
+import EmptyState from '../../common/Feedback/EmptyState';
 
 const UserList = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { users, pagination, filters, isLoading } = useSelector((state) => state.users);
+    const { users, pagination, filters, isLoading } = useSelector((state) => state.user);
     const { user: currentUser } = useSelector((state) => state.auth);
     const [showFilters, setShowFilters] = useState(false);
     const [showInviteModal, setShowInviteModla] = useState(false);

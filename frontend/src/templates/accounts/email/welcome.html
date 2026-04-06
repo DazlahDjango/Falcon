@@ -1,0 +1,33 @@
+{% extends "email/base.html" %}
+
+{% block title %}Welcome to Falcon PMS{% endblock %}
+
+{% block header %}Welcome to Falcon PMS!{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ user.first_name|default:user.username }},</h2>
+
+<p>Welcome to <strong>Falcon PMS</strong> - your performance management platform!</p>
+
+<p>We're excited to have you on board. With Falcon PMS, you can:</p>
+
+<ul style="margin: 16px 0; padding-left: 20px;">
+    <li>📊 Track your KPIs and performance goals</li>
+    <li>👥 Collaborate with your team</li>
+    <li>📈 Generate insightful reports</li>
+    <li>✅ Complete performance reviews</li>
+</ul>
+
+<div style="text-align: center;">
+    <a href="{{ dashboard_url }}" class="button">Go to Dashboard</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">Get started by setting up your profile and exploring the dashboard. If you have any questions, our support team is here to help!</p>
+
+<p class="text-muted">
+    Best regards,<br>
+    The Falcon PMS Team
+</p>
+{% endblock %}

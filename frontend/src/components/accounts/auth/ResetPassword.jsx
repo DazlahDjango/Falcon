@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FiLock, FiEye, FiEyeOff, FiCheckCircle } from 'react-icons/fi';
-import { resetPassword } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
-import { PasswordStrength } from '../../common/Forms/PasswordStrength';
-import { Spinner } from '../../common/UI/Spinner';
+import { resetPassword } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import PasswordStrength from '../../common/Forms/PasswordStrength';
+import Spinner from '../../common/UI/Spinner';
 
 const ResetPassword = () => {
     const [searchParams] = useSearchParams();
@@ -122,4 +122,4 @@ const ResetPassword = () => {
         </div>
     );
 };
-export { ResetPassword };
+export default ResetPassword;

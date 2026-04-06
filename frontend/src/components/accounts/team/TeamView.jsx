@@ -4,7 +4,7 @@ import { FiUsers, FiUserPlus, FiSearch, FiFilter, FiDownload } from 'react-icons
 import TeamTree from './TeamTree';
 import TeamStats from './components/TeamStats';
 import TeamMemberCard from './components/TeamMemberCard';
-import { fetchTeamHierarchy, fetchTeamStats } from '../../store/slices/teamSlice';
+import { fetchTeamHierarchy, fetchTeamStats } from '../../../store/accounts/slice/teamSlice';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
 import EmptyState from '../../common/Feedback/EmptyState';
 import InviteUserModal from '../users/components/InviteUserModal';

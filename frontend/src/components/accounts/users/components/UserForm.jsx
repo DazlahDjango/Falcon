@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from 'react-redux';
 import { FiUser, FiMail, FiPhone, FiBriefcase, FiLock } from "react-icons/fi";
 import UserRoleBadge from './UserRoleBadge';
-import { PasswordStrength } from '../../../common/Forms/PasswordStrength';
+import PasswordStrength from '../../../common/Forms/PasswordStrength';
 
 const UserForm = ({ initialData = {}, onSubmit, onCancel, isEdit = false }) => {
     const [formData, setFormData] = ({

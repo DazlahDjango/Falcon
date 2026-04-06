@@ -3,15 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiArrowLeft } from 'react-icons/fi';
 import UserForm from './components/UserForm';
-import { fetchUserById, updateUser } from '../../store/slices/userSlice';
-import { showAlert } from '../../store/slices/uiSlice';
+import { fetchUserById, updateUser } from '../../../store/accounts/slice/userSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
 
 const UserEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { seletedUser, isLoading } = useSelector((state) => state.users);
+    const { selectedUser, isLoading } = useSelector((state) => state.user);
     useEffect(() => {
         dispatch(fetchUserById(id));
     }, [dispatch,id]);

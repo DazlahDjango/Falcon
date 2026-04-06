@@ -1,0 +1,43 @@
+.light-mode {
+    /* Background Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
+    --bg-inverse: #1f2937;
+    
+    /* Text Colors */
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-tertiary: #9ca3af;
+    --text-inverse: #ffffff;
+    
+    /* Border Colors */
+    --border-light: #e5e7eb;
+    --border-medium: #d1d5db;
+    --border-dark: #9ca3af;
+    
+    /* Shadow Colors */
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    
+    /* Card Background */
+    --card-bg: #ffffff;
+    
+    /* Input Background */
+    --input-bg: #ffffff;
+    
+    /* Hover States */
+    --hover-bg: #f3f4f6;
+    
+    /* Active States */
+    --active-bg: #e5e7eb;
+    
+    /* Disabled States */
+    --disabled-bg: #f3f4f6;
+    --disabled-text: #9ca3af;
+}
+
+/* Apply light mode variables to root when light mode is active */
+.light-mode {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}

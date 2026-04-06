@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiX, FiAlertCircle, FiCheckCircle, FiInfo, FiAlertTriangle } from 'react-icons/fi';
-import { removeAlert } from '../../../store/slices/uiSlice';
+import { removeAlert } from '../../../store/accounts/slice/uiSlice';
 
 const Alert = () => {
     const dispatch = useDispatch();
@@ -66,4 +66,4 @@ const Alert = () => {
         </div>
     );
 };
-export { Alert };
+export default Alert;

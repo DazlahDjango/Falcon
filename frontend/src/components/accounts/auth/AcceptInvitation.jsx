@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiCheckCircle } from 'react-icons/fi';
-import { acceptInvitation } from '../../store/slices/authSlice';
-import { showAlert } from '../../store/slices/uiSlice';
+import { acceptInvitation } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { invitationApi } from '../../api/invitation';  // ✅ Import API
-import { PasswordStrength } from '../../common/Forms/PasswordStrength';
-import { Spinner } from '../../common/UI/Spinner';
+import PasswordStrength from '../../common/Forms/PasswordStrength';
+import Spinner from '../../common/UI/Spinner';
 
 const AcceptInvitation = () => {
     const [searchParams] = useSearchParams();

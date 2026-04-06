@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect  } from "react";
-import { Spinner } from '../../../common/UI/Spinner';
+import Spinner from '../../../common/UI/Spinner';
 
 const MFASetupForm = ({ onSubmit, isLoading }) => {
     const [otp ,setOtp] = useState(['', '', '', '', '', '']);
@@ -51,4 +51,4 @@ const MFASetupForm = ({ onSubmit, isLoading }) => {
         </form>
     );
 };
-export { MFASetupForm };
+export default MFASetupForm;
