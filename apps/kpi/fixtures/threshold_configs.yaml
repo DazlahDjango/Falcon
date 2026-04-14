@@ -1,0 +1,49 @@
+- model: kpi.thresholdconfig
+  pk: 1
+  fields:
+    name: "Standard Threshold"
+    code: "STANDARD"
+    green_threshold: 90
+    yellow_threshold: 50
+    description: "Standard traffic light thresholds (Green >= 90%, Yellow >= 50%)"
+    is_default: true
+    is_active: true
+    applicable_sectors: ["COMMERCIAL", "CONSULTING"]
+
+- model: kpi.thresholdconfig
+  pk: 2
+  fields:
+    name: "NGO/Impact Thresholds"
+    code: "NGO_IMPACT"
+    green_threshold: 85
+    yellow_threshold: 60
+    description: "Adjusted thresholds for impact-focused organizations"
+    is_default: false
+    is_active: true
+    applicable_sectors: ["NGO"]
+
+- model: kpi.thresholdconfig
+  pk: 3
+  fields:
+    name: "Public Sector Thresholds"
+    code: "PUBLIC"
+    green_threshold: 95
+    yellow_threshold: 70
+    description: "Stricter thresholds for public sector compliance"
+    is_default: false
+    is_active: true
+    applicable_sectors: ["PUBLIC"]
+
+- model: kpi.thresholdconfig
+  pk: 4
+  fields:
+    name: "Startup Growth Thresholds"
+    code: "STARTUP"
+    green_threshold: 80
+    yellow_threshold: 50
+    description: "More lenient thresholds for high-growth startups"
+    is_default: false
+    is_active: true
+    applicable_sectors: ["COMMERCIAL"]
+    metadata:
+      tags: ["startup", "growth"]

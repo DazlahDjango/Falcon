@@ -85,8 +85,8 @@ THIRD_PARTY_APPS = [
     # CORS
     'corsheaders',
     # Multi-tenancy (RLS)
-    # 'django_multitenant',
-    # 'django_rls',
+    'django_multitenant',
+    'django_rls',
     # Security
     'axes',  # Login attempt monitoring
     'guardian',  # Object-level permissions
@@ -125,7 +125,7 @@ PROJECT_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.core',
     'apps.dashboard',
-    'apps.kpi',
+    'apps.kpi.apps.KpiConfig',
     'apps.notification',
     'apps.organisations',
     'apps.reports',
@@ -163,6 +163,11 @@ MIDDLEWARE = [
     # Organisations Tenant Middleware (ADD THESE TWO)
     # 'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
     # 'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
+    # KPI
+    'apps.kpi.middleware.ContextMiddleware',
+    'apps.kpi.middleware.AuditMiddleware',
+    'apps.kpi.middleware.ThrottleMiddleware',
+    'apps.kpi.middleware.CacheMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

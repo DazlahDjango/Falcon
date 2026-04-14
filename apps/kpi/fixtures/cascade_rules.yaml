@@ -1,0 +1,43 @@
+- model: kpi.cascaderule
+  pk: 1
+  fields:
+    name: "Equal Split"
+    rule_type: "EQUAL_SPLIT"
+    description: "Distribute target equaly among all departments or individuals"
+    configuration:
+      method: "equal"
+    is_default: true
+    is_active: true
+- model: kpi.cascaderule
+  pk: 2
+  fields:
+    name: "Weighted by Headcount"
+    rule_type: "WEIGHTED"
+    description: "Distributes targets based on number of employees in each department"
+    configuration:
+      method: "headcount"
+      source: "employee_count"
+    is_default: false
+    is_active: true
+- model: kpi.cascaderule
+  pk: 3
+  fields:
+    name: "Weighted by Budget"
+    rule_type: "WEIGHTED_BY_BUDGET"
+    description: "Distributes targets based on department budget allocation"
+    configuration:
+      method: "budget"
+      source: "annual_budget"
+    is_default: false
+    is_active: true
+- model: kpi.cascaderule
+  pk: 4
+  fields:
+    name: "Custom Distribution"
+    rule_type: "CUSTOM"
+    description: "Allows custom percentage distribution per department"
+    configuration:
+      method: "custom"
+      requires_weights: true
+    is_default: false
+    is_active: true

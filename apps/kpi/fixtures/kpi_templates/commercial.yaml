@@ -1,0 +1,178 @@
+- model: kpi.kpiframework
+  pk: 1
+  fields:
+    name: "Commercial Performance Framework"
+    code: "COMMERCIAL_V1"
+    sector: 1
+    description: "Standard KPI framework for commercial organization"
+    version: "1.0.0"
+    status: "PUBLISHED"
+    is_default: true
+    effective_from: "2025-01-01"
+    metadata:
+      author: "Falcon Consulting"
+      tags: ["commercial", "corporate", "standard"]
+      
+- model: kpi.kpiframework
+  pk: 2
+  fields:
+    name: "Startup Growth Framework"
+    code: "STARTUP_V1"
+    sector: 1
+    description: "KPI framework focused on growth metrics for startups"
+    version: "1.0.0"
+    status: "PUBLISHED"
+    is_default: false
+    effective_from: "2025-01-01"
+    metadata:
+      author: "Falcon Consulting"
+      tags: ["startup", "growth", "saas"]
+
+- model: kpi.kpiframework
+  pk: 3
+  fields:
+    name: "Enterprise Performance Framework"
+    code: "ENTERPRISE_V1"
+    sector: 1
+    description: "Comprehensive KPI framework for large enterprises"
+    version: "1.0.0"
+    status: "PUBLISHED"
+    is_default: false
+    effective_from: "2025-01-01"
+    metadata:
+      author: "Falcon Consulting"
+      tags: ["enterprise", "corporate", "comprehensive"]
+
+# Commercial KPI Templates
+- model: kpi.kpitemplate
+  pk: 1
+  fields:
+    name: "Revenue Target"
+    code: "REV_001"
+    sector: 1
+    category: 1
+    description: "Monthly revenue target against annual goal"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Revenue Achievement"
+      kpi_type: "FINANCIAL"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "CUMULATIVE"
+      unit: "KES"
+      decimal_places: 2
+      formula: "actual / target * 100"
+    target_phasing_pattern:
+      strategy: "seasonal"
+      weights:
+        1: 0.07
+        2: 0.07
+        3: 0.08
+        4: 0.08
+        5: 0.08
+        6: 0.08
+        7: 0.08
+        8: 0.08
+        9: 0.08
+        10: 0.08
+        11: 0.08
+        12: 0.14
+    is_published: true
+    usage_count: 0
+    metadata:
+      industry: ["retail", "saas", "manufacturing"]
+
+- model: kpi.kpitemplate
+  pk: 2
+  fields:
+    name: "Gross Profit Margin"
+    code: "GPM_001"
+    sector: 1
+    category: 1
+    description: "Gross profit as percentage of revenue"
+    difficulty: "ADVANCED"
+    kpi_definition:
+      name: "Gross Profit Margin"
+      kpi_type: "PERCENTAGE"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "%"
+      decimal_places: 1
+      formula: "(revenue - cogs) / revenue * 100"
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      industry: ["retail", "manufacturing", "services"]
+
+- model: kpi.kpitemplate
+  pk: 3
+  fields:
+    name: "Customer Acquisition Cost"
+    code: "CAC_001"
+    sector: 1
+    category: 4
+    description: "Cost to acquire a new customer"
+    difficulty: "ADVANCED"
+    kpi_definition:
+      name: "Customer Acquisition Cost"
+      kpi_type: "FINANCIAL"
+      calculation_logic: "LOWER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "KES"
+      decimal_places: 2
+      formula: "marketing_spend / new_customers"
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      industry: ["saas", "marketing", "services"]
+
+- model: kpi.kpitemplate
+  pk: 4
+  fields:
+    name: "Customer Lifetime Value"
+    code: "CLV_001"
+    sector: 1
+    category: 4
+    description: "Total revenue expected from a customer over lifetime"
+    difficulty: "ADVANCED"
+    kpi_definition:
+      name: "Customer Lifetime Value"
+      kpi_type: "FINANCIAL"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "KES"
+      decimal_places: 2
+      formula: "average_purchase_value * purchase_frequency * customer_lifespan"
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      industry: ["saas", "retail", "subscription"]
+
+- model: kpi.kpitemplate
+  pk: 5
+  fields:
+    name: "Net Promoter Score"
+    code: "NPS_001"
+    sector: 1
+    category: 4
+    description: "Customer loyalty and satisfaction score"
+    difficulty: "BEGINNER"
+    kpi_definition:
+      name: "Net Promoter Score"
+      kpi_type: "IMPACT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "points"
+      decimal_places: 0
+      formula: "promoters - detractors"
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      industry: ["all"]

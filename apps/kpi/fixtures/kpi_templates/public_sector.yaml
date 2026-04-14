@@ -1,0 +1,107 @@
+- model: kpi.kpiframework
+  pk: 6
+  fields:
+    name: "Public Service Delivery Framework"
+    code: "PUBLIC_V1"
+    sector: 3
+    description: "Standard KPI framework for public sector organozation"
+    version: "1.0.0"
+    status: "PUBLISHED"
+    is_default: true
+    effective_from: "2025-01-01"
+    metadata: 
+      author: "Falcon Consulting"
+      tags: ["government", "public-sector", "service"]
+
+# Public Sector KPI Templates
+- model: kpi.kpitemplate
+  pk: 20
+  fields:
+    name: "Service Delivery Turnaround Time"
+    code: "TAT_001"
+    sector: 3
+    category: 3
+    description: "Average time to complete service requests"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Turnaround Time"
+      kpi_type: "TIME"
+      calculation_logic: "LOWER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "days"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      service_type: ["licensing", "permits", "registration"]
+
+- model: kpi.kpitemplate
+  pk: 21
+  fields:
+    name: "Compliance Rate"
+    code: "COMPLY_001"
+    sector: 3
+    category: 7
+    description: "Percentage of operations in compliance with regulations"
+    difficulty: "ADVANCED"
+    kpi_definition:
+      name: "Compliance Rate"
+      kpi_type: "PERCENTAGE"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "%"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      regulation_type: ["financial", "environmental", "administrative"]
+
+- model: kpi.kpitemplate
+  pk: 22
+  fields:
+    name: "Citizen Satisfaction Index"
+    code: "CSI_001"
+    sector: 3
+    category: 4
+    description: "Public satisfaction with government services"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Citizen Satisfaction"
+      kpi_type: "IMPACT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "/10"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      scale: "1-10"
+
+- model: kpi.kpitemplate
+  pk: 23
+  fields:
+    name: "Budget Execution Rate"
+    code: "BUDGET_001"
+    sector: 3
+    category: 1
+    description: "Percentage of budget utilized"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Budget Execution"
+      kpi_type: "PERCENTAGE"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "CUMULATIVE"
+      unit: "%"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "seasonal"
+    is_published: true
+    usage_count: 0
+    metadata:
+      fiscal_cycle: true
