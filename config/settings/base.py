@@ -125,7 +125,6 @@ PROJECT_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.core',
     'apps.dashboard',
-    # 'apps.kpi.apps.KpiConfig',
     'apps.notification',
     'apps.organisations',
     'apps.reports',
@@ -157,7 +156,7 @@ MIDDLEWARE = [
     # Accounts
     'apps.accounts.middleware.TenantMiddleware',
     'apps.accounts.middleware.SessionMiddleware',
-    #'apps.accounts.middleware.AuditMiddleware',
+    'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
     # Organisations Tenant Middleware (ADD THESE TWO)

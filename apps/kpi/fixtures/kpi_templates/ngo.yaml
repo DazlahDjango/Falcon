@@ -1,0 +1,157 @@
+- model: kpi.kpiframework
+  pk: 4
+  fields:
+    name: "NGO Impact Framework"
+    code: "NGO_V1"
+    sector: 2
+    description: "Standard KPI framewrok for NGOs and non-profits"
+    version: "1.0.0"
+    status: "PUBLISHED"
+    is_default: true
+    effective_from: "2025-01-01"
+    metadat:
+      author: "Falcon Consulting"
+      tags: ["ngo", "non-profit", "impact"]
+      
+- model: kpi.kpiframework
+  pk: 5
+  fields:
+    name: "Humanitarian Response Framework"
+    code: "HUMANITARIAN_V1"
+    sector: 2
+    description: "KPI framework for humanitarian and emergency response organizations"
+    version: "1.0.0"
+    status: "PUBLISHED"
+    is_default: false
+    effective_from: "2025-01-01"
+    metadata:
+      author: "Falcon Consulting"
+      tags: ["humanitarian", "emergency", "response"]
+
+# Templates
+- model: kpi.kpitemplate
+  pk: 10
+  fields:
+    name: "Beneficiaries Reached"
+    code: "BEN_001"
+    sector: 2
+    category: 2
+    description: "Number of beneficiaries served by programs"
+    difficulty: "BIGINNER"
+    kpi_definition:
+      name: "Beneficiaries Reached"
+      kpi_count: "COUNT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "CUMULATIVE"
+      unit: "people"
+    target_phasing_pattern:
+      strategy: "seasonal"
+      weights:
+        1: 0.05
+        2: 0.05
+        3: 0.08
+        4: 0.08
+        5: 0.08
+        6: 0.08
+        7: 0.08
+        8: 0.08
+        9: 0.10
+        10: 0.10
+        11: 0.10
+        12: 0.12
+    is_published: true
+    usage_count: 0
+    metadata:
+      sector_focus: ["education", "health", "economic"]
+
+- model: kpi.kpitemplate
+  pk: 11
+  fields:
+    name: "Grant Utilization Rate"
+    code: "GRANT_001"
+    sector: 2
+    category: 1
+    description: "Percentage of grant funds utilized"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Grant Utilization"
+      kpi_type: "PERCENTAGE"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "CUMULATIVE"
+      unit: "%"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "seasonal"
+    is_published: true
+    usage_count: 0
+    metadata:
+      donor_requirement: true
+
+- model: kpi.kpitemplate
+  pk: 12
+  fields:
+    name: "Program Completion Rate"
+    code: "COMP_001"
+    sector: 2
+    category: 2
+    description: "Percentage of planned activities completed"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Program Completion Rate"
+      kpi_type: "PERCENTAGE"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "%"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      sector_focus: ["all"]
+
+- model: kpi.kpitemplate
+  pk: 13
+  fields:
+    name: "Community Satisfaction Score"
+    code: "SAT_001"
+    sector: 2
+    category: 4
+    description: "Satisfaction rating from beneficiary communities"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Community Satisfaction"
+      kpi_type: "IMPACT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "/5"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      scale: "1-5"
+
+- model: kpi.kpitemplate
+  pk: 14
+  fields:
+    name: "Volunteer Engagement Hours"
+    code: "VOL_001"
+    sector: 2
+    category: 6
+    description: "Total volunteer hours contributed"
+    difficulty: "BEGINNER"
+    kpi_definition:
+      name: "Volunteer Engagement"
+      kpi_type: "COUNT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "CUMULATIVE"
+      unit: "hours"
+      decimal_places: 0
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      sector_focus: ["all"]

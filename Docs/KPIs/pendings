@@ -1,0 +1,2 @@
+file = models.FileField(upload_to='kpi_evidence/%Y/%m/', null=True, blank=True)
+kpi_services("category and sector")

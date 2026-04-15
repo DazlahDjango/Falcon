@@ -1,0 +1,60 @@
+- model: kpi.sector
+  pk: 1
+  fields:
+    name: "Commercial / Corporate"
+    code: "COMMERCIAL"
+    sector_type: "COMMERCIAL"
+    description: "For profit organizations, corporations, and businesses"
+    icon: "🏢"
+    is_active: true
+    metadata:
+      default_calculation_logic: "HIGHER_IS_BETTER"
+      typical_kpi_types: ["FINANCIAL", "OPERATIONAL", "CUSTOMER"]
+      recommended_thresholds:
+        green: 90
+        yellow: 50
+- model: kpi.sector
+  pk: 2
+  fields:
+    name: "NGO / Non-Profit"
+    code: "NGO"
+    sector_type: "NGO"
+    description: "Non-governmental organizations, charities, and non-profits"
+    icon: "🤝"
+    is_active: true
+    metadata:
+      default_calculation_logic: "HIGHER_IS_BETTER"
+      typical_kpi_types: ["IMPACT", "OPERATIONAL", "FINANCIAL"]
+      recommended_thresholds:
+        green: 85
+        yellow: 60
+- model: kpi.sector
+  pk: 3
+  fields:
+    name: "Public Sector / Government"
+    code: "PUBLIC"
+    sector_type: "PUBLIC"
+    description: "Government agencies, public institutions, and state-owned enterprises"
+    icon: "🏛️"
+    is_active: true
+    metadata:
+      default_calculation_logic: "HIGHER_IS_BETTER"
+      typical_kpi_types: ["COMPLIANCE", "OPERATIONAL", "CUSTOMER"]
+      recommended_thresholds:
+        green: 95
+        yellow: 70
+- model: kpi.sector
+  pk: 4
+  fields:
+    name: "Consulting / Professional Services"
+    code: "CONSULTING"
+    sector_type: "CONSULTING"
+    description: "Consulting firms, professional services, and agencies"
+    icon: "💼"
+    is_active: true
+    metadata:
+      default_calculation_logic: "HIGHER_IS_BETTER"
+      typical_kpi_types: ["FINANCIAL", "CUSTOMER", "OPERATIONAL"]
+      recommended_thresholds:
+        green: 85
+        yellow: 60

@@ -1,0 +1,72 @@
+- model: kpi.notificationtemplate
+  pk: 1
+  fields:
+    name: "Validation Pending"
+    code: "VALIDATION_PENDING"
+    type: "EMAIL"
+    subject: "KPI Data Pending Valiation - {{ employee_name }}"
+    body_html: |
+      <h2>KPI Data Pending Validation</h2>
+      <p>{{ employee_name }} has submitted KPI data that requires your review.</p>
+      <p><strong>KPI:</strong> {{ kpi_name }}</p>
+      <p><strong>Period:</strong> {{ period }}</p>
+      <p><strong>Value:</strong> {{ actual_value }}</p>
+      <p>Please log in to review and approve or reject this submission.</p>
+    is_active: true
+
+- model: kpi.notificationtemplate
+  pk: 2
+  fields:
+    name: "Data Approved"
+    code: "DATA_APPROVED"
+    type: "IN_APP"
+    subject: "KPI Data Approved"
+    body_html: |
+      Your data for {{ kpi_name }} has been approved.
+      Period: {{ period }}
+      Value: {{ actual_value }}
+    is_active: true
+
+- model: kpi.notificationtemplate
+  pk: 3
+  fields:
+    name: "Data Rejected"
+    code: "DATA_REJECTED"
+    type: "EMAIL"
+    subject: "KPI Data Requires Correction - {{ kpi_name }}"
+    body_html: |
+      <h2>KPI Data Rejected</h2>
+      <p>Your data for {{ kpi_name }} has been rejected.</p>
+      <p><strong>Reason:</strong> {{ rejection_reason }}</p>
+      <p><strong>Comment:</strong> {{ comment }}</p>
+      <p>Please log in to correct and resubmit your data.</p>
+    is_active: true
+
+- model: kpi.notificationtemplate
+  pk: 4
+  fields:
+    name: "Red Alert"
+    code: "RED_ALERT"
+    type: "EMAIL"
+    subject: "ALERT: KPI Performance at Risk - {{ kpi_name }}"
+    body_html: |
+      <h2 style="color: #ef4444;">Performance Alert</h2>
+      <p><strong>KPI:</strong> {{ kpi_name }}</p>
+      <p><strong>User:</strong> {{ user_name }}</p>
+      <p><strong>Current Score:</strong> {{ current_score }}%</p>
+      <p><strong>Consecutive Red Months:</strong> {{ consecutive_months }}</p>
+      <p>This KPI has been in Red status for {{ consecutive_months }} consecutive months. Immediate attention required.</p>
+    is_active: true
+
+- model: kpi.notificationtemplate
+  pk: 5
+  fields:
+    name: "Missing Data Reminder"
+    code: "MISSING_DATA"
+    type: "EMAIL"
+    subject: "Reminder: KPI Data Submission Required for {{ period }}"
+    body_html: |
+      <h2>KPI Data Submission Reminder</h2>
+      <p>This is a reminder to submit your KPI data for {{ period }}.</p>
+      <p>Please log in and enter your actual performance figures before the {{ deadline_day }}th of the month.</p>
+    is_active: true

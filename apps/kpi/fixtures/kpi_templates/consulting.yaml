@@ -1,0 +1,129 @@
+- model: kpi.kpiframework
+  pk: 7
+  fields:
+    name: "Consulting Performance Framework"
+    code: "CONSULTING_V1"
+    sector: 4
+    description: "Standard KPI for consulting firms"
+    version: "1.0.0"
+    status: "PUBLISHED"
+    is_default: true
+    effective_from: "2025-01-01"
+    metadata: 
+      author: "Falcon Consulting"
+      tags: ["consulting", "professional-services", "agency"]
+# Consulting KPI Templates
+- model: kpi.kpitemplate
+  pk: 30
+  fields:
+    name: "Billable Hours"
+    code: "BILL_001"
+    sector: 4
+    category: 1
+    description: "Number of billable hours per consultant"
+    difficulty: "BEGINNER"
+    kpi_definition:
+      name: "Billable Hours"
+      kpi_type: "COUNT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "CUMULATIVE"
+      unit: "hours"
+      decimal_places: 0
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      target_range: "120-160"
+
+- model: kpi.kpitemplate
+  pk: 31
+  fields:
+    name: "Utilization Rate"
+    code: "UTIL_001"
+    sector: 4
+    category: 3
+    description: "Percentage of time spent on billable work"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Utilization Rate"
+      kpi_type: "PERCENTAGE"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "%"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      target_range: "70-85%"
+
+- model: kpi.kpitemplate
+  pk: 32
+  fields:
+    name: "Client Satisfaction Score"
+    code: "CSS_001"
+    sector: 4
+    category: 4
+    description: "Client satisfaction with delivered services"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Client Satisfaction"
+      kpi_type: "IMPACT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "/5"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      scale: "1-5"
+
+- model: kpi.kpitemplate
+  pk: 33
+  fields:
+    name: "Project Completion Rate"
+    code: "PCR_001"
+    sector: 4
+    category: 3
+    description: "Percentage of projects completed on time"
+    difficulty: "INTERMEDIATE"
+    kpi_definition:
+      name: "Project Completion Rate"
+      kpi_type: "PERCENTAGE"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "NON_CUMULATIVE"
+      unit: "%"
+      decimal_places: 1
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      target_range: "90-100%"
+
+- model: kpi.kpitemplate
+  pk: 34
+  fields:
+    name: "Strategy Sessions Delivered"
+    code: "STRAT_001"
+    sector: 4
+    category: 2
+    description: "Number of strategy workshops and sessions delivered"
+    difficulty: "BEGINNER"
+    kpi_definition:
+      name: "Strategy Sessions"
+      kpi_type: "COUNT"
+      calculation_logic: "HIGHER_IS_BETTER"
+      measure_type: "CUMULATIVE"
+      unit: "sessions"
+      decimal_places: 0
+    target_phasing_pattern:
+      strategy: "equal_split"
+    is_published: true
+    usage_count: 0
+    metadata:
+      consulting_firm: "Falcon Consulting"

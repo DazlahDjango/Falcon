@@ -1,0 +1,88 @@
+- model: kpi.rejectionreason
+  pk: 1
+  fields:
+    category: "DATA_QUALITY"
+    reason: "Inaccurate Data"
+    description: "The submitted data does not match supporting evidence or appears incorrect"
+    is_active: true
+    display-order: 1
+- model: kpi.rejectionreason
+  pk: 2
+  fields:
+    category: "DATA_QUALITY"
+    reason: "Missing Calculation"
+    description: "The calculation methodology is not documented or appears incorrect"
+    is_active: true
+    display_order: 2
+
+- model: kpi.rejectionreason
+  pk: 3
+  fields:
+    category: "MISSING_EVIDENCE"
+    reason: "No Supporting Evidence"
+    description: "No documentation or evidence provided to support the submitted data"
+    is_active: true
+    display_order: 10
+
+- model: kpi.rejectionreason
+  pk: 4
+  fields:
+    category: "MISSING_EVIDENCE"
+    reason: "Insufficient Evidence"
+    description: "The provided evidence does not fully support the claimed value"
+    is_active: true
+    display_order: 11
+
+- model: kpi.rejectionreason
+  pk: 5
+  fields:
+    category: "CALCULATION_ERROR"
+    reason: "Wrong Formula Applied"
+    description: "The calculation used does not match the KPI definition"
+    is_active: true
+    display_order: 20
+
+- model: kpi.rejectionreason
+  pk: 6
+  fields:
+    category: "CALCULATION_ERROR"
+    reason: "Arithmetic Mistake"
+    description: "Basic calculation error in the submitted data"
+    is_active: true
+    display_order: 21
+
+- model: kpi.rejectionreason
+  pk: 7
+  fields:
+    category: "TIMING"
+    reason: "Submitted After Deadline"
+    description: "Data submitted after the deadline without approval"
+    is_active: true
+    display_order: 30
+
+- model: kpi.rejectionreason
+  pk: 8
+  fields:
+    category: "TIMING"
+    reason: "Period Mismatch"
+    description: "Data submitted for wrong reporting period"
+    is_active: true
+    display_order: 31
+
+- model: kpi.rejectionreason
+  pk: 9
+  fields:
+    category: "OTHER"
+    reason: "Needs Correction"
+    description: "General rejection requiring correction and resubmission"
+    is_active: true
+    display_order: 40
+
+- model: kpi.rejectionreason
+  pk: 10
+  fields:
+    category: "OTHER"
+    reason: "Awaiting Additional Information"
+    description: "More information required before approval"
+    is_active: true
+    display_order: 41

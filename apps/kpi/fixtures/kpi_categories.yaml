@@ -1,0 +1,81 @@
+- model: kpi.kpicategory
+  pk: 1
+  fields:
+    name: "Financial Performance"
+    code: "FINANCIAL"
+    category_type: "FINANCIAL"
+    description: "KPIs related to financial results, revenue, costs, and profitability"
+    color: "#10b981"
+    icon: "💰"
+    display_order: 1
+    is_active: true
+- model: kpi.kpicategory
+  pk: 2
+  fields:
+    name: "Impact & Outcomes"
+    code: "IMPACT"
+    category_type: "IMPACT"
+    description: "KPIs measuring social impact, beneficiary outcomes and program effectiveness"
+    color: "#3b82f6"
+    icon: "🎯"
+    display_order: 2
+    is_active: true
+- model: kpi.kpicategory
+  pk: 3
+  fields:
+    name: "Operational Efficiency"
+    code: "OPERATIONAL"
+    category_type: "OPERATIONAL"
+    description: "KPIs measuring process efficiency, productivity, and operational metrics"
+    color: "#8b5cf6"
+    icon: "⚙️"
+    display_order: 3
+    is_active: true
+
+- model: kpi.kpicategory
+  pk: 4
+  fields:
+    name: "Customer & Stakeholder"
+    code: "CUSTOMER"
+    category_type: "CUSTOMER"
+    description: "KPIs measuring customer satisfaction, retention, and stakeholder engagement"
+    color: "#f59e0b"
+    icon: "👥"
+    display_order: 4
+    is_active: true
+
+- model: kpi.kpicategory
+  pk: 5
+  fields:
+    name: "Internal Processes"
+    code: "INTERNAL"
+    category_type: "INTERNAL"
+    description: "KPIs measuring internal process effectiveness and quality"
+    color: "#6366f1"
+    icon: "📋"
+    display_order: 5
+    is_active: true
+
+- model: kpi.kpicategory
+  pk: 6
+  fields:
+    name: "Growth & Learning"
+    code: "GROWTH"
+    category_type: "GROWTH"
+    description: "KPIs measuring employee development, innovation, and organizational growth"
+    color: "#ec489a"
+    icon: "📈"
+    display_order: 6
+    is_active: true
+
+- model: kpi.kpicategory
+  pk: 7
+  fields:
+    name: "Compliance & Risk"
+    code: "COMPLIANCE"
+    category_type: "COMPLIANCE"
+    description: "KPIs measuring regulatory compliance, risk management, and governance"
+    color: "#ef4444"
+    icon: "⚠️"
+    display_order: 7
+    is_active: true
