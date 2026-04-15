@@ -23,6 +23,7 @@ export const TenantProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     useEffect(() => {
         const loadTenant = async () => {
+            // Wait until we have both an authenticated user AND a tenant ID
             if (!isAuthenticated || !user?.tenant_id) {
                 setIsLoading(false);
                 return;

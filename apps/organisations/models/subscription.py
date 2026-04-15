@@ -6,7 +6,6 @@ from django.db import models
 from django.utils import timezone
 from apps.core.models import BaseModel
 from apps.organisations.constants import SubscriptionStatus, PlanCode
-from apps.organisations.managers import SubscriptionManager, PlanManager
 from .organisation import Organisation
 from .plan import Plan
 
@@ -15,7 +14,7 @@ class Subscription(BaseModel):
     """
     Manages the subscription status and plan for an organization.
     """
-    objects = SubscriptionManager()
+    objects = models.Manager()  # Use default manager temporarily
     
     organisation = models.OneToOneField(
         Organisation, 

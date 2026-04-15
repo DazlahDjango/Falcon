@@ -4,6 +4,8 @@ Tenant views for organisations API
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -34,3 +36,23 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         elif self.action in ['update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsClientAdmin()]
         return [IsAuthenticated()]
+    
+    @action(detail=False, methods=['get'], url_path='current')
+    def current(self, request):
+        """
+        Get the current user's organisation.
+        Returns the organisation the authenticated user belongs to.
+        """
+        user = request.user
+        
+        if not user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
+        
+        # Get the user's organisation
+        organisation = getattr(user, 'organisation', None)
+        
+        if not organisation:
+            return Response({'error': 'No organisation found for this user'}, status=404)
+        
+        serializer = self.get_serializer(organisation)
+        return Response(serializer.data)

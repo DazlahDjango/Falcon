@@ -19,6 +19,8 @@ from apps.organisations.api.v1.views.domains import DomainViewSet
 from apps.organisations.api.v1.views.contacts import ContactViewSet
 from apps.organisations.api.v1.views.features import FeatureFlagViewSet
 
+from apps.accounts.api.v1.views import AuditLogViewSet
+
 # Create router
 router = DefaultRouter()
 router.register(r'organisations', OrganisationViewSet, basename='organisation')
@@ -33,6 +35,7 @@ router.register(r'branding', BrandingViewSet, basename='branding')
 router.register(r'domains', DomainViewSet, basename='domain')
 router.register(r'contacts', ContactViewSet, basename='contact')
 router.register(r'feature-flags', FeatureFlagViewSet, basename='feature-flag')
+router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 
 urlpatterns = [
     path('register/', OrganisationRegistrationView.as_view(), name='organisation-register'),

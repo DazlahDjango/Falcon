@@ -10,7 +10,7 @@ class AuditService:
     def __init__(self):
         self.tenant_service = TenantAccessService()
     
-    def log(self, user, action: str, action_type: str, request=None, severity: str = 'info', metadata: Dict = None, old_value: Any = None, new_value: Any = None, content_type: str = None, object_id: str = None, object_repr: str = None) -> AuditLog:
+    def log(self, user, action: str, action_type: str, request=None, severity: str = 'info', metadata: Dict = None, old_value: Any = None, new_value: Any = None, content_type: str = None, object_id: str = None, object_repr: str = None, ip_address: str = None, **kwargs) -> AuditLog:
         changes = {}
         if old_value is not None and new_value is not None:
             if isinstance(old_value, dict) and isinstance(new_value, dict):
@@ -25,9 +25,9 @@ class AuditService:
             'old_value': old_value,
             'new_value': new_value,
             'changes': changes,
-            'content_type': content_type,
-            'object_id': str(object_id) if object_id else None,
-            'object_repr': object_repr,
+            'content_type': content_type or '',
+            'object_id': str(object_id) if object_id else '',
+            'object_repr': object_repr or '',
         }
         if request:
             log_data['ip_address'] = self._get_client_ip(request)
@@ -36,6 +36,12 @@ class AuditService:
             log_data['request_method'] = request.method
             log_data['request_path'] = request.path
             log_data['session_key'] = request.session.session_key or ''
+        else:
+            log_data.setdefault('ip_address', ip_address or '127.0.0.1')
+            log_data.setdefault('user_agent', 'system')
+            log_data.setdefault('request_method', 'SYSTEM')
+            log_data.setdefault('request_path', '')
+            log_data.setdefault('session_key', '')
         transaction.on_commit(lambda: self._create_audit_log(log_data))
 
     def _create_audit_log(self, log_data: Dict):

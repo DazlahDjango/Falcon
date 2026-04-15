@@ -42,3 +42,10 @@ class Team(BaseModel):
 
     def __str__(self):
         return f"{self.name} - {self.department.name}"
+
+    def get_member_count(self):
+        """
+        Get total number of employees in this team.
+        """
+        from apps.accounts.models import User
+        return User.objects.filter(team=self).count()

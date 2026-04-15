@@ -94,7 +94,7 @@ class AuditLog(BaseModel):
     
     def save(self, *args, **kwargs):
         """Prevent modification of immutable logs."""
-        if self.pk and self.is_immutable:
+        if not self._state.adding and self.is_immutable:
             raise PermissionError("Cannot modify immutable audit log")
         super().save(*args, **kwargs)
     

@@ -173,7 +173,8 @@ def user_session_post_save(sender, instance, created, **kwargs):
                         'session_id': str(instance.id),
                         'ip_address': instance.ip_address,
                         'reason': 'admin_revoked'
-                    }
+                    },
+                    ip_address=instance.ip_address
                 )
     except Exception as e:
         logger.error(f"Error in user_session_post_save signal: {e}", exc_info=True)

@@ -15,7 +15,7 @@ class JWTServices:
     def __init__(self):
         self.access_token_lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", timedelta(minutes=30))
         self.refresh_token_lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME", timedelta(days=7))
-        self.blacklist_manager = SessionBlacklistManager()
+        self.blacklist_manager = SessionBlacklist.objects
     
     def create_token(self, user: User, refresh_token_jti: str = None) -> Dict[str, Any]:
         refresh = RefreshToken.for_user(user)
@@ -56,14 +56,14 @@ class JWTServices:
                 access = AccessToken(token)
                 if self.is_blacklisted(access.get('jti')):
                     return None
-                return dict(access)
+                return access.payload
             else:
                 refresh = RefreshToken(token)
                 if self.is_blacklisted(refresh.get('jti')):
                     return None
                 if refresh.get('mfa_pending'):
-                    return dict(refresh)
-                return dict(refresh)
+                    return refresh.payload
+                return refresh.payload
         except TokenError as e:
             logger.debug(f"Token verification failed: {str(e)}")
             return None
@@ -122,5 +122,5 @@ class JWTServices:
             return None
         
     def cleanup_expired_blacklist(self) -> int:
-        return SessionBlacklistManager.cleanup_expired()
+        return SessionBlacklist.objects.cleanup_expired()
     

@@ -11,6 +11,8 @@ class DepartmentSerializer(serializers.ModelSerializer):
     parent_name = serializers.CharField(source='parent.name', read_only=True)
     manager_name = serializers.CharField(source='manager.email', read_only=True)
     full_path = serializers.SerializerMethodField()
+    member_count = serializers.IntegerField(source='get_member_count', read_only=True)
+    sub_department_count = serializers.IntegerField(source='get_sub_department_count', read_only=True)
     
     class Meta:
         model = Department
@@ -26,16 +28,12 @@ class DepartmentSerializer(serializers.ModelSerializer):
             'description',
             'is_active',
             'full_path',
+            'member_count',
+            'sub_department_count',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-    
-    def get_full_path(self, obj):
-        if hasattr(obj, 'get_full_path'):
-            return obj.get_full_path()
-        return obj.name
-
 
 class PositionSerializer(serializers.ModelSerializer):
     """Serializer for Position model"""
@@ -80,6 +78,36 @@ class TeamSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class DepartmentTreeSerializer(serializers.ModelSerializer):
+    """Recursive serializer for department hierarchy"""
+    sub_departments = serializers.SerializerMethodField()
+    teams = TeamSerializer(many=True, read_only=True)
+    manager_name = serializers.CharField(source='manager.email', read_only=True)
+    member_count = serializers.IntegerField(source='get_member_count', read_only=True)
+
+    class Meta:
+        model = Department
+        fields = [
+            'id',
+            'name',
+            'code',
+            'manager_name',
+            'member_count',
+            'sub_departments',
+            'teams'
+        ]
+
+    def get_sub_departments(self, obj):
+        # Recursive call to get children
+        children = obj.sub_departments.all()
+        return DepartmentTreeSerializer(children, many=True).data
+    
+    def get_full_path(self, obj):
+        if hasattr(obj, 'get_full_path'):
+            return obj.get_full_path()
+        return obj.name
 
 
 class HierarchySerializer(serializers.ModelSerializer):

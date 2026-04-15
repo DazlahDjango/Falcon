@@ -41,6 +41,8 @@ urlpatterns = [
     # API/V1 URLs patterns
     path('api/v1/', include('apps.accounts.urls')),
     path('api/v1/organisations/', include('apps.organisations.api.v1.urls')),
+    path('api/v1/kpis/', include('apps.kpi.urls')),
+    path('api/v1/notifications/', include('apps.notification.urls')),
     path('api/v1/health/', health_check, name='api-health')
 ]
 

@@ -34,47 +34,51 @@ class WebSocketClient {
                 return;
             }
             this.isConnecting = true;
-            const token = getAccessToken();
-            if (!token) {
-                reject(new Error("No authentication token"));
-                this.isConnecting = false;
-                return;
-            }
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.host;
-            this.url = `${protocol}//${host}/ws/${namespace}/?token=${token}`;
-            this.ws = new WebSocket(this.url);
-            this.ws.onopen = () => {
-                console.log(`WebSocket connected to ${namespace}`);
-                this.isConnected = true;
-                this.isConnecting = false;
-                this.reconnectAttempts = 0;
-                this._startHeartbeat();
-                this._flushMessageQueue();
-                resolve();
-            };
-            this.ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    handleMessage(data, this.listeners);
-                } catch (error) {
-                    console.error('WebSocket message parse error:', error);
+            getAccessToken().then(token => {
+                if (!token) {
+                    reject(new Error("No authentication token"));
+                    this.isConnecting = false;
+                    return;
                 }
-            };
-            this.ws.onclose = (event) => {
-                console.log(`Websocket disconnected: ${event.code} - ${event.reason}`);
-                this.isConnected = false;
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.host;
+                this.url = `${protocol}//${host}/ws/${namespace}/?token=${token}`;
+                this.ws = new WebSocket(this.url);
+                this.ws.onopen = () => {
+                    console.log(`WebSocket connected to ${namespace}`);
+                    this.isConnected = true;
+                    this.isConnecting = false;
+                    this.reconnectAttempts = 0;
+                    this._startHeartbeat();
+                    this._flushMessageQueue();
+                    resolve();
+                };
+                this.ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleMessage(data, this.listeners);
+                    } catch (error) {
+                        console.error('WebSocket message parse error:', error);
+                    }
+                };
+                this.ws.onclose = (event) => {
+                    console.log(`Websocket disconnected: ${event.code} - ${event.reason}`);
+                    this.isConnected = false;
+                    this.isConnecting = false;
+                    this._stopHeartbeat();
+                    if (event.code !== 1000) {
+                        reconnect(this);
+                    }
+                };
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.isConnecting = false,
+                    reject(error);
+                };
+            }).catch(error => {
                 this.isConnecting = false;
-                this._stopHeartbeat();
-                if (event.code !== 1000) {
-                    reconnect(this);
-                }
-            };
-            this.ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                this.isConnecting = false,
                 reject(error);
-            };
+            });
         });
     }
     disconnect() {
