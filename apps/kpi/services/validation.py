@@ -129,10 +129,13 @@ class BatchValidator:
                 results['rejected'].append({'id': actual.id, 'error': str(e)})
         return results
     def _get_direct_reports(self, supervisor_id: str) -> List[str]:
-        from apps.organisations.models import Hierarchy
-        return list(Hierarchy.objects.filter(
-            manager_id=supervisor_id
-        ).values_list('employee_id', flat=True))
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            supervisor = User.objects.get(id=supervisor_id)
+            return list(supervisor.get_direct_reports().values_list('id', flat=True))
+        except User.DoesNotExist:
+            return []
     def _auto_approve_criteria(self, actual: MonthlyActual) -> bool:
         from ..models import MonthlyPhasing
         target = MonthlyPhasing.objects.filter(

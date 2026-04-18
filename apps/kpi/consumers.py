@@ -116,8 +116,7 @@ class KPIDashboardConsumer(AsyncWebsocketConsumer):
     # Database
     @database_sync_to_async
     def is_manager(self) -> bool:
-        from apps.organisations.models import Hierarchy
-        return Hierarchy.objects.filter(manager_id=self.user.id).exists()
+        return self.user.get_direct_reports().exists()
     @database_sync_to_async
     def get_dashboard_data(self) -> Dict:
         now = timezone.now()
@@ -230,3 +229,181 @@ class KPIAdminConsumer(AsyncWebsocketConsumer):
         # This would integrate with Celery to get active tasks
         # Simplified for now
         return []
+    
+class KPITeamConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.manager_id = self.scope['url_route']['kwargs']['manager_id']
+        self.user = self.scope.get('user')
+        self.tenant_id = self.scope.get('tenant_id')
+        if not await self.is_manager_of_team():
+            await self.close()
+            return
+        self.team_group = f"team_{self.manager_id}"
+        await self.accept()
+        await self.channel_layer.group_add(self.team_group, self.channel_name)
+        logger.info(f"Team WebSocket connected: manager {self.manager_id}")
+        await self.send_team_data()
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.team_group, self.channel_name)
+        logger.info(f"Team WebSocket disconnected: manager {self.manager_id}")
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        message_type = data.get('type')
+        if message_type == 'refresh':
+            await self.send_team_data()
+    async def team_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'team_update',
+            'data': event.get('data', {})
+        }))
+    async def member_score_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'member_score_update',
+            'data': event.get('data', {})
+        }))
+    async def send_team_data(self):
+        team_data = await self.get_team_dashboard_data()
+        await self.send(text_data=json.dumps({
+            'type': 'initial',
+            'data': team_data
+        }))
+    @database_sync_to_async
+    def is_manager_of_team(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            manager = User.objects.get(id=self.manager_id)
+            return self.user.is_manager_of(manager)
+        except User.DoesNotExist:
+            return False
+    @database_sync_to_async
+    def get_team_dashboard_data(self):
+        from .services import ManagerDashboard
+        from django.utils import timezone
+        now = timezone.now()
+        dashboard = ManagerDashboard()
+        return dashboard.get_dashboard(self.manager_id, now.year, now.month)
+
+class KPIExecutiveConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
+        self.user = self.scope.get('user')
+        if not await self.is_executive():
+            await self.close()
+            return
+        self.executive_group = f"executive_{self.tenant_id}"
+        await self.accept()
+        await self.channel_layer.group_add(self.executive_group, self.channel_name)
+        logger.info(f"Executive WebSocket connected: tenant {self.tenant_id}")
+        await self.send_organization_data()
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.executive_group, self.channel_name)
+        logger.info(f"Executive WebSocket disconnected: tenant {self.tenant_id}")
+    async def organization_health_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'organization_health_update',
+            'data': event.get('data', {})
+        }))
+    async def department_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'department_update',
+            'data': event.get('data', {})
+        }))
+    async def red_alert_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'red_alert',
+            'data': event.get('data', {})
+        }))
+    async def send_organization_data(self):
+        org_data = await self.get_organization_data()
+        await self.send(text_data=json.dumps({
+            'type': 'initial',
+            'data': org_data
+        }))
+    @database_sync_to_async
+    def is_executive(self):
+        return (self.user.is_superuser or 
+                self.user.has_role('EXECUTIVE') or 
+                self.user.has_role('CEO') or 
+                self.user.has_role('DIRECTOR'))
+    @database_sync_to_async
+    def get_organization_data(self):
+        from .services import ExecutiveDashboard
+        from django.utils import timezone
+        now = timezone.now()
+        dashboard = ExecutiveDashboard()
+        return dashboard.get_dashboard(self.tenant_id, now.year, now.month)
+
+class KPINotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
+        self.user = self.scope.get('user')
+        if str(self.user.id) != self.user_id and not self.user.is_superuser:
+            await self.close()
+            return
+        self.user_group = f"notifications_{self.user_id}"
+        await self.accept()
+        await self.channel_layer.group_add(self.user_group, self.channel_name)
+        logger.info(f"Notification WebSocket connected: user {self.user_id}")
+        await self.send_pending_notifications()
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.user_group, self.channel_name)
+        logger.info(f"Notification WebSocket disconnected: user {self.user_id}")
+    async def notification(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'notification',
+            'data': event.get('data', {})
+        }))
+    async def send_pending_notifications(self):
+        pending = await self.get_pending_notifications()
+        for notif in pending:
+            await self.send(text_data=json.dumps({
+                'type': 'notification',
+                'data': notif
+            }))
+    @database_sync_to_async
+    def get_pending_notifications(self):
+        from .models import Notification  # Assuming notification model exists
+        return list(Notification.objects.filter(
+            user_id=self.user_id,
+            is_read=False
+        ).values('id', 'title', 'message', 'created_at')[:20])
+
+class KPIScoreConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
+        self.user = self.scope.get('user')
+        if str(self.user.id) != self.user_id:
+            await self.close()
+            return
+        self.score_group = f"scores_{self.user_id}"
+        await self.accept()
+        await self.channel_layer.group_add(self.score_group, self.channel_name)
+        logger.info(f"Score WebSocket connected: user {self.user_id}")
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.score_group, self.channel_name)
+    async def score_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'score_update',
+            'data': event.get('data', {})
+        }))
+
+class KPIValidationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
+        self.user = self.scope.get('user')
+        if str(self.user.id) != self.user_id:
+            await self.close()
+            return
+        self.validation_group = f"validation_{self.user_id}"
+        await self.accept()
+        await self.channel_layer.group_add(self.validation_group, self.channel_name)
+        logger.info(f"Validation WebSocket connected: user {self.user_id}")
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.validation_group, self.channel_name)
+    async def validation_update(self, event):
+        """Handle validation update"""
+        await self.send(text_data=json.dumps({
+            'type': 'validation_update',
+            'data': event.get('data', {})
+        }))

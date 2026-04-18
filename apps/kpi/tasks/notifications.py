@@ -1,7 +1,6 @@
 import logging
 from celery import shared_task
 from typing import Dict
-from apps.organisations.models import Hierarchy
 from apps.kpi.models import MonthlyActual, Escalation
 from apps.kpi.services import NotificationTrigger, RedAlertService, MissingDataReminder, ThresholdBreachService
 logger = logging.getLogger(__name__)
@@ -11,7 +10,7 @@ def send_validation_notification_task(self, actual_id: str, notification_type: s
     try:
         actual = MonthlyActual.objects.select_related('user', 'kpi').get(id=actual_id)
         trigger = NotificationTrigger()
-        supervisor = Hierarchy.objects.filter(employee_id=actual.user_id).first()
+        supervisor = actual.user.manager
         if supervisor:
             context = {
                 'employee_name': actual.user.get_full_name(),

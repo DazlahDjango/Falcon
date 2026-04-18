@@ -15,10 +15,13 @@ class ValidationRecordManager(TenantAwareManager):
     def by_actual(self, actual_id):
         return self.filter(actual_id=actual_id)
     def pending_review(self, manager_id):
-        from apps.organisations.models import Hierarchy
-        direct_reports = Hierarchy.objects.filter(
-            manager_id=manager_id
-        ).values_list('employee_id', flat=True)
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            manager = User.objects.get(id=manager_id)
+            direct_reports = manager.get_direct_reports().values_list('id', flat=True)
+        except User.DoesNotExist:
+            direct_reports = []
         return self.filter(
             actual__user_id__in=direct_reports,
             status='PENDING'

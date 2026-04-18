@@ -24,9 +24,9 @@ class KPIManager(SoftDeleteManager):
     def with_measure_type(self, measure_type):
         return self.filter(measure_type=measure_type)
     def for_user_hierarchy(self, user):
-        from apps.organisations.models import Hierarchy
+        from django.db.models import Q
         user_kpis = Q(owner=user)
-        direct_reports = Hierarchy.objects.filter(manager=user).values_list('employee_id', flat=True)
+        direct_reports = user.get_direct_reports().values_list('id', flat=True)
         report_kpis = Q(owner_id__in=direct_reports)
         managed_depts = getattr(user, 'managed_departments', [])
         dept_kpis = Q(department_id__in=managed_depts) if managed_depts else Q()

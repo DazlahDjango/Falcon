@@ -54,9 +54,13 @@ class RedAlertService:
         return alerts_sent
     
     def _get_supervisor(self, user_id: str):
-        from apps.organisations.models import Hierarchy
-        supervisor = Hierarchy.objects.filter(employee_id=user_id).first()
-        return supervisor.manager if supervisor else None
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=user_id)
+            return user.manager
+        except User.DoesNotExist:
+            return None
     def _send_red_alert_email(self, to: str, context: Dict, to_user: bool = False):
         subject = f"Alert: KPI Performance at Risk - {context['kpi_name']}"
         if to_user:
@@ -88,9 +92,13 @@ class MissingDataReminder:
             reminders_sent.append(user.email)
         return {'reminders_sent': len(reminders_sent)}
     def _get_supervisor(self, user_id: str):
-        from apps.organisations.models import Hierarchy
-        supervisor = Hierarchy.objects.filter(employee_id=user_id).first()
-        return supervisor.manager if supervisor else None
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=user_id)
+            return user.manager
+        except User.DoesNotExist:
+            return None
     
     def _send_reminder_email(self, to: str, context: Dict):
         from ..tasks import send_missing_data_reminder
@@ -139,9 +147,13 @@ class PendingValidationAlert:
             })
         return alerts_sent
     def _get_supervisor(self, user_id: str):
-        from apps.organisations.models import Hierarchy
-        supervisor = Hierarchy.objects.filter(employee_id=user_id).first()
-        return supervisor.manager if supervisor else None
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=user_id)
+            return user.manager
+        except User.DoesNotExist:
+            return None
     def _send_validation_alert_email(self, to: str, context: Dict):
         from ..tasks import send_validation_alert
         send_validation_alert.delay(to, context)

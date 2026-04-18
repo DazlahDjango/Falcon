@@ -128,10 +128,16 @@ def validate_department_hierarchy(department_id, user_id):
         raise ValidationError(_("User not found."))
 
 def validate_supervisor_access(supervisor_id, employee_id):
-    from apps.organisations.models import Hierarchy as ReportingHierarchy
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
     
-    if not ReportingHierarchy.objects.filter(manager_id=supervisor_id, employee_id=employee_id).exists():
-        raise ValidationError(_("Supervisor does not have access to this employee."))
+    try:
+        employee = User.objects.get(id=employee_id)
+        supervisor = User.objects.get(id=supervisor_id)
+        if not supervisor.is_manager_of(employee):
+            raise ValidationError(_("Supervisor does not have access to this employee."))
+    except User.DoesNotExist:
+        raise ValidationError(_("User not found."))
 
 def validate_tenant_isolation(tenant_id, obj_tenant_id):
     if obj_tenant_id and tenant_id != obj_tenant_id:

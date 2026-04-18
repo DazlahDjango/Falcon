@@ -88,10 +88,13 @@ class MonthlyActualListFilter(filters.FilterSet):
         except (ValueError, TypeError):
             return queryset
     def filter_by_supervisor(self, queryset, name, value):
-        from apps.organisations.models import Hierarchy
-        direct_reports = Hierarchy.objects.filter(
-            manager_id=value
-        ).values_list('employee_id', flat=True)
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            supervisor = User.objects.get(id=value)
+            direct_reports = supervisor.get_direct_reports().values_list('id', flat=True)
+        except User.DoesNotExist:
+            direct_reports = []
         return queryset.filter(user_id__in=direct_reports)
     def filter_pending_validation(self, queryset, name, value):
         if value:

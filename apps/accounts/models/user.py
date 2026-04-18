@@ -98,32 +98,80 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     
     @property
     def is_manager(self):
-        return self.direct_reports.exists()
-    
+        """Check if user has any direct reports"""
+        return self.direct_reports.filter(is_active=True).exists()
+
     @property
     def is_supervisor(self):
+        """Check if user has supervisor-level role"""
         return self.role in [self.ROLE_SUPER_ADMIN, self.ROLE_CLIENT_ADMIN, self.ROLE_EXECUTIVE, self.ROLE_SUPERVISOR]
-    
+
     @property
     def can_validate_entries(self):
+        """Check if user can validate KPI entries"""
         return self.role in [self.ROLE_SUPER_ADMIN, self.ROLE_CLIENT_ADMIN, self.ROLE_EXECUTIVE, self.ROLE_SUPERVISOR]
-    
+
     @property
     def can_manage_tenant(self):
+        """Check if user can manage tenant settings"""
         return self.role in [self.ROLE_SUPER_ADMIN, self.ROLE_CLIENT_ADMIN]
-    
+
     @property
     def is_dashboard_champion(self):
+        """Check if user is dashboard champion"""
         return self.role == self.ROLE_DASHBOARD_CHAMPION
-    
-    def get_team_members(self):
-        team = list(self.direct_reports.all())
-        for member in self.direct_reports.all():
+
+    def get_direct_reports(self):
+        """Get all direct reports (active users only)"""
+        return self.direct_reports.filter(is_active=True)
+
+    def get_team_members(self, include_self=False):
+        """Get all team members recursively (active users only)"""
+        team = list(self.get_direct_reports())
+        for member in self.get_direct_reports():
             team.extend(member.get_team_members())
+        if include_self:
+            team.insert(0, self)
         return team
-    
+
     def get_team_ids(self):
+        """Get IDs of all team members"""
         return [user.id for user in self.get_team_members()]
+
+    def get_management_chain(self, include_self=False, max_depth=10):
+        """Get the management chain upwards"""
+        chain = []
+        current = self.manager
+        depth = 0
+
+        while current and depth < max_depth:
+            chain.append(current)
+            current = current.manager
+            depth += 1
+
+        if include_self:
+            chain.insert(0, self)
+
+        return chain
+
+    def is_manager_of(self, user):
+        """Check if this user is a manager of the given user"""
+        if not user or not user.manager:
+            return False
+        return user.manager == self or user in self.get_team_members()
+
+    def set_manager(self, manager):
+        """Set the manager for this user"""
+        if manager == self:
+            raise ValueError("A user cannot be their own manager")
+        if manager and manager.tenant_id != self.tenant_id:
+            raise ValueError("Manager must be in the same tenant")
+        self.manager = manager
+        self.save(update_fields=['manager'])
+
+    def get_team_size(self):
+        """Get the total number of people in the team"""
+        return len(self.get_team_members())
     
     def increment_login_attempts(self):
         self.login_attempts += 1

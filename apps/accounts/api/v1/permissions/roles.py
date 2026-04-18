@@ -14,19 +14,19 @@ class HasRole(BasePermission):
         return self.has_permission(request, view)
     
 class HasAnyRole(BasePermission):
-    message = _("This action required one of the specified roles")
-    def __init__(self, role):
-        self.required_role = role 
+    message = _("This action requires one of the specified roles")
+    def __init__(self, roles):
+        self.required_roles = roles if isinstance(roles, list) else [roles]
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.role == self.required_role
+        return request.user.role in self.required_roles
     def has_object_permission(self, request, view, obj):
         return self.has_permission(request, view)
 
 class IsSuperAdmin(HasRole):
     message = _('Super admin privileges required')
-    def __int__(self):
+    def __init__(self):
         super().__init__(UserRoles.SUPER_ADMIN)
 
 class IsClientAdmin(HasRole):
@@ -42,7 +42,7 @@ class IsExecutive(HasRole):
 class IsSupervisor(HasRole):
     message = _("Supervisor privileges required")
     def __init__(self):
-        super().__init__(UserRoles.EXECUTIVE)
+        super().__init__(UserRoles.SUPERVISOR)
 
 class IsStaff(HasRole):
     message = _("Staff privileges required")
