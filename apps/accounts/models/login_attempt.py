@@ -104,9 +104,6 @@ class LoginAttempt(BaseModel):
             data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:500]
             data['referer'] = request.META.get('HTTP_REFERER', '')[:500]
             data['session_key'] = request.session.session_key or ''
-        else:
-            data.setdefault('ip_address', '127.0.0.1')
-            data.setdefault('user_agent', 'system')
         
         return cls.objects.create(**data)
     

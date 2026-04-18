@@ -62,12 +62,7 @@ class SessionMiddleware(MiddlewareMixin):
         session_id = self._extract_session_from_token(request)
         if session_id:
             request.current_session_id = session_id
-            
-            # ✅ PERFORMANCE: Only update last_activity once every 5 minutes
-            cache_key = f'session_activity:{session_id}'
-            if not cache.get(cache_key):
-                UserSession.objects.filter(id=session_id).update(last_activity=timezone.now())
-                cache.set(cache_key, True, timeout=300) # 5 minutes
+            UserSession.objects.filter(id=session_id).update(last_activity=timezone.now())
         elif hasattr(request, 'user') and request.user.is_authenticated:
         # Create session for authenticated users without one
             session = UserSession.objects.create(
@@ -112,9 +107,6 @@ class AuditMiddleware(MiddlewareMixin):
     
     def process_response(self, request, response):
         if self._should_skip_logging(request.path):
-            return response
-        # ✅ PERFORMANCE: Skip logging for GET requests to prevent timeouts on dashboard load
-        if request.method == 'GET':
             return response
         if hasattr(request, 'user') and request.user.is_authenticated:
             self._log_request(request, response)
