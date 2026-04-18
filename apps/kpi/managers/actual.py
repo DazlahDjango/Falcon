@@ -25,10 +25,13 @@ class MonthlyActualManager(TenantAwareManager):
             queryset = queryset.filter(month=month)
         return queryset
     def for_manager_team(self, manager_id, year=None, month=None):
-        from apps.organisations.models import Hierarchy
-        direct_reports = Hierarchy.objects.filter(
-            manager_id=manager_id
-        ).values_list('employee_id', flat=True)
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            manager = User.objects.get(id=manager_id)
+            direct_reports = manager.get_direct_reports().values_list('id', flat=True)
+        except User.DoesNotExist:
+            direct_reports = []
         queryset = self.filter(user_id__in=direct_reports)
         if year:
             queryset = queryset.filter(year=year)

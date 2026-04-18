@@ -7,6 +7,7 @@ from .cascade import TargetCascader, CascadeMapper, CascadeNotifier, CascadeRoll
 from .dashboard import IndividualDashboard, ManagerDashboard, ExecutiveDashboard, ChampionDashboard, RealtimeDashboard
 from .notifications import NotificationTrigger, RedAlertService, MissingDataReminder, PendingValidationAlert, ThresholdBreachService
 from .audit import AuditLogger, AuditReporter, ComplianceChecker
+from .report import ReportGenerator
 
 __all__ = [
     'KPICreator', 'KPIUpdater', 'KPIActivator', 'KPIValidator', 'KPIImportExport',
@@ -18,4 +19,5 @@ __all__ = [
     'IndividualDashboard', 'ManagerDashboard', 'ExecutiveDashboard', 'ChampionDashboard', 'RealtimeDashboard',
     'NotificationTrigger', 'RedAlertService', 'MissingDataReminder', 'PendingValidationAlert', 'ThresholdBreachService',
     'AuditLogger', 'AuditReporter', 'ComplianceChecker',
+    'ReportGenerator',
 ]

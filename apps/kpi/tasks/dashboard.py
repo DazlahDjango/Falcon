@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.db import connection
 from typing import Dict, List
 from apps.accounts.models import User
-from apps.organisations.models import Hierarchy
 from apps.kpi.models import RefreshTracker
 from apps.kpi.services import IndividualDashboard, ManagerDashboard, ExecutiveDashboard
 logger = logging.getLogger(__name__)
@@ -42,7 +41,7 @@ def precompute_dashboard_cache_task(self, tenant_id: str, year: int, month: int)
     for user in users:
         individual_dashboard.get_dashboard(str(user.id), year, month)
         processed['individual'] += 1
-        if Hierarchy.objects.filter(manager_id=user.id).exists():
+        if user.get_direct_reports().exists():
             manager_dashboard.get_dashboard(str(user.id), year, month)
             processed['manager'] += 1
     executive_dashboard.get_dashboard(tenant_id, year, month)
