@@ -42,6 +42,26 @@ const AdminTenants = lazy(() => import('./components/accounts/admin/AdminTenants
 const AdminSystem = lazy(() => import('./components/accounts/admin/AdminSystem'));
 const Help = lazy(() => import('./pages/accounts/Help'));
 const About = lazy(() => import('./pages/accounts/About'));
+// Organisation Pages
+const OrganisationDashboardPage = lazy(() => import('./pages/organisation/OrganisationDashboardPage'));
+const OrganisationSettingsPage = lazy(() => import('./pages/organisation/OrganisationSettingsPage'));
+const OrganisationAdminPage = lazy(() => import('./pages/organisation/OrganisationAdminPage'));
+const OrganisationAuditPage = lazy(() => import('./pages/organisation/OrganisationAuditPage'));
+const OrganisationBrandingPage = lazy(() => import('./pages/organisation/OrganisationBrandingPage'));
+const OrganisationUsersPage = lazy(() => import('./pages/organisation/OrganisationUsersPage'));
+const OrganisationSubscriptionPage = lazy(() => import('./pages/organisation/OrganisationSubscriptionPage'));
+const OrganisationReportsPage = lazy(() => import('./pages/organisation/OrganisationReportsPage'));
+const OrganisationDepartmentsPage = lazy(() => import('./pages/organisation/OrganisationDepartmentsPage'));
+const OrganisationTeamsPage = lazy(() => import('./pages/organisation/OrganisationTeamsPage'));
+const OrganisationPositionsPage = lazy(() => import('./pages/organisation/OrganisationPositionsPage'));
+const OrganisationDomainsPage = lazy(() => import('./pages/organisation/OrganisationDomainsPage'));
+const OrganisationContactsPage = lazy(() => import('./pages/organisation/OrganisationContactsPage'));
+const OrganisationWorkflowsPage = lazy(() => import('./pages/organisation/OrganisationWorkflowsPage'));
+const OrganisationImportPage = lazy(() => import('./pages/organisation/OrganisationImportPage'));
+const OrganisationExportPage = lazy(() => import('./pages/organisation/OrganisationExportPage'));
+const OrganisationApiTokensPage = lazy(() => import('./pages/organisation/OrganisationApiTokensPage'));
+const OrganisationTwoFactorPage = lazy(() => import('./pages/organisation/OrganisationTwoFactorPage'));
+const OrganisationProfilePage = lazy(() => import('./pages/organisation/OrganisationProfilePage'));
 const NotFound = lazy(() => import('./pages/accounts/NotFound'));
 const Unauthorized = lazy(() => import('./pages/accounts/Unauthorized'));
 const ServerError = lazy(() => import('./pages/accounts/ServerError'));
@@ -142,6 +162,32 @@ const AppContent = () => {
                     <Route path={ROUTES.SETTINGS} element={<Settings />} />
                     {/* Audit */}
                     <Route path={ROUTES.AUDIT} element={<AuditLogs />} />
+                    {/* Organisation Routes - Client Admin and Super Admin */}
+                    <Route element={
+                        <ProtectedRoute requiredRoles={['client_admin', 'super_admin']}>
+                            <MainLayout />
+                        </ProtectedRoute>
+                    }>
+                        <Route path={ROUTES.ORGANISATION_DASHBOARD} element={<OrganisationDashboardPage />} />
+                        <Route path={ROUTES.ORGANISATION_SETTINGS} element={<OrganisationSettingsPage />} />
+                        <Route path={ROUTES.ORGANISATION_ADMIN} element={<OrganisationAdminPage />} />
+                        <Route path={ROUTES.ORGANISATION_AUDIT} element={<OrganisationAuditPage />} />
+                        <Route path={ROUTES.ORGANISATION_BRANDING} element={<OrganisationBrandingPage />} />
+                        <Route path={ROUTES.ORGANISATION_USERS} element={<OrganisationUsersPage />} />
+                        <Route path={ROUTES.ORGANISATION_SUBSCRIPTION} element={<OrganisationSubscriptionPage />} />
+                        <Route path={ROUTES.ORGANISATION_REPORTS} element={<OrganisationReportsPage />} />
+                        <Route path={ROUTES.ORGANISATION_DEPARTMENTS} element={<OrganisationDepartmentsPage />} />
+                        <Route path={ROUTES.ORGANISATION_TEAMS} element={<OrganisationTeamsPage />} />
+                        <Route path={ROUTES.ORGANISATION_POSITIONS} element={<OrganisationPositionsPage />} />
+                        <Route path={ROUTES.ORGANISATION_DOMAINS} element={<OrganisationDomainsPage />} />
+                        <Route path={ROUTES.ORGANISATION_CONTACTS} element={<OrganisationContactsPage />} />
+                        <Route path={ROUTES.ORGANISATION_WORKFLOWS} element={<OrganisationWorkflowsPage />} />
+                        <Route path={ROUTES.ORGANISATION_IMPORT} element={<OrganisationImportPage />} />
+                        <Route path={ROUTES.ORGANISATION_EXPORT} element={<OrganisationExportPage />} />
+                        <Route path={ROUTES.ORGANISATION_API_TOKENS} element={<OrganisationApiTokensPage />} />
+                        <Route path={ROUTES.ORGANISATION_TWO_FACTOR} element={<OrganisationTwoFactorPage />} />
+                        <Route path={ROUTES.ORGANISATION_PROFILE} element={<OrganisationProfilePage />} />
+                    </Route>
                     {/* Admin Routes - Super Admin Only */}
                     <Route element={
                         <ProtectedRoute requiredRoles={['super_admin']}>

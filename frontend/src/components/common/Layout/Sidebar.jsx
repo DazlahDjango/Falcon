@@ -1,12 +1,21 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { ROUTES } from '../../../config/constants';
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer,
 } from 'react-icons/fi';
+import { MdDomain } from 'react-icons/md';
 const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
-    const [expandedMenus, setExpandedMenus] = useState({});
+    const [expandedMenus, setExpandedMenus] = useState({
+        main: true,
+        team: true,
+        reporting: true,
+        settings: true,
+        organisation: true,
+        admin: true
+    });
     const {tenant} = useSelector((state) => state.tenant);
     // Roles navigate
     const getNavigationItem = () => {
@@ -28,6 +37,14 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/security', name: 'Security', icon: FiShield, roles: ['all'] },
             { path: '/notifications', name: 'Notifications', icon: FiBell, roles: ['all'] },
         ];
+        const organisationItems = [
+            { path: ROUTES.ORGANISATION_DASHBOARD, name: 'Organisation', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_USERS, name: 'Team Members', icon: FiUsers, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_TEAMS, name: 'Teams', icon: FiUserCheck, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_DEPARTMENTS, name: 'Departments', icon: FiLayers, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_SETTINGS, name: 'Org Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_SUBSCRIPTION, name: 'Subscription', icon: FiFileText, roles: ['super_admin', 'client_admin'] },
+        ];
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
             { path: '/admin/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
@@ -39,6 +56,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             team: teamItems,
             reporting: reportingItems,
             settings: settingsItems,
+            organisation: organisationItems,
             admin: adminItems
         };
     };
@@ -115,6 +133,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Team', navigation.team, 'team')}
                 {renderNavGroup('Reporting', navigation.reporting, 'reporting')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
+                {(user?.role === 'client_admin' || user?.role === 'super_admin') && renderNavGroup('Organisation', navigation.organisation, 'organisation')}
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>
             {/* User Info at Bottom */}

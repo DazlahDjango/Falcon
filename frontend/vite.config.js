@@ -27,16 +27,23 @@ export default defineConfig(({ mode }) => {
             port: 5173,
             host: true,
             open: true,
+            hmr: {
+                protocol: 'ws',
+                host: 'localhost',
+                port: 5173,
+            },
             proxy: {
                 '/api': {
                     target: 'http://127.0.0.1:8000',
                     changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/api/, '/api')
+                    rewrite: (path) => path.replace(/^\/api/, '/api'),
+                    timeout: 30000,
                 },
                 '/ws': {
                     target: 'ws://127.0.0.1:8000',
                     ws: true,
-                    changeOrigin: true
+                    changeOrigin: true,
+                    timeout: 30000,
                 }
             }
         },

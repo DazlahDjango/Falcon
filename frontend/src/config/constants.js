@@ -41,6 +41,26 @@ export const ROUTES = {
     ADMIN_USERS: '/admin/users',
     ADMIN_TENANTS: '/admin/tenants',
     ADMIN_SYSTEM: '/admin/system',
+    // Organisation
+    ORGANISATION_DASHBOARD: '/organisation',
+    ORGANISATION_SETTINGS: '/organisation/settings',
+    ORGANISATION_ADMIN: '/organisation/admin',
+    ORGANISATION_AUDIT: '/organisation/audit',
+    ORGANISATION_BRANDING: '/organisation/branding',
+    ORGANISATION_USERS: '/organisation/users',
+    ORGANISATION_SUBSCRIPTION: '/organisation/subscription',
+    ORGANISATION_REPORTS: '/organisation/reports',
+    ORGANISATION_DEPARTMENTS: '/organisation/departments',
+    ORGANISATION_TEAMS: '/organisation/teams',
+    ORGANISATION_POSITIONS: '/organisation/positions',
+    ORGANISATION_DOMAINS: '/organisation/domains',
+    ORGANISATION_CONTACTS: '/organisation/contacts',
+    ORGANISATION_WORKFLOWS: '/organisation/workflows',
+    ORGANISATION_IMPORT: '/organisation/import',
+    ORGANISATION_EXPORT: '/organisation/export',
+    ORGANISATION_API_TOKENS: '/organisation/api-tokens',
+    ORGANISATION_TWO_FACTOR: '/organisation/two-factor',
+    ORGANISATION_PROFILE: '/organisation/profile',
     // Error Pages
     UNAUTHORIZED: '/403',
     SERVER_ERROR: '/500',
@@ -125,7 +145,28 @@ export const API_ENDPOINTS = {
     // Missions
     MISSIONS: '/missions/',
     MISSION_DETAIL: '/missions/{id}/',
-    MISSION_EXPORT: '/missions/export/'
+    MISSION_EXPORT: '/missions/export/',
+    // Organisation
+    ORGANISATIONS: '/organisations/',
+    ORGANISATION_CURRENT: '/organisations/current/',
+    ORGANISATION_SETTINGS: '/organisations/settings/',
+    ORGANISATION_BRANDING: '/organisations/branding/',
+    ORGANISATION_USERS: '/organisations/users/',
+    ORGANISATION_TEAMS: '/organisations/teams/',
+    ORGANISATION_DEPARTMENTS: '/organisations/departments/',
+    ORGANISATION_POSITIONS: '/organisations/positions/',
+    ORGANISATION_DOMAINS: '/organisations/domains/',
+    ORGANISATION_CONTACTS: '/organisations/contacts/',
+    ORGANISATION_WORKFLOWS: '/organisations/workflows/',
+    ORGANISATION_SUBSCRIPTION: '/organisations/subscription/',
+    ORGANISATION_PLANS: '/organisations/plans/',
+    ORGANISATION_AUDIT: '/organisations/audit/',
+    ORGANISATION_REPORTS: '/organisations/reports/',
+    ORGANISATION_IMPORT: '/organisations/import/',
+    ORGANISATION_EXPORT: '/organisations/export/',
+    ORGANISATION_API_TOKENS: '/organisations/api-tokens/',
+    ORGANISATION_TWO_FACTOR: '/organisations/two-factor/',
+    ORGANISATION_PROFILE: '/organisations/profile/'
 };
 
 // Storage Keys
