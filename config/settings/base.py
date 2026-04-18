@@ -97,7 +97,7 @@ THIRD_PARTY_APPS = [
     # 'django_fsm',
     'viewflow',
     # Notifications
-    'notifications',
+    # 'notifications',
     'django_apscheduler',
     # Reporting
     'easy_pdf',
@@ -125,9 +125,8 @@ PROJECT_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.core',
     'apps.dashboard',
-    'apps.kpi.apps.KpiConfig',
     'apps.notification',
-    'apps.organisations',
+    'apps.organisations.apps.OrganisationsConfig',
     'apps.reports',
     'apps.workflowsapi',
 ]
@@ -164,10 +163,10 @@ MIDDLEWARE = [
     # 'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
     # 'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
     # KPI
-    'apps.kpi.middleware.ContextMiddleware',
-    'apps.kpi.middleware.AuditMiddleware',
-    'apps.kpi.middleware.ThrottleMiddleware',
-    'apps.kpi.middleware.CacheMiddleware',
+    # 'apps.kpi.middleware.ContextMiddleware',
+    # 'apps.kpi.middleware.AuditMiddleware',
+    # 'apps.kpi.middleware.ThrottleMiddleware',
+    # 'apps.kpi.middleware.CacheMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -505,9 +504,10 @@ CACHES = {
                 'timeout': 20,
             },
             'PASSWORD': env('REDIS_PASSWORD', default=None),
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
+            'SOCKET_CONNECT_TIMEOUT': 0.5,
+            'SOCKET_TIMEOUT': 0.5,
             'RETRY_ON_TIMEOUT': True,
+            'IGNORE_EXCEPTIONS': True,
             'HEALTH_CHECK_INTERVAL': 30,
         },
         'KEY_PREFIX': 'falcon',
@@ -642,8 +642,7 @@ OTP_TOTP_INTERVAL = 30  # 30 seconds
 # ----------------------------------------------------------------------------
 # AUDITLOG CONFIGURATION
 # ----------------------------------------------------------------------------
-AUDITLOG_INCLUDE_ALL_MODELS = True
-AUDITLOG_EXCLUDE_TRACKING_MODELS = []  # Track everything
+AUDITLOG_INCLUDE_ALL_MODELS = False
 
 # ----------------------------------------------------------------------------
 # RATE LIMITING

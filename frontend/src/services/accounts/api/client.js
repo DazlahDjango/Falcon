@@ -30,7 +30,10 @@ apiClient.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
         
-        const tenantId = localStorage.getItem('tenant_id');
+        // Break circular dependency by using direct localStorage lookup
+        // We use the 'falcon_' prefix defined in our storage system
+        const tenantId = localStorage.getItem('falcon_tenant_id');
+        
         if (tenantId) {
             config.headers['X-Tenant-ID'] = tenantId;
         }

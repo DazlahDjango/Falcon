@@ -1,26 +1,20 @@
-import { encrypt, decrypt } from './secureStorage';
+import { encrypt, decrypt } from './crypto';
 
 const PREFIX = 'falcon_';
 
-export const setItem = (key, value, encryptValue = false) => {
+export const setItem = async (key, value, encryptValue = false) => {
     try {
         const fullKey = `${PREFIX}${key}`;
-        if (encryptValue) {
-            return encrypt(JSON.stringify(value))
-                .then((encrypted) => {
-                    localStorage.setItem(fullKey, encrypted);
-                    return true;
-                })
-                .catch((error) => {
-                    console.error('localStorage setItem error:', error);
-                    return false;
-                });
-        }
-
         let data = value;
+
         if (typeof value === 'object') {
             data = JSON.stringify(value);
         }
+
+        if (encryptValue) {
+            data = await encrypt(data);
+        }
+
         localStorage.setItem(fullKey, data);
         return true;
     } catch (error) {
@@ -28,30 +22,23 @@ export const setItem = (key, value, encryptValue = false) => {
         return false;
     }
 };
-export const getItem = (key, decryptValue = false) => {
+
+export const getItem = async (key, decryptValue = false) => {
     try {
         const fullKey = `${PREFIX}${key}`;
         const data = localStorage.getItem(fullKey);
+        
         if (!data) return null;
+
+        let result = data;
         if (decryptValue) {
-            return decrypt(data)
-                .then((decrypted) => {
-                    try {
-                        return JSON.parse(decrypted);
-                    } catch {
-                        return decrypted;
-                    }
-                })
-                .catch((error) => {
-                    console.error('localStorage getItem error:', error);
-                    removeItem(key);
-                    return null;
-                });
+            result = await decrypt(data);
         }
+
         try {
-            return JSON.parse(data);
+            return JSON.parse(result);
         } catch {
-            return data;
+            return result;
         }
     } catch (error) {
         console.error('localStorage getItem error:', error);

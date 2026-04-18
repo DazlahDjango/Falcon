@@ -11,7 +11,7 @@ import InviteUserModal from '../users/components/InviteUserModal';
 
 const TeamView = () => {
     const dispatch = useDispatch();
-    const { hierarchy, stats, isLoading } = useSelector((state) => state.team);
+    const { hierarchy, stats, isLoading } = useSelector((state) => state.accTeam);
     const { user } = useSelector((state) => state.auth);
     const [viewMode, setViewMode] = useState('tree');
     const [searchTerm, setSearchTerm] = useState('');

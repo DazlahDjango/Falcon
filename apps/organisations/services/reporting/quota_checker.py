@@ -20,4 +20,4 @@ class QuotaCheckerService:
         
         plan = organisation.subscription.plan
         current_users = organisation.get_active_users_count()
-        return current_users < plan.max_users
+        return current_users < plan.max_users 

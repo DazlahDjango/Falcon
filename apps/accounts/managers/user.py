@@ -118,7 +118,7 @@ class UserManager(SoftDeleteManager, BaseUserManager):
         user.save(using=self._db)
         return user
     
-    def create_supersuser(self, email, username, tenant_id, password=None, **extra_fields):
+    def create_superuser(self, email, username, tenant_id, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('role', 'super_admin')

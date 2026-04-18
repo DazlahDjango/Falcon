@@ -27,9 +27,13 @@ from .config.module_manager import ModuleManagerService
 # Reporting services
 from .reporting.usage_reporter import UsageReporterService
 from .reporting.quota_checker import QuotaCheckerService
+from .reporting.activity_logs import ActivityLogsService
 
 # Structure services
 from .structure.hierarchy import HierarchyService
+
+# Settings services
+from .settings.kpi_templates import KPITemplatesService
 
 __all__ = [
     # Provisioning
@@ -53,6 +57,9 @@ __all__ = [
     # Reporting
     'UsageReporterService',
     'QuotaCheckerService',
+    'ActivityLogsService',
     # Structure
     'HierarchyService',
+    # Settings
+    'KPITemplatesService',
 ]
