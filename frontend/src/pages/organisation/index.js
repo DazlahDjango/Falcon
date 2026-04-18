@@ -3,7 +3,7 @@
  */
 
 // Main pages
-export { default as OrganisationDashboardPage } from './OrganisationDashboardPage';
+export { default as OrganisationDashboardPage } from '../../components/OrganisationDashboard';
 export { default as OrganisationSettingsPage } from './OrganisationSettingsPage';
 export { default as OrganisationAdminPage } from './OrganisationAdminPage';
 export { default as OrganisationAuditPage } from './OrganisationAuditPage';

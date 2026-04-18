@@ -107,8 +107,23 @@ class JWTServices:
             return False
         
     def is_blacklisted(self, jti: str) -> bool:
+        if not jti:
+            return False
+            
+        from django.core.cache import cache
+        cache_key = f'token_blacklisted:{jti}'
+        
+        # Check cache first
+        is_blacklisted = cache.get(cache_key)
+        if is_blacklisted is not None:
+            return is_blacklisted
+            
         try:
-            return self.blacklist_manager.is_blacklisted(jti)
+            # Check DB
+            result = self.blacklist_manager.is_blacklisted(jti)
+            # Cache the result for 5 minutes
+            cache.set(cache_key, result, timeout=300)
+            return result
         except Exception as e:
             logger.error(f"Error checking blacklist: {e}")
             return False

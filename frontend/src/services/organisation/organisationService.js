@@ -9,37 +9,37 @@ export const organisationApi = {
    * Get all organisations (Admin only)
    * @param {Object} params - Query parameters (page, limit, search, status, sector)
    */
-  getAll: (params) => api.get('/organisations/organisations/', { params }),
+  getAll: (params) => api.get('/organisations/', { params }),
   
   /**
    * Get organisation by ID
    * @param {string} id - Organisation UUID
    */
-  getById: (id) => api.get(`/organisations/organisations/${id}/`),
+  getById: (id) => api.get(`/organisations/${id}/`),
   
   /**
    * Get current user's organisation
    */
-  getCurrent: () => api.get('/organisations/organisations/current/'),
+  getCurrent: () => api.get('/organisations/current/'),
   
   /**
    * Create a new organisation
    * @param {Object} data - Organisation data
    */
-  create: (data) => api.post('/organisations/organisations/', data),
+  create: (data) => api.post('/organisations/', data),
   
   /**
    * Update organisation
    * @param {string} id - Organisation UUID
    * @param {Object} data - Updated organisation data
    */
-  update: (id, data) => api.patch(`/organisations/organisations/${id}/`, data),
+  update: (id, data) => api.patch(`/organisations/${id}/`, data),
   
   /**
    * Delete organisation (Admin only)
    * @param {string} id - Organisation UUID
    */
-  delete: (id) => api.delete(`/organisations/organisations/${id}/`),
+  delete: (id) => api.delete(`/organisations/${id}/`),
   
   // ============================================================
   // Registration & Onboarding
@@ -56,13 +56,13 @@ export const organisationApi = {
    * @param {string} id - Organisation UUID
    * @param {Object} data - Onboarding data
    */
-  completeOnboarding: (id, data) => api.post(`/organisations/organisations/${id}/onboarding/complete/`, data),
+  completeOnboarding: (id, data) => api.post(`/organisations/${id}/onboarding/complete/`, data),
   
   /**
    * Get onboarding status
    * @param {string} id - Organisation UUID
    */
-  getOnboardingStatus: (id) => api.get(`/organisations/organisations/${id}/onboarding/status/`),
+  getOnboardingStatus: (id) => api.get(`/organisations/${id}/onboarding/status/`),
   
   // ============================================================
   // Admin Actions
@@ -72,34 +72,34 @@ export const organisationApi = {
    * Approve pending organisation (Admin only)
    * @param {string} id - Organisation UUID
    */
-  approve: (id) => api.post(`/organisations/organisations/${id}/approve/`),
+  approve: (id) => api.post(`/organisations/${id}/approve/`),
   
   /**
    * Reject organisation (Admin only)
    * @param {string} id - Organisation UUID
    * @param {string} reason - Rejection reason
    */
-  reject: (id, reason) => api.post(`/organisations/organisations/${id}/reject/`, { reason }),
+  reject: (id, reason) => api.post(`/organisations/${id}/reject/`, { reason }),
   
   /**
    * Suspend organisation (Admin only)
    * @param {string} id - Organisation UUID
    * @param {string} reason - Suspension reason
    */
-  suspend: (id, reason) => api.post(`/organisations/organisations/${id}/suspend/`, { reason }),
+  suspend: (id, reason) => api.post(`/organisations/${id}/suspend/`, { reason }),
   
   /**
    * Activate suspended organisation (Admin only)
    * @param {string} id - Organisation UUID
    */
-  activate: (id) => api.post(`/organisations/organisations/${id}/activate/`),
+  activate: (id) => api.post(`/organisations/${id}/activate/`),
   
   /**
    * Submit organisation for review (Admin only)
    * @param {string} id - Organisation UUID
    * @param {string} notes - Review notes
    */
-  submitReview: (id, notes) => api.post(`/organisations/organisations/${id}/review/`, { notes }),
+  submitReview: (id, notes) => api.post(`/organisations/${id}/review/`, { notes }),
   
   // ============================================================
   // Logo Management
@@ -112,7 +112,7 @@ export const organisationApi = {
   uploadLogo: (file) => {
     const formData = new FormData();
     formData.append('logo', file);
-    return api.post('/organisations/organisations/logo/', formData, {
+    return api.post('/organisations/logo/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
@@ -120,7 +120,7 @@ export const organisationApi = {
   /**
    * Remove organisation logo
    */
-  removeLogo: () => api.delete('/organisations/organisations/logo/'),
+  removeLogo: () => api.delete('/organisations/logo/'),
   
   // ============================================================
   // Statistics & Analytics
@@ -130,25 +130,25 @@ export const organisationApi = {
    * Get organisation statistics
    * @param {string} id - Organisation UUID
    */
-  getStats: (id) => api.get(`/organisations/organisations/${id}/stats/`),
+  getStats: (id) => api.get(`/organisations/${id}/stats/`),
   
   /**
    * Get organisation usage metrics
    * @param {string} id - Organisation UUID
    */
-  getUsage: (id) => api.get(`/organisations/organisations/${id}/usage/`),
+  getUsage: (id) => api.get(`/organisations/${id}/usage/`),
   
   /**
    * Get overall organisation overview
    */
-  getOverview: () => api.get('/organisations/organisations/overview/'),
+  getOverview: () => api.get('/organisations/overview/'),
   
   /**
    * Get organisation activity timeline
    * @param {string} id - Organisation UUID
    * @param {Object} params - Query parameters
    */
-  getActivity: (id, params) => api.get(`/organisations/organisations/${id}/activity/`, { params }),
+  getActivity: (id, params) => api.get(`/organisations/${id}/activity/`, { params }),
 };
 
 // ============================================================

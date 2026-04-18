@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _ 
 from .base import BaseModel
 from .user import User
+from apps.accounts.managers.session import SessionBlacklistManager, UserSessionManager
 
 class UserSession(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions', verbose_name=_('user'))
@@ -102,6 +103,8 @@ class SessionBlacklist(BaseModel):
     token_type = models.CharField(_('token type'), max_length=20, choices=[('access', 'Access'), ('refresh', 'Refresh')])
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='blacklisted_tokens')
     blacklisted_at = models.DateTimeField(_('blacklisted at'), default=timezone.now)
+    
+    objects = SessionBlacklistManager()
     expires_at = models.DateTimeField(_('expires at'), db_index=True, help_text='When this blacklist entry expires')
     reason = models.CharField(_('reason'), max_length=200, blank=True)
     

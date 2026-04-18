@@ -14,14 +14,14 @@ import { store, persistor } from './store';
 import App from './App';
 import './index.css';
 
-const LoadingFallback = () => {
+const LoadingFallback = () => (
   <div className="app-loading">
     <div className="loading-spinner">
       <div className="spinner"></div>
       <p>Loading falcon PMS...</p>
     </div>
   </div>
-};
+);
 // Initialize app
 const  init = () => {
   const rootElement = document.getElementById('root');

@@ -28,7 +28,10 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_superuser:
             return Organisation.objects.all()
-        return Organisation.objects.filter(id=user.organisation.id)
+        # Filter by tenant_id from user
+        if user.tenant_id:
+            return Organisation.objects.filter(id=user.tenant_id)
+        return Organisation.objects.none()
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -48,11 +51,30 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Response({'error': 'Authentication required'}, status=401)
         
-        # Get the user's organisation
-        organisation = getattr(user, 'organisation', None)
+        # Get organisation using tenant_id from user
+        if not user.tenant_id:
+            if user.is_superuser:
+                # AUTO-REPAIR: Create default org if missing for superuser
+                org, _ = Organisation.objects.get_or_create(
+                    name="Falcon System Admin",
+                    defaults={'slug': 'system-admin', 'is_active': True, 'is_verified': True}
+                )
+                user.tenant_id = org.id
+                user.save(update_fields=['tenant_id'])
+            else:
+                return Response({'error': 'No organisation associated with this user'}, status=404)
         
-        if not organisation:
-            return Response({'error': 'No organisation found for this user'}, status=404)
-        
-        serializer = self.get_serializer(organisation)
-        return Response(serializer.data)
+        try:
+            organisation = Organisation.objects.get(id=user.tenant_id)
+            serializer = self.get_serializer(organisation)
+            return Response(serializer.data)
+        except Organisation.DoesNotExist:
+            if user.is_superuser:
+                 # AUTO-REPAIR: Link to first available org if tenant_id is invalid
+                org = Organisation.objects.first()
+                if org:
+                    user.tenant_id = org.id
+                    user.save(update_fields=['tenant_id'])
+                    serializer = self.get_serializer(org)
+                    return Response(serializer.data)
+            return Response({'error': 'Organisation not found'}, status=404)

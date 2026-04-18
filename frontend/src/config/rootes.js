@@ -375,7 +375,7 @@ export const routes = [
 
     // Organisation Routes
     {
-        path: ROUTE_PATHS.ORGANISATION_DASHBOARD,
+        // path: ROUTE_PATHS.ORGANISATION_DASHBOARD,
         name: 'Organisation Dashboard',
         component: 'OrganisationDashboard',
         layout: 'main',
@@ -388,7 +388,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_SETTINGS,
+        // path: ROUTE_PATHS.ORGANISATION_SETTINGS,
         name: 'Organisation Settings',
         component: 'OrganisationSettings',
         layout: 'main',
@@ -401,7 +401,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_DEPARTMENTS,
+        // path: ROUTE_PATHS.ORGANISATION_DEPARTMENTS,
         name: 'Departments',
         component: 'OrganisationDepartments',
         layout: 'main',
@@ -414,7 +414,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_TEAMS,
+        // path: ROUTE_PATHS.ORGANISATION_TEAMS,
         name: 'Teams',
         component: 'OrganisationTeams',
         layout: 'main',
@@ -427,7 +427,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_USERS,
+        // path: ROUTE_PATHS.ORGANISATION_USERS,
         name: 'Organisation Users',
         component: 'OrganisationUsers',
         layout: 'main',
@@ -440,7 +440,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_BRANDING,
+        // path: ROUTE_PATHS.ORGANISATION_BRANDING,
         name: 'Branding',
         component: 'OrganisationBranding',
         layout: 'main',
@@ -453,7 +453,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_AUDIT,
+        // path: ROUTE_PATHS.ORGANISATION_AUDIT,
         name: 'Organisation Audit',
         component: 'OrganisationAudit',
         layout: 'main',
@@ -466,7 +466,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_SUBSCRIPTION,
+        // path: ROUTE_PATHS.ORGANISATION_SUBSCRIPTION,
         name: 'Subscription',
         component: 'OrganisationSubscription',
         layout: 'main',
@@ -479,7 +479,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_POSITIONS,
+        // path: ROUTE_PATHS.ORGANISATION_POSITIONS,
         name: 'Positions',
         component: 'OrganisationPositions',
         layout: 'main',
@@ -492,7 +492,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_CONTACTS,
+        // path: ROUTE_PATHS.ORGANISATION_CONTACTS,
         name: 'Contacts',
         component: 'OrganisationContacts',
         layout: 'main',
@@ -505,7 +505,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_DOMAINS,
+        // path: ROUTE_PATHS.ORGANISATION_DOMAINS,
         name: 'Domains',
         component: 'OrganisationDomains',
         layout: 'main',
@@ -518,7 +518,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_IMPORT,
+        // path: ROUTE_PATHS.ORGANISATION_IMPORT,
         name: 'Import Data',
         component: 'OrganisationImport',
         layout: 'main',
@@ -531,7 +531,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_EXPORT,
+        // path: ROUTE_PATHS.ORGANISATION_EXPORT,
         name: 'Export Data',
         component: 'OrganisationExport',
         layout: 'main',
@@ -544,7 +544,7 @@ export const routes = [
         }
     },
     {
-        path: ROUTE_PATHS.ORGANISATION_PROFILE,
+        // path: ROUTE_PATHS.ORGANISATION_PROFILE,
         name: 'Organisation Profile',
         component: 'OrganisationProfile',
         layout: 'main',

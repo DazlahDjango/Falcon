@@ -126,7 +126,7 @@ PROJECT_APPS = [
     'apps.core',
     'apps.dashboard',
     'apps.notification',
-    'apps.organisations',
+    'apps.organisations.apps.OrganisationsConfig',
     'apps.reports',
     'apps.workflowsapi',
 ]
@@ -642,8 +642,7 @@ OTP_TOTP_INTERVAL = 30  # 30 seconds
 # ----------------------------------------------------------------------------
 # AUDITLOG CONFIGURATION
 # ----------------------------------------------------------------------------
-AUDITLOG_INCLUDE_ALL_MODELS = True
-AUDITLOG_EXCLUDE_TRACKING_MODELS = []  # Track everything
+AUDITLOG_INCLUDE_ALL_MODELS = False
 
 # ----------------------------------------------------------------------------
 # RATE LIMITING

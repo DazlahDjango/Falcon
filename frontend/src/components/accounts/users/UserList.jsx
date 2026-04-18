@@ -12,10 +12,10 @@ import EmptyState from '../../common/Feedback/EmptyState';
 const UserList = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { users, pagination, filters, isLoading } = useSelector((state) => state.user);
+    const { users, pagination, filters, isLoading } = useSelector((state) => state.users);
     const { user: currentUser } = useSelector((state) => state.auth);
     const [showFilters, setShowFilters] = useState(false);
-    const [showInviteModal, setShowInviteModla] = useState(false);
+    const [showInviteModal, setShowInviteModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     useEffect(() => {
         dispatch(fetchUsers({ ...filters, search: searchTerm}));

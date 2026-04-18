@@ -30,7 +30,7 @@ const OrganisationList = () => {
       if (filters.status) params.status = filters.status;
       if (filters.sector) params.sector = filters.sector;
       if (filters.date_range) params.days = filters.date_range;
-      
+
       const response = await organisationApi.getAll(params);
       setOrganisations(response.data.results || response.data || []);
       setTotal(response.data.count || response.data.length || 0);

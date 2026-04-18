@@ -57,8 +57,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                     </button>
                     {(isExpanded || isCollapsed) && (
                         <ul className="nav-group-items pl-4 mt-1 space-y-1">
-                            {item.children.map((child) => (
-                                <li key={child.path}>
+                            {item.children.map((child, index) => (
+                                <li key={child.path || child.name || index}>
                                     <NavLink 
                                         to={child.path}
                                         className={({ isActive }) => `nav-link py-2 px-3 flex items-center rounded-md transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'}`}
@@ -75,7 +75,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         }
 
         return (
-            <li key={item.path}>
+            <li key={item.path || item.name}>
                 <NavLink 
                     to={item.path}
                     className={({ isActive }) => `nav-link py-2 px-3 flex items-center rounded-md transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'}`}

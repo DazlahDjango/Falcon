@@ -208,12 +208,12 @@ const AppContent = () => {
                     ============================================================ */}
                     {/* Main */}
                     <Route path={ROUTES.ORGANISATION_DASHBOARD} element={<OrganisationDashboard />} />
-                    <Route path={ROUTES.ORGANISATION_SETTINGS} element={<OrganisationSettings />} />
-                    <Route path={ROUTES.ORGANISATION_ADMIN} element={<OrganisationAdmin />} />
-                    <Route path={ROUTES.ORGANISATION_AUDIT} element={<OrganisationAudit />} />
+                    <Route path={ROUTES.ORGANISATION_SETTINGS} element={<OrganisationSettings />} /> 
+                    <Route path={ROUTES.ORGANISATION_ADMIN} element={<OrganisationAdmin />} /> 
+                    <Route path={ROUTES.ORGANISATION_AUDIT} element={<OrganisationAudit />} /> 
                     <Route path={ROUTES.ORGANISATION_USERS} element={<OrganisationUsers />} />
-                    <Route path={ROUTES.ORGANISATION_SUBSCRIPTION} element={<OrganisationSubscription />} />
-                    <Route path={ROUTES.ORGANISATION_REPORTS} element={<OrganisationReports />} />
+                     <Route path={ROUTES.ORGANISATION_SUBSCRIPTION} element={<OrganisationSubscription />} /> 
+                    <Route path={ROUTES.ORGANISATION_REPORTS} element={<OrganisationReports />} /> 
                     
                     {/* Structure */}
                     <Route path={ROUTES.ORGANISATION_DEPARTMENTS} element={<OrganisationDepartments />} />
@@ -272,9 +272,9 @@ const App = () => {
                 <TenantProvider>
                     <PermissionProvider>
                         <NotificationProvider>
-                            <OrganisationProvider>
+                            <OrganisationProvider> 
                                 <AppContent />
-                            </OrganisationProvider>
+                             </OrganisationProvider>
                         </NotificationProvider>
                     </PermissionProvider>
                 </TenantProvider>
@@ -283,4 +283,4 @@ const App = () => {
     );
 };
 
-export default App;
+export default App; 

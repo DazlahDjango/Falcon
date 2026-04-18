@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import { useOrganisation, useKpiData, useDepartments } from '@/hooks/organisation';
 import {
@@ -11,6 +12,7 @@ import {
 } from './dashboard/widgets';
 
 const OrganisationDashboard = () => {
+  const navigate = useNavigate();
   const { organisation, loading: orgLoading } = useOrganisation();
   const { overview: kpiOverview } = useKpiData();
   const { total: totalDepartments, getDepartments } = useDepartments();
@@ -170,7 +172,7 @@ const OrganisationDashboard = () => {
               <span className="text-2xl block">💰</span>
               <span className="text-sm text-gray-600">Subscription</span>
             </Link>
-            <Link to="/settings" className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+            <Link to="/organisation/settings" className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
               <span className="text-2xl block">⚙️</span>
               <span className="text-sm text-gray-600">Settings</span>
             </Link>

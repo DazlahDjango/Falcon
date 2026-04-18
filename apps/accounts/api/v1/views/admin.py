@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -22,6 +23,8 @@ from apps.accounts.constants import PREDEFINED_PERMISSIONS_DATA
 from apps.accounts.services import TenantRegistrationService, AuditService, JWTServices, PasswordService
 from apps.accounts.tasks import send_password_reset_email
 from .base import BaseModelViewset
+
+logger = logging.getLogger(__name__)
 
 class AdminUserViewSet(BaseModelViewset):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -68,20 +71,34 @@ class AdminUserViewSet(BaseModelViewset):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
-        total_users = User.objects.count()
-        active_users = User.objects.filter(is_active=True).count()
-        verified_users = User.objects.filter(is_verified=True).count()
-        mfa_enabled_users = User.objects.filter(mfa_enabled=True).count()
-        users_by_role = {}
-        for role_code in UserRoles.CHOICES:
-            users_by_role[role_code] = User.objects.filter(role=role_code).count()
-        return Response({
-            'total_users': total_users,
-            'active_users': active_users,
-            'verified_users': verified_users,
-            'mfa_enabled_users': mfa_enabled_users,
-            'users_by_role': users_by_role
-        }, status=status.HTTP_200_OK)
+        from django.core.cache import cache
+        cache_key = 'admin_user_stats'
+        cached_stats = cache.get(cache_key)
+        if cached_stats:
+            return Response(cached_stats, status=status.HTTP_200_OK)
+
+        try:
+            total_users = User.objects.count()
+            active_users = User.objects.filter(is_active=True).count()
+            verified_users = User.objects.filter(is_verified=True).count()
+            mfa_enabled_users = User.objects.filter(mfa_enabled=True).count()
+            users_by_role = {}
+            for role_code, _ in UserRoles.CHOICES:
+                users_by_role[role_code] = User.objects.filter(role=role_code).count()
+                
+            stats_data = {
+                'total_users': total_users,
+                'active_users': active_users,
+                'verified_users': verified_users,
+                'mfa_enabled_users': mfa_enabled_users,
+                'users_by_role': users_by_role
+            }
+            # Cache for 5 minutes
+            cache.set(cache_key, stats_data, timeout=300)
+            return Response(stats_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error calculating user stats: {str(e)}")
+            return Response({'error': 'Failed to calculate statistics'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class AdminRoleViewSet(BaseModelViewset):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -216,17 +233,34 @@ class AdminSystemView(viewsets.ViewSet):
         try:
             from django.core.cache import cache
             cache.set('health_check', 'ok', 10)
-            cache.get('health_check')
+            cache_status = 'connected' if cache.get('health_check') == 'ok' else 'disconnected'
         except Exception:
             cache_status = 'disconnected'
-        total_users = User.objects.count()
-        total_tenants = Client.objects.count()
-        total_audit_logs = AuditLog.objects.count()
-        yesterday = timezone.now() - timezone.timedelta(hours=24)
-        recent_logins = AuditLog.objects.filter(
-            action='user.login',
-            timestamp__gte=yesterday
-        ).count()
+
+        # Fetch statistics (Cached)
+        from django.core.cache import cache
+        cache_key = 'admin_system_stats'
+        stats_data = cache.get(cache_key)
+        
+        if not stats_data:
+            total_users = User.objects.count()
+            total_tenants = Client.objects.count()
+            total_audit_logs = 0 # Return 0 or an estimated count to prevent hang
+            
+            yesterday = timezone.now() - timezone.timedelta(hours=24)
+            recent_logins = AuditLog.objects.filter(
+                action='user.login',
+                timestamp__gte=yesterday
+            ).count()
+            
+            stats_data = {
+                'total_users': total_users,
+                'total_tenants': total_tenants,
+                'total_audit_logs': total_audit_logs,
+                'recent_logins_24h': recent_logins
+            }
+            cache.set(cache_key, stats_data, timeout=300)
+        
         return Response({
             'system': {
                 'name': 'Falcon PMS Accounts',
@@ -241,13 +275,13 @@ class AdminSystemView(viewsets.ViewSet):
             'cache': {
                 'status': cache_status
             },
-            'statistics': {
-                'total_users': total_users,
-                'total_tenants': total_tenants,
-                'total_audit_logs': total_audit_logs,
-                'recent_logins_24h': recent_logins
-            }
+            'statistics': stats_data
         }, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path='health')
+    def health(self, request):
+        """Dedicated health check endpoint."""
+        return self.list(request)
     
     @action(detail=False, methods=['post'], url_path='clear-cache')
     def clear_cache(self, request):

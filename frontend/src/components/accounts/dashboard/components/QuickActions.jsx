@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit, FiUsers, FiFileText, FiSettings, FiBell } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiUsers, FiFileText, FiSettings, FiBell, FiCheckCircle } from 'react-icons/fi';
 
 const QuickActions = ({ userRole = 'staff' }) => {
     const navigate = useNavigate();
