@@ -9,3 +9,4 @@ export { default as Select } from './Select';
 export { default as Spinner } from './Spinner';
 export { default as Table } from './Table';
 export { default as Tabs } from './Tabs';
+export { default as Dropdown, DropdownItem } from './Dropdown';

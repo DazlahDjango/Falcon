@@ -126,6 +126,7 @@ PROJECT_APPS = [
     'apps.core',
     'apps.dashboard',
     'apps.notification',
+    'apps.kpi.apps.KpiConfig',
     'apps.organisations.apps.OrganisationsConfig',
     'apps.reports',
     'apps.workflowsapi',
@@ -163,10 +164,10 @@ MIDDLEWARE = [
     # 'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
     # 'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
     # KPI
-    # 'apps.kpi.middleware.ContextMiddleware',
-    # 'apps.kpi.middleware.AuditMiddleware',
-    # 'apps.kpi.middleware.ThrottleMiddleware',
-    # 'apps.kpi.middleware.CacheMiddleware',
+    'apps.kpi.middleware.ContextMiddleware',
+    'apps.kpi.middleware.AuditMiddleware',
+    'apps.kpi.middleware.ThrottleMiddleware',
+    'apps.kpi.middleware.CacheMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

@@ -173,8 +173,7 @@ def user_session_post_save(sender, instance, created, **kwargs):
                         'session_id': str(instance.id),
                         'ip_address': instance.ip_address,
                         'reason': 'admin_revoked'
-                    },
-                    ip_address=instance.ip_address
+                    }
                 )
     except Exception as e:
         logger.error(f"Error in user_session_post_save signal: {e}", exc_info=True)
@@ -212,11 +211,10 @@ def user_logged_in_handler(sender, request, user, **kwargs):
     try:
         ip_address = get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]   
-        # Update user last login info (Silent update to bypass signals)
-        User.objects.filter(id=user.id).update(
-            last_login_ip=ip_address,
-            last_login_agent=user_agent
-        )
+        # Update user last login info
+        user.last_login_ip = ip_address
+        user.last_login_agent = user_agent
+        user.save(update_fields=['last_login_ip', 'last_login_agent'])  
         # Record login attempt
         LoginAttempt.record_attempt(
             identifier=user.email,
