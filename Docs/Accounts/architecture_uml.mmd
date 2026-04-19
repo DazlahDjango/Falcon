@@ -1,0 +1,301 @@
+flowchart TB
+    subgraph FRONTEND["🖥️ Frontend (React + Redux)"]
+        subgraph PAGES["Pages"]
+            LoginPage["Login Page"]
+            RegisterPage["Register Page"]
+            DashboardPage["Dashboard Page"]
+            ProfilePage["Profile Page"]
+            UsersPage["Users Page"]
+            RolesPage["Roles Page"]
+            SessionsPage["Sessions Page"]
+            SettingsPage["Settings Page"]
+            AuditPage["Audit Logs Page"]
+            AdminPage["Admin Dashboard"]
+        end
+
+        subgraph COMPONENTS["React Components"]
+            LoginForm["LoginForm"]
+            RegisterForm["RegisterForm"]
+            MFAForm["MFAForm"]
+            UserList["UserList"]
+            UserCard["UserCard"]
+            RoleList["RoleList"]
+            SessionList["SessionList"]
+            StatsWidget["StatsWidget"]
+            NotificationList["NotificationList"]
+        end
+
+        subgraph HOOKS["Custom Hooks"]
+            useAuth["useAuth\n- login()\n- logout()\n- register()"]
+            usePermissions["usePermissions\n- hasPermission()\n- hasRole()\n- isAdmin()"]
+            useWebSocket["useWebSocket\n- connect()\n- send()\n- on()"]
+            useDebounce["useDebounce"]
+            useLocalStorage["useLocalStorage"]
+        end
+
+        subgraph CONTEXTS["React Contexts"]
+            AuthContext["AuthContext\nuser, isAuthenticated, login(), logout()"]
+            TenantContext["TenantContext\ntenant, branding, features"]
+            PermissionContext["PermissionContext\npermissions, hasPermission()"]
+            ThemeContext["ThemeContext\ntheme, toggleTheme()"]
+            NotificationContext["NotificationContext\nnotifications, unreadCount, markRead()"]
+        end
+
+        subgraph STORE["Redux Store"]
+            AuthSlice["Auth Slice\nuser, isAuthenticated, tokens, mfa"]
+            UserSlice["User Slice\nusers, selectedUser, filters"]
+            UISlice["UI Slice\nloading, alerts, modals, sidebar"]
+            NotificationSlice["Notification Slice\nnotifications, unreadCount"]
+            RoleSlice["Role Slice\nroles, selectedRole"]
+            SessionSlice["Session Slice\nsessions, activeSessions"]
+            AuditSlice["Audit Slice\nlogs, filters"]
+            AdminSlice["Admin Slice\nstats, users, tenants"]
+        end
+
+        subgraph SERVICES["Services"]
+            subgraph API["API Services"]
+                AuthAPI["auth.js\nlogin, logout, register, mfa"]
+                UsersAPI["users.js\nCRUD, profile, avatar, team"]
+                RolesAPI["roles.js\nCRUD, permissions"]
+                SessionsAPI["sessions.js\nlist, terminate"]
+                AuditAPI["audit.js\nlogs, export"]
+                AdminAPI["admin.js\nsystem stats, tenant management"]
+            end
+            
+            subgraph WS["WebSocket"]
+                WSClient["client.js\nconnection manager"]
+                WSHandlers["handlers.js\nmessage handlers"]
+                WSReconnect["reconnection.js\nexponential backoff"]
+            end
+            
+            subgraph STORAGE["Storage"]
+                LocalStorage["localStorage.js\npersistent storage"]
+                SessionStorage["sessionStorage.js\nsession storage"]
+                SecureStorage["secureStorage.js\nencrypted storage"]
+            end
+        end
+
+        subgraph UTILS["Utilities"]
+            Validators["validators.js\nemail, password, phone"]
+            Formatters["formatters.js\ndate, number, currency"]
+            Permissions["permissions.js\nPERMISSIONS, ROLES"]
+            Tokens["tokens.js\nJWT decode, validate, refresh"]
+            Constants["constants.js\nROUTES, API_ENDPOINTS"]
+        end
+    end
+
+    subgraph BACKEND["⚙️ Backend (Django)"]
+        subgraph MIDDLEWARE["Middleware"]
+            TenantMiddleware["TenantMiddleware\nsets current tenant"]
+            SessionMiddleware["SessionMiddleware\ntracks session activity"]
+            AuditMiddleware["AuditMiddleware\nlogs all requests"]
+            SecurityMiddleware["SecurityMiddleware\nadds security headers"]
+            TenantAccessMiddleware["TenantAccessMiddleware\nvalidates tenant access"]
+        end
+
+        subgraph API_VIEWS["API Views"]
+            subgraph AUTH_VIEWS["Authentication Views"]
+                LoginView["LoginView\nPOST /auth/login/"]
+                LogoutView["LogoutView\nPOST /auth/logout/"]
+                RefreshTokenView["RefreshTokenView\nPOST /auth/refresh/"]
+                MFASetupView["MFASetupView\nPOST /auth/mfa/setup/"]
+                MFAAuthView["MFAAuthView\nPOST /auth/mfa/verify/"]
+                RegisterView["RegisterView\nPOST /auth/register/"]
+                PasswordResetView["PasswordResetView\nPOST /auth/password-reset/"]
+            end
+            
+            subgraph USER_VIEWS["User Views"]
+                UserListView["UserListView\nGET /users/"]
+                UserDetailView["UserDetailView\nGET /users/{id}/"]
+                UserCreateView["UserCreateView\nPOST /users/"]
+                UserUpdateView["UserUpdateView\nPATCH /users/{id}/"]
+                UserDeleteView["UserDeleteView\nDELETE /users/{id}/"]
+                CurrentUserView["CurrentUserView\nGET /users/me/"]
+                TeamView["TeamView\nGET /users/me/team/"]
+            end
+            
+            subgraph ROLE_VIEWS["Role & Permission Views"]
+                RoleListView["RoleListView\nGET /roles/"]
+                RoleDetailView["RoleDetailView\nGET /roles/{id}/"]
+                PermissionListView["PermissionListView\nGET /permissions/"]
+                AssignRoleView["AssignRoleView\nPOST /users/{id}/assign-role/"]
+            end
+            
+            subgraph OTHER_VIEWS["Other Views"]
+                SessionView["SessionView\nGET /sessions/"]
+                AuditLogView["AuditLogView\nGET /audit-logs/"]
+                PreferenceView["PreferenceView\nGET /preferences/"]
+                AdminView["AdminView\nGET /admin/"]
+            end
+        end
+
+        subgraph SERIALIZERS["Serializers"]
+            LoginSerializer["LoginSerializer\nvalidates email/password"]
+            UserSerializer["UserSerializer\nconverts User ↔ JSON"]
+            RoleSerializer["RoleSerializer\nconverts Role ↔ JSON"]
+            PermissionSerializer["PermissionSerializer\nconverts Permission ↔ JSON"]
+            SessionSerializer["SessionSerializer\nconverts Session ↔ JSON"]
+            AuditSerializer["AuditSerializer\nconverts AuditLog ↔ JSON"]
+            MFASerializer["MFASerializer\nvalidates MFA data"]
+        end
+
+        subgraph PERMISSIONS["Permission Classes"]
+            IsAuthenticated["IsAuthenticated\nrequires login"]
+            IsSuperAdmin["IsSuperAdmin\nrequires super_admin role"]
+            IsClientAdmin["IsClientAdmin\nrequires client_admin role"]
+            IsExecutive["IsExecutive\nrequires executive role"]
+            IsSupervisor["IsSupervisor\nrequires supervisor role"]
+            IsOwner["IsOwner\nchecks object ownership"]
+            CanAccessUser["CanAccessUser\nhierarchical access"]
+            HasPermission["HasPermission\nchecks specific permission"]
+        end
+
+        subgraph THROTTLES["Throttle Classes"]
+            LoginRateThrottle["LoginRateThrottle\n5 attempts/minute"]
+            RegisterRateThrottle["RegisterRateThrottle\n3 attempts/hour"]
+            MFARateThrottle["MFARateThrottle\n5 attempts/minute"]
+            UserRateThrottle["UserRateThrottle\n1000 requests/day"]
+        end
+
+        subgraph FILTERS["Filter Classes"]
+            UserFilter["UserFilter\nrole, status, search, date"]
+            AuditFilter["AuditFilter\naction, severity, user, date"]
+            SessionFilter["SessionFilter\nstatus, device, date"]
+        end
+
+        subgraph SERVICES_BACKEND["Backend Services"]
+            AuthService["AuthenticationService\n- authenticate()\n- verify_mfa()\n- logout()\n- refresh_token()"]
+            MFAService["MFAService\n- setup_totp()\n- verify_otp()\n- get_devices()\n- regenerate_backup_codes()"]
+            JWTService["JWTService\n- create_tokens()\n- verify_token()\n- blacklist_token()"]
+            SessionService["SessionService\n- create_session()\n- terminate_session()\n- get_active_sessions()"]
+            PasswordService["PasswordService\n- validate_password()\n- change_password()\n- reset_password()"]
+            RegistrationService["RegistrationService\n- register_user()\n- register_tenant()\n- verify_email()"]
+            InvitationService["InvitationService\n- send_invitation()\n- accept_invitation()"]
+            RBACService["RBACService\n- assign_role()\n- check_permission()\n- get_user_permissions()"]
+            AuditService["AuditService\n- log()\n- get_user_activity()\n- export_logs()"]
+            ProfileService["ProfileService\n- update_profile()\n- add_skill()\n- get_profile()"]
+        end
+
+        subgraph MANAGERS["Managers"]
+            UserManager["UserManager\n- create_user()\n- get_by_role()\n- get_team_hierarchy()\n- authenticate_by_email()"]
+            RoleManager["RoleManager\n- get_system_role()\n- create_system_roles()\n- get_roles_by_hierarchy()"]
+            SessionManager["SessionManager\n- create_session()\n- cleanup_expired()\n- get_active_sessions()"]
+            AuditManager["AuditManager\n- log_action()\n- get_user_history()\n- cleanup_old()"]
+            LoginAttemptManager["LoginAttemptManager\n- record_attempt()\n- get_failure_count()"]
+        end
+
+        subgraph MODELS["Database Models"]
+            UserModel["User\nid, email, username, password\nrole, manager, department\nis_active, is_verified\nmfa_enabled, mfa_secret\nlast_login, login_attempts\nlocked_until, tenant_id"]
+            
+            ProfileModel["Profile\nuser, avatar, bio\nskills, certifications\nemployee_type, cost_center\nemergency_contact\ntheme, preferences"]
+            
+            RoleModel["Role\nname, code, parent\npermissions (M2M)\nis_system, is_assignable\norder, description"]
+            
+            PermissionModel["Permission\nname, codename\ncategory, level\ncontent_type, is_active"]
+            
+            UserSessionModel["UserSession\nuser, session_key\nip_address, user_agent\ndevice_type, browser, os\nlogin_time, expires_at\nstatus, mfa_verified\nis_trusted_device"]
+            
+            MFADeviceModel["MFADevice\nuser, name, device_type\nsecret, is_active, is_primary\nis_verified, last_used_at\nfail_count, locked_until"]
+            
+            MFABackupCodeModel["MFABackupCode\nuser, code, code_hash\nis_used, used_at\nexpires_at"]
+            
+            AuditLogModel["AuditLog\nuser, action, action_type\nseverity, ip_address\nold_value, new_value\nchanges, metadata\ntimestamp (immutable)"]
+            
+            LoginAttemptModel["LoginAttempt\nidentifier, user\nresult, failure_reason\nip_address, user_agent\nattempted_at"]
+            
+            UserPreferenceModel["UserPreference\nuser\nnotification_settings\ndashboard_preferences\nitems_per_page, theme\nlanguage, timezone"]
+            
+            TenantPreferenceModel["TenantPreference\nclient_id\nlogo_url, primary_color\nfeatures, settings\nmfa_required_roles\ndefault_language, timezone"]
+            
+            SessionBlacklistModel["SessionBlacklist\ntoken_id, token_type\nuser, blacklisted_at\nexpires_at, reason"]
+        end
+
+        subgraph TASKS["Celery Tasks"]
+            CleanExpiredSessions["cleanup_expired_sessions\nruns every hour"]
+            CleanupAuditLogs["cleanup_old_audit_logs\nruns daily"]
+            UnlockAccounts["unlock_locked_accounts\nruns every 15 minutes"]
+            SendWelcomeEmail["send_welcome_email\nasync email"]
+            SendPasswordReset["send_password_reset_email\nasync email"]
+            SendInvitation["send_invitation_email\nasync email"]
+            RemindInactive["remind_inactive_users\nweekly"]
+        end
+
+        subgraph WEBSOCKET["WebSocket Consumers"]
+            AuthConsumer["AuthConsumer\n- handles auth WebSocket\n- validates token\n- manages presence"]
+            NotificationConsumer["NotificationConsumer\n- sends real-time notifications\n- marks messages read\n- manages unread counts"]
+            PresenceConsumer["PresenceConsumer\n- tracks online users\n- broadcasts status changes\n- heartbeat management"]
+        end
+    end
+
+    subgraph EXTERNAL["🌐 External Systems"]
+        PostgreSQL[("PostgreSQL Database")]
+        Redis[("Redis Cache & Broker")]
+        EmailService["Email Service\n(SMTP)"]
+        Storage["File Storage\n(S3 / Local)"]
+    end
+
+    %% Frontend Internal Connections
+    PAGES --> COMPONENTS
+    COMPONENTS --> HOOKS
+    COMPONENTS --> CONTEXTS
+    COMPONENTS --> STORE
+    HOOKS --> CONTEXTS
+    HOOKS --> STORE
+    CONTEXTS --> SERVICES
+    STORE --> SERVICES
+    SERVICES --> UTILS
+    SERVICES --> STORAGE
+    
+    %% API Connections (Frontend → Backend)
+    SERVICES -.->|"HTTP/HTTPS"| API_VIEWS
+    WSClient -.->|"WebSocket"| WEBSOCKET
+
+    %% Backend Internal Connections
+    API_VIEWS --> SERIALIZERS
+    API_VIEWS --> PERMISSIONS
+    API_VIEWS --> THROTTLES
+    API_VIEWS --> FILTERS
+    API_VIEWS --> SERVICES_BACKEND
+    
+    SERIALIZERS --> MODELS
+    PERMISSIONS --> SERVICES_BACKEND
+    FILTERS --> MANAGERS
+    
+    SERVICES_BACKEND --> MANAGERS
+    SERVICES_BACKEND --> MODELS
+    SERVICES_BACKEND --> TASKS
+    SERVICES_BACKEND --> WEBSOCKET
+    
+    MANAGERS --> MODELS
+    
+    MIDDLEWARE --> API_VIEWS
+    MIDDLEWARE --> SERVICES_BACKEND
+    
+    TASKS --> SERVICES_BACKEND
+    TASKS --> MODELS
+    
+    WEBSOCKET --> SERVICES_BACKEND
+    WEBSOCKET --> MODELS
+
+    %% External Connections
+    MODELS -->|"Read/Write"| PostgreSQL
+    TASKS -->|"Queue"| Redis
+    WEBSOCKET -->|"Pub/Sub"| Redis
+    SERVICES_BACKEND -->|"Cache"| Redis
+    SERVICES_BACKEND -->|"Send"| EmailService
+    ProfileModel -->|"Upload/Download"| Storage
+
+    %% Styling
+    classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef backend fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef external fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef model fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef service fill:#e0f2f1,stroke:#004d40,stroke-width:2px
+    classDef api fill:#fff8e1,stroke:#f57f17,stroke-width:2px
+
+    class FRONTEND,PAGES,COMPONENTS,HOOKS,CONTEXTS,STORE,SERVICES,UTILS frontend
+    class BACKEND,MIDDLEWARE,API_VIEWS,SERIALIZERS,PERMISSIONS,THROTTLES,FILTERS,SERVICES_BACKEND,MANAGERS,TASKS,WEBSOCKET backend
+    class EXTERNAL,PostgreSQL,Redis,EmailService,Storage external
+    class MODELS,UserModel,ProfileModel,RoleModel,PermissionModel,UserSessionModel,MFADeviceModel,MFABackupCodeModel,AuditLogModel,LoginAttemptModel,UserPreferenceModel,TenantPreferenceModel,SessionBlacklistModel model
+    class AuthService,MFAService,JWTService,SessionService,PasswordService,RegistrationService,InvitationService,RBACService,AuditService,ProfileService service
+    class LoginView,LogoutView,RefreshTokenView,MFASetupView,MFAAuthView,RegisterView,PasswordResetView,UserListView,UserDetailView,UserCreateView,UserUpdateView,UserDeleteView,CurrentUserView,TeamView,RoleListView,RoleDetailView,PermissionListView,AssignRoleView,SessionView,AuditLogView,PreferenceView,AdminView api
