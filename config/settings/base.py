@@ -97,7 +97,7 @@ THIRD_PARTY_APPS = [
     # 'django_fsm',
     'viewflow',
     # Notifications
-    # 'notifications',
+    'notifications',
     'django_apscheduler',
     # Reporting
     'easy_pdf',

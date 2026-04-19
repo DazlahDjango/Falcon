@@ -1,0 +1,212 @@
+flowchart TB
+    subgraph ACTORS["👥 ACTORS"]
+        direction LR
+        SuperAdmin["👑 Super Admin<br/>System-wide administrator"]
+        ClientAdmin["🏢 Client Admin<br/>Organization administrator"]
+        Executive["📊 Executive<br/>Strategic oversight"]
+        Supervisor["👔 Supervisor<br/>Team manager"]
+        Staff["👤 Staff<br/>Regular employee"]
+        ReadOnly["👁️ Read Only<br/>View-only access"]
+        Unregistered["📝 Unregistered User<br/>Not yet in system"]
+    end
+
+    subgraph ACCOUNTS["📱 Accounts Management System"]
+        
+        subgraph AUTH["🔐 Authentication & Registration"]
+            Register["Register Account<br/><i>Unregistered User</i>"]
+            Login["Login to System<br/><i>All Users</i>"]
+            Logout["Logout from System<br/><i>All Users</i>"]
+            VerifyEmail["Verify Email Address<br/><i>Unregistered User</i>"]
+            ForgotPassword["Request Password Reset<br/><i>All Users</i>"]
+            ResetPassword["Reset Forgotten Password<br/><i>All Users</i>"]
+            ChangePassword["Change Own Password<br/><i>All Users</i>"]
+        end
+
+        subgraph MFA["🔒 Multi-Factor Authentication"]
+            SetupMFA["Setup MFA Device<br/><i>All Users</i>"]
+            VerifyMFA["Verify MFA Code<br/><i>All Users</i>"]
+            RegenerateBackupCodes["Regenerate Backup Codes<br/><i>All Users</i>"]
+            DisableMFA["Disable MFA<br/><i>All Users</i>"]
+        end
+
+        subgraph PROFILE["👤 Profile Management"]
+            ViewOwnProfile["View Own Profile<br/><i>All Users</i>"]
+            EditOwnProfile["Edit Own Profile<br/><i>All Users</i>"]
+            UploadAvatar["Upload Profile Avatar<br/><i>All Users</i>"]
+            ManageSkills["Manage Skills & Certifications<br/><i>All Users</i>"]
+            SetPreferences["Set Notification Preferences<br/><i>All Users</i>"]
+        end
+
+        subgraph USER_MGMT["👥 User Management"]
+            ViewAllUsers["View All Users<br/><i>Client Admin, Super Admin</i>"]
+            CreateUser["Create New User<br/><i>Client Admin, Super Admin</i>"]
+            EditUser["Edit User Details<br/><i>Client Admin, Super Admin</i>"]
+            DeleteUser["Delete/Suspend User<br/><i>Client Admin, Super Admin</i>"]
+            AssignRole["Assign Role to User<br/><i>Client Admin, Super Admin</i>"]
+            InviteUser["Invite User via Email<br/><i>Client Admin, Super Admin</i>"]
+            AcceptInvitation["Accept Invitation<br/><i>Unregistered User</i>"]
+            ResendInvitation["Resend Invitation<br/><i>Client Admin, Super Admin</i>"]
+            CancelInvitation["Cancel Pending Invitation<br/><i>Client Admin, Super Admin</i>"]
+            ViewUserDetails["View User Details<br/><i>Executive, Supervisor</i>"]
+        end
+
+        subgraph TEAM_MGMT["👥 Team Management"]
+            ViewTeam["View Team Hierarchy<br/><i>Supervisor, Executive, Admin</i>"]
+            ViewReportingChain["View Reporting Chain<br/><i>Supervisor, Executive, Admin</i>"]
+            ManageDirectReports["Manage Direct Reports<br/><i>Supervisor</i>"]
+        end
+
+        subgraph ROLE_MGMT["🎭 Role & Permission Management"]
+            ViewAllRoles["View All Roles<br/><i>Client Admin, Super Admin</i>"]
+            CreateRole["Create Custom Role<br/><i>Client Admin, Super Admin</i>"]
+            EditRole["Edit Role Permissions<br/><i>Client Admin, Super Admin</i>"]
+            DeleteRole["Delete Custom Role<br/><i>Client Admin, Super Admin</i>"]
+            ViewPermissions["View Permission List<br/><i>Client Admin, Super Admin</i>"]
+        end
+
+        subgraph SESSION_MGMT["🖥️ Session Management"]
+            ViewActiveSessions["View Active Sessions<br/><i>All Users</i>"]
+            TerminateSession["Terminate Specific Session<br/><i>All Users</i>"]
+            TerminateAllSessions["Terminate All Other Sessions<br/><i>All Users</i>"]
+            ViewAllUserSessions["View All User Sessions<br/><i>Super Admin</i>"]
+        end
+
+        subgraph AUDIT["📋 Audit & Monitoring"]
+            ViewOwnActivity["View Own Activity Log<br/><i>All Users</i>"]
+            ViewTeamActivity["View Team Activity Log<br/><i>Supervisor, Executive, Admin</i>"]
+            ViewAllAuditLogs["View All System Audit Logs<br/><i>Super Admin</i>"]
+            ExportAuditLogs["Export Audit Logs<br/><i>Client Admin, Super Admin</i>"]
+            ViewSecurityEvents["View Security Events<br/><i>Client Admin, Super Admin</i>"]
+        end
+
+        subgraph TENANT_MGMT["🏢 Tenant Management"]
+            ConfigureTenantBranding["Configure Tenant Branding<br/><i>Client Admin</i>"]
+            ManageSubscription["Manage Subscription Plan<br/><i>Client Admin, Super Admin</i>"]
+            ConfigureFeatureFlags["Configure Feature Flags<br/><i>Client Admin, Super Admin</i>"]
+            ViewAllTenants["View All Tenants<br/><i>Super Admin</i>"]
+            CreateTenant["Create New Tenant<br/><i>Super Admin</i>"]
+            SuspendTenant["Suspend Tenant<br/><i>Super Admin</i>"]
+        end
+
+        subgraph SYSTEM_ADMIN["⚙️ System Administration"]
+            ViewSystemHealth["View System Health<br/><i>Super Admin</i>"]
+            ClearSystemCache["Clear System Cache<br/><i>Super Admin</i>"]
+            ManageSystemSettings["Manage System Settings<br/><i>Super Admin</i>"]
+            ViewSystemStats["View System Statistics<br/><i>Super Admin</i>"]
+            RotateSecrets["Rotate JWT Secrets<br/><i>Super Admin</i>"]
+        end
+    end
+
+    subgraph EXTERNAL["🌐 External Systems"]
+        EmailService["📧 Email Service<br/>(SendGrid/SMTP)"]
+        StorageService["💾 Storage Service<br/>(AWS S3)"]
+    end
+
+    %% Actor to Use Case Connections
+    %% Unregistered User
+    Unregistered --> Register
+    Unregistered --> VerifyEmail
+    Unregistered --> AcceptInvitation
+
+    %% All Users (Authenticated)
+    Login --> Login
+    Logout --> Logout
+    ForgotPassword --> ForgotPassword
+    ResetPassword --> ResetPassword
+    ChangePassword --> ChangePassword
+    
+    SetupMFA --> SetupMFA
+    VerifyMFA --> VerifyMFA
+    RegenerateBackupCodes --> RegenerateBackupCodes
+    DisableMFA --> DisableMFA
+    
+    ViewOwnProfile --> ViewOwnProfile
+    EditOwnProfile --> EditOwnProfile
+    UploadAvatar --> UploadAvatar
+    ManageSkills --> ManageSkills
+    SetPreferences --> SetPreferences
+    
+    ViewActiveSessions --> ViewActiveSessions
+    TerminateSession --> TerminateSession
+    TerminateAllSessions --> TerminateAllSessions
+    
+    ViewOwnActivity --> ViewOwnActivity
+
+    %% Staff
+    Staff --> ViewOwnProfile
+    Staff --> EditOwnProfile
+    Staff --> ChangePassword
+    Staff --> ViewActiveSessions
+    Staff --> ViewOwnActivity
+
+    %% Supervisor
+    Supervisor --> ViewTeam
+    Supervisor --> ViewReportingChain
+    Supervisor --> ManageDirectReports
+    Supervisor --> ViewTeamActivity
+    Supervisor --> ViewUserDetails
+
+    %% Executive
+    Executive --> ViewAllUsers
+    Executive --> ViewUserDetails
+    Executive --> ViewTeam
+    Executive --> ViewReportingChain
+    Executive --> ViewTeamActivity
+
+    %% Client Admin
+    ClientAdmin --> ViewAllUsers
+    ClientAdmin --> CreateUser
+    ClientAdmin --> EditUser
+    ClientAdmin --> DeleteUser
+    ClientAdmin --> AssignRole
+    ClientAdmin --> InviteUser
+    ClientAdmin --> ResendInvitation
+    ClientAdmin --> CancelInvitation
+    ClientAdmin --> ViewAllRoles
+    ClientAdmin --> CreateRole
+    ClientAdmin --> EditRole
+    ClientAdmin --> DeleteRole
+    ClientAdmin --> ViewPermissions
+    ClientAdmin --> ViewAllAuditLogs
+    ClientAdmin --> ExportAuditLogs
+    ClientAdmin --> ViewSecurityEvents
+    ClientAdmin --> ConfigureTenantBranding
+    ClientAdmin --> ManageSubscription
+    ClientAdmin --> ConfigureFeatureFlags
+    ClientAdmin --> ViewTeamActivity
+    ClientAdmin --> ViewAllUserSessions
+
+    %% Super Admin
+    SuperAdmin --> ViewAllTenants
+    SuperAdmin --> CreateTenant
+    SuperAdmin --> SuspendTenant
+    SuperAdmin --> ViewSystemHealth
+    SuperAdmin --> ClearSystemCache
+    SuperAdmin --> ManageSystemSettings
+    SuperAdmin --> ViewSystemStats
+    SuperAdmin --> RotateSecrets
+    SuperAdmin --> ViewAllAuditLogs
+    SuperAdmin --> ViewAllUserSessions
+
+    %% Read Only
+    ReadOnly --> ViewAllUsers
+    ReadOnly --> ViewUserDetails
+    ReadOnly --> ViewTeam
+    ReadOnly --> ViewOwnActivity
+    ReadOnly --> ViewActiveSessions
+
+    %% External System Connections
+    Register -.-> EmailService
+    ForgotPassword -.-> EmailService
+    ResetPassword -.-> EmailService
+    InviteUser -.-> EmailService
+    ResendInvitation -.-> EmailService
+    UploadAvatar -.-> StorageService
+    ConfigureTenantBranding -.-> StorageService
+
+    %% Legend
+    subgraph LEGEND["📖 Legend"]
+        L1["<i>Italic</i> = Extends/Includes"]
+        L2["◌ = Primary Actor"]
+        L3["dashed → = External System"]
+    end

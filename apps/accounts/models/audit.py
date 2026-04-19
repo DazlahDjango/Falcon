@@ -28,7 +28,7 @@ class AuditLog(BaseModel):
     ])
     
     # Target (what was acted upon)
-    content_type = models.CharField(_('content type'), max_length=100, blank=True, db_index=True, help_text='App.Model name')
+    content_type = models.CharField(_('content type'), max_length=100, blank=True, null=True, db_index=True, help_text='App.Model name')
     object_id = models.CharField(_('object ID'), max_length=100, blank=True, db_index=True)
     object_repr = models.CharField(_('object representation'), max_length=500, blank=True)
     
@@ -94,7 +94,7 @@ class AuditLog(BaseModel):
     
     def save(self, *args, **kwargs):
         """Prevent modification of immutable logs."""
-        if not self._state.adding and self.is_immutable:
+        if self.pk and self.is_immutable:
             raise PermissionError("Cannot modify immutable audit log")
         super().save(*args, **kwargs)
     
