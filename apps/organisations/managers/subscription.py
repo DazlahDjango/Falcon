@@ -1,13 +1,13 @@
 """
 Custom managers for Subscription and Plan models
 """
-
 from django.db import models
+from ..utils import TenantManagerMixin
 from django.utils import timezone
 from ..constants import SubscriptionStatus
 
 
-class SubscriptionManager(models.Manager):
+class SubscriptionManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Subscription model
     """
@@ -68,7 +68,7 @@ class SubscriptionManager(models.Manager):
         )
 
 
-class PlanManager(models.Manager):
+class PlanManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Plan model
     """

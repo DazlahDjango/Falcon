@@ -6,8 +6,8 @@ import rootReducer from './rootReducer';
 // Middlewares
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
 import { loggerMiddleware } from './accounts/middlewares/loggerMiddleware';
-import { auditMiddleware } from './organisation/middlewares/auditMiddleware';
-import { syncMiddleware } from './organisation/middlewares/syncMiddleware';
+import { auditMiddleware } from './organisations/middlewares/auditMiddleware';
+import { syncMiddleware } from './organisations/middlewares/syncMiddleware';
 
 const persistConfig = {
     key: 'root',

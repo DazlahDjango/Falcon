@@ -43,25 +43,28 @@ const AdminSystem = lazy(() => import('./components/accounts/admin/AdminSystem')
 const Help = lazy(() => import('./pages/accounts/Help'));
 const About = lazy(() => import('./pages/accounts/About'));
 // Organisation Pages
-const OrganisationDashboardPage = lazy(() => import('./pages/organisation/OrganisationDashboardPage'));
-const OrganisationSettingsPage = lazy(() => import('./pages/organisation/OrganisationSettingsPage'));
-const OrganisationAdminPage = lazy(() => import('./pages/organisation/OrganisationAdminPage'));
-const OrganisationAuditPage = lazy(() => import('./pages/organisation/OrganisationAuditPage'));
-const OrganisationBrandingPage = lazy(() => import('./pages/organisation/OrganisationBrandingPage'));
-const OrganisationUsersPage = lazy(() => import('./pages/organisation/OrganisationUsersPage'));
-const OrganisationSubscriptionPage = lazy(() => import('./pages/organisation/OrganisationSubscriptionPage'));
-const OrganisationReportsPage = lazy(() => import('./pages/organisation/OrganisationReportsPage'));
-const OrganisationDepartmentsPage = lazy(() => import('./pages/organisation/OrganisationDepartmentsPage'));
-const OrganisationTeamsPage = lazy(() => import('./pages/organisation/OrganisationTeamsPage'));
-const OrganisationPositionsPage = lazy(() => import('./pages/organisation/OrganisationPositionsPage'));
-const OrganisationDomainsPage = lazy(() => import('./pages/organisation/OrganisationDomainsPage'));
-const OrganisationContactsPage = lazy(() => import('./pages/organisation/OrganisationContactsPage'));
-const OrganisationWorkflowsPage = lazy(() => import('./pages/organisation/OrganisationWorkflowsPage'));
-const OrganisationImportPage = lazy(() => import('./pages/organisation/OrganisationImportPage'));
-const OrganisationExportPage = lazy(() => import('./pages/organisation/OrganisationExportPage'));
-const OrganisationApiTokensPage = lazy(() => import('./pages/organisation/OrganisationApiTokensPage'));
-const OrganisationTwoFactorPage = lazy(() => import('./pages/organisation/OrganisationTwoFactorPage'));
-const OrganisationProfilePage = lazy(() => import('./pages/organisation/OrganisationProfilePage'));
+const OrganisationDashboardPage = lazy(() => import('./pages/organisations/OrganisationDashboardPage'));
+const OrganisationSettingsPage = lazy(() => import('./pages/organisations/OrganisationSettingsPage'));
+const OrganisationAdminPage = lazy(() => import('./pages/organisations/OrganisationAdminPage'));
+const OrganisationAuditPage = lazy(() => import('./pages/organisations/OrganisationAuditPage'));
+const OrganisationBrandingPage = lazy(() => import('./pages/organisations/OrganisationBrandingPage'));
+const OrganisationUsersPage = lazy(() => import('./pages/organisations/OrganisationUsersPage'));
+const OrganisationSubscriptionPage = lazy(() => import('./pages/organisations/OrganisationSubscriptionPage'));
+const OrganisationReportsPage = lazy(() => import('./pages/organisations/OrganisationReportsPage'));
+const OrganisationDepartmentsPage = lazy(() => import('./pages/organisations/OrganisationDepartmentsPage'));
+const OrganisationTeamsPage = lazy(() => import('./pages/organisations/OrganisationTeamsPage'));
+const OrganisationPositionsPage = lazy(() => import('./pages/organisations/OrganisationPositionsPage'));
+const OrganisationDomainsPage = lazy(() => import('./pages/organisations/OrganisationDomainsPage'));
+const OrganisationContactsPage = lazy(() => import('./pages/organisations/OrganisationContactsPage'));
+const OrganisationWorkflowsPage = lazy(() => import('./pages/organisations/OrganisationWorkflowsPage'));
+const OrganisationImportPage = lazy(() => import('./pages/organisations/OrganisationImportPage'));
+const OrganisationExportPage = lazy(() => import('./pages/organisations/OrganisationExportPage'));
+const OrganisationApiTokensPage = lazy(() => import('./pages/organisations/OrganisationApiTokensPage'));
+const OrganisationTwoFactorPage = lazy(() => import('./pages/organisations/OrganisationTwoFactorPage'));
+const OrganisationProfilePage = lazy(() => import('./pages/organisations/OrganisationProfilePage'));
+const OrganisationHierarchyPage = lazy(() => import('./pages/organisations/OrganisationHierarchyPage'));
+const OrganisationFeatureFlagsPage = lazy(() => import('./pages/organisations/OrganisationFeatureFlagsPage'));
+const OrganisationPlansPage = lazy(() => import('./pages/organisations/OrganisationPlansPage'));
 const NotFound = lazy(() => import('./pages/accounts/NotFound'));
 const Unauthorized = lazy(() => import('./pages/accounts/Unauthorized'));
 const ServerError = lazy(() => import('./pages/accounts/ServerError'));
@@ -182,6 +185,9 @@ const AppContent = () => {
                         <Route path={ROUTES.ORGANISATION_DOMAINS} element={<OrganisationDomainsPage />} />
                         <Route path={ROUTES.ORGANISATION_CONTACTS} element={<OrganisationContactsPage />} />
                         <Route path={ROUTES.ORGANISATION_WORKFLOWS} element={<OrganisationWorkflowsPage />} />
+                        <Route path={ROUTES.ORGANISATION_HIERARCHY} element={<OrganisationHierarchyPage />} />
+                        <Route path={ROUTES.ORGANISATION_FEATURE_FLAGS} element={<OrganisationFeatureFlagsPage />} />
+                        <Route path={ROUTES.ORGANISATION_PLANS} element={<OrganisationPlansPage />} />
                         <Route path={ROUTES.ORGANISATION_IMPORT} element={<OrganisationImportPage />} />
                         <Route path={ROUTES.ORGANISATION_EXPORT} element={<OrganisationExportPage />} />
                         <Route path={ROUTES.ORGANISATION_API_TOKENS} element={<OrganisationApiTokensPage />} />

@@ -1,0 +1,202 @@
+.form {
+    padding: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.statusBadge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.approved {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.rejected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.fieldGroup {
+    margin-bottom: 20px;
+}
+
+.label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+}
+
+.required {
+    color: #ef4444;
+}
+
+.inputWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.valueInput {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.valueInput:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.valueInput.error {
+    border-color: #ef4444;
+}
+
+.valueInput:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
+
+.unit {
+    padding: 10px 12px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.errorText {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+.textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.rejectionInfo {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+}
+
+.rejectionIcon {
+    font-size: 20px;
+}
+
+.rejectionContent {
+    flex: 1;
+}
+
+.rejectionContent strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #dc2626;
+}
+
+.rejectionContent p {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.rejectionReason {
+    font-size: 13px;
+    color: #dc2626;
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.actions {
+    margin-top: 24px;
+    text-align: right;
+}
+
+.submitButton {
+    padding: 10px 24px;
+    background: #3b82f6;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+.submitButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .inputWrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .actions {
+        text-align: center;
+    }
+    
+    .submitButton {
+        width: 100%;
+    }
+}

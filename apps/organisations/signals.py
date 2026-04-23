@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models.organisation import Organisation
+from .models import Organisation
 from .services.provisioning import OrganisationProvisioningService
 
 @receiver(post_save, sender=Organisation)

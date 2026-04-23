@@ -1,8 +1,8 @@
 from django.db import models
-from apps.core.models import BaseModel
+from .base import BaseTenantModel
 from .organisation import Organisation
 
-class Branding(BaseModel):
+class Branding(BaseTenantModel):
     """
     Handles organization-specific visual identity and branding.
     """

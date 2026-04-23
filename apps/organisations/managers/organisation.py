@@ -1,13 +1,13 @@
 """
 Custom manager for Organisation model
 """
-
 from django.db import models
+from ..utils import TenantManagerMixin
 from django.utils import timezone
 from ..constants import OrganisationStatus, SectorType
 
 
-class OrganisationManager(models.Manager):
+class OrganisationManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Organisation model with tenant-aware methods
     """

@@ -1,11 +1,11 @@
 """
 Custom manager for Team model
 """
-
 from django.db import models
+from ..utils import TenantManagerMixin
 
 
-class TeamManager(models.Manager):
+class TeamManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Team model
     """

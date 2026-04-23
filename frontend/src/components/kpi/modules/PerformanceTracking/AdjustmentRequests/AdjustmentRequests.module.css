@@ -1,0 +1,346 @@
+.adjustmentRequests {
+    padding: 0;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.requestButton {
+    padding: 8px 16px;
+    background: #3b82f6;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.requestButton:hover {
+    background: #2563eb;
+}
+
+.emptyContainer {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.emptyIcon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.requestsList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.requestItem {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.requestHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.requestInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.kpiName {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.userName {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.approved {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.rejected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.requestDetails {
+    margin-bottom: 16px;
+}
+
+.valueChange {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.originalValue {
+    color: #6b7280;
+    text-decoration: line-through;
+}
+
+.arrow {
+    color: #9ca3af;
+}
+
+.newValue {
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+.reason, .notes {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 8px;
+}
+
+.date {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 8px;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.approveButton {
+    padding: 6px 16px;
+    background: #22c55e;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+}
+
+.approveButton:hover:not(:disabled) {
+    background: #16a34a;
+}
+
+.rejectButton {
+    padding: 6px 16px;
+    background: #ef4444;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+}
+
+.rejectButton:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modalContent h4 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #1f2937;
+}
+
+.modalContent p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.fieldGroup {
+    margin-bottom: 16px;
+}
+
+.fieldGroup label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.cancelButton {
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.submitButton {
+    padding: 8px 20px;
+    background: #3b82f6;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+}
+
+.submitButton:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .requestButton {
+        width: 100%;
+    }
+    
+    .valueChange {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .approveButton, .rejectButton {
+        width: 100%;
+    }
+    
+    .modalActions {
+        flex-direction: column;
+    }
+    
+    .cancelButton, .submitButton {
+        width: 100%;
+    }
+}

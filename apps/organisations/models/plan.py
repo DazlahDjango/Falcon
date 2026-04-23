@@ -3,12 +3,12 @@ Plan model for subscription plans
 """
 
 from django.db import models
-from apps.core.models import BaseModel
+from .base import BaseTenantModel
 from apps.organisations.managers import PlanManager
 from apps.organisations.constants import PlanCode
 
 
-class Plan(BaseModel):
+class Plan(BaseTenantModel):
     """
     Defines available subscription plans and their enabled features.
     """

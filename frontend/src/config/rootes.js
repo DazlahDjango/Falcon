@@ -373,6 +373,294 @@ export const routes = [
         }
     },
 
+    // Organisation Routes
+    {
+        path: ROUTE_PATHS.ORGANISATION_DASHBOARD,
+        name: 'Organisation Dashboard',
+        component: 'OrganisationDashboardPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Organisation Dashboard',
+            description: 'Manage your organisation',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_SETTINGS,
+        name: 'Organisation Settings',
+        component: 'OrganisationSettingsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Organisation Settings',
+            description: 'Configure organisation settings',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_ADMIN,
+        name: 'Organisation Admin',
+        component: 'OrganisationAdminPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Organisation Administration',
+            description: 'Administrative functions',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_AUDIT,
+        name: 'Organisation Audit',
+        component: 'OrganisationAuditPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Audit Logs',
+            description: 'View organisation audit logs',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_BRANDING,
+        name: 'Organisation Branding',
+        component: 'OrganisationBrandingPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Branding',
+            description: 'Manage organisation branding',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_USERS,
+        name: 'Organisation Users',
+        component: 'OrganisationUsersPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Users',
+            description: 'Manage organisation users',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_SUBSCRIPTION,
+        name: 'Subscription',
+        component: 'OrganisationSubscriptionPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Subscription',
+            description: 'Manage subscription',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_REPORTS,
+        name: 'Reports',
+        component: 'OrganisationReportsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Reports',
+            description: 'View organisation reports',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_DEPARTMENTS,
+        name: 'Departments',
+        component: 'OrganisationDepartmentsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Departments',
+            description: 'Manage departments',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_TEAMS,
+        name: 'Teams',
+        component: 'OrganisationTeamsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Teams',
+            description: 'Manage teams',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_POSITIONS,
+        name: 'Positions',
+        component: 'OrganisationPositionsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Positions',
+            description: 'Manage positions',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_HIERARCHY,
+        name: 'Hierarchy',
+        component: 'OrganisationHierarchyPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Organisation Hierarchy',
+            description: 'View organisation hierarchy',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_DOMAINS,
+        name: 'Domains',
+        component: 'OrganisationDomainsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Domains',
+            description: 'Manage domains',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_CONTACTS,
+        name: 'Contacts',
+        component: 'OrganisationContactsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Contacts',
+            description: 'Manage contacts',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_WORKFLOWS,
+        name: 'Workflows',
+        component: 'OrganisationWorkflowsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Workflows',
+            description: 'Manage workflows',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_FEATURE_FLAGS,
+        name: 'Feature Flags',
+        component: 'OrganisationFeatureFlagsPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Feature Flags',
+            description: 'Manage feature flags',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_PLANS,
+        name: 'Plans',
+        component: 'OrganisationPlansPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Subscription Plans',
+            description: 'View available plans',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_IMPORT,
+        name: 'Import',
+        component: 'OrganisationImportPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Import Data',
+            description: 'Import organisation data',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_EXPORT,
+        name: 'Export',
+        component: 'OrganisationExportPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Export Data',
+            description: 'Export organisation data',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_API_TOKENS,
+        name: 'API Tokens',
+        component: 'OrganisationApiTokensPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'API Tokens',
+            description: 'Manage API tokens',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_TWO_FACTOR,
+        name: 'Two Factor Auth',
+        component: 'OrganisationTwoFactorPage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Two Factor Authentication',
+            description: 'Configure 2FA settings',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+    {
+        path: ROUTE_PATHS.ORGANISATION_PROFILE,
+        name: 'Organisation Profile',
+        component: 'OrganisationProfilePage',
+        layout: 'main',
+        exact: true,
+        meta: {
+            title: 'Organisation Profile',
+            description: 'View organisation profile',
+            requiresAuth: true,
+            roles: ['client_admin', 'super_admin']
+        }
+    },
+
     // Error Routes
     {
         path: ROUTE_PATHS.UNAUTHORIZED,

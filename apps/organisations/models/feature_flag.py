@@ -1,8 +1,8 @@
 from django.db import models
-from apps.core.models import BaseModel
+from .base import BaseTenantModel
 from .organisation import Organisation
 
-class FeatureFlag(BaseModel):
+class FeatureFlag(BaseTenantModel):
     """
     Granular feature control for organizations, overriding plan-level settings.
     """

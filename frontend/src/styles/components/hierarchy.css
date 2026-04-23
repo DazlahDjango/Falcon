@@ -1,0 +1,59 @@
+/* Hierarchy Component Styles */
+
+.hierarchy-node {
+  position: relative;
+}
+
+.hierarchy-node::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #e5e7eb;
+}
+
+.hierarchy-node:last-child::before {
+  bottom: 50%;
+}
+
+.hierarchy-node .hierarchy-node::before {
+  left: 40px;
+}
+
+.hierarchy-node .hierarchy-node:last-child::before {
+  bottom: 50%;
+}
+
+/* Node styling */
+.hierarchy-node > div {
+  transition: background-color 0.2s ease;
+}
+
+.hierarchy-node > div:hover {
+  background-color: #f9fafb;
+}
+
+/* Connection lines */
+.hierarchy-node::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 24px;
+  width: 8px;
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hierarchy-node::before,
+  .hierarchy-node::after {
+    display: none;
+  }
+
+  .hierarchy-node > div {
+    padding-left: 12px !important;
+  }
+}

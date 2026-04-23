@@ -1,0 +1,115 @@
+.actualEntryPage {
+    padding: 0;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.emptyContainer {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+}
+
+.emptyIcon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.emptyHint {
+    font-size: 13px;
+    margin-top: 8px;
+    color: #9ca3af;
+}
+
+.kpiSelector {
+    margin-bottom: 20px;
+}
+
+.kpiSelector label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+}
+
+.kpiSelect {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.periodSelector {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.kpiInfo {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.kpiDetail {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.kpiName {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.kpiCode {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: monospace;
+}
+
+.kpiMeta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+@media (max-width: 768px) {
+    .periodSelector {
+        justify-content: center;
+    }
+    
+    .kpiMeta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
