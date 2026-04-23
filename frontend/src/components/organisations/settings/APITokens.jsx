@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiTokenApi } from '../../../services/organisation';
+import { apiTokenApi } from '../../../services/organisations';
 import toast from 'react-hot-toast';
 
 const APITokens = () => {

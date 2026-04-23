@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReportFilters from './components/ReportFilters';
 import ExportReportModal from './components/ExportReportModal';
-import { kpiApi, departmentApi } from '../../../services/organisation';
+import { kpiApi, departmentApi } from '../../../services/organisations';
 import toast from 'react-hot-toast';
 
 const KPIReport = () => {

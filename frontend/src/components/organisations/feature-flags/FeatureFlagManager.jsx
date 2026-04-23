@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useFeatureFlags } from '../../../hooks/organisations';
-import { Card, CardHeader, CardTitle, CardContent } from '../../../common/UI/Card';
-import { Button } from '../../../common/UI/Button';
-import { Badge } from '../../../common/UI/Badge';
-import { Input } from '../../../common/UI/Input';
+import { Card, CardHeader, CardTitle, CardContent } from '../../common/UI';
+import { Button } from '../../common/UI';
+import { Badge } from '../../common/UI';
+import { Input } from '../../common/UI';
 import { Loader2, Settings, Plus, Edit, Save, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 

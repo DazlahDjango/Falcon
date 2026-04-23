@@ -64,3 +64,49 @@ export const featureFlagApi = {
   enable: (id) => api.post(`/organisations/feature-flags/${id}/enable/`),
   disable: (id) => api.post(`/organisations/feature-flags/${id}/disable/`),
 };
+
+// ============================================================
+// Quota API
+// ============================================================
+
+export const quotaApi = {
+  getAll: (params) => api.get('/organisations/quotas/', { params }),
+  getById: (id) => api.get(`/organisations/quotas/${id}/`),
+  create: (data) => api.post('/organisations/quotas/', data),
+  update: (id, data) => api.patch(`/organisations/quotas/${id}/`, data),
+  delete: (id) => api.delete(`/organisations/quotas/${id}/`),
+  getUsage: (id) => api.get(`/organisations/quotas/${id}/usage/`),
+  getHistory: (id, params) => api.get(`/organisations/quotas/${id}/history/`, { params }),
+};
+
+// ============================================================
+// Plan API
+// ============================================================
+
+export const planApi = {
+  getAll: (params) => api.get('/organisations/plans/', { params }),
+  getById: (id) => api.get(`/organisations/plans/${id}/`),
+  create: (data) => api.post('/organisations/plans/', data),
+  update: (id, data) => api.patch(`/organisations/plans/${id}/`, data),
+  delete: (id) => api.delete(`/organisations/plans/${id}/`),
+  subscribe: (id, data) => api.post(`/organisations/plans/${id}/subscribe/`, data),
+  cancel: (id) => api.post(`/organisations/plans/${id}/cancel/`),
+  getFeatures: (id) => api.get(`/organisations/plans/${id}/features/`),
+};
+
+// ============================================================
+// Contact API
+// ============================================================
+
+export const contactApi = {
+  getAll: (params) => api.get('/organisations/contacts/', { params }),
+  getById: (id) => api.get(`/organisations/contacts/${id}/`),
+  create: (data) => api.post('/organisations/contacts/', data),
+  update: (id, data) => api.patch(`/organisations/contacts/${id}/`, data),
+  delete: (id) => api.delete(`/organisations/contacts/${id}/`),
+  import: (data) => api.post('/organisations/contacts/import/', data),
+  export: (params) => api.get('/organisations/contacts/export/', { params }),
+};
+
+// Alias for backward compatibility
+export const fetchContacts = contactApi.getAll;

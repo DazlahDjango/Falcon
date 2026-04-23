@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import FileUploader from './components/FileUploader';
 import ImportPreview from './components/ImportPreview';
-import { importApi } from '../../../services/organisation';
+import { importApi } from '../../../services/organisations';
 import toast from 'react-hot-toast';
 
 const DataImport = () => {

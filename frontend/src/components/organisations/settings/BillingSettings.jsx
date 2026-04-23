@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { subscriptionApi, settingsApi } from '../../../services/organisation';
+import { subscriptionApi, settingsApi } from '../../../services/organisations';
 import toast from 'react-hot-toast';
 
 const BillingSettings = () => {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useHierarchy } from '../../../hooks/organisations';
-import { Card, CardHeader, CardTitle, CardContent } from '../../../common/UI/Card';
-import { Button } from '../../../common/UI/Button';
-import { Badge } from '../../../common/UI/Badge';
+import { Card, CardHeader, CardTitle, CardContent } from '../../common/UI';
+import { Button } from '../../common/UI';
+import { Badge } from '../../common/UI';
 import { Loader2, Users, ChevronDown, ChevronRight } from 'lucide-react';
 
 const HierarchyChart = () => {

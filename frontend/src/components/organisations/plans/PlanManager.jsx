@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { usePlans } from '@/hooks/organisations';
-import { Card, CardHeader, CardTitle, CardContent } from '../../../common/UI/Card';
-import { Button } from '../../../common/UI/Button';
-import { Badge } from '../../../common/UI/Badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../common/UI/Tabs';
+import { Card, CardHeader, CardTitle, CardContent } from '../../common/UI';
+import { Button } from '../../common/UI';
+import { Badge } from '../../common/UI';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../common/UI';
 import { Loader2, Crown, Check, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 

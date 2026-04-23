@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PositionCard from './components/PositionCard';
 import PositionForm from './components/PositionForm';
 import PositionHierarchyModal from './components/PositionHierarchyModal';
-import { positionApi, departmentApi } from '../../../services/organisation';
+import { positionApi, departmentApi } from '../../../services/organisations';
 import toast from 'react-hot-toast';
 
 const PositionManager = () => {

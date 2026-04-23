@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPlans, fetchCurrentSubscription, fetchInvoices, fetchPaymentMethods } from '../../store/organisations/slice/subscriptionSlice';
-import { SubscriptionManager } from '../../components/organisations/subscription/SubscriptionManager';
+import SubscriptionManager from '../../components/organisations/subscription/SubscriptionManager';
 
 const OrganisationSubscriptionPage = () => {
   const dispatch = useDispatch();

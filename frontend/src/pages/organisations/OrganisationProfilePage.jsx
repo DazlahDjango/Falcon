@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCurrentOrganisation } from '../../store/organisations/slice/organisationSlice';
-import { OrganisationProfile } from '../../components/organisations/profile/OrganisationProfile';
+import OrganisationProfile from '../../components/organisations/profile/OrganisationProfile';
 
 const OrganisationProfilePage = () => {
   const dispatch = useDispatch();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReportFilters from './components/ReportFilters';
 import ExportReportModal from './components/ExportReportModal';
-import { userApi, departmentApi } from '../../../services/organisation';
+import { userApi, departmentApi } from '../../../services/organisations';
 import toast from 'react-hot-toast';
 
 const UserActivityReport = () => {

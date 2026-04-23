@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { exportApi } from '../../../services/organisation';
+import { exportApi } from '../../../services/organisations';
 import toast from 'react-hot-toast';
 
 const DataExport = () => {

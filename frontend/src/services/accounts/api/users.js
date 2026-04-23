@@ -69,3 +69,23 @@ export const getTeamHierarchy = () => {
 export const getTeamStats = () => {
     return request.get('/users/me/team/stats/');
 };
+
+// NEW: Additional exports needed by slices
+// ==========================================
+
+export const removeAvatar = (userId) => {
+    // If removing avatar for a specific user (admin action)
+    if (userId && userId !== 'me') {
+        return request.delete(`/users/${userId}/avatar/`);
+    }
+    // For current user
+    return deleteAvatar();
+};
+
+export const getUserActivity = (userId, params = {}) => {
+    return request.get(`/users/${userId}/activity/`, { params });
+};
+
+export const getTeamActivities = (teamId, params = {}) => {
+    return request.get(`/teams/${teamId}/activities/`, { params });
+};
