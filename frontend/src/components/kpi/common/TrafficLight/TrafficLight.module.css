@@ -1,0 +1,49 @@
+.trafficLight {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    transform: scale(1.05);
+}
+
+/* Size variants */
+.sm {
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+.md {
+    padding: 4px 10px;
+    font-size: 14px;
+}
+
+.lg {
+    padding: 8px 16px;
+    font-size: 16px;
+}
+
+/* Score display */
+.score {
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* Animation for status changes */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.trafficLight:active {
+    animation: pulse 0.2s ease;
+}

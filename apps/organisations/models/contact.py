@@ -3,12 +3,12 @@ Contact model for organisation contacts
 """
 
 from django.db import models
-from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 from .organisation import Organisation
 from apps.organisations.managers import ContactManager
 
 
-class Contact(BaseModel):
+class Contact(BaseTenantModel):
     """
     Manages specific contact points for an organization.
     """

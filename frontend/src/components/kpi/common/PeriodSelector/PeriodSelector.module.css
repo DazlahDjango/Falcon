@@ -1,0 +1,72 @@
+.periodSelector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.selectors {
+    display: flex;
+    gap: 8px;
+}
+
+.select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 14px;
+    color: #1f2937;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.select:hover:not(:disabled) {
+    border-color: #3b82f6;
+}
+
+.select:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.navigation {
+    display: flex;
+    gap: 4px;
+}
+
+.navButton {
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.navButton:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #3b82f6;
+}
+
+.navButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .periodSelector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .selectors {
+        justify-content: center;
+    }
+    
+    .navigation {
+        justify-content: center;
+    }
+}

@@ -69,3 +69,18 @@ Adding standard architectural definitions.
 ## Open Questions
 
 This is a large structural update that creates all the missing files you noted. Does this comprehensive list match what you're looking for, and do I have your approval to start building these out?
+
+Great, now ready for the frontend??
+First thing: Don't change anything on the base files that are not related to organisation app:
+You can check the common components(MainLayout, SideBAr etc). Then we start with the organisation components:
+This how my structure looks like:
+componets/accounts
+components/organisations
+hooks/accounts
+hooks/organisations
+etcetra
+Clean every organisations frontend file and add everyfile that I don't have in components and all modules that are missing files
+Also add for me the files styling(css), Though I stated integrationg the css organizations fils I have the main styles directory in the src/ and the index.css
+Make sure all urls patterns are being called well and working
+Then after you're done with the other files move on to the base ones that are calling the organisations module(routes, constants, app.jsx etc):
+Lets begin, styling and the module implementations should be proffesional 

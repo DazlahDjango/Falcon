@@ -3,13 +3,13 @@ Position model for job positions/titles
 """
 
 from django.db import models
-from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 from .department import Department
 from apps.organisations.managers import PositionManager
 from apps.organisations.constants import HierarchyLevel
 
 
-class Position(BaseModel):
+class Position(BaseTenantModel):
     """
     Represents a job position title/role within the organisation.
     """

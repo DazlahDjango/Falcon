@@ -21,20 +21,22 @@ import accountsUiReducer from './accounts/slice/uiSlice';
 // ==========================================
 // Organisation Reducers
 // ==========================================
-import organisationReducer from './organisation/slice/organisationSlice';
-import subscriptionReducer from './organisation/slice/subscriptionSlice';
-import departmentReducer from './organisation/slice/departmentSlice';
-import positionReducer from './organisation/slice/positionSlice';
-import domainReducer from './organisation/slice/domainSlice';
-import brandingReducer from './organisation/slice/brandingSlice';
-import settingsReducer from './organisation/slice/settingsSlice';
-import kpiReducer from './organisation/slice/kpiSlice';
-import orgUserReducer from './organisation/slice/userSlice';
+import organisationReducer from './organisations/slice/organisationSlice';
+import subscriptionReducer from './organisations/slice/subscriptionSlice';
+import planReducer from './organisations/slice/planSlice';
+import featureFlagReducer from './organisations/slice/featureFlagSlice';
+import departmentReducer from './organisations/slice/departmentSlice';
+import positionReducer from './organisations/slice/positionSlice';
+import domainReducer from './organisations/slice/domainSlice';
+import brandingReducer from './organisations/slice/brandingSlice';
+import settingsReducer from './organisations/slice/settingsSlice';
+import kpiReducer from './organisations/slice/kpiSlice';
+import orgUserReducer from './organisations/slice/userSlice';
 
 // Destructing duplicates so they don't crash
-import orgTeamReducer from './organisation/slice/teamSlice';
-import orgAuditReducer from './organisation/slice/auditSlice';
-import orgUiReducer from './organisation/slice/uiSlice';
+import orgTeamReducer from './organisations/slice/teamSlice';
+import orgAuditReducer from './organisations/slice/auditSlice';
+import orgUiReducer from './organisations/slice/uiSlice';
 
 const rootReducer = combineReducers({
     // Accounts State
@@ -56,6 +58,8 @@ const rootReducer = combineReducers({
     // Organisation State
     organisation: organisationReducer,
     subscription: subscriptionReducer,
+    plans: planReducer,
+    featureFlags: featureFlagReducer,
     departments: departmentReducer,
     teams: orgTeamReducer,
     positions: positionReducer,

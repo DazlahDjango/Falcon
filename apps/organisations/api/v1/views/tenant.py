@@ -51,8 +51,8 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Response({'error': 'Authentication required'}, status=401)
         
-        # Get organisation using tenant_id from user
-        if not user.tenant_id:
+        # Get organisation from middleware
+        if not hasattr(request, "organisation") or not request.organisation:
             if user.is_superuser:
                 # AUTO-REPAIR: Create default org if missing for superuser
                 org, _ = Organisation.objects.get_or_create(

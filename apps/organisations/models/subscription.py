@@ -4,13 +4,13 @@ Subscription model for organisation subscriptions
 
 from django.db import models
 from django.utils import timezone
-from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 from apps.organisations.constants import SubscriptionStatus, PlanCode
 from .organisation import Organisation
 from .plan import Plan
 
 
-class Subscription(BaseModel):
+class Subscription(BaseTenantModel):
     """
     Manages the subscription status and plan for an organization.
     """

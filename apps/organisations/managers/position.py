@@ -1,11 +1,11 @@
 """
 Custom manager for Position model
 """
-
 from django.db import models
+from ..utils import TenantManagerMixin
 
 
-class PositionManager(models.Manager):
+class PositionManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Position model
     """

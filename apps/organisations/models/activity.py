@@ -4,9 +4,10 @@ Activity Log model for organisation audit trails
 
 from django.db import models
 from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 
 
-class OrganisationActivity(BaseModel):
+class OrganisationActivity(BaseTenantModel):
     """
     Audit log for organisation-level actions
     """

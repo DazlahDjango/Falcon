@@ -1,6 +1,10 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import styles from './KPIChart.module.css';
+import LineChart from "./LineChart";
+import BarChart from "./BarChart";
+import PieChart from "./PieChart";
+import GaugeChart from "./GaugeChart";
 
 const KPIChart = ({ type, data, options, hieght = 300, width = '100%', title }) => {
     const renderChart = () => {

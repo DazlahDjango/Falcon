@@ -1,11 +1,11 @@
 """
 Custom manager for Department model
 """
-
 from django.db import models
+from ..utils import TenantManagerMixin
 
 
-class DepartmentManager(models.Manager):
+class DepartmentManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Department model
     """

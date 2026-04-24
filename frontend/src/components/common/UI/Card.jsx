@@ -18,17 +18,20 @@ const Card = ({
     const variants = {
         default: 'card-default',
         primary: 'card-primary',
+        secondary: 'card-secondary',
         success: 'card-success',
         warning: 'card-warning',
         danger: 'card-danger',
         info: 'card-info',
         outline: 'card-outline'
     };
+
     const cardClasses = [
         'card',
-        variants[variant],
+        variants[variant] || variants.default,
         className
     ].filter(Boolean).join(' ');
+
     return (
         <div className={cardClasses} {...props}>
             {(title || subtitle || icon || actions) && (
@@ -61,4 +64,24 @@ const Card = ({
         </div>
     );
 };
+
+const CardHeader = ({ children, className = '', ...props }) => (
+    <div className={`card-header ${className}`} {...props}>
+        {children}
+    </div>
+);
+
+const CardTitle = ({ children, className = '', ...props }) => (
+    <h3 className={`card-title ${className}`} {...props}>
+        {children}
+    </h3>
+);
+
+const CardContent = ({ children, className = '', ...props }) => (
+    <div className={`card-body ${className}`} {...props}>
+        {children}
+    </div>
+);
+
+export { Card, CardHeader, CardTitle, CardContent };
 export default Card;

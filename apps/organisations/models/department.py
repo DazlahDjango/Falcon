@@ -4,12 +4,12 @@ Department model for organisation structure
 
 from django.db import models
 from django.conf import settings
-from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 from .organisation import Organisation
 from apps.organisations.managers import DepartmentManager
 
 
-class Department(BaseModel):
+class Department(BaseTenantModel):
     """
     Represents a department within a tenant's organisation.
     """

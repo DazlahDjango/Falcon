@@ -1,0 +1,219 @@
+.departmentReports {
+    padding: 0;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.summaryStats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.statCard {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.statValue {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.chartsSection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.chartCard {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.chartCard h4 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.departmentSelector {
+    margin-bottom: 24px;
+}
+
+.departmentSelect {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.departmentDetail {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.departmentDetail h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: #1f2937;
+}
+
+.detailStats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.detailStat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 8px;
+}
+
+.detailLabel {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.detailValue {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.scoreExcellent { color: #22c55e; }
+.scoreGood { color: #3b82f6; }
+.scoreFair { color: #eab308; }
+.scorePoor { color: #ef4444; }
+
+.departmentTable {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tableHeader {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 2fr;
+    background: #f9fafb;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tableRow {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 2fr;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+}
+
+.tableRow:last-child {
+    border-bottom: none;
+}
+
+.deptName {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.scoreValue {
+    font-weight: 600;
+}
+
+.statusDistribution {
+    position: relative;
+    padding: 4px 0;
+}
+
+.greenBar, .yellowBar, .redBar {
+    display: inline-block;
+    height: 8px;
+    border-radius: 4px;
+}
+
+.greenBar { background: #22c55e; }
+.yellowBar { background: #eab308; }
+.redBar { background: #ef4444; }
+
+.statusLabels {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 11px;
+}
+
+@media (max-width: 1024px) {
+    .chartsSection {
+        grid-template-columns: 1fr;
+    }
+    
+    .summaryStats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .tableHeader, .tableRow {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .tableHeader {
+        display: none;
+    }
+    
+    .tableRow {
+        padding: 16px;
+    }
+    
+    .detailStats {
+        grid-template-columns: 1fr;
+    }
+}

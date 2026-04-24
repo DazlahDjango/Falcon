@@ -5,19 +5,19 @@ Organisation model - Core tenant model
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-from apps.tenant.models import BaseModel
+from apps.organisations.models.base import BaseTenantModel
 from apps.organisations.constants import SectorType, OrganisationStatus
 from apps.organisations.validators import validate_organisation_slug, validate_subdomain
+from apps.organisations.managers.organisation import OrganisationManager
+from apps.organisations.managers.organisation import OrganisationManager
 
 
-class Organisation(BaseModel):
+class Organisation(BaseTenantModel):
     """
     Represents a client or tenant organization in the Falcon PMS.
     Each organisation is isolated with its own users, data, and configuration.
     """
-    # Use default manager for now (remove OrganisationManager reference)
-    objects = models.Manager()
-
+    objects = OrganisationManager()
     # Basic identifiers
     name = models.CharField(max_length=255, db_index=True,
                             help_text="Full legal name of the organization")

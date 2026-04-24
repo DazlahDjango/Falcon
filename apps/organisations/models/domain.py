@@ -4,13 +4,13 @@ Domain model for custom domains
 
 from django.db import models
 import secrets
-from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 from .organisation import Organisation
 from apps.organisations.constants import DomainVerificationStatus, SSLStatus
 from apps.organisations.managers import DomainManager
 
 
-class Domain(BaseModel):
+class Domain(BaseTenantModel):
     """
     Manages custom domains for organisations.
     """

@@ -7,9 +7,9 @@ that should be used for all hierarchy operations.
 """
 
 from django.db import models
-from .base import BaseModel
+from .base import BaseTenantModel
 
-class Hierarchy(BaseModel):
+class Hierarchy(BaseTenantModel):
     """
     DEPRECATED: Represents reporting relationships between users
 

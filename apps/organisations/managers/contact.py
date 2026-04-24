@@ -1,11 +1,11 @@
 """
 Custom manager for Contact model
 """
-
 from django.db import models
+from ..utils import TenantManagerMixin
 
 
-class ContactManager(models.Manager):
+class ContactManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Contact model
     """

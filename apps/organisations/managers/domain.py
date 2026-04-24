@@ -1,12 +1,12 @@
 """
 Custom manager for Domain model
 """
-
 from django.db import models
+from ..utils import TenantManagerMixin
 from ..constants import DomainVerificationStatus, SSLStatus
 
 
-class DomainManager(models.Manager):
+class DomainManager(TenantManagerMixin, models.Manager):
     """
     Custom manager for Domain model
     """

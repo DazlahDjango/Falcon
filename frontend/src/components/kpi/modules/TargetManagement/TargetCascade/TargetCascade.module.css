@@ -1,0 +1,135 @@
+.targetCascade {
+    background: #fff;
+    border-radius: 12px;
+    margin: 20px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.header h2 {
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    color: #1f2937;
+}
+
+.targetInfo {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.kpiName {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 16px;
+}
+
+.targetValue {
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+.existingCascade h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    color: #374151;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.errorContainer {
+    text-align: center;
+    padding: 60px;
+    color: #6b7280;
+}
+
+.backButton {
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.cancelButton, .doneButton {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.cancelButton {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.doneButton {
+    background: #22c55e;
+    border: none;
+    color: white;
+}
+
+.doneButton:hover {
+    background: #16a34a;
+}
+
+@media (max-width: 768px) {
+    .targetCascade {
+        margin: 12px;
+        padding: 16px;
+    }
+    
+    .targetInfo {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .cancelButton, .doneButton {
+        width: 100%;
+    }
+}

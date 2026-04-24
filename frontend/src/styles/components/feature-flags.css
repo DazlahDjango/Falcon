@@ -1,0 +1,90 @@
+/* Feature Flags Component Styles */
+
+.feature-flag-item {
+  transition: all 0.2s ease;
+}
+
+.feature-flag-item:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.feature-flag-toggle {
+  position: relative;
+}
+
+.feature-flag-toggle input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.feature-flag-toggle label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.feature-flag-toggle label::before {
+  content: '';
+  width: 36px;
+  height: 20px;
+  background-color: #d1d5db;
+  border-radius: 10px;
+  margin-right: 12px;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.feature-flag-toggle input:checked + label::before {
+  background-color: #3b82f6;
+}
+
+.feature-flag-toggle label::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.feature-flag-toggle input:checked + label::after {
+  transform: translateX(16px);
+}
+
+/* Edit mode styling */
+.feature-flag-edit-mode {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.feature-flag-config-json {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .feature-flag-item {
+    padding: 16px;
+  }
+
+  .feature-flag-toggle label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .feature-flag-toggle label::before {
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+}

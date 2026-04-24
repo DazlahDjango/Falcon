@@ -4,12 +4,12 @@ Team model for teams within departments
 
 from django.db import models
 from django.conf import settings
-from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 from .department import Department
 from apps.organisations.managers import TeamManager
 
 
-class Team(BaseModel):
+class Team(BaseTenantModel):
     """
     Represents a specific team within a department.
     """

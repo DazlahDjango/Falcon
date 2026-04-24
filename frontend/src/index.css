@@ -1,17 +1,11 @@
 /* Variables & Base */
 @import './styles/variable.css';
 @import './styles/global.css';
-
-/* Themes */
 @import './styles/theme/light.css';
 @import './styles/theme/dark.css';
-
-/* Layout */
 @import './components/layout.css';
 @import './components/navigation.css';
 @import './components/feedback.css';
-
-/* Components */
 @import './styles/components/button.css';
 @import './styles/components/forms.css';
 @import './styles/components/tables.css';
@@ -19,8 +13,6 @@
 @import './styles/components/modals.css';
 @import './components/forms.css';
 @import './components/ui.css';
-
-/* Pages & Features */
 @import './styles/pages.css';
 @import './components/auth.css';
 @import './components/dashboard.css';
@@ -31,3 +23,4 @@
 @import './components/settings.css';
 @import './components/audit.css';
 @import './components/admin.css';
+@import './styles/organisation.css';

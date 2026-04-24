@@ -1,0 +1,334 @@
+.queueItem {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.queueItem:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.queueItem.urgent {
+    border-left: 4px solid #ef4444;
+}
+
+.itemHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.userName {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.userEmail {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.priority {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.priorityNew {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.priorityNormal {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.priorityUrgent {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.priorityCritical {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.itemContent {
+    margin-bottom: 16px;
+}
+
+.kpiInfo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.kpiName {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.kpiCode {
+    font-size: 11px;
+    color: #6b7280;
+    font-family: monospace;
+}
+
+.actualValue {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.valueLabel {
+    color: #6b7280;
+    margin-right: 8px;
+}
+
+.value {
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+.submittedInfo {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.daysPending {
+    color: #d97706;
+}
+
+.notes {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 8px;
+    padding: 8px;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.notesLabel {
+    font-weight: 500;
+    margin-right: 8px;
+    color: #374151;
+}
+
+.evidence {
+    margin-top: 8px;
+}
+
+.evidenceLabel {
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    margin-right: 8px;
+}
+
+.evidenceList {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.evidenceLink {
+    font-size: 12px;
+    color: #3b82f6;
+    text-decoration: none;
+    padding: 2px 8px;
+    background: #eff6ff;
+    border-radius: 12px;
+}
+
+.evidenceLink:hover {
+    background: #dbeafe;
+}
+
+.itemActions {
+    text-align: right;
+}
+
+.reviewButton {
+    padding: 6px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reviewButton:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+.actionPanel {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.commentInput {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 12px;
+}
+
+.commentInput:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.approveButton {
+    padding: 8px 16px;
+    background: #22c55e;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+}
+
+.approveButton:hover:not(:disabled) {
+    background: #16a34a;
+}
+
+.rejectButton {
+    padding: 8px 16px;
+    background: #ef4444;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+}
+
+.rejectButton:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+.escalateButton {
+    padding: 8px 16px;
+    background: #f59e0b;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+}
+
+.escalateButton:hover:not(:disabled) {
+    background: #d97706;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 450px;
+}
+
+.modalContent h4 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    color: #1f2937;
+}
+
+.modalContent p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.rejectSelect {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.cancelButton {
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .itemHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .actionButtons {
+        flex-direction: column;
+    }
+    
+    .approveButton, .rejectButton, .escalateButton {
+        width: 100%;
+    }
+    
+    .modalContent {
+        width: 95%;
+        padding: 16px;
+    }
+}

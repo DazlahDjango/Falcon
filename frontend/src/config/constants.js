@@ -61,6 +61,9 @@ export const ROUTES = {
     ORGANISATION_API_TOKENS: '/organisation/api-tokens',
     ORGANISATION_TWO_FACTOR: '/organisation/two-factor',
     ORGANISATION_PROFILE: '/organisation/profile',
+    ORGANISATION_HIERARCHY: '/organisation/hierarchy',
+    ORGANISATION_FEATURE_FLAGS: '/organisation/feature-flags',
+    ORGANISATION_PLANS: '/organisation/plans',
     // Error Pages
     UNAUTHORIZED: '/403',
     SERVER_ERROR: '/500',

@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiCheckCircle } from 'react-icons/fi';
-import { acceptInvitation } from '../../../store/accounts/slice/authSlice';
-import { showAlert } from '../../../store/accounts/slice/uiSlice';
-import { invitationApi } from '../../api/invitation';  // ✅ Import API
+import { acceptInvitation } from '../../../services/accounts/api/auth';
 import PasswordStrength from '../../common/Forms/PasswordStrength';
 import Spinner from '../../common/UI/Spinner';
 
 const AcceptInvitation = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
     const token = searchParams.get('token');
     const [formData, setFormData] = useState({
         firstName: '',
@@ -21,39 +17,15 @@ const AcceptInvitation = () => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isFetching, setIsFetching] = useState(true);  // Loading state for fetching
     const [submitted, setSubmitted] = useState(false);
-    const [invitationData, setInvitationData] = useState(null);
     const [errors, setErrors] = useState({});
-    // Fetch invitation details on mount
+    
+    // Check if token exists
     useEffect(() => {
         if (!token) {
             navigate('/login');
-            return;
         }
-        const fetchInvitationDetails = async () => {
-            setIsFetching(true);
-            try {
-                const response = await invitationApi.getInvitationDetails(token); 
-                setInvitationData({
-                    email: response.data.email,
-                    role: response.data.role,
-                    organization: response.data.organization,
-                    expires_at: response.data.expires_at
-                });
-            } catch (error) {
-                // Invalid or expired token
-                dispatch(showAlert({
-                    type: 'error',
-                    message: error.response?.data?.error || 'Invalid or expired invitation link'
-                }));
-                navigate('/login');
-            } finally {
-                setIsFetching(false);
-            }
-        };
-        fetchInvitationDetails();
-    }, [token, navigate, dispatch]);
+    }, [token, navigate]);
     const validateForm = () => {
         const newErrors = {};
         if (!formData.firstName.trim()) {
@@ -90,41 +62,22 @@ const AcceptInvitation = () => {
         
         setIsLoading(true);
         try {
-            await dispatch(acceptInvitation({ 
+            await acceptInvitation({ 
                 token, 
-                ...formData 
-            })).unwrap();
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                password: formData.password
+            });
             setSubmitted(true);
-            dispatch(showAlert({
-                type: 'success',
-                message: 'Account created successfully! Redirecting to login...'
-            }));
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
         } catch (err) {
-            dispatch(showAlert({
-                type: 'error',
-                message: err.message || 'Failed to accept invitation'
-            }));
+            setErrors({ general: err.response?.data?.error || 'Failed to accept invitation' });
         } finally {
             setIsLoading(false);
         }
     };
-    
-    // ✅ Show loading while fetching invitation details
-    if (isFetching) {
-        return (
-            <div className="auth-page">
-                <div className="auth-header-text">
-                    <h2>Loading Invitation...</h2>
-                </div>
-                <div className="flex justify-center py-8">
-                    <Spinner size="lg" />
-                </div>
-            </div>
-        );
-    }
     
     // Success screen after submission
     if (submitted) {
@@ -149,28 +102,6 @@ const AcceptInvitation = () => {
                 <h2>Accept Invitation</h2>
                 <p>Complete your account setup</p>
             </div>
-            
-            {/* ✅ Show REAL invitation data from API */}
-            {invitationData && (
-                <div className="invitation-details">
-                    <div className="detail-item">
-                        <FiMail className="detail-icon" />
-                        <span>{invitationData.email}</span>
-                    </div>
-                    <div className="detail-item">
-                        <FiUser className="detail-icon" />
-                        <span>Role: {invitationData.role}</span>
-                    </div>
-                    <div className="detail-item">
-                        <span className="organization">{invitationData.organization}</span>
-                    </div>
-                    {invitationData.expires_at && (
-                        <div className="detail-item text-sm text-gray-500">
-                            Expires: {new Date(invitationData.expires_at).toLocaleDateString()}
-                        </div>
-                    )}
-                </div>
-            )}
             
             <form onSubmit={handleSubmit} className="auth-form">
                 {/* Rest of your form remains the same */}

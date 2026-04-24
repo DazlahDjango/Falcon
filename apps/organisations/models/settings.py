@@ -1,10 +1,10 @@
 from django.db import models
-from apps.tenant.models import BaseModel
+from .base import BaseTenantModel
 from apps.organisations.constants import ReviewCycle
 from .organisation import Organisation
 
 
-class OrganisationSettings(BaseModel):
+class OrganisationSettings(BaseTenantModel):
     """
     Stores tenant-specific configuration and branding.
     """
