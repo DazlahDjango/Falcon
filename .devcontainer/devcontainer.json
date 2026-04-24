@@ -1,10 +1,70 @@
 {
-    "name": "Falcon PMS development environment",
+    "name": "Falcon PMS Development Environment",
     "dockerComposeFile": "docker-compose.yml",
     "service": "app",
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/falcon-pms,type=bind,consistency=cached",
     "workspaceFolder": "/workspaces/falcon-pms",
-    "postCreateCommand": "pip install -r requirements/development.txt",
+    "remoteUser": "vscode",
+    "postCreateCommand": "cp -n .env.example .env 2>/dev/null || true && pip install --upgrade pip && pip install -r requirements/development.txt && python manage.py migrate",
+    "postStartCommand": "python manage.py runserver 0.0.0.0:8000 &",
     "forwardPorts": [8000, 5432, 6379],
-    "remoteUser": "vscode"
+    "portsAttributes": {
+        "8000": {
+            "label": "Django Server",
+            "onAutoForward": "notify"
+        },
+        "5432": {
+            "label": "PostgreSQL",
+            "onAutoForward": "silent"
+        },
+        "6379": {
+            "label": "Redis",
+            "onAutoForward": "silent"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "batisteo.vscode-django",
+                "cstrap.python-snippets",
+                "mtxr.sqltools",
+                "mtxr.sqltools-driver-pg",
+                "eamodio.gitlens",
+                "donjayamanne.python-extension-pack"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true,
+                "python.linting.flake8Enabled": true,
+                "python.formatting.provider": "black",
+                "editor.formatOnSave": true,
+                "files.associations": {
+                    "**/*.html": "django-html"
+                },
+                "[python]": {
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": "explicit"
+                    }
+                },
+                "sqltools.connections": [
+                    {
+                        "name": "Falcon PostgreSQL",
+                        "driver": "PostgreSQL",
+                        "server": "localhost",
+                        "port": 5432,
+                        "database": "falcon_pms",
+                        "username": "postgres",
+                        "password": "postgres"
+                    }
+                ]
+            }
+        }
+    },
+    "containerEnv": {
+        "DJANGO_ENV": "development",
+        "PYTHONUNBUFFERED": "1"
+    }
 }

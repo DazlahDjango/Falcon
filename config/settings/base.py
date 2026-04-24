@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 import logging
 import json
 
+
 class JsonFormatter(logging.Formatter):
     def format(self, record):
         log_record = {
@@ -27,6 +28,7 @@ class JsonFormatter(logging.Formatter):
             'message': record.getMessage(),
         }
         return json.dumps(log_record)
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -45,7 +47,8 @@ env = environ.Env(
 # .env file
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-dev-key-not-for-production')
+SECRET_KEY = env('DJANGO_SECRET_KEY',
+                 default='django-insecure-dev-key-not-for-production')
 
 
 # Quick-start development settings - unsuitable for production
@@ -57,7 +60,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-dev-key-not-for-p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[
+                         'localhost', '127.0.0.1'])
 
 # ----------------------------------------------------------------------------
 # ADMIN URL (Change from default for security)
@@ -97,7 +101,7 @@ THIRD_PARTY_APPS = [
     # 'django_fsm',
     'viewflow',
     # Notifications
-    'notifications',
+    # 'notifications',
     'django_apscheduler',
     # Reporting
     'easy_pdf',
@@ -130,6 +134,8 @@ PROJECT_APPS = [
     'apps.organisations.apps.OrganisationsConfig',
     'apps.reports',
     'apps.workflowsapi',
+    'apps.tenant.apps.TenantConfig',
+    'apps.tenant.api',  # For API endpoints
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -160,7 +166,11 @@ MIDDLEWARE = [
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
-    # Organisations Tenant Middleware (ADD THESE TWO)
+    # Tenant middleware
+    'apps.tenant.middleware.tenant_resolution.TenantResolutionMiddleware',
+    'apps.tenant.middleware.tenant_isolation.TenantIsolationMiddleware',
+    'apps.tenant.middleware.tenant_limits.TenantLimitsMiddleware',
+    # Organisations Tenant Middleware (comment these out if not needed)
     # 'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
     # 'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
     # KPI
@@ -183,6 +193,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Tenant context processor (for templates)
+                'apps.tenant.context_processors.current_tenant',
             ],
         },
     },
@@ -211,7 +223,9 @@ DATABASES = {
     }
 }
 
-# DATABASE_ROUTERS = ['django_multitenant.middlewares.TenantRouter']
+DATABASE_ROUTERS = [
+    'apps.tenant.services.isolation.db_router.TenantDatabaseRouter',
+]
 
 # ============================================================
 # Frontend Configuration (for email links, redirects, etc.)
@@ -220,15 +234,18 @@ DATABASES = {
 # Base URL for the frontend application
 # Used for:
 # - Email verification links
-# - Password reset links  
+# - Password reset links
 # - OAuth redirect URIs
 # - Invitation links
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 
 # Optional: Different URLs for different environments
-FRONTEND_VERIFY_URL = os.environ.get('FRONTEND_VERIFY_URL', f"{FRONTEND_URL}/verify-email")
-FRONTEND_RESET_PASSWORD_URL = os.environ.get('FRONTEND_RESET_PASSWORD_URL', f"{FRONTEND_URL}/reset-password")
-FRONTEND_INVITE_URL = os.environ.get('FRONTEND_INVITE_URL', f"{FRONTEND_URL}/accept-invite")
+FRONTEND_VERIFY_URL = os.environ.get(
+    'FRONTEND_VERIFY_URL', f"{FRONTEND_URL}/verify-email")
+FRONTEND_RESET_PASSWORD_URL = os.environ.get(
+    'FRONTEND_RESET_PASSWORD_URL', f"{FRONTEND_URL}/reset-password")
+FRONTEND_INVITE_URL = os.environ.get(
+    'FRONTEND_INVITE_URL', f"{FRONTEND_URL}/accept-invite")
 
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -236,10 +253,13 @@ FRONTEND_INVITE_URL = os.environ.get('FRONTEND_INVITE_URL', f"{FRONTEND_URL}/acc
 # AUTHENTICATION
 # ----------------------------------------
 AUTH_USER_MODEL = 'accounts.User'
+AUTH_TENANT_MODEL = 'tenant.Client'
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',  # Must be first for axes
     'django.contrib.auth.backends.ModelBackend',
     'guardian.backends.ObjectPermissionBackend',  # Object-level permissions
+    # Tenant authentication backend
+    'apps.tenant.backends.TenantAuthenticationBackend',
 ]
 
 # Password validation
@@ -273,7 +293,7 @@ OAUTH_PROVIDERS = {
         'scope': 'openid email profile',
         'state': None,  # Optional: for CSRF protection
     },
-    
+
     # Microsoft / Azure AD OAuth2
     'microsoft': {
         'client_id': os.environ.get('MICROSOFT_CLIENT_ID', ''),
@@ -285,7 +305,7 @@ OAUTH_PROVIDERS = {
         'scope': 'openid email profile User.Read',
         'state': None,
     },
-    
+
     # GitHub OAuth2
     'github': {
         'client_id': os.environ.get('GITHUB_CLIENT_ID', ''),
@@ -297,7 +317,7 @@ OAUTH_PROVIDERS = {
         'scope': 'read:user user:email',
         'state': None,
     },
-    
+
     # LinkedIn OAuth2
     'linkedin': {
         'client_id': os.environ.get('LINKEDIN_CLIENT_ID', ''),
@@ -309,7 +329,7 @@ OAUTH_PROVIDERS = {
         'scope': 'openid profile email',
         'state': None,
     },
-    
+
     # Facebook OAuth2
     'facebook': {
         'client_id': os.environ.get('FACEBOOK_CLIENT_ID', ''),
@@ -329,17 +349,16 @@ OAUTH_PROVIDERS = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Africa/Nairobi' # Kenya's local  time
+TIME_ZONE = 'Africa/Nairobi'  # Kenya's local  time
 
 USE_I18N = True
 
 USE_TZ = True
 
 
-
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 # STATIC & MEDIA FILES
-#------------------------------------------------
+# ------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
@@ -400,7 +419,7 @@ REST_FRAMEWORK = {
         'report': '10/hour',         # Report generation
         # User management
         'user_creation': '5/hour',   # User signup
-        'profile_update': '30/hour', # Profile updates
+        'profile_update': '30/hour',  # Profile updates
         'invitation': '20/hour',     # Invitation sending
         # Tenant throttles
         'tenant': '5000/hour',       # Per tenant overall
@@ -423,23 +442,23 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
-    
+
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': env('JWT_SIGNING_KEY', default=SECRET_KEY),
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': 'FalconPMS',
-    
+
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
-    
+
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
-    
+
     'JTI_CLAIM': 'jti',
-    
+
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=30),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
@@ -468,6 +487,8 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    # Tenant header
+    'x-tenant-id',
 ]
 
 # ----------------------------------------------------------------------------
@@ -660,13 +681,15 @@ SITE_ID = 1
 # ----------------------------------------------------------------------------
 # EMAIL CONFIGURATION
 # ----------------------------------------------------------------------------
-EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='operations@falconigc.com')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL',
+                         default='operations@falconigc.com')
 
 # ----------------------------------------------------------------------------
 # API DOCUMENTATION (Swagger/OpenAPI)
@@ -716,9 +739,59 @@ CSP_DEFAULT_SRC = ("'self'",)
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'",)  # Allow inline for development
 CSP_SCRIPT_SRC = ("'self'",)
 CSP_IMG_SRC = ("'self'", "data:",)
+
 # ----------------------------------------------------------------------------
 # STRIPE BILLING CONFIGURATION
 # ----------------------------------------------------------------------------
 STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='')
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
 STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
+
+# ============================================================
+# TENANT APP CONFIGURATION
+# ============================================================
+
+# Tenant identification settings
+TENANT_HEADER_NAME = 'X-Tenant-ID'
+TENANT_IDENTIFICATION_ORDER = ['header', 'subdomain', 'domain']
+
+# Tenant isolation level
+TENANT_ISOLATION_LEVEL = 'schema'  # Options: 'shared', 'schema', 'database'
+
+# Tenant provisioning settings
+TENANT_AUTO_CREATE_SCHEMA = True
+TENANT_AUTO_RUN_MIGRATIONS = True
+TENANT_PROVISIONING_TIMEOUT = 300
+
+# Tenant caching settings
+TENANT_CACHE_TTL = 300
+TENANT_CACHE_PREFIX = 'tenant_'
+
+# Tenant quota and limits
+TENANT_QUOTA_CHECK_ENABLED = True
+TENANT_QUOTA_CHECK_INTERVAL = 60
+
+# Tenant maintenance settings
+TENANT_MAINTENANCE_ALLOWED_IPS = []
+TENANT_MAINTENANCE_RETRY_AFTER = 3600
+
+# Tenant backup settings
+TENANT_BACKUP_SCHEDULE = '0 2 * * *'
+TENANT_BACKUP_RETENTION_DAYS = 30
+
+# Tenant domain settings
+TENANT_DOMAIN_BASE = 'falcon.com'
+TENANT_ALLOW_CUSTOM_DOMAINS = True
+
+# Tenant default limits
+TENANT_DEFAULT_LIMITS = {
+    'max_users': 100,
+    'max_storage_mb': 10240,
+    'max_api_calls_per_day': 10000,
+    'max_kpis': 500,
+    'max_departments': 50,
+    'max_concurrent_sessions': 5,
+}
+
+# Tenant WebSocket events
+TENANT_WS_EVENTS_ENABLED = True

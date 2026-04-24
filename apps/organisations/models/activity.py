@@ -3,7 +3,7 @@ Activity Log model for organisation audit trails
 """
 
 from django.db import models
-from apps.core.models import BaseModel
+from apps.tenant.models import BaseModel
 
 
 class OrganisationActivity(BaseModel):
@@ -15,11 +15,13 @@ class OrganisationActivity(BaseModel):
         on_delete=models.CASCADE,
         related_name='activities'
     )
-    
+
     # Who performed the action
-    user_id = models.CharField(max_length=100, null=True, blank=True, help_text="User ID who performed the action")
-    user_email = models.EmailField(blank=True, help_text="Email of user who performed the action")
-    
+    user_id = models.CharField(
+        max_length=100, null=True, blank=True, help_text="User ID who performed the action")
+    user_email = models.EmailField(
+        blank=True, help_text="Email of user who performed the action")
+
     # What action was performed
     ACTION_CHOICES = [
         ('created', 'Created'),
@@ -38,18 +40,22 @@ class OrganisationActivity(BaseModel):
         ('kpi_updated', 'KPI Updated'),
         ('report_generated', 'Report Generated'),
     ]
-    action = models.CharField(max_length=50, choices=ACTION_CHOICES, db_index=True)
-    
+    action = models.CharField(
+        max_length=50, choices=ACTION_CHOICES, db_index=True)
+
     # What was affected
-    model_name = models.CharField(max_length=100, blank=True, help_text="Model name affected")
-    object_id = models.CharField(max_length=100, null=True, blank=True, help_text="Object ID affected")
-    object_repr = models.CharField(max_length=200, blank=True, help_text="String representation of the object")
-    
+    model_name = models.CharField(
+        max_length=100, blank=True, help_text="Model name affected")
+    object_id = models.CharField(
+        max_length=100, null=True, blank=True, help_text="Object ID affected")
+    object_repr = models.CharField(
+        max_length=200, blank=True, help_text="String representation of the object")
+
     # Details
     changes = models.JSONField(default=dict, help_text="Detailed changes made")
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
-    
+
     class Meta:
         ordering = ['-created_at']
         indexes = [

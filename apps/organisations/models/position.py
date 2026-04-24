@@ -3,7 +3,7 @@ Position model for job positions/titles
 """
 
 from django.db import models
-from apps.core.models import BaseModel
+from apps.tenant.models import BaseModel
 from .department import Department
 from apps.organisations.managers import PositionManager
 from apps.organisations.constants import HierarchyLevel
@@ -14,14 +14,15 @@ class Position(BaseModel):
     Represents a job position title/role within the organisation.
     """
     objects = PositionManager()
-    
+
     department = models.ForeignKey(
-        Department, 
-        on_delete=models.CASCADE, 
+        Department,
+        on_delete=models.CASCADE,
         related_name='positions'
     )
     title = models.CharField(max_length=255)
-    code = models.CharField(max_length=50, blank=True, null=True, help_text="Job position code")
+    code = models.CharField(max_length=50, blank=True,
+                            null=True, help_text="Job position code")
     job_description = models.TextField(blank=True, null=True)
     level = models.PositiveSmallIntegerField(
         choices=HierarchyLevel.choices,
@@ -30,11 +31,11 @@ class Position(BaseModel):
     )
     is_management = models.BooleanField(default=False)
     reports_to = models.ForeignKey(
-        'self', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='subordinates', 
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subordinates',
         help_text="The position this title reports to"
     )
 

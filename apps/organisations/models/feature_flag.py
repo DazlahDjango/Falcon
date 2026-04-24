@@ -1,6 +1,7 @@
 from django.db import models
-from apps.core.models import BaseModel
+from apps.tenant.models import BaseModel
 from .organisation import Organisation
+
 
 class FeatureFlag(BaseModel):
     """
@@ -11,7 +12,7 @@ class FeatureFlag(BaseModel):
         on_delete=models.CASCADE,
         related_name='feature_flags'
     )
-    
+
     feature_name = models.CharField(max_length=100)
     is_enabled = models.BooleanField(default=True)
     config = models.JSONField(

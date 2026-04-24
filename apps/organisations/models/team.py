@@ -4,7 +4,7 @@ Team model for teams within departments
 
 from django.db import models
 from django.conf import settings
-from apps.core.models import BaseModel
+from apps.tenant.models import BaseModel
 from .department import Department
 from apps.organisations.managers import TeamManager
 
@@ -14,19 +14,19 @@ class Team(BaseModel):
     Represents a specific team within a department.
     """
     objects = TeamManager()
-    
+
     department = models.ForeignKey(
-        Department, 
-        on_delete=models.CASCADE, 
+        Department,
+        on_delete=models.CASCADE,
         related_name='teams'
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     team_lead = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='led_teams'
     )
 
