@@ -120,7 +120,7 @@ const initialState = {
 // ============================================================
 
 const kpiSlice = createSlice({
-  name: 'kpi',
+  name: 'orgKpis',
   initialState,
   reducers: {
     clearCurrentKpi: (state) => {

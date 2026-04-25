@@ -96,7 +96,7 @@ const generateRequestId = () => {
  * @param {Object} api - Axios instance
  */
 export const addLoggingInterceptor = (api) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
         api.interceptors.request.use((config) => {
             console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data);
             return config;

@@ -12,7 +12,7 @@ import OrganisationDashboard from '../../components/organisations/organisationsD
 
 const OrganisationDashboardPage = () => {
   const dispatch = useDispatch();
-  const { organisation, loading: orgLoading } = useSelector((state) => state.organisation);
+  const { currentOrganisation: organisation, loading: orgLoading } = useSelector((state) => state.organisation);
   const { overview, loading: kpiLoading } = useSelector((state) => state.kpis);
   const { stats, loading: auditLoading } = useSelector((state) => state.audit);
 

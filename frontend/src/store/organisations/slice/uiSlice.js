@@ -29,7 +29,7 @@ const initialState = {
 // ============================================================
 
 const uiSlice = createSlice({
-  name: 'ui',
+  name: 'orgUi',
   initialState,
   reducers: {
     // Sidebar
