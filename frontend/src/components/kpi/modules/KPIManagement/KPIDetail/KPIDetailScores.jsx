@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { LineChart, TrafficLight } from '../../../common';
-import { scoreService } from '../../../../../services/kpi/score.service';
+import scoreService from '../../../../../services/kpi/score.service';
 import styles from './KPIDetail.module.css';
 
 const KPIDetailScores = ({ kpiId }) => {

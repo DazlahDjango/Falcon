@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { actualService } from '../../../../../services/kpi/actual.service';
+import actualService from '../../../../../services/kpi/actual.service';
 import styles from './AdjustmentRequests.module.css';
 
 const AdjustmentRequests = ({ userId, userRole, refreshTrigger, onRefresh, onError }) => {

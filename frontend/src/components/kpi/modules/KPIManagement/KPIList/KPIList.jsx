@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import KPIListHeader from './KPIListHeader';
 import KPIListItem from './KPIListItem';
-import { kpiService } from '../../../../../services/kpi/kpi.service';
+import kpiService from '../../../../../services/kpi/kpi.service';
 import styles from './KPIList.module.css';
 
 const KPIList = ({ onKpiSelect, onCreateNew, refreshTrigger, onError }) => {

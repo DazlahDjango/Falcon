@@ -21,11 +21,11 @@ const BarChart = ({ data, options, hieght, width }) => {
                 },
                 xAxis: {
                     type: 'category',
-                    data = data?.labels || [],
+                    data: data?.labels || [],
                 },
                 yAxis: {
                     type: 'category',
-                    data = data?.yAxisLabel || 'value',
+                    data: data?.yAxisLabel || 'value',
                 },
                 series: data?.datasets?.map(dataset => ({
                     name: dataset.labels,

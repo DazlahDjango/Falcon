@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import ActualEntryForm from './ActualEntryForm';
 import ActualEntryHistory from './ActualEntryHistory';
 import { PeriodSelector } from '../../../common';
-import { actualService } from '../../../../../services/kpi/actual.service';
-import { kpiService } from '../../../../../services/kpi/kpi.service';
+import actualService from '../../../../../services/kpi/actual.service';
+import kpiService from '../../../../../services/kpi/kpi.service';
 import styles from './ActualEntryPage.module.css';
 
 const ActualEntryPage = ({ userId, refreshTrigger, onRefresh, onError }) => {

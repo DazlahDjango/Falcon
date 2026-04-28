@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import CascadeWizard from './CascadeWizard';
 import CascadeTree from './CascadeTree';
-import { targetService } from '../../../../../services/kpi/target.service';
+import targetService from '../../../../../services/kpi/target.service';
 import styles from './TargetCascade.module.css';
 
 const TargetCascade = ({ targetId, onComplete, onCancel, onError }) => {

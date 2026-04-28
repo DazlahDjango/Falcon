@@ -159,3 +159,24 @@ export const validateEmail = (email) => {
     
     return { valid: true, message: '' };
 };
+export const validateDateRange = (startDate, endDate) => {
+    if (!startDate || !endDate) {
+        return { valid: false, message: 'Both start and end dates are required' };
+    }
+    if (startDate > endDate) {
+        return { valid: false, message: 'Start date cannot be after end date' };
+    }
+    return { valid: true, message: '' };
+};
+export const validateSearchQuery = (query) => {
+    if (!query) {
+        return { valid: true, message: '' };
+    }
+    if (query.length < 2) {
+        return { valid: false, message: 'Search query must be at least 2 characters' };
+    }
+    if (query.length > 100) {
+        return { valid: false, message: 'Search query cannot exceed 100 characters' };
+    }
+    return { valid: true, message: '' };
+};

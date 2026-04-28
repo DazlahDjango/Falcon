@@ -46,8 +46,11 @@ import targetReducer from './kpi/slice/kpi/targetSlice';
 import actualReducer from './kpi/slice/kpi/actualSlice';
 import scoreReducer from './kpi/slice/kpi/scoreSlice';
 import validationReducer from './kpi/slice/kpi/validationSlice';
+import frameworkReducer from './kpi/slice/kpi/frameworkSlice';
 import kpiDashboardReducer from './kpi/slice/kpi/dashboardSlice';
 import kpiUiReducer from './kpi/slice/ui';
+import kpiNotificationReducer from './kpi/notificationSlice';
+import kpiAnalyticsReducer from './kpi/analyticsSlice';
 
 const rootReducer = combineReducers({
     // Accounts State
@@ -88,8 +91,11 @@ const rootReducer = combineReducers({
     actual: actualReducer,
     score: scoreReducer,
     validation: validationReducer,
+    framework: frameworkReducer,
     kpiDashboard: kpiDashboardReducer,
     kpiUi: kpiUiReducer,
+    kpiNotifications: kpiNotificationReducer,
+    kpiAnalytics: kpiAnalyticsReducer,
 
 });
 export default rootReducer;

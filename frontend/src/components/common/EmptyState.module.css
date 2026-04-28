@@ -1,0 +1,45 @@
+.emptyState {
+    text-align: center;
+    padding: var(--kpi-spacing-2xl);
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    border: 1px dashed var(--kpi-gray-300);
+}
+
+.icon {
+    font-size: 4rem;
+    margin-bottom: var(--kpi-spacing-md);
+    opacity: 0.5;
+}
+
+.title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--kpi-gray-700);
+    margin-bottom: var(--kpi-spacing-sm);
+}
+
+.message {
+    font-size: 0.875rem;
+    color: var(--kpi-gray-500);
+    margin-bottom: var(--kpi-spacing-lg);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.actionButton {
+    padding: var(--kpi-spacing-sm) var(--kpi-spacing-lg);
+    background: var(--kpi-primary);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: background var(--kpi-transition-fast);
+}
+
+.actionButton:hover {
+    background: var(--kpi-primary-dark);
+}

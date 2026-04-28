@@ -1,4 +1,4 @@
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = import.meta.env.MODE === 'development';
 
 export const loggerMiddleware = (store) => (next) => (action) => {
     if (!isDevelopment) {

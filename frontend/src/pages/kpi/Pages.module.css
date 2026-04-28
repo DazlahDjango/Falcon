@@ -1,0 +1,54 @@
+.page {
+    min-height: 100vh;
+    background: #f9fafb;
+}
+
+.pageHeader {
+    background: #fff;
+    padding: 24px 32px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.pageHeader h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.pageDescription {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+    max-width: 800px;
+}
+
+.backButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.backButton:hover {
+    background: #e5e7eb;
+}
+
+@media (max-width: 768px) {
+    .pageHeader {
+        padding: 16px 20px;
+    }
+    
+    .pageHeader h1 {
+        font-size: 22px;
+    }
+}

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { actualService } from '../../../services/kpi';
-import validationService from '../../../services/kpi';
+import validationService from '../../../services/kpi/validation.service';
 import useToast from '../useToast';
 
 const useActualValidation = () => {

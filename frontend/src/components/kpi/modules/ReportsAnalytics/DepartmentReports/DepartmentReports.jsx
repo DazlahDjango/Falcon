@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import DepartmentComparison from './DepartmentComparison';
 import { BarChart } from '../../../common';
-import { analyticsService } from '../../../../../services/kpi/analytics.service';
+import analyticsService from '../../../../../services/kpi/analytics.service';
 import styles from './DepartmentReports.module.css';
 
 const DepartmentReports = ({ year, month, onError }) => {

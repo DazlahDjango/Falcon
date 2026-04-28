@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { targetService } from '../../../../../services/kpi/target.service';
+import targetService from '../../../../../services/kpi/target.service';
 import styles from './KPIDetail.module.css';
 
 const KPIDetailTargets = ({ kpiId }) => {

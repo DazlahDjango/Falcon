@@ -1,0 +1,139 @@
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--kpi-sidebar-width);
+    background: var(--kpi-gray-900);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    transition: width var(--kpi-transition-normal);
+    z-index: var(--kpi-z-fixed);
+    overflow-y: auto;
+}
+
+.sidebar.collapsed {
+    width: var(--kpi-sidebar-collapsed-width);
+}
+
+.logo {
+    padding: var(--kpi-spacing-lg);
+    text-align: center;
+    border-bottom: 1px solid var(--kpi-gray-700);
+}
+
+.logo h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.collapsed .logo h2 {
+    font-size: 0.875rem;
+}
+
+.nav {
+    flex: 1;
+    padding: var(--kpi-spacing-md) 0;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-spacing-md);
+    padding: var(--kpi-spacing-sm) var(--kpi-spacing-lg);
+    color: var(--kpi-gray-400);
+    text-decoration: none;
+    transition: all var(--kpi-transition-fast);
+}
+
+.navLink:hover {
+    background: var(--kpi-gray-800);
+    color: white;
+}
+
+.navLink.active {
+    background: var(--kpi-primary);
+    color: white;
+}
+
+.navIcon {
+    font-size: 1.25rem;
+    min-width: 24px;
+    text-align: center;
+}
+
+.navLabel {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.collapsed .navLabel {
+    display: none;
+}
+
+.footer {
+    padding: var(--kpi-spacing-lg);
+    border-top: 1px solid var(--kpi-gray-700);
+}
+
+.userInfo {
+    margin-bottom: var(--kpi-spacing-md);
+}
+
+.userName {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: var(--kpi-spacing-xs);
+    color: white;
+}
+
+.userRole {
+    font-size: 0.75rem;
+    color: var(--kpi-gray-400);
+}
+
+.logoutButton {
+    width: 100%;
+    padding: var(--kpi-spacing-sm);
+    background: var(--kpi-danger);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    color: white;
+    cursor: pointer;
+    transition: background var(--kpi-transition-fast);
+}
+
+.logoutButton:hover {
+    background: var(--kpi-danger-dark);
+}
+
+/* Mobile Styles */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: var(--kpi-z-modal-backdrop);
+}
+
+.sidebar {
+    transform: translateX(-100%);
+}
+
+.sidebar.mobileOpen {
+    transform: translateX(0);
+}
+
+@media (min-width: 769px) {
+    .sidebar {
+        transform: translateX(0);
+    }
+    
+    .overlay {
+        display: none;
+    }
+}

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import KPICreateStep1 from './KPICreateStep1';
 import KPICreateStep2 from './KPICreateStep2';
 import KPICreateStep3 from './KPICreateStep3';
-import { kpiService } from '../../../../../services/kpi/kpi.service';
+import kpiService from '../../../../../services/kpi/kpi.service';
 import styles from './KPICreate.module.css';
 
 const KPICreate = ({ onComplete, onCancel, onError }) => {

@@ -5,7 +5,7 @@ import KPIDetailInfo from './KPIDetailInfo';
 import KPIDetailScores from './KPIDetailScores';
 import KPIDetailTargets from './KPIDetailTargets';
 import KPIDetailActuals from './KPIDetailActuals';
-import { kpiService } from '../../../../../services/kpi/kpi.service';
+import kpiService from '../../../../../services/kpi/kpi.service';
 import styles from './KPIDetail.module.css';
 
 const KPIDetail = ({ kpiId, onBack, onEdit, onManageWeights, onRefresh, onError }) => {

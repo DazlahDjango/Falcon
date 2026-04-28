@@ -59,7 +59,7 @@ const PhasingWizard = ({ target, onSubmit, onCancel, isLoading }) => {
         onSubmit(phasingData);
     };
     const totalSum = monthlyValues.reduce((a, b) => a + b, 0);
-    const isValid = Math.abs(totalSum = target.target_value) < 0.01;
+    const isValid = Math.abs(totalSum - target.target_value) < 0.01;
     return (
         <div className={styles.wizard}>
             <div className={styles.stepIndicator}>

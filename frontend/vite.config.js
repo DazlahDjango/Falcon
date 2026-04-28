@@ -52,6 +52,43 @@ export default defineConfig(({ mode }) => {
             outDir: 'dist',
             sourcemap: !isProduction,
             minify: isProduction,
-        }
+            chunkSizeWarningLimit: 1000,
+            rollupOptions: {
+                output: {
+                    manualChunks: {
+                        'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+                        'redux-vendor': ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
+                        'ui-vendor': ['lucide-react', 'react-icons'],
+                        'chart-vendor': ['echarts', 'react-chartjs-2', 'chart.js'],
+                        'form-vendor': ['formik', 'yup'],
+                        'date-vendor': ['date-fns'],
+                        'query-vendor': ['@tanstack/react-query'],
+                    },
+                    chunkFileNames: 'assets/[name]-[hash].js',
+                    entryFileNames: 'assets/[name]-[hash].js',
+                    assetFileNames: 'assets/[name]-[hash].[ext]',
+                },
+            },
+        },
+        
+        optimizeDeps: {
+            include: [
+                'react',
+                'react-dom',
+                'react-router-dom',
+                '@reduxjs/toolkit',
+                'react-redux',
+                'axios',
+                'echarts',
+                'date-fns',
+            ],
+        },
+        
+        css: {
+            devSourcemap: !isProduction,
+            modules: {
+                localsConvention: 'camelCase',
+            },
+        },
     };
 });

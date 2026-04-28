@@ -1,14 +1,12 @@
-/**
- * PostCSS Configuration
- */
-
 export default {
-    plugins: {
-        autoprefixer: {},
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+    // Only minify in production
         ...(process.env.NODE_ENV === 'production' ? {
             cssnano: {
                 preset: 'default'
             }
         } : {})
-    }
+  }
 };

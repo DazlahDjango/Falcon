@@ -1,0 +1,118 @@
+.container {
+    position: fixed;
+    bottom: var(--kpi-spacing-lg);
+    right: var(--kpi-spacing-lg);
+    z-index: var(--kpi-z-tooltip);
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-spacing-sm);
+    max-width: 380px;
+    width: 100%;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-spacing-sm);
+    padding: var(--kpi-spacing-md) var(--kpi-spacing-lg);
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    box-shadow: var(--kpi-shadow-lg);
+    animation: slideIn 0.3s ease-out;
+    border-left: 4px solid;
+}
+
+.toastIcon {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.toastMessage {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--kpi-gray-700);
+}
+
+.toastClose {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--kpi-gray-400);
+    padding: 0;
+    line-height: 1;
+}
+
+.toastClose:hover {
+    color: var(--kpi-gray-600);
+}
+
+/* Toast Types */
+.success {
+    border-left-color: var(--kpi-success);
+}
+
+.success .toastIcon {
+    color: var(--kpi-success);
+}
+
+.error {
+    border-left-color: var(--kpi-danger);
+}
+
+.error .toastIcon {
+    color: var(--kpi-danger);
+}
+
+.warning {
+    border-left-color: var(--kpi-warning);
+}
+
+.warning .toastIcon {
+    color: var(--kpi-warning);
+}
+
+.info {
+    border-left-color: var(--kpi-primary);
+}
+
+.info .toastIcon {
+    color: var(--kpi-primary);
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        left: var(--kpi-spacing-md);
+        right: var(--kpi-spacing-md);
+        bottom: var(--kpi-spacing-md);
+        max-width: none;
+    }
+    
+    .toast {
+        padding: var(--kpi-spacing-sm) var(--kpi-spacing-md);
+    }
+}

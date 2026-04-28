@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { formatKPIType, formatTrafficLight } from '../../../utils/kpi';
+import { formatKPIType, formatTrafficLight } from '../../../../utils/kpi';
 import styles from './DataTable.module.css';
 
 const KPITable = ({ data, onRowClick, loading, emptyMessage }) => {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ValidationQueueItem from './ValidationQueueItem';
-import { actualService } from '../../../../../services/kpi/actual.service';
-import { validationService } from '../../../../../services/kpi/validation.service';
+import actualService from '../../../../../services/kpi/actual.service';
+import validationService from '../../../../../services/kpi/validation.service';
 import styles from './ValidationQueue.module.css';
 
 const ValidationQueue = ({ userId, refreshTrigger, onRefresh, onError }) => {

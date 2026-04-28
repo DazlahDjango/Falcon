@@ -141,7 +141,7 @@ export const {
     fetchChampionStart,
     fetchChampionSuccess,
     fetchChampionFailure,
-    setDashboardPeriod,
+    fetchDashboardPeriod,
     refreshDashboard,
     refreshAllDashboards,
     clearIndividualDashboard,

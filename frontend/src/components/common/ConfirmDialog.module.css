@@ -1,0 +1,161 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--kpi-z-modal-backdrop);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.dialog {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    width: 90%;
+    max-width: 450px;
+    box-shadow: var(--kpi-shadow-xl);
+    animation: slideUp 0.2s ease-out;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-spacing-sm);
+    padding: var(--kpi-spacing-lg);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.icon {
+    font-size: 1.5rem;
+}
+
+.title {
+    flex: 1;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--kpi-gray-800);
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--kpi-gray-400);
+    padding: 0;
+    line-height: 1;
+}
+
+.closeButton:hover {
+    color: var(--kpi-gray-600);
+}
+
+.content {
+    padding: var(--kpi-spacing-lg);
+}
+
+.content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--kpi-gray-600);
+    line-height: 1.5;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--kpi-spacing-sm);
+    padding: var(--kpi-spacing-lg);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+.cancelButton {
+    padding: var(--kpi-spacing-sm) var(--kpi-spacing-lg);
+    background: var(--kpi-gray-100);
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--kpi-gray-700);
+    cursor: pointer;
+    transition: all var(--kpi-transition-fast);
+}
+
+.cancelButton:hover:not(:disabled) {
+    background: var(--kpi-gray-200);
+}
+
+.confirmButton {
+    padding: var(--kpi-spacing-sm) var(--kpi-spacing-lg);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--kpi-transition-fast);
+}
+
+.confirmInfo {
+    background: var(--kpi-primary);
+    color: white;
+}
+
+.confirmInfo:hover:not(:disabled) {
+    background: var(--kpi-primary-dark);
+}
+
+.confirmWarning {
+    background: var(--kpi-warning);
+    color: white;
+}
+
+.confirmWarning:hover:not(:disabled) {
+    background: var(--kpi-warning-dark);
+}
+
+.confirmDanger {
+    background: var(--kpi-danger);
+    color: white;
+}
+
+.confirmDanger:hover:not(:disabled) {
+    background: var(--kpi-danger-dark);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .footer {
+        flex-direction: column;
+    }
+    
+    .cancelButton,
+    .confirmButton {
+        width: 100%;
+        text-align: center;
+    }
+}
