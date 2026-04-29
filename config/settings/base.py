@@ -224,7 +224,7 @@ DATABASES = {
 }
 
 DATABASE_ROUTERS = [
-    'apps.tenant.services.isolation.db_router.TenantDatabaseRouter',
+    # 'apps.tenant.services.isolation.db_router.TenantDatabaseRouter',
 ]
 
 # ============================================================

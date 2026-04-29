@@ -1,0 +1,61 @@
+<!-- apps/tenant/templates/tenant/email/backup_complete.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Backup Complete - {{ tenant_name }}{% endblock %}
+{% block header %}Backup Completed Successfully ✓{% endblock %}
+
+{% block content %}
+<h2>Hello {{ tenant_name }} Team,</h2>
+
+<p>Your tenant backup has been <span class="status-success">completed successfully</span>.</p>
+
+<div class="info-box">
+    <p><strong>Backup Details:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Backup ID:</td>
+            <td><strong>{{ backup_id }}</strong></td>
+        </tr>
+        <tr>
+            <td>Backup Type:</td>
+            <td><strong>{{ backup_type|title }}</strong></td>
+        </tr>
+        <tr>
+            <td>File Size:</td>
+            <td><strong>{{ file_size_mb }} MB</strong></td>
+        </tr>
+        <tr>
+            <td>Completed At:</td>
+            <td><strong>{{ completed_at }}</strong></td>
+        </tr>
+        <tr>
+            <td>Retention Days:</td>
+            <td><strong>{{ retention_days }} days</strong></td>
+        </tr>
+        <tr>
+            <td>Expires At:</td>
+            <td><strong>{{ expires_at }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<p>Your data is safely backed up. You can restore from this backup at any time from your admin panel.</p>
+
+<p>
+    <a href="{{ backups_url|default:'#' }}" class="button">View All Backups</a>
+</p>
+
+<hr>
+
+<h3>What would you like to do next?</h3>
+<ul>
+    <li><a href="{{ dashboard_url|default:'#' }}">Return to Dashboard</a></li>
+    <li><a href="{{ restore_url|default:'#' }}">Restore from this backup</a></li>
+    <li><a href="{{ settings_url|default:'#' }}">Configure Backup Settings</a></li>
+</ul>
+
+<p>This backup will be automatically deleted after {{ retention_days }} days.</p>
+
+<p>Best regards,<br>
+<strong>Falcon PMS Security Team</strong></p>
+{% endblock %}

@@ -2,7 +2,7 @@ import logging
 from typing import Optional, List, Dict, Any, Tuple
 from django.core.cache import cache
 from apps.accounts.models import User
-from apps.core.models import Client
+from apps.tenant.models import Client
 logger = logging.getLogger(__name__)
 
 class TenantAccessService:

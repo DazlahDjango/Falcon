@@ -1,0 +1,56 @@
+<!-- apps/tenant/templates/tenant/email/provisioning_failed.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Provisioning Failed - {{ tenant_name }}{% endblock %}
+{% block header %}Setup Interrupted ⚠{% endblock %}
+
+{% block content %}
+<h2>Hello {{ admin_name }},</h2>
+
+<p>We encountered an issue while setting up your Falcon PMS tenant <strong>{{ tenant_name }}</strong>.</p>
+
+<div class="error-box">
+    <p><strong>Error Details:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Failed Step:</td>
+            <td><strong>{{ failed_step|default:'Unknown' }}</strong></td>
+        </tr>
+        <tr>
+            <td>Error Message:</td>
+            <td><strong style="color: #ef4444;">{{ error_message }}</strong></td>
+        </tr>
+        <tr>
+            <td>Failed At:</td>
+            <td><strong>{{ failed_at }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<p>Don't worry - our team has been automatically notified and is investigating the issue.</p>
+
+<h3>What happens next:</h3>
+<ul>
+    <li>Our engineering team will review the error</li>
+    <li>We'll fix the issue and retry provisioning</li>
+    <li>You'll receive another email once setup is complete</li>
+</ul>
+
+<p>In the meantime, you can:</p>
+<ul>
+    <li><a href="{{ support_url|default:'#' }}">Contact support directly</a> for updates</li>
+    <li>Check our <a href="{{ status_url|default:'#' }}">system status page</a></li>
+    <li>Review the <a href="{{ docs_url|default:'#' }}">setup documentation</a></li>
+</ul>
+
+<p>
+    <a href="{{ support_url|default:'#' }}" class="button">Contact Support</a>
+</p>
+
+<p>We apologize for the inconvenience and appreciate your patience. We'll update you as soon as your tenant is ready.</p>
+
+<p>Reference ID: <strong>{{ tenant_id }}</strong></p>
+
+<p>Best regards,<br>
+<strong>Falcon PMS Engineering Team</strong></p>
+{% endblock %}

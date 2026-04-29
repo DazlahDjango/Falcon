@@ -5,7 +5,7 @@ from datetime import timedelta
 from typing import Dict
 from django.utils import timezone
 from ..models import CalculationLog
-from apps.core.models import Client
+from apps.tenant.models import Client
 from .calculations import calculate_period_scores_task
 from .notifications import send_missing_data_reminders_task, send_red_alert_check_task
 logger = logging.getLogger(__name__)

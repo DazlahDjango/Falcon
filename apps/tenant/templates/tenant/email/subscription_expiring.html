@@ -1,0 +1,66 @@
+<!-- apps/tenant/templates/tenant/email/subscription_expiring.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Subscription Expiring Soon - {{ tenant_name }}{% endblock %}
+{% block header %}Subscription Renewal Reminder 📅{% endblock %}
+
+{% block content %}
+<h2>Hello {{ tenant_name }} Team,</h2>
+
+<p>Your Falcon PMS subscription is expiring in <strong style="color: #f59e0b;">{{ days_remaining }} days</strong>.</p>
+
+<div class="warning-box">
+    <p><strong>Subscription Details:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Current Plan:</td>
+            <td><strong>{{ subscription_plan|title }}</strong></td>
+        </tr>
+        <tr>
+            <td>Expires On:</td>
+            <td><strong>{{ expires_at }}</strong></td>
+        </tr>
+        <tr>
+            <td>Days Remaining:</td>
+            <td><strong style="color: #f59e0b;">{{ days_remaining }} days</strong></td>
+        </tr>
+    </table>
+</div>
+
+<h3>What happens when your subscription expires:</h3>
+<ul>
+    <li>Your tenant will be placed in <strong>read-only mode</strong></li>
+    <li>Team members won't be able to create or edit data</li>
+    <li>You'll have 30 days to renew before data is archived</li>
+    <li>API access will be suspended</li>
+</ul>
+
+<div class="info-box">
+    <p><strong>To avoid interruption, renew your subscription now:</strong></p>
+    <p style="text-align: center;">
+        <a href="{{ renewal_url|default:'#' }}" class="button">Renew Subscription</a>
+    </p>
+</div>
+
+<h3>Upgrade Benefits:</h3>
+<ul>
+    <li>📈 Higher resource limits</li>
+    <li>👥 More team members allowed</li>
+    <li>🔧 Priority support</li>
+    <li>📊 Advanced analytics</li>
+    <li>🔐 SSO integration</li>
+</ul>
+
+<p>
+    <a href="{{ upgrade_url|default:'#' }}">Compare plans & upgrade</a>
+</p>
+
+<p>Need assistance with renewal or have questions about pricing? Our sales team is here to help.</p>
+
+<p>
+    <a href="{{ sales_url|default:'#' }}">Contact Sales</a>
+</p>
+
+<p>Best regards,<br>
+<strong>Falcon PMS Billing Team</strong></p>
+{% endblock %}

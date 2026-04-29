@@ -1,0 +1,56 @@
+<!-- apps/tenant/templates/tenant/email/backup_failed.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Backup Failed - {{ tenant_name }}{% endblock %}
+{% block header %}Backup Failed ⚠{% endblock %}
+
+{% block content %}
+<h2>Hello {{ tenant_name }} Team,</h2>
+
+<p>We encountered an issue while trying to backup your tenant data.</p>
+
+<div class="error-box">
+    <p><strong>Error Details:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Backup ID:</td>
+            <td><strong>{{ backup_id }}</strong></td>
+        </tr>
+        <tr>
+            <td>Backup Type:</td>
+            <td><strong>{{ backup_type|title }}</strong></td>
+        </tr>
+        <tr>
+            <td>Failed At:</td>
+            <td><strong>{{ failed_at }}</strong></td>
+        </tr>
+        <tr>
+            <td>Error Message:</td>
+            <td><strong style="color: #ef4444;">{{ error_message }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<p>Don't worry - we'll automatically retry the backup. If the issue persists, our team will investigate.</p>
+
+<h3>What you can do:</h3>
+<ul>
+    <li>Check your storage quota isn't exceeded</li>
+    <li>Verify your database connection is stable</li>
+    <li><a href="{{ retry_url|default:'#' }}">Manually retry the backup</a></li>
+    <li>Contact support if the issue continues</li>
+</ul>
+
+<div class="warning-box">
+    <p><strong>⚠ Important:</strong> Your most recent successful backup was on <strong>{{ last_successful_backup }}</strong>. Please ensure you have a recent backup.</p>
+</div>
+
+<p>
+    <a href="{{ support_url|default:'#' }}" class="button">Contact Support</a>
+</p>
+
+<p>We apologize for the inconvenience. Our team has been notified and is working to resolve this.</p>
+
+<p>Best regards,<br>
+<strong>Falcon PMS Security Team</strong></p>
+{% endblock %}

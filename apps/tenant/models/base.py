@@ -16,12 +16,6 @@ class BaseModel(models.Model):
                           editable=False, help_text="Unique identifier (UUID)")
 
     # ========================================================================
-    # TENANT ISOLATION (Multi-tenancy core)
-    # ========================================================================
-    tenant_id = models.UUIDField('accounts.User', db_index=True, editable=False,
-                                 help_text="Tenant this record belongs to - for data isolation")
-
-    # ========================================================================
     # TIMESTAMPS (When it happened)
     # ========================================================================
     created_at = models.DateTimeField(
@@ -54,11 +48,11 @@ class BaseModel(models.Model):
         # Database indexes for faster queries
         indexes = [
             # Filter by tenant
-            models.Index(fields=['tenant_id']),
-            models.Index(fields=['tenant_id', 'created_at']
+            models.Index(fields=['id']),
+            models.Index(fields=['id', 'created_at']
                          ),        # Tenant + time range
             # Active records in tenant
-            models.Index(fields=['tenant_id', 'is_deleted']),
+            models.Index(fields=['id', 'is_deleted']),
             # Recent records first
             models.Index(fields=['-created_at']),
             # Find deleted records

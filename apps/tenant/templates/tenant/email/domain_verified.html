@@ -1,0 +1,65 @@
+<!-- apps/tenant/templates/tenant/email/domain_verified.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Domain Verified - {{ domain }}{% endblock %}
+{% block header %}Domain Verified Successfully ✓{% endblock %}
+
+{% block content %}
+<h2>Hello {{ tenant_name }} Team,</h2>
+
+<p>Great news! Your custom domain <strong>{{ domain }}</strong> has been <span class="status-success">successfully verified</span> and is now active.</p>
+
+<div class="info-box">
+    <p><strong>Domain Details:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Domain Name:</td>
+            <td><strong>{{ domain }}</strong></td>
+        </tr>
+        <tr>
+            <td>Status:</td>
+            <td><span class="status-success">Active</span></td>
+        </tr>
+        <tr>
+            <td>Primary Domain:</td>
+            <td><strong>{% if is_primary %}Yes ✓{% else %}No{% endif %}</strong></td>
+        </tr>
+        <tr>
+            <td>SSL Status:</td>
+            <td><span class="status-success">Active</span></td>
+        </tr>
+        <tr>
+            <td>Verified At:</td>
+            <td><strong>{{ verified_at }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<p>Your domain is now configured and ready to use. You can access your Falcon PMS instance at:</p>
+<p style="text-align: center; font-size: 18px;">
+    <strong><a href="https://{{ domain }}">https://{{ domain }}</a></strong>
+</p>
+
+<p>All your users can now use this custom domain to access the platform. The old subdomain will continue to work as a redirect.</p>
+
+<h3>Next Steps:</h3>
+<ul>
+    <li>Test your domain to ensure it's working correctly</li>
+    <li>Update your bookmarks to use the new domain</li>
+    <li>Notify your team members about the new domain</li>
+    <li>Update any SSO or integration configurations</li>
+</ul>
+
+<p>
+    <a href="https://{{ domain }}" class="button">Go to Your Domain</a>
+</p>
+
+<p>Need to add more domains? You can manage all your domains from the settings panel.</p>
+
+<p>
+    <a href="{{ domains_url|default:'#' }}">Manage Domains</a>
+</p>
+
+<p>Best regards,<br>
+<strong>Falcon PMS Domain Team</strong></p>
+{% endblock %}

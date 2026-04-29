@@ -57,7 +57,7 @@ class TenantAwareModel(models.Model):
         abstract = True
     
     def get_tenant(self):
-        from apps.core.models import Client
+        from apps.tenant.models import Client
         try:
             return Client.objects.get(id=self.tenant_id)
         except Client.DoesNotExist:

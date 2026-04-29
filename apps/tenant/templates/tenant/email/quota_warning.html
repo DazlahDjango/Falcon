@@ -1,0 +1,62 @@
+<!-- apps/tenant/templates/tenant/email/quota_warning.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Quota Warning - {{ tenant_name }}{% endblock %}
+{% block header %}Resource Limit Warning ⚠{% endblock %}
+
+{% block content %}
+<h2>Hello {{ tenant_name }} Team,</h2>
+
+<p>Your tenant is approaching or has exceeded its resource limits for <strong>{{ resource_type|title }}</strong>.</p>
+
+<div class="warning-box">
+    <p><strong>Current Usage:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Resource Type:</td>
+            <td><strong>{{ resource_type_display }}</strong></td>
+        </tr>
+        <tr>
+            <td>Current Usage:</td>
+            <td><strong>{{ current_value }} / {{ limit_value }}</strong></td>
+        </tr>
+        <tr>
+            <td>Usage Percentage:</td>
+            <td><strong style="color: #f59e0b;">{{ percentage }}%</strong></td>
+        </tr>
+        <tr>
+            <td>Remaining:</td>
+            <td><strong>{{ remaining }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<div class="info-box">
+    <p><strong>Your Plan: {{ subscription_plan|title }}</strong></p>
+    <p>Each plan comes with specific resource limits. Here's what your current plan includes:</p>
+    <ul>
+        <li>Maximum Users: {{ max_users|default:'Unlimited' }}</li>
+        <li>Storage Space: {{ max_storage_mb|default:'Unlimited' }} MB</li>
+        <li>API Calls/Day: {{ max_api_calls|default:'Unlimited' }}</li>
+        <li>KPIs: {{ max_kpis|default:'Unlimited' }}</li>
+    </ul>
+</div>
+
+<h3>What you can do:</h3>
+<ul>
+    <li>Review and clean up unused resources</li>
+    <li><a href="{{ upgrade_url|default:'#' }}">Upgrade your subscription plan</a> for higher limits</li>
+    <li>Contact us to discuss custom solutions</li>
+    <li><a href="{{ usage_url|default:'#' }}">View detailed usage analytics</a></li>
+</ul>
+
+<p>
+    <a href="{{ upgrade_url|default:'#' }}" class="button">Upgrade Plan</a>
+    <a href="{{ settings_url|default:'#' }}" style="margin-left: 10px;">Manage Settings</a>
+</p>
+
+<p>If you have questions about resource limits or need assistance optimizing your usage, our support team is here to help.</p>
+
+<p>Best regards,<br>
+<strong>Falcon PMS Support Team</strong></p>
+{% endblock %}

@@ -1,0 +1,59 @@
+<!-- apps/tenant/templates/tenant/email/welcome.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Welcome to Falcon PMS{% endblock %}
+{% block header %}Welcome to Falcon PMS!{% endblock %}
+
+{% block content %}
+<h2>Hello {{ tenant_name }},</h2>
+
+<p>Welcome to <strong>Falcon PMS</strong>! Your tenant account has been successfully created and is now being provisioned.</p>
+
+<div class="info-box">
+    <p><strong>✓ Your Account Details:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Tenant Name:</td>
+            <td><strong>{{ tenant_name }}</strong></td>
+        </tr>
+        <tr>
+            <td>Tenant Slug:</td>
+            <td><strong>{{ tenant_slug }}</strong></td>
+        </tr>
+        <tr>
+            <td>Subscription Plan:</td>
+            <td><strong>{{ subscription_plan|title }}</strong></td>
+        </tr>
+        <tr>
+            <td>Created Date:</td>
+            <td><strong>{{ created_at }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<p>Here's what happens next:</p>
+<ol>
+    <li>We're setting up your database schema (1-2 minutes)</li>
+    <li>Running initial migrations</li>
+    <li>Seeding default data (roles, settings, etc.)</li>
+    <li>Sending a confirmation when complete</li>
+</ol>
+
+<p>Once provisioning is complete, you'll receive another email with login instructions and your dashboard access.</p>
+
+<p>In the meantime, you can:</p>
+<ul>
+    <li>Review the <a href="{{ docs_url|default:'#' }}">documentation</a> to familiarize yourself with Falcon PMS</li>
+    <li>Prepare your organization's KPIs and goals</li>
+    <li>Identify team members who will need access</li>
+</ul>
+
+<p style="margin-top: 30px;">
+    <a href="{{ dashboard_url|default:'#' }}" class="button">Go to Dashboard</a>
+</p>
+
+<p>If you have any questions or need assistance, please don't hesitate to reach out to our support team.</p>
+
+<p>Best regards,<br>
+<strong>The Falcon PMS Team</strong></p>
+{% endblock %}

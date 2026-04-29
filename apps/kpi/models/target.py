@@ -56,7 +56,7 @@ class MonthlyPhasing(BaseKPIModel):
             self.save()
 
 class PhasingLock(BaseKPIModel):
-    tenant = models.ForeignKey('core.Client', on_delete=models.CASCADE, related_name='phasing_locks')
+    tenant = models.ForeignKey('tenant.Client', on_delete=models.CASCADE, related_name='phasing_locks')
     performance_cycle = models.CharField(max_length=50, help_text="e.g., FY2025")
     locked_at = models.DateTimeField(auto_now_add=True)
     locked_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True)

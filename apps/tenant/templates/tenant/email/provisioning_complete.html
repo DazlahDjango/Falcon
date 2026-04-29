@@ -1,0 +1,61 @@
+<!-- apps/tenant/templates/tenant/email/provisioning_complete.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Your Tenant is Ready - {{ tenant_name }}{% endblock %}
+{% block header %}Setup Complete! 🎉{% endblock %}
+
+{% block content %}
+<h2>Congratulations {{ admin_name }}!</h2>
+
+<p>Your Falcon PMS tenant <strong>{{ tenant_name }}</strong> has been successfully provisioned and is ready to use.</p>
+
+<div class="info-box">
+    <p><strong>✓ Setup Completed:</strong></p>
+    <ul>
+        <li>✓ Database schema created</li>
+        <li>✓ Initial migrations applied</li>
+        <li>✓ Default roles and permissions seeded</li>
+        <li>✓ System settings configured</li>
+        <li>✓ Resource limits applied</li>
+    </ul>
+</div>
+
+<h3>Getting Started:</h3>
+<ol>
+    <li><strong>Log in to your dashboard</strong> - Use the button below</li>
+    <li><strong>Invite team members</strong> - Add users and assign roles</li>
+    <li><strong>Create your first KPI</strong> - Set up performance indicators</li>
+    <li><strong>Configure departments</strong> - Set up your organizational structure</li>
+</ol>
+
+<p style="text-align: center;">
+    <a href="{{ dashboard_url|default:'#' }}" class="button">Go to Dashboard</a>
+</p>
+
+<h3>Quick Links:</h3>
+<ul>
+    <li><a href="{{ docs_url|default:'#' }}">📖 Documentation & Guides</a></li>
+    <li><a href="{{ invite_url|default:'#' }}">👥 Invite Team Members</a></li>
+    <li><a href="{{ kpi_url|default:'#' }}">📊 Create KPIs</a></li>
+    <li><a href="{{ support_url|default:'#' }}">🆘 Support Center</a></li>
+</ul>
+
+<div class="info-box">
+    <p><strong>Your Subscription Details:</strong></p>
+    <table class="details-table">
+        <tr>
+            <td>Plan:</td>
+            <td><strong>{{ subscription_plan|title }}</strong></td>
+        </tr>
+        <tr>
+            <td>Valid Until:</td>
+            <td><strong>{{ expires_at|default:'No expiry' }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<p>We're excited to have you on board! If you need any assistance, our support team is available 24/7.</p>
+
+<p>Best regards,<br>
+<strong>The Falcon PMS Team</strong></p>
+{% endblock %}

@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from apps.accounts.models import User, Role, Permission, AuditLog
-from apps.core.models import Client
+from apps.tenant.models import Client
 from apps.accounts.api.v1.serializers import (
     UserSerializer, UserCreationSerializer, UserUpdateSerializer, RoleSerializer, RoleCreateSerializer, RoleUpdateSerializer, RoleListSerializer,
     PermissionSerializer, PermissionListSerializer, TenantSerializer, TenantCreateSerializer, TenantUpdateSerializer

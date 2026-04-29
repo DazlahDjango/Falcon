@@ -13,7 +13,7 @@ class Client(BaseModel):
     """
 
     # Core fields
-    tenant_id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True, editable=False)
+
     name = models.CharField(_('company name'), max_length=255, db_index=True)
     slug = models.CharField(
         _('slug'), max_length=100, unique=True, db_index=True,

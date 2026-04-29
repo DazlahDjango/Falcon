@@ -1,0 +1,134 @@
+<!-- apps/tenant/templates/tenant/email/base_email.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Falcon PMS{% endblock %}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: {{ primary_color|default:'#1a56db' }};
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            color: rgba(255,255,255,0.9);
+            margin: 10px 0 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: {{ primary_color|default:'#1a56db' }};
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: {{ secondary_color|default:'#0e3a8f' }};
+        }
+        .status-success {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .status-failed {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .status-warning {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+        .info-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .error-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .details-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .details-table td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="background-color: {{ primary_color|default:'#1a56db' }}">
+            <h1>{% block header %}Falcon PMS{% endblock %}</h1>
+            <p>Performance Management System</p>
+        </div>
+        
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <div class="footer">
+            <p>&copy; {% now "Y" %} Falcon PMS. All rights reserved.</p>
+            <p>This is an automated message, please do not reply to this email.</p>
+            <p>Need help? Contact us at <a href="mailto:{{ support_email|default:'support@falconpms.com' }}">{{ support_email|default:'support@falconpms.com' }}</a></p>
+        </div>
+    </div>
+</body>
+</html>

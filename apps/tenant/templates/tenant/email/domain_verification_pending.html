@@ -1,0 +1,60 @@
+<!-- apps/tenant/templates/tenant/email/domain_verification_pending.html -->
+{% extends "tenant/email/base_email.html" %}
+
+{% block title %}Domain Verification Required - {{ domain }}{% endblock %}
+{% block header %}Verify Your Domain 🔑{% endblock %}
+
+{% block content %}
+<h2>Hello {{ tenant_name }} Team,</h2>
+
+<p>You've added a custom domain <strong>{{ domain }}</strong> to your Falcon PMS account. To activate it, you need to verify domain ownership.</p>
+
+<div class="info-box">
+    <p><strong>Domain Verification Instructions:</strong></p>
+    <ol>
+        <li>Log in to your domain registrar's DNS management console</li>
+        <li>Add the following TXT record to your domain's DNS settings:</li>
+    </ol>
+    
+    <table style="width: 100%; background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0;">
+        <tr>
+            <td><strong>Type:</strong></td>
+            <td><code>TXT</code></td>
+        </tr>
+        <tr>
+            <td><strong>Name/Host:</strong></td>
+            <td><code>@</code> or <code>{{ domain }}</code></td>
+        </tr>
+        <tr>
+            <td><strong>Value:</strong></td>
+            <td><code style="word-break: break-all;">{{ verification_token }}</code></td>
+        </tr>
+    </table>
+</div>
+
+<p>Once you've added the DNS record, click the button below to verify your domain. DNS propagation may take 5-30 minutes.</p>
+
+<p style="text-align: center;">
+    <a href="{{ verify_url|default:'#' }}" class="button">Verify Domain Now</a>
+</p>
+
+<div class="warning-box">
+    <p><strong>⚠ Important:</strong> Your domain will not work until verification is complete. This verification expires in 7 days.</p>
+</div>
+
+<h3>Having trouble?</h3>
+<ul>
+    <li>Make sure you're adding the record to the correct domain</li>
+    <li>Wait 5-30 minutes for DNS propagation before verifying</li>
+    <li><a href="https://{{ domain }}" target="_blank">Check DNS propagation status</a></li>
+    <li><a href="{{ support_url|default:'#' }}">Contact support for assistance</a></li>
+</ul>
+
+<p>You can also use this alternative verification token:</p>
+<pre style="background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto;">
+{{ verification_token_full }}
+</pre>
+
+<p>Best regards,<br>
+<strong>Falcon PMS Domain Team</strong></p>
+{% endblock %}
