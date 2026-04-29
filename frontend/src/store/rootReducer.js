@@ -30,13 +30,27 @@ import positionReducer from './organisations/slice/positionSlice';
 import domainReducer from './organisations/slice/domainSlice';
 import brandingReducer from './organisations/slice/brandingSlice';
 import settingsReducer from './organisations/slice/settingsSlice';
-import kpiReducer from './organisations/slice/kpiSlice';
+import organisationsKpiReducer from './organisations/slice/kpiSlice';
 import orgUserReducer from './organisations/slice/userSlice';
 
 // Destructing duplicates so they don't crash
 import orgTeamReducer from './organisations/slice/teamSlice';
 import orgAuditReducer from './organisations/slice/auditSlice';
 import orgUiReducer from './organisations/slice/uiSlice';
+
+// ==========================================
+// KPI Reducers
+// ==========================================
+import kpiReducer from './kpi/slice/kpi'
+import targetReducer from './kpi/slice/kpi/targetSlice';
+import actualReducer from './kpi/slice/kpi/actualSlice';
+import scoreReducer from './kpi/slice/kpi/scoreSlice';
+import validationReducer from './kpi/slice/kpi/validationSlice';
+import frameworkReducer from './kpi/slice/kpi/frameworkSlice';
+import kpiDashboardReducer from './kpi/slice/kpi/dashboardSlice';
+import kpiUiReducer from './kpi/slice/ui';
+import kpiNotificationReducer from './kpi/notificationSlice';
+import kpiAnalyticsReducer from './kpi/analyticsSlice';
 
 const rootReducer = combineReducers({
     // Accounts State
@@ -66,10 +80,22 @@ const rootReducer = combineReducers({
     domains: domainReducer,
     branding: brandingReducer,
     settings: settingsReducer,
-    kpis: kpiReducer,
+    orgKpis: organisationsKpiReducer,
     orgUsers: orgUserReducer,
     audit: orgAuditReducer, 
-    orgUi: orgUiReducer
-});
+    orgUi: orgUiReducer,
 
+    // kpi
+    kpi: kpiReducer,
+    target: targetReducer,
+    actual: actualReducer,
+    score: scoreReducer,
+    validation: validationReducer,
+    framework: frameworkReducer,
+    kpiDashboard: kpiDashboardReducer,
+    kpiUi: kpiUiReducer,
+    kpiNotifications: kpiNotificationReducer,
+    kpiAnalytics: kpiAnalyticsReducer,
+
+});
 export default rootReducer;

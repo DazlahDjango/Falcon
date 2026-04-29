@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import KPIWeightForm from './KPIWeightForm';
-import { kpiService } from '../../../../../services/kpi/kpi.service';
+import kpiService from '../../../../../services/kpi/kpi.service';
 import styles from './KPIWeight.module.css';
 
 const KPIWeight = ({ kpiId, onComplete, onCancel, onError }) => {

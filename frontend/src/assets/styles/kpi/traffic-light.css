@@ -1,0 +1,168 @@
+/* Traffic Light Styles */
+
+.traffic-light {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--kpi-spacing-sm);
+}
+
+.traffic-light-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.traffic-light-indicator-green {
+    background-color: var(--kpi-green);
+    box-shadow: 0 0 4px var(--kpi-green);
+}
+
+.traffic-light-indicator-yellow {
+    background-color: var(--kpi-yellow);
+    box-shadow: 0 0 4px var(--kpi-yellow);
+}
+
+.traffic-light-indicator-red {
+    background-color: var(--kpi-red);
+    box-shadow: 0 0 4px var(--kpi-red);
+}
+
+.traffic-light-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.traffic-light-label-green {
+    color: var(--kpi-green);
+}
+
+.traffic-light-label-yellow {
+    color: var(--kpi-yellow);
+}
+
+.traffic-light-label-red {
+    color: var(--kpi-red);
+}
+
+/* Large Traffic Light */
+.traffic-light-large {
+    flex-direction: column;
+    gap: var(--kpi-spacing-sm);
+}
+
+.traffic-light-large .traffic-light-indicator {
+    width: 48px;
+    height: 48px;
+}
+
+.traffic-light-large .traffic-light-label {
+    font-size: 1rem;
+}
+
+/* History Dots */
+.traffic-history {
+    display: flex;
+    gap: var(--kpi-spacing-xs);
+    align-items: center;
+}
+
+.history-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.history-dot-green {
+    background-color: var(--kpi-green);
+}
+
+.history-dot-yellow {
+    background-color: var(--kpi-yellow);
+}
+
+.history-dot-red {
+    background-color: var(--kpi-red);
+}
+
+.history-dot-gray {
+    background-color: var(--kpi-gray-400);
+}
+
+/* Score Gauge with Traffic Light */
+.score-gauge {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--kpi-green) 0%,
+        var(--kpi-yellow) 50%,
+        var(--kpi-red) 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-gauge-inner {
+    width: 110px;
+    height: 110px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-gauge-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.score-gauge-label {
+    font-size: 0.75rem;
+    color: var(--kpi-gray-500);
+}
+
+.score-gauge-green .score-gauge-value {
+    color: var(--kpi-green);
+}
+
+.score-gauge-yellow .score-gauge-value {
+    color: var(--kpi-yellow);
+}
+
+.score-gauge-red .score-gauge-value {
+    color: var(--kpi-red);
+}
+
+/* Red Alert */
+.red-alert {
+    background: var(--kpi-red-light);
+    border: 1px solid var(--kpi-red);
+    border-radius: var(--kpi-radius-md);
+    padding: var(--kpi-spacing-md);
+    animation: pulse 2s infinite;
+}
+
+.red-alert-title {
+    font-weight: 600;
+    color: var(--kpi-red-dark);
+    margin-bottom: var(--kpi-spacing-xs);
+}
+
+.red-alert-message {
+    font-size: 0.875rem;
+    color: var(--kpi-red-dark);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}

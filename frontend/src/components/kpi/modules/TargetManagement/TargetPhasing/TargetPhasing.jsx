@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import PhasingWizard from './PhasingWizard';
 import PhasingChart from './PhasingChart';
-import { targetService } from '../../../../../services/kpi/target.service';
+import targetService from '../../../../../services/kpi/target.service';
 import styles from './TargetPhasing.module.css';
 
 const TargetPhasing = ({ targetId, onComplete, onCancel, onError }) => {

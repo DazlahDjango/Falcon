@@ -1,4 +1,4 @@
-export const API_BASE_URL = process.env.REACT_APP_API_URL || '/api/kpi';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1/kpis'
 
 // KPI Endpoints
 export const KPI_ENDPOINTS = {

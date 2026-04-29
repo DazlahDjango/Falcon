@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { VALIDATION_STATUS } from '../../../utils/kpi/constants';
+import { VALIDATION_STATUS } from '../../../../utils/kpi/constants';
 import styles from './DataTable.module.css';
 
 const ActualTable = ({ data, onRowClick, loading, showUser = true, showKPI = true }) => {

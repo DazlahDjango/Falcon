@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ScoreTrendChart from './ScoreTrendChart';
 import { LineChart } from '../../../common';
-import { scoreService } from '../../../../../services/kpi/score.service';
+import scoreService from '../../../../../services/kpi/score.service';
 import styles from './ScoreReports.module.css';
 
 const ScoreReports = ({ year, month, onError }) => {

@@ -1,0 +1,33 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background: var(--kpi-gray-50);
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--kpi-sidebar-width);
+    transition: margin-left var(--kpi-transition-normal);
+}
+
+.collapsed .main {
+    margin-left: var(--kpi-sidebar-collapsed-width);
+}
+
+.content {
+    flex: 1;
+    padding: var(--kpi-spacing-lg);
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .main {
+        margin-left: 0;
+    }
+    
+    .collapsed .main {
+        margin-left: 0;
+    }
+}

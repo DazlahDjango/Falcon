@@ -1,0 +1,211 @@
+/* Dashboard Specific Styles */
+
+/* Dashboard Layout */
+.dashboard {
+    padding: var(--kpi-spacing-lg);
+}
+
+.dashboard-header {
+    margin-bottom: var(--kpi-spacing-xl);
+}
+
+.dashboard-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--kpi-gray-900);
+}
+
+.dashboard-subtitle {
+    font-size: 0.875rem;
+    color: var(--kpi-gray-500);
+    margin-top: var(--kpi-spacing-xs);
+}
+
+/* Score Section */
+.dashboard-score-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--kpi-spacing-lg);
+    margin-bottom: var(--kpi-spacing-xl);
+}
+
+.score-card {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-spacing-lg);
+    box-shadow: var(--kpi-shadow-sm);
+    text-align: center;
+}
+
+.score-value {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: var(--kpi-spacing-sm);
+}
+
+.score-label {
+    font-size: 0.875rem;
+    color: var(--kpi-gray-500);
+}
+
+.score-good {
+    color: var(--kpi-green);
+}
+
+.score-fair {
+    color: var(--kpi-yellow);
+}
+
+.score-poor {
+    color: var(--kpi-red);
+}
+
+/* KPI Grid in Dashboard */
+.dashboard-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--kpi-spacing-lg);
+    margin-bottom: var(--kpi-spacing-xl);
+}
+
+/* Team Section */
+.team-section {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-spacing-lg);
+    box-shadow: var(--kpi-shadow-sm);
+    margin-bottom: var(--kpi-spacing-xl);
+}
+
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--kpi-spacing-lg);
+}
+
+.team-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.team-stats {
+    display: flex;
+    gap: var(--kpi-spacing-lg);
+}
+
+.team-stat {
+    text-align: center;
+}
+
+.team-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.team-stat-label {
+    font-size: 0.75rem;
+    color: var(--kpi-gray-500);
+}
+
+.team-member-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-spacing-md);
+}
+
+.team-member {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--kpi-spacing-sm) 0;
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.team-member-info {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-spacing-md);
+}
+
+.team-member-name {
+    font-weight: 500;
+}
+
+.team-member-score {
+    font-weight: 600;
+}
+
+/* Activity Section */
+.activity-section {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-spacing-lg);
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-spacing-md);
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--kpi-spacing-md);
+    padding: var(--kpi-spacing-sm) 0;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--kpi-gray-100);
+    border-radius: var(--kpi-radius-full);
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 500;
+    margin-bottom: var(--kpi-spacing-xs);
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: var(--kpi-gray-400);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard {
+        padding: var(--kpi-spacing-md);
+    }
+    
+    .dashboard-score-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .team-header {
+        flex-direction: column;
+        gap: var(--kpi-spacing-md);
+    }
+    
+    .team-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .team-member {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--kpi-spacing-sm);
+    }
+}

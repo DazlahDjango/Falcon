@@ -1,0 +1,83 @@
+:root {
+    /* Colors */
+    --kpi-primary: #3b82f6;
+    --kpi-primary-dark: #2563eb;
+    --kpi-primary-light: #60a5fa;
+    --kpi-success: #22c55e;
+    --kpi-success-dark: #16a34a;
+    --kpi-success-light: #86efac;
+    --kpi-warning: #eab308;
+    --kpi-warning-dark: #ca8a04;
+    --kpi-warning-light: #fde047;
+    --kpi-danger: #ef4444;
+    --kpi-danger-dark: #dc2626;
+    --kpi-danger-light: #f87171;
+    --kpi-info: #8b5cf6;
+    --kpi-info-dark: #7c3aed;
+    --kpi-info-light: #a78bfa;
+    --kpi-gray-50: #f9fafb;
+    --kpi-gray-100: #f3f4f6;
+    --kpi-gray-200: #e5e7eb;
+    --kpi-gray-300: #d1d5db;
+    --kpi-gray-400: #9ca3af;
+    --kpi-gray-500: #6b7280;
+    --kpi-gray-600: #4b5563;
+    --kpi-gray-700: #374151;
+    --kpi-gray-800: #1f2937;
+    --kpi-gray-900: #111827;
+    
+    /* Traffic Light Colors */
+    --kpi-green: #22c55e;
+    --kpi-green-light: #86efac;
+    --kpi-green-dark: #15803d;
+    --kpi-yellow: #eab308;
+    --kpi-yellow-light: #fde047;
+    --kpi-yellow-dark: #a16207;
+    --kpi-red: #ef4444;
+    --kpi-red-light: #f87171;
+    --kpi-red-dark: #b91c1c;
+    
+    /* Spacing */
+    --kpi-spacing-xs: 0.25rem;
+    --kpi-spacing-sm: 0.5rem;
+    --kpi-spacing-md: 1rem;
+    --kpi-spacing-lg: 1.5rem;
+    --kpi-spacing-xl: 2rem;
+    --kpi-spacing-2xl: 3rem;
+    
+    /* Border Radius */
+    --kpi-radius-sm: 0.25rem;
+    --kpi-radius-md: 0.5rem;
+    --kpi-radius-lg: 0.75rem;
+    --kpi-radius-xl: 1rem;
+    --kpi-radius-full: 9999px;
+    
+    /* Shadows */
+    --kpi-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --kpi-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --kpi-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --kpi-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    
+    /* Transitions */
+    --kpi-transition-fast: 150ms;
+    --kpi-transition-normal: 300ms;
+    --kpi-transition-slow: 500ms;
+    
+    /* Fonts */
+    --kpi-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    --kpi-font-mono: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    
+    /* Z-index Layers */
+    --kpi-z-dropdown: 1000;
+    --kpi-z-sticky: 1020;
+    --kpi-z-fixed: 1030;
+    --kpi-z-modal-backdrop: 1040;
+    --kpi-z-modal: 1050;
+    --kpi-z-popover: 1060;
+    --kpi-z-tooltip: 1070;
+    
+    /* Layout */
+    --kpi-sidebar-width: 260px;
+    --kpi-sidebar-collapsed-width: 70px;
+    --kpi-header-height: 64px;
+}

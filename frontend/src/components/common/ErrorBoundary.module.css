@@ -1,0 +1,61 @@
+.errorBoundary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: var(--kpi-spacing-xl);
+    background: var(--kpi-gray-50);
+}
+
+.content {
+    text-align: center;
+    max-width: 500px;
+}
+
+.icon {
+    font-size: 3rem;
+    margin-bottom: var(--kpi-spacing-lg);
+}
+
+.content h2 {
+    font-size: 1.5rem;
+    color: var(--kpi-gray-800);
+    margin-bottom: var(--kpi-spacing-sm);
+}
+
+.content p {
+    color: var(--kpi-gray-600);
+    margin-bottom: var(--kpi-spacing-lg);
+}
+
+.details {
+    text-align: left;
+    margin-bottom: var(--kpi-spacing-lg);
+    padding: var(--kpi-spacing-md);
+    background: var(--kpi-gray-100);
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.75rem;
+    overflow-x: auto;
+}
+
+.details pre {
+    margin-top: var(--kpi-spacing-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.button {
+    padding: var(--kpi-spacing-sm) var(--kpi-spacing-lg);
+    background: var(--kpi-primary);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: background var(--kpi-transition-fast);
+}
+
+.button:hover {
+    background: var(--kpi-primary-dark);
+}

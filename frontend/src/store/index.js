@@ -32,8 +32,8 @@ export const store = configureStore({
         getDefaultMiddleware({
             serializableCheck: {
                 ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-                ignoredActionPaths: ['payload.action'],
-                ignoredPaths: ['notifications.socket', 'ui.notifications']
+                ignoredActionPaths: ['payload.action', 'payload.config', 'payload.request', 'payload.headers', 'payload.originalArgs'],
+                ignoredPaths: ['notifications.socket', 'ui.notifications', 'kpi.detail.loading', 'kpi.list.loading', 'actual.detail.loading']
             },
             thunk: {
                 extraArgument: {}

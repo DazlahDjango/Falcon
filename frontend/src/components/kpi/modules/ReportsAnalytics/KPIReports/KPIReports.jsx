@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import KPIReportFilters from './KPIReportFilters';
 import { BarChart, PieChart, KPICard } from '../../../common';
-import { analyticsService } from '../../../../../services/kpi/analytics.service';
+import analyticsService from '../../../../../services/kpi/analytics.service';
 import styles from './KPIReports.module.css';
 
 const KPIReports = ({ year, month, onError }) => {

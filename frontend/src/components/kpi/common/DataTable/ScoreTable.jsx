@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { formatScore, formatTrafficLight, getTrafficLightColor } from '../../../utils/kpi';
+import { formatScore, formatTrafficLight, getTrafficLightColor } from '../../../../utils/kpi';
 import styles from './DataTable.module.css';
 
 const ScoreTable = ({ data, onRowClick, loading, showUser = true, showKPI = true }) => {

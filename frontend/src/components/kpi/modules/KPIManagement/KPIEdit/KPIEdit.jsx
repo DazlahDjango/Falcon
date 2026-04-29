@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { KPIForm } from '../../../common';
-import { kpiService } from '../../../../../services/kpi/kpi.service';
+import kpiService from '../../../../../services/kpi/kpi.service';
 import styles from './KPIEdit.module.css';
 
 const KPIEdit = ({ kpiId, onComplete, onCancel, onError }) => {
