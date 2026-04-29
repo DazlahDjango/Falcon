@@ -1,6 +1,9 @@
 - model: kpi.sector
   pk: 1
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Commercial / Corporate"
     code: "COMMERCIAL"
     sector_type: "COMMERCIAL"
@@ -16,6 +19,9 @@
 - model: kpi.sector
   pk: 2
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "NGO / Non-Profit"
     code: "NGO"
     sector_type: "NGO"
@@ -31,6 +37,9 @@
 - model: kpi.sector
   pk: 3
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Public Sector / Government"
     code: "PUBLIC"
     sector_type: "PUBLIC"
@@ -46,6 +55,9 @@
 - model: kpi.sector
   pk: 4
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Consulting / Professional Services"
     code: "CONSULTING"
     sector_type: "CONSULTING"

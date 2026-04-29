@@ -9,19 +9,55 @@ const DepartmentReports = ({ year, month, onError }) => {
     const [departmentRollups, setDepartmentRollups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedDepartment, setSelectedDepartment] = useState('');
+    const [error, setError] = useState(null);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        page_size: 50,
+        total: 0
+    });
+    
     useEffect(() => {
         fetchDepartmentRollups();
     }, [year, month]);
+    
     const fetchDepartmentRollups = async () => {
         setLoading(true);
+        setError(null);
         try {
-            const response = await analyticsService.getDepartmentRollups({ year, month });
-            setDepartmentRollups(response.results || []);
+            const response = await analyticsService.getDepartmentRollups({ 
+                year, 
+                month,
+                page: pagination.page,
+                page_size: pagination.page_size
+            });
+            
+            // Handle both paginated and non-paginated responses
+            const results = response.results || response;
+            const totalCount = response.count || results.length;
+            
+            setDepartmentRollups(results);
+            setPagination(prev => ({
+                ...prev,
+                total: totalCount
+            }));
         } catch (error) {
             console.error('Failed to fetch department rollups:', error);
+            setError(error);
             if (onError) onError(error);
         } finally {
             setLoading(false);
+        }
+    };
+    
+    const handleNextPage = () => {
+        if (pagination.page * pagination.page_size < pagination.total) {
+            setPagination(prev => ({ ...prev, page: prev.page + 1 }));
+        }
+    };
+    
+    const handlePrevPage = () => {
+        if (pagination.page > 1) {
+            setPagination(prev => ({ ...prev, page: prev.page - 1 }));
         }
     };
     const getDepartmentChartData = () => {
@@ -54,6 +90,31 @@ const DepartmentReports = ({ year, month, onError }) => {
             <div className={styles.loadingContainer}>
                 <div className={styles.spinner} />
                 <p>Loading department reports...</p>
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className={styles.errorContainer}>
+                <div className={styles.errorMessage}>
+                    <h3>Failed to Load Department Reports</h3>
+                    <p>{error.message || 'An error occurred while fetching department data'}</p>
+                    <button onClick={fetchDepartmentRollups} className={styles.retryButton}>
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+    
+    if (!departmentRollups || departmentRollups.length === 0) {
+        return (
+            <div className={styles.emptyContainer}>
+                <p>No department data available for the selected period.</p>
+                <button onClick={fetchDepartmentRollups} className={styles.retryButton}>
+                    Reload
+                </button>
             </div>
         );
     }

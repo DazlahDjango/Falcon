@@ -128,6 +128,7 @@ PROJECT_APPS = [
     'apps.notification',
     'apps.kpi.apps.KpiConfig',
     'apps.organisations.apps.OrganisationsConfig',
+    'apps.structure.apps.StructureConfig',
     'apps.reports',
     'apps.workflowsapi',
 ]

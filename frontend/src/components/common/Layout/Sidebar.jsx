@@ -21,7 +21,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
     const getNavigationItem = () => {
         const baseItems = [
             { path: '/dashboard', name: 'Dashboard', icon: FiHome, roles: ['all'] },
-            { path: '/kpi', name: 'KPIs', icon: FiBarChart2, roles: ['all'] },
+            { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2, roles: ['all'] },
             { path: '/reviews', name: 'Reviews', icon: FiFileText, roles: ['all'] },
         ];
         const teamItems = [
@@ -45,6 +45,13 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ROUTES.ORGANISATION_SETTINGS, name: 'Org Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
             { path: ROUTES.ORGANISATION_SUBSCRIPTION, name: 'Subscription', icon: FiFileText, roles: ['super_admin', 'client_admin'] },
         ];
+        const kpiItems = [
+            { path: ROUTES.KPI_DASHBOARD, name: 'Kpi Dashboard', icon: FiBarChart2, roles: ['super_admin','executive', 'supervisor', 'dashboard_champion']},
+            { path: ROUTES.KPI_MANAGEMENT, name: 'KPI Management', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
+            { path: ROUTES.TARGETS, name: 'Targets', icon: FiCalendar, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
+            { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
+            { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
+        ];
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
             { path: '/admin/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
@@ -57,6 +64,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             reporting: reportingItems,
             settings: settingsItems,
             organisation: organisationItems,
+            kpi: kpiItems,
             admin: adminItems
         };
     };
@@ -133,6 +141,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Team', navigation.team, 'team')}
                 {renderNavGroup('Reporting', navigation.reporting, 'reporting')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
+                {renderNavGroup('KPI', navigation.kpi, 'kpi')}
                 {(user?.role === 'client_admin' || user?.role === 'super_admin') && renderNavGroup('Organisation', navigation.organisation, 'organisation')}
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>

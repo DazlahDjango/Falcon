@@ -92,19 +92,19 @@ export const VALIDATION_ENDPOINTS = {
 };
 // Dashboard Endpoints
 export const DASHBOARD_ENDPOINTS = {
-    INDIVIDUAL: '/dashboard/individual/',
-    MANAGER: '/dashboard/manager/',
-    EXECUTIVE: '/dashboard/executive/',
-    CHAMPION: '/dashboard/champion/',
+    INDIVIDUAL: '/kpis/dashboard/individual/',
+    MANAGER: '/kpis/dashboard/manager/',
+    EXECUTIVE: '/kpis/dashboard/executive/',
+    CHAMPION: '/kpis/dashboard/champion/',
 };
 // Analytics Endpoints
 export const ANALYTICS_ENDPOINTS = {
-    KPI_SUMMARIES: '/kpi-summaries/',
-    DEPARTMENT_ROLLUPS: '/department-rollups/',
-    ORGANIZATION_HEALTH: '/organization-health/',
-    TRENDS: (kpiId) => `/kpi-summaries/trends/?kpi=${kpiId}`,
-    INSIGHTS: '/analytics/insights/',
-    PREDICTIONS: '/analytics/predictions/',
+    KPI_SUMMARIES: '/kpis/kpi-summaries/',
+    DEPARTMENT_ROLLUPS: '/kpis/department-rollups/',
+    ORGANIZATION_HEALTH: '/kpis/organization-health/',
+    TRENDS: (kpiId) => `/kpis/kpi-summaries/trends/?kpi=${kpiId}`,
+    INSIGHTS: '/kpis/analytics/insights/',
+    PREDICTIONS: '/kpis/analytics/predictions/',
 };
 // Bulk Operations Endpoints
 export const BULK_ENDPOINTS = {

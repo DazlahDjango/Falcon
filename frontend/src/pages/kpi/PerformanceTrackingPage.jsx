@@ -5,8 +5,8 @@ import PerformanceTracking from '../../components/kpi/modules/PerformanceTrackin
 import styles from './Pages.module.css';
 
 const PerformanceTrackingPage = () => {
-    const { user, hasRole } = useAuth();
-    const userRole = hasRole('MANAGER') ? 'manager' : hasRole('ADMIN') ? 'admin' : 'employee';
+    const { user, hasRole } = usePermissionContext();
+    const userRole = hasRole('supervisor') ? 'manager' : hasRole('client_admin', 'super_admin') ? 'admin' : 'staff';
     const handleError = (error) => {
         console.error('Performance Tracking Error:', error);
     };

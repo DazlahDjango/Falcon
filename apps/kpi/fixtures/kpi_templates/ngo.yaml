@@ -1,6 +1,9 @@
 - model: kpi.kpiframework
   pk: 4
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "NGO Impact Framework"
     code: "NGO_V1"
     sector: 2
@@ -9,13 +12,16 @@
     status: "PUBLISHED"
     is_default: true
     effective_from: "2025-01-01"
-    metadat:
+    metadata:
       author: "Falcon Consulting"
       tags: ["ngo", "non-profit", "impact"]
       
 - model: kpi.kpiframework
   pk: 5
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Humanitarian Response Framework"
     code: "HUMANITARIAN_V1"
     sector: 2
@@ -32,6 +38,9 @@
 - model: kpi.kpitemplate
   pk: 10
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Beneficiaries Reached"
     code: "BEN_001"
     sector: 2
@@ -67,6 +76,9 @@
 - model: kpi.kpitemplate
   pk: 11
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Grant Utilization Rate"
     code: "GRANT_001"
     sector: 2
@@ -90,6 +102,9 @@
 - model: kpi.kpitemplate
   pk: 12
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Program Completion Rate"
     code: "COMP_001"
     sector: 2
@@ -113,6 +128,9 @@
 - model: kpi.kpitemplate
   pk: 13
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Community Satisfaction Score"
     code: "SAT_001"
     sector: 2
@@ -136,6 +154,9 @@
 - model: kpi.kpitemplate
   pk: 14
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Volunteer Engagement Hours"
     code: "VOL_001"
     sector: 2

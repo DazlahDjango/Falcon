@@ -23,7 +23,7 @@ class UserSession(BaseModel):
     # Session timing
     login_time = models.DateTimeField(_('login time'), default=timezone.now, db_index=True)
     last_activity = models.DateTimeField(_('last activity'), auto_now=True, db_index=True)
-    expires_at = models.DateTimeField(_('expires at'), db_index=True)
+    expires_at = models.DateTimeField(_('expires at'), db_index=True, null=True, blank=True)
     logout_time = models.DateTimeField(_('logout time'), null=True, blank=True)
     # Session status
     SESSION_ACTIVE = 'active'
@@ -102,7 +102,7 @@ class SessionBlacklist(BaseModel):
     token_type = models.CharField(_('token type'), max_length=20, choices=[('access', 'Access'), ('refresh', 'Refresh')])
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='blacklisted_tokens')
     blacklisted_at = models.DateTimeField(_('blacklisted at'), default=timezone.now)
-    expires_at = models.DateTimeField(_('expires at'), db_index=True, help_text='When this blacklist entry expires')
+    expires_at = models.DateTimeField(_('expires at'), db_index=True, null=True, blank=True, help_text='When this blacklist entry expires')
     reason = models.CharField(_('reason'), max_length=200, blank=True)
     
     class Meta:

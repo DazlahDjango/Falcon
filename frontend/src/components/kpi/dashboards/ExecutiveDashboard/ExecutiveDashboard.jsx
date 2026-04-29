@@ -32,7 +32,7 @@ const ExecutiveDashboard = ({
             onPeriodChange(year, month);
         }
     };
-    const handlRefresh = async () => {
+    const handleRefresh = async () => {
         setRefreshing(true);
         if (onRefresh) {
             await onRefresh(selectedYear, selectedMonth);

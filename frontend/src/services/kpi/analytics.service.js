@@ -6,10 +6,37 @@ class AnalyticsService {
         const response = await api.get(API_ENDPOINTS.ANALYTICS.KPI_SUMMARIES, { params });
         return response.data;
     }
+    
     async getDepartmentRollups(params = {}) {
-        const response = await api.get(API_ENDPOINTS.ANALYTICS.DEPARTMENT_ROLLUPS, { params });
+        // Add default pagination params
+        const paginatedParams = {
+            page: params.page || 1,
+            page_size: params.page_size || 50,
+            year: params.year,
+            month: params.month,
+        };
+        
+        // Remove undefined params
+        Object.keys(paginatedParams).forEach(key => 
+            paginatedParams[key] === undefined && delete paginatedParams[key]
+        );
+        
+        const response = await api.get(API_ENDPOINTS.ANALYTICS.DEPARTMENT_ROLLUPS, { 
+            params: paginatedParams 
+        });
         return response.data;
     }
+    
+    async getDepartmentRollupsByRanking(year = null, month = null, limit = 10) {
+        // """Fetch top departments by ranking without full pagination"""
+        const params = { limit };
+        if (year) params.year = year;
+        if (month) params.month = month;
+        
+        const response = await api.get(`${API_ENDPOINTS.ANALYTICS.DEPARTMENT_ROLLUPS}ranking/`, { params });
+        return response.data;
+    }
+    
     async getOrganizationHealth(params = {}) {
         const response = await api.get(API_ENDPOINTS.ANALYTICS.ORGANIZATION_HEALTH, { params });
         return response.data;

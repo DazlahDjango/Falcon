@@ -1,6 +1,9 @@
 - model: kpi.kpicategory
   pk: 1
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Financial Performance"
     code: "FINANCIAL"
     category_type: "FINANCIAL"
@@ -12,6 +15,9 @@
 - model: kpi.kpicategory
   pk: 2
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Impact & Outcomes"
     code: "IMPACT"
     category_type: "IMPACT"
@@ -23,6 +29,9 @@
 - model: kpi.kpicategory
   pk: 3
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Operational Efficiency"
     code: "OPERATIONAL"
     category_type: "OPERATIONAL"
@@ -35,6 +44,9 @@
 - model: kpi.kpicategory
   pk: 4
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Customer & Stakeholder"
     code: "CUSTOMER"
     category_type: "CUSTOMER"
@@ -47,6 +59,9 @@
 - model: kpi.kpicategory
   pk: 5
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Internal Processes"
     code: "INTERNAL"
     category_type: "INTERNAL"
@@ -59,6 +74,9 @@
 - model: kpi.kpicategory
   pk: 6
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Growth & Learning"
     code: "GROWTH"
     category_type: "GROWTH"
@@ -71,6 +89,9 @@
 - model: kpi.kpicategory
   pk: 7
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Compliance & Risk"
     code: "COMPLIANCE"
     category_type: "COMPLIANCE"
