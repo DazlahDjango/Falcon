@@ -1,5 +1,5 @@
 # config/celery_routes.py
-task_routes = {
+task_routes_dict = {
     # Accounts Tasks
     'apps.accounts.tasks.send_*': {'queue': 'email'},
     'apps.accounts.tasks.cleanup_*': {'queue': 'cleanup'},
@@ -20,3 +20,21 @@ task_routes = {
     'apps.kpi.tasks.cleanup.cleanup_*': {'queue': 'cleanup'},
     'apps.kpi.tasks.cascade.cascade_*': {'queue': 'cascade'},
 }
+
+# Function-based routes for complex patterns
+# ====== Structure =======
+def route_structure_tasks(name, args, kwargs, options, task=None, **kw):
+    if name.startswith('structure.tasks.'):
+        if 'export' in name:
+            return {'queue': 'export'}
+        elif 'cache' in name or 'warm' in name:
+            return {'queue': 'cache'}
+        else:
+            return {'queue': 'structure'}
+    elif name.startswith('notifications.tasks.'):
+        return {'queue': 'notification'}
+    elif name.startswith('priority.'):
+        return {'queue': 'priority'}
+    return None
+
+task_routes = ([task_routes_dict, route_structure_tasks])

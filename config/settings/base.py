@@ -161,14 +161,17 @@ MIDDLEWARE = [
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
-    # Organisations Tenant Middleware (ADD THESE TWO)
-    # 'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
-    # 'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
+    #Structure
+    'apps.structure.middleware.StructureContextMiddleware',
+    'apps.structure.middleware.StructureCacheMiddleware',
+    'apps.structure.middleware.StructureAccessEnforcerMiddleware',
+    'apps.structure.middleware.StructureRateLimitMiddleware',
     # KPI
     'apps.kpi.middleware.ContextMiddleware',
     'apps.kpi.middleware.AuditMiddleware',
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'config.urls'
