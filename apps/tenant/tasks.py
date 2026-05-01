@@ -193,11 +193,11 @@ def provision_tenant(tenant_id):
     Provision a new tenant - create schema, run migrations, seed data.
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.services.provisioning.provisioner import TenantProvisioner
         from apps.tenant.constants import TenantStatus
 
-        tenant = Tenant.objects.get(id=tenant_id, is_deleted=False)
+        tenant = Client.objects.get(id=tenant_id, is_deleted=False)
 
         if tenant.status != TenantStatus.PENDING:
             logger.warning(f"Tenant {tenant_id} is not pending")

@@ -75,13 +75,13 @@ class ConnectionManager:
         Returns:
             New database connection
         """
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
 
         self.logger.info(f"Creating new connection for tenant: {tenant_id}")
 
         try:
             # Get tenant to determine connection parameters
-            tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Client.objects.get(id=tenant_id)
 
             # For separate database isolation
             if tenant.database_name:
@@ -113,7 +113,7 @@ class ConnectionManager:
 
             return conn
 
-        except Tenant.DoesNotExist:
+        except Client.DoesNotExist:
             self.logger.error(f"Tenant not found: {tenant_id}")
             raise
         except Exception as e:

@@ -1,49 +1,68 @@
 # apps/tenant/api/v1/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import tenant_admin, domain_views, backup_views, schema_views, migration_views, health_views
+from rest_framework_nested import routers
+from .views import (
+    TenantViewSet, TenantSuspendView, TenantActivateView, TenantProvisioningStatusView,
+    TenantUsageView, TenantResourcesView, DomainViewSet, DomainVerifyView, DomainSetPrimaryView,
+    TenantDomainsView, BackupViewSet, BackupRestoreView, BackupDownloadView, TenantBackupsView,
+    MigrationViewSet, TenantMigrationsView, HealthCheckView, TenantsHealthView, DatabaseHealthView,
+    CacheHealthView, SystemHealthView, SchemaViewSet, TenantSchemaView
+)
 
-app_name = 'tenant-api-v1'
+app_name = 'tenant_app'
 
 router = DefaultRouter()
-router.register(r'tenants', tenant_admin.TenantViewSet, basename='tenant')
-router.register(r'domains', domain_views.DomainViewSet, basename='domain')
-router.register(r'backups', backup_views.BackupViewSet, basename='backup')
-router.register(r'schemas', schema_views.SchemaViewSet, basename='schema')
-router.register(r'migrations', migration_views.MigrationViewSet,
-                basename='migration')
+router.register(r'tenants', TenantViewSet, basename='tenant')
+router.register(r'domains', DomainViewSet, basename='domain')
+router.register(r'backups', BackupViewSet, basename='backup')
+router.register(r'schemas', SchemaViewSet, basename='schema')
+router.register(r'migrations', MigrationViewSet, basename='migration')
+
+# Tenants base nested routers
+tenant_router = routers.NestedDefaultRouter(
+    router, r'tenants', lookup='tenant')
+tenant_router.register(r'domains', DomainViewSet, basename='tenant-domains')
+tenant_router.register(r'backups', BackupViewSet, basename='tenant-backups')
+tenant_router.register(r'migrations', MigrationViewSet,
+                       basename='tenant-migrations')
+tenant_router.register(r'schemas', SchemaViewSet, basename='tenant-schemas')
 
 urlpatterns = [
     path('', include(router.urls)),
-
+    path('', include(tenant_router.urls)),
     # Health check
-    path('health/', health_views.HealthCheckView.as_view(), name='health'),
-    path('health/tenants/', health_views.TenantsHealthView.as_view(),
-         name='tenants-health'),
-
+    path('health/', HealthCheckView.as_view(), name='health'),
+    path('health/tenants/', TenantsHealthView.as_view(), name='tenants-health'),
     # Tenant specific actions
     path('tenants/<uuid:pk>/suspend/',
-         tenant_admin.TenantSuspendView.as_view(), name='tenant-suspend'),
+         TenantSuspendView.as_view(), name='tenant-suspend'),
     path('tenants/<uuid:pk>/activate/',
-         tenant_admin.TenantActivateView.as_view(), name='tenant-activate'),
+         TenantActivateView.as_view(), name='tenant-activate'),
     path('tenants/<uuid:pk>/provisioning-status/',
-         tenant_admin.TenantProvisioningStatusView.as_view(), name='tenant-provisioning-status'),
-    path('tenants/<uuid:pk>/usage/',
-         tenant_admin.TenantUsageView.as_view(), name='tenant-usage'),
-
+         TenantProvisioningStatusView.as_view(), name='tenant-provisioning-status'),
+    path('tenants/<uuid:pk>/usage-summary/',
+         TenantUsageView.as_view(), name='tenant-usage-summary'),
+    path('tenants/<uuid:tenant_id>/resources/',
+         TenantResourcesView.as_view(), name='tenant-resources'),
     # Domain specific actions
     path('domains/<uuid:pk>/verify/',
-         domain_views.DomainVerifyView.as_view(), name='domain-verify'),
+         DomainVerifyView.as_view(), name='domain-verify'),
     path('domains/<uuid:pk>/set-primary/',
-         domain_views.DomainSetPrimaryView.as_view(), name='domain-set-primary'),
-
+         DomainSetPrimaryView.as_view(), name='domain-set-primary'),
+    path('tenants/<uuid:tenant_id>/domains/',
+         TenantDomainsView.as_view(), name='tenant-domains-list'),
     # Backup specific actions
     path('backups/<uuid:pk>/restore/',
-         backup_views.BackupRestoreView.as_view(), name='backup-restore'),
+         BackupRestoreView.as_view(), name='backup-restore'),
     path('backups/<uuid:pk>/download/',
-         backup_views.BackupDownloadView.as_view(), name='backup-download'),
-
-    # Resource endpoints
-    path('resources/tenant/<uuid:tenant_id>/',
-         tenant_admin.TenantResourcesView.as_view(), name='tenant-resources'),
+         BackupDownloadView.as_view(), name='backup-download'),
+    path('tenants/<uuid:tenant_id>/backups/',
+         TenantBackupsView.as_view(), name='tenant-backups-list'),
+    # Migration specific actions
+    path('tenants/<uuid:tenant_id>/migrations/',
+         TenantMigrationsView.as_view(), name='tenant-migrations-list'),
+    # Schema
+    path('tenants/<uuid:tenant_id>/schema/',
+         TenantSchemaView.as_view(), name='tenant-schema'),
 ]

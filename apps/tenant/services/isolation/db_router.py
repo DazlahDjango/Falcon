@@ -78,7 +78,7 @@ class TenantDatabaseRouter:
             str: Database name or None for default
         """
         # For separate database isolation
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.constants import SchemaType
 
         try:
@@ -86,7 +86,7 @@ class TenantDatabaseRouter:
             if tenant_id in self._tenant_cache:
                 return self._tenant_cache[tenant_id]
 
-            tenant = Tenant.objects.only(
+            tenant = Client.objects.only(
                 'schema_type', 'database_name').get(id=tenant_id)
 
             if tenant.schema_type == SchemaType.SEPARATE_DATABASE:

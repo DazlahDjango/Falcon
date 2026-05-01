@@ -17,7 +17,6 @@ from apps.tenant.api.v1.permissions import IsSuperAdmin, IsTenantAdmin, HasTenan
 from apps.tenant.api.v1.throttles import TenantApiThrottle, AdminOperationThrottle
 from apps.tenant.services.backup.backup_manager import BackupManager
 from apps.tenant.services.backup.restore_service import RestoreService
-from apps.tenant.tasks import backup_single_tenant_task
 
 
 class BackupViewSet(viewsets.ModelViewSet):

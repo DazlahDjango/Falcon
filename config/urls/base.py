@@ -1,6 +1,7 @@
 """
 URL configuration for Falcon Base URLs Project.
 """
+from apps.core.views import home_view
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -26,7 +27,6 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=[permissions.AllowAny]
 )
-from apps.core.views import home_view
 
 urlpatterns = [
     path('', home_view, name='home'),
@@ -35,11 +35,14 @@ urlpatterns = [
     path('health/', include('health_check.urls')),
     # path('api/v1/', include(('config.urls.api', 'v1'))),
     # API Docs
-    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('api/schema/', schema_view.without_ui (cache_timeout=0), name='schema-json'),
+    path('api/docs/', schema_view.with_ui('swagger',
+         cache_timeout=0), name='schema-swagger-ui'),
+    path('api/redoc/', schema_view.with_ui('redoc',
+         cache_timeout=0), name='schema-redoc'),
+    path('api/schema/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     # API/V1 URLs patterns
     path('api/v1/', include('apps.accounts.urls')),
+    path('api/v1/tenant/', include('apps.tenant.api.v1.urls')),
     path('api/v1/organisations/', include('apps.organisations.api.v1.urls')),
     path('api/v1/kpis/', include('apps.kpi.urls')),
     path('api/v1/health/', health_check, name='api-health'),
@@ -54,10 +57,12 @@ if settings.DEBUG:
         ]
     except ImportError:
         pass
-    
+
     # Serve static/media files in development
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL,
+                          document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)
 
 # In production, warn if using default admin URL
 if getattr(settings, 'DJANGO_ENV', 'development') == 'production' and settings.ADMIN_URL == 'admin/':
@@ -67,4 +72,4 @@ if getattr(settings, 'DJANGO_ENV', 'development') == 'production' and settings.A
         UserWarning
     )
 
-# Error handlers 
+# Error handlers

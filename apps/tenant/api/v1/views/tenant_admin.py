@@ -23,7 +23,7 @@ from apps.tenant.api.v1.serializers import (
 )
 from apps.tenant.api.v1.permissions import IsSuperAdmin, IsTenantAdmin, IsTenantUser
 from apps.tenant.api.v1.throttles import TenantApiThrottle, AdminOperationThrottle
-from apps.tenant.tasks import provision_tenant_task, suspend_tenant_task
+from apps.tenant.tasks import provision_tenant, suspend_tenant
 from apps.tenant.services.monitoring.quota_enforcer import QuotaEnforcer
 
 

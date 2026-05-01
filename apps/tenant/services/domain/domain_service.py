@@ -57,7 +57,7 @@ class DomainService:
         """
         self.logger.info(f"Adding domain {domain_name} to tenant {tenant_id}")
 
-        from apps.tenant.models import CustomDomain, Tenant
+        from apps.tenant.models import CustomDomain, Client
 
         # Validate domain format
         self._validate_domain_format(domain_name)
@@ -68,8 +68,8 @@ class DomainService:
 
         # Get tenant
         try:
-            tenant = Tenant.objects.get(id=tenant_id)
-        except Tenant.DoesNotExist:
+            tenant = Client.objects.get(id=tenant_id)
+        except Client.DoesNotExist:
             raise DomainValidationError(f"Tenant {tenant_id} not found")
 
         # Create domain

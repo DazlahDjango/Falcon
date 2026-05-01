@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.core.management import call_command
 
-from apps.tenant.models import Tenant
+from apps.tenant.models import Client
 from apps.tenant.constants import TenantStatus, SubscriptionPlan, DEFAULT_TENANT_LIMITS
 from apps.tenant.exceptions import TenantProvisioningError, SchemaCreationError
 
