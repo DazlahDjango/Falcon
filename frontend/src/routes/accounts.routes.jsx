@@ -18,11 +18,14 @@ const AuditLogs = React.lazy(() => import('../components/accounts/audit/AuditLog
 const Security = React.lazy(() => import('../components/accounts/settings/SecuritySettings'));
 const Notifications = React.lazy(() => import('../components/accounts/settings/NotificationSettings'));
 // Admin components (if implemented)
+const Dashboard = React.lazy(() => import('../components/accounts/dashboard/Dashboard'))
 const AdminDashboard = React.lazy(() => import('../components/accounts/admin/AdminDashboard'));
 const AdminUsers = React.lazy(() => import('../components/accounts/admin/AdminUsers'));
 const AdminTenants = React.lazy(() => import('../components/accounts/admin/AdminTenants'));
 const AdminSystem = React.lazy(() => import('../components/accounts/admin/AdminSystem'));
 const accountsRoutes = [
+    // Dashboards
+    { path: ROUTES.DASHBOARD, element: <Dashboard />},
     // User Management
     { path: ROUTES.USERS, element: <UserList /> },
     { path: ROUTES.USER_DETAIL, element: <UserDetail /> },

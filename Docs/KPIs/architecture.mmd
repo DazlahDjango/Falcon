@@ -1,410 +1,107 @@
 apps/kpi/
 ├── __init__.py
-├── apps.py
-├── admin.py                          # Admin interface with tenant filtering
-├── constants.py                      # KPI types, calculation logic, status enums
-├── exceptions.py                     # Domain-specific exceptions
-├── signals.py                        # Post-save signals for calculations
-├── tasks.py                          # Async calculation tasks
-├── urls.py                           # App URL routing
-├── validators.py                     # KPI-specific validators
+├── admin.py                 # Django admin configuration
+├── apps.py                  # App configuration
+├── constants.py             # Constants and enums
+├── exceptions.py            # Custom exceptions
+├── validators.py            # Data validators
+├── signals.py               # Django signals
+├── tasks.py                 # Celery tasks
+├── urls.py                  # App URL routing
 │
-├── models/                            # Data Layer
+├── models/                  # Database models
 │   ├── __init__.py
-│   ├── base.py                       # Abstract KPI base models
-│   │
-│   ├── framework/                     # KPI Framework Management
-│   │   ├── __init__.py
-│   │   ├── sector.py                 # Sector definitions (NGO, Commercial, Public, Consulting)
-│   │   ├── framework.py              # KPI framework per sector
-│   │   ├── category.py               # KPI categories (Financial, Impact, Operational)
-│   │   └── template.py               # Pre-built KPI templates per sector
-│   │
-│   ├── definition/                    # KPI Definitions
-│   │   ├── __init__.py
-│   │   ├── kpi.py                    # Main KPI definition model
-│   │   ├── kpi_history.py            # Immutable KPI change history
-│   │   ├── weight.py                 # KPI weight configuration
-│   │   ├── linkage.py                # KPI to strategic objective linkage
-│   │   └── dependency.py             # KPI dependencies (one KPI affects another)
-│   │
-│   ├── target/                        # Target Management
-│   │   ├── __init__.py
-│   │   ├── annual_target.py          # Annual target per KPI
-│   │   ├── monthly_phasing.py        # Monthly target distribution
-│   │   ├── phasing_lock.py           # Lock record for phased targets
-│   │   └── target_history.py         # Audit trail for target changes
-│   │
-│   ├── actual/                        # Actual Performance Data
-│   │   ├── __init__.py
-│   │   ├── monthly_actual.py         # Monthly actual entries
-│   │   ├── actual_history.py         # Immutable actual change history
-│   │   ├── adjustment.py             # Approved adjustments to actuals
-│   │   └── evidence.py               # Supporting evidence uploads
-│   │
-│   ├── validation/                    # Supervisor Validation
-│   │   ├── __init__.py
-│   │   ├── validation_record.py      # Validation records per entry
-│   │   ├── validation_comment.py     # Comments on validation
-│   │   ├── rejection_reason.py       # Predefined rejection reasons
-│   │   └── escalation.py             # Escalated validation issues
-│   │
-│   ├── calculation/                   # Calculation Results (Immutable)
-│   │   ├── __init__.py
-│   │   ├── score.py                  # Calculated score per KPI per period
-│   │   ├── aggregated_score.py       # Rolled-up scores (team, dept, org)
-│   │   ├── traffic_light.py          # Traffic light status
-│   │   ├── trend.py                  # Trend analysis results
-│   │   └── calculation_log.py        # Log of all calculations (debug/audit)
-│   │
-│   ├── cascade/                       # Target Cascading
-│   │   ├── __init__.py
-│   │   ├── cascade_map.py            # Mapping org→dept→individual targets
-│   │   ├── cascade_rule.py           # Cascading rules (equal split, weighted, custom)
-│   │   └── cascade_history.py        # Audit of cascade operations
-│   │
-│   └── analytics/                     # Analytics & Insights (Materialized Views)
-│       ├── __init__.py
-│       ├── kpi_summary.py            # Materialized view: KPI summaries
-│       ├── department_rollup.py      # Materialized view: Dept aggregates
-│       ├── organization_health.py    # Materialized view: Org health scores
-│       └── refresh_tracker.py        # Track materialized view refresh status
+│   ├── base.py              # Abstract base models
+│   ├── framework/           # Framework models (Sector, Framework, Category, Template)
+│   ├── definition/          # KPI definition models (KPI, Weight, Linkage, Dependency)
+│   ├── target/              # Target models (AnnualTarget, MonthlyPhasing, Lock)
+│   ├── actual/              # Actual models (MonthlyActual, Evidence, Adjustment)
+│   ├── validation/          # Validation models (Record, Comment, Reason, Escalation)
+│   ├── calculation/         # Calculation models (Score, AggregatedScore, TrafficLight)
+│   ├── cascade/             # Cascade models (Map, Rule, History)
+│   └── analytics/           # Analytics models (Materialized Views)
 │
-├── managers/                          # Custom Query Managers
+├── managers/                # Custom query managers
 │   ├── __init__.py
-│   ├── base.py                       # Base manager with tenant isolation
-│   ├── kpi_manager.py                # KPI queryset methods
-│   ├── target_manager.py             # Target filtering by period/status
-│   ├── actual_manager.py             # Pending/approved actuals
-│   ├── score_manager.py              # Score aggregation methods
-│   └── validation_manager.py         # Validation status queries
+│   ├── base.py              # Base managers with tenant isolation
+│   ├── kpi_manager.py       # KPI query methods
+│   ├── target_manager.py    # Target query methods
+│   ├── actual_manager.py    # Actual query methods
+│   ├── score_manager.py     # Score query methods
+│   ├── validation_manager.py # Validation query methods
+│   └── cascade_manager.py   # Cascade query methods
 │
-├── engine/                            # Calculation Engine (Core Business Logic)
+├── engine/                  # Calculation engine
 │   ├── __init__.py
-│   ├── orchestrator.py               # Main calculation orchestrator
-│   │
-│   ├── calculators/                   # Individual Calculators
-│   │   ├── __init__.py
-│   │   ├── base.py                   # Abstract calculator
-│   │   ├── numeric_calculator.py     # Numeric KPI calculations
-│   │   ├── percentage_calculator.py  # Percentage-based calculations
-│   │   ├── financial_calculator.py   # Financial KPI logic
-│   │   ├── milestone_calculator.py   # Yes/No milestone tracking
-│   │   ├── time_calculator.py        # Turnaround time calculations
-│   │   └── impact_calculator.py      # NGO impact scores
-│   │
-│   ├── formulas/                      # Formula Implementations
-│   │   ├── __init__.py
-│   │   ├── higher_is_better.py       # (Actual ÷ Target) × 100
-│   │   ├── lower_is_better.py        # (Target ÷ Actual) × 100
-│   │   ├── cumulative.py             # YTD cumulative calculations
-│   │   ├── non_cumulative.py         # Period-only calculations
-│   │   └── weighted_average.py       # Weighted average for rolled-up scores
-│   │
-│   ├── traffic_light/                 # Traffic Light Logic
-│   │   ├── __init__.py
-│   │   ├── threshold.py              # Threshold definitions
-│   │   ├── evaluator.py              # Evaluates score against thresholds
-│   │   ├── trend_analyzer.py         # Consecutive red/yellow detection
-│   │   └── predictor.py              # ML-based risk prediction (Phase 5)
-│   │
-│   ├── aggregator/                    # Roll-up Aggregations
-│   │   ├── __init__.py
-│   │   ├── individual_aggregator.py  # Individual KPI → Overall score
-│   │   ├── team_aggregator.py        # Team member aggregation
-│   │   ├── department_aggregator.py  # Department roll-up
-│   │   ├── organization_aggregator.py # Org-wide roll-up
-│   │   └── hierarchy_aggregator.py   # Hierarchical roll-up (any depth)
-│   │
-│   ├── phasing/                       # Target Phasing Engine
-│   │   ├── __init__.py
-│   │   ├── phasing_engine.py         # Main phasing orchestrator
-│   │   ├── equal_split.py            # Equal monthly distribution
-│   │   ├── seasonal.py               # Seasonal/weighted distribution
-│   │   ├── custom_pattern.py         # User-defined monthly patterns
-│   │   └── validation.py             # Phasing validation rules
-│   │
-│   └── cascade/                       # Target Cascade Engine
-│       ├── __init__.py
-│       ├── cascade_engine.py         # Main cascade orchestrator
-│       ├── split_rules.py            # Department/team split rules
-│       ├── validation.py             # Cascade integrity checks
-│       └── rollback.py               # Cascade rollback on error
+│   ├── orchestrator.py      # Main calculation orchestrator
+│   ├── calculators/         # KPI type calculators
+│   ├── formulas/            # Calculation formulas
+│   ├── traffic_light/       # Traffic light logic
+│   ├── aggregator/          # Score aggregation
+│   ├── phasing/             # Target phasing
+│   └── cascade/             # Target cascading
 │
-├── services/                          # Business Services Layer
+├── services/                # Business logic services
 │   ├── __init__.py
-│   │
-│   ├── kpi_service/                   # KPI Management
-│   │   ├── __init__.py
-│   │   ├── creator.py                # Create KPI with validation
-│   │   ├── updater.py                # Update KPI with history
-│   │   ├── activator.py              # Activate/deactivate KPIs
-│   │   ├── validator.py              # KPI definition validation
-│   │   └── import_export.py          # Bulk KPI import/export
-│   │
-│   ├── target_service/                # Target Management
-│   │   ├── __init__.py
-│   │   ├── setter.py                 # Set annual targets
-│   │   ├── phaser.py                 # Phase targets monthly
-│   │   ├── locker.py                 # Lock phasing (no changes after)
-│   │   ├── adjuster.py               # Adjust targets (with approval)
-│   │   └── validator.py              # Target validation rules
-│   │
-│   ├── actual_service/                # Actual Data Entry
-│   │   ├── __init__.py
-│   │   ├── entry.py                  # Enter monthly actuals
-│   │   ├── submitter.py              # Submit for validation
-│   │   ├── batch_upload.py           # Bulk Excel/CSV upload
-│   │   ├── evidence.py               # Attach evidence
-│   │   └── adjustment.py             # Request adjustment to actuals
-│   │
-│   ├── validation_service/            # Supervisor Validation
-│   │   ├── __init__.py
-│   │   ├── approver.py               # Approve pending entries
-│   │   ├── rejecter.py               # Reject with reason/comment
-│   │   ├── resubmission.py           # Handle resubmitted entries
-│   │   ├── escalator.py              # Escalate unresolved entries
-│   │   └── batch_validation.py       # Batch approve/reject
-│   │
-│   ├── calculation_service/           # Calculation Orchestration
-│   │   ├── __init__.py
-│   │   ├── score_calculator.py       # Calculate individual scores
-│   │   ├── aggregator.py             # Roll-up calculations
-│   │   ├── scheduler.py              # Schedule periodic calculations
-│   │   ├── idempotent.py             # Idempotent calculation execution
-│   │   └── error_handler.py          # Graceful error handling
-│   │
-│   ├── cascade_service/               # Target Cascading
-│   │   ├── __init__.py
-│   │   ├── cascader.py               # Cascade company targets
-│   │   ├── mapper.py                 # Map department to individual
-│   │   ├── notifier.py               # Notify users of new targets
-│   │   └── rollback.py               # Rollback cascade on error
-│   │
-│   ├── dashboard_service/             # Dashboard Data Provider
-│   │   ├── __init__.py
-│   │   ├── individual.py             # Individual dashboard data
-│   │   ├── manager.py                # Manager team dashboard
-│   │   ├── executive.py              # Executive overview
-│   │   ├── champion.py               # Dashboard Champion view
-│   │   └── realtime.py               # Real-time dashboard updates
-│   │
-│   ├── notification_service/          # Notification Triggers
-│   │   ├── __init__.py
-│   │   ├── triggers.py               # Event → notification mapping
-│   │   ├── red_alert.py              # 2+ months red status alert
-│   │   ├── missing_data.py           # 5th of month reminder
-│   │   ├── pending_validation.py     # 48-hour pending alert
-│   │   └── threshold_breach.py       # Threshold breach notifications
-│   │
-│   └── audit_service/                 # Audit & Compliance
-│       ├── __init__.py
-│       ├── logger.py                 # Audit log writer
-│       ├── reporter.py               # Audit report generation
-│       └── compliance.py             # Compliance checks
+│   ├── kpi_service.py       # KPI CRUD operations
+│   ├── target_service.py    # Target operations
+│   ├── actual_service.py    # Actual data operations
+│   ├── validation_service.py # Validation operations
+│   ├── calculation_service.py # Score calculation
+│   ├── cascade_service.py   # Cascade operations
+│   ├── dashboard_service.py # Dashboard data
+│   ├── notification_service.py # Notifications
+│   └── audit_service.py     # Audit logging
 │
-├── api/                               # REST API (DRF)
+├── api/                     # REST API
 │   ├── __init__.py
 │   ├── v1/
 │   │   ├── __init__.py
-│   │   ├── urls.py                   # v1 API routing
-│   │   │
-│   │   ├── serializers/
-│   │   │   ├── __init__.py
-│   │   │   ├── kpi.py                # KPI serializers
-│   │   │   ├── target.py             # Target serializers
-│   │   │   ├── actual.py             # Actual data serializers
-│   │   │   ├── validation.py         # Validation serializers
-│   │   │   ├── dashboard.py          # Dashboard response serializers
-│   │   │   ├── cascade.py            # Cascade serializers
-│   │   │   └── analytics.py          # Analytics serializers
-│   │   │
-│   │   ├── views/
-│   │   │   ├── __init__.py
-│   │   │   ├── kpi_views.py          # KPI CRUD endpoints
-│   │   │   ├── target_views.py       # Target management endpoints
-│   │   │   ├── actual_views.py       # Actual data entry endpoints
-│   │   │   ├── validation_views.py   # Supervisor validation endpoints
-│   │   │   ├── dashboard_views.py    # Dashboard data endpoints
-│   │   │   ├── cascade_views.py      # Target cascade endpoints
-│   │   │   ├── analytics_views.py    # Analytics/report endpoints
-│   │   │   ├── framework_views.py    # KPI framework management
-│   │   │   └── bulk_views.py         # Bulk operations endpoints
-│   │   │
-│   │   ├── permissions/
-│   │   │   ├── __init__.py
-│   │   │   ├── kpi_permissions.py    # KPI object-level permissions
-│   │   │   ├── tenant_permissions.py # Tenant isolation
-│   │   │   ├── manager_permissions.py # Manager access checks
-│   │   │   └── champion_permissions.py # Dashboard Champion checks
-│   │   │
-│   │   ├── throttles/
-│   │   │   ├── __init__.py
-│   │   │   ├── bulk_upload.py        # Rate limit for bulk operations
-│   │   │   └── calculation.py        # Calculation endpoint limits
-│   │   │
-│   │   └── filters/
-│   │       ├── __init__.py
-│   │       ├── kpi_filters.py        # Filter by sector, category, status
-│   │       ├── date_filters.py       # Period-based filtering
-│   │       └── hierarchy_filters.py  # Filter by org hierarchy
-│   │
-│   └── v2/                            # Reserved for ML/AI (Phase 5)
-│       └── __init__.py
+│   │   ├── urls.py          # API URL routing
+│   │   ├── serializers.py   # DRF serializers
+│   │   ├── permissions.py   # Permission classes
+│   │   ├── filters.py       # Filter classes
+│   │   ├── throttles.py     # Rate limiting
+│   │   └── views/           # API views
+│   │       ├── base.py
+│   │       ├── framework_views.py
+│   │       ├── kpi_views.py
+│   │       ├── target_views.py
+│   │       ├── actual_views.py
+│   │       ├── validation_views.py
+│   │       ├── score_views.py
+│   │       ├── cascade_views.py
+│   │       ├── dashboard_views.py
+│   │       ├── analytics_views.py
+│   │       ├── bulk_views.py
+│   │       ├── calculation_views.py
+│   │       └── history_views.py
 │
-├── consumers/                         # WebSocket Consumers (Real-time)
-│   ├── __init__.py
-│   ├── dashboard_consumer.py         # Real-time dashboard updates
-│   ├── notification_consumer.py      # Push notifications
-│   ├── calculation_consumer.py       # Long-running calc status
-│   ├── validation_consumer.py        # Validation status updates
-│   └── middleware.py                 # WebSocket auth middleware
+├── consumers.py             # WebSocket consumers
+├── routing.py               # WebSocket routing
+├── middleware.py            # Custom middleware
 │
-├── middleware/                        # Custom Middleware
-│   ├── __init__.py
-│   ├── kpi_context.py                # KPI request context
-│   ├── calculation_cache.py          # Cache calculation results
-│   └── audit_injector.py             # Inject audit context
+├── management/              # Management commands
+│   └── commands/
+│       ├── calculate_all_scores.py
+│       ├── refresh_materialized_views.py
+│       ├── check_red_status.py
+│       ├── send_missing_data_reminders.py
+│       └── ...
 │
-├── signals/                           # Django Signals
-│   ├── __init__.py
-│   ├── kpi_signals.py                # Post-save KPI triggers
-│   ├── actual_signals.py             # Actual entry triggers calculation
-│   ├── validation_signals.py         # Validation triggers notifications
-│   └── cascade_signals.py            # Cascade triggers target creation
+├── fixtures/                # Initial data
+│   ├── sectors.yaml
+│   ├── kpi_categories.yaml
+│   ├── cascade_rules.yaml
+│   ├── rejection_reasons.yaml
+│   └── kpi_templates/
 │
-├── management/                        # Management Commands
-│   ├── __init__.py
-│   ├── commands/
-│   │   ├── __init__.py
-│   │   ├── calculate_all_scores.py   # Recalculate all scores
-│   │   ├── refresh_materialized_views.py # Refresh analytics views
-│   │   ├── check_red_status.py       # Detect 2+ months red status
-│   │   ├── send_missing_data_reminders.py # Monthly reminders
-│   │   ├── validate_phasing.py       # Validate all phasing integrity
-│   │   ├── archive_old_data.py       # Archive historical data
-│   │   └── migrate_kpi_frameworks.py # Migrate frameworks between versions
-│
-├── migrations/                        # Database Migrations
-│   ├── __init__.py
-│   └── ... (auto-generated)
-│
-├── fixtures/                          # Initial Data
-│   ├── __init__.py
-│   ├── sectors.yaml                  # NGO, Commercial, Public, Consulting
-│   ├── kpi_categories.yaml           # Financial, Impact, Operational
-│   ├── kpi_templates/
-│   │   ├── commercial.yaml           # Revenue, Margin, Sales KPIs
-│   │   ├── ngo.yaml                  # Beneficiaries, Grants, Impact
-│   │   ├── public_sector.yaml        # Service levels, Compliance
-│   │   └── consulting.yaml           # Billable hours, Client satisfaction
-│   └── threshold_configs.yaml        # Default traffic light thresholds
-│
-├── utils/                             # Utility Functions
-│   ├── __init__.py
-│   ├── cache_keys.py                 # Redis cache key generators
-│   ├── date_utils.py                 # Period handling utilities
-│   ├── decimal_utils.py              # Precision-safe decimal operations
-│   ├── lock_utils.py                 # Distributed locks for calculations
-│   └── retry_utils.py                # Retry decorators for transient failures
-│
-└── tests/                             # Comprehensive Tests
-    ├── __init__.py
-    ├── conftest.py                   # Test fixtures
-    │
-    ├── factories/                     # Test Data Factories
-    │   ├── __init__.py
-    │   ├── kpi_factory.py
-    │   ├── target_factory.py
-    │   ├── actual_factory.py
-    │   ├── validation_factory.py
-    │   └── cascade_factory.py
-    │
-    ├── unit/                          # Unit Tests
-    │   ├── test_models/
-    │   │   ├── test_kpi_model.py
-    │   │   ├── test_target_model.py
-    │   │   ├── test_actual_model.py
-    │   │   └── test_validation_model.py
-    │   │
-    │   ├── test_engine/
-    │   │   ├── test_calculators/
-    │   │   │   ├── test_numeric_calculator.py
-    │   │   │   ├── test_percentage_calculator.py
-    │   │   │   └── test_financial_calculator.py
-    │   │   ├── test_formulas/
-    │   │   │   ├── test_higher_is_better.py
-    │   │   │   └── test_lower_is_better.py
-    │   │   ├── test_traffic_light.py
-    │   │   ├── test_aggregator.py
-    │   │   └── test_phasing_engine.py
-    │   │
-    │   ├── test_services/
-    │   │   ├── test_kpi_service.py
-    │   │   ├── test_target_service.py
-    │   │   ├── test_actual_service.py
-    │   │   ├── test_validation_service.py
-    │   │   └── test_calculation_service.py
-    │   │
-    │   └── test_utils/
-    │       ├── test_decimal_utils.py
-    │       └── test_date_utils.py
-    │
-    ├── integration/                   # Integration Tests
-    │   ├── test_api/
-    │   │   ├── test_kpi_endpoints.py
-    │   │   ├── test_target_endpoints.py
-    │   │   ├── test_actual_endpoints.py
-    │   │   ├── test_validation_endpoints.py
-    │   │   ├── test_dashboard_endpoints.py
-    │   │   └── test_cascade_endpoints.py
-    │   │
-    │   ├── test_workflows/
-    │   │   ├── test_validation_flow.py
-    │   │   ├── test_cascade_flow.py
-    │   │   ├── test_phasing_flow.py
-    │   │   └── test_calculation_flow.py
-    │   │
-    │   ├── test_calculations/
-    │   │   ├── test_end_to_end_calc.py
-    │   │   ├── test_rollup_accuracy.py
-    │   │   └── test_traffic_light_consistency.py
-    │   │
-    │   └── test_consumers/
-    │       ├── test_dashboard_consumer.py
-    │       └── test_notification_consumer.py
-    │
-    ├── security/                      # Security Tests (3S: Security)
-    │   ├── test_tenant_isolation.py
-    │   ├── test_kpi_permissions.py
-    │   ├── test_validation_permissions.py
-    │   ├── test_sql_injection.py
-    │   ├── test_calculation_integrity.py
-    │   └── test_audit_logging.py
-    │
-    ├── stability/                     # Stability Tests (3S: Stability)
-    │   ├── test_idempotency.py       # Same calculation, same result
-    │   ├── test_concurrent_calculations.py
-    │   ├── test_transaction_rollback.py
-    │   ├── test_graceful_degradation.py
-    │   └── test_retry_mechanisms.py
-    │
-    ├── solidity/                      # Solidity Tests (3S: Solidity)
-    │   ├── test_data_integrity.py
-    │   ├── test_referential_integrity.py
-    │   ├── test_immutable_history.py
-    │   ├── test_cascade_consistency.py
-    │   └── test_phasing_lock.py
-    │
-    ├── performance/                   # Performance Tests
-    │   ├── test_calculation_performance.py
-    │   ├── test_dashboard_query_count.py
-    │   ├── test_bulk_upload.py
-    │   ├── test_aggregation_scaling.py
-    │   └── test_materialized_view_refresh.py
-    │
-    └── e2e/                           # End-to-End Tests
-        ├── test_full_kpi_lifecycle.py
-        ├── test_manager_dashboard.py
-        ├── test_champion_workflow.py
-        └── test_notification_triggers.py
+└── utils/                   # Utility functions
+    ├── cache_keys.py
+    ├── date_utils.py
+    ├── decimal_utils.py
+    ├── lock_utils.py
+    ├── retry_utils.py
+    ├── validators_utils.py
+    ├── query_utils.py
+    └── formatters.py

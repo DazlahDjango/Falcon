@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import * as echarts from 'echarts';
 
-const BarChart = ({ data, options, hieght, width }) => {
+const BarChart = ({ data, options, height, width }) => {
     const chartRef = useRef(null);
     let chartInstance = null
     useEffect(() => {

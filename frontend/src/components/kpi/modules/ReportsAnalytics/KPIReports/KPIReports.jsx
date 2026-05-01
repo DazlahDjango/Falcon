@@ -21,14 +21,26 @@ const KPIReports = ({ year, month, onError }) => {
     useEffect(() => {
         applyFilters();
     }, [kpiSummaries, filters]);
+    
     const fetchKPISummaries = async () => {
         setLoading(true);
         try {
-            const response = await analyticsService.getKPISummaries({ year, month });
-            setKpiSummaries(response.results || []);
-            setFilteredSummaries(response.results || []);
+            // Provide default year and month if not specified
+            const now = new Date();
+            const params = {
+                year: year || now.getFullYear(),
+                month: month || now.getMonth() + 1
+            };
+            
+            const response = await analyticsService.getKPISummaries(params);
+            // Handle both paginated and non-paginated responses
+            const results = response.results || response || [];
+            setKpiSummaries(results);
+            setFilteredSummaries(results);
         } catch (error) {
             console.error('Failed to fetch KPI summaries:', error);
+            setKpiSummaries([]);
+            setFilteredSummaries([]);
             if (onError) onError(error);
         } finally {
             setLoading(false);

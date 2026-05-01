@@ -1,0 +1,89 @@
+/* Cost Center Components Styles */
+
+.cost-center-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.cost-center-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-color: #8b5cf6;
+}
+
+.budget-gauge {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.budget-gauge-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.budget-gauge-fill-low { background: #10b981; }
+.budget-gauge-fill-medium { background: #f59e0b; }
+.budget-gauge-fill-high { background: #ef4444; }
+
+.cost-center-tree {
+  padding: 0.5rem;
+  border-left: 2px solid #e5e7eb;
+  margin-left: 1rem;
+}
+
+.cost-center-node {
+  position: relative;
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+}
+
+.cost-center-node:hover {
+  background: #f9fafb;
+}
+
+.allocation-editor {
+  max-width: 400px;
+}
+
+.allocation-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.allocation-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  background: #e5e7eb;
+  border-radius: 2px;
+}
+
+.allocation-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  cursor: pointer;
+}
+
+.allocation-percentage {
+  width: 60px;
+  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #8b5cf6;
+}

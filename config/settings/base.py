@@ -132,6 +132,7 @@ PROJECT_APPS = [
     'apps.notification',
     'apps.kpi.apps.KpiConfig',
     'apps.organisations.apps.OrganisationsConfig',
+    'apps.structure.apps.StructureConfig',
     'apps.reports',
     'apps.workflowsapi',
     'apps.tenant.apps.TenantConfig',
@@ -166,6 +167,7 @@ MIDDLEWARE = [
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
+<<<<<<< HEAD
     # Tenant middleware
     'apps.tenant.middleware.tenant_resolution.TenantResolutionMiddleware',
     'apps.tenant.middleware.tenant_isolation.TenantIsolationMiddleware',
@@ -173,11 +175,19 @@ MIDDLEWARE = [
     # Organisations Tenant Middleware (comment these out if not needed)
     # 'apps.organisations.middleware.tenant_resolver.TenantResolverMiddleware',
     # 'apps.organisations.middleware.tenant_isolation.TenantIsolationMiddleware',
+=======
+    #Structure
+    'apps.structure.middleware.StructureContextMiddleware',
+    'apps.structure.middleware.StructureCacheMiddleware',
+    'apps.structure.middleware.StructureAccessEnforcerMiddleware',
+    'apps.structure.middleware.StructureRateLimitMiddleware',
+>>>>>>> dbaa23d53cee0626975f8f4803c665da76056895
     # KPI
     'apps.kpi.middleware.ContextMiddleware',
     'apps.kpi.middleware.AuditMiddleware',
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'config.urls'

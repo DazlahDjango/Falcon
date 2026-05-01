@@ -1,7 +1,5 @@
-// src/pages/kpi/KPIDashboardPage.jsx
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import { useAuth } from '../../hooks/accounts/useAuth';
 import { usePermissionContext } from "../../contexts/accounts/PermissionContext";
 import { useIndividualDashboard, useManagerDashboard, useExecutiveDashboard, useChampionDashboard } from '../../hooks/kpi';
 import { IndividualDashboard, ManagerDashboard, ExecutiveDashboard, ChampionDashboard } from '../../components/kpi/dashboards';
@@ -17,27 +15,29 @@ const KPIDashboardPage = () => {
         month: new Date().getMonth() + 1 
     };
     
-    const [dashboardType, setDashboardType] = useState('individual');
+    const [dashboardType, fetchDashboardType] = useState('individual');
     
     useEffect(() => {
+        // Use correct role names from your backend
         if (hasAnyRole(['executive', 'super_admin', 'client_admin'])) {
-            setDashboardType('executive');
+            fetchDashboardType('executive');
         } else if (hasRole('dashboard_champion')) {
-            setDashboardType('champion');
-        } else if (hasRole('manager')) {
-            setDashboardType('manager');
+            fetchDashboardType('champion');
+        } else if (hasRole('supervisor')) {  // ✅ FIXED: 'supervisor' not 'manager'
+            fetchDashboardType('manager');
         } else {
-            setDashboardType('individual');
+            fetchDashboardType('individual');
         }
     }, [user, hasRole, hasAnyRole]);
     
+    // Rest of your component remains the same...
     const individualDashboard = useIndividualDashboard(period.year, period.month);
     const managerDashboard = useManagerDashboard(period.year, period.month);
     const executiveDashboard = useExecutiveDashboard(period.year, period.month);
     const championDashboard = useChampionDashboard(period.year, period.month);
     
     const handlePeriodChange = (year, month) => {
-        dispatch(setDashboardPeriod({ year, month }));
+        dispatch(fetchDashboardPeriod({ year, month }));
         dispatch(refreshDashboard(dashboardType));
     };
     

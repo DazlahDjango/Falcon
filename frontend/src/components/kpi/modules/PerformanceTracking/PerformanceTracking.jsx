@@ -9,11 +9,11 @@ const PerformanceTracking = ({ userId, userRole, onError }) => {
     const [activeTab, setActiveTab] = useState('entry');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const tabs = [
-        { id: 'entry', label: 'Actual Entry', icon: '✏️', roles: ['employee', 'manager', 'admin'] },
-        { id: 'validation', label: 'Validation Queue', icon: '✓', roles: ['manager', 'admin'] },
-        { id: 'adjustments', label: 'Adjustment Requests', icon: '↻', roles: ['employee', 'manager', 'admin'] }
+        { id: 'entry', label: 'Actual Entry', icon: '✏️', roles: ['super_admin', 'client_admin', 'executive', 'supervisor', 'dashboard_champion'] },
+        { id: 'validation', label: 'Validation Queue', icon: '✓', roles: ['supervisor', 'super_admin', 'client_admin'] },
+        { id: 'adjustments', label: 'Adjustment Requests', icon: '↻', roles: ['user', 'supervisor', 'super_admin', 'client_admin'] }
     ];
-    const visiblTabs = tabs.filter(tab => tab.roles.includes(userRole));
+    const visibleTabs = tabs.filter(tab => tab.roles.includes(userRole));
     const handleRefresh = () => {
         setRefreshTrigger(prev => prev + 1);
     };

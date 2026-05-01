@@ -11,15 +11,23 @@ from django.core.asgi import get_asgi_application
 from apps.accounts.routing import websocket_urlpatterns as accounts_websocket
 from apps.organisations.routing import websocket_urlpatterns as organisations_websocket
 from apps.kpi.routing import websocket_urlpatterns as kpi_websocket
+<<<<<<< HEAD
 from apps.tenant.routing import websocket_urlpatterns as tenant_websocket  # ← ADD THIS
+=======
+from apps.structure.routing import websocket_urlpatterns as structure_websocket
+>>>>>>> dbaa23d53cee0626975f8f4803c665da76056895
 
 # Combined WebSocket URL Patterns
 # ===============================
 websocket_urlpatterns = []
 websocket_urlpatterns.extend(accounts_websocket)
-websocket_urlpatterns.extend(organisations_websocket)
+websocket_urlpatterns.extend(structure_websocket)
 websocket_urlpatterns.extend(kpi_websocket)
+<<<<<<< HEAD
 websocket_urlpatterns.extend(tenant_websocket)  # ← ADD THIS
+=======
+websocket_urlpatterns.extend(organisations_websocket)
+>>>>>>> dbaa23d53cee0626975f8f4803c665da76056895
 
 
 # Main Application Router

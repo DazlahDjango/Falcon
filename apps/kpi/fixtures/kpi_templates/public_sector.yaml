@@ -1,6 +1,9 @@
 - model: kpi.kpiframework
   pk: 6
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Public Service Delivery Framework"
     code: "PUBLIC_V1"
     sector: 3
@@ -17,6 +20,9 @@
 - model: kpi.kpitemplate
   pk: 20
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Service Delivery Turnaround Time"
     code: "TAT_001"
     sector: 3
@@ -40,6 +46,9 @@
 - model: kpi.kpitemplate
   pk: 21
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Compliance Rate"
     code: "COMPLY_001"
     sector: 3
@@ -63,6 +72,9 @@
 - model: kpi.kpitemplate
   pk: 22
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Citizen Satisfaction Index"
     code: "CSI_001"
     sector: 3
@@ -86,6 +98,9 @@
 - model: kpi.kpitemplate
   pk: 23
   fields:
+    tenant_id: 1a1620a4-f2df-4935-b233-832d3bc0b175
+    created_at: "2026-04-28T19:00:00Z"
+    updated_at: "2026-04-28T19:00:00Z"
     name: "Budget Execution Rate"
     code: "BUDGET_001"
     sector: 3

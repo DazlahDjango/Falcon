@@ -5,7 +5,7 @@ export const setupInterceptors = (api) => {
     // Request interceptor - add auth token
     api.interceptors.request.use(
         (config) => {
-            const token = getAuthToken();
+            const token = getAccessToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }

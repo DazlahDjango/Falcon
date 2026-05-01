@@ -9,6 +9,7 @@ export const ROUTES = {
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
     // Dashboard
+    DASHBOARD: '/dashboard',
     KPI_DASHBOARD: '/kpi/dashboard',
     // KPI
     KPI_MANAGEMENT: '/kpi/management',
@@ -123,11 +124,13 @@ export const API_ENDPOINTS = {
     SESSIONS_CURRENT: '/sessions/current/',
     SESSIONS_TERMINATE_ALL: '/sessions/terminate-all/',
     // Dashboard
-    INDIVIDUAL_DASHBOARD: '/dashboard/individual/',
-    MANAGER_DASHBOARD: '/dashboard/manager/',
-    EXECUTIVE_DASHBOARD: '/dashboard/executive/',
-    CHAMPION_DASHBOARD: '/dashboard/champion/',
+    INDIVIDUAL_DASHBOARD: '/kpis/dashboard/individual/',
+    MANAGER_DASHBOARD: '/kpis/dashboard/manager/',
+    EXECUTIVE_DASHBOARD: '/kpis/dashboard/executive/',
+    CHAMPION_DASHBOARD: '/kpis/dashboard/champion/',
+
     // KPI
+    // ==========
     KPI_LIST: '/kpis/kpis/',
     KPI_DETAIL: '/kpis/kpis/{id}/',
     KPI_CREATE: '/kpis/kpis/',
@@ -144,7 +147,6 @@ export const API_ENDPOINTS = {
     FRAMEWORKS: '/kpis/frameworks/',
     CATEGORIES: '/kpis/categories/',
     TEMPLATES: '/kpis/templates/',
-    
     // Targets
     TARGETS: '/kpis/targets/',
     TARGET_DETAIL: '/kpis/targets/{id}/',
@@ -152,7 +154,6 @@ export const API_ENDPOINTS = {
     TARGET_VALIDATE: '/kpis/targets/{id}/validate/',
     TARGET_CASCADE: '/kpis/targets/cascade/',
     MONTHLY_PHASING: '/kpis/monthly-phasing/',
-    
     // Actuals
     ACTUALS: '/kpis/actuals/',
     ACTUAL_DETAIL: '/kpis/actuals/{id}/',
@@ -160,14 +161,18 @@ export const API_ENDPOINTS = {
     ACTUAL_APPROVE: '/kpis/actuals/{id}/approve/',
     ACTUAL_REJECT: '/kpis/actuals/{id}/reject/',
     ACTUAL_EVIDENCE: '/kpis/actuals/{id}/evidence/',
-    
     // Scores
     SCORES: '/kpis/scores/',
     SCORE_DETAIL: '/kpis/scores/{id}/',
     AGGREGATED_SCORES: '/kpis/aggregated-scores/',
     TRAFFIC_LIGHTS: '/kpis/traffic-lights/',
+     // Stats
+    KPI_SUMMARIES: '/kpis/kpi-summaries/',           
+    DEPARTMENT_ROLLUPS: '/kpis/department-rollups/',
+    ORGANIZATION_HEALTH: '/kpis/organization-health/',
     
     // Organisations
+    // ================
     ORGANISATIONS: '/organisations/',
     ORGANISATION_CURRENT: '/organisations/current/',
     ORGANISATION_SETTINGS: '/organisations/settings/',

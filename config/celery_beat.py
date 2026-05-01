@@ -90,4 +90,41 @@ beat_schedule = {
         'schedule': crontab(hour=10, minute=0),
         'options': {'expires': 3600},
     },
+
+    # ======== Structure =======
+    'warm-structure-cache-daily': {
+        'task': 'structure.tasks.warm_structure_cache',
+        'schedule': crontab(hour=3, minute=0),
+        'args': [],
+    },
+    'refresh-materialized-views-hourly': {
+        'task': 'structure.tasks.refresh_materialized_views',
+        'schedule': crontab(minute=0),
+        'args': [],
+    },
+    'detect-orphaned-nodes-daily': {
+        'task': 'structure.tasks.detect_orphaned_nodes',
+        'schedule': crontab(hour=2, minute=30),
+        'args': [],
+    },
+    'validate-org-integrity-daily': {
+        'task': 'structure.tasks.validate_org_integrity',
+        'schedule': crontab(hour=4, minute=0),
+        'args': [],
+    },
+    'detect-circular-references-daily': {
+        'task': 'structure.tasks.detect_circular_references',
+        'schedule': crontab(hour=4, minute=30),
+        'args': [],
+    },
+    'cleanup-orphaned-versions-weekly': {
+        'task': 'structure.tasks.cleanup_orphaned_versions',
+        'schedule': crontab(day_of_week=0, hour=5, minute=0),
+        'args': [],
+    },
+    'rebuild-hierarchy-indexes-monthly': {
+        'task': 'structure.tasks.rebuild_hierarchy_indexes',
+        'schedule': crontab(day_of_month=1, hour=6, minute=0),
+        'args': [],
+    },
 }
