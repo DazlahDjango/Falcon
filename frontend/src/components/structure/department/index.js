@@ -4,3 +4,4 @@ export { default as DepartmentTreeView } from './DepartmentTreeView';
 export { default as DepartmentSelector } from './DepartmentSelector';
 export { default as DepartmentMoveModal } from './DepartmentMoveModal';
 export { default as DepartmentAncestors } from './DepartmentAncestors';
+export {default as DepartmentFilters } from './DepartmentFilters'

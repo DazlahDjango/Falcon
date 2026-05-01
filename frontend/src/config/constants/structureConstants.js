@@ -356,7 +356,6 @@ export const EMPLOYMENT_TABLE_COLUMNS = [
 // Pagination
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 250];
-export const DEFAULT_PAGE_SIZE = 50;
 // Local Storage Keys
 export const STRUCTURE_STORAGE_KEYS = {
     DEPARTMENT_FILTERS: 'structure_department_filters',

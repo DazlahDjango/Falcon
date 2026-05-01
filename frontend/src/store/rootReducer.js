@@ -18,6 +18,24 @@ import preferenceReducer from './accounts/slice/preferenceSlice';
 import accountsTeamReducer from './accounts/slice/teamSlice';
 import accountsUiReducer from './accounts/slice/uiSlice';
 
+// =============================================
+// Structure Reducers
+// =============================================
+import structNotificationReducer from './structure/notificationSlice';
+import uiReducer from './ui/slices/uiSlice'
+import {
+  departmentReducer,
+  teamReducer,
+  positionReducer,
+  employmentReducer,
+  reportingReducer,
+  hierarchyReducer,
+  orgChartReducer,
+  costCenterReducer,
+  locationReducer,
+  structureUiReducer,
+} from './structure';
+
 // ==========================================
 // Organisation Reducers
 // ==========================================
@@ -25,8 +43,8 @@ import organisationReducer from './organisations/slice/organisationSlice';
 import subscriptionReducer from './organisations/slice/subscriptionSlice';
 import planReducer from './organisations/slice/planSlice';
 import featureFlagReducer from './organisations/slice/featureFlagSlice';
-import departmentReducer from './organisations/slice/departmentSlice';
-import positionReducer from './organisations/slice/positionSlice';
+import orgDepartmentReducer from './organisations/slice/departmentSlice';
+import orgPositionReducer from './organisations/slice/positionSlice';
 import domainReducer from './organisations/slice/domainSlice';
 import brandingReducer from './organisations/slice/brandingSlice';
 import settingsReducer from './organisations/slice/settingsSlice';
@@ -68,15 +86,30 @@ const rootReducer = combineReducers({
     preferences: preferenceReducer,
     accTeam: accountsTeamReducer,
     ui: accountsUiReducer,
+
+    // Structure State
+    structNotifications: structNotificationReducer,
+    structure: combineReducers({
+        departments: departmentReducer,
+        teams: teamReducer,
+        positions: positionReducer,
+        employments: employmentReducer,
+        reporting: reportingReducer,
+        hierarchy: hierarchyReducer,
+        orgChart: orgChartReducer,
+        costCenters: costCenterReducer,
+        locations: locationReducer,
+        ui: structureUiReducer,
+    }),
     
     // Organisation State
     organisation: organisationReducer,
     subscription: subscriptionReducer,
     plans: planReducer,
     featureFlags: featureFlagReducer,
-    departments: departmentReducer,
-    teams: orgTeamReducer,
-    positions: positionReducer,
+    orgDepartments: orgDepartmentReducer,
+    orgTeams: orgTeamReducer,
+    orgPositions: orgPositionReducer,
     domains: domainReducer,
     branding: brandingReducer,
     settings: settingsReducer,

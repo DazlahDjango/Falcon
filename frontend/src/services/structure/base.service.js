@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { store } from '../../store';
 import { logout } from '../../store/accounts/slice/authSlice';
-import { showToast } from '../../store/slices/uiSlice';
+import { showToast } from '../../store/ui/slices/uiSlice';
 import { getAccessToken } from '../accounts/storage/secureStorage';
 
 // Configuration

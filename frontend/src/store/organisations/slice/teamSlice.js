@@ -158,7 +158,7 @@ const initialState = {
 // ============================================================
 
 const teamSlice = createSlice({
-  name: 'team',
+  name: 'orgTeam',
   initialState,
   reducers: {
     clearCurrentTeam: (state) => {

@@ -52,17 +52,65 @@ export default defineConfig(({ mode }) => {
             outDir: 'dist',
             sourcemap: !isProduction,
             minify: isProduction,
-            chunkSizeWarningLimit: 1000,
+            chunkSizeWarningLimit: 1500, // Increased from 1000
             rollupOptions: {
                 output: {
-                    manualChunks: {
-                        'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-                        'redux-vendor': ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
-                        'ui-vendor': ['lucide-react', 'react-icons'],
-                        'chart-vendor': ['echarts', 'react-chartjs-2', 'chart.js'],
-                        'form-vendor': ['formik', 'yup'],
-                        'date-vendor': ['date-fns'],
-                        'query-vendor': ['@tanstack/react-query'],
+                    manualChunks: (id) => {
+                        // Node_modules chunks - FIXED circular dependency
+                        if (id.includes('node_modules')) {
+                            // React core
+                            if (id.includes('react') && !id.includes('react-router') && !id.includes('react-dom')) {
+                                return 'react-core';
+                            }
+                            if (id.includes('react-dom')) {
+                                return 'react-dom';
+                            }
+                            if (id.includes('react-router')) {
+                                return 'react-router';
+                            }
+                            // Redux
+                            if (id.includes('redux') || id.includes('@reduxjs/toolkit')) {
+                                return 'redux';
+                            }
+                            // Charts (large, separate)
+                            if (id.includes('echarts') || id.includes('zrender')) {
+                                return 'echarts';
+                            }
+                            // Everything else
+                            return 'vendor';
+                        }
+                        
+                        // Structure store - all in one chunk
+                        if (id.includes('/store/slices/structure')) {
+                            return 'structure-store';
+                        }
+                        
+                        // Other store files
+                        if (id.includes('/store/')) {
+                            return 'store';
+                        }
+                        
+                        // Pages - keep together to avoid circular deps
+                        if (id.includes('/pages/')) {
+                            return 'pages';
+                        }
+                        
+                        // Components
+                        if (id.includes('/components/')) {
+                            return 'components';
+                        }
+                        
+                        // Hooks
+                        if (id.includes('/hooks/')) {
+                            return 'hooks';
+                        }
+                        
+                        // Services
+                        if (id.includes('/services/')) {
+                            return 'services';
+                        }
+                        
+                        return 'main';
                     },
                     chunkFileNames: 'assets/[name]-[hash].js',
                     entryFileNames: 'assets/[name]-[hash].js',

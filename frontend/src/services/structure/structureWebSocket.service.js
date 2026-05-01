@@ -1,6 +1,6 @@
 import { store } from '../../store';
-import { addNotification } from '../../store/slices/notificationSlice';
-import { updateDepartment, updateTeam, updateEmployment } from '../../store/slices/structure/structureUiSlice';
+import { addNotification } from '../../store/structure/notificationSlice';
+import { updateDepartment, updateTeam, updateEmployment } from '../../store/structure';
 
 class StructureWebSocketService {
   constructor() {

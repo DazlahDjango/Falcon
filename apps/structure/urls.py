@@ -1,6 +1,7 @@
 """
-Structure app URL configuration
-Includes WebSocket routing for real-time updates
+Structure App URL Configuration
+Main entry point for all structure-related URLs
+Includes REST API and WebSocket routing
 """
 from django.urls import path, include
 
@@ -10,9 +11,12 @@ urlpatterns = [
     # REST API v1
     path('api/v1/', include('apps.structure.api.v1.urls')),
 ]
+
 # WebSocket URL patterns (used by channels routing)
 websocket_urlpatterns = [
     path('ws/structure/<uuid:tenant_id>/events/', 'apps.structure.consumers.OrgEventsConsumer.as_asgi()'),
     path('ws/structure/<uuid:tenant_id>/reporting/', 'apps.structure.consumers.ReportingChainConsumer.as_asgi()'),
     path('ws/structure/<uuid:tenant_id>/permissions/', 'apps.structure.consumers.PermissionsSyncConsumer.as_asgi()'),
+    path('ws/structure/<uuid:tenant_id>/departments/<uuid:department_id>/', 'apps.structure.consumers.OrgEventsConsumer.as_asgi()'),
+    path('ws/structure/<uuid:tenant_id>/teams/<uuid:team_id>/', 'apps.structure.consumers.OrgEventsConsumer.as_asgi()'),
 ]

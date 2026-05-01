@@ -1,62 +1,59 @@
-// src/routes/structure.routes.js
-
-import { lazy } from 'react';
-
+import { lazy } from 'react'
 // Lazy load pages for code splitting
-const DepartmentList = lazy(() => import('../pages/structure/DepartmentList'));
-const DepartmentDetail = lazy(() => import('../pages/structure/DepartmentDetail'));
-const DepartmentForm = lazy(() => import('../pages/structure/DepartmentForm'));
-const DepartmentTree = lazy(() => import('../pages/structure/DepartmentTree'));
+const DepartmentList = lazy(() => import('../pages/structure/DepartmentList'))
+const DepartmentDetail = lazy(() => import('../pages/structure/DepartmentDetail'))
+const DepartmentForm = lazy(() => import('../pages/structure/DepartmentForm'))
+const DepartmentTree = lazy(() => import('../pages/structure/DepartmentTree'))
 
-const TeamList = lazy(() => import('../pages/structure/TeamList'));
-const TeamDetail = lazy(() => import('../pages/structure/TeamDetail'));
-const TeamForm = lazy(() => import('../pages/structure/TeamForm'));
-const TeamHierarchy = lazy(() => import('../pages/structure/TeamHierarchy'));
+const TeamList = lazy(() => import('../pages/structure/TeamList'))
+const TeamDetail = lazy(() => import('../pages/structure/TeamDetail'))
+const TeamForm = lazy(() => import('../pages/structure/TeamForm'))
+const TeamHierarchy = lazy(() => import('../pages/structure/TeamHierarchy'))
 
-const PositionList = lazy(() => import('../pages/structure/PositionList'));
-const PositionDetail = lazy(() => import('../pages/structure/PositionDetail'));
-const PositionForm = lazy(() => import('../pages/structure/PositionForm'));
+const PositionList = lazy(() => import('../pages/structure/PositionList'))
+const PositionDetail = lazy(() => import('../pages/structure/PositionDetail'))
+const PositionForm = lazy(() => import('../pages/structure/PositionForm'))
 
-const EmploymentList = lazy(() => import('../pages/structure/EmploymentList'));
-const EmploymentDetail = lazy(() => import('../pages/structure/EmploymentDetail'));
-const EmploymentForm = lazy(() => import('../pages/structure/EmploymentForm'));
-const EmploymentTransfer = lazy(() => import('../pages/structure/EmploymentTransfer'));
+const EmploymentList = lazy(() => import('../pages/structure/EmploymentList'))
+const EmploymentDetail = lazy(() => import('../pages/structure/EmploymentDetail'))
+const EmploymentForm = lazy(() => import('../pages/structure/EmploymentForm'))
+const EmploymentTransfer = lazy(() => import('../pages/structure/EmploymentTransfer'))
 
-const ReportingLineList = lazy(() => import('../pages/structure/ReportingLineList'));
-const ReportingLineForm = lazy(() => import('../pages/structure/ReportingLineForm'));
+const ReportingLineList = lazy(() => import('../pages/structure/ReportingLineList'))
+const ReportingLineForm = lazy(() => import('../pages/structure/ReportingLineForm'))
 
-const OrganizationChart = lazy(() => import('../pages/structure/OrganizationChart'));
-const CostCenterList = lazy(() => import('../pages/structure/CostCenterList'));
-const CostCenterForm = lazy(() => import('../pages/structure/CostCenterForm'));
-const LocationList = lazy(() => import('../pages/structure/LocationList'));
-const LocationForm = lazy(() => import('../pages/structure/LocationForm'));
+const OrganizationChart = lazy(() => import('../pages/structure/OrganizationChart'))
+const CostCenterList = lazy(() => import('../pages/structure/CostCenterList'))
+const CostCenterForm = lazy(() => import('../pages/structure/CostCenterForm'))
+const LocationList = lazy(() => import('../pages/structure/LocationList'))
+const LocationForm = lazy(() => import('../pages/structure/LocationForm'))
 
-const HierarchyVersionList = lazy(() => import('../pages/structure/HierarchyVersionList'));
-const HierarchyCompare = lazy(() => import('../pages/structure/HierarchyCompare'));
-const StructureDashboard = lazy(() => import('../pages/structure/StructureDashboard'));
+const HierarchyVersionList = lazy(() => import('../pages/structure/HierarchyVersionList'))
+const HierarchyCompare = lazy(() => import('../pages/structure/HierarchyCompare'))
+const StructureDashboard = lazy(() => import('../pages/structure/StructureDashboard'))
 
-// Role-based permission checks
+// Permission Checks
 const hasStructureAccess = (userRole) => {
-  const allowedRoles = ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor', 'staff'];
-  return allowedRoles.includes(userRole);
-};
+  const allowedRoles = ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor', 'staff']
+  return allowedRoles.includes(userRole)
+}
 
 const hasAdminAccess = (userRole) => {
-  const allowedRoles = ['super_admin', 'client_admin', 'executive'];
-  return allowedRoles.includes(userRole);
-};
+  const allowedRoles = ['super_admin', 'client_admin', 'executive']
+  return allowedRoles.includes(userRole)
+}
 
 const hasWriteAccess = (userRole) => {
-  const allowedRoles = ['super_admin', 'client_admin', 'executive'];
-  return allowedRoles.includes(userRole);
-};
+  const allowedRoles = ['super_admin', 'client_admin', 'executive']
+  return allowedRoles.includes(userRole)
+}
 
 const hasDeleteAccess = (userRole) => {
-  const allowedRoles = ['super_admin', 'client_admin'];
-  return allowedRoles.includes(userRole);
-};
+  const allowedRoles = ['super_admin', 'client_admin']
+  return allowedRoles.includes(userRole)
+}
 
-// Department routes
+// Department Routes
 export const departmentRoutes = [
   {
     path: 'departments',
@@ -93,9 +90,9 @@ export const departmentRoutes = [
     title: 'Edit Department',
     breadcrumb: 'Edit',
   },
-];
+]
 
-// Team routes
+// Team Routes
 export const teamRoutes = [
   {
     path: 'teams',
@@ -132,9 +129,9 @@ export const teamRoutes = [
     title: 'Edit Team',
     breadcrumb: 'Edit',
   },
-];
+]
 
-// Position routes
+// Position Routes
 export const positionRoutes = [
   {
     path: 'positions',
@@ -164,9 +161,9 @@ export const positionRoutes = [
     title: 'Edit Position',
     breadcrumb: 'Edit',
   },
-];
+]
 
-// Employment routes
+// Employment Routes
 export const employmentRoutes = [
   {
     path: 'employments',
@@ -203,9 +200,9 @@ export const employmentRoutes = [
     title: 'Transfer Employee',
     breadcrumb: 'Transfer',
   },
-];
+]
 
-// Reporting Line routes
+// Reporting Line Routes
 export const reportingRoutes = [
   {
     path: 'reporting-lines',
@@ -228,9 +225,9 @@ export const reportingRoutes = [
     title: 'Edit Reporting Line',
     breadcrumb: 'Edit',
   },
-];
+]
 
-// Cost Center routes
+// Cost Center Routes
 export const costCenterRoutes = [
   {
     path: 'cost-centers',
@@ -253,9 +250,9 @@ export const costCenterRoutes = [
     title: 'Edit Cost Center',
     breadcrumb: 'Edit',
   },
-];
+]
 
-// Location routes
+// Location Routes
 export const locationRoutes = [
   {
     path: 'locations',
@@ -278,9 +275,9 @@ export const locationRoutes = [
     title: 'Edit Location',
     breadcrumb: 'Edit',
   },
-];
+]
 
-// Hierarchy routes
+// Hierarchy Routes
 export const hierarchyRoutes = [
   {
     path: 'hierarchy/versions',
@@ -296,9 +293,9 @@ export const hierarchyRoutes = [
     title: 'Compare Versions',
     breadcrumb: 'Compare',
   },
-];
+]
 
-// Visualization routes
+// Visualization Routes 
 export const visualizationRoutes = [
   {
     path: 'org-chart',
@@ -314,57 +311,35 @@ export const visualizationRoutes = [
     title: 'Structure Dashboard',
     breadcrumb: 'Dashboard',
   },
-];
+]
 
-// All structure routes combined
+// Combined Structure Routes 
 export const structureRoutes = [
   {
     path: 'structure',
-    element: null, // Layout wrapper
+    element: null,
     children: [
       // Dashboard
       { path: 'dashboard', element: StructureDashboard, permissions: hasStructureAccess, title: 'Dashboard' },
-      
-      // Departments
       ...departmentRoutes,
-      
-      // Teams
       ...teamRoutes,
-      
-      // Positions
       ...positionRoutes,
-      
-      // Employments
       ...employmentRoutes,
-      
-      // Reporting Lines
       ...reportingRoutes,
-      
-      // Cost Centers
       ...costCenterRoutes,
-      
-      // Locations
       ...locationRoutes,
-      
-      // Hierarchy
       ...hierarchyRoutes,
-      
-      // Visualizations
       ...visualizationRoutes,
-      
-      // Default redirect
       { path: '', redirect: 'dashboard' },
     ],
   },
-];
+]
 
-// Generate flat routes for React Router
 export const getStructureFlatRoutes = () => {
   const flattenRoutes = (routes, parentPath = '') => {
-    let flat = [];
+    let flat = []
     for (const route of routes) {
-      const fullPath = `${parentPath}/${route.path}`.replace(/\/+/g, '/');
-      
+      const fullPath = `${parentPath}/${route.path}`.replace(/\/+/g, '/')
       if (route.element) {
         flat.push({
           path: fullPath,
@@ -373,80 +348,66 @@ export const getStructureFlatRoutes = () => {
           title: route.title,
           breadcrumb: route.breadcrumb,
           requiresAuth: true,
-        });
+        })
       }
-      
       if (route.children) {
-        flat = [...flat, ...flattenRoutes(route.children, fullPath)];
+        flat = [...flat, ...flattenRoutes(route.children, fullPath)]
       }
     }
-    return flat;
-  };
-  
-  return flattenRoutes(structureRoutes, '/app');
-};
+    return flat
+  }
+  return flattenRoutes(structureRoutes, '/app')
+}
 
-// Export named routes for navigation
 export const STRUCTURE_ROUTES = {
   // Dashboard
   DASHBOARD: '/app/structure/dashboard',
-  
   // Departments
   DEPARTMENTS: '/app/structure/departments',
   DEPARTMENT_TREE: '/app/structure/departments/tree',
   DEPARTMENT_CREATE: '/app/structure/departments/create',
   DEPARTMENT_DETAIL: (id) => `/app/structure/departments/${id}`,
   DEPARTMENT_EDIT: (id) => `/app/structure/departments/${id}/edit`,
-  
   // Teams
   TEAMS: '/app/structure/teams',
   TEAM_HIERARCHY: '/app/structure/teams/hierarchy',
   TEAM_CREATE: '/app/structure/teams/create',
   TEAM_DETAIL: (id) => `/app/structure/teams/${id}`,
   TEAM_EDIT: (id) => `/app/structure/teams/${id}/edit`,
-  
   // Positions
   POSITIONS: '/app/structure/positions',
   POSITION_CREATE: '/app/structure/positions/create',
   POSITION_DETAIL: (id) => `/app/structure/positions/${id}`,
   POSITION_EDIT: (id) => `/app/structure/positions/${id}/edit`,
-  
   // Employments
   EMPLOYMENTS: '/app/structure/employments',
   EMPLOYMENT_CREATE: '/app/structure/employments/create',
   EMPLOYMENT_DETAIL: (id) => `/app/structure/employments/${id}`,
   EMPLOYMENT_EDIT: (id) => `/app/structure/employments/${id}/edit`,
   EMPLOYMENT_TRANSFER: (userId) => `/app/structure/employments/transfer/${userId || ''}`,
-  
   // Reporting Lines
   REPORTING_LINES: '/app/structure/reporting-lines',
   REPORTING_LINE_CREATE: '/app/structure/reporting-lines/create',
   REPORTING_LINE_EDIT: (id) => `/app/structure/reporting-lines/${id}/edit`,
-  
   // Cost Centers
   COST_CENTERS: '/app/structure/cost-centers',
   COST_CENTER_CREATE: '/app/structure/cost-centers/create',
   COST_CENTER_EDIT: (id) => `/app/structure/cost-centers/${id}/edit`,
-  
   // Locations
   LOCATIONS: '/app/structure/locations',
   LOCATION_CREATE: '/app/structure/locations/create',
   LOCATION_EDIT: (id) => `/app/structure/locations/${id}/edit`,
-  
   // Hierarchy
   HIERARCHY_VERSIONS: '/app/structure/hierarchy/versions',
   HIERARCHY_COMPARE: (versionA, versionB) => `/app/structure/hierarchy/compare/${versionA}/${versionB}`,
-  
   // Visualizations
   ORG_CHART: '/app/structure/org-chart',
-  
-  // My Information (dynamic)
+  // My Information
   MY_EMPLOYMENT: '/app/structure/me',
   MY_TEAM: '/app/structure/my-team',
   MY_CHAIN: '/app/structure/my-chain',
-};
+}
 
-// Breadcrumb mapping for structure pages
 export const STRUCTURE_BREADCRUMBS = {
   [STRUCTURE_ROUTES.DASHBOARD]: [{ title: 'Home', path: '/app' }, { title: 'Structure Dashboard' }],
   [STRUCTURE_ROUTES.DEPARTMENTS]: [{ title: 'Home', path: '/app' }, { title: 'Departments' }],
@@ -456,6 +417,5 @@ export const STRUCTURE_BREADCRUMBS = {
   [STRUCTURE_ROUTES.POSITIONS]: [{ title: 'Home', path: '/app' }, { title: 'Positions' }],
   [STRUCTURE_ROUTES.EMPLOYMENTS]: [{ title: 'Home', path: '/app' }, { title: 'Employments' }],
   [STRUCTURE_ROUTES.ORG_CHART]: [{ title: 'Home', path: '/app' }, { title: 'Organization Chart' }],
-};
-
-export default structureRoutes;
+}
+export default structureRoutes
