@@ -4,17 +4,22 @@ import { useSelector } from "react-redux";
 import { ROUTES } from '../../../config/constants';
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
-    FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer,
+    FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp
 } from 'react-icons/fi';
 import { MdDomain } from 'react-icons/md';
+import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
+import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
+
 const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
     const [expandedMenus, setExpandedMenus] = useState({
         main: true,
         team: true,
         reporting: true,
         settings: true,
+        admin: true,
+        structure: true,     
+        hierarchy: true,
         organisation: true,
-        admin: true
     });
     const {tenant} = useSelector((state) => state.tenant);
     // Roles navigate
@@ -37,13 +42,21 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/security', name: 'Security', icon: FiShield, roles: ['all'] },
             { path: '/notifications', name: 'Notifications', icon: FiBell, roles: ['all'] },
         ];
-        const organisationItems = [
-            { path: ROUTES.ORGANISATION_DASHBOARD, name: 'Organisation', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_USERS, name: 'Team Members', icon: FiUsers, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_TEAMS, name: 'Teams', icon: FiUserCheck, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_DEPARTMENTS, name: 'Departments', icon: FiLayers, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_SETTINGS, name: 'Org Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_SUBSCRIPTION, name: 'Subscription', icon: FiFileText, roles: ['super_admin', 'client_admin'] },
+        const structureItems = [
+            { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion'] },
+            { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor', 'staff'] },
+            { path: '/app/structure/teams', name: 'Teams', icon: HiOutlineUserGroup, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor', 'staff'] },
+            { path: '/app/structure/positions', name: 'Positions', icon: BsBriefcase, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion'] },
+            { path: '/app/structure/employments', name: 'Employments', icon: BsPersonBadge, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor'] },
+            { path: '/app/structure/reporting-lines', name: 'Reporting Lines', icon: BsDiagram3, roles: ['super_admin', 'client_admin', 'executive', 'supervisor'] },
+            { path: '/app/structure/cost-centers', name: 'Cost Centers', icon: FiDollarSign, roles: ['super_admin', 'client_admin', 'executive'] },
+            { path: '/app/structure/locations', name: 'Locations', icon: FiMapPin, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'staff'] },
+        ];
+        const hierarchyItems = [
+            { path: '/app/structure/org-chart', name: 'Organization Chart', icon: FiGitBranch, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor', 'staff'] },
+            { path: '/app/structure/department-trees', name: 'Department Tree', icon: FiGitBranch, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion'] },
+            { path: '/app/structure/team-hierarchies', name: 'Team Hierarchy', icon: FiGitBranch, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor'] },
+            { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase, roles: ['super_admin', 'client_admin', 'executive'] },
         ];
         const kpiItems = [
             { path: ROUTES.KPI_DASHBOARD, name: 'Kpi Dashboard', icon: FiBarChart2, roles: ['super_admin','executive', 'supervisor', 'dashboard_champion']},
@@ -51,6 +64,14 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ROUTES.TARGETS, name: 'Targets', icon: FiCalendar, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
             { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
+        ];
+        const organisationItems = [
+            { path: ROUTES.ORGANISATION_DASHBOARD, name: 'Organisation', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_USERS, name: 'Team Members', icon: FiUsers, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_TEAMS, name: 'Teams', icon: FiUserCheck, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_DEPARTMENTS, name: 'Departments', icon: FiLayers, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_SETTINGS, name: 'Org Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
+            { path: ROUTES.ORGANISATION_SUBSCRIPTION, name: 'Subscription', icon: FiFileText, roles: ['super_admin', 'client_admin'] },
         ];
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
@@ -63,8 +84,10 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             team: teamItems,
             reporting: reportingItems,
             settings: settingsItems,
-            organisation: organisationItems,
+            structure: structureItems,
+            hierarchy: hierarchyItems,
             kpi: kpiItems,
+            organisation: organisationItems,
             admin: adminItems
         };
     };
@@ -141,6 +164,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Team', navigation.team, 'team')}
                 {renderNavGroup('Reporting', navigation.reporting, 'reporting')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
+                {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
+                {renderNavGroup('Hierarchy & Charts', navigation.hierarchy, 'hierarchy')}
                 {renderNavGroup('KPI', navigation.kpi, 'kpi')}
                 {(user?.role === 'client_admin' || user?.role === 'super_admin') && renderNavGroup('Organisation', navigation.organisation, 'organisation')}
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}

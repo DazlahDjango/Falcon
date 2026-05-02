@@ -5,18 +5,21 @@ export const DEPARTMENT_SENSITIVITY = {
     CONFIDENTIAL: 'confidential',
     RESTRICTED: 'restricted',
 };
+
 export const DEPARTMENT_SENSITIVITY_LABELS = {
     [DEPARTMENT_SENSITIVITY.PUBLIC]: 'Public',
     [DEPARTMENT_SENSITIVITY.INTERNAL]: 'Internal',
     [DEPARTMENT_SENSITIVITY.CONFIDENTIAL]: 'Confidential',
     [DEPARTMENT_SENSITIVITY.RESTRICTED]: 'Restricted',
 };
+
 export const DEPARTMENT_SENSITIVITY_COLORS = {
-    [DEPARTMENT_SENSITIVITY.PUBLIC]: '#10B981',   // Green
-    [DEPARTMENT_SENSITIVITY.INTERNAL]: '#3B82F6', // Blue
-    [DEPARTMENT_SENSITIVITY.CONFIDENTIAL]: '#F59E0B', // Amber
-    [DEPARTMENT_SENSITIVITY.RESTRICTED]: '#EF4444', // Red
+    [DEPARTMENT_SENSITIVITY.PUBLIC]: '#10B981',
+    [DEPARTMENT_SENSITIVITY.INTERNAL]: '#3B82F6',
+    [DEPARTMENT_SENSITIVITY.CONFIDENTIAL]: '#F59E0B',
+    [DEPARTMENT_SENSITIVITY.RESTRICTED]: '#EF4444',
 };
+
 // Employment Types
 export const EMPLOYMENT_TYPE = {
     PERMANENT: 'permanent',
@@ -26,6 +29,7 @@ export const EMPLOYMENT_TYPE = {
     CONSULTANT: 'consultant',
     TEMPORARY: 'temporary',
 };
+
 export const EMPLOYMENT_TYPE_LABELS = {
     [EMPLOYMENT_TYPE.PERMANENT]: 'Permanent',
     [EMPLOYMENT_TYPE.CONTRACT]: 'Contract',
@@ -34,6 +38,7 @@ export const EMPLOYMENT_TYPE_LABELS = {
     [EMPLOYMENT_TYPE.CONSULTANT]: 'Consultant',
     [EMPLOYMENT_TYPE.TEMPORARY]: 'Temporary',
 };
+
 export const EMPLOYMENT_TYPE_COLORS = {
     [EMPLOYMENT_TYPE.PERMANENT]: '#10B981',
     [EMPLOYMENT_TYPE.CONTRACT]: '#3B82F6',
@@ -42,6 +47,7 @@ export const EMPLOYMENT_TYPE_COLORS = {
     [EMPLOYMENT_TYPE.CONSULTANT]: '#EC4899',
     [EMPLOYMENT_TYPE.TEMPORARY]: '#6B7280',
 };
+
 // Reporting Relation Types
 export const REPORTING_RELATION_TYPE = {
     SOLID: 'solid',
@@ -50,6 +56,7 @@ export const REPORTING_RELATION_TYPE = {
     PROJECT: 'project',
     MATRIX: 'matrix',
 };
+
 export const REPORTING_RELATION_TYPE_LABELS = {
     [REPORTING_RELATION_TYPE.SOLID]: 'Solid Line (Direct Manager)',
     [REPORTING_RELATION_TYPE.DOTTED]: 'Dotted Line (Functional Lead)',
@@ -57,6 +64,7 @@ export const REPORTING_RELATION_TYPE_LABELS = {
     [REPORTING_RELATION_TYPE.PROJECT]: 'Project-Based',
     [REPORTING_RELATION_TYPE.MATRIX]: 'Matrix Manager',
 };
+
 export const REPORTING_RELATION_TYPE_COLORS = {
     [REPORTING_RELATION_TYPE.SOLID]: '#10B981',
     [REPORTING_RELATION_TYPE.DOTTED]: '#F59E0B',
@@ -64,6 +72,7 @@ export const REPORTING_RELATION_TYPE_COLORS = {
     [REPORTING_RELATION_TYPE.PROJECT]: '#8B5CF6',
     [REPORTING_RELATION_TYPE.MATRIX]: '#EC4899',
 };
+
 // Cost Center Categories
 export const COST_CENTER_CATEGORY = {
     OPERATIONAL: 'operational',
@@ -72,6 +81,7 @@ export const COST_CENTER_CATEGORY = {
     DEPARTMENTAL: 'departmental',
     SHARED: 'shared',
 };
+
 export const COST_CENTER_CATEGORY_LABELS = {
     [COST_CENTER_CATEGORY.OPERATIONAL]: 'Operational',
     [COST_CENTER_CATEGORY.CAPITAL]: 'Capital',
@@ -79,6 +89,7 @@ export const COST_CENTER_CATEGORY_LABELS = {
     [COST_CENTER_CATEGORY.DEPARTMENTAL]: 'Departmental',
     [COST_CENTER_CATEGORY.SHARED]: 'Shared Service',
 };
+
 // Location Types
 export const LOCATION_TYPE = {
     HEADQUARTERS: 'headquarters',
@@ -87,6 +98,7 @@ export const LOCATION_TYPE = {
     REMOTE: 'remote',
     SATELLITE: 'satellite',
 };
+
 export const LOCATION_TYPE_LABELS = {
     [LOCATION_TYPE.HEADQUARTERS]: 'Headquarters',
     [LOCATION_TYPE.REGIONAL]: 'Regional Office',
@@ -94,6 +106,7 @@ export const LOCATION_TYPE_LABELS = {
     [LOCATION_TYPE.REMOTE]: 'Remote Hub',
     [LOCATION_TYPE.SATELLITE]: 'Satellite Office',
 };
+
 // Hierarchy Version Types
 export const HIERARCHY_VERSION_TYPE = {
     AUTO: 'auto',
@@ -102,6 +115,7 @@ export const HIERARCHY_VERSION_TYPE = {
     YEARLY: 'yearly',
     ACQUISITION: 'acquisition',
 };
+
 export const HIERARCHY_VERSION_TYPE_LABELS = {
     [HIERARCHY_VERSION_TYPE.AUTO]: 'Auto-saved',
     [HIERARCHY_VERSION_TYPE.MANUAL]: 'Manual Snapshot',
@@ -109,6 +123,7 @@ export const HIERARCHY_VERSION_TYPE_LABELS = {
     [HIERARCHY_VERSION_TYPE.YEARLY]: 'Yearly Archive',
     [HIERARCHY_VERSION_TYPE.ACQUISITION]: 'Merger/Acquisition',
 };
+
 // Status Types
 export const STATUS = {
     ACTIVE: 'active',
@@ -119,6 +134,7 @@ export const STATUS = {
     ON_LEAVE: 'on_leave',
     TERMINATED: 'terminated',
 };
+
 export const STATUS_LABELS = {
     [STATUS.ACTIVE]: 'Active',
     [STATUS.INACTIVE]: 'Inactive',
@@ -128,6 +144,7 @@ export const STATUS_LABELS = {
     [STATUS.ON_LEAVE]: 'On Leave',
     [STATUS.TERMINATED]: 'Terminated',
 };
+
 export const STATUS_COLORS = {
     [STATUS.ACTIVE]: '#10B981',
     [STATUS.INACTIVE]: '#6B7280',
@@ -137,6 +154,7 @@ export const STATUS_COLORS = {
     [STATUS.ON_LEAVE]: '#3B82F6',
     [STATUS.TERMINATED]: '#DC2626',
 };
+
 // Default Values
 export const DEFAULT_MAX_HIERARCHY_DEPTH = 20;
 export const DEFAULT_MAX_DIRECT_REPORTS = 50;
@@ -145,8 +163,10 @@ export const DEFAULT_WARNING_SPAN_OF_CONTROL = 20;
 export const DEFAULT_ORG_CHART_MAX_DEPTH = 10;
 export const DEFAULT_PAGE_SIZE = 50;
 export const DEFAULT_BULK_OPERATION_LIMIT = 100;
+
 // API Endpoints
 export const STRUCTURE_API_BASE = '/api/v1/structure';
+
 export const API_ENDPOINTS = {
     // Departments
     DEPARTMENTS: `${STRUCTURE_API_BASE}/departments/`,
@@ -226,6 +246,7 @@ export const API_ENDPOINTS = {
     MY_TEAM: `${STRUCTURE_API_BASE}/my-team/`,
     MY_CHAIN: `${STRUCTURE_API_BASE}/my-chain/`,
 };
+
 // WebSocket Events
 export const WS_STRUCTURE_EVENTS = {
     ORG_EVENT: 'org_event',
@@ -240,6 +261,7 @@ export const WS_STRUCTURE_EVENTS = {
     ROLE_CHANGED: 'role_changed',
     HIERARCHY_ACCESS_CHANGED: 'hierarchy_access_changed',
 };
+
 // Query Keys (for React Query)
 export const STRUCTURE_QUERY_KEYS = {
     DEPARTMENTS: 'departments',
@@ -264,6 +286,7 @@ export const STRUCTURE_QUERY_KEYS = {
     STRUCTURE_STATS: 'structureStats',
     HIERARCHY_HEALTH: 'hierarchyHealth',
 };
+
 // Validation Rules
 export const VALIDATION_RULES = {
     DEPARTMENT_CODE: {
@@ -288,6 +311,7 @@ export const VALIDATION_RULES = {
         message: `Hierarchy depth cannot exceed ${DEFAULT_MAX_HIERARCHY_DEPTH}`,
     },
 };
+
 // Chart Colors (ECharts compatible)
 export const STRUCTURE_CHART_COLORS = {
     PRIMARY: '#3B82F6',
@@ -313,6 +337,7 @@ export const STRUCTURE_CHART_COLORS = {
     // Gradient
     gradient: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
 };
+
 // Table Columns Configuration
 export const DEPARTMENT_TABLE_COLUMNS = [
     { key: 'code', label: 'Code', sortable: true },
@@ -324,6 +349,7 @@ export const DEPARTMENT_TABLE_COLUMNS = [
     { key: 'status', label: 'Status', sortable: true },
     { key: 'actions', label: 'Actions', sortable: false },
 ];
+
 export const TEAM_TABLE_COLUMNS = [
     { key: 'code', label: 'Code', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
@@ -334,6 +360,7 @@ export const TEAM_TABLE_COLUMNS = [
     { key: 'status', label: 'Status', sortable: true },
     { key: 'actions', label: 'Actions', sortable: false },
 ];
+
 export const POSITION_TABLE_COLUMNS = [
     { key: 'jobCode', label: 'Job Code', sortable: true },
     { key: 'title', label: 'Title', sortable: true },
@@ -343,6 +370,7 @@ export const POSITION_TABLE_COLUMNS = [
     { key: 'status', label: 'Status', sortable: true },
     { key: 'actions', label: 'Actions', sortable: false },
 ];
+
 export const EMPLOYMENT_TABLE_COLUMNS = [
     { key: 'user', label: 'User', sortable: true },
     { key: 'position', label: 'Position', sortable: true },
@@ -353,9 +381,11 @@ export const EMPLOYMENT_TABLE_COLUMNS = [
     { key: 'status', label: 'Status', sortable: true },
     { key: 'actions', label: 'Actions', sortable: false },
 ];
+
 // Pagination
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 250];
+
 // Local Storage Keys
 export const STRUCTURE_STORAGE_KEYS = {
     DEPARTMENT_FILTERS: 'structure_department_filters',
@@ -365,6 +395,7 @@ export const STRUCTURE_STORAGE_KEYS = {
     ORG_CHART_SETTINGS: 'structure_org_chart_settings',
     UI_PREFERENCES: 'structure_ui_preferences',
 };
+
 // Export Formats
 export const EXPORT_FORMATS = {
     JSON: 'json',
@@ -374,6 +405,7 @@ export const EXPORT_FORMATS = {
     PDF: 'pdf',
     PNG: 'png',
 };
+
 export const EXPORT_FORMAT_LABELS = {
     [EXPORT_FORMATS.JSON]: 'JSON',
     [EXPORT_FORMATS.CSV]: 'CSV',
@@ -382,6 +414,7 @@ export const EXPORT_FORMAT_LABELS = {
     [EXPORT_FORMATS.PDF]: 'PDF',
     [EXPORT_FORMATS.PNG]: 'PNG Image',
 };
+
 // Chart Types for Org Visualization
 export const ORG_CHART_TYPES = {
     TREE: 'tree',
@@ -390,10 +423,75 @@ export const ORG_CHART_TYPES = {
     FORCE: 'force',
     RADIAL: 'radial',
 };
+
 export const ORG_CHART_TYPE_LABELS = {
     [ORG_CHART_TYPES.TREE]: 'Tree Layout',
     [ORG_CHART_TYPES.SUNBURST]: 'Sunburst',
     [ORG_CHART_TYPES.TREEMAP]: 'Treemap',
     [ORG_CHART_TYPES.FORCE]: 'Force-Directed Graph',
     [ORG_CHART_TYPES.RADIAL]: 'Radial Tree',
+};
+
+// ============================================
+// ROUTE CONSTANTS - MUST MATCH YOUR SIDEBAR
+// ============================================
+export const STRUCTURE_ROUTES = {
+    // Dashboard
+    DASHBOARD: '/app/structure/dashboard',
+    
+    // Departments
+    DEPARTMENTS: '/app/structure/departments',
+    DEPARTMENT_TREE: '/app/structure/departments/tree',
+    DEPARTMENT_CREATE: '/app/structure/departments/create',
+    DEPARTMENT_DETAIL: (id = ':id') => `/app/structure/departments/${id}`,
+    DEPARTMENT_EDIT: (id = ':id') => `/app/structure/departments/${id}/edit`,
+    
+    // Teams
+    TEAMS: '/app/structure/teams',
+    TEAM_HIERARCHY: '/app/structure/teams/hierarchy',
+    TEAM_CREATE: '/app/structure/teams/create',
+    TEAM_DETAIL: (id = ':id') => `/app/structure/teams/${id}`,
+    TEAM_EDIT: (id = ':id') => `/app/structure/teams/${id}/edit`,
+    
+    // Positions
+    POSITIONS: '/app/structure/positions',
+    POSITION_CREATE: '/app/structure/positions/create',
+    POSITION_DETAIL: (id = ':id') => `/app/structure/positions/${id}`,
+    POSITION_EDIT: (id = ':id') => `/app/structure/positions/${id}/edit`,
+    
+    // Employments
+    EMPLOYMENTS: '/app/structure/employments',
+    EMPLOYMENT_CREATE: '/app/structure/employments/create',
+    EMPLOYMENT_DETAIL: (id = ':id') => `/app/structure/employments/${id}`,
+    EMPLOYMENT_EDIT: (id = ':id') => `/app/structure/employments/${id}/edit`,
+    EMPLOYMENT_TRANSFER: (userId = ':userId?') => `/app/structure/employments/transfer/${userId}`,
+    
+    // Reporting Lines
+    REPORTING_LINES: '/app/structure/reporting-lines',
+    REPORTING_LINE_CREATE: '/app/structure/reporting-lines/create',
+    REPORTING_LINE_EDIT: (id = ':id') => `/app/structure/reporting-lines/${id}/edit`,
+    
+    // Cost Centers
+    COST_CENTERS: '/app/structure/cost-centers',
+    COST_CENTER_CREATE: '/app/structure/cost-centers/create',
+    COST_CENTER_EDIT: (id = ':id') => `/app/structure/cost-centers/${id}/edit`,
+    
+    // Locations
+    LOCATIONS: '/app/structure/locations',
+    LOCATION_CREATE: '/app/structure/locations/create',
+    LOCATION_EDIT: (id = ':id') => `/app/structure/locations/${id}/edit`,
+    
+    // Hierarchy
+    HIERARCHY_VERSIONS: '/app/structure/hierarchy/versions',
+    HIERARCHY_COMPARE: (versionA = ':versionA', versionB = ':versionB') => `/app/structure/hierarchy/compare/${versionA}/${versionB}`,
+    
+    // Visualizations
+    ORG_CHART: '/app/structure/org-chart',
+    DEPARTMENT_TREES: '/app/structure/department-trees',
+    TEAM_HIERARCHIES: '/app/structure/team-hierarchies',
+    
+    // My Information
+    MY_EMPLOYMENT: '/app/structure/me',
+    MY_TEAM: '/app/structure/my-team',
+    MY_CHAIN: '/app/structure/my-chain',
 };

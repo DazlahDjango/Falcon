@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { structureAdminService } from '../../services/structure/structureAdmin.service';
+import { dashboardService } from '../../services/structure/dashboard.service';
 import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
 
 export const useStructureStats = () => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.STRUCTURE_STATS],
-    queryFn: () => structureAdminService.getMetrics(),
+    queryFn: () => dashboardService.getMetrics(),
     staleTime: 10 * 60 * 1000,
   });
 };

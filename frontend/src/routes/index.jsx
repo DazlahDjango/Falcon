@@ -6,7 +6,7 @@ import PublicRoute from "./PublicRoute";
 import accountsRoutes from "./accounts.routes";
 import organisationsRoutes from "./organisations.routes";
 import kpiRoutes from "./kpi.routes";
-import { getStructureFlatRoutes } from "./structure.routes";
+import structureRoutes from "./structure.routes";
 
 // Layouts
 const MainLayout = React.lazy(() => import("../components/common/Layout/MainLayout"));
@@ -27,7 +27,6 @@ const renderRoutes = (routes) => {
     ));
 };
 const AppRouter = () => {
-    const structureFlatRoutes = getStructureFlatRoutes();
     return (
         <Routes>
             {/* Public routes */}
@@ -46,7 +45,7 @@ const AppRouter = () => {
                     {/* Account routes */}
                     {renderRoutes(accountsRoutes)}
                     {/* Structure routes */}
-                    {renderRoutes(structureFlatRoutes)}
+                    {renderRoutes(structureRoutes)}
                     {/* Organisation routes */}
                     {renderRoutes(organisationsRoutes)} 
                     {/* KPI routes */}

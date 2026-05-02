@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { hierarchyService } from '../../services/structure/hierarchy.service';
-import { structureAdminService } from '../../services/structure/structureAdmin.service';
+import { dashboardService } from '../../services/structure/dashboard.service';
 import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
 import { showToast } from '../../store/ui/slices/uiSlice';
 import { useDispatch } from 'react-redux';
@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux';
 export const useHierarchyHealth = () => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.HIERARCHY_HEALTH],
-    queryFn: () => hierarchyService.getHealthMetrics(),
+    queryFn: () => dashboardService.getHealthMetrics(),
     staleTime: 5 * 60 * 1000,
   });
 };
