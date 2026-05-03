@@ -128,7 +128,7 @@ const initialState = {
 // ============================================================
 
 const positionSlice = createSlice({
-  name: 'position',
+  name: 'orgPosition',
   initialState,
   reducers: {
     clearCurrentPosition: (state) => {

@@ -19,8 +19,3 @@ class BaseStructureModel(models.Model):
             models.Index(fields=['tenant_id', 'is_deleted']),
             models.Index(fields=['tenant_id', 'created_at']),
         ]
-    def get_tenant(self):
-        try:
-            return Client.objects.get(id=self.tenant_id)
-        except Client.DoesNotExist:
-            return None

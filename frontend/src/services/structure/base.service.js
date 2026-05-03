@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { store } from '../../store';
 import { logout } from '../../store/accounts/slice/authSlice';
-import { showToast } from '../../store/slices/uiSlice';
-import { getAccessToken } from '../accounts/storage/secureStorage';
+import { showToast } from '../../store/ui/slices/uiSlice';
+import { getAccessToken, getRefreshToken, setTokens, clearTokens, getTenantId, clearTenantId } from '../accounts/storage/secureStorage';
+
 
 // Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const STRUCTURE_API_BASE = `${API_BASE_URL}/structure`;
 
 // Retry configuration
@@ -78,20 +79,34 @@ apiClient.interceptors.request.use(
     // Add request ID for tracking
     config.headers['X-Request-ID'] = generateRequestId();
     
-    // Get token using your secure storage (like accounts service)
+    // Get token using secure storage
     const token = await getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn('[Structure API] No access token found - user may not be authenticated');
     }
     
-    // Get tenant ID (same pattern as accounts)
-    const tenantId = localStorage.getItem('falcon_tenant_id');
+    // Get tenant ID from secure storage (now properly encrypted)
+    let tenantId = await getTenantId();
+    
+    // Fallback to Redux store if secure storage doesn't have it
+    if (!tenantId) {
+      const state = store.getState();
+      tenantId = state?.auth?.user?.tenant_id || state?.tenant?.currentTenant?.id;
+      console.warn('[Structure API] Tenant ID not found in secure storage, using Redux fallback:', tenantId);
+    }
+
     if (tenantId) {
       config.headers['X-Tenant-ID'] = tenantId;
+    } else {
+      console.error('[Structure API] CRITICAL: No tenant ID available!');
     }
     
     if (import.meta.env.DEV) {
       console.log(`[Structure API] ${config.method.toUpperCase()} ${config.url}`);
+      console.log(`[Structure API] Tenant ID: ${tenantId || 'Not set (ERROR!)'}`);
+      console.log(`[Structure API] Token: ${token ? 'Present' : 'Missing'}`);
     }
     
     return config;
@@ -110,7 +125,7 @@ apiClient.interceptors.response.use(
       console.log(`[Structure API] Response ${response.status}: ${response.config.url}`);
     }
     
-    // Standardize response format (adds consistency)
+    // Standardize response format
     return {
       success: true,
       data: response.data,
@@ -126,7 +141,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const message = error.response?.data?.message || error.message || 'An error occurred';
     
-    // Handle token refresh (more robust than accounts service)
+    // Handle token refresh
     if (status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // Queue requests while token is refreshing
@@ -139,15 +154,19 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
       
       try {
-        const refreshTokenValue = localStorage.getItem('falcon_refresh_token');
+        // FIXED: Use secure storage to get refresh token
+        const refreshTokenValue = await getRefreshToken();
         
         if (refreshTokenValue) {
-          const response = await axios.post(`${API_BASE_URL}/accounts/auth/refresh/`, {
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
             refresh: refreshTokenValue,
           });
           
           if (response.data?.access) {
-            localStorage.setItem('falcon_access_token', response.data.access);
+            // FIXED: Use secure storage to set new token
+            await setTokens(response.data.access, refreshTokenValue);
+            
+            // Update authorization header
             originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
             processQueue(null, response.data.access);
             return apiClient(originalRequest);
@@ -157,10 +176,9 @@ apiClient.interceptors.response.use(
         processQueue(refreshError, null);
         // Dispatch logout action
         store.dispatch(logout());
-        // Use your accounts storage cleanup
-        localStorage.removeItem('falcon_access_token');
-        localStorage.removeItem('falcon_refresh_token');
-        localStorage.removeItem('falcon_tenant_id');
+        // Use secure storage cleanup
+        await clearTokens();
+        await clearTenantId();
         window.location.href = '/login';
         return Promise.reject(new Error('Session expired. Please login again.'));
       } finally {
@@ -168,18 +186,20 @@ apiClient.interceptors.response.use(
       }
     }
     
-    // Handle specific status codes (like accounts service + more)
+    // Handle specific status codes
     if (status === 403) {
-      store.dispatch(showToast({ message: 'You do not have permission', type: 'error' }));
+      store.dispatch(showToast({ message: 'You do not have permission to access this resource', type: 'error' }));
     } else if (status === 404) {
+      // Don't show toast for 404s - let components handle it
+      console.warn(`[Structure API] Resource not found: ${originalRequest.url}`);
       return Promise.reject({ status, message, notFound: true });
     } else if (status === 429) {
-      store.dispatch(showToast({ message: 'Too many requests. Try again later.', type: 'error' }));
+      store.dispatch(showToast({ message: 'Too many requests. Please try again later.', type: 'error' }));
     } else if (status >= 500) {
       store.dispatch(showToast({ message: 'Server error. Please try again.', type: 'error' }));
     }
     
-    // Standardize error response (consistent with accounts)
+    // Standardize error response
     const standardizedError = {
       success: false,
       status: status || 0,

@@ -7,8 +7,9 @@ from .base import DynamicFieldsModelSerializer, AuditSerializer
 
 class UserMinimalSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(format='hex')  # ✅ Converts UUID to string
-    tenant_id = serializers.UUIDField(format='hex', source='tenant.id', read_only=True)
-    
+    tenant_id = serializers.UUIDField(read_only=True)
+    full_name = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = User
         fields = [
@@ -16,6 +17,7 @@ class UserMinimalSerializer(serializers.ModelSerializer):
             'is_superuser', 'is_verified', 'tenant_id'
         ]
         read_only_fields = fields
+
     def get_full_name(self, obj):
         return obj.get_full_name()
     
@@ -37,11 +39,14 @@ class UserListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
         return obj.get_full_name()
     
     def get_manager_name(self, obj):
-        if obj.manager():
-            return obj.manager.get_full_name()
+        mgr = getattr(obj, 'manager', None)
+        if mgr:
+            return mgr.get_full_name()
         return None
     
 class UserDetailSerializer(UserListSerializer):
+    phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
+
     class Meta(UserListSerializer.Meta):
         fields = UserListSerializer.Meta.fields + [
             'phone', 'tenant_id', 'last_login_ip', 'last_login_agent',
@@ -51,6 +56,7 @@ class UserDetailSerializer(UserListSerializer):
 class UserCreationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     password_confirm = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
     class Meta:
         model = User
         fields = [
@@ -89,6 +95,8 @@ class UserCreationSerializer(serializers.ModelSerializer):
         return user
     
 class UserUpdateSerializer(serializers.ModelSerializer):
+    phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
+
     class Meta:
         model = User
         fields = [
@@ -107,6 +115,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     
 class UserSerializer(DynamicFieldsModelSerializer):
     full_name = serializers.SerializerMethodField(read_only=True)
+    phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
+
     class Meta:
         model = User
         fields = [

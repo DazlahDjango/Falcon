@@ -143,7 +143,7 @@ const initialState = {
 // ============================================================
 
 const departmentSlice = createSlice({
-  name: 'department',
+  name: 'orgDepartment',
   initialState,
   reducers: {
     clearCurrentDepartment: (state) => {

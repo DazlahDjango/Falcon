@@ -32,6 +32,7 @@
 @import './assets/styles/kpi/charts.css';
 @import './assets/styles/kpi/traffic-light.css';
 @import './assets/styles/kpi/forms.css';
+<<<<<<< HEAD
 /* ============================================
    TENANT APP CSS IMPORTS
    ============================================ */
@@ -71,3 +72,80 @@
 
 /* Billing Components */
 @import './components/tenant/billing/billing.css';
+=======
+/* Structure Styling */
+@import './components/structure/common.css';
+@import './components/structure/department/department.css';
+@import './components/structure/team/team.css';
+@import './components/structure/position/position.css';
+@import './components/structure/employment/employment.css';
+@import './components/structure/reporting/reporting.css';
+@import './components/structure/hierarchy/hierarchy.css';
+@import './components/structure/cost-center/cost-center.css';
+@import './components/structure/location/location.css';
+@import './components/structure/charts/charts.css';
+@import './components/structure//modals/modals.css';
+@import './pages/structure/pages.css';
+
+/* Utility Classes */
+.container-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Focus Styles */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Transitions */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+>>>>>>> fcf349ea0e86d27d045718f4b7d871bbdc9075ef

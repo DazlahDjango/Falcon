@@ -6,7 +6,6 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from celery import shared_task
 from .models import User, UserSession, AuditLog, LoginAttempt, SessionBlacklist
-from .managers import SessionBlacklistManager
 from .services import PasswordService
 logger = logging.getLogger(__name__)
 password_service = PasswordService()
@@ -156,7 +155,7 @@ def cleanup_expired_sessions():
 @shared_task(name='accounts.cleanup_expired_blacklist')
 def cleanup_expired_blacklist():
     try:
-        deleted = SessionBlacklistManager.cleanup_expired()
+        deleted = SessionBlacklist.objects.cleanup_expired()
         logger.info(f"Cleaned up {deleted} expired blacklist entries")
         return {'deleted': deleted}
     except Exception as e:

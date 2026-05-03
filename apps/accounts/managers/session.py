@@ -69,7 +69,12 @@ class SessionBlacklistQuerySet(TenantAwareQuerySet):
 
 class SessionBlacklistManager(SoftDeleteManager):
     def get_queryset(self):
-        return SessionBlacklistQuerySet(self.model, using=self._db)
+        # Do not apply TenantAwareManager's tenant_id filter: JWT JTI checks must see
+        # all blacklist rows regardless of request tenant cache; SoftDelete only.
+        qs = SessionBlacklistQuerySet(self.model, using=self._db)
+        if hasattr(self.model, 'is_deleted'):
+            qs = qs.filter(is_deleted=False)
+        return qs
     def blacklist_token(self, token_id, token_type, user=None, reason='', expires_at=None):
         if not expires_at:
             expires_at = timezone.now() + timezone.timedelta(days=7)

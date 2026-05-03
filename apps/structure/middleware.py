@@ -1,9 +1,6 @@
 from django.utils.deprecation import MiddlewareMixin
 from django.core.cache import cache
 from django.http import JsonResponse
-from django.conf import settings
-from uuid import UUID
-import re
 
 class StructureContextMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -56,32 +53,10 @@ class StructureAccessEnforcerMiddleware(MiddlewareMixin):
             return None
         if request.method == 'GET':
             return None
-        if not hasattr(request, 'user') or not request.user or not request.user.is_authenticated:
-            return JsonResponse({'error': 'Authentication required'}, status=401)
-        from .services.security.hierarchy_access import HierarchyAccessEnforcer
-        enforcer = HierarchyAccessEnforcer()
-        tenant_id = getattr(request.user, 'tenant_id', None)
-        user_id = getattr(request.user, 'id', None)
-        if not tenant_id or not user_id:
-            return JsonResponse({'error': 'Invalid user context'}, status=403)
-        resource_id = StructureAccessEnforcerMiddleware._extract_resource_id(request)
-        if resource_id and not enforcer.can_view(user_id, UUID(resource_id), tenant_id):
-            return JsonResponse({'error': 'Access denied: insufficient privileges'}, status=403)
-        return None
-    
-    @staticmethod
-    def _extract_resource_id(request):
-        patterns = [
-            r'/departments/([^/]+)/',
-            r'/teams/([^/]+)/',
-            r'/employments/([^/]+)/',
-            r'/positions/([^/]+)/',
-            r'/users/([^/]+)/',
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, request.path)
-            if match:
-                return match.group(1)
+        # DRF authenticates JWT on the view; Django's request.user is often still
+        # AnonymousUser in process_request, which caused every write (POST/PATCH/…) to
+        # return 401 here while GET was exempt. Authorization for structure writes is
+        # enforced by DRF permission classes (e.g. CanEditDepartment).
         return None
 
 class StructureRateLimitMiddleware(MiddlewareMixin):

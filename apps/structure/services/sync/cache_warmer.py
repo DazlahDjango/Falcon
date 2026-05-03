@@ -77,20 +77,41 @@ class CacheWarmerService:
         return results
     
     def invalidate_tenant_cache(self, tenant_id: UUID) -> int:
+        """Best-effort invalidation. LocMem and many caches have no .keys(); django-redis adds delete_pattern."""
         patterns = [
             f"structure:dept_tree:{tenant_id}",
             f"structure:reporting_up:{tenant_id}:*",
             f"structure:reporting_down:{tenant_id}:*",
             f"structure:employment:{tenant_id}:*",
             f"structure:span:*:{tenant_id}:*",
-            f"structure:access:*:{tenant_id}:*"
+            f"structure:access:*:{tenant_id}:*",
         ]
         invalidated_count = 0
-        for pattern in patterns:
-            keys = self._cache.keys(pattern)
-            for key in keys:
-                self._cache.delete(key)
-                invalidated_count += 1
+        try:
+            delete_pattern = getattr(self._cache, "delete_pattern", None)
+            if callable(delete_pattern):
+                for pattern in patterns:
+                    try:
+                        deleted = delete_pattern(pattern)
+                        invalidated_count += int(deleted) if isinstance(deleted, int) else 1
+                    except Exception:
+                        continue
+                return invalidated_count
+        except Exception:
+            pass
+        try:
+            keys_fn = getattr(self._cache, "keys", None)
+            if not callable(keys_fn):
+                return 0
+            for pattern in patterns:
+                try:
+                    for key in keys_fn(pattern):
+                        self._cache.delete(key)
+                        invalidated_count += 1
+                except Exception:
+                    continue
+        except Exception:
+            pass
         return invalidated_count
     
     def schedule_warmup(self, tenant_id: UUID, delay_seconds: int = 30) -> None:

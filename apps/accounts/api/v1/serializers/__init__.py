@@ -4,7 +4,7 @@ from .user import UserSerializer, UserCreationSerializer, UserDetailSerializer, 
 from .profile import ProfileSerializer, ProfileUpdateSerializer, ProfilDetailSerializer, ProfileMinimalSerializer, ProfileListSerializer, SkillSerializer, SkillUpdateSerializer, CertificationSerializer, CertificationUpdateSerializer
 from .role import RoleSerializer, RoleCreateSerializer, RoleUpdateSerializer, RoleListSerializer, RoleDetailSerializer, RoleMinimalSerializer
 from .permission import PermissionSerializer, PermissionListSerializer, PermissionDetailSerializer, PermissionMinimalSerializer
-from .session import UserSessionSerializer, UserSessionListSerializer, UserSessionDetailSerializer, UserMinimalSerializer, SessionBlacklistSerializer
+from .session import UserSessionSerializer, UserSessionListSerializer, UserSessionDetailSerializer, SessionBlacklistSerializer
 from .mfa import MFADeviceSerializer, MFADeviceListSerializer, MFADeviceCreateSerializer, MFADeviceDetailSerializer, MFAAuditLogSerializer, MFABackupCodeSerializer, MFABackupListSerializer
 from .preference import UserPreferenceSerializer, UserPreferenceUpdateSerializer, TenantPreferenceUpdateSerializer, TenantPreferenceSerializer
 from .audit import AuditLogSerializer, AuditLogDetailSerializer, AuditLogExportSerializer, AuditLogListSerializer

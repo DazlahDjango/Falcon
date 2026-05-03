@@ -50,6 +50,8 @@ export const ROUTES = {
     // Admin
     ADMIN: '/admin',
     ADMIN_USERS: '/admin/users',
+    ADMIN_USER_CREATE: '/admin/users/create',
+    ADMIN_USER_EDIT: '/admin/users/:id/edit',
     ADMIN_TENANTS: '/admin/tenants',
     ADMIN_SYSTEM: '/admin/system',
     // Organisation

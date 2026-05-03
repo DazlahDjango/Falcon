@@ -43,11 +43,15 @@ urlpatterns = [
     # API/V1 URLs patterns
     path('api/v1/', include('apps.accounts.urls')),
 <<<<<<< HEAD
+<<<<<<< HEAD
     path('api/v1/tenant/', include('apps.tenant.api.v1.urls')),
     path('api/v1/organisations/', include('apps.organisations.api.v1.urls')),
 =======
     path('api/v1/structure/', include('apps.structure.api.v1.urls')),
 >>>>>>> dbaa23d53cee0626975f8f4803c665da76056895
+=======
+    path('api/v1/structure/', include('apps.structure.urls')),
+>>>>>>> fcf349ea0e86d27d045718f4b7d871bbdc9075ef
     path('api/v1/kpis/', include('apps.kpi.urls')),
     path('api/v1/organisations/', include('apps.organisations.api.v1.urls')),
     path('api/v1/health/', health_check, name='api-health'),

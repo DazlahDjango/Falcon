@@ -5,3 +5,4 @@ export { default as TeamSelector } from './TeamSelector';
 export { default as TeamHierarchyView } from './TeamHierarchyView';
 export { default as AddMemberModal } from './AddMemberModal';
 export { default as RemoveMemberModal } from './RemoveMemberModal';
+export { default as TeamFilters } from './TeamFilters'

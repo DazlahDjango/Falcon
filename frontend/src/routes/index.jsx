@@ -6,6 +6,7 @@ import PublicRoute from "./PublicRoute";
 import accountsRoutes from "./accounts.routes";
 import organisationsRoutes from "./organisations.routes";
 import kpiRoutes from "./kpi.routes";
+import structureRoutes from "./structure.routes";
 
 // Layouts
 const MainLayout = React.lazy(() => import("../components/common/Layout/MainLayout"));
@@ -43,6 +44,8 @@ const AppRouter = () => {
                     <Route index element={<Navigate to="/kpi/dashboard" replace />} />
                     {/* Account routes */}
                     {renderRoutes(accountsRoutes)}
+                    {/* Structure routes */}
+                    {renderRoutes(structureRoutes)}
                     {/* Organisation routes */}
                     {renderRoutes(organisationsRoutes)} 
                     {/* KPI routes */}
