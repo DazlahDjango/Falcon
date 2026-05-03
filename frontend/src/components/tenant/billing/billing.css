@@ -1,0 +1,125 @@
+/* frontend/src/components/tenant/billing/billing.css */
+
+/* Billing Container */
+.tenant-billing-container {
+    padding: 1.5rem;
+}
+
+.tenant-billing-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 1.5rem;
+}
+
+/* Subscription Card */
+.tenant-subscription-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.tenant-subscription-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.tenant-subscription-plan {
+    display: inline-flex;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tenant-plan-trial {
+    background-color: #f3e8ff;
+    color: #6b21a5;
+}
+
+.tenant-plan-basic {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.tenant-plan-professional {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.tenant-plan-enterprise {
+    background-color: #fed7aa;
+    color: #9a3412;
+}
+
+/* Plan Features */
+.tenant-plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tenant-plan-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tenant-plan-feature-check {
+    color: #10b981;
+}
+
+.tenant-plan-feature-cross {
+    color: #ef4444;
+}
+
+/* Upgrade Button */
+.tenant-upgrade-btn {
+    padding: 0.5rem 1rem;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.tenant-upgrade-btn:hover {
+    background-color: #059669;
+}
+
+/* Invoices Table */
+.tenant-invoices-table-container {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.tenant-invoices-table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+.tenant-invoices-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    background-color: #f9fafb;
+    text-transform: uppercase;
+}
+
+.tenant-invoices-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+}

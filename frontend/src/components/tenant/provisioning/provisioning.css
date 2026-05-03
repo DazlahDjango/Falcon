@@ -1,0 +1,395 @@
+/* frontend/src/components/tenant/provisioning/provisioning.css */
+
+/* Provisioning Container */
+.provisioning-container {
+    padding: 1.5rem;
+}
+
+.provisioning-header {
+    margin-bottom: 1.5rem;
+}
+
+.provisioning-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.provisioning-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Provisioning Card */
+.provisioning-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.provisioning-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.provisioning-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.provisioning-card-content {
+    padding: 1.5rem;
+}
+
+/* Provisioning Status Badge */
+.provisioning-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.provisioning-status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.provisioning-status-provisioning {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.provisioning-status-completed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.provisioning-status-failed {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Provisioning Progress */
+.provisioning-progress-container {
+    margin: 1.5rem 0;
+}
+
+.provisioning-progress-bar {
+    width: 100%;
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+    height: 0.75rem;
+    overflow: hidden;
+}
+
+.provisioning-progress-fill {
+    background-color: #3b82f6;
+    height: 0.75rem;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.provisioning-progress-fill-completed {
+    background-color: #10b981;
+}
+
+.provisioning-progress-fill-failed {
+    background-color: #ef4444;
+}
+
+.provisioning-progress-percentage {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    color: #3b82f6;
+}
+
+.provisioning-progress-label {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Provisioning Steps */
+.provisioning-steps {
+    margin: 1.5rem 0;
+}
+
+.provisioning-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.provisioning-step-active {
+    background-color: #eff6ff;
+}
+
+.provisioning-step-completed {
+    background-color: #ecfdf5;
+}
+
+.provisioning-step-pending {
+    background-color: #f9fafb;
+}
+
+.provisioning-step-failed {
+    background-color: #fef2f2;
+}
+
+.provisioning-step-icon {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 1rem;
+}
+
+.provisioning-step-icon-active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.provisioning-step-icon-completed {
+    background-color: #10b981;
+    color: white;
+}
+
+.provisioning-step-icon-pending {
+    background-color: #e5e7eb;
+    color: #6b7280;
+}
+
+.provisioning-step-icon-failed {
+    background-color: #ef4444;
+    color: white;
+}
+
+.provisioning-step-content {
+    flex: 1;
+}
+
+.provisioning-step-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.provisioning-step-description {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-top: 0.125rem;
+}
+
+.provisioning-step-status {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.provisioning-step-status-active {
+    color: #3b82f6;
+}
+
+.provisioning-step-status-completed {
+    color: #10b981;
+}
+
+.provisioning-step-status-pending {
+    color: #6b7280;
+}
+
+.provisioning-step-status-failed {
+    color: #ef4444;
+}
+
+/* Provisioning Logs */
+.provisioning-logs {
+    margin-top: 1.5rem;
+    background-color: #1e1e2e;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.provisioning-logs-header {
+    padding: 0.75rem 1rem;
+    background-color: #18181b;
+    border-bottom: 1px solid #27272a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.provisioning-logs-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #a1a1aa;
+    text-transform: uppercase;
+}
+
+.provisioning-logs-clear {
+    background: none;
+    border: none;
+    color: #a1a1aa;
+    cursor: pointer;
+    font-size: 0.7rem;
+}
+
+.provisioning-logs-clear:hover {
+    color: white;
+}
+
+.provisioning-logs-content {
+    padding: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 0.7rem;
+}
+
+.provisioning-log-entry {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #27272a;
+    color: #d4d4d8;
+}
+
+.provisioning-log-time {
+    color: #71717a;
+    margin-right: 0.75rem;
+}
+
+.provisioning-log-info {
+    color: #3b82f6;
+}
+
+.provisioning-log-error {
+    color: #ef4444;
+}
+
+.provisioning-log-success {
+    color: #10b981;
+}
+
+.provisioning-log-warning {
+    color: #f59e0b;
+}
+
+/* Provisioning Action Buttons */
+.provisioning-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.provisioning-btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.provisioning-btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.provisioning-btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.provisioning-btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+.provisioning-btn-danger {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+}
+
+.provisioning-btn-danger:hover {
+    background-color: #dc2626;
+}
+
+.provisioning-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Provisioning Modal */
+.provisioning-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.provisioning-modal {
+    background-color: white;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.provisioning-modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.provisioning-modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.provisioning-modal-close {
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+.provisioning-modal-close:hover {
+    color: #111827;
+}
+
+.provisioning-modal-body {
+    padding: 1rem;
+}
+
+.provisioning-modal-footer {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}

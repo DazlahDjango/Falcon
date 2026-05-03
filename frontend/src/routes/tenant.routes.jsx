@@ -1,4 +1,4 @@
-// routes/tenant.routes.js
+// frontend/src/routes/tenant.routes.js
 // Tenant Management Routes
 // Integrates with tenant constants and services
 
@@ -15,7 +15,7 @@ import {
     SCHEMA_ENDPOINTS
 } from '../config/constants/tenantConstants';
 
-// Lazy load components for performance
+// Lazy load core components
 const TenantListPage = React.lazy(() => import('../pages/tenant/TenantListPage'));
 const TenantDetailPage = React.lazy(() => import('../pages/tenant/TenantDetailPage'));
 const TenantCreatePage = React.lazy(() => import('../pages/tenant/TenantCreatePage'));
@@ -23,6 +23,11 @@ const TenantEditPage = React.lazy(() => import('../pages/tenant/TenantEditPage')
 const TenantSettingsPage = React.lazy(() => import('../pages/tenant/TenantSettingsPage'));
 const TenantResourcesPage = React.lazy(() => import('../pages/tenant/TenantResourcesPage'));
 const TenantUsagePage = React.lazy(() => import('../pages/tenant/TenantUsagePage'));
+const TenantDashboardPage = React.lazy(() => import('../pages/tenant/TenantDashboardPage'));
+const TenantProvisioningPage = React.lazy(() => import('../pages/tenant/TenantProvisioningPage'));
+const TenantAuditPage = React.lazy(() => import('../pages/tenant/TenantAuditPage'));
+const TenantMigrationsPage = React.lazy(() => import('../pages/tenant/TenantMigrationsPage'));
+const TenantSchemaPage = React.lazy(() => import('../pages/tenant/TenantSchemaPage'));
 
 // Domain Management Pages
 const DomainListPage = React.lazy(() => import('../pages/tenant/domains/DomainListPage'));
@@ -33,10 +38,6 @@ const DomainVerifyPage = React.lazy(() => import('../pages/tenant/domains/Domain
 const BackupListPage = React.lazy(() => import('../pages/tenant/backups/BackupListPage'));
 const BackupCreatePage = React.lazy(() => import('../pages/tenant/backups/BackupCreatePage'));
 const BackupRestorePage = React.lazy(() => import('../pages/tenant/backups/BackupRestorePage'));
-
-// Migration & Schema Pages
-const MigrationListPage = React.lazy(() => import('../pages/tenant/migrations/MigrationListPage'));
-const SchemaViewPage = React.lazy(() => import('../pages/tenant/schemas/SchemaViewPage'));
 
 // Layout components
 import TenantLayout from '../layouts/TenantLayout';
@@ -49,7 +50,9 @@ const createTenantRoute = (path, element, requiredRoles = ['super_admin', 'clien
     element: (
         <RequireAuth>
             <RequirePermission roles={requiredRoles}>
-                {element}
+                <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
+                    {element}
+                </React.Suspense>
             </RequirePermission>
         </RequireAuth>
     ),
@@ -62,77 +65,98 @@ const tenantRoutes = [
         element: <TenantLayout />,
         children: [
             // ==================== Tenant Core Routes ====================
-            // List tenants (matches TENANT_ENDPOINTS.LIST)
+            // List tenants (Super Admin only)
             createTenantRoute(
                 '/',
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <TenantListPage />
-                </React.Suspense>,
-                ['super_admin'] // Only super admin can list all tenants
-            ),
-
-            // Create tenant (matches TENANT_ENDPOINTS.CREATE)
-            createTenantRoute(
-                'create',
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <TenantCreatePage />
-                </React.Suspense>,
+                <TenantListPage />,
                 ['super_admin']
             ),
 
-            // Tenant details (matches TENANT_ENDPOINTS.DETAIL(id))
+            // Tenant Dashboard (Super Admin overview)
+            createTenantRoute(
+                'dashboard',
+                <TenantDashboardPage />,
+                ['super_admin']
+            ),
+
+            // Create tenant (Super Admin only)
+            createTenantRoute(
+                'create',
+                <TenantCreatePage />,
+                ['super_admin']
+            ),
+
+            // Tenant details
             createTenantRoute(
                 ':tenantId',
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <TenantDetailPage />
-                </React.Suspense>,
+                <TenantDetailPage />,
                 ['super_admin', 'client_admin']
             ),
 
-            // Edit tenant (matches TENANT_ENDPOINTS.UPDATE(id))
+            // Edit tenant
             createTenantRoute(
                 ':tenantId/edit',
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <TenantEditPage />
-                </React.Suspense>,
+                <TenantEditPage />,
                 ['super_admin', 'client_admin']
             ),
 
-            // Tenant settings (uses same update endpoint)
+            // Tenant settings
             createTenantRoute(
                 ':tenantId/settings',
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <TenantSettingsPage />
-                </React.Suspense>,
+                <TenantSettingsPage />,
                 ['super_admin', 'client_admin']
             ),
 
-            // Tenant resources (matches TENANT_ENDPOINTS.RESOURCES(id))
+            // Tenant resources (limits)
             createTenantRoute(
                 ':tenantId/resources',
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <TenantResourcesPage />
-                </React.Suspense>,
+                <TenantResourcesPage />,
                 ['super_admin', 'client_admin']
             ),
 
-            // Tenant usage (matches TENANT_ENDPOINTS.USAGE(id))
+            // Tenant usage statistics
             createTenantRoute(
                 ':tenantId/usage',
-                <React.Suspense fallback={<div>Loading...</div>}>
-                    <TenantUsagePage />
-                </React.Suspense>,
+                <TenantUsagePage />,
+                ['super_admin', 'client_admin']
+            ),
+
+            // Tenant provisioning status
+            createTenantRoute(
+                ':tenantId/provisioning',
+                <TenantProvisioningPage />,
+                ['super_admin', 'client_admin']
+            ),
+
+            // Tenant audit logs
+            createTenantRoute(
+                ':tenantId/audit',
+                <TenantAuditPage />,
+                ['super_admin', 'client_admin']
+            ),
+
+            // Tenant migrations tracking
+            createTenantRoute(
+                ':tenantId/migrations',
+                <TenantMigrationsPage />,
+                ['super_admin']
+            ),
+
+            // Tenant database schema
+            createTenantRoute(
+                ':tenantId/schema',
+                <TenantSchemaPage />,
                 ['super_admin', 'client_admin']
             ),
 
             // ==================== Domain Management Routes ====================
-            // List domains (matches DOMAIN_ENDPOINTS.TENANT_DOMAINS(tenantId))
+            // List domains for tenant
             {
                 path: ':tenantId/domains',
                 element: (
                     <RequireAuth>
                         <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
+                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
                                 <DomainListPage />
                             </React.Suspense>
                         </RequirePermission>
@@ -140,13 +164,13 @@ const tenantRoutes = [
                 ),
             },
 
-            // Create domain (matches DOMAIN_ENDPOINTS.TENANT_DOMAIN_CREATE(tenantId))
+            // Create domain for tenant
             {
                 path: ':tenantId/domains/create',
                 element: (
                     <RequireAuth>
                         <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
+                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
                                 <DomainCreatePage />
                             </React.Suspense>
                         </RequirePermission>
@@ -154,13 +178,13 @@ const tenantRoutes = [
                 ),
             },
 
-            // Verify domain (matches DOMAIN_ENDPOINTS.TENANT_DOMAIN_VERIFY(tenantId, domainId))
+            // Verify domain for tenant
             {
                 path: ':tenantId/domains/:domainId/verify',
                 element: (
                     <RequireAuth>
                         <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
+                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
                                 <DomainVerifyPage />
                             </React.Suspense>
                         </RequirePermission>
@@ -169,13 +193,13 @@ const tenantRoutes = [
             },
 
             // ==================== Backup Management Routes ====================
-            // List backups (matches BACKUP_ENDPOINTS.TENANT_BACKUPS(tenantId))
+            // List backups for tenant
             {
                 path: ':tenantId/backups',
                 element: (
                     <RequireAuth>
                         <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
+                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
                                 <BackupListPage />
                             </React.Suspense>
                         </RequirePermission>
@@ -183,13 +207,13 @@ const tenantRoutes = [
                 ),
             },
 
-            // Create backup (matches BACKUP_ENDPOINTS.TENANT_BACKUP_CREATE(tenantId))
+            // Create backup for tenant
             {
                 path: ':tenantId/backups/create',
                 element: (
                     <RequireAuth>
                         <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
+                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
                                 <BackupCreatePage />
                             </React.Suspense>
                         </RequirePermission>
@@ -197,44 +221,14 @@ const tenantRoutes = [
                 ),
             },
 
-            // Restore backup (matches BACKUP_ENDPOINTS.TENANT_BACKUP_RESTORE(tenantId, backupId))
+            // Restore backup for tenant (Super Admin only)
             {
                 path: ':tenantId/backups/:backupId/restore',
                 element: (
                     <RequireAuth>
                         <RequirePermission roles={['super_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
+                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
                                 <BackupRestorePage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
-            },
-
-            // ==================== Migration Routes ====================
-            // List migrations (matches MIGRATION_ENDPOINTS.TENANT_MIGRATIONS(tenantId))
-            {
-                path: ':tenantId/migrations',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
-                                <MigrationListPage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
-            },
-
-            // ==================== Schema Routes ====================
-            // View schema (matches SCHEMA_ENDPOINTS.TENANT_SCHEMA(tenantId))
-            {
-                path: ':tenantId/schema',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div>Loading...</div>}>
-                                <SchemaViewPage />
                             </React.Suspense>
                         </RequirePermission>
                     </RequireAuth>
@@ -249,6 +243,7 @@ const tenantRoutes = [
         ],
     },
 
+    // ==================== Redirects ====================
     // Redirect /tenant to /tenants
     {
         path: 'tenant',

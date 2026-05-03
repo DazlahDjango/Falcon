@@ -1,3 +1,4 @@
+// frontend/src/store/rootReducer.js
 import { combineReducers } from '@reduxjs/toolkit';
 
 // ==========================================
@@ -6,7 +7,7 @@ import { combineReducers } from '@reduxjs/toolkit';
 import authReducer from './accounts/slice/authSlice';
 import userReducer from './accounts/slice/userSlice';
 import roleReducer from './accounts/slice/roleSlice';
-import tenantReducer from './accounts/slice/tenantSlice';
+import tenantReducer from './accounts/slice/tenantSlice';  // ← Accounts tenant (different)
 import permissionReducer from './accounts/slice/permissionSlice';
 import sessionReducer from './accounts/slice/sessionSlice';
 import auditLogReducer from './accounts/slice/auditSlice';
@@ -32,8 +33,6 @@ import brandingReducer from './organisations/slice/brandingSlice';
 import settingsReducer from './organisations/slice/settingsSlice';
 import organisationsKpiReducer from './organisations/slice/kpiSlice';
 import orgUserReducer from './organisations/slice/userSlice';
-
-// Destructing duplicates so they don't crash
 import orgTeamReducer from './organisations/slice/teamSlice';
 import orgAuditReducer from './organisations/slice/auditSlice';
 import orgUiReducer from './organisations/slice/uiSlice';
@@ -41,7 +40,7 @@ import orgUiReducer from './organisations/slice/uiSlice';
 // ==========================================
 // KPI Reducers
 // ==========================================
-import kpiReducer from './kpi/slice/kpi'
+import kpiReducer from './kpi/slice/kpi';
 import targetReducer from './kpi/slice/kpi/targetSlice';
 import actualReducer from './kpi/slice/kpi/actualSlice';
 import scoreReducer from './kpi/slice/kpi/scoreSlice';
@@ -52,15 +51,31 @@ import kpiUiReducer from './kpi/slice/ui';
 import kpiNotificationReducer from './kpi/notificationSlice';
 import kpiAnalyticsReducer from './kpi/analyticsSlice';
 
+// ==========================================
+// TENANT APP REDUCERS (ADD THIS)
+// ==========================================
+import {
+    tenantReducer as appTenantReducer,
+    tenantResourceReducer,
+    tenantDomainReducer,
+    tenantBackupReducer,
+    tenantMigrationReducer,
+    tenantSchemaReducer,
+    tenantProvisioningReducer,
+    tenantAuditReducer,
+    tenantDashboardReducer,
+    tenantUIReducer,
+} from './tenant/slice';
+
 const rootReducer = combineReducers({
     // Accounts State
     auth: authReducer,
     users: userReducer,
     roles: roleReducer,
-    tenant: tenantReducer,
+    tenant: tenantReducer,  // ← Accounts tenant (keep as is)
     permissions: permissionReducer,
     sessions: sessionReducer,
-    auditLogs: auditLogReducer, 
+    auditLogs: auditLogReducer,
     notifications: notificationReducer,
     admin: adminReducer,
     dashboard: dashboardReducer,
@@ -68,7 +83,7 @@ const rootReducer = combineReducers({
     preferences: preferenceReducer,
     accTeam: accountsTeamReducer,
     ui: accountsUiReducer,
-    
+
     // Organisation State
     organisation: organisationReducer,
     subscription: subscriptionReducer,
@@ -82,10 +97,10 @@ const rootReducer = combineReducers({
     settings: settingsReducer,
     orgKpis: organisationsKpiReducer,
     orgUsers: orgUserReducer,
-    audit: orgAuditReducer, 
+    audit: orgAuditReducer,
     orgUi: orgUiReducer,
 
-    // kpi
+    // KPI State
     kpi: kpiReducer,
     target: targetReducer,
     actual: actualReducer,
@@ -97,5 +112,19 @@ const rootReducer = combineReducers({
     kpiNotifications: kpiNotificationReducer,
     kpiAnalytics: kpiAnalyticsReducer,
 
+    // ==========================================
+    // TENANT APP STATE (ADD THIS)
+    // ==========================================
+    appTenant: appTenantReducer,           // Main tenant CRUD
+    tenantResource: tenantResourceReducer, // Resource limits & quotas
+    tenantDomain: tenantDomainReducer,     // Domain management
+    tenantBackup: tenantBackupReducer,     // Backup operations
+    tenantMigration: tenantMigrationReducer, // Migration tracking
+    tenantSchema: tenantSchemaReducer,     // Schema information
+    tenantProvisioning: tenantProvisioningReducer, // Provisioning status
+    tenantAudit: tenantAuditReducer,       // Audit logs
+    tenantDashboard: tenantDashboardReducer, // Dashboard statistics
+    tenantUI: tenantUIReducer,             // UI state (modals, sidebar, filters)
 });
+
 export default rootReducer;

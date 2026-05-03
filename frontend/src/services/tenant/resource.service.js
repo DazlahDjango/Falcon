@@ -1,94 +1,167 @@
 // frontend/src/services/tenant/resource.service.js
-import api from '../api';
-import { API_ENDPOINTS } from '../api/endpoints';
+import BaseTenantService from './tenantBase.service';
 
-class ResourceService {
-    // ========== Resource CRUD Operations ==========
+class ResourceService extends BaseTenantService {
+    constructor() {
+        super('resources');
+    }
 
+    // ==================== Resource Operations ====================
+
+    /**
+     * Get all resources for a tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { success, data, status, message }
+     */
     async getResources(tenantId) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.LIST, {
-            params: { tenant_id: tenantId }
+        return this.listForTenant(tenantId);
+    }
+
+    /**
+     * Get specific resource by type
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string} resourceType - Resource type (users, storage_mb, etc.)
+     * @returns {Promise} { success, data, status, message }
+     */
+    async getResource(tenantId, resourceType) {
+        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/${resourceType}/`);
+        return response.data;
+    }
+
+    /**
+     * Update single resource limit
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string} resourceType - Resource type
+     * @param {number} limitValue - New limit value
+     * @returns {Promise} { success, data, status, message }
+     */
+    async updateResourceLimit(tenantId, resourceType, limitValue) {
+        const response = await this.apiClient.patch(`/tenants/${tenantId}/resources/${resourceType}/`, {
+            limit_value: limitValue
         });
         return response.data;
     }
 
-    async getResource(id) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.DETAIL(id));
+    /**
+     * Bulk update multiple resource limits
+     * @param {string|number} tenantId - Tenant ID
+     * @param {Object} limits - Object with resource types as keys
+     * @returns {Promise} { success, data, status, message }
+     */
+    async bulkUpdateResources(tenantId, limits) {
+        const response = await this.apiClient.post(`/tenants/${tenantId}/update-limits/`, { limits });
         return response.data;
     }
 
-    async updateResource(id, data) {
-        const response = await api.patch(API_ENDPOINTS.RESOURCE.UPDATE(id), data);
-        return response.data;
-    }
+    // ==================== Resource Summary ====================
 
-    // ========== Bulk Resource Operations ==========
-
-    async bulkUpdateResources(tenantId, resources) {
-        const response = await api.post(API_ENDPOINTS.RESOURCE.BULK_UPDATE, {
-            tenant_id: tenantId,
-            resources
-        });
-        return response.data;
-    }
-
-    async resetResource(tenantId, resourceType) {
-        const response = await api.post(API_ENDPOINTS.RESOURCE.RESET(tenantId), { resourceType });
-        return response.data;
-    }
-
-    async resetAllDailyResources() {
-        const response = await api.post(API_ENDPOINTS.RESOURCE.RESET_ALL);
-        return response.data;
-    }
-
-    // ========== Resource Monitoring ==========
-
+    /**
+     * Get resource summary for tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { success, data, status, message }
+     */
     async getResourceSummary(tenantId) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.SUMMARY(tenantId));
+        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/summary/`);
         return response.data;
     }
 
-    async getResourceHistory(tenantId, resourceType, params = {}) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.HISTORY(tenantId, resourceType), { params });
-        return response.data;
-    }
+    // ==================== Quota Checking ====================
 
+    /**
+     * Check if tenant has quota for a resource
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string} resourceType - Resource type
+     * @param {number} amount - Amount to check (default: 1)
+     * @returns {Promise} { allowed, remaining, current, limit }
+     */
     async checkQuota(tenantId, resourceType, amount = 1) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.CHECK_QUOTA(tenantId), {
+        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/check-quota/`, {
             params: { resource_type: resourceType, amount }
         });
         return response.data;
     }
 
-    // ========== Resource Alerts ==========
+    /**
+     * Check if tenant can create a new user
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { allowed, remaining, current, limit }
+     */
+    async canCreateUser(tenantId) {
+        return this.checkQuota(tenantId, 'users', 1);
+    }
 
+    /**
+     * Check if tenant can create a new KPI
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { allowed, remaining, current, limit }
+     */
+    async canCreateKPI(tenantId) {
+        return this.checkQuota(tenantId, 'kpis', 1);
+    }
+
+    /**
+     * Check if tenant can create a new department
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { allowed, remaining, current, limit }
+     */
+    async canCreateDepartment(tenantId) {
+        return this.checkQuota(tenantId, 'departments', 1);
+    }
+
+    /**
+     * Check if tenant can make an API call
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { allowed, remaining, current, limit }
+     */
+    async canMakeAPICall(tenantId) {
+        return this.checkQuota(tenantId, 'api_calls_per_day', 1);
+    }
+
+    /**
+     * Check if tenant can add storage
+     * @param {string|number} tenantId - Tenant ID
+     * @param {number} mbToAdd - MB to add
+     * @returns {Promise} { allowed, remaining, current, limit }
+     */
+    async canAddStorage(tenantId, mbToAdd) {
+        return this.checkQuota(tenantId, 'storage_mb', mbToAdd);
+    }
+
+    // ==================== Resource Alerts ====================
+
+    /**
+     * Get resource alerts for tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { success, data, status, message }
+     */
     async getResourceAlerts(tenantId) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.ALERTS(tenantId));
+        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/alerts/`);
         return response.data;
     }
 
+    /**
+     * Acknowledge resource alert
+     * @param {string|number} alertId - Alert ID
+     * @returns {Promise} { success, data, status, message }
+     */
     async acknowledgeAlert(alertId) {
-        const response = await api.post(API_ENDPOINTS.RESOURCE.ACKNOWLEDGE_ALERT(alertId));
+        const response = await this.apiClient.post(`/resources/alerts/${alertId}/acknowledge/`);
         return response.data;
     }
 
-    // ========== Resource Analytics ==========
+    // ==================== Resource History ====================
 
-    async getResourceAnalytics(tenantId, params = {}) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.ANALYTICS(tenantId), { params });
-        return response.data;
-    }
-
-    async getResourceForecast(tenantId, resourceType) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.FORECAST(tenantId, resourceType));
-        return response.data;
-    }
-
-    // ========== Recommendation ==========
-
-    async getUpgradeRecommendations(tenantId) {
-        const response = await api.get(API_ENDPOINTS.RESOURCE.RECOMMENDATIONS(tenantId));
+    /**
+     * Get resource usage history over time
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string} resourceType - Resource type
+     * @param {number} days - Number of days (default: 30)
+     * @returns {Promise} { success, data, status, message }
+     */
+    async getResourceHistory(tenantId, resourceType, days = 30) {
+        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/${resourceType}/history/`, {
+            params: { days }
+        });
         return response.data;
     }
 }

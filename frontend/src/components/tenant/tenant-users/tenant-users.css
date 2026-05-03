@@ -1,0 +1,163 @@
+/* frontend/src/components/tenant/tenant-users/tenant-users.css */
+
+/* User Container */
+.tenant-users-container {
+    padding: 1.5rem;
+}
+
+.tenant-users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.tenant-users-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* User Table */
+.tenant-users-table-container {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.tenant-users-table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+.tenant-users-table thead {
+    background-color: #f9fafb;
+}
+
+.tenant-users-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+}
+
+.tenant-users-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Role Badge */
+.tenant-role-badge {
+    display: inline-flex;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.tenant-role-admin {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.tenant-role-manager {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.tenant-role-staff {
+    background-color: #f3e8ff;
+    color: #6b21a5;
+}
+
+.tenant-role-readonly {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Invite Modal */
+.tenant-invite-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.tenant-invite-modal {
+    background-color: white;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.tenant-invite-modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tenant-invite-modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.tenant-invite-modal-body {
+    padding: 1rem;
+}
+
+.tenant-invite-modal-footer {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Invite Form */
+.tenant-invite-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tenant-invite-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tenant-invite-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.tenant-invite-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    width: 100%;
+}
+
+.tenant-invite-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    width: 100%;
+    background-color: white;
+}

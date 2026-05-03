@@ -1,107 +1,169 @@
 // frontend/src/services/tenant/backup.service.js
-import api from '../api';
-import { API_ENDPOINTS } from '../api/endpoints';
+import BaseTenantService from './tenantBase.service';
 
-class BackupService {
-    // ========== Backup CRUD Operations ==========
-
-    async getBackups(tenantId, params = {}) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.LIST, {
-            params: { tenant_id: tenantId, ...params }
-        });
-        return response.data;
+class BackupService extends BaseTenantService {
+    constructor() {
+        super('backups');
     }
 
+    // ==================== Backup CRUD Operations ====================
+
+    /**
+     * Get all backups (optionally filtered by tenant)
+     * @param {string|number} tenantId - Optional tenant ID to filter by
+     * @param {Object} params - Additional query parameters (status, backup_type)
+     * @returns {Promise} { success, data, status, message }
+     */
+    async getBackups(tenantId = null, params = {}) {
+        if (tenantId) {
+            return this.listForTenant(tenantId, params);
+        }
+        return this.list(params);
+    }
+
+    /**
+     * Get single backup by ID
+     * @param {string|number} id - Backup ID
+     * @returns {Promise} { success, data, status, message }
+     */
     async getBackup(id) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.DETAIL(id));
-        return response.data;
+        return this.getById(id);
     }
 
+    /**
+     * Create new backup
+     * @param {Object} data - Backup data (tenant_id, backup_type)
+     * @returns {Promise} { success, data, status, message }
+     */
     async createBackup(data) {
-        const response = await api.post(API_ENDPOINTS.BACKUP.CREATE, data);
-        return response.data;
+        return this.create(data);
     }
 
+    /**
+     * Create backup for specific tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string} backupType - Backup type ('full', 'incremental', 'config_only')
+     * @returns {Promise} { success, data, status, message }
+     */
+    async createBackupForTenant(tenantId, backupType = 'full') {
+        return this.createForTenant(tenantId, { backup_type: backupType });
+    }
+
+    /**
+     * Delete backup
+     * @param {string|number} id - Backup ID
+     * @returns {Promise} { success, data, status, message }
+     */
     async deleteBackup(id) {
-        await api.delete(API_ENDPOINTS.BACKUP.DELETE(id));
+        return this.delete(id);
     }
 
-    async deleteMultipleBackups(backupIds) {
-        const response = await api.post(API_ENDPOINTS.BACKUP.BULK_DELETE, { backupIds });
-        return response.data;
+    /**
+     * Delete backup for specific tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} backupId - Backup ID
+     * @returns {Promise} { success, data, status, message }
+     */
+    async deleteBackupForTenant(tenantId, backupId) {
+        return this.deleteForTenant(tenantId, backupId);
     }
 
-    // ========== Backup Restore Operations ==========
+    // ==================== Backup Actions ====================
 
-    async restoreBackup(id, options = {}) {
-        const response = await api.post(API_ENDPOINTS.BACKUP.RESTORE(id), options);
-        return response.data;
+    /**
+     * Restore tenant from backup
+     * @param {string|number} id - Backup ID
+     * @returns {Promise} { success, data, status, message }
+     */
+    async restoreBackup(id) {
+        return this.update(id, { action: 'restore' });
     }
 
-    async getRestoreStatus(id) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.RESTORE_STATUS(id));
-        return response.data;
+    /**
+     * Restore tenant from backup for specific tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} backupId - Backup ID
+     * @returns {Promise} { success, data, status, message }
+     */
+    async restoreBackupForTenant(tenantId, backupId) {
+        return this.updateForTenant(tenantId, backupId, { action: 'restore' });
     }
 
-    // ========== Backup Download ==========
-
-    getDownloadUrl(id) {
-        return API_ENDPOINTS.BACKUP.DOWNLOAD(id);
-    }
-
-    async downloadBackup(id, filename = null) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.DOWNLOAD(id), {
+    /**
+     * Download backup file
+     * @param {string|number} id - Backup ID
+     * @returns {Promise} Blob data for file download
+     */
+    async downloadBackup(id) {
+        const response = await this.apiClient.get(this.getEndpoint(`${id}/download/`), {
             responseType: 'blob'
         });
-
-        if (filename) {
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-        }
-
         return response.data;
     }
 
-    // ========== Backup Settings ==========
-
-    async getBackupSettings(tenantId) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.SETTINGS(tenantId));
+    /**
+     * Download backup for specific tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} backupId - Backup ID
+     * @returns {Promise} Blob data for file download
+     */
+    async downloadBackupForTenant(tenantId, backupId) {
+        const response = await this.apiClient.get(this.getTenantEndpoint(tenantId, `${backupId}/download/`), {
+            responseType: 'blob'
+        });
         return response.data;
     }
 
-    async updateBackupSettings(tenantId, settings) {
-        const response = await api.post(API_ENDPOINTS.BACKUP.UPDATE_SETTINGS(tenantId), settings);
-        return response.data;
+    /**
+     * Get backup download URL (without downloading)
+     * @param {string|number} id - Backup ID
+     * @returns {string} Download URL
+     */
+    getDownloadUrl(id) {
+        return this.getEndpoint(`${id}/download/`);
     }
 
-    // ========== Backup Schedule ==========
+    /**
+     * Get backup download URL for specific tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} backupId - Backup ID
+     * @returns {string} Download URL
+     */
+    getDownloadUrlForTenant(tenantId, backupId) {
+        return this.getTenantEndpoint(tenantId, `${backupId}/download/`);
+    }
 
+    // ==================== Backup Schedule ====================
+
+    /**
+     * Get backup schedule for tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @returns {Promise} { success, data, status, message }
+     */
     async getBackupSchedule(tenantId) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.SCHEDULE(tenantId));
-        return response.data;
+        return this.listForTenant(tenantId, { type: 'schedule' });
     }
 
+    /**
+     * Update backup schedule for tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {Object} schedule - Schedule configuration (cron expression, enabled)
+     * @returns {Promise} { success, data, status, message }
+     */
     async updateBackupSchedule(tenantId, schedule) {
-        const response = await api.post(API_ENDPOINTS.BACKUP.UPDATE_SCHEDULE(tenantId), schedule);
-        return response.data;
+        return this.createForTenant(tenantId, { type: 'schedule', ...schedule });
     }
 
-    // ========== Backup Validation ==========
+    // ==================== Retention Policy ====================
 
-    async validateBackup(id) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.VALIDATE(id));
-        return response.data;
-    }
-
-    async getBackupContents(id) {
-        const response = await api.get(API_ENDPOINTS.BACKUP.CONTENTS(id));
-        return response.data;
+    /**
+     * Update backup retention policy for tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {number} retentionDays - Number of days to keep backups
+     * @returns {Promise} { success, data, status, message }
+     */
+    async updateRetentionPolicy(tenantId, retentionDays) {
+        return this.createForTenant(tenantId, { type: 'retention', retention_days: retentionDays });
     }
 }
 

@@ -1,7 +1,7 @@
-// services/tenant/tenantBase.service.js
+// frontend/src/services/tenant/tenantBase.service.js
 // Tenant Base Service - Following CIA Triad Principles
 // Confidentiality, Integrity, Availability
-// Version: 1.0.0
+// Version: 2.0.0
 
 import axios from 'axios';
 import { store } from '../../store';
@@ -17,10 +17,11 @@ import {
 } from '../accounts/storage/secureStorage';
 import { encryptData, decryptData } from '../security/encryptionService';
 import { auditLog } from '../audit/auditService';
+import TENANT_API_ENDPOINTS from '../../config/constants/tenantConstants';
 
 // ==================== Configuration ====================
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
-const TENANT_API_BASE = `${API_BASE_URL}/tenant`;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1/tenant';
+const TENANT_API_BASE = API_BASE_URL;
 
 // Security Headers
 const SECURITY_HEADERS = {
@@ -68,7 +69,7 @@ let refreshQueue = [];
 
 // ==================== Helper Functions ====================
 const generateCorrelationId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${crypto.randomUUID?.() || Math.random()}`;
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -119,11 +120,11 @@ const recordFailure = () => {
 };
 
 const processRefreshQueue = (error, token = null) => {
-    refreshQueue.forEach(promise => {
+    refreshQueue.forEach(item => {
         if (error) {
-            promise.reject(error);
+            item.reject(error);
         } else {
-            promise.resolve(token);
+            item.resolve(token);
         }
     });
     refreshQueue = [];
@@ -147,7 +148,7 @@ const logAudit = async (action, resource, resourceId, details = {}) => {
 
 // ==================== Encryption Helpers ====================
 const encryptSensitiveData = (data) => {
-    const sensitiveFields = ['api_key', 'secret_key', 'webhook_secret'];
+    const sensitiveFields = ['api_key', 'secret_key', 'webhook_secret', 'client_secret'];
     const encrypted = { ...data };
 
     sensitiveFields.forEach(field => {
@@ -160,7 +161,7 @@ const encryptSensitiveData = (data) => {
 };
 
 const decryptSensitiveData = (data) => {
-    const sensitiveFields = ['api_key', 'secret_key', 'webhook_secret'];
+    const sensitiveFields = ['api_key', 'secret_key', 'webhook_secret', 'client_secret'];
     const decrypted = { ...data };
 
     sensitiveFields.forEach(field => {
@@ -206,7 +207,7 @@ apiClient.interceptors.request.use(
         // Add authentication token
         const token = await getAccessToken();
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
 
         // Add tenant ID
@@ -242,7 +243,7 @@ apiClient.interceptors.response.use(
     async (response) => {
         recordSuccess();
 
-        // Log successful operation
+        // Skip logging for GET requests to reduce noise
         if (response.config.method !== 'get') {
             await logAudit(
                 response.config.method.toUpperCase(),
@@ -307,15 +308,17 @@ apiClient.interceptors.response.use(
                     throw new Error('No refresh token available');
                 }
 
-                const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
+                const refreshResponse = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
                     refresh: refreshToken,
                 });
 
-                if (response.data?.access) {
-                    await setAccessToken(response.data.access);
-                    originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
-                    processRefreshQueue(null, response.data.access);
+                if (refreshResponse.data?.access) {
+                    await setAccessToken(refreshResponse.data.access);
+                    originalRequest.headers['Authorization'] = `Bearer ${refreshResponse.data.access}`;
+                    processRefreshQueue(null, refreshResponse.data.access);
                     return apiClient(originalRequest);
+                } else {
+                    throw new Error('Refresh failed');
                 }
             } catch (refreshError) {
                 processRefreshQueue(refreshError, null);
@@ -450,13 +453,59 @@ class BaseTenantService {
     }
 
     /**
-     * Get endpoint URL
+     * Get endpoint URL using TENANT_API_ENDPOINTS constants
      * @param {string} endpoint - Optional endpoint suffix
      * @returns {string} Full endpoint URL
      */
     getEndpoint(endpoint = '') {
-        const base = `/${this.resourceName}`;
-        return endpoint ? `${base}/${endpoint}` : `${base}/`;
+        const endpointsMap = {
+            'tenants': () => TENANT_API_ENDPOINTS.TENANT.LIST,
+            'domains': () => TENANT_API_ENDPOINTS.DOMAIN.LIST,
+            'backups': () => TENANT_API_ENDPOINTS.BACKUP.LIST,
+            'migrations': () => TENANT_API_ENDPOINTS.MIGRATION.LIST,
+            'schemas': () => TENANT_API_ENDPOINTS.SCHEMA.LIST,
+            'health': () => '/health/',
+            'stats': () => '/stats/',
+            'provisioning': () => '/provisioning/',
+            'resources': () => '/resources/',
+        };
+
+        const basePath = endpointsMap[this.resourceName];
+        if (basePath) {
+            const path = basePath();
+            return endpoint ? `${path}${endpoint}` : path;
+        }
+
+        // Fallback
+        return `/${this.resourceName}/${endpoint}`;
+    }
+
+    /**
+     * Get nested endpoint for tenant-specific resources
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string} endpoint - Optional endpoint suffix
+     * @returns {string} Full nested endpoint URL
+     */
+    getTenantEndpoint(tenantId, endpoint = '') {
+        const endpointsMap = {
+            'domains': () => TENANT_API_ENDPOINTS.DOMAIN.TENANT_DOMAINS(tenantId),
+            'backups': () => TENANT_API_ENDPOINTS.BACKUP.TENANT_BACKUPS(tenantId),
+            'migrations': () => TENANT_API_ENDPOINTS.MIGRATION.TENANT_MIGRATIONS(tenantId),
+            'schemas': () => TENANT_API_ENDPOINTS.SCHEMA.TENANT_SCHEMAS(tenantId),
+            'resources': () => `/tenants/${tenantId}/resources/`,
+        };
+
+        const getPath = endpointsMap[this.resourceName];
+        if (getPath) {
+            const path = getPath();
+            return endpoint ? `${path}${endpoint}` : path;
+        }
+
+        // Fallback for dynamic resources
+        const resourcePath = this.resourceName;
+        return endpoint
+            ? `/tenants/${tenantId}/${resourcePath}/${endpoint}`
+            : `/tenants/${tenantId}/${resourcePath}/`;
     }
 
     /**
@@ -465,13 +514,32 @@ class BaseTenantService {
      * @returns {Promise} Response with list of resources
      */
     async list(params = {}) {
-        // Sanitize params to remove null/undefined values
         const sanitizedParams = Object.fromEntries(
             Object.entries(params).filter(([_, v]) => v !== null && v !== undefined && v !== '')
         );
 
         return this.withRetry(() =>
             this.apiClient.get(this.getEndpoint(), { params: sanitizedParams })
+        );
+    }
+
+    /**
+     * List resources for a specific tenant (nested route)
+     * @param {string|number} tenantId - Tenant ID
+     * @param {Object} params - Query parameters
+     * @returns {Promise} Response with list of resources
+     */
+    async listForTenant(tenantId, params = {}) {
+        if (!tenantId) {
+            throw new Error('Tenant ID is required');
+        }
+
+        const sanitizedParams = Object.fromEntries(
+            Object.entries(params).filter(([_, v]) => v !== null && v !== undefined && v !== '')
+        );
+
+        return this.withRetry(() =>
+            this.apiClient.get(this.getTenantEndpoint(tenantId), { params: sanitizedParams })
         );
     }
 
@@ -492,6 +560,26 @@ class BaseTenantService {
     }
 
     /**
+     * Get resource for a specific tenant (nested route)
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} resourceId - Resource ID
+     * @param {Object} params - Additional query parameters
+     * @returns {Promise} Response with resource data
+     */
+    async getForTenant(tenantId, resourceId, params = {}) {
+        if (!tenantId) {
+            throw new Error('Tenant ID is required');
+        }
+        if (!resourceId) {
+            throw new Error('Resource ID is required');
+        }
+
+        return this.withRetry(() =>
+            this.apiClient.get(this.getTenantEndpoint(tenantId, `${resourceId}/`), { params })
+        );
+    }
+
+    /**
      * Create new resource
      * @param {Object} data - Resource data
      * @param {boolean} encrypt - Whether to encrypt sensitive data
@@ -502,11 +590,32 @@ class BaseTenantService {
             throw new Error('Valid data object is required');
         }
 
-        // Encrypt sensitive data for confidentiality
         const processedData = encrypt ? encryptSensitiveData(data) : data;
 
         return this.withRetry(() =>
             this.apiClient.post(this.getEndpoint(), processedData)
+        );
+    }
+
+    /**
+     * Create resource for a specific tenant (nested route)
+     * @param {string|number} tenantId - Tenant ID
+     * @param {Object} data - Resource data
+     * @param {boolean} encrypt - Whether to encrypt sensitive data
+     * @returns {Promise} Response with created resource
+     */
+    async createForTenant(tenantId, data, encrypt = true) {
+        if (!tenantId) {
+            throw new Error('Tenant ID is required');
+        }
+        if (!data || typeof data !== 'object') {
+            throw new Error('Valid data object is required');
+        }
+
+        const processedData = encrypt ? encryptSensitiveData(data) : data;
+
+        return this.withRetry(() =>
+            this.apiClient.post(this.getTenantEndpoint(tenantId), processedData)
         );
     }
 
@@ -522,7 +631,6 @@ class BaseTenantService {
         if (!id) {
             throw new Error('Resource ID is required');
         }
-
         if (!data || typeof data !== 'object') {
             throw new Error('Valid data object is required');
         }
@@ -536,9 +644,37 @@ class BaseTenantService {
     }
 
     /**
+     * Update resource for a specific tenant (nested route)
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} resourceId - Resource ID
+     * @param {Object} data - Update data
+     * @param {boolean} partial - Whether this is a partial update (PATCH vs PUT)
+     * @param {boolean} encrypt - Whether to encrypt sensitive data
+     * @returns {Promise} Response with updated resource
+     */
+    async updateForTenant(tenantId, resourceId, data, partial = true, encrypt = true) {
+        if (!tenantId) {
+            throw new Error('Tenant ID is required');
+        }
+        if (!resourceId) {
+            throw new Error('Resource ID is required');
+        }
+        if (!data || typeof data !== 'object') {
+            throw new Error('Valid data object is required');
+        }
+
+        const processedData = encrypt ? encryptSensitiveData(data) : data;
+        const method = partial ? 'patch' : 'put';
+
+        return this.withRetry(() =>
+            this.apiClient[method](this.getTenantEndpoint(tenantId, `${resourceId}/`), processedData)
+        );
+    }
+
+    /**
      * Delete resource
      * @param {string|number} id - Resource ID
-     * @param {boolean} soft - Soft delete vs hard delete
+     * @param {boolean} soft - Soft delete vs hard delete (default: true)
      * @returns {Promise} Response confirming deletion
      */
     async delete(id, soft = true) {
@@ -547,6 +683,30 @@ class BaseTenantService {
         }
 
         const url = soft ? this.getEndpoint(`${id}/soft-delete/`) : this.getEndpoint(`${id}/`);
+
+        return this.withRetry(() =>
+            this.apiClient.delete(url)
+        );
+    }
+
+    /**
+     * Delete resource for a specific tenant (nested route)
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} resourceId - Resource ID
+     * @param {boolean} soft - Soft delete vs hard delete (default: true)
+     * @returns {Promise} Response confirming deletion
+     */
+    async deleteForTenant(tenantId, resourceId, soft = true) {
+        if (!tenantId) {
+            throw new Error('Tenant ID is required');
+        }
+        if (!resourceId) {
+            throw new Error('Resource ID is required');
+        }
+
+        const url = soft
+            ? this.getTenantEndpoint(tenantId, `${resourceId}/soft-delete/`)
+            : this.getTenantEndpoint(tenantId, `${resourceId}/`);
 
         return this.withRetry(() =>
             this.apiClient.delete(url)
@@ -569,6 +729,25 @@ class BaseTenantService {
     }
 
     /**
+     * Restore soft-deleted resource for a specific tenant
+     * @param {string|number} tenantId - Tenant ID
+     * @param {string|number} resourceId - Resource ID
+     * @returns {Promise} Response with restored resource
+     */
+    async restoreForTenant(tenantId, resourceId) {
+        if (!tenantId) {
+            throw new Error('Tenant ID is required');
+        }
+        if (!resourceId) {
+            throw new Error('Resource ID is required');
+        }
+
+        return this.withRetry(() =>
+            this.apiClient.post(this.getTenantEndpoint(tenantId, `${resourceId}/restore/`))
+        );
+    }
+
+    /**
      * Get resource statistics
      * @param {Object} params - Query parameters
      * @returns {Promise} Response with statistics
@@ -580,8 +759,8 @@ class BaseTenantService {
     }
 
     /**
-     * Bulk operations
-     * @param {string} operation - Bulk operation type
+     * Bulk operation
+     * @param {string} operation - Bulk operation type (update, delete, suspend, activate)
      * @param {Object} data - Bulk operation data
      * @returns {Promise} Response with bulk operation results
      */
@@ -599,7 +778,7 @@ class BaseTenantService {
      * Export data
      * @param {string} format - Export format (csv, json, xlsx)
      * @param {Object} params - Query parameters
-     * @returns {Promise} Response with exported data
+     * @returns {Promise} Response with exported data (blob for file download)
      */
     async exportData(format = 'csv', params = {}) {
         const validFormats = ['csv', 'json', 'xlsx'];
@@ -620,7 +799,7 @@ class BaseTenantService {
     /**
      * Get resource history/audit trail
      * @param {string|number} id - Resource ID
-     * @param {Object} params - Query parameters
+     * @param {Object} params - Query parameters (page, page_size, start_date, end_date)
      * @returns {Promise} Response with history data
      */
     async getHistory(id, params = {}) {
@@ -636,7 +815,7 @@ class BaseTenantService {
     /**
      * Validate resource data without saving
      * @param {Object} data - Data to validate
-     * @returns {Promise} Response with validation results
+     * @returns {Promise} Response with validation results (errors if any)
      */
     async validate(data) {
         if (!data) {

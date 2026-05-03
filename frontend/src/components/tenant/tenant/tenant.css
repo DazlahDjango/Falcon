@@ -1,0 +1,453 @@
+/* frontend/src/components/tenant/tenant/tenant.css */
+
+/* Tenant Container */
+.tenant-container {
+    padding: 1.5rem;
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Tenant Header */
+.tenant-header {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tenant-header-title {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.tenant-header-subtitle {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Tenant Card */
+.tenant-detail-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.tenant-detail-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.tenant-detail-card-title {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.tenant-detail-card-content {
+    padding: 1rem 1.5rem;
+}
+
+/* Tenant Info Panel */
+.tenant-info-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .tenant-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.tenant-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tenant-info-label {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.tenant-info-value {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: #111827;
+}
+
+/* Tenant Form */
+.tenant-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tenant-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tenant-form-label {
+    display: block;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.tenant-form-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.tenant-form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.tenant-form-input-error {
+    border-color: #ef4444;
+}
+
+.tenant-form-input-error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.tenant-form-error {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #dc2626;
+    margin-top: 0.25rem;
+}
+
+.tenant-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Tenant Table */
+.tenant-table-container {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.tenant-table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+.tenant-table thead {
+    background-color: #f9fafb;
+}
+
+.tenant-table th {
+    padding: 0.75rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tenant-table td {
+    padding: 1rem 1.5rem;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #111827;
+}
+
+.tenant-table tbody tr:hover {
+    background-color: #f9fafb;
+    cursor: pointer;
+}
+
+/* Tenant Actions */
+.tenant-action-button {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+    background: none;
+    cursor: pointer;
+}
+
+.tenant-action-edit {
+    color: #2563eb;
+}
+
+.tenant-action-edit:hover {
+    background-color: #eff6ff;
+}
+
+.tenant-action-delete {
+    color: #dc2626;
+}
+
+.tenant-action-delete:hover {
+    background-color: #fef2f2;
+}
+
+.tenant-action-suspend {
+    color: #d97706;
+}
+
+.tenant-action-suspend:hover {
+    background-color: #fffbeb;
+}
+
+.tenant-action-activate {
+    color: #059669;
+}
+
+.tenant-action-activate:hover {
+    background-color: #ecfdf5;
+}
+
+/* Status Colors */
+.tenant-status-active {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.tenant-status-suspended {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.tenant-status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.tenant-status-provisioning {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* Subscription Plan Badges */
+.tenant-plan-trial {
+    background-color: #f3e8ff;
+    color: #6b21a5;
+}
+
+.tenant-plan-basic {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.tenant-plan-professional {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.tenant-plan-enterprise {
+    background-color: #fed7aa;
+    color: #9a3412;
+}
+
+/* Common utility classes */
+.text-center {
+    text-align: center;
+}
+
+.p-8 {
+    padding: 2rem;
+}
+
+.text-gray-500 {
+    color: #6b7280;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.bg-gray-100 {
+    background-color: #f3f4f6;
+}
+
+.rounded {
+    border-radius: 0.25rem;
+}
+
+.px-1 {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+.py-0\.5 {
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.ml-3 {
+    margin-left: 0.75rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.h-4 {
+    height: 1rem;
+}
+
+.h-5 {
+    height: 1.25rem;
+}
+
+.w-4 {
+    width: 1rem;
+}
+
+.w-5 {
+    width: 1.25rem;
+}
+
+.w-16 {
+    width: 4rem;
+}
+
+.h-16 {
+    height: 4rem;
+}
+
+.rounded-full {
+    border-radius: 9999px;
+}
+
+.object-cover {
+    object-fit: cover;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.bg-white {
+    background-color: white;
+}
+
+.bg-blue-500 {
+    background-color: #3b82f6;
+}
+
+.text-white {
+    color: white;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+}
+
+.text-base {
+    font-size: 1rem;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}

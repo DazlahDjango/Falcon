@@ -1,0 +1,345 @@
+/* frontend/src/components/tenant/schema/schema.css */
+
+/* Schema Container */
+.schema-container {
+    padding: 1.5rem;
+}
+
+.schema-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.schema-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.schema-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Schema Info Card */
+.schema-info-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.schema-info-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.schema-info-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.schema-info-card-content {
+    padding: 1.5rem;
+}
+
+/* Schema Stats Grid */
+.schema-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .schema-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .schema-stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.schema-stat-card {
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.schema-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.schema-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Schema Status Badge */
+.schema-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.schema-status-active {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.schema-status-creating {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.schema-status-migrating {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.schema-status-failed {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.schema-status-pending {
+    background-color: #f3e8ff;
+    color: #6b21a5;
+}
+
+/* Schema Tables List */
+.schema-tables-container {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.schema-tables-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.schema-tables-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.schema-tables-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.schema-table-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.schema-table-item:hover {
+    background-color: #f9fafb;
+}
+
+.schema-table-name {
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: #111827;
+}
+
+.schema-table-rows {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Schema Size Display */
+.schema-size-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.schema-size-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.schema-size-unit {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Schema Refresh Button */
+.schema-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.schema-refresh-btn:hover {
+    background-color: #2563eb;
+}
+
+.schema-refresh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.schema-refresh-btn-icon {
+    font-size: 1rem;
+}
+
+/* Schema Modal */
+.schema-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.schema-modal {
+    background-color: white;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.schema-modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schema-modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.schema-modal-close {
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+.schema-modal-close:hover {
+    color: #111827;
+}
+
+.schema-modal-body {
+    padding: 1rem;
+}
+
+.schema-modal-footer {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Schema Progress */
+.schema-progress-container {
+    margin: 1rem 0;
+}
+
+.schema-progress-bar {
+    width: 100%;
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+    height: 0.5rem;
+    overflow: hidden;
+}
+
+.schema-progress-fill {
+    background-color: #3b82f6;
+    height: 0.5rem;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.schema-progress-text {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+/* Schema Action Buttons */
+.schema-btn {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.schema-btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.schema-btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.schema-btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.schema-btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+.schema-btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+}

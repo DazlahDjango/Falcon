@@ -1,0 +1,420 @@
+/* frontend/src/components/tenant/domains/domains.css */
+
+/* Domain Container */
+.domain-container {
+    padding: 1.5rem;
+}
+
+.domain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.domain-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.domain-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Domain Grid */
+.domain-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .domain-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .domain-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Domain Card */
+.domain-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    transition: box-shadow 0.2s;
+    border: 1px solid #e5e7eb;
+}
+
+.domain-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.domain-card-primary {
+    border-left: 4px solid #3b82f6;
+    background-color: #eff6ff;
+}
+
+.domain-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.domain-card-domain {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    word-break: break-all;
+}
+
+.domain-card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.domain-card-details {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.domain-card-detail {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.domain-card-detail-label {
+    color: #6b7280;
+}
+
+.domain-card-detail-value {
+    color: #111827;
+    font-weight: 500;
+}
+
+/* Domain Table */
+.domain-table-container {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.domain-table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+.domain-table thead {
+    background-color: #f9fafb;
+}
+
+.domain-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.domain-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.domain-table tr:last-child td {
+    border-bottom: none;
+}
+
+.domain-table tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Domain Form */
+.domain-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.domain-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.domain-form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.domain-form-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    width: 100%;
+}
+
+.domain-form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.domain-form-input-error {
+    border-color: #ef4444;
+}
+
+.domain-form-error {
+    font-size: 0.75rem;
+    color: #dc2626;
+    margin-top: 0.25rem;
+}
+
+.domain-form-hint {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+/* Domain Verification Info */
+.domain-verification-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.domain-verification-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+}
+
+.domain-verification-record {
+    background-color: #0f172a;
+    color: #38bdf8;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    word-break: break-all;
+    margin-bottom: 0.75rem;
+}
+
+.domain-verification-instructions {
+    font-size: 0.75rem;
+    color: #475569;
+    line-height: 1.4;
+}
+
+.domain-verification-instructions ol {
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+}
+
+.domain-verification-instructions li {
+    margin-bottom: 0.25rem;
+}
+
+/* Domain Status Badge */
+.domain-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.domain-status-active {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.domain-status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.domain-status-verifying {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.domain-status-failed {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.domain-status-expired {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Domain Primary Badge */
+.domain-primary-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.375rem;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+/* SSL Badge */
+.domain-ssl-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.domain-ssl-valid {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.domain-ssl-expiring {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.domain-ssl-expired {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Domain Modal */
+.domain-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.domain-modal {
+    background-color: white;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.domain-modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.domain-modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.domain-modal-close {
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+.domain-modal-close:hover {
+    color: #111827;
+}
+
+.domain-modal-body {
+    padding: 1rem;
+}
+
+.domain-modal-footer {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Domain Action Buttons */
+.domain-btn {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.domain-btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.domain-btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.domain-btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.domain-btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+.domain-btn-danger {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+}
+
+.domain-btn-danger:hover {
+    background-color: #dc2626;
+}
+
+.domain-btn-success {
+    background-color: #10b981;
+    color: white;
+    border: none;
+}
+
+.domain-btn-success:hover {
+    background-color: #059669;
+}
+
+.domain-btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+}

@@ -1,0 +1,480 @@
+/* frontend/src/components/tenant/dashboard/dashboard.css */
+
+/* Dashboard Container */
+.tenant-dashboard-container {
+    padding: 1.5rem;
+    background-color: #f9fafb;
+    min-height: 100vh;
+}
+
+/* Stats Grid */
+.tenant-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .tenant-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .tenant-stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Stat Card */
+.tenant-stat-card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: box-shadow 0.2s;
+    border: 1px solid #e5e7eb;
+}
+
+.tenant-stat-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tenant-stat-icon {
+    width: 3rem;
+    height: 3rem;
+    background-color: #eff6ff;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.tenant-stat-icon-blue {
+    background-color: #dbeafe;
+}
+
+.tenant-stat-icon-green {
+    background-color: #d1fae5;
+}
+
+.tenant-stat-icon-red {
+    background-color: #fee2e2;
+}
+
+.tenant-stat-icon-yellow {
+    background-color: #fef3c7;
+}
+
+.tenant-stat-icon-purple {
+    background-color: #f3e8ff;
+}
+
+.tenant-stat-content {
+    flex: 1;
+}
+
+.tenant-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+}
+
+.tenant-stat-label {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Dashboard Grid Layout */
+.tenant-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .tenant-dashboard-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.tenant-dashboard-grid-2cols {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .tenant-dashboard-grid-2cols {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Widget Common Styles */
+.tenant-widget {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.tenant-widget-header {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tenant-widget-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.tenant-widget-link {
+    font-size: 0.75rem;
+    color: #3b82f6;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.tenant-widget-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.tenant-widget-content {
+    padding: 1rem;
+}
+
+/* Tenant List Widget */
+.tenant-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.tenant-list-item:last-child {
+    border-bottom: none;
+}
+
+.tenant-list-item:hover {
+    background-color: #f9fafb;
+}
+
+.tenant-list-name {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #111827;
+}
+
+.tenant-list-slug {
+    font-size: 0.7rem;
+    color: #6b7280;
+    font-family: monospace;
+    margin-top: 0.125rem;
+}
+
+.tenant-list-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tenant-list-date {
+    font-size: 0.7rem;
+    color: #9ca3af;
+}
+
+/* Resource Summary Widget */
+.resource-summary-item {
+    margin-bottom: 1rem;
+}
+
+.resource-summary-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.resource-summary-label {
+    color: #6b7280;
+}
+
+.resource-summary-value {
+    font-weight: 500;
+    color: #111827;
+}
+
+.resource-summary-bar {
+    width: 100%;
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+    height: 0.5rem;
+    overflow: hidden;
+}
+
+.resource-summary-bar-fill {
+    height: 0.5rem;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.resource-summary-bar-blue {
+    background-color: #3b82f6;
+}
+
+.resource-summary-bar-green {
+    background-color: #10b981;
+}
+
+.resource-summary-bar-yellow {
+    background-color: #f59e0b;
+}
+
+.resource-summary-bar-red {
+    background-color: #ef4444;
+}
+
+/* Activity Chart */
+.activity-chart-container {
+    height: 250px;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.25rem;
+    padding: 0.5rem 0;
+}
+
+.activity-chart-bar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.activity-chart-bar-value {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.activity-chart-bar-rect {
+    width: 100%;
+    background-color: #3b82f6;
+    border-radius: 0.25rem 0.25rem 0 0;
+    transition: height 0.3s ease;
+    min-height: 2px;
+}
+
+.activity-chart-bar-rect:hover {
+    background-color: #2563eb;
+}
+
+.activity-chart-bar-label {
+    font-size: 0.6rem;
+    color: #9ca3af;
+    transform: rotate(-45deg);
+    transform-origin: left;
+    white-space: nowrap;
+    margin-top: 0.5rem;
+}
+
+/* Health Widget */
+.health-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.health-status-healthy {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.health-status-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.health-status-critical {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.health-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.health-metric:last-child {
+    border-bottom: none;
+}
+
+.health-metric-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.health-metric-value {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.health-metric-value-healthy {
+    color: #10b981;
+}
+
+.health-metric-value-warning {
+    color: #f59e0b;
+}
+
+.health-metric-value-critical {
+    color: #ef4444;
+}
+
+/* Alerts Widget */
+.alert-item {
+    padding: 0.75rem;
+    border-left: 3px solid;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.alert-item:hover {
+    background-color: #f9fafb;
+}
+
+.alert-item-critical {
+    border-left-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.alert-item-warning {
+    border-left-color: #f59e0b;
+    background-color: #fffbeb;
+}
+
+.alert-item-info {
+    border-left-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.alert-title {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.alert-message {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.alert-time {
+    font-size: 0.65rem;
+    color: #9ca3af;
+    margin-top: 0.25rem;
+}
+
+/* Loading Skeleton */
+.tenant-skeleton {
+    animation: tenant-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tenant-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.tenant-skeleton-text {
+    height: 0.75rem;
+    background-color: #e5e7eb;
+    border-radius: 0.25rem;
+}
+
+.tenant-skeleton-title {
+    height: 1rem;
+    background-color: #e5e7eb;
+    border-radius: 0.25rem;
+    width: 33%;
+}
+
+.tenant-skeleton-card {
+    background-color: #f3f4f6;
+    border-radius: 0.5rem;
+}
+
+/* Empty State */
+.tenant-empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.tenant-empty-state-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.tenant-empty-state-text {
+    font-size: 0.875rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+    .tenant-dashboard-container {
+        padding: 1rem;
+    }
+
+    .tenant-stat-value {
+        font-size: 1.125rem;
+    }
+
+    .tenant-stat-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.25rem;
+    }
+
+    .tenant-widget-header {
+        padding: 0.75rem;
+    }
+
+    .tenant-widget-content {
+        padding: 0.75rem;
+    }
+}
