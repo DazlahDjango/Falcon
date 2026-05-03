@@ -15,7 +15,8 @@ const ReportingLineForm = () => {
   const dispatch = useDispatch();
   const isEditMode = !!id;
   const { data: existingLine, isLoading: isLoadingLine } = useReportingLine(id, { enabled: isEditMode });
-  const { data: employments } = useEmployments({ filters: { is_current: 'true' }, page: 1, pageSize: 1000 });
+  const { data: employmentsPage } = useEmployments({ filters: { is_current: 'true' }, page: 1, pageSize: 1000 });
+  const employments = employmentsPage?.results ?? [];
   const [formData, setFormData] = useState({
     employee_id: '',
     manager_id: '',

@@ -50,6 +50,8 @@ const accountsRoutes = [
     // Admin (if implemented)
     { path: ROUTES.ADMIN, element: <AdminDashboard /> },
     { path: ROUTES.ADMIN_USERS, element: <AdminUsers /> },
+    { path: ROUTES.ADMIN_USER_CREATE, element: <UserCreate /> },
+    { path: ROUTES.ADMIN_USER_EDIT, element: <UserEdit /> },
     { path: ROUTES.ADMIN_TENANTS, element: <AdminTenants /> },
     { path: ROUTES.ADMIN_SYSTEM, element: <AdminSystem /> },
 ];

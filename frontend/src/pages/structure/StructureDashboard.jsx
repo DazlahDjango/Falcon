@@ -24,7 +24,6 @@ import {
   useDepartments,
   useTeams,
   useEmployments,
-  useReportingLines
 } from '../../hooks/structure';
 import { STRUCTURE_ROUTES } from '../../routes/structure.routes';
 
@@ -32,11 +31,13 @@ const StructureDashboard = () => {
   const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useStructureStats();
   const { data: health, isLoading: healthLoading } = useHierarchyHealth();
-  const { data: departments } = useDepartments({ page: 1, pageSize: 5 });
-  const { data: teams } = useTeams({ page: 1, pageSize: 5 });
-  const { data: employments } = useEmployments({ filters: { is_current: 'true' }, page: 1, pageSize: 5 });
-  const { data: reportingLines } = useReportingLines({ page: 1, pageSize: 100 });
-  const departmentBreakdownData = departments?.map(dept => ({
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 5 });
+  const departments = departmentsPage?.results ?? [];
+  const { data: teamsPage } = useTeams({ page: 1, pageSize: 5 });
+  const teams = teamsPage?.results ?? [];
+  const { data: employmentsPage } = useEmployments({ filters: { is_current: 'true' }, page: 1, pageSize: 5 });
+  const employments = employmentsPage?.results ?? [];
+  const departmentBreakdownData = departments.map(dept => ({
     name: dept.name,
     value: dept.employee_count || 0,
   })) || [];

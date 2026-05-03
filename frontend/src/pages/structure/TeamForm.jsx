@@ -17,9 +17,12 @@ const TeamForm = () => {
   const isEditMode = !!id;
   const departmentIdFromState = location.state?.departmentId;
   const { data: existingTeam, isLoading: isLoadingTeam } = useTeam(id, { enabled: isEditMode });
-  const { data: departments } = useDepartments({ page: 1, pageSize: 1000 });
-  const { data: teams } = useTeams({ page: 1, pageSize: 1000 });
-  const { data: employments } = useEmployments({ filters: { is_current: 'true' }, page: 1, pageSize: 1000 });
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results ?? [];
+  const { data: teamsPage } = useTeams({ page: 1, pageSize: 1000 });
+  const teams = teamsPage?.results ?? [];
+  const { data: employmentsPage } = useEmployments({ filters: { is_current: 'true' }, page: 1, pageSize: 1000 });
+  const employments = employmentsPage?.results ?? [];
   const [formData, setFormData] = useState({
     code: '',
     name: '',

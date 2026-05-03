@@ -16,7 +16,8 @@ const DepartmentForm = () => {
   const isEditMode = !!id;
   const parentIdFromState = location.state?.parentId;
   const { data: existingDepartment, isLoading: isLoadingDepartment } = useDepartment(id, { enabled: isEditMode });
-  const { data: departments } = useDepartments({ page: 1, pageSize: 1000 });
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results ?? [];
   const [formData, setFormData] = useState({
     code: '',
     name: '',

@@ -1,5 +1,6 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { departmentService } from '../../services/structure/department.service';
+import { normalizeStructureListPage } from '../../services/structure/structureResponse';
 import { STRUCTURE_QUERY_KEYS, DEFAULT_PAGE_SIZE } from '../../config/constants/structureConstants';
 
 export const useDepartments = (filters = {}, page = 1, pageSize = DEFAULT_PAGE_SIZE) => {
@@ -8,6 +9,7 @@ export const useDepartments = (filters = {}, page = 1, pageSize = DEFAULT_PAGE_S
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.DEPARTMENTS, params],
     queryFn: () => departmentService.list(params),
+    select: normalizeStructureListPage,
     staleTime: 5 * 60 * 1000,
     keepPreviousData: true,
   });

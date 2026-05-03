@@ -2,7 +2,8 @@ import axios from 'axios';
 import { store } from '../../store';
 import { logout } from '../../store/accounts/slice/authSlice';
 import { showToast } from '../../store/ui/slices/uiSlice';
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../accounts/storage/secureStorage';
+import { getAccessToken, getRefreshToken, setTokens, clearTokens, getTenantId, clearTenantId } from '../accounts/storage/secureStorage';
+
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -82,38 +83,30 @@ apiClient.interceptors.request.use(
     const token = await getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn('[Structure API] No access token found - user may not be authenticated');
     }
     
-    // Get tenant ID - FIXED: Use secure storage or consistent key
-    // Check multiple possible locations for tenant ID
-    let tenantId = null;
+    // Get tenant ID from secure storage (now properly encrypted)
+    let tenantId = await getTenantId();
     
-    // Try secure storage first
-    try {
-      const { getPersistentItem } = await import('../accounts/storage/localStorage.js');
-      tenantId = await getPersistentItem('tenant_id');
-    } catch (e) {
-      // Fallback to localStorage
-      tenantId = localStorage.getItem('falcon_tenant_id') || localStorage.getItem('tenant_id');
-    }
-    
-    // Also check Redux store as fallback
+    // Fallback to Redux store if secure storage doesn't have it
     if (!tenantId) {
       const state = store.getState();
-      tenantId = state?.tenant?.currentTenant?.id || state?.tenant?.tenant?.id;
+      tenantId = state?.auth?.user?.tenant_id || state?.tenant?.currentTenant?.id;
+      console.warn('[Structure API] Tenant ID not found in secure storage, using Redux fallback:', tenantId);
     }
-    
+
     if (tenantId) {
       config.headers['X-Tenant-ID'] = tenantId;
-      // Ensure it's stored consistently for future requests
-      if (typeof tenantId === 'string' && !localStorage.getItem('falcon_tenant_id')) {
-        localStorage.setItem('falcon_tenant_id', tenantId);
-      }
+    } else {
+      console.error('[Structure API] CRITICAL: No tenant ID available!');
     }
     
     if (import.meta.env.DEV) {
       console.log(`[Structure API] ${config.method.toUpperCase()} ${config.url}`);
-      console.log(`[Structure API] Tenant ID: ${tenantId || 'Not set'}`);
+      console.log(`[Structure API] Tenant ID: ${tenantId || 'Not set (ERROR!)'}`);
+      console.log(`[Structure API] Token: ${token ? 'Present' : 'Missing'}`);
     }
     
     return config;
@@ -183,9 +176,9 @@ apiClient.interceptors.response.use(
         processQueue(refreshError, null);
         // Dispatch logout action
         store.dispatch(logout());
-        // FIXED: Use secure storage cleanup
+        // Use secure storage cleanup
         await clearTokens();
-        localStorage.removeItem('falcon_tenant_id');
+        await clearTenantId();
         window.location.href = '/login';
         return Promise.reject(new Error('Session expired. Please login again.'));
       } finally {

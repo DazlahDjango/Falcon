@@ -73,7 +73,7 @@ class AdminUserViewSet(BaseModelViewset):
         verified_users = User.objects.filter(is_verified=True).count()
         mfa_enabled_users = User.objects.filter(mfa_enabled=True).count()
         users_by_role = {}
-        for role_code in UserRoles.CHOICES:
+        for role_code, _label in UserRoles.CHOICES:
             users_by_role[role_code] = User.objects.filter(role=role_code).count()
         return Response({
             'total_users': total_users,

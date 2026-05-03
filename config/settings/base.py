@@ -136,9 +136,8 @@ PROJECT_APPS = [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 
 MIDDLEWARE = [
-    # Security
-    'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     # Django core
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -150,7 +149,7 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     # Security and monitoring
     'axes.middleware.AxesMiddleware',
-    'auditlog.middleware.AuditlogMiddleware',
+    # 'auditlog.middleware.AuditlogMiddleware',
     # 'django_multitenant.middlewares.MultitenantMiddleware',
     # Rate limiting
     'django_ratelimit.middleware.RatelimitMiddleware',
@@ -422,7 +421,7 @@ REST_FRAMEWORK = {
 # JWT CONFIGURATION (with security best practices)
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=env.int('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', default=30)),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=env.int('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', default=60)),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=env.int('JWT_REFRESH_TOKEN_LIFETIME_DAYS', default=7)),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -472,6 +471,8 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-tenant-id',
+    'x-request-id',
 ]
 
 # ----------------------------------------------------------------------------

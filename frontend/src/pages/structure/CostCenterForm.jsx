@@ -15,7 +15,12 @@ const CostCenterForm = () => {
   const dispatch = useDispatch();
   const isEditMode = !!id;
   const { data: existingCostCenter, isLoading: isLoadingCostCenter } = useCostCenter(id, { enabled: isEditMode });
-  const { data: costCenters } = useCostCenters({ page: 1, pageSize: 1000 });
+  const { data: costCentersResponse } = useCostCenters({ page: 1, pageSize: 1000 });
+  const costCenters = React.useMemo(() => {
+    if (!costCentersResponse) return [];
+    const ccData = costCentersResponse?.data?.results || costCentersResponse?.results || costCentersResponse;
+    return Array.isArray(ccData) ? ccData : [];
+  }, [costCentersResponse]);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -102,6 +107,7 @@ const CostCenterForm = () => {
       requires_budget_approval: formData.requires_budget_approval,
       authorized_approver_ids: formData.authorized_approver_ids,
     };
+    console.log('Submitting data:', submitData);
     try {
       if (isEditMode) {
         await dispatch(updateCostCenter({ id, data: submitData })).unwrap();

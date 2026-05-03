@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAccessToken } from '../storage/secureStorage';
+import { getAccessToken, getTenantId, clearTokens, clearTenantId } from '../storage/secureStorage';
 
 // Create axios instance
 const apiClient = axios.create({
@@ -29,13 +29,10 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        
-        // Break circular dependency by using direct localStorage lookup
-        // We use the 'falcon_' prefix defined in our storage system
-        const tenantId = localStorage.getItem('falcon_tenant_id');
-        
-        if (tenantId) {
-            config.headers['X-Tenant-ID'] = tenantId;
+
+        const tenantId = await getTenantId();
+        if (tenantId != null && tenantId !== '') {
+            config.headers['X-Tenant-ID'] = String(tenantId);
         }
         
         return config;
@@ -49,8 +46,8 @@ apiClient.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             console.log('[API] 401 Unauthorized');
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
+            clearTokens().catch(() => {});
+            clearTenantId().catch(() => {});
             window.dispatchEvent(new CustomEvent('auth:logout'));
         }
         

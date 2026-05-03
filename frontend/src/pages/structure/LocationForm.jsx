@@ -15,7 +15,12 @@ const LocationForm = () => {
   const dispatch = useDispatch();
   const isEditMode = !!id;
   const { data: existingLocation, isLoading: isLoadingLocation } = useLocation(id, { enabled: isEditMode });
-  const { data: locations } = useLocations({ page: 1, pageSize: 1000 });
+  const { data: locationsResponse } = useLocations({ page: 1, pageSize: 1000 });
+  const locations = React.useMemo(() => {
+    if (!locationsResponse) return [];
+    const locData = locationsResponse?.data?.results || locationsResponse?.results || locationsResponse;
+    return Array.isArray(locData) ? locData : [];
+  }, [locationsResponse]);
   const [formData, setFormData] = useState({
     code: '',
     name: '',

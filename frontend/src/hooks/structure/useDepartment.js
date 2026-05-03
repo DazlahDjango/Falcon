@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { departmentService } from '../../services/structure/department.service';
+import { normalizeStructureEntity } from '../../services/structure/structureResponse';
 import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
 import { showToast } from '../../store/ui/slices/uiSlice';
 import { useDispatch } from 'react-redux';
@@ -13,6 +14,7 @@ export const useDepartment = (id, options = {}) => {
     cacheTime: 10 * 60 * 1000,
     retry: 1,
     ...options,
+    select: options.select ?? normalizeStructureEntity,
   });
 };
 
@@ -23,6 +25,7 @@ export const useDepartmentByCode = (code, options = {}) => {
     enabled: !!code,
     staleTime: 5 * 60 * 1000,
     ...options,
+    select: options.select ?? normalizeStructureEntity,
   });
 };
 

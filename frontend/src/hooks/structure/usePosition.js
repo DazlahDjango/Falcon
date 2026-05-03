@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { positionService } from '../../services/structure/position.service';
+import { normalizeStructureEntity } from '../../services/structure/structureResponse';
 import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
 import { showToast } from '../../store/ui/slices/uiSlice';
 import { useDispatch } from 'react-redux';
@@ -8,6 +9,7 @@ export const usePosition = (id) => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.POSITION, id],
     queryFn: () => positionService.getById(id),
+    select: normalizeStructureEntity,
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
@@ -17,6 +19,7 @@ export const usePositionByCode = (jobCode) => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.POSITION, jobCode, 'byCode'],
     queryFn: () => positionService.getByCode(jobCode),
+    select: normalizeStructureEntity,
     enabled: !!jobCode,
     staleTime: 5 * 60 * 1000,
   });

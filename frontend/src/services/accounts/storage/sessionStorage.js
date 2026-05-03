@@ -1,14 +1,14 @@
-import { encrypt, decrypt } from './secureStorage';
+import { encrypt, decrypt } from './crypto';
 
 const PREFIX = 'falcon_session_';
 
-export const setItem = (key, value, encryptValue = false) => {
+export const setItem = async (key, value, encryptValue = false) => {
     try {
         const fullKey = `${PREFIX}${key}`;
         let data = value;
         
         if (encryptValue) {
-            data = encrypt(JSON.stringify(value));
+            data = await encrypt(JSON.stringify(value));
         } else if (typeof value === 'object') {
             data = JSON.stringify(value);
         }
@@ -21,13 +21,18 @@ export const setItem = (key, value, encryptValue = false) => {
     }
 };
 
-export const getItem = (key, decryptValue = false) => {
+export const getItem = async (key, decryptValue = false) => {
     try {
         const fullKey = `${PREFIX}${key}`;
         const data = sessionStorage.getItem(fullKey);
         if (!data) return null;
         if (decryptValue) {
-            return JSON.parse(decrypt(data));
+            const decrypted = await decrypt(data);
+            try {
+                return JSON.parse(decrypted);
+            } catch {
+                return decrypted;
+            }
         }
         try {
             return JSON.parse(data);

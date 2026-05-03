@@ -20,11 +20,12 @@ const TeamDetail = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const { data: team, isLoading: isLoadingTeam, refetch } = useTeam(id);
   const { data: members, isLoading: isLoadingMembers, refetch: refetchMembers } = useTeamMembers(id);
-  const { data: availableEmployees } = useEmployments({ 
+  const { data: availableEmployeesPage } = useEmployments({ 
     filters: { is_active: 'true', is_current: 'true' },
     page: 1, 
     pageSize: 100 
   });
+  const availableEmployees = availableEmployeesPage?.results ?? [];
   const handleBack = () => {
     navigate(STRUCTURE_ROUTES.TEAMS);
   };

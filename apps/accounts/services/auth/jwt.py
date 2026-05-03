@@ -7,7 +7,6 @@ from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from apps.accounts.models import User, SessionBlacklist
-from apps.accounts.managers import SessionBlacklistManager
 from ...exceptions import TokenError
 logger = logging.getLogger(__name__)
 
@@ -15,7 +14,6 @@ class JWTServices:
     def __init__(self):
         self.access_token_lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", timedelta(minutes=30))
         self.refresh_token_lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME", timedelta(days=7))
-        self.blacklist_manager = SessionBlacklistManager()
     
     def create_token(self, user: User, refresh_token_jti: str = None) -> Dict[str, Any]:
         refresh = RefreshToken.for_user(user)
@@ -76,7 +74,7 @@ class JWTServices:
             refresh = RefreshToken(token)
             jti = refresh.get('jti')
             expires_at = timezone.now() + timedelta(days=7)
-            self.blacklist_manager.blacklist_token(
+            SessionBlacklist.objects.blacklist_token(
                 token_id=jti,
                 token_type='refresh',
                 user=user,
@@ -93,7 +91,7 @@ class JWTServices:
     def blacklist_token_by_jti(self, jti: str, user: User = None, reason: str = 'revoked') -> bool:
         try:
             expires_at = timezone.now() + timedelta(days=7)
-            self.blacklist_manager.blacklist_token(
+            SessionBlacklist.objects.blacklist_token(
                 token_id=jti,
                 token_type='refresh',
                 user=user,
@@ -108,7 +106,9 @@ class JWTServices:
         
     def is_blacklisted(self, jti: str) -> bool:
         try:
-            return self.blacklist_manager.is_blacklisted(jti)
+            if not jti:
+                return False
+            return SessionBlacklist.objects.is_blacklisted(jti)
         except Exception as e:
             logger.error(f"Error checking blacklist: {e}")
             return False
@@ -122,5 +122,5 @@ class JWTServices:
             return None
         
     def cleanup_expired_blacklist(self) -> int:
-        return SessionBlacklistManager.cleanup_expired()
+        return SessionBlacklist.objects.cleanup_expired()
     

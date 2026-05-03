@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _ 
 from .base import BaseModel
 from .user import User
+from ..managers.session import SessionBlacklistManager
 
 class UserSession(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions', verbose_name=_('user'))
@@ -98,6 +99,8 @@ class SessionBlacklist(BaseModel):
     """
     Blacklisted JWT tokens and session keys for immediate revocation.
     """
+    objects = SessionBlacklistManager()
+
     token_id = models.CharField(_('token ID'), max_length=50, unique=True, db_index=True, help_text='JTI claim')
     token_type = models.CharField(_('token type'), max_length=20, choices=[('access', 'Access'), ('refresh', 'Refresh')])
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='blacklisted_tokens')

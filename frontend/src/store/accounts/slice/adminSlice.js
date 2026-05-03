@@ -249,15 +249,31 @@ const adminSlice = createSlice({
                     request_trend: action.payload.system.request_trend
                 };
             })
-            // Fetch All Users
+            .addCase(fetchAllUsers.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
             .addCase(fetchAllUsers.fulfilled, (state, action) => {
-                state.users = action.payload.results;
+                state.isLoading = false;
+                state.error = null;
+                const payload = action.payload ?? {};
+                const list = payload.results ?? (Array.isArray(payload) ? payload : []);
+                state.users = Array.isArray(list) ? list : [];
+                const count = typeof payload.count === 'number' ? payload.count : state.users.length;
+                const pageSize = 100;
                 state.pagination = {
-                    current_page: action.payload.current_page,
-                    total_pages: action.payload.total_pages,
-                    total_items: action.payload.count,
-                    page_size: action.payload.page_size
+                    current_page: payload.current_page ?? 1,
+                    total_pages: payload.total_pages ?? Math.max(1, Math.ceil(count / pageSize)),
+                    total_items: count,
+                    page_size: payload.page_size ?? pageSize,
                 };
+            })
+            .addCase(fetchAllUsers.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error =
+                    typeof action.payload === 'string'
+                        ? action.payload
+                        : action.error?.message || 'Failed to fetch users';
             })
             // Delete User
             .addCase(deleteUserAdmin.fulfilled, (state, action) => {

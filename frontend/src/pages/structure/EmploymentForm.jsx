@@ -17,9 +17,12 @@ const EmploymentForm = () => {
   const dispatch = useDispatch();
   const isEditMode = !!id;
   const { data: existingEmployment, isLoading: isLoadingEmployment } = useEmployment(id, { enabled: isEditMode });
-  const { data: positions } = usePositions({ page: 1, pageSize: 1000 });
-  const { data: departments } = useDepartments({ page: 1, pageSize: 1000 });
-  const { data: teams } = useTeams({ page: 1, pageSize: 1000 });
+  const { data: positionsPage } = usePositions({ page: 1, pageSize: 1000 });
+  const positions = positionsPage?.results ?? [];
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results ?? [];
+  const { data: teamsPage } = useTeams({ page: 1, pageSize: 1000 });
+  const teams = teamsPage?.results ?? [];
   const [formData, setFormData] = useState({
     user_id: '',
     position_id: '',

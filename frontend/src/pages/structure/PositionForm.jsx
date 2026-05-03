@@ -16,8 +16,10 @@ const PositionForm = () => {
   const dispatch = useDispatch();
   const isEditMode = !!id;
   const { data: existingPosition, isLoading: isLoadingPosition } = usePosition(id, { enabled: isEditMode });
-  const { data: positions } = usePositions({ page: 1, pageSize: 1000 });
-  const { data: departments } = useDepartments({ page: 1, pageSize: 1000 });
+  const { data: positionsPage } = usePositions({ page: 1, pageSize: 1000 });
+  const positions = positionsPage?.results ?? [];
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results ?? [];
   const [formData, setFormData] = useState({
     job_code: '',
     title: '',

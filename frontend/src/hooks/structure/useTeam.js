@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teamService } from '../../services/structure/team.service';
+import { normalizeStructureEntity, normalizeStructureResultsArray } from '../../services/structure/structureResponse';
 import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
 import { showToast } from '../../store/ui/slices/uiSlice';
 import { useDispatch } from 'react-redux';
@@ -11,6 +12,7 @@ export const useTeam = (id, options = {}) => {
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
     ...options,
+    select: options.select ?? normalizeStructureEntity,
   });
 };
 
@@ -18,6 +20,7 @@ export const useTeamByCode = (code) => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.TEAM, code, 'byCode'],
     queryFn: () => teamService.getByCode(code),
+    select: normalizeStructureEntity,
     enabled: !!code,
     staleTime: 5 * 60 * 1000,
   });
@@ -106,6 +109,7 @@ export const useTeamMembers = (id) => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.TEAM, id, 'members'],
     queryFn: () => teamService.getMembers(id),
+    select: normalizeStructureResultsArray,
     enabled: !!id,
     staleTime: 3 * 60 * 1000,
   });

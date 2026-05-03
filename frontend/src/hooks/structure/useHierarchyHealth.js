@@ -9,6 +9,7 @@ export const useHierarchyHealth = () => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.HIERARCHY_HEALTH],
     queryFn: () => dashboardService.getHealthMetrics(),
+    select: (r) => (r && typeof r === 'object' && 'data' in r ? r.data : r),
     staleTime: 5 * 60 * 1000,
   });
 };
@@ -16,9 +17,9 @@ export const useHierarchyHealth = () => {
 export const useHierarchyHealthScore = () => {
   const { data, isLoading } = useHierarchyHealth();
   return {
-    score: data?.data?.health_score || 0,
-    status: data?.data?.status || 'unknown',
-    issues: data?.data?.issues || [],
+    score: data?.health_score || 0,
+    status: data?.status || 'unknown',
+    issues: data?.issues || [],
     isLoading,
   };
 };

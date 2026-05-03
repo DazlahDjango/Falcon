@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from '../../../services/accounts/api/auth';
 import * as userApi from '../../../services/accounts/api/users';
-import { setTokens, clearTokens, getAccessToken, getRefreshToken } from '../../../services/accounts/storage/secureStorage';
+import { setTokens, clearTokens, getAccessToken, getRefreshToken, setTenantId, clearTenantId } from '../../../services/accounts/storage/secureStorage';
 
 // Async Thunks
 //==============
@@ -266,17 +266,30 @@ const authSlice = createSlice({
                     state.mfaToken = null;
                     // Save user to redux state - extract from response correctly
                     state.user = action.payload.user || { email: 'dazlah@gmail.com', role: 'super_admin' };
-                    // Save tokens to localStorage
+                    
+                    // Extract and save tokens using secureStorage
                     const accessToken = action.payload.access || action.payload.access_token;
                     const refreshToken = action.payload.refresh || action.payload.refresh_token;
-                    if (accessToken) {
-                        localStorage.setItem('access_token', accessToken);
-                        localStorage.setItem('refresh_token', refreshToken);
-                        console.log('Tokens saved to localStorage');
-                        console.log('access_token length:', accessToken.length);
+                    
+                    if (accessToken && refreshToken) {
+                        // Use async setTokens - but since this is in a reducer, we dispatch this separately
+                        setTokens(accessToken, refreshToken).catch(err => {
+                            console.error('Failed to set tokens:', err);
+                        });
+                        console.log('Tokens queued for secure storage');
                     } else {
-                        console.log('No access token found in response');
+                        console.log('No tokens found in response');
                         console.log('Response keys:', Object.keys(action.payload));
+                    }
+                    
+                    // Save tenant_id if available
+                    if (state.user?.tenant_id) {
+                        setTenantId(state.user.tenant_id).catch(err => {
+                            console.error('Failed to set tenant ID:', err);
+                        });
+                        console.log('Tenant ID queued for secure storage');
+                    } else {
+                        console.warn('No tenant_id found in user data');
                     }
                 }
             })
@@ -296,12 +309,19 @@ const authSlice = createSlice({
                 state.requiresMfa = false;
                 state.mfaToken = null;
                 state.user = action.payload.user;
-                // Save token
-                if (action.payload.access) {
-                    localStorage.setItem('access_token', action.payload.access);
+                
+                // Save tokens using secureStorage
+                if (action.payload.access && action.payload.refresh) {
+                    setTokens(action.payload.access, action.payload.refresh).catch(err => {
+                        console.error('Failed to set tokens after MFA:', err);
+                    });
                 }
-                if (action.payload.refresh) {
-                    localStorage.setItem('refresh_token', action.payload.refresh);
+                
+                // Save tenant_id if available
+                if (action.payload.user?.tenant_id) {
+                    setTenantId(action.payload.user.tenant_id).catch(err => {
+                        console.error('Failed to set tenant ID after MFA:', err);
+                    });
                 }
             })
             .addCase(verifyMfa.rejected, (state, action) => {
@@ -310,6 +330,9 @@ const authSlice = createSlice({
             })
             // Logout
             .addCase(logout.fulfilled, (state) => {
+                clearTenantId().catch(err => {
+                    console.error('Failed to clear tenant ID:', err);
+                });
                 return {
                     ...initialState,
                     isAuthenticated: false,

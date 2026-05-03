@@ -17,7 +17,7 @@ class UserFilter(BaseFilter, SearchFilter):
     last_login_before = django_filters.DateTimeFilter(field_name='last_login', lookup_expr='lte')
     manager_id = django_filters.UUIDFilter(field_name='manager__id')
     # department_id = django_filters.UUIDFilter(field_name='department__id')
-    tenant_id = django_filters.UUIDFilter(field_name='tenant__id')
+    tenant_id = django_filters.UUIDFilter(field_name='tenant_id')
     is_locked = django_filters.BooleanFilter(method='filter_is_locked')
     is_manager = django_filters.BooleanFilter(method='filter_is_manager')
     is_supervisor = django_filters.BooleanFilter(method='filter_is_supervisor')

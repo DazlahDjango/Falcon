@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employmentService } from '../../services/structure/employment.service';
+import { normalizeStructureEntity } from '../../services/structure/structureResponse';
 import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
 import { showToast } from '../../store/ui/slices/uiSlice';
 import { useDispatch } from 'react-redux';
@@ -8,6 +9,7 @@ export const useEmployment = (id) => {
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.EMPLOYMENT, id],
     queryFn: () => employmentService.getById(id),
+    select: normalizeStructureEntity,
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });

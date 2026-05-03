@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { positionService } from '../../services/structure/position.service';
+import { normalizeStructureListPage } from '../../services/structure/structureResponse';
 import { STRUCTURE_QUERY_KEYS, DEFAULT_PAGE_SIZE } from '../../config/constants/structureConstants';
 
 export const usePositions = (filters = {}, page = 1, pageSize = DEFAULT_PAGE_SIZE) => {
@@ -7,6 +8,7 @@ export const usePositions = (filters = {}, page = 1, pageSize = DEFAULT_PAGE_SIZ
   return useQuery({
     queryKey: [STRUCTURE_QUERY_KEYS.POSITIONS, params],
     queryFn: () => positionService.list(params),
+    select: normalizeStructureListPage,
     staleTime: 5 * 60 * 1000,
     keepPreviousData: true,
   });

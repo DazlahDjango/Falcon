@@ -20,10 +20,12 @@ const EmploymentTransfer = () => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: employments, isLoading: isLoadingEmployments } = useEmploymentsByUser(userId, false);
-  const { data: departments } = useDepartments({ page: 1, pageSize: 1000 });
-  const { data: teams } = useTeams({ page: 1, pageSize: 1000 });
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results ?? [];
+  const { data: teamsPage } = useTeams({ page: 1, pageSize: 1000 });
+  const teams = teamsPage?.results ?? [];
   const currentEmployment = employments?.find(emp => emp.is_current && emp.is_active);
-  const availableTeams = teams?.filter(team => team.department_id === selectedDepartmentId);
+  const availableTeams = teams.filter(team => team.department_id === selectedDepartmentId);
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedDepartmentId) {

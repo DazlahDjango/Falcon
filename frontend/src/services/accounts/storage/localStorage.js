@@ -1,20 +1,19 @@
-import { encrypt, decrypt } from './secureStorage';
+import { encrypt, decrypt } from './crypto';
 
 const PREFIX = 'falcon_';
 
-export const setItem = (key, value, encryptValue = false) => {
+export const setItem = async (key, value, encryptValue = false) => {
     try {
         const fullKey = `${PREFIX}${key}`;
         if (encryptValue) {
-            return encrypt(JSON.stringify(value))
-                .then((encrypted) => {
-                    localStorage.setItem(fullKey, encrypted);
-                    return true;
-                })
-                .catch((error) => {
-                    console.error('localStorage setItem error:', error);
-                    return false;
-                });
+            try {
+                const encrypted = await encrypt(JSON.stringify(value));
+                localStorage.setItem(fullKey, encrypted);
+                return true;
+            } catch (error) {
+                console.error('localStorage setItem encryption error:', error);
+                return false;
+            }
         }
 
         let data = value;
@@ -28,25 +27,24 @@ export const setItem = (key, value, encryptValue = false) => {
         return false;
     }
 };
-export const getItem = (key, decryptValue = false) => {
+export const getItem = async (key, decryptValue = false) => {
     try {
         const fullKey = `${PREFIX}${key}`;
         const data = localStorage.getItem(fullKey);
         if (!data) return null;
         if (decryptValue) {
-            return decrypt(data)
-                .then((decrypted) => {
-                    try {
-                        return JSON.parse(decrypted);
-                    } catch {
-                        return decrypted;
-                    }
-                })
-                .catch((error) => {
-                    console.error('localStorage getItem error:', error);
-                    removeItem(key);
-                    return null;
-                });
+            try {
+                const decrypted = await decrypt(data);
+                try {
+                    return JSON.parse(decrypted);
+                } catch {
+                    return decrypted;
+                }
+            } catch (error) {
+                console.error('localStorage getItem decryption error:', error);
+                removeItem(key);
+                return null;
+            }
         }
         try {
             return JSON.parse(data);
