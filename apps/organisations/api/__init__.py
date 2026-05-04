@@ -1,3 +1,0 @@
-"""
-API for organisations app
-"""

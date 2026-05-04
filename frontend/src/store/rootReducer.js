@@ -40,20 +40,7 @@ import {
 // ==========================================
 // Organisation Reducers
 // ==========================================
-import organisationReducer from './organisations/slice/organisationSlice';
-import subscriptionReducer from './organisations/slice/subscriptionSlice';
-import planReducer from './organisations/slice/planSlice';
-import featureFlagReducer from './organisations/slice/featureFlagSlice';
-import orgDepartmentReducer from './organisations/slice/departmentSlice';
-import orgPositionReducer from './organisations/slice/positionSlice';
-import domainReducer from './organisations/slice/domainSlice';
-import brandingReducer from './organisations/slice/brandingSlice';
-import settingsReducer from './organisations/slice/settingsSlice';
-import organisationsKpiReducer from './organisations/slice/kpiSlice';
-import orgUserReducer from './organisations/slice/userSlice';
-import orgTeamReducer from './organisations/slice/teamSlice';
-import orgAuditReducer from './organisations/slice/auditSlice';
-import orgUiReducer from './organisations/slice/uiSlice';
+
 
 // ==========================================
 // KPI Reducers
@@ -102,8 +89,6 @@ const rootReducer = combineReducers({
     accTeam: accountsTeamReducer,
     ui: accountsUiReducer,
 
-<<<<<<< HEAD
-=======
     // Structure State
     structNotifications: structNotificationReducer,
     structure: combineReducers({
@@ -119,22 +104,7 @@ const rootReducer = combineReducers({
         ui: structureUiReducer,
     }),
     
->>>>>>> fcf349ea0e86d27d045718f4b7d871bbdc9075ef
-    // Organisation State
-    organisation: organisationReducer,
-    subscription: subscriptionReducer,
-    plans: planReducer,
-    featureFlags: featureFlagReducer,
-    orgDepartments: orgDepartmentReducer,
-    orgTeams: orgTeamReducer,
-    orgPositions: orgPositionReducer,
-    domains: domainReducer,
-    branding: brandingReducer,
-    settings: settingsReducer,
-    orgKpis: organisationsKpiReducer,
-    orgUsers: orgUserReducer,
-    audit: orgAuditReducer,
-    orgUi: orgUiReducer,
+    
 
     // KPI State
     kpi: kpiReducer,

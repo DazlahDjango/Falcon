@@ -8,9 +8,10 @@ import ResourceService from './resource.service';
 import ProvisioningService from './provisioning.service';
 import HealthService from './health.service';
 import StatsService from './stats.service';
+import TenantAuditService from './tenantAudit.service';
 import TenantWebSocketService from './websocket.service';
 
-// Export individual services
+// Named exports
 export {
     TenantService,
     DomainService,
@@ -21,10 +22,11 @@ export {
     ProvisioningService,
     HealthService,
     StatsService,
+    TenantAuditService,
     TenantWebSocketService,
 };
 
-// Export default object with all services
+// Default export
 export default {
     TenantService,
     DomainService,
@@ -35,5 +37,6 @@ export default {
     ProvisioningService,
     HealthService,
     StatsService,
+    TenantAuditService,
     TenantWebSocketService,
 };

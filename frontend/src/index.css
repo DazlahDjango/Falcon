@@ -32,11 +32,10 @@
 @import './assets/styles/kpi/charts.css';
 @import './assets/styles/kpi/traffic-light.css';
 @import './assets/styles/kpi/forms.css';
-<<<<<<< HEAD
+
 /* ============================================
    TENANT APP CSS IMPORTS
    ============================================ */
-
 /* Tenant Core Components */
 @import './components/tenant/tenant/tenant.css';
 
@@ -72,7 +71,7 @@
 
 /* Billing Components */
 @import './components/tenant/billing/billing.css';
-=======
+
 /* Structure Styling */
 @import './components/structure/common.css';
 @import './components/structure/department/department.css';
@@ -148,4 +147,4 @@
   opacity: 0;
   transition: opacity 200ms ease-out;
 }
->>>>>>> fcf349ea0e86d27d045718f4b7d871bbdc9075ef
+

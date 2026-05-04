@@ -109,3 +109,14 @@ export const clearTenantId = async () => {
 
 export { setItem as setLocalItem, getItem as getLocalItem, removeItem as removeLocalItem } from './localStorage';
 export { setItem as setSessionItemSimple, getItem as getSessionItemSimple, removeItem as removeSessionItem } from './sessionStorage';
+// Add setAccessToken function (alias for setTokens)
+export const setAccessToken = async (accessToken) => {
+    const refreshToken = await getRefreshToken();
+    return setTokens(accessToken, refreshToken);
+};
+
+// Add setRefreshToken function
+export const setRefreshToken = async (refreshToken) => {
+    const accessToken = await getAccessToken();
+    return setTokens(accessToken, refreshToken);
+};

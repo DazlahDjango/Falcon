@@ -1,9 +1,0 @@
-export { default as UserList } from './UserList';
-export { default as UserInvite } from './UserInvite';
-export { default as UserRoles } from './UserRoles';
-export { default as UserDetail } from './UserDetail';
-export { default as UserCard } from './components/UserCard';
-export { default as UserRoleBadge } from './components/UserRoleBadge';
-export { default as UserFilters } from './components/UserFilters';
-export { default as InviteUserModal } from './components/InviteUserModal';
-export { default as UserForm } from './components/UserForm';

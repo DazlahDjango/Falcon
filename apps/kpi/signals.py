@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 import logging
-from apps.organisations.models import Department, Hierarchy
+from apps.structure.models import Department, Hierarchy
 from .models import (
     KPI, KPIWeight, AnnualTarget, MonthlyActual, ValidationRecord,
     Score, MonthlyPhasing, Escalation, ActualAdjustment, CascadeMap
@@ -21,16 +21,21 @@ logger = logging.getLogger(__name__)
 
 # KPI Signals
 # =============
+
+
 @receiver(post_save, sender=KPI)
 def kpi_post_save_handler(sender, instance, created, **kwargs):
     logger.info(f"KPI {instance.code} {'created' if created else 'updated'}")
     invalidate_kpi_cache(str(instance.id))
     if not created and not instance.is_active:
         calculator = ScoreCalculator()
-        affected_users = KPIWeight.objects.filter(kpi=instance).values_list('user_id', flat=True)
+        affected_users = KPIWeight.objects.filter(
+            kpi=instance).values_list('user_id', flat=True)
         for user_id in affected_users:
             now = timezone.now()
-            calculator.calculate_user_period(str(user_id), now.year, now.month, force=True)
+            calculator.calculate_user_period(
+                str(user_id), now.year, now.month, force=True)
+
 
 @receiver(pre_save, sender=KPI)
 def kpi_pre_save_handler(sender, instance, **kwargs):
@@ -38,20 +43,24 @@ def kpi_pre_save_handler(sender, instance, **kwargs):
         try:
             old = sender.objects.get(pk=instance.pk)
             instance._changed_fields = {}
-            for field in ['name', 'code', 'description', 'kpi_type', 'calculation_logic', 
+            for field in ['name', 'code', 'description', 'kpi_type', 'calculation_logic',
                           'measure_type', 'unit', 'decimal_places', 'is_active']:
                 old_value = getattr(old, field)
                 new_value = getattr(instance, field)
                 if old_value != new_value:
-                    instance._changed_fields[field] = {'old': old_value, 'new': new_value}
+                    instance._changed_fields[field] = {
+                        'old': old_value, 'new': new_value}
         except sender.DoesNotExist:
             pass
 
 # KPI Weight Signals
 # ====================
+
+
 @receiver([post_save, post_delete], sender=KPIWeight)
 def kpi_weight_changed_handler(sender, instance, **kwargs):
-    logger.info(f"KPI weight changed for {instance.kpi.code} - user {instance.user.email}")
+    logger.info(
+        f"KPI weight changed for {instance.kpi.code} - user {instance.user.email}")
     invalidate_user_dashboards(str(instance.user_id))
     from django.utils import timezone
     now = timezone.now()
@@ -62,9 +71,11 @@ def kpi_weight_changed_handler(sender, instance, **kwargs):
         force=True
     )
     validator = KPIValidator()
-    is_valid, message = validator.validate_weight_sum(str(instance.kpi_id), str(instance.user_id))
+    is_valid, message = validator.validate_weight_sum(
+        str(instance.kpi_id), str(instance.user_id))
     if not is_valid:
-        logger.warning(f"Weight validation failed for user {instance.user.email}: {message}")
+        logger.warning(
+            f"Weight validation failed for user {instance.user.email}: {message}")
         create_in_app_notification_task.delay(
             user_id=str(instance.user_id),
             title="KPI Weight Error",
@@ -74,9 +85,12 @@ def kpi_weight_changed_handler(sender, instance, **kwargs):
 
 # Target Signals
 # ================
+
+
 @receiver(post_save, sender=AnnualTarget)
 def annual_target_post_save_handler(sender, instance, created, **kwargs):
-    logger.info(f"Annual target {'created' if created else 'updated'} for {instance.kpi.code} - {instance.year}")
+    logger.info(
+        f"Annual target {'created' if created else 'updated'} for {instance.kpi.code} - {instance.year}")
     cache_key = f"kpi:target:{instance.kpi_id}:{instance.user_id}:{instance.year}"
     cache.delete(cache_key)
     if instance.approved_by and not created:
@@ -88,10 +102,12 @@ def annual_target_post_save_handler(sender, instance, created, **kwargs):
                 month=1
             ))
 
+
 @receiver(post_save, sender=MonthlyPhasing)
 def monthly_phasing_post_save_handler(sender, instance, created, **kwargs):
     if created or instance.is_locked:
-        logger.info(f"Monthly phasing {'locked' if instance.is_locked else 'updated'} for period {instance.month}")
+        logger.info(
+            f"Monthly phasing {'locked' if instance.is_locked else 'updated'} for period {instance.month}")
         cache.delete(f"kpi:phasing:{instance.annual_target_id}")
         calculate_kpi_score_task.delay(
             user_id=str(instance.annual_target.user_id),
@@ -102,6 +118,8 @@ def monthly_phasing_post_save_handler(sender, instance, created, **kwargs):
 
 # Actual Data Signals
 # =====================
+
+
 @receiver(post_save, sender=MonthlyActual)
 def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
     """Handle actual data changes - trigger calculation and validation workflow"""
@@ -133,23 +151,27 @@ def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
             asyncio.create_task(
                 dashboard.push_team_update(
                     str(manager.manager_id),
-                    {'user_id': str(instance.user_id), 'status': instance.status}
+                    {'user_id': str(instance.user_id),
+                     'status': instance.status}
                 )
             )
         except RuntimeError:
             pass
 
+
 @receiver(post_save, sender=ActualAdjustment)
 def actual_adjustment_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        logger.info(f"Adjustment requested for actual {instance.original_actual_id} by {instance.requested_by.email}")
+        logger.info(
+            f"Adjustment requested for actual {instance.original_actual_id} by {instance.requested_by.email}")
         from .tasks import send_adjustment_notification_task
         send_adjustment_notification_task.delay(
             adjustment_id=str(instance.id),
             notification_type='requested'
         )
     elif instance.status == 'APPROVED':
-        logger.info(f"Adjustment approved for actual {instance.original_actual_id}")
+        logger.info(
+            f"Adjustment approved for actual {instance.original_actual_id}")
         actual = instance.original_actual
         calculate_kpi_score_task.delay(
             user_id=str(actual.user_id),
@@ -160,10 +182,13 @@ def actual_adjustment_post_save_handler(sender, instance, created, **kwargs):
 
 # Validation Signals
 # ===================
+
+
 @receiver(post_save, sender=ValidationRecord)
 def validation_record_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        logger.info(f"Validation {instance.status} for actual {instance.actual_id} by {instance.validated_by.email}")
+        logger.info(
+            f"Validation {instance.status} for actual {instance.actual_id} by {instance.validated_by.email}")
         from .tasks import send_validation_notification_task
         send_validation_notification_task.delay(
             validation_id=str(instance.id),
@@ -173,10 +198,12 @@ def validation_record_post_save_handler(sender, instance, created, **kwargs):
             tenant_id=str(instance.tenant_id)
         ))
 
+
 @receiver(post_save, sender=Escalation)
 def escalation_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        logger.info(f"Escalation created for actual {instance.actual_id} to {instance.escalated_to.email}")
+        logger.info(
+            f"Escalation created for actual {instance.actual_id} to {instance.escalated_to.email}")
         send_escalation_notification_task.delay(
             escalation_id=str(instance.id),
             notification_type='created'
@@ -190,10 +217,13 @@ def escalation_post_save_handler(sender, instance, created, **kwargs):
 
 # Score Signals
 # ================
+
+
 @receiver(post_save, sender=Score)
 def score_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        logger.info(f"Score calculated for {instance.kpi.code} - {instance.user.email}: {instance.score}%")
+        logger.info(
+            f"Score calculated for {instance.kpi.code} - {instance.user.email}: {instance.score}%")
         update_traffic_light_task.delay(
             score_id=str(instance.id)
         )
@@ -218,6 +248,7 @@ def score_post_save_handler(sender, instance, created, **kwargs):
         except RuntimeError:
             pass
 
+
 @receiver(post_save, sender=Score)
 def score_post_save_trend_handler(sender, instance, **kwargs):
     previous_scores = Score.objects.filter(
@@ -229,13 +260,16 @@ def score_post_save_trend_handler(sender, instance, **kwargs):
     if previous_scores.exists():
         from .engine.traffic_light import TrendAnalyzer
         analyzer = TrendAnalyzer()
-        scores_list = [s.score for s in reversed(previous_scores)] + [instance.score]
+        scores_list = [s.score for s in reversed(
+            previous_scores)] + [instance.score]
         trend = analyzer.analyze(scores_list)
         cache_key = f"kpi:trend:{instance.kpi_id}:{instance.user_id}"
         cache.set(cache_key, trend, 86400)  # 24 hours
 
 # Cascade Signals
 # =================
+
+
 @receiver(post_save, sender=AnnualTarget)
 def target_cascade_check(sender, instance, **kwargs):
     is_cascaded = CascadeMap.objects.filter(
@@ -243,13 +277,15 @@ def target_cascade_check(sender, instance, **kwargs):
         Q(department_target=instance) |
         Q(individual_target=instance)
     ).exists()
-    
+
     if not is_cascaded and instance.kpi.strategic_objective:
         cascader = TargetCascader()
         from .models import CascadeRule
-        default_rule = CascadeRule.objects.filter(is_default=True, is_active=True).first()
+        default_rule = CascadeRule.objects.filter(
+            is_default=True, is_active=True).first()
         if default_rule:
-            departments = Department.objects.filter(tenant_id=instance.tenant_id, is_active=True)
+            departments = Department.objects.filter(
+                tenant_id=instance.tenant_id, is_active=True)
             if departments.exists():
                 targets = [
                     {
@@ -268,6 +304,8 @@ def target_cascade_check(sender, instance, **kwargs):
 
 # Cleanup Signals
 # ==================
+
+
 @receiver(post_delete, sender=KPI)
 def kpi_post_delete_handler(sender, instance, **kwargs):
     logger.info(f"KPI {instance.code} deleted")
@@ -275,9 +313,11 @@ def kpi_post_delete_handler(sender, instance, **kwargs):
     cache.delete_pattern(f"kpi:score:{instance.id}:*")
     cache.delete_pattern(f"kpi:target:{instance.id}:*")
 
+
 @receiver(post_delete, sender=MonthlyActual)
 def monthly_actual_post_delete_handler(sender, instance, **kwargs):
-    logger.info(f"Monthly actual deleted for {instance.kpi.code} - period {instance.year}-{instance.month:02d}")
+    logger.info(
+        f"Monthly actual deleted for {instance.kpi.code} - period {instance.year}-{instance.month:02d}")
     calculate_kpi_score_task.delay(
         user_id=str(instance.user_id),
         year=instance.year,

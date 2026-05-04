@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { store } from '../../store';
 import { logout } from '../../store/accounts/slice/authSlice';
-import { showToast } from '../../store/slices/uiSlice';
+import { showToast } from '../../store/tenant/slice/tenantUISlice';
 import {
     getAccessToken,
     getRefreshToken,
@@ -15,8 +15,8 @@ import {
     getTenantId,
     setTenantId
 } from '../accounts/storage/secureStorage';
+import { auditLog } from './auditService';
 import { encryptData, decryptData } from '../security/encryptionService';
-import { auditLog } from '../audit/auditService';
 import TENANT_API_ENDPOINTS from '../../config/constants/tenantConstants';
 
 // ==================== Configuration ====================
@@ -452,11 +452,6 @@ class BaseTenantService {
         this.withRetry = withRetry;
     }
 
-    /**
-     * Get endpoint URL using TENANT_API_ENDPOINTS constants
-     * @param {string} endpoint - Optional endpoint suffix
-     * @returns {string} Full endpoint URL
-     */
     getEndpoint(endpoint = '') {
         const endpointsMap = {
             'tenants': () => TENANT_API_ENDPOINTS.TENANT.LIST,
@@ -468,6 +463,7 @@ class BaseTenantService {
             'stats': () => '/stats/',
             'provisioning': () => '/provisioning/',
             'resources': () => '/resources/',
+            'audit': () => '/audit/',
         };
 
         const basePath = endpointsMap[this.resourceName];
@@ -476,16 +472,9 @@ class BaseTenantService {
             return endpoint ? `${path}${endpoint}` : path;
         }
 
-        // Fallback
         return `/${this.resourceName}/${endpoint}`;
     }
 
-    /**
-     * Get nested endpoint for tenant-specific resources
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string} endpoint - Optional endpoint suffix
-     * @returns {string} Full nested endpoint URL
-     */
     getTenantEndpoint(tenantId, endpoint = '') {
         const endpointsMap = {
             'domains': () => TENANT_API_ENDPOINTS.DOMAIN.TENANT_DOMAINS(tenantId),
@@ -493,6 +482,7 @@ class BaseTenantService {
             'migrations': () => TENANT_API_ENDPOINTS.MIGRATION.TENANT_MIGRATIONS(tenantId),
             'schemas': () => TENANT_API_ENDPOINTS.SCHEMA.TENANT_SCHEMAS(tenantId),
             'resources': () => `/tenants/${tenantId}/resources/`,
+            'audit': () => `/tenants/${tenantId}/audit/`,
         };
 
         const getPath = endpointsMap[this.resourceName];
@@ -501,293 +491,137 @@ class BaseTenantService {
             return endpoint ? `${path}${endpoint}` : path;
         }
 
-        // Fallback for dynamic resources
         const resourcePath = this.resourceName;
         return endpoint
             ? `/tenants/${tenantId}/${resourcePath}/${endpoint}`
             : `/tenants/${tenantId}/${resourcePath}/`;
     }
 
-    /**
-     * List resources with pagination and filters
-     * @param {Object} params - Query parameters
-     * @returns {Promise} Response with list of resources
-     */
     async list(params = {}) {
         const sanitizedParams = Object.fromEntries(
             Object.entries(params).filter(([_, v]) => v !== null && v !== undefined && v !== '')
         );
-
         return this.withRetry(() =>
             this.apiClient.get(this.getEndpoint(), { params: sanitizedParams })
         );
     }
 
-    /**
-     * List resources for a specific tenant (nested route)
-     * @param {string|number} tenantId - Tenant ID
-     * @param {Object} params - Query parameters
-     * @returns {Promise} Response with list of resources
-     */
     async listForTenant(tenantId, params = {}) {
-        if (!tenantId) {
-            throw new Error('Tenant ID is required');
-        }
-
+        if (!tenantId) throw new Error('Tenant ID is required');
         const sanitizedParams = Object.fromEntries(
             Object.entries(params).filter(([_, v]) => v !== null && v !== undefined && v !== '')
         );
-
         return this.withRetry(() =>
             this.apiClient.get(this.getTenantEndpoint(tenantId), { params: sanitizedParams })
         );
     }
 
-    /**
-     * Get resource by ID
-     * @param {string|number} id - Resource ID
-     * @param {Object} params - Additional query parameters
-     * @returns {Promise} Response with resource data
-     */
     async getById(id, params = {}) {
-        if (!id) {
-            throw new Error('Resource ID is required');
-        }
-
+        if (!id) throw new Error('Resource ID is required');
         return this.withRetry(() =>
             this.apiClient.get(this.getEndpoint(`${id}/`), { params })
         );
     }
 
-    /**
-     * Get resource for a specific tenant (nested route)
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string|number} resourceId - Resource ID
-     * @param {Object} params - Additional query parameters
-     * @returns {Promise} Response with resource data
-     */
     async getForTenant(tenantId, resourceId, params = {}) {
-        if (!tenantId) {
-            throw new Error('Tenant ID is required');
-        }
-        if (!resourceId) {
-            throw new Error('Resource ID is required');
-        }
-
+        if (!tenantId) throw new Error('Tenant ID is required');
+        if (!resourceId) throw new Error('Resource ID is required');
         return this.withRetry(() =>
             this.apiClient.get(this.getTenantEndpoint(tenantId, `${resourceId}/`), { params })
         );
     }
 
-    /**
-     * Create new resource
-     * @param {Object} data - Resource data
-     * @param {boolean} encrypt - Whether to encrypt sensitive data
-     * @returns {Promise} Response with created resource
-     */
     async create(data, encrypt = true) {
-        if (!data || typeof data !== 'object') {
-            throw new Error('Valid data object is required');
-        }
-
+        if (!data || typeof data !== 'object') throw new Error('Valid data object is required');
         const processedData = encrypt ? encryptSensitiveData(data) : data;
-
         return this.withRetry(() =>
             this.apiClient.post(this.getEndpoint(), processedData)
         );
     }
 
-    /**
-     * Create resource for a specific tenant (nested route)
-     * @param {string|number} tenantId - Tenant ID
-     * @param {Object} data - Resource data
-     * @param {boolean} encrypt - Whether to encrypt sensitive data
-     * @returns {Promise} Response with created resource
-     */
     async createForTenant(tenantId, data, encrypt = true) {
-        if (!tenantId) {
-            throw new Error('Tenant ID is required');
-        }
-        if (!data || typeof data !== 'object') {
-            throw new Error('Valid data object is required');
-        }
-
+        if (!tenantId) throw new Error('Tenant ID is required');
+        if (!data || typeof data !== 'object') throw new Error('Valid data object is required');
         const processedData = encrypt ? encryptSensitiveData(data) : data;
-
         return this.withRetry(() =>
             this.apiClient.post(this.getTenantEndpoint(tenantId), processedData)
         );
     }
 
-    /**
-     * Update resource
-     * @param {string|number} id - Resource ID
-     * @param {Object} data - Update data
-     * @param {boolean} partial - Whether this is a partial update (PATCH vs PUT)
-     * @param {boolean} encrypt - Whether to encrypt sensitive data
-     * @returns {Promise} Response with updated resource
-     */
     async update(id, data, partial = true, encrypt = true) {
-        if (!id) {
-            throw new Error('Resource ID is required');
-        }
-        if (!data || typeof data !== 'object') {
-            throw new Error('Valid data object is required');
-        }
-
+        if (!id) throw new Error('Resource ID is required');
+        if (!data || typeof data !== 'object') throw new Error('Valid data object is required');
         const processedData = encrypt ? encryptSensitiveData(data) : data;
         const method = partial ? 'patch' : 'put';
-
         return this.withRetry(() =>
             this.apiClient[method](this.getEndpoint(`${id}/`), processedData)
         );
     }
 
-    /**
-     * Update resource for a specific tenant (nested route)
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string|number} resourceId - Resource ID
-     * @param {Object} data - Update data
-     * @param {boolean} partial - Whether this is a partial update (PATCH vs PUT)
-     * @param {boolean} encrypt - Whether to encrypt sensitive data
-     * @returns {Promise} Response with updated resource
-     */
     async updateForTenant(tenantId, resourceId, data, partial = true, encrypt = true) {
-        if (!tenantId) {
-            throw new Error('Tenant ID is required');
-        }
-        if (!resourceId) {
-            throw new Error('Resource ID is required');
-        }
-        if (!data || typeof data !== 'object') {
-            throw new Error('Valid data object is required');
-        }
-
+        if (!tenantId) throw new Error('Tenant ID is required');
+        if (!resourceId) throw new Error('Resource ID is required');
+        if (!data || typeof data !== 'object') throw new Error('Valid data object is required');
         const processedData = encrypt ? encryptSensitiveData(data) : data;
         const method = partial ? 'patch' : 'put';
-
         return this.withRetry(() =>
             this.apiClient[method](this.getTenantEndpoint(tenantId, `${resourceId}/`), processedData)
         );
     }
 
-    /**
-     * Delete resource
-     * @param {string|number} id - Resource ID
-     * @param {boolean} soft - Soft delete vs hard delete (default: true)
-     * @returns {Promise} Response confirming deletion
-     */
     async delete(id, soft = true) {
-        if (!id) {
-            throw new Error('Resource ID is required');
-        }
-
+        if (!id) throw new Error('Resource ID is required');
         const url = soft ? this.getEndpoint(`${id}/soft-delete/`) : this.getEndpoint(`${id}/`);
-
         return this.withRetry(() =>
             this.apiClient.delete(url)
         );
     }
 
-    /**
-     * Delete resource for a specific tenant (nested route)
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string|number} resourceId - Resource ID
-     * @param {boolean} soft - Soft delete vs hard delete (default: true)
-     * @returns {Promise} Response confirming deletion
-     */
     async deleteForTenant(tenantId, resourceId, soft = true) {
-        if (!tenantId) {
-            throw new Error('Tenant ID is required');
-        }
-        if (!resourceId) {
-            throw new Error('Resource ID is required');
-        }
-
+        if (!tenantId) throw new Error('Tenant ID is required');
+        if (!resourceId) throw new Error('Resource ID is required');
         const url = soft
             ? this.getTenantEndpoint(tenantId, `${resourceId}/soft-delete/`)
             : this.getTenantEndpoint(tenantId, `${resourceId}/`);
-
         return this.withRetry(() =>
             this.apiClient.delete(url)
         );
     }
 
-    /**
-     * Restore soft-deleted resource
-     * @param {string|number} id - Resource ID
-     * @returns {Promise} Response with restored resource
-     */
     async restore(id) {
-        if (!id) {
-            throw new Error('Resource ID is required');
-        }
-
+        if (!id) throw new Error('Resource ID is required');
         return this.withRetry(() =>
             this.apiClient.post(this.getEndpoint(`${id}/restore/`))
         );
     }
 
-    /**
-     * Restore soft-deleted resource for a specific tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string|number} resourceId - Resource ID
-     * @returns {Promise} Response with restored resource
-     */
     async restoreForTenant(tenantId, resourceId) {
-        if (!tenantId) {
-            throw new Error('Tenant ID is required');
-        }
-        if (!resourceId) {
-            throw new Error('Resource ID is required');
-        }
-
+        if (!tenantId) throw new Error('Tenant ID is required');
+        if (!resourceId) throw new Error('Resource ID is required');
         return this.withRetry(() =>
             this.apiClient.post(this.getTenantEndpoint(tenantId, `${resourceId}/restore/`))
         );
     }
 
-    /**
-     * Get resource statistics
-     * @param {Object} params - Query parameters
-     * @returns {Promise} Response with statistics
-     */
     async getStats(params = {}) {
         return this.withRetry(() =>
             this.apiClient.get(this.getEndpoint('stats/'), { params })
         );
     }
 
-    /**
-     * Bulk operation
-     * @param {string} operation - Bulk operation type (update, delete, suspend, activate)
-     * @param {Object} data - Bulk operation data
-     * @returns {Promise} Response with bulk operation results
-     */
     async bulkOperation(operation, data) {
-        if (!operation || !data) {
-            throw new Error('Operation and data are required');
-        }
-
+        if (!operation || !data) throw new Error('Operation and data are required');
         return this.withRetry(() =>
             this.apiClient.post(this.getEndpoint(`bulk/${operation}/`), data)
         );
     }
 
-    /**
-     * Export data
-     * @param {string} format - Export format (csv, json, xlsx)
-     * @param {Object} params - Query parameters
-     * @returns {Promise} Response with exported data (blob for file download)
-     */
     async exportData(format = 'csv', params = {}) {
         const validFormats = ['csv', 'json', 'xlsx'];
         if (!validFormats.includes(format)) {
             throw new Error(`Invalid format. Must be one of: ${validFormats.join(', ')}`);
         }
-
         const responseType = format === 'json' ? 'json' : 'blob';
-
         return this.withRetry(() =>
             this.apiClient.get(this.getEndpoint(`export/${format}/`), {
                 params,
@@ -796,32 +630,15 @@ class BaseTenantService {
         );
     }
 
-    /**
-     * Get resource history/audit trail
-     * @param {string|number} id - Resource ID
-     * @param {Object} params - Query parameters (page, page_size, start_date, end_date)
-     * @returns {Promise} Response with history data
-     */
     async getHistory(id, params = {}) {
-        if (!id) {
-            throw new Error('Resource ID is required');
-        }
-
+        if (!id) throw new Error('Resource ID is required');
         return this.withRetry(() =>
             this.apiClient.get(this.getEndpoint(`${id}/history/`), { params })
         );
     }
 
-    /**
-     * Validate resource data without saving
-     * @param {Object} data - Data to validate
-     * @returns {Promise} Response with validation results (errors if any)
-     */
     async validate(data) {
-        if (!data) {
-            throw new Error('Data to validate is required');
-        }
-
+        if (!data) throw new Error('Data to validate is required');
         return this.withRetry(() =>
             this.apiClient.post(this.getEndpoint('validate/'), data)
         );
