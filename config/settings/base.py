@@ -134,7 +134,7 @@ PROJECT_APPS = [
     'apps.dashboard',
     'apps.notification',
     'apps.reports',
-    'apps.workflowsapi', 
+    'apps.workflowsapi',
     'apps.tenant.api',  # For API endpoints
 ]
 
@@ -257,6 +257,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'guardian.backends.ObjectPermissionBackend',  # Object-level permissions
     # Tenant authentication backend
+    'django.contrib.auth.backends.ModelBackend',
     'apps.tenant.backends.TenantAuthenticationBackend',
 ]
 
