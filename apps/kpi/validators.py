@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 import re
 
-from apps.organisations.models.department import Department
+from apps.structure.models import Department
 
 
 def validate_positive_value(value):
@@ -186,7 +186,6 @@ class CascadeValidator:
     def validate_entity_ids(self, entity_ids, entity_type):
         """Validate entity IDs exist"""
         if entity_type == 'DEPARTMENT':
-            from apps.organisations.models import Department
             existing = Department.objects.filter(id__in=entity_ids).values_list('id', flat=True)
         else:
             from apps.accounts.models import User

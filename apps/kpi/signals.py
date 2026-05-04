@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 import logging
-from apps.structure.models import Department, Hierarchy
+from apps.structure.models import Department, ReportingLine
 from .models import (
     KPI, KPIWeight, AnnualTarget, MonthlyActual, ValidationRecord,
     Score, MonthlyPhasing, Escalation, ActualAdjustment, CascadeMap
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 # KPI Signals
 # =============
+
 
 
 @receiver(post_save, sender=KPI)
@@ -144,7 +145,7 @@ def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
             notification_type='submitted'
         ))
     dashboard = RealtimeDashboard()
-    manager = Hierarchy.objects.filter(employee_id=instance.user_id).first()
+    manager = ReportingLine.objects.filter(employee_id=instance.user_id).first()
     if manager:
         import asyncio
         try:

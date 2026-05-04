@@ -37,7 +37,7 @@ class KPI(BaseKPIModel):
     target_max = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     formula = models.JSONField(default=dict, blank=True)
     owner = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='owner_kpis')
-    department = models.ForeignKey('organisations.Department', on_delete=models.SET_NULL, null=True, blank=True, related_name='department_kpis')
+    department = models.ForeignKey('structure.Department', on_delete=models.SET_NULL, null=True, blank=True, related_name='department_kpis')
     is_active = models.BooleanField(default=True)
     activation_date = models.DateField(null=True, blank=True)
     deactivation_date = models.DateField(null=True, blank=True)

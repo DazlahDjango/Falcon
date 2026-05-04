@@ -127,15 +127,14 @@ THIRD_PARTY_APPS = [
 
 PROJECT_APPS = [
     'apps.accounts.apps.AccountsConfig',
+    'apps.tenant.apps.TenantConfig',
+    'apps.structure.apps.StructureConfig',
+    'apps.kpi.apps.KpiConfig',
     'apps.core',
     'apps.dashboard',
     'apps.notification',
-    'apps.kpi.apps.KpiConfig',
-    # 'apps.organisations.apps.OrganisationsConfig',
-    'apps.structure.apps.StructureConfig',
     'apps.reports',
-    'apps.workflowsapi',
-    'apps.tenant.apps.TenantConfig',
+    'apps.workflowsapi', 
     'apps.tenant.api',  # For API endpoints
 ]
 
