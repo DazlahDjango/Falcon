@@ -1,29 +1,30 @@
-import requests
+import os
+import django
 
-BASE_URL = "http://localhost:8000/api/kpis/"
-TOKEN = "your_access_token_here"  # Replace with your real token
+# Set the settings module
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
 
-headers = {
-    "Authorization": f"Bearer {TOKEN}",
-    "Content-Type": "application/json"
-}
+from django.contrib.auth import authenticate
 
-for kpi_id in range(1, 101):  # 1 to 100
-    url = f"{BASE_URL}{kpi_id}/"
+# Test with the user you created
+user = authenticate(email='areen@gmail.com', password='Dazl@123')
+
+if user:
+    print(f"✅ Authentication successful!")
+    print(f"User ID: {user.id}")
+    print(f"Email: {user.email}")
+    print(f"Is Active: {user.is_active}")
+    print(f"Tenant ID: {user.tenant_id}")
+else:
+    print("❌ Authentication failed")
     
-    try:
-        response = requests.get(url, headers=headers, timeout=5)
-        
-        print(f"KPI ID {kpi_id} -> Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            print(f"   Data: {response.json()}")
-        elif response.status_code == 404:
-            print("   Not Found")
-        elif response.status_code == 403:
-            print("   Forbidden (Check permissions)")
-        else:
-            print(f"   Unexpected response: {response.text}")
-            
-    except requests.exceptions.RequestException as e:
-        print(f"KPI ID {kpi_id} -> Request failed: {e}")
+# Also check if user exists at all
+from apps.accounts.models import User
+try:
+    user = User.objects.get(email='areen@gmail.com')
+    print(f"\nUser exists in DB: {user.email}")
+    print(f"Password hash: {user.password[:50]}...")
+    print(f"Is active: {user.is_active}")
+except User.DoesNotExist:
+    print("User does not exist in database")

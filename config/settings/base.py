@@ -257,8 +257,12 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'guardian.backends.ObjectPermissionBackend',  # Object-level permissions
     # Tenant authentication backend
+<<<<<<< HEAD
     'django.contrib.auth.backends.ModelBackend',
     'apps.tenant.backends.TenantAuthenticationBackend',
+=======
+    # 'apps.tenant.backends.TenantAuthenticationBackend',
+>>>>>>> 5859035ead91f693d89f9d43bbc1bfbedeff3db8
 ]
 
 # Password validation
