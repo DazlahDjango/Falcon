@@ -52,7 +52,7 @@ class SoftDeleteModel(models.Model):
         super().delete()
 
 class TenantAwareModel(models.Model):
-    tenant_id = models.UUIDField(_('tenant_id'), db_index=True, editable=False, default=uuid.uuid4)
+    tenant_id = models.UUIDField(_('tenant_id'), db_index=True, editable=False, default=None, null=True)
     class Meta:
         abstract = True
     

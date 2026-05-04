@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
+from apps.tenant.constants import SchemaType
 from .base import BaseModel
 import uuid
 
@@ -13,7 +14,8 @@ class Client(BaseModel):
     """
 
     # Core fields
-
+    schema_type = models.CharField( max_length=20, choices=SchemaType.choices, default=SchemaType.SHARED_SCHEMA, help_text="Database isolation strategy for this tenant")
+    database_name = models.CharField(max_length=100, blank=True, null=True, help_text="Custom database name for separate database isolation (only used when schema_type is 'separate_database')")
     name = models.CharField(_('company name'), max_length=255, db_index=True)
     slug = models.CharField(
         _('slug'), max_length=100, unique=True, db_index=True,

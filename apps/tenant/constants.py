@@ -48,7 +48,11 @@ class SchemaStatus(models.TextChoices):
     FAILED = 'failed', 'Failed'
     DELETED = 'deleted', 'Deleted'
 
-
+class SchemaType(models.TextChoices):
+    """Database isolation strategy for tenants"""
+    SHARED_SCHEMA = 'shared_schema', 'Shared Schema'
+    SEPARATE_SCHEMA = 'separate_schema', 'Separate Schema'
+    SEPARATE_DATABASE = 'separate_database', 'Separate Database'
 class ResourceType(models.TextChoices):
     USERS = 'users', 'Users'
     STORAGE_MB = 'storage_mb', 'Storage (MB)'
