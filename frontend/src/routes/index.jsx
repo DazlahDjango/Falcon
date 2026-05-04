@@ -4,8 +4,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute";
 import accountsRoutes from "./accounts.routes";
-import kpiRoutes from "./kpi.routes";
+import tenantRoutes from "./tenant.routes";
 import structureRoutes from "./structure.routes";
+import kpiRoutes from "./kpi.routes";
 
 // Layouts
 const MainLayout = React.lazy(() => import("../components/common/Layout/MainLayout"));
@@ -43,6 +44,8 @@ const AppRouter = () => {
                     <Route index element={<Navigate to="/kpi/dashboard" replace />} />
                     {/* Account routes */}
                     {renderRoutes(accountsRoutes)}
+                    {/* Tenants routes */}
+                    {renderTenantRoutes(tenantRoutes)}
                     {/* Structure routes */}
                     {renderRoutes(structureRoutes)} 
                     {/* KPI routes */}

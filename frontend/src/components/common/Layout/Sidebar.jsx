@@ -4,9 +4,10 @@ import { useSelector } from "react-redux";
 import { ROUTES } from '../../../config/constants';
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
-    FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp
+    FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
+    FiCloud, FiHardDrive, FiRefreshCw, FiGrid
 } from 'react-icons/fi';
-import { MdDomain } from 'react-icons/md';
+import { MdDomain, MdBusiness, MdStorage, MdBackup, MdSchema } from 'react-icons/md';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
 import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
 
@@ -19,7 +20,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         admin: true,
         structure: true,     
         hierarchy: true,
-        organisation: true,
+        tenant: false,
     });
     const {tenant} = useSelector((state) => state.tenant);
     // Roles navigate
@@ -58,20 +59,23 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/app/structure/team-hierarchies', name: 'Team Hierarchy', icon: FiGitBranch, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor'] },
             { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase, roles: ['super_admin', 'client_admin', 'executive'] },
         ];
+        const tenantItems = [
+            { path: '/tenants', name: 'Tenant List', icon: MdBusiness, roles: ['super_admin'] },
+            { path: '/tenants/dashboard', name: 'Tenant Dashboard', icon: FiGrid, roles: ['super_admin'] },
+            { path: '/tenants/:tenantId', name: 'Tenant Details', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/resources', name: 'Resources', icon: FiDatabase, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/domains', name: 'Domains', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/backups', name: 'Backups', icon: MdBackup, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/migrations', name: 'Migrations', icon: FiRefreshCw, roles: ['super_admin'] },
+            { path: '/tenants/:tenantId/schema', name: 'Schema', icon: MdSchema, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/audit', name: 'Audit Logs', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
+        ];
         const kpiItems = [
             { path: ROUTES.KPI_DASHBOARD, name: 'Kpi Dashboard', icon: FiBarChart2, roles: ['super_admin','executive', 'supervisor', 'dashboard_champion']},
             { path: ROUTES.KPI_MANAGEMENT, name: 'KPI Management', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
             { path: ROUTES.TARGETS, name: 'Targets', icon: FiCalendar, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
             { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
-        ];
-        const organisationItems = [
-            { path: ROUTES.ORGANISATION_DASHBOARD, name: 'Organisation', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_USERS, name: 'Team Members', icon: FiUsers, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_TEAMS, name: 'Teams', icon: FiUserCheck, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_DEPARTMENTS, name: 'Departments', icon: FiLayers, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_SETTINGS, name: 'Org Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
-            { path: ROUTES.ORGANISATION_SUBSCRIPTION, name: 'Subscription', icon: FiFileText, roles: ['super_admin', 'client_admin'] },
         ];
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
@@ -86,8 +90,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             settings: settingsItems,
             structure: structureItems,
             hierarchy: hierarchyItems,
+            tenat: tenantItems,
             kpi: kpiItems,
-            organisation: organisationItems,
             admin: adminItems
         };
     };
@@ -166,8 +170,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
                 {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Hierarchy & Charts', navigation.hierarchy, 'hierarchy')}
+                {user?.role === 'super_admin' && renderNavGroup('Tenant Management', navigation.tenant, 'tenant')}
                 {renderNavGroup('KPI', navigation.kpi, 'kpi')}
-                {(user?.role === 'client_admin' || user?.role === 'super_admin') && renderNavGroup('Organisation', navigation.organisation, 'organisation')}
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>
             {/* User Info at Bottom */}
