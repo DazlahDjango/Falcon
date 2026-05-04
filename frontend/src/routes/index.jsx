@@ -4,7 +4,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute";
 import accountsRoutes from "./accounts.routes";
-import organisationsRoutes from "./organisations.routes";
 import kpiRoutes from "./kpi.routes";
 import structureRoutes from "./structure.routes";
 
@@ -45,9 +44,7 @@ const AppRouter = () => {
                     {/* Account routes */}
                     {renderRoutes(accountsRoutes)}
                     {/* Structure routes */}
-                    {renderRoutes(structureRoutes)}
-                    {/* Organisation routes */}
-                    {renderRoutes(organisationsRoutes)} 
+                    {renderRoutes(structureRoutes)} 
                     {/* KPI routes */}
                     {renderRoutes(kpiRoutes)}
                     {/* Error routes */}

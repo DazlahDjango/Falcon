@@ -9,13 +9,7 @@ import rootReducer from './rootReducer';
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
 import { loggerMiddleware } from './accounts/middlewares/loggerMiddleware';
 
-// Organisations Middlewares
-import { auditMiddleware } from './organisations/middlewares/auditMiddleware';
-import { syncMiddleware } from './organisations/middlewares/syncMiddleware';
-
-// ==========================================
-// TENANT MIDDLEWARES
-// ==========================================
+// Tenant Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
 
 const persistConfig = {
@@ -76,8 +70,6 @@ export const store = configureStore({
         }).concat(
             authMiddleware,
             loggerMiddleware,
-            auditMiddleware,
-            syncMiddleware,
             ...tenantMiddlewares  // ← Tenant middleware added here
         ),
     devTools: import.meta.env.MODE !== 'production'
