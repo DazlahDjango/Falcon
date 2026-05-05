@@ -90,7 +90,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             settings: settingsItems,
             structure: structureItems,
             hierarchy: hierarchyItems,
-            tenat: tenantItems,
+            tenant: tenantItems,
             kpi: kpiItems,
             admin: adminItems
         };

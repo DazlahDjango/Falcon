@@ -30,6 +30,7 @@ from .domain.dns_validator import DNSValidator
 from .backup.backup_manager import BackupManager
 from .backup.restore_service import RestoreService
 from .backup.retention_policy import RetentionPolicy
+from .connection_cleanup import ConnectionCleanupScheduler
 
 __all__ = [
     # Provisioning
@@ -57,4 +58,6 @@ __all__ = [
     'BackupManager',
     'RestoreService',
     'RetentionPolicy',
+
+    'ConnectionCleanupScheduler',
 ]

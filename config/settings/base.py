@@ -140,6 +140,18 @@ PROJECT_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 
+# Connection Management Settings
+ENABLE_CONNECTION_MIDDLEWARE = True
+CONNECTION_IDLE_TIMEOUT_MINUTES = 30
+CONNECTION_POOL_MAX_SIZE = 20
+CONNECTION_MIDDLEWARE_EXCLUDED_PATHS = [
+    '/health/',
+    '/metrics/',
+    '/static/',
+    '/media/',
+    '/api/v1/auth/login/',
+]
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -165,6 +177,9 @@ MIDDLEWARE = [
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
+    # Tenant
+    'apps.tenant.middleware.connection.ConnectionManagementMiddleware',
+    'apps.tenant.middleware.connection.TenantConnectionHealthCheckMiddleware',
     # Structure
     'apps.structure.middleware.StructureContextMiddleware',
     'apps.structure.middleware.StructureCacheMiddleware',
@@ -423,6 +438,7 @@ REST_FRAMEWORK = {
         'tenant': '5000/hour',       # Per tenant overall
         'tenant_user_creation': '50/day',  # New users per tenant
         'tenant_api': '10000/day',   # API calls per tenant
+        'connection_ops': '100/hour',
     },
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',

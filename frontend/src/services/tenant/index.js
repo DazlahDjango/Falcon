@@ -10,6 +10,7 @@ import HealthService from './health.service';
 import StatsService from './stats.service';
 import TenantAuditService from './tenantAudit.service';
 import TenantWebSocketService from './websocket.service';
+import connectionService from './connection.service';
 
 // Named exports
 export {
@@ -24,6 +25,7 @@ export {
     StatsService,
     TenantAuditService,
     TenantWebSocketService,
+    connectionService,
 };
 
 // Default export
@@ -39,4 +41,5 @@ export default {
     StatsService,
     TenantAuditService,
     TenantWebSocketService,
+    connectionService,
 };

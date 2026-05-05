@@ -32,6 +32,7 @@ from .health_views import (
     CacheHealthView,
     SystemHealthView,
 )
+from .connection import ConnectionPoolViewSet
 
 __all__ = [
     # Tenant
@@ -63,4 +64,6 @@ __all__ = [
     'DatabaseHealthView',
     'CacheHealthView',
     'SystemHealthView',
+    # Connection
+    'ConnectionPoolViewSet',
 ]

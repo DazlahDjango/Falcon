@@ -1,6 +1,5 @@
 // frontend/src/routes/tenant.routes.js
-// Tenant Management Routes
-// Integrates with tenant constants and services
+// Tenant Management Routes (Simplified - no extra auth wrappers)
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
@@ -29,6 +28,9 @@ const TenantAuditPage = React.lazy(() => import('../pages/tenant/TenantAuditPage
 const TenantMigrationsPage = React.lazy(() => import('../pages/tenant/TenantMigrationsPage'));
 const TenantSchemaPage = React.lazy(() => import('../pages/tenant/TenantSchemaPage'));
 
+const ConnectionDashboardPage = React.lazy(() => import('../pages/tenant/connections/ConnectionDashboardPage'));
+const TenantConnectionsPage = React.lazy(() => import('../pages/tenant/connections/TenantConnectionsPage'));
+
 // Domain Management Pages
 const DomainListPage = React.lazy(() => import('../pages/tenant/domains/DomainListPage'));
 const DomainCreatePage = React.lazy(() => import('../pages/tenant/domains/DomainCreatePage'));
@@ -39,200 +41,104 @@ const BackupListPage = React.lazy(() => import('../pages/tenant/backups/BackupLi
 const BackupCreatePage = React.lazy(() => import('../pages/tenant/backups/BackupCreatePage'));
 const BackupRestorePage = React.lazy(() => import('../pages/tenant/backups/BackupRestorePage'));
 
-// Layout components
-import TenantLayout from '../layouts/TenantLayout';
-import RequireAuth from '../components/auth/RequireAuth';
-import RequirePermission from '../components/auth/RequirePermission';
+// Wrapper for suspense loading
+const withSuspense = (Component) => (
+    <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
+        <Component />
+    </React.Suspense>
+);
 
-// Helper function to build routes with role requirements
-const createTenantRoute = (path, element, requiredRoles = ['super_admin', 'client_admin']) => ({
-    path,
-    element: (
-        <RequireAuth>
-            <RequirePermission roles={requiredRoles}>
-                <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
-                    {element}
-                </React.Suspense>
-            </RequirePermission>
-        </RequireAuth>
-    ),
-});
-
-// Main tenant routes configuration
+// Main tenant routes configuration (simplified - no extra auth)
 const tenantRoutes = [
     {
         path: 'tenants',
-        element: <TenantLayout />,
+        // Use the same MainLayout from your main router - no separate TenantLayout needed
         children: [
             // ==================== Tenant Core Routes ====================
-            // List tenants (Super Admin only)
-            createTenantRoute(
-                '/',
-                <TenantListPage />,
-                ['super_admin']
-            ),
-
-            // Tenant Dashboard (Super Admin overview)
-            createTenantRoute(
-                'dashboard',
-                <TenantDashboardPage />,
-                ['super_admin']
-            ),
-
-            // Create tenant (Super Admin only)
-            createTenantRoute(
-                'create',
-                <TenantCreatePage />,
-                ['super_admin']
-            ),
-
-            // Tenant details
-            createTenantRoute(
-                ':tenantId',
-                <TenantDetailPage />,
-                ['super_admin', 'client_admin']
-            ),
-
-            // Edit tenant
-            createTenantRoute(
-                ':tenantId/edit',
-                <TenantEditPage />,
-                ['super_admin', 'client_admin']
-            ),
-
-            // Tenant settings
-            createTenantRoute(
-                ':tenantId/settings',
-                <TenantSettingsPage />,
-                ['super_admin', 'client_admin']
-            ),
-
-            // Tenant resources (limits)
-            createTenantRoute(
-                ':tenantId/resources',
-                <TenantResourcesPage />,
-                ['super_admin', 'client_admin']
-            ),
-
-            // Tenant usage statistics
-            createTenantRoute(
-                ':tenantId/usage',
-                <TenantUsagePage />,
-                ['super_admin', 'client_admin']
-            ),
-
-            // Tenant provisioning status
-            createTenantRoute(
-                ':tenantId/provisioning',
-                <TenantProvisioningPage />,
-                ['super_admin', 'client_admin']
-            ),
-
-            // Tenant audit logs
-            createTenantRoute(
-                ':tenantId/audit',
-                <TenantAuditPage />,
-                ['super_admin', 'client_admin']
-            ),
-
-            // Tenant migrations tracking
-            createTenantRoute(
-                ':tenantId/migrations',
-                <TenantMigrationsPage />,
-                ['super_admin']
-            ),
-
-            // Tenant database schema
-            createTenantRoute(
-                ':tenantId/schema',
-                <TenantSchemaPage />,
-                ['super_admin', 'client_admin']
-            ),
+            {
+                path: '',
+                element: withSuspense(TenantListPage),
+            },
+            {
+                path: 'dashboard',
+                element: withSuspense(TenantDashboardPage),
+            },
+            {
+                path: 'create',
+                element: withSuspense(TenantCreatePage),
+            },
+            {
+                path: ':tenantId',
+                element: withSuspense(TenantDetailPage),
+            },
+            {
+                path: ':tenantId/edit',
+                element: withSuspense(TenantEditPage),
+            },
+            {
+                path: ':tenantId/settings',
+                element: withSuspense(TenantSettingsPage),
+            },
+            {
+                path: ':tenantId/resources',
+                element: withSuspense(TenantResourcesPage),
+            },
+            {
+                path: ':tenantId/usage',
+                element: withSuspense(TenantUsagePage),
+            },
+            {
+                path: ':tenantId/provisioning',
+                element: withSuspense(TenantProvisioningPage),
+            },
+            {
+                path: ':tenantId/audit',
+                element: withSuspense(TenantAuditPage),
+            },
+            {
+                path: ':tenantId/migrations',
+                element: withSuspense(TenantMigrationsPage),
+            },
+            {
+                path: ':tenantId/schema',
+                element: withSuspense(TenantSchemaPage),
+            },
+            // ============ Connections ==============
+            {
+                path: '',
+                element: withSuspense(ConnectionDashboardPage),
+            },
+            {
+                path: 'tenant/:tenantId',
+                element: withSuspense(TenantConnectionsPage),
+            },
 
             // ==================== Domain Management Routes ====================
-            // List domains for tenant
             {
                 path: ':tenantId/domains',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
-                                <DomainListPage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
+                element: withSuspense(DomainListPage),
             },
-
-            // Create domain for tenant
             {
                 path: ':tenantId/domains/create',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
-                                <DomainCreatePage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
+                element: withSuspense(DomainCreatePage),
             },
-
-            // Verify domain for tenant
             {
                 path: ':tenantId/domains/:domainId/verify',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
-                                <DomainVerifyPage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
+                element: withSuspense(DomainVerifyPage),
             },
 
             // ==================== Backup Management Routes ====================
-            // List backups for tenant
             {
                 path: ':tenantId/backups',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
-                                <BackupListPage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
+                element: withSuspense(BackupListPage),
             },
-
-            // Create backup for tenant
             {
                 path: ':tenantId/backups/create',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin', 'client_admin']}>
-                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
-                                <BackupCreatePage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
+                element: withSuspense(BackupCreatePage),
             },
-
-            // Restore backup for tenant (Super Admin only)
             {
                 path: ':tenantId/backups/:backupId/restore',
-                element: (
-                    <RequireAuth>
-                        <RequirePermission roles={['super_admin']}>
-                            <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
-                                <BackupRestorePage />
-                            </React.Suspense>
-                        </RequirePermission>
-                    </RequireAuth>
-                ),
+                element: withSuspense(BackupRestorePage),
             },
 
             // Redirect /tenants/:tenantId to /tenants/:tenantId/overview
@@ -244,13 +150,10 @@ const tenantRoutes = [
     },
 
     // ==================== Redirects ====================
-    // Redirect /tenant to /tenants
     {
         path: 'tenant',
         element: <Navigate to="/tenants" replace />,
     },
-
-    // Redirect /tenants to /tenants/
     {
         path: 'tenants',
         element: <Navigate to="/tenants/" replace />,
@@ -273,5 +176,4 @@ export const getRouteForEndpoint = (endpoint, params = {}) => {
     return routeMap[endpoint] || '/tenants/';
 };
 
-// Export route configuration for use in main router
 export default tenantRoutes;

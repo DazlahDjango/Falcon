@@ -9,6 +9,7 @@ export { default as tenantProvisioningReducer } from './tenantProvisioningSlice'
 export { default as tenantAuditReducer } from './tenantAuditSlice';
 export { default as tenantDashboardReducer } from './tenantDashboardSlice';
 export { default as tenantUIReducer } from './tenantUISlice';
+export { default as connectionReducer } from './connectionSlice';
 
 // Export all actions from each slice
 export * from './tenantSlice';
@@ -21,3 +22,4 @@ export * from './tenantProvisioningSlice';
 export * from './tenantAuditSlice';
 export * from './tenantDashboardSlice';
 export * from './tenantUISlice';
+export * from './connectionSlice';

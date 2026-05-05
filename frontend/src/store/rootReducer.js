@@ -65,6 +65,7 @@ import {
     tenantAuditReducer,
     tenantDashboardReducer,
     tenantUIReducer,
+    connectionReducer,
 } from './tenant/slice';
 
 const rootReducer = combineReducers({
@@ -83,6 +84,19 @@ const rootReducer = combineReducers({
     preferences: preferenceReducer,
     accTeam: accountsTeamReducer,
     ui: accountsUiReducer,
+
+    // Tenant Reducers
+    appTenant: appTenantReducer,           // Main tenant CRUD
+    tenantResource: tenantResourceReducer, // Resource limits & quotas
+    tenantDomain: tenantDomainReducer,     // Domain management
+    tenantBackup: tenantBackupReducer,     // Backup operations
+    tenantMigration: tenantMigrationReducer, // Migration tracking
+    tenantSchema: tenantSchemaReducer,     // Schema information
+    tenantProvisioning: tenantProvisioningReducer, // Provisioning status
+    tenantAudit: tenantAuditReducer,       // Audit logs
+    tenantDashboard: tenantDashboardReducer, // Dashboard statistics
+    tenantUI: tenantUIReducer,             // UI state (modals, sidebar, filters)
+    connections: connectionReducer,
 
     // Structure State
     structNotifications: structNotificationReducer,
@@ -113,19 +127,6 @@ const rootReducer = combineReducers({
     kpiNotifications: kpiNotificationReducer,
     kpiAnalytics: kpiAnalyticsReducer,
 
-    // ==========================================
-    // TENANT APP STATE (ADD THIS)
-    // ==========================================
-    appTenant: appTenantReducer,           // Main tenant CRUD
-    tenantResource: tenantResourceReducer, // Resource limits & quotas
-    tenantDomain: tenantDomainReducer,     // Domain management
-    tenantBackup: tenantBackupReducer,     // Backup operations
-    tenantMigration: tenantMigrationReducer, // Migration tracking
-    tenantSchema: tenantSchemaReducer,     // Schema information
-    tenantProvisioning: tenantProvisioningReducer, // Provisioning status
-    tenantAudit: tenantAuditReducer,       // Audit logs
-    tenantDashboard: tenantDashboardReducer, // Dashboard statistics
-    tenantUI: tenantUIReducer,             // UI state (modals, sidebar, filters)
 });
 
 export default rootReducer;

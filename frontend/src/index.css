@@ -1,3 +1,6 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 /* Variables & Base */
 @import './styles/variable.css';
 @import './styles/global.css';
@@ -38,39 +41,19 @@
    ============================================ */
 /* Tenant Core Components */
 @import './components/tenant/tenant/tenant.css';
-
-/* Resources Components */
 @import './components/tenant/resources/resources.css';
-
-/* Domains Components */
 @import './components/tenant/domains/domains.css';
-
-/* Backups Components */
 @import './components/tenant/backups/backups.css';
-
-/* Migrations Components */
 @import './components/tenant/migrations/migrations.css';
-
-/* Schema Components */
 @import './components/tenant/schema/schema.css';
-
-/* Provisioning Components */
 @import './components/tenant/provisioning/provisioning.css';
-
-/* Audit Components */
 @import './components/tenant/audit/audit.css';
-
-/* Dashboard Components */
 @import './components/tenant/dashboard/dashboard.css';
-
-/* Tenant Users Components */
 @import './components/tenant/tenant-users/tenant-users.css';
-
-/* Tenant Settings Components */
 @import './components/tenant/tenant-settings/tenant-settings.css';
-
-/* Billing Components */
 @import './components/tenant/billing/billing.css';
+@import './styles/tenants/connections.css';
+@import './styles//tenants/connections-pages.css';
 
 /* Structure Styling */
 @import './components/structure/common.css';

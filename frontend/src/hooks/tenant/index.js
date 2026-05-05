@@ -1,5 +1,7 @@
 // frontend/src/hooks/tenant/index.js
 
+import { useConnection } from './useConnections';
+
 // Core Tenant Hooks
 export { useTenant } from './useTenant';
 export { useTenants } from './useTenants';
@@ -27,3 +29,5 @@ export { useTenantWebSocket } from './useTenantWebSocket';
 
 // Audit Logs Hook
 export { useTenantAuditLogs } from './useTenantAuditLogs';
+
+export { useConnection, useConnectionManager, useConnectionMonitor, useConnections, useHealthDashboard } from './useConnections';

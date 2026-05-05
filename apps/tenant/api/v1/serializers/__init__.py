@@ -36,6 +36,15 @@ from .migration import (
     MigrationDetailSerializer,
     MigrationRunSerializer,
 )
+from .connection import (
+    ConnectionStatusSerializer,
+    ConnectionPoolListSerializer,
+    ConnectionPoolDetailSerializer,
+    ConnectionPoolCreateSerializer,
+    ConnectionMetricsSerializer,
+    ConnectionHealthCheckSerializer,
+    ConnectionManagerActionSerializer
+)
 
 __all__ = [
     # Tenant
@@ -65,4 +74,12 @@ __all__ = [
     'MigrationSerializer',
     'MigrationDetailSerializer',
     'MigrationRunSerializer',
+    # Connection
+    'ConnectionStatusSerializer',
+    'ConnectionPoolListSerializer',
+    'ConnectionPoolDetailSerializer',
+    'ConnectionPoolCreateSerializer',
+    'ConnectionMetricsSerializer',
+    'ConnectionHealthCheckSerializer',
+    'ConnectionManagerActionSerializer',
 ]
