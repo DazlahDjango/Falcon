@@ -27,15 +27,13 @@ const TenantProvisioningPage = React.lazy(() => import('../pages/tenant/TenantPr
 const TenantAuditPage = React.lazy(() => import('../pages/tenant/TenantAuditPage'));
 const TenantMigrationsPage = React.lazy(() => import('../pages/tenant/TenantMigrationsPage'));
 const TenantSchemaPage = React.lazy(() => import('../pages/tenant/TenantSchemaPage'));
-
+// Connections
 const ConnectionDashboardPage = React.lazy(() => import('../pages/tenant/connections/ConnectionDashboardPage'));
 const TenantConnectionsPage = React.lazy(() => import('../pages/tenant/connections/TenantConnectionsPage'));
-
 // Domain Management Pages
 const DomainListPage = React.lazy(() => import('../pages/tenant/domains/DomainListPage'));
 const DomainCreatePage = React.lazy(() => import('../pages/tenant/domains/DomainCreatePage'));
 const DomainVerifyPage = React.lazy(() => import('../pages/tenant/domains/DomainVerifyPage'));
-
 // Backup Management Pages
 const BackupListPage = React.lazy(() => import('../pages/tenant/backups/BackupListPage'));
 const BackupCreatePage = React.lazy(() => import('../pages/tenant/backups/BackupCreatePage'));

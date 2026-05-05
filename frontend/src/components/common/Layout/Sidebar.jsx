@@ -62,7 +62,9 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         const tenantItems = [
             { path: '/tenants', name: 'Tenant List', icon: MdBusiness, roles: ['super_admin'] },
             { path: '/tenants/dashboard', name: 'Tenant Dashboard', icon: FiGrid, roles: ['super_admin'] },
+            { path: '/tenants/connections', name: 'Connection Pool', icon: FiActivity, roles: ['super_admin'] },
             { path: '/tenants/:tenantId', name: 'Tenant Details', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/connections', name: 'Tenant Connections', icon: FiDatabase, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/resources', name: 'Resources', icon: FiDatabase, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/domains', name: 'Domains', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/backups', name: 'Backups', icon: MdBackup, roles: ['super_admin', 'client_admin'] },
