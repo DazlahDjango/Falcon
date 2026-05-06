@@ -36,7 +36,7 @@ import {
     closeModal,
     selectModalState,
     selectActionLoading,
-} from '../../store/tenant';
+} from '../../store/tenant/slice/tenantSlice';
 
 export const TenantsPage = () => {
     const dispatch = useDispatch();

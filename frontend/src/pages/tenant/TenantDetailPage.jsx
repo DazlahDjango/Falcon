@@ -1,4 +1,3 @@
-// frontend/src/pages/tenant/TenantDetailPage.jsx
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,7 +21,7 @@ import {
     openModal,
     closeModal,
     selectModalState,
-} from '../../store/tenant';
+} from '../../store/tenant/slice/tenantSlice';
 
 export const TenantDetailPage = () => {
     const { id } = useParams();
@@ -139,3 +138,5 @@ export const TenantDetailPage = () => {
         </div>
     );
 };
+
+export default TenantDetailPage;

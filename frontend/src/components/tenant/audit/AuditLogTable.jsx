@@ -53,7 +53,7 @@ export const AuditLogTable = ({ logs, onViewDetails, loading = false }) => {
                     <tbody>
                         {logs.map((log) => (
                             <tr key={log.id} onClick={() => onViewDetails?.(log.id)}>
-                                <td>>{formatTimestamp(log.timestamp || log.created_at)}</td>
+                                <td>{formatTimestamp(log.timestamp || log.created_at)}</td>
                                 <td>
                                     <span className={`audit-action-badge ${getActionClass(log.action)}`}>
                                         {log.action?.toUpperCase()}
@@ -63,8 +63,8 @@ export const AuditLogTable = ({ logs, onViewDetails, loading = false }) => {
                                     {log.user_email || log.user?.email || '-'}
                                     <div className="text-xs text-gray-400">{log.user_id || '-'}</div>
                                 </td>
-                                <td>>{log.resource || '-'}</td>
-                                <td> className="max-w-xs truncate">{log.message || log.details?.message || '-'}</td>
+                                <td>{log.resource || '-'}</td>
+                                <td className="max-w-xs truncate">{log.message || log.details?.message || '-'}</td>
                             </tr>
                         ))}
                     </tbody>

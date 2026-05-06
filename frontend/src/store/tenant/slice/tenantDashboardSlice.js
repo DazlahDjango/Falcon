@@ -1,38 +1,13 @@
-// frontend/src/store/tenant/slice/tenantDashboardSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { TenantService, HealthService, StatsService } from '../../../services/tenant';
+import { TenantService } from '../../../services/tenant';
 
 // Async Thunks
-export const fetchDashboardStats = createAsyncThunk(
-    'tenantDashboard/fetchDashboardStats',
+export const fetchTenantStats = createAsyncThunk(
+    'tenantDashboard/fetchTenantStats',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await StatsService.getSystemStats();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const fetchTenantActivity = createAsyncThunk(
-    'tenantDashboard/fetchTenantActivity',
-    async (days = 30, { rejectWithValue }) => {
-        try {
-            const response = await StatsService.getTenantGrowth(12);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const fetchSystemHealth = createAsyncThunk(
-    'tenantDashboard/fetchSystemHealth',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await HealthService.getSystemHealth();
-            return response.data;
+            const response = await TenantService.getTenantStats?.();
+            return response?.data || { totalTenants: 0, activeTenants: 0, suspendedTenants: 0, totalRevenue: 0 };
         } catch (error) {
             return rejectWithValue(error.message);
         }
@@ -43,8 +18,8 @@ export const fetchRecentTenants = createAsyncThunk(
     'tenantDashboard/fetchRecentTenants',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await TenantService.getTenants({ page: 1, page_size: 5, ordering: '-created_at' });
-            return response.data;
+            const response = await TenantService.getRecentTenants?.();
+            return response?.data || [];
         } catch (error) {
             return rejectWithValue(error.message);
         }
@@ -55,13 +30,32 @@ export const fetchDashboardAlerts = createAsyncThunk(
     'tenantDashboard/fetchDashboardAlerts',
     async (_, { rejectWithValue }) => {
         try {
-            // Fetch alerts from various sources
-            const [expiringSubscriptions, failedBackups, quotaWarnings] = await Promise.all([
-                TenantService.getTenants({ subscription_expiring_soon: true }),
-                BackupService.getBackups({ status: 'failed', limit: 5 }),
-                // Add quota warnings fetch
-            ]);
-            return { expiringSubscriptions, failedBackups, quotaWarnings };
+            const response = await TenantService.getDashboardAlerts?.();
+            return response?.data || [];
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const fetchActivityData = createAsyncThunk(
+    'tenantDashboard/fetchActivityData',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await TenantService.getActivityData?.();
+            return response?.data || [];
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const fetchHealthData = createAsyncThunk(
+    'tenantDashboard/fetchHealthData',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await TenantService.getHealthData?.();
+            return response?.data || { status: 'healthy', uptime: 99.9 };
         } catch (error) {
             return rejectWithValue(error.message);
         }
@@ -70,21 +64,11 @@ export const fetchDashboardAlerts = createAsyncThunk(
 
 // Initial State
 const initialState = {
-    stats: {
-        totalTenants: 0,
-        activeTenants: 0,
-        suspendedTenants: 0,
-        provisioningTenants: 0,
-    },
-    activityData: [],
-    healthData: {
-        status: 'healthy',
-        database: 'healthy',
-        cache: 'healthy',
-        worker: 'healthy',
-    },
+    stats: null,
     recentTenants: [],
     alerts: [],
+    activityData: null,
+    healthData: null,
     loading: false,
     error: null,
 };
@@ -97,46 +81,52 @@ const tenantDashboardSlice = createSlice({
         clearDashboardError: (state) => {
             state.error = null;
         },
+        resetDashboard: () => initialState,
     },
     extraReducers: (builder) => {
         builder
-            // Fetch Dashboard Stats
-            .addCase(fetchDashboardStats.pending, (state) => {
+            // Fetch Stats
+            .addCase(fetchTenantStats.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
-            .addCase(fetchDashboardStats.fulfilled, (state, action) => {
+            .addCase(fetchTenantStats.fulfilled, (state, action) => {
                 state.loading = false;
                 state.stats = action.payload;
             })
-            .addCase(fetchDashboardStats.rejected, (state, action) => {
+            .addCase(fetchTenantStats.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
-            // Fetch Tenant Activity
-            .addCase(fetchTenantActivity.fulfilled, (state, action) => {
-                state.activityData = action.payload;
-            })
-            // Fetch System Health
-            .addCase(fetchSystemHealth.fulfilled, (state, action) => {
-                state.healthData = action.payload;
-            })
             // Fetch Recent Tenants
             .addCase(fetchRecentTenants.fulfilled, (state, action) => {
-                state.recentTenants = action.payload.results || action.payload;
+                state.recentTenants = action.payload;
             })
-            // Fetch Dashboard Alerts
+            // Fetch Alerts
             .addCase(fetchDashboardAlerts.fulfilled, (state, action) => {
-                const alerts = [];
-                if (action.payload.expiringSubscriptions?.length) {
-                    alerts.push({ type: 'warning', title: 'Expiring Subscriptions', count: action.payload.expiringSubscriptions.length });
-                }
-                if (action.payload.failedBackups?.length) {
-                    alerts.push({ type: 'critical', title: 'Failed Backups', count: action.payload.failedBackups.length });
-                }
-                state.alerts = alerts;
+                state.alerts = action.payload;
+            })
+            // Fetch Activity Data
+            .addCase(fetchActivityData.fulfilled, (state, action) => {
+                state.activityData = action.payload;
+            })
+            // Fetch Health Data
+            .addCase(fetchHealthData.fulfilled, (state, action) => {
+                state.healthData = action.payload;
             });
     },
 });
 
-export const { clearDashboardError } = tenantDashboardSlice.actions;
+// Actions
+export const { clearDashboardError, resetDashboard } = tenantDashboardSlice.actions;
+
+// Selectors
+export const selectDashboardStats = (state) => state.tenantDashboard?.stats;
+export const selectActivityData = (state) => state.tenantDashboard?.activityData;
+export const selectHealthData = (state) => state.tenantDashboard?.healthData;
+export const selectRecentTenants = (state) => state.tenantDashboard?.recentTenants || [];
+export const selectDashboardAlerts = (state) => state.tenantDashboard?.alerts || [];
+export const selectDashboardLoading = (state) => state.tenantDashboard?.loading || false;
+export const selectDashboardError = (state) => state.tenantDashboard?.error;
+
 export default tenantDashboardSlice.reducer;

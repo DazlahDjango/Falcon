@@ -88,3 +88,9 @@ const tenantSchemaSlice = createSlice({
 
 export const { clearSchemaError } = tenantSchemaSlice.actions;
 export default tenantSchemaSlice.reducer;
+// Selectors
+export const selectSchema = (state) => state.tenantSchema?.schema;
+export const selectSchemaTables = (state) => state.tenantSchema?.tables || [];
+export const selectSchemaRefreshing = (state) => state.tenantSchema?.refreshing || false;
+export const selectSchemaLoading = (state) => state.tenantSchema?.loading || false;
+export const selectSchemaError = (state) => state.tenantSchema?.error;

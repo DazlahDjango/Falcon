@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { TenantEditForm } from '../../components/tenant/tenant';
-import { fetchTenantById, updateTenant, selectCurrentTenant, selectTenantLoading, selectTenantError } from '../../store/tenant';
+import { fetchTenantById, updateTenant, selectCurrentTenant, selectTenantLoading, selectTenantError } from '../../store/tenant/slice/tenantSlice';
 
 export const TenantEditPage = () => {
     const { id } = useParams();

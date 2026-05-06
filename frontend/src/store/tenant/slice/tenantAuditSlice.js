@@ -1,6 +1,6 @@
-// frontend/src/store/tenant/slice/tenantAuditSlice.js
+cat > frontend/src/store/tenant/slice/tenantAuditSlice.js << 'EOF'
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { TenantService } from '../../../services/tenant';
+import { TenantService } from '../../../services/tenant/index.js';
 
 export const fetchAuditLogs = createAsyncThunk(
     'tenantAudit/fetchAuditLogs',
@@ -109,4 +109,17 @@ export const {
     resetAuditState,
 } = tenantAuditSlice.actions;
 
+// Selectors
+export const selectAuditLogs = (state) => state.tenantAudit?.logs || [];
+export const selectAuditTotal = (state) => state.tenantAudit?.total || 0;
+export const selectAuditLoading = (state) => state.tenantAudit?.loading || false;
+export const selectAuditPage = (state) => state.tenantAudit?.page || 1;
+export const selectAuditPageSize = (state) => state.tenantAudit?.pageSize || 20;
+export const selectAuditFilters = (state) => state.tenantAudit?.filters || {};
+export const selectAuditError = (state) => state.tenantAudit?.error;
+export const selectSelectedLog = (state) => state.tenantAudit?.selectedLog;
+export const selectSelectedAuditLog = (state) => state.tenantAudit?.selectedLog; // Alias for page
+export const selectAuditExporting = (state) => state.tenantAudit?.exporting || false;
+
 export default tenantAuditSlice.reducer;
+EOF

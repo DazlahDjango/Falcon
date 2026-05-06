@@ -1,9 +1,8 @@
-// frontend/src/components/tenant/tenant/TenantDetailHeader.jsx
 import React from 'react';
-import { TenantStatusBadge } from '../common/TenantStatusBadge';
+import TenantStatusBadge from '../common/TenantStatusBadge';
 import './tenant.css';
 
-export const TenantDetailHeader = ({ tenant, onEdit, onSuspend, onActivate, onDelete }) => {
+const TenantDetailHeader = ({ tenant, onEdit, onSuspend, onActivate, onDelete }) => {
     if (!tenant) return null;
 
     const getPlanClass = (plan) => {
@@ -90,3 +89,5 @@ export const TenantDetailHeader = ({ tenant, onEdit, onSuspend, onActivate, onDe
         </div>
     );
 };
+
+export default TenantDetailHeader;

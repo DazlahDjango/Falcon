@@ -1,6 +1,6 @@
 // frontend/src/components/tenant/common/TenantCard.jsx
 import React from 'react';
-import { TenantStatusBadge } from './TenantStatusBadge';
+import TenantStatusBadge from './TenantStatusBadge';
 import { SUBSCRIPTION_PLAN } from '../../../config/constants/tenantConstants';
 
 const planColors = {

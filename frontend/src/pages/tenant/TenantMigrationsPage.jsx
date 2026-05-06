@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { MigrationListTable, MigrationSummaryCard, MigrationFilterBar, MigrationDetailsModal } from '../../components/tenant/migrations';
-import { fetchMigrations, runMigrations, selectMigrations, selectMigrationSummary, selectMigrationsRunning, selectTenantLoading } from '../../store/tenant';
+import { fetchMigrations, runMigrations, selectMigrations, selectMigrationSummary, selectMigrationsRunning } from '../../store/tenant/slice/tenantMigrationSlice';
+import { selectTenantLoading } from '../../store/tenant/slice/tenantSlice';
 
 export const TenantMigrationsPage = () => {
     const { id } = useParams();
@@ -72,3 +73,5 @@ export const TenantMigrationsPage = () => {
         </div>
     );
 };
+
+export default TenantMigrationsPage;

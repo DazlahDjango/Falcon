@@ -1,9 +1,24 @@
-// frontend/src/pages/tenant/TenantAuditPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AuditLogTable, AuditLogFilter, AuditLogDetailModal } from '../../components/tenant/audit';
-import { fetchAuditLogs, exportAuditLogs, setAuditPage, setAuditPageSize, setAuditFilters, clearAuditFilters, setSelectedLog, selectAuditLogs, selectAuditTotal, selectAuditPage, selectAuditPageSize, selectAuditFilters, selectSelectedAuditLog, selectTenantLoading } from '../../store/tenant';
+import { 
+    fetchAuditLogs, 
+    exportAuditLogs, 
+    setAuditPage, 
+    setAuditPageSize, 
+    setAuditFilters, 
+    clearAuditFilters, 
+    setSelectedLog,
+    selectAuditLogs,
+    selectAuditTotal,
+    selectAuditPage,
+    selectAuditPageSize,
+    selectAuditFilters,
+    selectSelectedAuditLog,
+    selectAuditLoading,
+} from '../../store/tenant/slice/tenantAuditSlice';
+import { selectTenantLoading } from '../../store/tenant/slice/tenantSlice';
 
 export const TenantAuditPage = () => {
     const { id } = useParams();
@@ -14,8 +29,10 @@ export const TenantAuditPage = () => {
     const pageSize = useSelector(selectAuditPageSize);
     const filters = useSelector(selectAuditFilters);
     const selectedLog = useSelector(selectSelectedAuditLog);
-    const loading = useSelector(selectTenantLoading);
-    const [exporting, setExporting] = useState(false);
+    const loading = useSelector(selectAuditLoading);
+    const tenantLoading = useSelector(selectTenantLoading);
+    
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -35,55 +52,51 @@ export const TenantAuditPage = () => {
         dispatch(setAuditFilters(newFilters));
     };
 
-    const handleResetFilters = () => {
+    const handleClearFilters = () => {
         dispatch(clearAuditFilters());
     };
 
-    const handleExport = async () => {
-        setExporting(true);
-        await dispatch(exportAuditLogs({ tenantId: id, format: 'csv', filters }));
-        setExporting(false);
-    };
-
-    const handleViewDetails = (log) => {
+    const handleViewDetails = (logId) => {
+        const log = logs.find(l => l.id === logId);
         dispatch(setSelectedLog(log));
+        setDetailModalOpen(true);
     };
 
-    const totalPages = Math.ceil(total / pageSize);
+    const handleExport = async (format) => {
+        await dispatch(exportAuditLogs({ tenantId: id, format, filters }));
+    };
 
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
-                <p className="text-sm text-gray-500 mt-1">Track all tenant activities and changes</p>
+                <h1 className="text-2xl font-bold">Audit Logs</h1>
+                <p className="text-gray-500 mt-1">Track all tenant activities and changes</p>
             </div>
 
             <AuditLogFilter
                 filters={filters}
                 onFilterChange={handleFilterChange}
-                onReset={handleResetFilters}
+                onClearFilters={handleClearFilters}
                 onExport={handleExport}
+                loading={loading}
             />
 
-            <div className="mt-6">
-                <AuditLogTable
-                    logs={logs}
-                    onViewDetails={handleViewDetails}
-                    loading={loading}
-                    page={page}
-                    pageSize={pageSize}
-                    total={total}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                    totalPages={totalPages}
-                />
-            </div>
+            <AuditLogTable
+                logs={logs}
+                loading={loading}
+                onViewDetails={handleViewDetails}
+            />
 
             <AuditLogDetailModal
-                isOpen={!!selectedLog}
-                onClose={() => dispatch(setSelectedLog(null))}
+                isOpen={detailModalOpen}
+                onClose={() => {
+                    setDetailModalOpen(false);
+                    dispatch(setSelectedLog(null));
+                }}
                 log={selectedLog}
             />
         </div>
     );
 };
+
+export default TenantAuditPage;

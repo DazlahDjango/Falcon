@@ -1,6 +1,6 @@
 // frontend/src/components/tenant/dashboard/TenantListWidget.jsx
 import React from 'react';
-import { TenantStatusBadge } from '../common/TenantStatusBadge';
+import TenantStatusBadge from '../common/TenantStatusBadge';
 
 export const TenantListWidget = ({ tenants, onViewAll, onSelectTenant, loading = false }) => {
     if (loading) {
