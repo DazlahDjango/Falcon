@@ -9,6 +9,18 @@ export { default as tenantProvisioningReducer } from './tenantProvisioningSlice'
 export { default as tenantAuditReducer } from './tenantAuditSlice';
 export { default as tenantDashboardReducer } from './tenantDashboardSlice';
 export { default as tenantUIReducer } from './tenantUISlice';
+export { default as connectionReducer } from './connectionSlice';
 
-// Export actions and selectors from tenantSlice ONLY (to avoid conflicts)
-export * from './tenantSlice';
+// Export actions and selectors from tenantSlice ONLY (to avoid conflicts
+
+export * from './tenantResourceSlice';
+export * from './tenantDomainSlice';
+export * from './tenantBackupSlice';
+export * from './tenantMigrationSlice';
+export * from './tenantSchemaSlice';
+export * from './tenantProvisioningSlice';
+export * from './tenantAuditSlice';
+export * from './tenantDashboardSlice';
+export * from './tenantUISlice';
+export * from './connectionSlice';
+

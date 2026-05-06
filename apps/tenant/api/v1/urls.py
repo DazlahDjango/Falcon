@@ -7,7 +7,7 @@ from .views import (
     TenantUsageView, TenantResourcesView, DomainViewSet, DomainVerifyView, DomainSetPrimaryView,
     TenantDomainsView, BackupViewSet, BackupRestoreView, BackupDownloadView, TenantBackupsView,
     MigrationViewSet, TenantMigrationsView, HealthCheckView, TenantsHealthView, DatabaseHealthView,
-    CacheHealthView, SystemHealthView, SchemaViewSet, TenantSchemaView
+    CacheHealthView, SystemHealthView, SchemaViewSet, TenantSchemaView, ConnectionPoolViewSet
 )
 
 app_name = 'tenant_app'
@@ -18,6 +18,7 @@ router.register(r'domains', DomainViewSet, basename='domain')
 router.register(r'backups', BackupViewSet, basename='backup')
 router.register(r'schemas', SchemaViewSet, basename='schema')
 router.register(r'migrations', MigrationViewSet, basename='migration')
+router.register(r'connections', ConnectionPoolViewSet, basename='connection')
 
 # Tenants base nested routers
 tenant_router = routers.NestedDefaultRouter(
@@ -65,4 +66,9 @@ urlpatterns = [
     # Schema
     path('tenants/<uuid:tenant_id>/schema/',
          TenantSchemaView.as_view(), name='tenant-schema'),
+     # Connection pool management
+    path('connections/metrics/', ConnectionPoolViewSet.as_view({'get': 'metrics'}), name='connection-metrics'),
+    path('connections/health-check/', ConnectionPoolViewSet.as_view({'post': 'health_check'}), name='connection-health-check'),
+    path('connections/manager-action/', ConnectionPoolViewSet.as_view({'post': 'manager_action'}), name='connection-manager-action'),
+    path('connections/close-idle/', ConnectionPoolViewSet.as_view({'post': 'close_idle_connections'}), name='connection-close-idle'),
 ]

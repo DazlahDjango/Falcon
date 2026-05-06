@@ -59,11 +59,11 @@ class QuotaEnforcer:
 
     def _load_tenant(self):
         """Load tenant from database."""
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
 
         try:
-            self.tenant = Tenant.objects.get(id=self.tenant_id)
-        except Tenant.DoesNotExist:
+            self.tenant = Client.objects.get(id=self.tenant_id)
+        except Client.DoesNotExist:
             self.logger.error(f"Tenant not found: {self.tenant_id}")
             raise
 

@@ -119,7 +119,7 @@ class TenantViewSet(viewsets.ModelViewSet):
             self._create_default_resources(tenant)
 
             # Trigger async provisioning
-            provision_tenant_task.delay(str(tenant.id))
+            provision_tenant.delay(str(tenant.id))
 
     def _create_default_resources(self, tenant):
         """
@@ -294,7 +294,7 @@ class TenantSuspendView(generics.GenericAPIView):
         tenant.status = TenantStatus.SUSPENDED
         tenant.save(update_fields=['status'])
 
-        suspend_tenant_task.delay(str(tenant.id))
+        suspend_tenant.delay(str(tenant.id))
 
         return Response({
             'message': f'Tenant {tenant.name} suspended',

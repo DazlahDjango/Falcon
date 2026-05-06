@@ -176,11 +176,11 @@ class HealthCheck:
         self.logger.info(f"Checking health for tenant: {tenant_id}")
 
         try:
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
             from apps.tenant.services.monitoring.quota_enforcer import QuotaEnforcer
             from apps.tenant.services.isolation.connection_manager import ConnectionManager
 
-            tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Client.objects.get(id=tenant_id)
             quota = QuotaEnforcer(tenant_id)
             conn_manager = ConnectionManager()
 
@@ -219,7 +219,7 @@ class HealthCheck:
                 'message': 'Tenant is healthy' if healthy else ', '.join(status),
             }
 
-        except Tenant.DoesNotExist:
+        except Client.DoesNotExist:
             return {
                 'tenant_id': str(tenant_id),
                 'status': 'unhealthy',
@@ -242,7 +242,7 @@ class HealthCheck:
         """
         self.logger.info("Checking health for all tenants")
 
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
 
         results = {
             'timestamp': timezone.now().isoformat(),
@@ -253,7 +253,7 @@ class HealthCheck:
         }
 
         try:
-            tenants = Tenant.objects.filter(is_deleted=False)
+            tenants = Client.objects.filter(is_deleted=False)
             results['total_tenants'] = tenants.count()
 
             for tenant in tenants:
@@ -282,16 +282,16 @@ class HealthCheck:
         """
         self.logger.info("Checking system health")
 
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
 
-        total_tenants = Tenant.objects.filter(is_deleted=False).count()
-        active_tenants = Tenant.objects.filter(
+        total_tenants = Client.objects.filter(is_deleted=False).count()
+        active_tenants = Client.objects.filter(
             status='active', is_deleted=False).count()
-        suspended_tenants = Tenant.objects.filter(
+        suspended_tenants = Client.objects.filter(
             status='suspended', is_deleted=False).count()
-        provisioning_tenants = Tenant.objects.filter(
+        provisioning_tenants = Client.objects.filter(
             status='provisioning', is_deleted=False).count()
-        failed_tenants = Tenant.objects.filter(
+        failed_tenants = Client.objects.filter(
             status='failed', is_deleted=False).count()
 
         db_check = self.check_database()

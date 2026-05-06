@@ -10,7 +10,7 @@ Monitors and logs usage metrics for:
 
 import logging
 from django.utils import timezone
-from django.db.models import Count, Sum
+from django.db import models
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
@@ -52,9 +52,9 @@ class UsageTracker:
 
         try:
             # Update tenant's API call counter
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
 
-            Tenant.objects.filter(id=tenant_id).update(
+            Client.objects.filter(id=tenant_id).update(
                 current_api_calls_today=models.F('current_api_calls_today') + 1
             )
 
@@ -77,9 +77,9 @@ class UsageTracker:
             f"Tracking storage for tenant {tenant_id}: {file_path}")
 
         try:
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
 
-            Tenant.objects.filter(id=tenant_id).update(
+            Client.objects.filter(id=tenant_id).update(
                 current_storage_mb=models.F(
                     'current_storage_mb') + file_size_mb
             )
@@ -119,9 +119,9 @@ class UsageTracker:
             date = timezone.now().date()
 
         try:
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
 
-            tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Client.objects.get(id=tenant_id)
 
             return {
                 'date': date.isoformat(),
@@ -150,9 +150,9 @@ class UsageTracker:
             dict: Weekly usage statistics
         """
         try:
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
 
-            tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Client.objects.get(id=tenant_id)
 
             # Calculate weekly averages
             # This would be better with historical data
@@ -179,9 +179,9 @@ class UsageTracker:
             dict: Monthly usage statistics
         """
         try:
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
 
-            tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Client.objects.get(id=tenant_id)
 
             return {
                 'tenant_id': str(tenant_id),
@@ -206,11 +206,11 @@ class UsageTracker:
             dict: Complete usage summary
         """
         try:
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
             from apps.tenant.constants import ResourceType
             from apps.tenant.models import TenantResource
 
-            tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Client.objects.get(id=tenant_id)
 
             resources = TenantResource.objects.filter(tenant_id=tenant_id)
             resource_dict = {r.resource_type: r for r in resources}
@@ -257,9 +257,9 @@ class UsageTracker:
         self.logger.info("Resetting daily API counts for all tenants")
 
         try:
-            from apps.tenant.models import Tenant
+            from apps.tenant.models import Client
 
-            count = Tenant.objects.filter(
+            count = Client.objects.filter(
                 current_api_calls_today__gt=0
             ).update(
                 current_api_calls_today=0,
