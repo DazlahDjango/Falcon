@@ -8,7 +8,7 @@ import {
     TenantHealthWidget,
     TenantAlertsWidget
 } from '../../components/tenant/dashboard/index.js';
-import { fetchTenants } from '../../store/tenant/slice/index.js';  // ← Correct path
+import { fetchTenants } from '../../store/tenant/slice/tenantSlice.js';  // ← Correct path
 
 const TenantDashboardPage = () => {
     const dispatch = useDispatch();
