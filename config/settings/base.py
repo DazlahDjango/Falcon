@@ -144,13 +144,13 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 ENABLE_CONNECTION_MIDDLEWARE = True
 CONNECTION_IDLE_TIMEOUT_MINUTES = 30
 CONNECTION_POOL_MAX_SIZE = 20
-CONNECTION_MIDDLEWARE_EXCLUDED_PATHS = [
-    '/health/',
-    '/metrics/',
-    '/static/',
-    '/media/',
-    '/api/v1/auth/login/',
-]
+# CONNECTION_MIDDLEWARE_EXCLUDED_PATHS = [
+#     '/health/',
+#     '/metrics/',
+#     '/static/',
+#     '/media/',
+#     '/api/v1/auth/login/',
+# ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -207,7 +207,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # Tenant context processor (for templates)
-                'apps.tenant.context_processors.current_tenant',
+                # 'apps.tenant.context_processors.current_tenant',
             ],
         },
     },
@@ -223,10 +223,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME', default='falcon_pms'),
-        'USER': env('DB_USER', default='Dazlah'),
-        'PASSWORD': env('DB_PASSWORD', default='Dazl6002'),
+        'USER': env('DB_USER', default='postgres'),
+        'PASSWORD': env('DB_PASSWORD', default='Ogutu.1@15'),
         'HOST': env('DB_HOST', default='localhost'),
-        'PORT': env('DB_PORT', default='5432'),
+        'PORT': env('DB_PORT', default='5433'),
         'OPTIONS': {
             'options': '-c search_path=public',  # For RLS
         },
@@ -272,8 +272,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'guardian.backends.ObjectPermissionBackend',  # Object-level permissions
     # Tenant authentication backend
-    'django.contrib.auth.backends.ModelBackend',
-    'apps.tenant.backends.TenantAuthenticationBackend',
+    # 'apps.tenant.backends.TenantAuthenticationBackend',
 
 ]
 
@@ -483,7 +482,7 @@ SIMPLE_JWT = {
 # CORS CONFIGURATION
 # ----------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
-CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS')
+CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS', default=False)
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',

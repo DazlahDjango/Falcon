@@ -25,6 +25,8 @@ staticfiles/
 *.pyc
 
 # Our specific dev virtual environment (falc)
+fasc/
+fasc-env/
 falc/
 falc-env/
 falc_env/
@@ -100,6 +102,7 @@ logs/*.log
 !logs/.gitkeep
 wastes/
 
+config/settings/base.py
 
 # Secrets
 .secrets

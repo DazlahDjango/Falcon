@@ -1,4 +1,4 @@
-cat > frontend/src/store/tenant/slice/tenantAuditSlice.js << 'EOF'
+// frontend/src/store/tenant/slice/tenantAuditSlice.js 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { TenantService } from '../../../services/tenant/index.js';
 
@@ -122,4 +122,3 @@ export const selectSelectedAuditLog = (state) => state.tenantAudit?.selectedLog;
 export const selectAuditExporting = (state) => state.tenantAudit?.exporting || false;
 
 export default tenantAuditSlice.reducer;
-EOF
