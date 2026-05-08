@@ -350,7 +350,7 @@ export const selectTenantPage = (state) => state.tenant?.page || 1;
 export const selectTenantFilters = (state) => state.tenant?.filters || {};
 export const selectModalState = (state, modalName) => state.tenant?.modal?.[modalName]?.isOpen || false;
 export const selectModalData = (state, modalName) => state.tenant?.modal?.[modalName]?.data;
-
+export const selectTenantPageSize =  (state) => state.tenant.pageSize
 // Provisioning Selectors
 export const selectProvisioningStatus = (state) => state.tenant?.provisioningStatus;
 export const selectProvisioningProgress = (state) => state.tenant?.provisioningProgress;
@@ -378,8 +378,6 @@ export const selectIsProvisioningFailed = (state) => {
     return status.status === 'failed' || status === 'failed';
 };
 export const selectProvisioningError = (state) => state.tenant?.provisioningError;
-
-
 
 // Additional exports for tenant.service.js
 export const setCurrentTenant = (tenant) => ({

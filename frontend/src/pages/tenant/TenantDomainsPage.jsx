@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { DomainListTable, DomainCreateForm, DomainVerifyModal, DomainDeleteModal } from '../../components/tenant/domains';
-import { fetchDomains, addDomain, deleteDomain, verifyDomain, setPrimaryDomain, selectDomains, selectTenantLoading } from '../../store/tenant/slice/tenantSlice';
+import { fetchDomains, addDomain, deleteDomain, verifyDomain, setPrimaryDomain, selectDomains, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantDomainsPage = () => {
     const { id } = useParams();

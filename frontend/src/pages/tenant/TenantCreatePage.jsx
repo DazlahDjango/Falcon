@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { TenantCreateForm } from '../../components/tenant/tenant';
-import { createTenant, selectTenantLoading, selectTenantError } from '../../store/tenant/slice/tenantSlice';
+import { createTenant, selectTenantLoading, selectTenantError } from '../../store/tenant/slice';
 
 export const TenantCreatePage = () => {
     const dispatch = useDispatch();

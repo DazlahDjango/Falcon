@@ -21,7 +21,7 @@ import {
     openModal,
     closeModal,
     selectModalState,
-} from '../../store/tenant/slice/tenantSlice';
+} from '../../store/tenant/slice';
 
 export const TenantDetailPage = () => {
     const { id } = useParams();

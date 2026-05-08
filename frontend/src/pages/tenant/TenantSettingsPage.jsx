@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { TenantGeneralSettings, TenantBrandingSettings } from '../../components/tenant/tenant-settings';
-import { updateTenant, selectCurrentTenant } from '../../store/tenant/slice/tenantSlice';
+import { updateTenant, selectCurrentTenant } from '../../store/tenant/slice';
 
 export const TenantSettingsPage = () => {
     const { id } = useParams();

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ProvisioningProgress, ProvisioningSteps, ProvisioningStatusBadge, ProvisioningRetryButton } from '../../components/tenant/provisioning';
-import { fetchProvisioningStatus, fetchProvisioningProgress, retryProvisioning, selectProvisioningStatus, selectProvisioningProgress, selectProvisioningProgressPercentage, selectIsProvisioning, selectIsProvisioned, selectIsProvisioningFailed, selectTenantLoading } from '../../store/tenant/slice/tenantSlice';
+import { fetchProvisioningStatus, fetchProvisioningProgress, retryProvisioning, selectProvisioningStatus, selectProvisioningProgress, selectProvisioningProgressPercentage, selectIsProvisioning, selectIsProvisioned, selectIsProvisioningFailed, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantProvisioningPage = () => {
     const { id } = useParams();
