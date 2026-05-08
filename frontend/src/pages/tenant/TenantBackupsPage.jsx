@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { BackupListTable, BackupCreateButton, BackupRestoreModal, BackupDeleteModal } from '../../components/tenant/backups';
-import { fetchBackups, createBackup, restoreBackup, deleteBackup, selectBackups, selectTenantLoading, selectCreatingBackup, selectRestoringBackup } from '../../store/tenant';
+import { fetchBackups, createBackup, restoreBackup, deleteBackup, selectBackups, selectTenantLoading, selectCreatingBackup, selectRestoringBackup } from '../../store/tenant/slice';
 
 export const TenantBackupsPage = () => {
     const { id } = useParams();

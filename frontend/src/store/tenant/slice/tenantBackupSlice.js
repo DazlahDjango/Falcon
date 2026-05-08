@@ -121,4 +121,7 @@ const tenantBackupSlice = createSlice({
 });
 
 export const { clearBackupError, setCreatingBackup, setRestoringBackup } = tenantBackupSlice.actions;
+export const selectBackups = (state) => state.tenantBackup.backups;
+export const selectCreatingBackup = (state) => state.tenantBackup.creatingBackup;
+export const selectRestoringBackup = (state) => state.tenantBackup.restoringBackup;
 export default tenantBackupSlice.reducer;

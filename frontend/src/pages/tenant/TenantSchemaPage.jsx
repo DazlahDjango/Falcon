@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { SchemaInfoCard, SchemaTablesList } from '../../components/tenant/schema';
-import { fetchSchema, fetchSchemaTables, refreshSchemaStats, selectSchema, selectSchemaTables, selectSchemaRefreshing, selectTenantLoading } from '../../store/tenant';
+import { fetchSchema, fetchSchemaTables, refreshSchemaStats, selectSchema, selectSchemaTables, selectSchemaRefreshing, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantSchemaPage = () => {
     const { id } = useParams();

@@ -123,4 +123,5 @@ const tenantDomainSlice = createSlice({
 });
 
 export const { clearDomainError, clearDomains } = tenantDomainSlice.actions;
+export const selectDomains = (state) => state.tenantDomain.domains;
 export default tenantDomainSlice.reducer;

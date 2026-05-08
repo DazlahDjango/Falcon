@@ -22,7 +22,7 @@ import {
     openModal,
     closeModal,
     selectModalState,
-} from '../../store/tenant';
+} from '../../store/tenant/slice';
 
 export const TenantDetailPage = () => {
     const { id } = useParams();

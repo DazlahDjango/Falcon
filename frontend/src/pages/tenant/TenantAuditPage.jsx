@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AuditLogTable, AuditLogFilter, AuditLogDetailModal } from '../../components/tenant/audit';
-import { fetchAuditLogs, exportAuditLogs, setAuditPage, setAuditPageSize, setAuditFilters, clearAuditFilters, setSelectedLog, selectAuditLogs, selectAuditTotal, selectAuditPage, selectAuditPageSize, selectAuditFilters, selectSelectedAuditLog, selectTenantLoading } from '../../store/tenant';
+import { fetchAuditLogs, exportAuditLogs, setAuditPage, setAuditPageSize, setAuditFilters, clearAuditFilters, setSelectedLog, selectAuditLogs, selectAuditTotal, selectAuditPage, selectAuditPageSize, selectAuditFilters, selectSelectedAuditLog, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantAuditPage = () => {
     const { id } = useParams();

@@ -45,7 +45,7 @@ const AppRouter = () => {
                     {/* Account routes */}
                     {renderRoutes(accountsRoutes)}
                     {/* Tenants routes */}
-                    {renderTenantRoutes(tenantRoutes)}
+                    {renderRoutes(tenantRoutes)}
                     {/* Structure routes */}
                     {renderRoutes(structureRoutes)} 
                     {/* KPI routes */}
