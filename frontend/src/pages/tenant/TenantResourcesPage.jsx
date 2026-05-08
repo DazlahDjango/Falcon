@@ -3,13 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ResourceUsageDashboard, ResourceLimitTable, ResourceLimitForm } from '../../components/tenant/resources';
-import { fetchTenantResources, updateResourceLimit, selectResources, selectResourceLoading } from '../../store/tenant/slice/tenantResourceSlice';
+import { fetchTenantResources, updateResourceLimit, selectResources, selectResourceLoading } from '../../store/tenant/slice';
 
 export const TenantResourcesPage = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const resources = useSelector(selectResources);
-    const loading = useSelector(selectResourceLoading);
+    const loading = useSelector(selectTenantLoading);
     const [editingResource, setEditingResource] = useState(null);
 
     useEffect(() => {
