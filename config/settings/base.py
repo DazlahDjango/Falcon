@@ -207,7 +207,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # Tenant context processor (for templates)
-                'apps.tenant.context_processors.current_tenant',
+                # 'apps.tenant.context_processors.current_tenant',
             ],
         },
     },

@@ -30,14 +30,15 @@ const TenantSchemaPage = React.lazy(() => import('../pages/tenant/TenantSchemaPa
 // Connections
 const ConnectionDashboardPage = React.lazy(() => import('../pages/tenant/connections/ConnectionDashboardPage'));
 const TenantConnectionsPage = React.lazy(() => import('../pages/tenant/connections/TenantConnectionsPage'));
-// Domain Management Pages
-const DomainListPage = React.lazy(() => import('../pages/tenant/domains/DomainListPage'));
-const DomainCreatePage = React.lazy(() => import('../pages/tenant/domains/DomainCreatePage'));
-const DomainVerifyPage = React.lazy(() => import('../pages/tenant/domains/DomainVerifyPage'));
-// Backup Management Pages
-const BackupListPage = React.lazy(() => import('../pages/tenant/backups/BackupListPage'));
-const BackupCreatePage = React.lazy(() => import('../pages/tenant/backups/BackupCreatePage'));
-const BackupRestorePage = React.lazy(() => import('../pages/tenant/backups/BackupRestorePage'));
+// // Domain Management Pages
+
+const TenantDomainsPage = React.lazy(() => import('../pages/tenant/TenantDomainsPage'));
+// const DomainCreatePage = React.lazy(() => import('../pages/tenant/domains/DomainCreatePage'));
+// const DomainVerifyPage = React.lazy(() => import('../pages/tenant/domains/DomainVerifyPage'));
+// // Backup Management Pages
+const TenantBackupsPage = React.lazy(() => import('../pages/tenant/TenantBackupsPage'));
+// const BackupCreatePage = React.lazy(() => import('../pages/tenant/backups/BackupCreatePage'));
+// const BackupRestorePage = React.lazy(() => import('../pages/tenant/backups/BackupRestorePage'));
 
 // Wrapper for suspense loading
 const withSuspense = (Component) => (
@@ -114,30 +115,30 @@ const tenantRoutes = [
             // ==================== Domain Management Routes ====================
             {
                 path: ':tenantId/domains',
-                element: withSuspense(DomainListPage),
+                element: withSuspense(TenantDomainsPage),
             },
-            {
-                path: ':tenantId/domains/create',
-                element: withSuspense(DomainCreatePage),
-            },
-            {
-                path: ':tenantId/domains/:domainId/verify',
-                element: withSuspense(DomainVerifyPage),
-            },
+            // {
+            //     path: ':tenantId/domains/create',
+            //     element: withSuspense(DomainCreatePage),
+            // },
+            // {
+            //     path: ':tenantId/domains/:domainId/verify',
+            //     element: withSuspense(DomainVerifyPage),
+            // },
 
-            // ==================== Backup Management Routes ====================
+            // // ==================== Backup Management Routes ====================
             {
                 path: ':tenantId/backups',
-                element: withSuspense(BackupListPage),
+                element: withSuspense(TenantBackupsPage),
             },
-            {
-                path: ':tenantId/backups/create',
-                element: withSuspense(BackupCreatePage),
-            },
-            {
-                path: ':tenantId/backups/:backupId/restore',
-                element: withSuspense(BackupRestorePage),
-            },
+            // {
+            //     path: ':tenantId/backups/create',
+            //     element: withSuspense(BackupCreatePage),
+            // },
+            // {
+            //     path: ':tenantId/backups/:backupId/restore',
+            //     element: withSuspense(BackupRestorePage),
+            // },
 
             // Redirect /tenants/:tenantId to /tenants/:tenantId/overview
             {

@@ -38,7 +38,7 @@ import {
     selectActionLoading,
 } from '../../store/tenant';
 
-export const TenantsPage = () => {
+export const TenantListPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
