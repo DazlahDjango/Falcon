@@ -435,6 +435,42 @@ export const TENANT_QUERY_PARAMS = {
     },
 };
 
+// ============================================
+// ADDED: Direct exports for commonly used constants
+// ============================================
+export const SUBSCRIPTION_PLAN = TENANT_QUERY_PARAMS.SUBSCRIPTION_PLAN;
+export const TENANT_STATUS = TENANT_QUERY_PARAMS.TENANT_STATUS;
+export const DOMAIN_STATUS = TENANT_QUERY_PARAMS.DOMAIN_STATUS;
+export const BACKUP_STATUS = TENANT_QUERY_PARAMS.BACKUP_STATUS;
+export const MIGRATION_STATUS = TENANT_QUERY_PARAMS.MIGRATION_STATUS;
+export const SCHEMA_STATUS = TENANT_QUERY_PARAMS.SCHEMA_STATUS;
+
+// ============================================
+// ADDED: Pagination constants
+// ============================================
+export const DEFAULT_PAGE_SIZE = 20;
+export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
+// ============================================
+// ADDED: Quota warning thresholds
+// ============================================
+export const QUOTA_WARNING_THRESHOLDS = {
+    WARNING: 75,
+    CRITICAL: 90,
+    BLOCK: 100,
+};
+
+// ============================================
+// ADDED: Resource types
+// ============================================
+export const RESOURCE_TYPES = {
+    USERS: 'users',
+    STORAGE: 'storage',
+    API_CALLS: 'api_calls',
+    KPIS: 'kpis',
+    DEPARTMENTS: 'departments',
+    TEAMS: 'teams',
+};
 /**
  * Default export for convenient importing
  */

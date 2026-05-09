@@ -114,6 +114,7 @@ const tenantProvisioningSlice = createSlice({
     },
 });
 
+// Actions
 export const {
     clearProvisioningError,
     updateProvisioningProgress,
@@ -121,5 +122,18 @@ export const {
     setProvisioningFailed,
     resetProvisioningState,
 } = tenantProvisioningSlice.actions;
+
+// ============================================
+// ADDED: Selectors (for TenantProvisioningPage)
+// ============================================
+export const selectProvisioningStatus = (state) => state.tenantProvisioning?.status;
+export const selectProvisioningProgress = (state) => state.tenantProvisioning?.progress;
+export const selectProvisioningProgressPercentage = (state) => state.tenantProvisioning?.progressPercentage || 0;
+export const selectIsProvisioning = (state) => state.tenantProvisioning?.isProvisioning || false;
+export const selectIsProvisioned = (state) => state.tenantProvisioning?.isProvisioned || false;
+export const selectIsProvisioningFailed = (state) => state.tenantProvisioning?.isFailed || false;
+export const selectProvisioningError = (state) => state.tenantProvisioning?.error;
+export const selectProvisioningLoading = (state) => state.tenantProvisioning?.loading || false;
+export const selectProvisioningRetrying = (state) => state.tenantProvisioning?.retrying || false;
 
 export default tenantProvisioningSlice.reducer;

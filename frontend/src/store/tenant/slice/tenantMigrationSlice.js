@@ -85,7 +85,7 @@ export const { clearMigrationError, setRunning } = tenantMigrationSlice.actions;
 export const selectMigrations = (state) => state.tenantMigration?.migrations || [];
 export const selectMigrationSummary = (state) => state.tenantMigration?.summary || { total: 0, pending: 0, completed: 0, failed: 0 };
 export const selectMigrationsRunning = (state) => state.tenantMigration?.running || false;
-export const selectTenantLoading = (state) => state.tenantMigration?.loading || false;
+export const selectMigrationLoading = (state) => state.tenantMigration?.loading || false;
 export const selectMigrationError = (state) => state.tenantMigration?.error;
 
 // Reducer

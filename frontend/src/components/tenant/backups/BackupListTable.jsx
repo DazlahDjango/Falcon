@@ -62,7 +62,7 @@ export const BackupListTable = ({ backups, onRestore, onDelete, onDownload, load
                                 : '-';
 
                             return (
-                                <tr key={backup.id}>
+                                <table key={backup.id}>
                                     <td>
                                         <span className={`backup-card-type ${getTypeClass(backup.backup_type)}`}>
                                             {getTypeLabel(backup.backup_type)}

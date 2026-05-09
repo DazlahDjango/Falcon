@@ -12,3 +12,4 @@ export { TenantLoadingSkeleton } from './TenantLoadingSkeleton';
 export { TenantFilterDrawer } from './TenantFilterDrawer';
 export { TenantSortDropdown } from './TenantSortDropdown';
 export { TenantExportButton } from './TenantExportButton';
+export { TenantListTable } from './TenantListTable';

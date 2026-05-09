@@ -11,8 +11,8 @@ export { default as tenantDashboardReducer } from './tenantDashboardSlice';
 export { default as tenantUIReducer } from './tenantUISlice';
 export { default as connectionReducer } from './connectionSlice';
 
-// Export actions and selectors from tenantSlice ONLY (to avoid conflicts
-
+// Export everything (no conflicts after renaming)
+export * from './tenantSlice';
 export * from './tenantResourceSlice';
 export * from './tenantDomainSlice';
 export * from './tenantBackupSlice';
@@ -23,4 +23,3 @@ export * from './tenantAuditSlice';
 export * from './tenantDashboardSlice';
 export * from './tenantUISlice';
 export * from './connectionSlice';
-

@@ -171,13 +171,13 @@ const tenantUISlice = createSlice({
         closeFilterDrawer: (state) => {
             state.filterDrawer.isOpen = false;
         },
-        setFilters: (state, action) => {
+        setUIFilters: (state, action) => {
             state.filterDrawer.filters = {
                 ...state.filterDrawer.filters,
                 ...action.payload,
             };
         },
-        clearFilters: (state) => {
+        clearUIFilters: (state) => {
             state.filterDrawer.filters = {
                 status: '',
                 subscription_plan: '',
@@ -266,7 +266,7 @@ const tenantUISlice = createSlice({
         setCurrentPage: (state, action) => {
             state.currentPage = action.payload;
         },
-        setPageSize: (state, action) => {
+        setUIPageSize: (state, action) => {
             state.pageSize = action.payload;
             state.currentPage = 1;
         },
@@ -296,8 +296,8 @@ export const {
     // Filter drawer actions
     openFilterDrawer,
     closeFilterDrawer,
-    setFilters,
-    clearFilters,
+    setUIFilters,
+    clearUIFilters,
     resetFilters,
 
     // View preferences
@@ -330,7 +330,7 @@ export const {
 
     // Pagination
     setCurrentPage,
-    setPageSize,
+    setUIPageSize,
 } = tenantUISlice.actions;
 
 // Selectors

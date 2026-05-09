@@ -223,10 +223,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME', default='falcon_pms'),
-        'USER': env('DB_USER', default='Dazlah'),
-        'PASSWORD': env('DB_PASSWORD', default='Dazl6002'),
+        'USER': env('DB_USER', default='postgres'),
+        'PASSWORD': env('DB_PASSWORD', default='Ogutu@123'),
         'HOST': env('DB_HOST', default='localhost'),
-        'PORT': env('DB_PORT', default='5432'),
+        'PORT': env('DB_PORT', default='5433'),
         'OPTIONS': {
             'options': '-c search_path=public',  # For RLS
         },

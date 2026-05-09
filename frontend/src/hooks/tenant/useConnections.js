@@ -11,10 +11,10 @@ import {
     closeConnection,
     executeManagerAction,
     closeIdleConnections,
-    setFilters,
-    clearFilters,
-    setPage,
-    setPageSize,
+    setConnectionFilters,      
+    clearConnectionFilters,    
+    setConnectionPage,         
+    setConnectionPageSize,
     updateRealtimeData,
 } from '../../store/tenant/slice/connectionSlice';
 import {

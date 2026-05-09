@@ -141,18 +141,18 @@ const connectionSlice = createSlice({
     name: 'connections',
     initialState,
     reducers: {
-        setFilters: (state, action) => {
+        setConnectionFilters: (state, action) => {
             state.filters = { ...state.filters, ...action.payload };
             state.pagination.page = 1; // Reset to first page when filters change
         },
-        clearFilters: (state) => {
+        clearConnectionFilters: (state) => {
             state.filters = initialState.filters;
             state.pagination.page = 1;
         },
-        setPage: (state, action) => {
+        setConnectionPage: (state, action) => {
             state.pagination.page = action.payload;
         },
-        setPageSize: (state, action) => {
+        setConnectionPageSize: (state, action) => {
             state.pagination.page_size = action.payload;
             state.pagination.page = 1;
         },
@@ -289,10 +289,10 @@ const connectionSlice = createSlice({
 
 // Export actions
 export const {
-    setFilters,
-    clearFilters,
-    setPage,
-    setPageSize,
+    setConnectionFilters,
+    clearConnectionFilters,
+    setConnectionPage,
+    setConnectionPageSize,
     updateRealtimeData,
     clearError,
     resetState,
