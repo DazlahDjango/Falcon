@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ROUTES } from '../../../config/constants';
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
-    FiCloud, FiHardDrive, FiRefreshCw, FiGrid
+    FiCloud, FiHardDrive, FiRefreshCw, FiGrid, FiHeart
 } from 'react-icons/fi';
 import { MdDomain, MdBusiness, MdStorage, MdBackup, MdSchema } from 'react-icons/md';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
@@ -20,9 +20,14 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         admin: true,
         structure: true,     
         hierarchy: true,
-        tenant: false,
+        tenant: true,
+        connections: true,
+        tenantSpecific: true,
     });
+    const { tenantId } = useParams();
+    const location = useLocation();
     const {tenant} = useSelector((state) => state.tenant);
+    const hasTenantContext = tenantId || tenant?.id;
     // Roles navigate
     const getNavigationItem = () => {
         const baseItems = [
@@ -60,17 +65,27 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase, roles: ['super_admin', 'client_admin', 'executive'] },
         ];
         const tenantItems = [
-            { path: '/tenants', name: 'Tenant List', icon: MdBusiness, roles: ['super_admin'] },
+            { path: '/tenants', name: 'All Tenants', icon: MdBusiness, roles: ['super_admin'] },
             { path: '/tenants/dashboard', name: 'Tenant Dashboard', icon: FiGrid, roles: ['super_admin'] },
-            { path: '/tenants/connections', name: 'Connection Pool', icon: FiActivity, roles: ['super_admin'] },
-            { path: '/tenants/:tenantId', name: 'Tenant Details', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
-            { path: '/tenants/:tenantId/connections', name: 'Tenant Connections', icon: FiDatabase, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/create', name: 'Create Tenant', icon: MdBusiness, roles: ['super_admin'], hideFromSidebar: true }, // Only show in context
+        ];
+        const tenantSpecificItems = [
+            { path: '/tenants', name: 'Tenant Overview', icon: MdBusiness, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/edit', name: 'Edit Tenant', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/resources', name: 'Resources', icon: FiDatabase, roles: ['super_admin', 'client_admin'] },
-            { path: '/tenants/:tenantId/domains', name: 'Domains', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/usage', name: 'Usage Analytics', icon: FiBarChart2, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/domains', name: 'Custom Domains', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/backups', name: 'Backups', icon: MdBackup, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/migrations', name: 'Migrations', icon: FiRefreshCw, roles: ['super_admin'] },
-            { path: '/tenants/:tenantId/schema', name: 'Schema', icon: MdSchema, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/schema', name: 'Database Schema', icon: MdSchema, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/provisioning', name: 'Provisioning Status', icon: FiCloud, roles: ['super_admin'] },
             { path: '/tenants/:tenantId/audit', name: 'Audit Logs', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/settings', name: 'Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
+        ];
+        const connectionItems = [
+            { path: '/tenants/connections', name: 'Connection Dashboard', icon: FiActivity, roles: ['super_admin'] },
+            { path: '/tenants/connections/metrics', name: 'Connection Metrics', icon: FiBarChart2, roles: ['super_admin'] },
+            { path: '/tenants/connections/health', name: 'Health Check', icon: FiHeart, roles: ['super_admin'] },
         ];
         const kpiItems = [
             { path: ROUTES.KPI_DASHBOARD, name: 'Kpi Dashboard', icon: FiBarChart2, roles: ['super_admin','executive', 'supervisor', 'dashboard_champion']},
@@ -93,6 +108,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             structure: structureItems,
             hierarchy: hierarchyItems,
             tenant: tenantItems,
+            tenantSpecific: tenantSpecificItems,
+            connections: connectionItems,
             kpi: kpiItems,
             admin: adminItems
         };
@@ -103,11 +120,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         if (user?.role && roles.includes(user.role)) return true;
         return false;
     };
-    const toggleMenu = (menuKey) => {
-        setExpandedMenus(prev => ({
-            ...prev,
-            [menuKey]: !prev[menuKey]
-        }));
+    const resolvePath = (path) => {
+        return path.replace(':tenantId', tenantId || tenant?.id || '');
     };
     const renderNavGroup = (title, items, groupkey) => {
         const filteredItems = items.filter(item => hasAccess(item.roles));
@@ -125,7 +139,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                         {filteredItems.map((item) => (
                             <li key={item.path}>
                                 <NavLink 
-                                    to={item.path}
+                                    to={resolvePath(item.path)}
                                     className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                                 >
                                     <item.icon size={20} />
@@ -173,6 +187,14 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Hierarchy & Charts', navigation.hierarchy, 'hierarchy')}
                 {user?.role === 'super_admin' && renderNavGroup('Tenant Management', navigation.tenant, 'tenant')}
+                {hasTenantContext && (user?.role === 'super_admin' || user?.role === 'client_admin') && 
+                    renderNavGroup(
+                        `Tenant: ${tenant?.name || 'Current Tenant'}`, 
+                        navigation.tenantSpecific, 
+                        'tenantSpecific'
+                    )
+                }
+                {user?.role === 'super_admin' && renderNavGroup('Connection Management', navigation.connections, 'connections')}
                 {renderNavGroup('KPI', navigation.kpi, 'kpi')}
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>

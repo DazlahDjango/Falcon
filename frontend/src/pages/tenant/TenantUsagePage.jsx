@@ -3,13 +3,14 @@ import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 const TenantUsagePage = () => {
-    const { tenantId } = useParams();
+    const { id, tenantId } = useParams();
+    const tenantIdParam = id || tenantId;
     const dispatch = useDispatch();
     const { usage, loading } = useSelector((state) => state.tenantResource || { usage: null, loading: false });
 
     useEffect(() => {
-        if (tenantId) dispatch({ type: 'tenantResource/fetchUsage', payload: tenantId });
-    }, [dispatch, tenantId]);
+        if (tenantIdParam) dispatch({ type: 'tenantResource/fetchUsage', payload: tenantIdParam });
+    }, [dispatch, tenantIdParam]);
 
     if (loading) return <div className="flex justify-center items-center h-64">Loading usage data...</div>;
 

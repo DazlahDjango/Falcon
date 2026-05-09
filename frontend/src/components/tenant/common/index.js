@@ -1,5 +1,5 @@
 // frontend/src/components/tenant/common/index.js
-export { TenantStatusBadge } from './TenantStatusBadge';
+export { default as TenantStatusBadge } from './TenantStatusBadge';
 export { TenantCard } from './TenantCard';
 export { TenantSearchBar } from './TenantSearchBar';
 export { TenantPagination } from './TenantPagination';

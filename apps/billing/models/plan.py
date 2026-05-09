@@ -29,6 +29,10 @@ class Plan(BaseModel):
     description = models.TextField(_('description'), blank=True)
     plan_type = models.CharField(_('plan type'), max_length=20, choices=PLAN_CHOICES, db_index=True)
     stripe_product_id = models.CharField(_('Stripe product ID'), max_length=100, blank=True, db_index=True)
+    stripe_price_id_monthly = models.CharField(_('Stripe price ID (monthly)'), max_length=100, blank=True)
+    stripe_price_id_yearly = models.CharField(_('Stripe price ID(Yearly)'), max_length=100, blank=True)
+    price_monthly = models.DecimalField(_('monthly price'), max_digits=10, decimal_places=2, default=0)
+    price_yearly = models.DecimalField(_('yearly price'), )
 
 class PlanFeature(BillingBaseModel):
     plan = models.ForeignKey('billing.Plan', on_delete=models.CASCADE, related_name='features', verbose_name=_('plan'))

@@ -22,9 +22,16 @@ const NotFound = React.lazy(() => import('../pages/accounts/NotFound'));
 const ServerError = React.lazy(() => import('../pages/accounts/ServerError'));
 // Convert route arrays to JSX elements
 const renderRoutes = (routes) => {
-    return routes.map((route) => (
-        <Route key={route.path} path={route.path} element={route.element} />
-    ));
+    return routes.map((route) => {
+        if (route.children) {
+            return (
+                <Route key={route.path} path={route.path}>
+                    {renderRoutes(route.children)}
+                </Route>
+            );
+        }
+        return <Route key={route.path || 'index'} {...route} />;
+    });
 };
 const AppRouter = () => {
     return (

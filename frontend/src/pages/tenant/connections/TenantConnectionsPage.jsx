@@ -5,7 +5,8 @@ import ConnectionTable from '../../../components/tenant/connection/ConnectionTab
 import { useConnections } from '../../../hooks/tenant';
 
 const TenantConnectionsPage = () => {
-    const { tenantId } = useParams();
+    const { id, tenantId } = useParams();
+    const tenantIdParam = id || tenantId;
     const [filterStatus, setFilterStatus] = useState('');
 
     const {
@@ -14,7 +15,7 @@ const TenantConnectionsPage = () => {
         loading,
         refresh,
         updateFilters,
-    } = useConnections({ tenantId, autoRefresh: true });
+    } = useConnections({ tenantId: tenantIdParam, autoRefresh: true });
 
     const handleFilterChange = (status) => {
         setFilterStatus(status);

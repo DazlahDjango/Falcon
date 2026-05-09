@@ -5,26 +5,15 @@ Views for Tenant API v1.
 
 from .tenant_admin import (
     TenantViewSet,
-    TenantSuspendView,
-    TenantActivateView,
-    TenantProvisioningStatusView,
-    TenantUsageView,
-    TenantResourcesView,
 )
 from .domain_views import (
     DomainViewSet,
-    DomainVerifyView,
-    DomainSetPrimaryView,
-    TenantDomainsView,
 )
 from .backup_views import (
     BackupViewSet,
-    BackupRestoreView,
-    BackupDownloadView,
-    TenantBackupsView,
 )
-from .schema_views import SchemaViewSet, TenantSchemaView
-from .migration_views import MigrationViewSet, TenantMigrationsView
+from .schema_views import SchemaViewSet
+from .migration_views import MigrationViewSet
 from .health_views import (
     HealthCheckView,
     TenantsHealthView,
