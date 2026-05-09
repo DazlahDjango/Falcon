@@ -144,9 +144,9 @@ def send_quota_warning_email(tenant_id, resource_type, current, limit):
     Send warning when tenant approaches resource limit.
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
 
-        tenant = Client .objects.get(id=tenant_id, is_deleted=False)
+        tenant = Client.objects.get(id=tenant_id, is_deleted=False)
 
         percentage = (current / limit) * 100 if limit > 0 else 0
 
@@ -226,10 +226,10 @@ def suspend_tenant(tenant_id):
     Suspend a tenant - block access.
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.constants import TenantStatus
 
-        tenant = Tenant.objects.get(id=tenant_id, is_deleted=False)
+        tenant = Client.objects.get(id=tenant_id, is_deleted=False)
         tenant.status = TenantStatus.SUSPENDED
         tenant.save(update_fields=['status'])
 
@@ -251,10 +251,10 @@ def activate_tenant(tenant_id):
     Activate a suspended tenant.
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.constants import TenantStatus
 
-        tenant = Tenant.objects.get(id=tenant_id, is_deleted=False)
+        tenant = Client.objects.get(id=tenant_id, is_deleted=False)
         tenant.status = TenantStatus.ACTIVE
         tenant.save(update_fields=['status'])
 
@@ -311,10 +311,10 @@ def backup_tenant(tenant_id):
     Create backup for a single tenant.
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.services.backup.backup_manager import BackupManager
 
-        tenant = Tenant.objects.get(id=tenant_id, is_deleted=False)
+        tenant = Client.objects.get(id=tenant_id, is_deleted=False)
         manager = BackupManager()
         backup = manager.create_backup(tenant_id, backup_type='full')
 
@@ -338,10 +338,10 @@ def backup_all_tenants():
     Backup all active tenants (scheduled task).
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.constants import TenantStatus
 
-        tenants = Tenant.objects.filter(
+        tenants = Client.objects.filter(
             status=TenantStatus.ACTIVE, is_deleted=False)
 
         success_count = 0
@@ -392,9 +392,9 @@ def reset_daily_api_counts():
     Reset daily API call counts for all tenants.
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
 
-        count = Tenant.objects.filter(
+        count = Client.objects.filter(
             current_api_calls_today__gt=0
         ).update(
             current_api_calls_today=0,
@@ -415,12 +415,12 @@ def cleanup_failed_provisioning(days_old=1):
     Clean up tenants that failed provisioning.
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.constants import TenantStatus
 
         cutoff = timezone.now() - timedelta(days=days_old)
 
-        failed_tenants = Tenant.objects.filter(
+        failed_tenants = Client.objects.filter(
             status=TenantStatus.FAILED,
             created_at__lt=cutoff,
             is_deleted=False
@@ -447,7 +447,7 @@ def check_tenant_health():
     Check health of all tenants (scheduled monitoring).
     """
     try:
-        from apps.tenant.models import Tenant
+        from apps.tenant.models import Client
         from apps.tenant.services.monitoring.health_check import HealthCheck
 
         health = HealthCheck()

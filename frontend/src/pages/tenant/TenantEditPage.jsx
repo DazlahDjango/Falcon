@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { TenantEditForm } from '../../components/tenant/tenant';
 import { fetchTenantById, updateTenant, selectCurrentTenant, selectTenantLoading, selectTenantError } from '../../store/tenant/slice';
+import '../../components/tenant/tenant/tenant.css';
 
 export const TenantEditPage = () => {
     const { id } = useParams();
@@ -36,29 +37,31 @@ export const TenantEditPage = () => {
     };
 
     if (loading && !tenant) {
-        return <div className="p-6 text-center">Loading tenant...</div>;
+        return <div className="tenant-loading">Loading tenant...</div>;
     }
 
     if (!tenant) {
-        return <div className="p-6 text-center">Tenant not found</div>;
+        return <div className="tenant-not-found">Tenant not found</div>;
     }
 
     return (
-        <div className="p-6 max-w-2xl mx-auto">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Edit Tenant</h1>
-                <p className="text-sm text-gray-500 mt-1">Update organization information</p>
+        <div className="tenant-page-container">
+            <div className="tenant-page-header">
+                <h1 className="tenant-page-title">Edit Tenant</h1>
+                <p className="tenant-page-subtitle">Update organization information</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="tenant-page-card">
                 <TenantEditForm
-                    initialData={tenant}
+                    tenant={tenant}
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}
-                    isLoading={submitting}
+                    loading={submitting}
                     error={error}
                 />
             </div>
         </div>
     );
 };
+
+export default TenantEditPage;

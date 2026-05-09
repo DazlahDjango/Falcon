@@ -53,7 +53,7 @@ webSocketMiddleware.startListening({
 
 // Disconnect WebSocket on logout
 webSocketMiddleware.startListening({
-    actionCreator: (action) => action.type === 'auth/logout',
+    predicate: (action) => action.type === 'auth/logout',
     effect: () => {
         if (wsService) {
             wsService.disconnect();

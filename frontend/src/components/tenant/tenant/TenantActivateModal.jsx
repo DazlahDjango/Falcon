@@ -1,3 +1,4 @@
+// frontend/src/components/tenant/TenantActivateModal.jsx
 import React from 'react';
 import './tenant.css';
 

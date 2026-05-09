@@ -1,6 +1,6 @@
 // frontend/src/hooks/tenant/useTenant.js
 import { useState, useEffect, useCallback } from 'react';
-import { TenantService } from '../../services/tenant';
+import { tenantService } from '../../services/tenant/tenant.service';
 
 export const useTenant = (tenantId) => {
     const [tenant, setTenant] = useState(null);
@@ -18,7 +18,8 @@ export const useTenant = (tenantId) => {
         setError(null);
 
         try {
-            const response = await TenantService.getTenant(tenantId);
+            // ✅ Fix: Use getTenant (not getTenantById)
+            const response = await tenantService.getTenant(tenantId);
             if (response.success) {
                 setTenant(response.data);
             } else {
@@ -37,7 +38,8 @@ export const useTenant = (tenantId) => {
 
         setLoading(true);
         try {
-            const response = await TenantService.getTenantDetail(tenantId);
+            // ✅ Fix: Use getTenantDetails
+            const response = await tenantService.getTenantDetails(tenantId);
             if (response.success) {
                 setTenant(response.data);
             }
@@ -58,7 +60,7 @@ export const useTenant = (tenantId) => {
         if (!tenantId) return null;
 
         try {
-            const response = await TenantService.getProvisioningStatus(tenantId);
+            const response = await tenantService.getProvisioningStatus(tenantId);
             if (response.success) {
                 return response.data;
             }
@@ -69,11 +71,11 @@ export const useTenant = (tenantId) => {
         }
     }, [tenantId]);
 
-    // Helper booleans
-    const isActive = tenant?.status === 'active';
-    const isSuspended = tenant?.status === 'suspended';
-    const isProvisioning = tenant?.status === 'provisioning';
-    const isReady = tenant?.status === 'active' && tenant?.provisioned_at;
+    // ✅ Fix: Use is_active field, not status
+    const isActive = tenant?.is_active === true;
+    const isSuspended = tenant?.is_active === false;
+    const isProvisioning = tenant?.provisioned_at === null && tenant?.is_active === false;
+    const isReady = tenant?.is_active === true && tenant?.provisioned_at !== null;
 
     useEffect(() => {
         fetchTenant();

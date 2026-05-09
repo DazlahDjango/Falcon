@@ -1,3 +1,4 @@
+// frontend/src/pages/tenant/TenantDetailPage.jsx
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,6 +23,7 @@ import {
     closeModal,
     selectModalState,
 } from '../../store/tenant/slice';
+import '../../components/tenant/tenant/tenant.css';
 
 export const TenantDetailPage = () => {
     const { id } = useParams();
@@ -61,8 +63,8 @@ export const TenantDetailPage = () => {
         dispatch(openModal({ modalName: 'suspendTenant', data: { id } }));
     };
 
-    const handleConfirmSuspend = async () => {
-        await dispatch(suspendTenant({ id, reason: '' }));
+    const handleConfirmSuspend = async (reason) => {
+        await dispatch(suspendTenant({ id, reason }));
         dispatch(closeModal('suspendTenant'));
     };
 
@@ -75,34 +77,35 @@ export const TenantDetailPage = () => {
         dispatch(closeModal('activateTenant'));
     };
 
-    const handleUpgrade = () => {
-        dispatch(openModal({ modalName: 'upgradeTenant', data: { id } }));
+    const handleUpgrade = (plan) => {
+        // Handle upgrade logic
+        console.log('Upgrade to:', plan);
+        dispatch(closeModal('upgradeTenant'));
     };
 
-    if (loading) {
-        return <div className="p-6 text-center">Loading tenant...</div>;
+    if (loading && !tenant) {
+        return <div className="tenant-loading">Loading tenant...</div>;
     }
 
     if (error) {
-        return <div className="p-6 text-center text-red-600">Error: {error}</div>;
+        return <div className="tenant-error">Error: {error}</div>;
     }
 
     if (!tenant) {
-        return <div className="p-6 text-center">Tenant not found</div>;
+        return <div className="tenant-not-found">Tenant not found</div>;
     }
 
     return (
-        <div className="p-6">
+        <div className="tenant-detail-page">
             <TenantDetailHeader
                 tenant={tenant}
                 onEdit={handleEdit}
                 onSuspend={handleSuspend}
                 onActivate={handleActivate}
                 onDelete={handleDelete}
-                onUpgrade={handleUpgrade}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div className="tenant-detail-grid">
                 <TenantInfoPanel tenant={tenant} />
                 <TenantContactPanel tenant={tenant} />
             </div>

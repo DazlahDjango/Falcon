@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider } from '../contexts/accounts/AuthContext'
-import { TenantProvider } from '../contexts/accounts/TenantContext';
+import { TenantProvider } from '../contexts/tenant/TenantContext';
 import { PermissionProvider } from '../contexts/accounts/PermissionContext';
 import ThemeProvider from './ThemeProvider';
 import ToastProvider from './ToastProvider';

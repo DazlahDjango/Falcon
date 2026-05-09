@@ -503,6 +503,10 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'x-tenant-id',
     'x-request-id',
+    'x-correlation-id',
+    'x-request-time',
+    'x-csrf-protection',
+    'x-idempotency-key',
 ]
 
 # ----------------------------------------------------------------------------

@@ -93,8 +93,8 @@ class TenantProvisioner:
     def _get_tenant(self):
         """Get tenant object from database"""
         try:
-            return Tenant.objects.get(id=self.tenant_id)
-        except Tenant.DoesNotExist:
+            return Client.objects.get(id=self.tenant_id)
+        except Client.DoesNotExist:
             raise TenantProvisioningError(f"Tenant {self.tenant_id} not found")
 
     def _validate_tenant_status(self):

@@ -1,13 +1,13 @@
 // frontend/src/store/tenant/slice/tenantSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { TenantService } from '../../../services/tenant';
+import { tenantService } from '../../../services/tenant/tenant.service';
 
 // Async Thunks
 export const fetchTenants = createAsyncThunk(
-    'tenant/fetchTenants',
+    'appTenant/fetchTenants',
     async (params, { rejectWithValue }) => {
         try {
-            const response = await TenantService.getTenants(params);
+            const response = await tenantService.getTenants(params);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -16,10 +16,24 @@ export const fetchTenants = createAsyncThunk(
 );
 
 export const fetchTenantById = createAsyncThunk(
-    'tenant/fetchTenantById',
+    'appTenant/fetchTenantById',
     async (id, { rejectWithValue }) => {
         try {
-            const response = await TenantService.getTenantById(id);
+            // ✅ Fix: Use getTenant, not getTenantById
+            const response = await tenantService.getTenant(id);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const fetchTenantDetails = createAsyncThunk(
+    'tenant/fetchTenantDetails',
+    async (id, { rejectWithValue }) => {
+        try {
+            // ✅ Fix: Use getTenantDetails
+            const response = await tenantService.getTenantDetails(id);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -28,10 +42,10 @@ export const fetchTenantById = createAsyncThunk(
 );
 
 export const createTenant = createAsyncThunk(
-    'tenant/createTenant',
+    'appTenant/createTenant',
     async (data, { rejectWithValue }) => {
         try {
-            const response = await TenantService.createTenant(data);
+            const response = await tenantService.createTenant(data);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -40,10 +54,10 @@ export const createTenant = createAsyncThunk(
 );
 
 export const updateTenant = createAsyncThunk(
-    'tenant/updateTenant',
+    'appTenant/updateTenant',
     async ({ id, data }, { rejectWithValue }) => {
         try {
-            const response = await TenantService.updateTenant(id, data);
+            const response = await tenantService.updateTenant(id, data);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -52,10 +66,10 @@ export const updateTenant = createAsyncThunk(
 );
 
 export const deleteTenant = createAsyncThunk(
-    'tenant/deleteTenant',
+    'appTenant/deleteTenant',
     async (id, { rejectWithValue }) => {
         try {
-            await TenantService.deleteTenant(id);
+            await tenantService.deleteTenant(id);
             return id;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -64,10 +78,10 @@ export const deleteTenant = createAsyncThunk(
 );
 
 export const suspendTenant = createAsyncThunk(
-    'tenant/suspendTenant',
+    'appTenant/suspendTenant',
     async ({ id, reason }, { rejectWithValue }) => {
         try {
-            const response = await TenantService.suspendTenant(id, reason);
+            const response = await tenantService.suspendTenant(id, reason);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -76,10 +90,10 @@ export const suspendTenant = createAsyncThunk(
 );
 
 export const activateTenant = createAsyncThunk(
-    'tenant/activateTenant',
+    'appTenant/activateTenant',
     async (id, { rejectWithValue }) => {
         try {
-            const response = await TenantService.activateTenant(id);
+            const response = await tenantService.activateTenant(id);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -87,7 +101,7 @@ export const activateTenant = createAsyncThunk(
     }
 );
 
-// Initial State (provisioning states removed)
+// Initial State
 const initialState = {
     tenants: [],
     currentTenant: null,
@@ -101,7 +115,7 @@ const initialState = {
 
 // Slice
 const tenantSlice = createSlice({
-    name: 'tenant',
+    name: 'appTenant',
     initialState,
     reducers: {
         setPage: (state, action) => {
@@ -124,6 +138,14 @@ const tenantSlice = createSlice({
         },
         clearCurrentTenant: (state) => {
             state.currentTenant = null;
+        },
+        // ✅ Add this reducer for direct tenant updates (for compatibility with tenant.service.js)
+        setCurrentTenant: (state, action) => {
+            state.currentTenant = action.payload;
+        },
+        updateTenantStats: (state, action) => {
+            // This can be used to update stats in the UI slice
+            state.stats = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -152,6 +174,19 @@ const tenantSlice = createSlice({
                 state.currentTenant = action.payload;
             })
             .addCase(fetchTenantById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Fetch Tenant Details
+            .addCase(fetchTenantDetails.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchTenantDetails.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentTenant = action.payload;
+            })
+            .addCase(fetchTenantDetails.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
@@ -222,27 +257,18 @@ export const {
     clearFilters,
     clearError,
     clearCurrentTenant,
+    setCurrentTenant,
+    updateTenantStats,
 } = tenantSlice.actions;
 
-// Base Selectors
-export const selectCurrentTenant = (state) => state.tenant?.currentTenant;
-export const selectTenantLoading = (state) => state.tenant?.loading || false;
-export const selectTenantError = (state) => state.tenant?.error;
-export const selectTenants = (state) => state.tenant?.tenants || [];
-export const selectTenantTotal = (state) => state.tenant?.total || 0;
-export const selectTenantPage = (state) => state.tenant?.page || 1;
-export const selectTenantFilters = (state) => state.tenant?.filters || {};
-export const selectTenantPageSize = (state) => state.tenant?.pageSize || 20;
-
-// Additional exports for tenant.service.js
-export const setCurrentTenant = (tenant) => ({
-    type: 'tenant/setCurrentTenant',
-    payload: tenant,
-});
-
-export const updateTenantStats = (stats) => ({
-    type: 'tenant/updateTenantStats',
-    payload: stats,
-});
+// Selectors
+export const selectCurrentTenant = (state) => state.appTenant?.currentTenant;
+export const selectTenantLoading = (state) => state.appTenant?.loading || false;
+export const selectTenantError = (state) => state.appTenant?.error;
+export const selectTenants = (state) => state.appTenant?.tenants || [];
+export const selectTenantTotal = (state) => state.appTenant?.total || 0;
+export const selectTenantPage = (state) => state.appTenant?.page || 1;
+export const selectTenantFilters = (state) => state.appTenant?.filters || {};
+export const selectTenantPageSize = (state) => state.appTenant?.pageSize || 20;
 
 export default tenantSlice.reducer;

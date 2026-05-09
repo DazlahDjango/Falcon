@@ -8,11 +8,12 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from django.db import models  # ✅ Added for Q objects in search
 from django.db import transaction
 from django.utils import timezone
 
 from apps.tenant.models import Client, TenantResource
-from apps.tenant.constants import TenantStatus, SubscriptionPlan, ResourceType
+from apps.tenant.constants import SubscriptionPlan, ResourceType
 from apps.tenant.api.v1.serializers import (
     TenantSerializer,
     TenantCreateSerializer,
@@ -21,7 +22,7 @@ from apps.tenant.api.v1.serializers import (
     TenantListSerializer,
 )
 from apps.tenant.api.v1.permissions import IsSuperAdmin, IsTenantAdmin
-from apps.tenant.api.v1.throttles import TenantApiThrottle, AdminOperationThrottle
+from apps.tenant.api.v1.throttles import TenantApiThrottle
 from apps.tenant.tasks import provision_tenant, suspend_tenant
 from apps.tenant.services.monitoring.quota_enforcer import QuotaEnforcer
 
@@ -75,11 +76,6 @@ class TenantViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         qs_filter = {}
 
-        # Filter by status
-        status_filter = self.request.query_params.get('status')
-        if status_filter:
-            qs_filter['status'] = status_filter
-
         # Filter by subscription plan
         plan = self.request.query_params.get('subscription_plan')
         if plan:
@@ -90,6 +86,11 @@ class TenantViewSet(viewsets.ModelViewSet):
         if is_active is not None:
             qs_filter['is_active'] = is_active.lower() == 'true'
 
+        # Filter by verified status
+        is_verified = self.request.query_params.get('is_verified')
+        if is_verified is not None:
+            qs_filter['is_verified'] = is_verified.lower() == 'true'
+
         queryset = queryset.filter(**qs_filter)
 
         # Search across multiple fields
@@ -98,7 +99,8 @@ class TenantViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(
                 models.Q(name__icontains=search) |
                 models.Q(slug__icontains=search) |
-                models.Q(contact_email__icontains=search)
+                models.Q(contact_email__icontains=search) |
+                models.Q(domain__icontains=search)
             )
 
         # Ordering (default: newest first)
@@ -114,11 +116,14 @@ class TenantViewSet(viewsets.ModelViewSet):
 
     def _create_default_resources(self, tenant):
         """Create default resource limits for new tenant."""
+        # Get features from tenant or use defaults
+        features = tenant.features or {}
+        
         default_limits = {
-            ResourceType.USERS: getattr(tenant, 'max_users', 100),
-            ResourceType.STORAGE_MB: getattr(tenant, 'max_storage_mb', 10240),
+            ResourceType.USERS: features.get('max_users', 100),
+            ResourceType.STORAGE_MB: features.get('max_storage_mb', 10240),
             ResourceType.API_CALLS_PER_DAY: 10000,
-            ResourceType.KPIS: 500,
+            ResourceType.KPIS: features.get('max_kpis', 500),
             ResourceType.DEPARTMENTS: 50,
             ResourceType.CONCURRENT_SESSIONS: 5,
         }
@@ -144,20 +149,20 @@ class TenantViewSet(viewsets.ModelViewSet):
         """
         tenant = self.get_object()
 
-        if tenant.status == TenantStatus.ACTIVE:
+        if tenant.is_active:
             return Response(
                 {'error': 'Tenant is already active'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        tenant.status = TenantStatus.ACTIVE
-        tenant.save(update_fields=['status', 'updated_at'])
+        tenant.is_active = True
+        tenant.save(update_fields=['is_active', 'updated_at'])
 
         return Response({
             'success': True,
             'message': f'Tenant {tenant.name} has been activated',
             'tenant_id': str(tenant.id),
-            'status': tenant.status
+            'is_active': tenant.is_active
         })
 
     @action(detail=True, methods=['post'], url_path='suspend')
@@ -169,14 +174,14 @@ class TenantViewSet(viewsets.ModelViewSet):
         """
         tenant = self.get_object()
 
-        if tenant.status == TenantStatus.SUSPENDED:
+        if not tenant.is_active:
             return Response(
                 {'error': 'Tenant is already suspended'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        tenant.status = TenantStatus.SUSPENDED
-        tenant.save(update_fields=['status', 'updated_at'])
+        tenant.is_active = False
+        tenant.save(update_fields=['is_active', 'updated_at'])
 
         # Trigger async cleanup tasks
         suspend_tenant.delay(str(tenant.id))
@@ -185,7 +190,7 @@ class TenantViewSet(viewsets.ModelViewSet):
             'success': True,
             'message': f'Tenant {tenant.name} has been suspended',
             'tenant_id': str(tenant.id),
-            'status': tenant.status
+            'is_active': tenant.is_active
         })
 
     @action(detail=True, methods=['get'], url_path='provisioning-status')
@@ -200,8 +205,9 @@ class TenantViewSet(viewsets.ModelViewSet):
         return Response({
             'tenant_id': str(tenant.id),
             'tenant_name': tenant.name,
-            'status': tenant.status,
-            'is_provisioned': tenant.status == TenantStatus.ACTIVE and tenant.provisioned_at is not None,
+            'is_active': tenant.is_active,
+            'is_verified': tenant.is_verified,
+            'is_provisioned': tenant.is_active and tenant.provisioned_at is not None,
             'provisioned_at': tenant.provisioned_at,
             'created_at': tenant.created_at,
             'updated_at': tenant.updated_at,
@@ -224,7 +230,8 @@ class TenantViewSet(viewsets.ModelViewSet):
             'tenant_name': tenant.name,
             'subscription_plan': tenant.subscription_plan,
             'subscription_expires_at': tenant.subscription_expires_at,
-            'status': tenant.status,
+            'is_active': tenant.is_active,
+            'is_verified': tenant.is_verified,
             'is_trial': tenant.subscription_plan == SubscriptionPlan.TRIAL,
             'days_until_expiry': self._get_days_until_expiry(tenant),
             'usage': usage_data,
@@ -316,10 +323,13 @@ class TenantViewSet(viewsets.ModelViewSet):
 
         updated = []
         for resource_type, limit_value in new_limits.items():
-            if resource_type in [rt.value for rt in ResourceType]:
+            # Convert string resource types to enum values if needed
+            resource_key = resource_type.upper() if isinstance(resource_type, str) else resource_type
+            
+            if resource_key in [rt.name for rt in ResourceType]:
                 resource, created = TenantResource.objects.get_or_create(
                     tenant=tenant,
-                    resource_type=resource_type,
+                    resource_type=resource_key,
                     defaults={
                         'limit_value': limit_value,
                         'current_value': 0,

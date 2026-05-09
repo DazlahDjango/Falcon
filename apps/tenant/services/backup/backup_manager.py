@@ -56,11 +56,11 @@ class BackupManager:
         self.logger.info(
             f"Creating {backup_type} backup for tenant {tenant_id}")
 
-        from apps.tenant.models import Tenant, TenantBackup
+        from apps.tenant.models import Client, TenantBackup
 
         try:
-            tenant = Tenant.objects.get(id=tenant_id, is_deleted=False)
-        except Tenant.DoesNotExist:
+            tenant = Client.objects.get(id=tenant_id, is_deleted=False)
+        except Client.DoesNotExist:
             self.logger.error(f"Tenant {tenant_id} not found")
             raise
 

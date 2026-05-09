@@ -1,5 +1,4 @@
 // frontend/src/routes/tenant.routes.js
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -19,14 +18,28 @@ const TenantSchemaPage = React.lazy(() => import('../pages/tenant/TenantSchemaPa
 
 // Connections
 const ConnectionDashboardPage = React.lazy(() => import('../pages/tenant/connections/ConnectionDashboardPage').then((module) => ({ default: module.ConnectionDashboardPage })));
+// const ConnectionMetricsPage = React.lazy(() => import('../pages/tenant/connections/ConnectionMetricsPage').then((module) => ({ default: module.ConnectionMetricsPage })));
+// const ConnectionHealthPage = React.lazy(() => import('../pages/tenant/connections/ConnectionHealthPage').then((module) => ({ default: module.ConnectionHealthPage })));
 const TenantConnectionsPage = React.lazy(() => import('../pages/tenant/connections/TenantConnectionsPage').then((module) => ({ default: module.TenantConnectionsPage })));
 
 // Domain & Backup
 const TenantDomainsPage = React.lazy(() => import('../pages/tenant/TenantDomainsPage').then((module) => ({ default: module.TenantDomainsPage })));
 const TenantBackupsPage = React.lazy(() => import('../pages/tenant/TenantBackupsPage').then((module) => ({ default: module.TenantBackupsPage })));
 
+// Loading component
+const LoadingFallback = () => (
+    <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '16rem' 
+    }}>
+        <div>Loading...</div>
+    </div>
+);
+
 const withSuspense = (Component) => (
-    <React.Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
+    <React.Suspense fallback={<LoadingFallback />}>
         <Component />
     </React.Suspense>
 );
@@ -35,12 +48,12 @@ const tenantRoutes = [
     {
         path: 'tenants',
         children: [
-            // ✅ ADD ALL THESE ROUTES
-            { index: true, element: withSuspense(TenantListPage) },           // /tenants
-            { path: 'dashboard', element: withSuspense(TenantDashboardPage) }, // /tenants/dashboard
-            { path: 'create', element: withSuspense(TenantCreatePage) },       // /tenants/create ✅ ADD THIS
+            // Core routes
+            { index: true, element: withSuspense(TenantListPage) },
+            { path: 'dashboard', element: withSuspense(TenantDashboardPage) },
+            { path: 'create', element: withSuspense(TenantCreatePage) },
             
-            // Dynamic routes
+            // Dynamic tenant routes (using :id parameter)
             { path: ':id', element: withSuspense(TenantDetailPage) },
             { path: ':id/edit', element: withSuspense(TenantEditPage) },
             { path: ':id/settings', element: withSuspense(TenantSettingsPage) },
@@ -56,12 +69,21 @@ const tenantRoutes = [
         ],
     },
     {
-        path: 'tenants/connections',  // ✅ Top-level connections route
+        path: 'tenants/connections',
         children: [
-            { index: true, element: withSuspense(ConnectionDashboardPage) },      // /tenants/connections
-            { path: 'metrics', element: withSuspense(ConnectionDashboardPage) },   // /tenants/connections/metrics
-            { path: 'health', element: withSuspense(ConnectionDashboardPage) },    // /tenants/connections/health
+            { index: true, element: withSuspense(ConnectionDashboardPage) },
+            // { path: 'metrics', element: withSuspense(ConnectionMetricsPage) },
+            // { path: 'health', element: withSuspense(ConnectionHealthPage) },
         ],
+    },
+    // Redirects
+    {
+        path: 'tenant',
+        element: <Navigate to="/tenants" replace />,
+    },
+    {
+        path: 'tenants/overview',
+        element: <Navigate to="/tenants" replace />,
     },
 ];
 
