@@ -54,9 +54,6 @@ SECRET_KEY = env('DJANGO_SECRET_KEY',
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-_@-gd%1$i7%motr$)^ig)ue$a#ear_$wkbhtpsjh2f^pir0#+('
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
@@ -223,10 +220,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME', default='falcon_pms'),
-        'USER': env('DB_USER', default='Dazlah'),
-        'PASSWORD': env('DB_PASSWORD', default='Dazl2006'),
+        'USER': env('DB_USER', default='postgres'),
+        'PASSWORD': env('DB_PASSWORD', default='Ogutu.1@15'),
         'HOST': env('DB_HOST', default='localhost'),
-        'PORT': env('DB_PORT', default='5432'),
+        'PORT': env('DB_PORT', default='5433'),
         'OPTIONS': {
             'options': '-c search_path=public',  # For RLS
         },
@@ -478,10 +475,27 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-# CORS CONFIGURATION
-# ----------------------------------------------------------------------------
+# ============================================================
+# CORS CONFIGURATION (FIXED FOR DEVELOPMENT)
+# ============================================================
+
+# Read from environment or use defaults
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
-CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS')
+
+# OVERRIDE FOR DEVELOPMENT - Allows frontend to connect
+if DEBUG:
+    # Add development frontend URLs
+    DEV_CORS_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    # Merge with existing origins
+    CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS + DEV_CORS_ORIGINS))
+    # For development, also allow all origins (simpler)
+    CORS_ALLOW_ALL_ORIGINS = True
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -509,6 +523,13 @@ CORS_ALLOW_HEADERS = [
 # CSRF CONFIGURATION
 # ----------------------------------------------------------------------------
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+# Add frontend origins for CSRF in development
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ])
+
 CSRF_COOKIE_HTTPONLY = True  # Not accessible via JavaScript
 CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE')  # True in production with HTTPS
 CSRF_COOKIE_SAMESITE = 'Lax'

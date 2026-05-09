@@ -19,7 +19,7 @@ export const fetchTenantById = createAsyncThunk(
     'tenant/fetchTenantById',
     async (id, { rejectWithValue }) => {
         try {
-            const response = await TenantService.getTenantById(id);
+            const response = await TenantService.getTenant(id);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
