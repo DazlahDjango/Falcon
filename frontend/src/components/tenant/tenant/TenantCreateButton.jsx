@@ -1,8 +1,7 @@
-// frontend/src/components/tenant/tenant/TenantCreateButton.jsx
+// frontend/src/components/tenant/TenantCreateButton.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { openModal } from '../../../store/tenant/slice/tenantUISlice';
+import './tenant.css';
 
 const TenantCreateButton = ({ 
     variant = 'primary', 
@@ -13,58 +12,45 @@ const TenantCreateButton = ({
     text = 'Create Tenant'
 }) => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
 
     const handleClick = () => {
-        // Navigate to create page
         navigate('/tenants/create');
-        
-        // Or use modal instead (uncomment if you prefer modal)
-        // dispatch(openModal({ modalName: 'createTenant', data: null }));
     };
 
     const variants = {
-        primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-        secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500',
-        outline: 'border border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
-        danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-        success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
+        primary: { backgroundColor: '#2563eb', color: 'white' },
+        secondary: { backgroundColor: '#e5e7eb', color: '#374151' },
+        outline: { backgroundColor: 'transparent', border: '1px solid #2563eb', color: '#2563eb' },
+        danger: { backgroundColor: '#dc2626', color: 'white' },
+        success: { backgroundColor: '#10b981', color: 'white' },
     };
 
     const sizes = {
-        sm: 'px-3 py-1.5 text-sm',
-        md: 'px-4 py-2 text-base',
-        lg: 'px-6 py-3 text-lg',
+        sm: { padding: '0.375rem 0.75rem', fontSize: '0.875rem' },
+        md: { padding: '0.5rem 1rem', fontSize: '0.875rem' },
+        lg: { padding: '0.75rem 1.5rem', fontSize: '1rem' },
+    };
+
+    const buttonStyle = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        fontWeight: 500,
+        borderRadius: '0.5rem',
+        transition: 'all 0.2s',
+        cursor: 'pointer',
+        border: 'none',
+        width: fullWidth ? '100%' : 'auto',
+        ...variants[variant],
+        ...sizes[size],
     };
 
     return (
-        <button
-            onClick={handleClick}
-            className={`
-                inline-flex items-center justify-center
-                font-medium rounded-lg
-                transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-offset-2
-                disabled:opacity-50 disabled:cursor-not-allowed
-                ${variants[variant]}
-                ${sizes[size]}
-                ${fullWidth ? 'w-full' : ''}
-                ${className}
-            `}
-        >
+        <button onClick={handleClick} style={buttonStyle} className={className}>
             {showIcon && (
-                <svg 
-                    className="w-5 h-5 mr-2" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                >
-                    <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M12 4v16m8-8H4" 
-                    />
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
             )}
             {text}

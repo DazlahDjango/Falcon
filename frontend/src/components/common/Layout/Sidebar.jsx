@@ -26,9 +26,17 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
     });
     const { tenantId } = useParams();
     const location = useLocation();
-    const {tenant} = useSelector((state) => state.tenant);
+    const { tenant } = useSelector((state) => state.tenant);
     const hasTenantContext = tenantId || tenant?.id;
-    // Roles navigate
+
+    // ✅ Add toggleMenu function
+    const toggleMenu = (menuKey) => {
+        setExpandedMenus(prev => ({
+            ...prev,
+            [menuKey]: !prev[menuKey]
+        }));
+    };
+
     const getNavigationItem = () => {
         const baseItems = [
             { path: '/dashboard', name: 'Dashboard', icon: FiHome, roles: ['all'] },
@@ -67,11 +75,13 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         const tenantItems = [
             { path: '/tenants', name: 'All Tenants', icon: MdBusiness, roles: ['super_admin'] },
             { path: '/tenants/dashboard', name: 'Tenant Dashboard', icon: FiGrid, roles: ['super_admin'] },
-            { path: '/tenants/create', name: 'Create Tenant', icon: MdBusiness, roles: ['super_admin'], hideFromSidebar: true }, // Only show in context
+            { path: '/tenants/create', name: 'Create Tenant', icon: MdBusiness, roles: ['super_admin'] },
         ];
+        
+        // ✅ Fixed: Added :tenantId to all paths
         const tenantSpecificItems = [
-            { path: '/tenants', name: 'Tenant Overview', icon: MdBusiness, roles: ['super_admin', 'client_admin'] },
-            { path: '/tenants/edit', name: 'Edit Tenant', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId', name: 'Tenant Overview', icon: MdBusiness, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/edit', name: 'Edit Tenant', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/resources', name: 'Resources', icon: FiDatabase, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/usage', name: 'Usage Analytics', icon: FiBarChart2, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/domains', name: 'Custom Domains', icon: MdDomain, roles: ['super_admin', 'client_admin'] },
@@ -82,13 +92,14 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/tenants/:tenantId/audit', name: 'Audit Logs', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/settings', name: 'Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
         ];
+        
         const connectionItems = [
             { path: '/tenants/connections', name: 'Connection Dashboard', icon: FiActivity, roles: ['super_admin'] },
             { path: '/tenants/connections/metrics', name: 'Connection Metrics', icon: FiBarChart2, roles: ['super_admin'] },
             { path: '/tenants/connections/health', name: 'Health Check', icon: FiHeart, roles: ['super_admin'] },
         ];
         const kpiItems = [
-            { path: ROUTES.KPI_DASHBOARD, name: 'Kpi Dashboard', icon: FiBarChart2, roles: ['super_admin','executive', 'supervisor', 'dashboard_champion']},
+            { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2, roles: ['super_admin','executive', 'supervisor', 'dashboard_champion']},
             { path: ROUTES.KPI_MANAGEMENT, name: 'KPI Management', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
             { path: ROUTES.TARGETS, name: 'Targets', icon: FiCalendar, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
@@ -100,6 +111,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/admin/system', name: 'System', icon: FiServer, roles: ['super_admin'] },
             { path: '/admin/cache', name: 'Cache', icon: FiDatabase, roles: ['super_admin'] },
         ];
+        
         return {
             main: baseItems,
             team: teamItems,
@@ -114,23 +126,29 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             admin: adminItems
         };
     };
+    
     const navigation = getNavigationItem();
+    
     const hasAccess = (roles) => {
         if (roles.includes('all')) return true;
         if (user?.role && roles.includes(user.role)) return true;
         return false;
     };
+    
     const resolvePath = (path) => {
         return path.replace(':tenantId', tenantId || tenant?.id || '');
     };
-    const renderNavGroup = (title, items, groupkey) => {
+    
+    const renderNavGroup = (title, items, groupKey) => {
         const filteredItems = items.filter(item => hasAccess(item.roles));
         if (filteredItems.length === 0) return null;
-        const isExpanded = expandedMenus[groupkey];
+        
+        const isExpanded = expandedMenus[groupKey];
         const Icon = isExpanded ? FiChevronUp : FiChevronDown;
+        
         return (
-            <div className="nav-group">
-                <button className="nav-group-header" onClick={() => toggleMenu(groupkey)} disabled={isCollapsed}>
+            <div className="nav-group" key={groupKey}>
+                <button className="nav-group-header" onClick={() => toggleMenu(groupKey)} disabled={isCollapsed}>
                     <span className="nav-group-title">{title}</span>
                     {!isCollapsed && <Icon size={16} />}
                 </button>
@@ -152,6 +170,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             </div>
         );
     };
+    
     return (
         <aside className={`sidebar ${isOpen ? 'open' : 'closed'} ${isCollapsed ? 'collapsed' : ''}`}>
             {/* Logo Area */}
@@ -166,11 +185,11 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                     </div>
                     {!isCollapsed && <span className="logo-text">Falcon PMS</span>}
                 </NavLink>
-                {/* Collapse Toggle Button */}
                 <button className="sidebar-toggle" onClick={onToggle}>
                     {isCollapsed ? <FiChevronRight size={18} /> : <FiChevronLeft size={18} />}
                 </button>
             </div>
+            
             {/* Tenant Info */}
             {!isCollapsed && tenant && (
                 <div className="sidebar-tenant">
@@ -178,6 +197,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                     <div className="tenant-plan">{tenant.subscription_plan}</div>
                 </div>
             )}
+            
             {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
@@ -186,7 +206,9 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
                 {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Hierarchy & Charts', navigation.hierarchy, 'hierarchy')}
+                
                 {user?.role === 'super_admin' && renderNavGroup('Tenant Management', navigation.tenant, 'tenant')}
+                
                 {hasTenantContext && (user?.role === 'super_admin' || user?.role === 'client_admin') && 
                     renderNavGroup(
                         `Tenant: ${tenant?.name || 'Current Tenant'}`, 
@@ -194,10 +216,12 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                         'tenantSpecific'
                     )
                 }
+                
                 {user?.role === 'super_admin' && renderNavGroup('Connection Management', navigation.connections, 'connections')}
                 {renderNavGroup('KPI', navigation.kpi, 'kpi')}
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>
+            
             {/* User Info at Bottom */}
             {!isCollapsed && user && (
                 <div className="sidebar-user">
@@ -205,15 +229,17 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                         <img 
                             src={user.avatar_url || '/static/accounts/img/default-avatar.png'} 
                             alt={user.username}
+                            onError={(e) => { e.target.src = '/static/accounts/img/default-avatar.png'; }}
                         />
                     </div>
                     <div className="user-info">
                         <div className="user-name">{user.first_name || user.username}</div>
-                        <div className="user-role">{user.role_display}</div>
+                        <div className="user-role">{user.role_display || user.role}</div>
                     </div>
                 </div>
             )}
         </aside>
     );
 };
+
 export { Sidebar };

@@ -1,8 +1,17 @@
+// frontend/src/components/tenant/TenantInfoPanel.jsx
 import React from 'react';
 import './tenant.css';
 
 const TenantInfoPanel = ({ tenant }) => {
     if (!tenant) return null;
+
+    // ✅ Use is_active for status display
+    const getStatusDisplay = () => {
+        if (!tenant.is_active) return 'Suspended';
+        if (!tenant.is_verified) return 'Unverified';
+        if (tenant.subscription_plan === 'trial') return 'Trial';
+        return 'Active';
+    };
 
     return (
         <div className="tenant-info-panel">
@@ -14,7 +23,11 @@ const TenantInfoPanel = ({ tenant }) => {
                 </div>
                 <div className="tenant-info-item">
                     <span className="tenant-info-label">Status</span>
-                    <span className="tenant-info-value">{tenant.status}</span>
+                    <span className="tenant-info-value">{getStatusDisplay()}</span>
+                </div>
+                <div className="tenant-info-item">
+                    <span className="tenant-info-label">Verified</span>
+                    <span className="tenant-info-value">{tenant.is_verified ? 'Yes' : 'No'}</span>
                 </div>
                 <div className="tenant-info-item">
                     <span className="tenant-info-label">Domain</span>
@@ -26,8 +39,18 @@ const TenantInfoPanel = ({ tenant }) => {
                 </div>
                 <div className="tenant-info-item">
                     <span className="tenant-info-label">Created At</span>
-                    <span className="tenant-info-value">{new Date(tenant.created_at).toLocaleDateString()}</span>
+                    <span className="tenant-info-value">
+                        {new Date(tenant.created_at).toLocaleDateString()}
+                    </span>
                 </div>
+                {tenant.provisioned_at && (
+                    <div className="tenant-info-item">
+                        <span className="tenant-info-label">Provisioned At</span>
+                        <span className="tenant-info-value">
+                            {new Date(tenant.provisioned_at).toLocaleDateString()}
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,7 +1,7 @@
 // frontend/src/hooks/tenant/useTenantCreate.js
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TenantService } from '../../services/tenant';
+import { tenantService } from '../../services/tenant/tenant.service';
 
 export const useTenantCreate = () => {
     const navigate = useNavigate();
@@ -16,7 +16,7 @@ export const useTenantCreate = () => {
         setSuccess(false);
 
         try {
-            const response = await TenantService.createTenant(data);
+            const response = await tenantService.createTenant(data);
             if (response.success) {
                 setSuccess(true);
                 setCreatedTenant(response.data);

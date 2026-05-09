@@ -51,7 +51,7 @@ export const authMiddleware = (store) => (next) => async (action) => {
                 processQueue(error, null);
                 store.dispatch({ type: 'auth/logout' });
                 window.location.href = '/login';
-                return netx(action);
+                return next(action);
             } finally {
                 isRefreshing = false;
             }

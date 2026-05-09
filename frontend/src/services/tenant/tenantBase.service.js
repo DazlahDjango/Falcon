@@ -11,6 +11,7 @@ import {
     getAccessToken,
     getRefreshToken,
     setAccessToken,
+    setTokens,
     clearTokens,
     getTenantId,
     setTenantId
@@ -20,8 +21,8 @@ import { encryptData, decryptData } from '../security/encryptionService';
 import TENANT_API_ENDPOINTS from '../../config/constants/tenantConstants';
 
 // ==================== Configuration ====================
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1/tenant';
-const TENANT_API_BASE = API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const TENANT_API_BASE = `${API_BASE_URL}/tenant`;
 
 // Security Headers
 const SECURITY_HEADERS = {
@@ -52,21 +53,6 @@ const RETRY_CONFIG = {
     RETRY_STATUSES: [408, 429, 500, 502, 503, 504],
 };
 
-// Circuit Breaker Configuration
-const CIRCUIT_BREAKER = {
-    FAILURE_THRESHOLD: 5,
-    TIMEOUT: 60000, // 1 minute
-    HALF_OPEN_TIMEOUT: 30000,
-    failures: 0,
-    state: 'CLOSED', // CLOSED, OPEN, HALF_OPEN
-    lastFailureTime: null,
-    lastSuccessTime: null,
-};
-
-// Token Refresh Queue
-let isRefreshing = false;
-let refreshQueue = [];
-
 // ==================== Helper Functions ====================
 const generateCorrelationId = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -87,37 +73,9 @@ const checkRateLimit = () => {
     RATE_LIMIT.requestCount++;
 };
 
-const getCircuitBreakerState = () => {
-    if (CIRCUIT_BREAKER.state === 'OPEN') {
-        if (Date.now() - CIRCUIT_BREAKER.lastFailureTime > CIRCUIT_BREAKER.TIMEOUT) {
-            CIRCUIT_BREAKER.state = 'HALF_OPEN';
-            console.warn('[TenantService] Circuit breaker transitioning to HALF_OPEN');
-        } else {
-            return 'OPEN';
-        }
-    }
-    return CIRCUIT_BREAKER.state;
-};
-
-const recordSuccess = () => {
-    CIRCUIT_BREAKER.lastSuccessTime = Date.now();
-    if (CIRCUIT_BREAKER.state === 'HALF_OPEN') {
-        CIRCUIT_BREAKER.state = 'CLOSED';
-        CIRCUIT_BREAKER.failures = 0;
-        console.info('[TenantService] Circuit breaker closed after success');
-    }
-    CIRCUIT_BREAKER.failures = Math.max(0, CIRCUIT_BREAKER.failures - 1);
-};
-
-const recordFailure = () => {
-    CIRCUIT_BREAKER.failures++;
-    CIRCUIT_BREAKER.lastFailureTime = Date.now();
-
-    if (CIRCUIT_BREAKER.failures >= CIRCUIT_BREAKER.FAILURE_THRESHOLD) {
-        CIRCUIT_BREAKER.state = 'OPEN';
-        console.error('[TenantService] Circuit breaker opened due to failures');
-    }
-};
+// Token Refresh Queue
+let isRefreshing = false;
+let refreshQueue = [];
 
 const processRefreshQueue = (error, token = null) => {
     refreshQueue.forEach(item => {
@@ -183,52 +141,56 @@ const apiClient = axios.create({
     timeout: 30000,
     headers: SECURITY_HEADERS,
     withCredentials: true,
-    validateStatus: (status) => status >= 200 && status < 500,
+    validateStatus: (status) => status >= 200 && status < 300,
 });
 
 // ==================== Request Interceptor ====================
 apiClient.interceptors.request.use(
     async (config) => {
-        // Check circuit breaker
-        const circuitState = getCircuitBreakerState();
-        if (circuitState === 'OPEN') {
-            throw new Error('CIRCUIT_OPEN');
-        }
-
+        // ✅ CIRCUIT BREAKER DISABLED FOR TESTING
         // Check rate limit
         checkRateLimit();
 
         // Add correlation ID for request tracking
         config.headers['X-Correlation-ID'] = generateCorrelationId();
 
-        // Add request timestamp
-        config.headers['X-Request-Time'] = Date.now().toString();
+        // Add request timestamp (removed to prevent CORS issues)
+        // config.headers['X-Request-Time'] = Date.now().toString();
 
         // Add authentication token
         const token = await getAccessToken();
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
+            console.log('🔑 Token added to request');
+        } else {
+            console.warn('⚠️ No token found for request');
         }
 
-        // Add tenant ID
-        const tenantId = await getTenantId();
+        // Add tenant ID (fallback to redux if not in secure storage)
+        let tenantId = await getTenantId();
+        if (!tenantId) {
+            const state = store.getState();
+            tenantId = state?.auth?.user?.tenant_id || 
+                       state?.appTenant?.currentTenant?.id ||
+                       state?.tenant?.tenant?.id;
+        }
+
         if (tenantId) {
             config.headers['X-Tenant-ID'] = tenantId;
         }
 
-        // Add security headers for non-GET requests
-        if (config.method !== 'get') {
-            config.headers['X-CSRF-Protection'] = '1';
-            config.headers['X-Idempotency-Key'] = generateCorrelationId();
-        }
+        // Add security headers for non-GET requests (removed to prevent CORS issues)
+        // if (config.method !== 'get') {
+        //     config.headers['X-CSRF-Protection'] = '1';
+        //     config.headers['X-Idempotency-Key'] = generateCorrelationId();
+        // }
 
-        // Log request in development
-        if (import.meta.env.DEV) {
-            console.log(`[TenantService] ${config.method.toUpperCase()} ${config.url}`, {
-                correlationId: config.headers['X-Correlation-ID'],
-                tenantId,
-            });
-        }
+        // Log request
+        console.log(`📤 [TenantService] ${config.method.toUpperCase()} ${config.url}`, {
+            correlationId: config.headers['X-Correlation-ID'],
+            hasToken: !!token,
+            data: config.data
+        });
 
         return config;
     },
@@ -241,7 +203,10 @@ apiClient.interceptors.request.use(
 // ==================== Response Interceptor ====================
 apiClient.interceptors.response.use(
     async (response) => {
-        recordSuccess();
+        console.log(`📥 [TenantService] Response: ${response.config.method.toUpperCase()} ${response.config.url}`, {
+            status: response.status,
+            success: true
+        });
 
         // Skip logging for GET requests to reduce noise
         if (response.config.method !== 'get') {
@@ -264,21 +229,15 @@ apiClient.interceptors.response.use(
         };
     },
     async (error) => {
-        recordFailure();
-
         const originalRequest = error.config;
         const status = error.response?.status;
         const message = error.response?.data?.message || error.message;
-
-        // Handle circuit breaker open
-        if (error.message === 'CIRCUIT_OPEN') {
-            return Promise.reject({
-                success: false,
-                status: 503,
-                message: 'Service temporarily unavailable. Please try again later.',
-                code: 'SERVICE_UNAVAILABLE',
-            });
-        }
+        
+        console.error(`❌ [TenantService] Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
+            status: status,
+            message: message,
+            data: error.response?.data
+        });
 
         // Handle rate limiting
         if (error.message === 'RATE_LIMIT_EXCEEDED') {
@@ -308,19 +267,22 @@ apiClient.interceptors.response.use(
                     throw new Error('No refresh token available');
                 }
 
-                const refreshResponse = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
+                console.log('🔄 Refreshing token...');
+                const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
                     refresh: refreshToken,
                 });
 
                 if (refreshResponse.data?.access) {
-                    await setAccessToken(refreshResponse.data.access);
+                    await setTokens(refreshResponse.data.access, refreshToken);
                     originalRequest.headers['Authorization'] = `Bearer ${refreshResponse.data.access}`;
                     processRefreshQueue(null, refreshResponse.data.access);
+                    console.log('✅ Token refreshed, retrying request');
                     return apiClient(originalRequest);
                 } else {
                     throw new Error('Refresh failed');
                 }
             } catch (refreshError) {
+                console.error('❌ Token refresh failed:', refreshError);
                 processRefreshQueue(refreshError, null);
 
                 // Clear all tokens and redirect to login
@@ -352,24 +314,36 @@ apiClient.interceptors.response.use(
             code: error.response?.data?.code || 'UNKNOWN_ERROR',
             timestamp: new Date().toISOString(),
             correlationId: originalRequest?.headers?.['X-Correlation-ID'],
+            errors: error.response?.data?.errors || null
         };
-
-        // Add validation errors if present
-        if (error.response?.data?.errors) {
-            errorResponse.errors = error.response.data.errors;
-        }
 
         // Handle specific status codes
         switch (status) {
             case 400:
-                errorResponse.message = errorResponse.message || 'Invalid request data';
+                if (error.response?.data) {
+                    // DRF often returns { "field": ["error"] } or { "non_field_errors": ["error"] }
+                    const data = error.response.data;
+                    if (data.message) {
+                        errorResponse.message = data.message;
+                    } else if (data.detail) {
+                        errorResponse.message = data.detail;
+                    } else if (typeof data === 'object') {
+                        // Extract first validation error
+                        const firstKey = Object.keys(data)[0];
+                        const firstError = Array.isArray(data[firstKey]) ? data[firstKey][0] : data[firstKey];
+                        errorResponse.message = `${firstKey}: ${firstError}`;
+                        errorResponse.errors = data;
+                    }
+                } else {
+                    errorResponse.message = 'Invalid request data';
+                }
                 break;
             case 403:
-                errorResponse.message = 'You do not have permission to perform this action';
+                errorResponse.message = error.response?.data?.detail || 'You do not have permission to perform this action';
                 store.dispatch(showToast({ message: errorResponse.message, type: 'error' }));
                 break;
             case 404:
-                errorResponse.message = errorResponse.message || 'Resource not found';
+                errorResponse.message = error.response?.data?.message || 'Resource not found';
                 errorResponse.code = 'NOT_FOUND';
                 break;
             case 409:
@@ -377,6 +351,7 @@ apiClient.interceptors.response.use(
                 break;
             case 422:
                 errorResponse.message = 'Validation failed';
+                errorResponse.errors = error.response?.data;
                 break;
             case 429:
                 errorResponse.message = 'Rate limit exceeded. Please try again later.';
@@ -393,9 +368,6 @@ apiClient.interceptors.response.use(
                     errorResponse.message = 'Network error. Please check your connection.';
                 }
         }
-
-        // Log error for monitoring
-        console.error('[TenantService] Error:', errorResponse);
 
         return Promise.reject(errorResponse);
     }
@@ -450,6 +422,9 @@ class BaseTenantService {
         this.resourceName = resourceName;
         this.apiClient = apiClient;
         this.withRetry = withRetry;
+        this.encryptSensitiveData = encryptSensitiveData;
+        this.decryptSensitiveData = decryptSensitiveData;
+        this.logAudit = logAudit;
     }
 
     getEndpoint(endpoint = '') {
@@ -534,6 +509,7 @@ class BaseTenantService {
     async create(data, encrypt = true) {
         if (!data || typeof data !== 'object') throw new Error('Valid data object is required');
         const processedData = encrypt ? encryptSensitiveData(data) : data;
+        console.log('📝 Creating resource:', { resource: this.resourceName, data: processedData });
         return this.withRetry(() =>
             this.apiClient.post(this.getEndpoint(), processedData)
         );

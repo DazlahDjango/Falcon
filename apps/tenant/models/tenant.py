@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
-from apps.tenant.constants import SchemaType
+from apps.tenant.constants import SchemaType, TenantStatus
 from .base import BaseModel
 import uuid
 
@@ -57,6 +57,10 @@ class Client(BaseModel):
         _('subscription expires'), null=True, blank=True)
 
     # Status
+    status = models.CharField(
+        _('status'), max_length=20,
+        choices=TenantStatus.choices, default=TenantStatus.PENDING
+    )
     is_active = models.BooleanField(_('active'), default=True)
     is_verified = models.BooleanField(
         _('verified'), default=False, help_text='Email/domain verified')

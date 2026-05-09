@@ -1,20 +1,7 @@
-// frontend/src/pages/tenant/TenantsPage.jsx
+// frontend/src/pages/tenant/TenantListPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import {
-    TenantListTable,
-    TenantCard,
-    TenantSearchBar,
-    TenantPagination,
-    TenantFilterDrawer,
-    TenantSortDropdown,
-    TenantExportButton,
-    TenantEmptyState,
-    TenantErrorAlert,
-    TenantLoadingSkeleton,
-    ConfirmationModal,
-} from '../../components/tenant/common';
 import { TenantCreateButton } from '../../components/tenant/tenant';
 import {
     fetchTenants,
@@ -35,8 +22,73 @@ import {
     openModal,
     closeModal,
     selectModalState,
-    selectActionLoading,
 } from '../../store/tenant/slice';
+import '../../components/tenant/tenant/tenant.css';
+
+// Simple table component (create this)
+const TenantTable = ({ tenants, onView, onEdit, onDelete, onSuspend, onActivate }) => {
+    return (
+        <table className="tenant-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {tenants.map((tenant) => (
+                    <tr key={tenant.id}>
+                        <td>{tenant.name}</td>
+                        <td><code>{tenant.slug}</code></td>
+                        <td className="capitalize">{tenant.subscription_plan}</td>
+                        <td>
+                            <span className={`tenant-status-badge ${tenant.is_active ? 'active' : 'suspended'}`}>
+                                {tenant.is_active ? 'Active' : 'Suspended'}
+                            </span>
+                        </td>
+                        <td>{new Date(tenant.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button onClick={() => onView(tenant.id)} className="tenant-action-icon" title="View">👁️</button>
+                            <button onClick={() => onEdit(tenant.id)} className="tenant-action-icon" title="Edit">✏️</button>
+                            {tenant.is_active ? (
+                                <button onClick={() => onSuspend(tenant)} className="tenant-action-icon" title="Suspend">⏸️</button>
+                            ) : (
+                                <button onClick={() => onActivate(tenant)} className="tenant-action-icon" title="Activate">▶️</button>
+                            )}
+                            <button onClick={() => onDelete(tenant)} className="tenant-action-icon" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+};
+
+// Pagination component
+const Pagination = ({ page, totalPages, onPageChange, pageSize, onPageSizeChange, total }) => {
+    return (
+        <div className="tenant-pagination">
+            <div className="tenant-pagination-info">
+                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total} tenants
+            </div>
+            <div className="tenant-pagination-controls">
+                <select value={pageSize} onChange={(e) => onPageSizeChange(Number(e.target.value))}>
+                    <option value={10}>10 per page</option>
+                    <option value={20}>20 per page</option>
+                    <option value={50}>50 per page</option>
+                    <option value={100}>100 per page</option>
+                </select>
+                <button onClick={() => onPageChange(page - 1)} disabled={page === 1}>Previous</button>
+                <span>Page {page} of {totalPages}</span>
+                <button onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>Next</button>
+            </div>
+        </div>
+    );
+};
 
 export const TenantListPage = () => {
     const dispatch = useDispatch();
@@ -50,18 +102,26 @@ export const TenantListPage = () => {
     const pageSize = useSelector(selectTenantPageSize);
     const filters = useSelector(selectTenantFilters);
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedTenant, setSelectedTenant] = useState(null);
+
     const deleteModalOpen = useSelector((state) => selectModalState(state, 'deleteTenant'));
     const suspendModalOpen = useSelector((state) => selectModalState(state, 'suspendTenant'));
     const activateModalOpen = useSelector((state) => selectModalState(state, 'activateTenant'));
-    const actionLoading = useSelector((state) => selectActionLoading(state, 'delete'));
-
-    const [selectedTenant, setSelectedTenant] = useState(null);
-    const [viewMode, setViewMode] = useState('table'); // table or card
-    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
     useEffect(() => {
         dispatch(fetchTenants({ page, page_size: pageSize, ...filters }));
     }, [dispatch, page, pageSize, filters]);
+
+    const handleSearch = () => {
+        dispatch(setFilters({ search: searchTerm }));
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     const handleViewTenant = (id) => {
         navigate(`/tenants/${id}`);
@@ -89,9 +149,9 @@ export const TenantListPage = () => {
         dispatch(openModal({ modalName: 'suspendTenant', data: { id: tenant.id } }));
     };
 
-    const handleConfirmSuspend = async () => {
+    const handleConfirmSuspend = async (reason) => {
         if (selectedTenant) {
-            await dispatch(suspendTenant({ id: selectedTenant.id, reason: '' }));
+            await dispatch(suspendTenant({ id: selectedTenant.id, reason }));
             dispatch(closeModal('suspendTenant'));
             setSelectedTenant(null);
         }
@@ -110,162 +170,143 @@ export const TenantListPage = () => {
         }
     };
 
-    const handleSearch = (searchTerm) => {
-        dispatch(setFilters({ search: searchTerm }));
-    };
-
-    const handlePageChange = (newPage) => {
-        dispatch(setPage(newPage));
-    };
-
-    const handlePageSizeChange = (newSize) => {
-        dispatch(setPageSize(newSize));
-    };
-
-    const handleSortChange = (sortValue) => {
-        dispatch(setFilters({ ordering: sortValue }));
-    };
-
-    const handleExport = async (format) => {
-        // Implement export
-        console.log('Exporting to', format);
-    };
-
     const handleCreateClick = () => {
         navigate('/tenants/create');
     };
 
     if (loading && tenants.length === 0) {
-        return <TenantLoadingSkeleton type="table" count={5} />;
+        return <div className="tenant-loading">Loading tenants...</div>;
     }
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
+        <div className="tenant-page-container">
+            <div className="tenant-list-header">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Tenants</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage all tenant organizations</p>
+                    <h1 className="tenant-page-title">Tenants</h1>
+                    <p className="tenant-page-subtitle">Manage all tenant organizations</p>
                 </div>
-                <TenantCreateButton onClick={handleCreateClick} />
+                <TenantCreateButton onClick={handleCreateClick} text="Create Tenant" />
             </div>
 
-            <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
-                <div className="flex-1 max-w-md">
-                    <TenantSearchBar onSearch={handleSearch} />
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setViewMode('table')}
-                        className={`p-2 rounded ${viewMode === 'table' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                    >
-                        📋
-                    </button>
-                    <button
-                        onClick={() => setViewMode('card')}
-                        className={`p-2 rounded ${viewMode === 'card' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                    >
-                        🃏
-                    </button>
-                    <TenantSortDropdown currentSort={filters.ordering} onSortChange={handleSortChange} />
-                    <button
-                        onClick={() => setFilterDrawerOpen(true)}
-                        className="px-3 py-2 border rounded-lg bg-white hover:bg-gray-50"
-                    >
-                        🔍 Filters
-                    </button>
-                    <TenantExportButton onExport={handleExport} />
-                </div>
-            </div>
-
-            {error && <TenantErrorAlert error={error} onRetry={() => dispatch(fetchTenants({ page, page_size: pageSize, ...filters }))} />}
-
-            {viewMode === 'table' ? (
-                <TenantListTable
-                    tenants={tenants}
-                    onView={handleViewTenant}
-                    onEdit={handleEditTenant}
-                    onDelete={handleDeleteClick}
-                    onSuspend={handleSuspendClick}
-                    onActivate={handleActivateClick}
+            <div className="tenant-search-bar">
+                <input
+                    type="text"
+                    placeholder="Search by name, slug, or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={handleKeyPress}
                 />
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {tenants.map((tenant) => (
-                        <TenantCard
-                            key={tenant.id}
-                            tenant={tenant}
-                            onClick={handleViewTenant}
-                            onEdit={handleEditTenant}
-                            onDelete={handleDeleteClick}
-                        />
-                    ))}
+                <button onClick={handleSearch}>Search</button>
+                {filters.search && (
+                    <button onClick={() => dispatch(clearFilters())}>Clear</button>
+                )}
+            </div>
+
+            {error && (
+                <div className="tenant-error">
+                    Error: {error}
+                    <button onClick={() => dispatch(fetchTenants({ page, page_size: pageSize, ...filters }))}>Retry</button>
                 </div>
             )}
 
+            <TenantTable
+                tenants={tenants}
+                onView={handleViewTenant}
+                onEdit={handleEditTenant}
+                onDelete={handleDeleteClick}
+                onSuspend={handleSuspendClick}
+                onActivate={handleActivateClick}
+            />
+
             {tenants.length === 0 && !loading && (
-                <TenantEmptyState
-                    title="No tenants found"
-                    message="Get started by creating your first tenant."
-                    actionText="Create Tenant"
-                    onAction={handleCreateClick}
-                />
+                <div className="tenant-empty-state">
+                    <p>No tenants found</p>
+                    <TenantCreateButton onClick={handleCreateClick} text="Create your first tenant" />
+                </div>
             )}
 
             {tenants.length > 0 && (
-                <TenantPagination
+                <Pagination
                     page={page}
                     totalPages={Math.ceil(total / pageSize)}
-                    onPageChange={handlePageChange}
+                    onPageChange={(newPage) => dispatch(setPage(newPage))}
                     pageSize={pageSize}
-                    onPageSizeChange={handlePageSizeChange}
+                    onPageSizeChange={(newSize) => dispatch(setPageSize(newSize))}
                     total={total}
                 />
             )}
 
-            <TenantFilterDrawer
-                isOpen={filterDrawerOpen}
-                onClose={() => setFilterDrawerOpen(false)}
-                filters={filters}
-                onApply={(newFilters) => {
-                    dispatch(setFilters(newFilters));
-                    setFilterDrawerOpen(false);
-                }}
-                onReset={() => {
-                    dispatch(clearFilters());
-                    setFilterDrawerOpen(false);
-                }}
-            />
+            {/* Modals */}
+            {deleteModalOpen && (
+                <div className="tenant-modal-overlay">
+                    <div className="tenant-modal">
+                        <div className="tenant-modal-header">
+                            <h3>Delete Tenant</h3>
+                            <button onClick={() => dispatch(closeModal('deleteTenant'))}>×</button>
+                        </div>
+                        <div className="tenant-modal-body">
+                            <p>Are you sure you want to delete <strong>{selectedTenant?.name}</strong>?</p>
+                            <p className="text-red-600">This action cannot be undone.</p>
+                        </div>
+                        <div className="tenant-modal-footer">
+                            <button onClick={() => dispatch(closeModal('deleteTenant'))} className="tenant-btn-secondary">Cancel</button>
+                            <button onClick={handleConfirmDelete} className="tenant-btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            <ConfirmationModal
-                isOpen={deleteModalOpen}
-                onClose={() => dispatch(closeModal('deleteTenant'))}
-                onConfirm={handleConfirmDelete}
-                title="Delete Tenant"
-                message={`Are you sure you want to delete ${selectedTenant?.name}? This action cannot be undone.`}
-                confirmText="Delete"
-                type="danger"
-                isLoading={actionLoading}
-            />
+            {suspendModalOpen && (
+                <div className="tenant-modal-overlay">
+                    <div className="tenant-modal">
+                        <div className="tenant-modal-header">
+                            <h3>Suspend Tenant</h3>
+                            <button onClick={() => dispatch(closeModal('suspendTenant'))}>×</button>
+                        </div>
+                        <div className="tenant-modal-body">
+                            <p>Are you sure you want to suspend <strong>{selectedTenant?.name}</strong>?</p>
+                            <textarea
+                                id="suspend-reason"
+                                placeholder="Reason for suspension (optional)"
+                                className="tenant-textarea"
+                                rows="3"
+                            />
+                        </div>
+                        <div className="tenant-modal-footer">
+                            <button onClick={() => dispatch(closeModal('suspendTenant'))} className="tenant-btn-secondary">Cancel</button>
+                            <button 
+                                onClick={() => {
+                                    const reason = document.getElementById('suspend-reason').value;
+                                    handleConfirmSuspend(reason);
+                                }} 
+                                className="tenant-btn-warning"
+                            >
+                                Suspend
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            <ConfirmationModal
-                isOpen={suspendModalOpen}
-                onClose={() => dispatch(closeModal('suspendTenant'))}
-                onConfirm={handleConfirmSuspend}
-                title="Suspend Tenant"
-                message={`Are you sure you want to suspend ${selectedTenant?.name}?`}
-                confirmText="Suspend"
-                type="warning"
-            />
-
-            <ConfirmationModal
-                isOpen={activateModalOpen}
-                onClose={() => dispatch(closeModal('activateTenant'))}
-                onConfirm={handleConfirmActivate}
-                title="Activate Tenant"
-                message={`Are you sure you want to activate ${selectedTenant?.name}?`}
-                confirmText="Activate"
-                type="success"
-            />
+            {activateModalOpen && (
+                <div className="tenant-modal-overlay">
+                    <div className="tenant-modal">
+                        <div className="tenant-modal-header">
+                            <h3>Activate Tenant</h3>
+                            <button onClick={() => dispatch(closeModal('activateTenant'))}>×</button>
+                        </div>
+                        <div className="tenant-modal-body">
+                            <p>Are you sure you want to activate <strong>{selectedTenant?.name}</strong>?</p>
+                        </div>
+                        <div className="tenant-modal-footer">
+                            <button onClick={() => dispatch(closeModal('activateTenant'))} className="tenant-btn-secondary">Cancel</button>
+                            <button onClick={handleConfirmActivate} className="tenant-btn-success">Activate</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
+export default TenantListPage;

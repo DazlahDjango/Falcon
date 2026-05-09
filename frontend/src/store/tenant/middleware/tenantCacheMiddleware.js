@@ -48,7 +48,13 @@ const invalidateTenantCache = () => {
 };
 
 cacheMiddleware.startListening({
-    actionCreator: [createTenant.fulfilled, updateTenant.fulfilled, deleteTenant.fulfilled, suspendTenant.fulfilled, activateTenant.fulfilled],
+    predicate: (action) => [
+        createTenant.fulfilled.type,
+        updateTenant.fulfilled.type,
+        deleteTenant.fulfilled.type,
+        suspendTenant.fulfilled.type,
+        activateTenant.fulfilled.type
+    ].includes(action.type),
     effect: () => {
         invalidateTenantCache();
     },

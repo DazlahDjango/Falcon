@@ -1,3 +1,4 @@
+// frontend/src/components/tenant/TenantSuspendModal.jsx
 import React, { useState } from 'react';
 import './tenant.css';
 
@@ -23,8 +24,9 @@ const TenantSuspendModal = ({ isOpen, onClose, onConfirm, tenantName }) => {
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
                         placeholder="Reason for suspension (optional)"
-                        className="tenant-textarea mt-3"
+                        className="tenant-textarea"
                         rows="3"
+                        style={{ width: '100%', marginTop: '0.75rem' }}
                     />
                 </div>
                 <div className="tenant-modal-footer">

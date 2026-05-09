@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { TenantCreateForm } from '../../components/tenant/tenant';
 import { createTenant, selectTenantLoading, selectTenantError } from '../../store/tenant/slice';
+import '../../components/tenant/tenant/tenant.css';
 
 export const TenantCreatePage = () => {
     const dispatch = useDispatch();
@@ -24,20 +25,22 @@ export const TenantCreatePage = () => {
     };
 
     return (
-        <div className="p-6 max-w-2xl mx-auto">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Create New Tenant</h1>
-                <p className="text-sm text-gray-500 mt-1">Add a new organization to the platform</p>
+        <div className="tenant-page-container">
+            <div className="tenant-page-header">
+                <h1 className="tenant-page-title">Create New Tenant</h1>
+                <p className="tenant-page-subtitle">Add a new organization to the platform</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="tenant-page-card">
                 <TenantCreateForm
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}
-                    isLoading={loading}
+                    loading={loading}
                     error={error}
                 />
             </div>
         </div>
     );
 };
+
+export default TenantCreatePage;

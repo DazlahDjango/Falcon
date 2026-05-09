@@ -1,6 +1,6 @@
 // frontend/src/hooks/tenant/useTenants.js
 import { useState, useEffect, useCallback } from 'react';
-import { TenantService } from '../../services/tenant';
+import { tenantService } from '../../services/tenant/tenant.service';
 
 export const useTenants = (initialFilters = {}) => {
     const [tenants, setTenants] = useState([]);
@@ -11,7 +11,6 @@ export const useTenants = (initialFilters = {}) => {
     const [pageSize, setPageSize] = useState(20);
     const [filters, setFilters] = useState(initialFilters);
 
-    // Fetch tenants list
     const fetchTenants = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -23,9 +22,8 @@ export const useTenants = (initialFilters = {}) => {
                 ...filters,
             };
 
-            const response = await TenantService.getTenants(params);
+            const response = await tenantService.getTenants(params);
             if (response.success) {
-                // Handle paginated response
                 const items = response.data.results || response.data;
                 const totalCount = response.data.count || items.length;
 
@@ -41,35 +39,29 @@ export const useTenants = (initialFilters = {}) => {
         }
     }, [page, pageSize, filters]);
 
-    // Refetch current page
     const refetch = useCallback(() => {
         fetchTenants();
     }, [fetchTenants]);
 
-    // Change page
     const goToPage = useCallback((newPage) => {
         setPage(newPage);
     }, []);
 
-    // Change page size
     const setItemsPerPage = useCallback((newSize) => {
         setPageSize(newSize);
-        setPage(1); // Reset to first page
+        setPage(1);
     }, []);
 
-    // Update filters (triggers reset to page 1)
     const updateFilters = useCallback((newFilters) => {
         setFilters(prev => ({ ...prev, ...newFilters }));
         setPage(1);
     }, []);
 
-    // Clear all filters
     const clearFilters = useCallback(() => {
         setFilters({});
         setPage(1);
     }, []);
 
-    // Remove a specific filter
     const removeFilter = useCallback((key) => {
         setFilters(prev => {
             const newFilters = { ...prev };
@@ -79,7 +71,6 @@ export const useTenants = (initialFilters = {}) => {
         setPage(1);
     }, []);
 
-    // Search tenants by name or slug
     const searchTenants = useCallback((searchTerm) => {
         if (searchTerm) {
             updateFilters({ search: searchTerm });
@@ -88,16 +79,15 @@ export const useTenants = (initialFilters = {}) => {
         }
     }, [updateFilters, removeFilter]);
 
-    // Filter by status
-    const filterByStatus = useCallback((status) => {
-        if (status) {
-            updateFilters({ status });
+    // ✅ Fix: Filter by is_active, not status
+    const filterByActiveStatus = useCallback((isActive) => {
+        if (isActive !== undefined && isActive !== null) {
+            updateFilters({ is_active: isActive });
         } else {
-            removeFilter('status');
+            removeFilter('is_active');
         }
     }, [updateFilters, removeFilter]);
 
-    // Filter by subscription plan
     const filterByPlan = useCallback((plan) => {
         if (plan) {
             updateFilters({ subscription_plan: plan });
@@ -106,19 +96,14 @@ export const useTenants = (initialFilters = {}) => {
         }
     }, [updateFilters, removeFilter]);
 
-    // Sort tenants
     const sortBy = useCallback((field, direction = 'desc') => {
         updateFilters({ ordering: `${direction === 'desc' ? '-' : ''}${field}` });
     }, [updateFilters]);
 
-    // Calculate total pages
     const totalPages = Math.ceil(total / pageSize);
-
-    // Check if has next/previous page
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
-    // Get current range display
     const range = {
         start: (page - 1) * pageSize + 1,
         end: Math.min(page * pageSize, total),
@@ -129,7 +114,6 @@ export const useTenants = (initialFilters = {}) => {
     }, [fetchTenants]);
 
     return {
-        // Data
         tenants,
         loading,
         error,
@@ -139,25 +123,17 @@ export const useTenants = (initialFilters = {}) => {
         totalPages,
         filters,
         range,
-
-        // Navigation
         goToPage,
         setItemsPerPage,
         hasNextPage,
         hasPrevPage,
-
-        // Filtering
         updateFilters,
         clearFilters,
         removeFilter,
         searchTenants,
-        filterByStatus,
+        filterByActiveStatus,
         filterByPlan,
-
-        // Sorting
         sortBy,
-
-        // Actions
         refetch,
     };
 };

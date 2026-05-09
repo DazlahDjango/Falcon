@@ -169,8 +169,8 @@ class RetentionPolicy:
             'expiring_soon_7days': expiring_soon.count(),
             'expired_backups': expired.count(),
             'retention_days': self._get_retention_days(
-                Tenant.objects.get(id=tenant_id)
-            ) if hasattr(Tenant, 'objects') else 30,
+                Client.objects.get(id=tenant_id)
+            ) if hasattr(Client, 'objects') else 30,
         }
 
     def update_retention_policy(self, tenant_id, new_retention_days):
@@ -184,14 +184,14 @@ class RetentionPolicy:
         Returns:
             int: Number of backups updated
         """
-        from apps.tenant.models import TenantBackup, Tenant
+        from apps.tenant.models import TenantBackup, Client
 
         self.logger.info(
             f"Updating retention policy for tenant {tenant_id} to {new_retention_days} days")
 
         # Update tenant's plan or custom setting
         try:
-            tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Client.objects.get(id=tenant_id)
             # Store custom retention in tenant settings
             tenant.settings = tenant.settings or {}
             tenant.settings['backup_retention_days'] = new_retention_days
