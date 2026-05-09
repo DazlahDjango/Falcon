@@ -29,7 +29,7 @@ export const fetchTenantById = createAsyncThunk(
 );
 
 export const fetchTenantDetails = createAsyncThunk(
-    'tenant/fetchTenantDetails',
+    'appTenant/fetchTenantDetails',
     async (id, { rejectWithValue }) => {
         try {
             // ✅ Fix: Use getTenantDetails

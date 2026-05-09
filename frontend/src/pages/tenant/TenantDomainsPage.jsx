@@ -6,7 +6,7 @@ import { DomainListTable, DomainCreateForm, DomainVerifyModal, DomainDeleteModal
 import { fetchDomains, addDomain, deleteDomain, verifyDomain, setPrimaryDomain, selectDomains, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantDomainsPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const domains = useSelector(selectDomains);
     const loading = useSelector(selectTenantLoading);
@@ -15,32 +15,32 @@ export const TenantDomainsPage = () => {
     const [deletingDomain, setDeletingDomain] = useState(null);
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchDomains(id));
+        if (tenantId) {
+            dispatch(fetchDomains(tenantId));
         }
-    }, [dispatch, id]);
+    }, [dispatch, tenantId]);
 
     const handleAddDomain = async (data) => {
-        await dispatch(addDomain({ tenantId: id, data }));
+        await dispatch(addDomain({ tenantId, data }));
         setShowCreateForm(false);
     };
 
     const handleDeleteDomain = async () => {
         if (deletingDomain) {
-            await dispatch(deleteDomain({ tenantId: id, domainId: deletingDomain.id }));
+            await dispatch(deleteDomain({ tenantId, domainId: deletingDomain.id }));
             setDeletingDomain(null);
         }
     };
 
     const handleVerifyDomain = async () => {
         if (verifyingDomain) {
-            await dispatch(verifyDomain({ tenantId: id, domainId: verifyingDomain.id }));
+            await dispatch(verifyDomain({ tenantId, domainId: verifyingDomain.id }));
             setVerifyingDomain(null);
         }
     };
 
     const handleSetPrimary = async (domainId) => {
-        await dispatch(setPrimaryDomain({ tenantId: id, domainId }));
+        await dispatch(setPrimaryDomain({ tenantId, domainId }));
     };
 
     return (

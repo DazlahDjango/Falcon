@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 const TenantUsagePage = () => {
-    const { id, tenantId } = useParams();
+    const { tenantId } = useParams();
     const tenantIdParam = id || tenantId;
     const dispatch = useDispatch();
     const { usage, loading } = useSelector((state) => state.tenantResource || { usage: null, loading: false });

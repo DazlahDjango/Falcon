@@ -6,17 +6,17 @@ import { ResourceUsageDashboard, ResourceLimitTable, ResourceLimitForm } from '.
 import { fetchTenantResources, updateResourceLimit, selectResources, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantResourcesPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const resources = useSelector(selectResources);
     const loading = useSelector(selectTenantLoading);
     const [editingResource, setEditingResource] = useState(null);
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchTenantResources(id));
+        if (tenantId) {
+            dispatch(fetchTenantResources(tenantId));
         }
-    }, [dispatch, id]);
+    }, [dispatch, tenantId]);
 
     const handleEditResource = (resource) => {
         setEditingResource(resource);
@@ -24,7 +24,7 @@ export const TenantResourcesPage = () => {
 
     const handleSaveResource = async (data) => {
         await dispatch(updateResourceLimit({
-            tenantId: id,
+            tenantId: tenantId,
             resourceType: editingResource.resource_type,
             limitValue: data.limit_value
         }));

@@ -6,7 +6,7 @@ import { ProvisioningProgress, ProvisioningSteps, ProvisioningStatusBadge, Provi
 import { fetchProvisioningStatus, fetchProvisioningProgress, retryProvisioning, selectProvisioningStatus, selectProvisioningProgress, selectProvisioningProgressPercentage, selectIsProvisioning, selectIsProvisioned, selectIsProvisioningFailed, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantProvisioningPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const status = useSelector(selectProvisioningStatus);
     const progress = useSelector(selectProvisioningProgress);
@@ -17,14 +17,14 @@ export const TenantProvisioningPage = () => {
     const loading = useSelector(selectTenantLoading);
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchProvisioningStatus(id));
-            dispatch(fetchProvisioningProgress(id));
+        if (tenantId) {
+            dispatch(fetchProvisioningStatus(tenantId));
+            dispatch(fetchProvisioningProgress(tenantId));
         }
-    }, [dispatch, id]);
+    }, [dispatch, tenantId]);
 
     const handleRetry = async () => {
-        await dispatch(retryProvisioning(id));
+        await dispatch(retryProvisioning(tenantId));
     };
 
     if (isProvisioned) {

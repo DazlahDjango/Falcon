@@ -94,7 +94,9 @@ class AuditLog(BaseModel):
     
     def save(self, *args, **kwargs):
         """Prevent modification of immutable logs."""
-        if self.pk and self.is_immutable:
+        # When using UUID primary keys with defaults, self.pk is set on creation.
+        # Use self._state.adding to check if this is a new record.
+        if not self._state.adding and self.is_immutable:
             raise PermissionError("Cannot modify immutable audit log")
         super().save(*args, **kwargs)
     

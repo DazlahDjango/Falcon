@@ -26,7 +26,7 @@ import {
 import '../../components/tenant/tenant/tenant.css';
 
 export const TenantDetailPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -40,40 +40,40 @@ export const TenantDetailPage = () => {
     const upgradeModalOpen = useSelector((state) => selectModalState(state, 'upgradeTenant'));
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchTenantById(id));
+        if (tenantId) {
+            dispatch(fetchTenantById(tenantId));
         }
-    }, [dispatch, id]);
+    }, [dispatch, tenantId]);
 
     const handleEdit = () => {
-        navigate(`/tenants/${id}/edit`);
+        navigate(`/tenants/${tenantId}/edit`);
     };
 
     const handleDelete = () => {
-        dispatch(openModal({ modalName: 'deleteTenant', data: { id } }));
+        dispatch(openModal({ modalName: 'deleteTenant', data: { id: tenantId } }));
     };
 
     const handleConfirmDelete = async () => {
-        await dispatch(deleteTenant(id));
+        await dispatch(deleteTenant(tenantId));
         navigate('/tenants');
         dispatch(closeModal('deleteTenant'));
     };
 
     const handleSuspend = () => {
-        dispatch(openModal({ modalName: 'suspendTenant', data: { id } }));
+        dispatch(openModal({ modalName: 'suspendTenant', data: { id: tenantId } }));
     };
 
     const handleConfirmSuspend = async (reason) => {
-        await dispatch(suspendTenant({ id, reason }));
+        await dispatch(suspendTenant({ id: tenantId, reason }));
         dispatch(closeModal('suspendTenant'));
     };
 
     const handleActivate = () => {
-        dispatch(openModal({ modalName: 'activateTenant', data: { id } }));
+        dispatch(openModal({ modalName: 'activateTenant', data: { id: tenantId } }));
     };
 
     const handleConfirmActivate = async () => {
-        await dispatch(activateTenant(id));
+        await dispatch(activateTenant(tenantId));
         dispatch(closeModal('activateTenant'));
     };
 

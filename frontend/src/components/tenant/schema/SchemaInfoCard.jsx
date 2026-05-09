@@ -5,57 +5,52 @@ import { SchemaSizeDisplay } from './SchemaSizeDisplay';
 import { SchemaRefreshButton } from './SchemaRefreshButton';
 import './schema.css';
 
-export const SchemaInfoCard = ({ schema, onRefresh, isLoading = false }) => {
+export const SchemaInfoCard = ({ schema }) => {
     if (!schema) return null;
 
     return (
-        <div className="schema-info-card">
-            <div className="schema-info-card-header">
-                <h3 className="schema-info-card-title">Database Schema Information</h3>
-                <SchemaRefreshButton onRefresh={onRefresh} isLoading={isLoading} />
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden group">
+            <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Schema Metadata</h3>
+                <SchemaStatusBadge status={schema.status} isReady={schema.is_ready} />
             </div>
-            <div className="schema-info-card-content">
-                <div className="schema-stats-grid">
-                    <div className="schema-stat-card">
-                        <div className="schema-stat-value">{schema.schema_name || '-'}</div>
-                        <div className="schema-stat-label">Schema Name</div>
-                    </div>
-                    <div className="schema-stat-card">
-                        <div className="schema-stat-value">
-                            <SchemaStatusBadge status={schema.status} isReady={schema.is_ready} />
-                        </div>
-                        <div className="schema-stat-label">Status</div>
-                    </div>
-                    <div className="schema-stat-card">
-                        <div className="schema-stat-value">
+            
+            <div className="p-8 space-y-8">
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Object Count</p>
+                        <p className="text-2xl font-black text-slate-900">
                             {schema.table_count !== undefined ? schema.table_count.toLocaleString() : '-'}
-                        </div>
-                        <div className="schema-stat-label">Tables</div>
+                        </p>
                     </div>
-                    <div className="schema-stat-card">
-                        <div className="schema-stat-value">
-                            <SchemaSizeDisplay sizeMb={schema.size_mb} />
-                        </div>
-                        <div className="schema-stat-label">Size</div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Volume</p>
+                        <SchemaSizeDisplay sizeMb={schema.size_mb} />
                     </div>
                 </div>
 
-                {schema.created_at_schema && (
-                    <div className="text-sm text-gray-600 mt-2 pt-2 border-t border-gray-100">
-                        <span className="font-medium">Created:</span> {new Date(schema.created_at_schema).toLocaleString()}
+                <div className="space-y-4 pt-6 border-t border-slate-50">
+                    <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-slate-500">Initialization</span>
+                        <span className="text-xs font-mono text-slate-700">
+                            {schema.created_at_schema ? new Date(schema.created_at_schema).toLocaleDateString() : '—'}
+                        </span>
                     </div>
-                )}
-                {schema.last_migration_at && (
-                    <div className="text-sm text-gray-600 mt-1">
-                        <span className="font-medium">Last Migration:</span> {new Date(schema.last_migration_at).toLocaleString()}
+                    <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-slate-500">Last Sync</span>
+                        <span className="text-xs font-mono text-slate-700">
+                            {schema.last_migration_at ? new Date(schema.last_migration_at).toLocaleDateString() : '—'}
+                        </span>
                     </div>
-                )}
-                {schema.last_migration_name && (
-                    <div className="text-sm text-gray-600 mt-1">
-                        <span className="font-medium">Last Migration Name:</span>
-                        <code className="ml-1 px-1 bg-gray-100 rounded text-xs">{schema.last_migration_name}</code>
-                    </div>
-                )}
+                    {schema.last_migration_name && (
+                        <div className="flex flex-col gap-2 mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <span className="text-[10px] font-black text-slate-400 uppercase">Head Migration</span>
+                            <code className="text-[10px] text-blue-600 font-bold truncate break-all">
+                                {schema.last_migration_name}
+                            </code>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

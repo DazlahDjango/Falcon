@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # TENANT SIGNALS
 # ============================================================================
 
-@receiver(post_save, sender='tenant.Tenant')
+@receiver(post_save, sender='tenant.Client')
 def tenant_post_save_handler(sender, instance, created, **kwargs):
     """
     Handle tenant creation and updates.
@@ -34,14 +34,8 @@ def tenant_post_save_handler(sender, instance, created, **kwargs):
     cache.delete(cache_key)
 
     if created:
-        # New tenant created - start provisioning
-        from apps.tenant.tasks import provision_tenant_task
-
-        # Use transaction.on_commit to ensure task runs after DB commit
-        transaction.on_commit(
-            lambda: provision_tenant_task.delay(str(instance.id)))
-
-        logger.info(f"Provisioning task queued for tenant {instance.id}")
+        # NOTE: Provisioning is handled by the ViewSet's perform_create for better control
+        logger.info(f"New client {instance.id} created")
 
     else:
         # Existing tenant updated - check for status change
@@ -55,9 +49,9 @@ def tenant_post_save_handler(sender, instance, created, **kwargs):
 
                 # Handle specific status changes
                 if new_status == 'suspended':
-                    from apps.tenant.tasks import suspend_tenant_task
+                    from apps.tenant.tasks import suspend_tenant
                     transaction.on_commit(
-                        lambda: suspend_tenant_task.delay(str(instance.id)))
+                        lambda: suspend_tenant.delay(str(instance.id)))
 
                 elif new_status == 'deleted':
                     from apps.tenant.tasks import cleanup_tenant_task
@@ -65,7 +59,7 @@ def tenant_post_save_handler(sender, instance, created, **kwargs):
                         lambda: cleanup_tenant_task.delay(str(instance.id)))
 
 
-@receiver(pre_save, sender='tenant.Tenant')
+@receiver(pre_save, sender='tenant.Client')
 def tenant_pre_save_handler(sender, instance, **kwargs):
     """
     Store previous status before save to detect changes.
@@ -78,7 +72,7 @@ def tenant_pre_save_handler(sender, instance, **kwargs):
             instance._previous_status = None
 
 
-@receiver(post_delete, sender='tenant.Tenant')
+@receiver(post_delete, sender='tenant.Client')
 def tenant_post_delete_handler(sender, instance, **kwargs):
     """
     Handle tenant deletion.

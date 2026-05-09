@@ -165,17 +165,20 @@ class TenantProvisioner:
             from apps.tenant.constants import ResourceType
 
             # Get plan limits or use defaults
-            plan = getattr(self.tenant, 'subscription_plan',
-                           SubscriptionPlan.TRIAL)
-            plan_limits = DEFAULT_TENANT_LIMITS
+            from apps.tenant.constants import PLAN_LIMITS
+            plan = getattr(self.tenant, 'subscription_plan', SubscriptionPlan.TRIAL)
+            plan_limits = PLAN_LIMITS.get(plan, DEFAULT_TENANT_LIMITS)
 
             # Create resource records
             for resource_type, limit in plan_limits.items():
-                TenantResource.objects.create(
+                TenantResource.objects.get_or_create(
                     tenant_id=self.tenant.id,
                     resource_type=resource_type,
-                    limit_value=limit,
-                    current_value=0
+                    defaults={
+                        'limit_value': limit,
+                        'current_value': 0,
+                        'warning_threshold': 80
+                    }
                 )
 
         except Exception as e:

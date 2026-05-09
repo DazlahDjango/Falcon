@@ -13,7 +13,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.tenant.models import Client, TenantResource
-from apps.tenant.constants import SubscriptionPlan, ResourceType
+from apps.tenant.constants import SubscriptionPlan, ResourceType, TenantStatus
 from apps.tenant.api.v1.serializers import (
     TenantSerializer,
     TenantCreateSerializer,
@@ -108,36 +108,13 @@ class TenantViewSet(viewsets.ModelViewSet):
         return queryset.order_by(ordering)
 
     def perform_create(self, serializer):
-        """Create tenant with default resources and trigger async provisioning."""
+        """Create tenant with default features and trigger async provisioning."""
         with transaction.atomic():
-            tenant = serializer.save()
-            self._create_default_resources(tenant)
+            tenant = serializer.save(status=TenantStatus.PENDING)
+            # Provisioning task will handle resource creation, schema setup, etc.
             provision_tenant.delay(str(tenant.id))
 
-    def _create_default_resources(self, tenant):
-        """Create default resource limits for new tenant."""
-        # Get features from tenant or use defaults
-        features = tenant.features or {}
-        
-        default_limits = {
-            ResourceType.USERS: features.get('max_users', 100),
-            ResourceType.STORAGE_MB: features.get('max_storage_mb', 10240),
-            ResourceType.API_CALLS_PER_DAY: 10000,
-            ResourceType.KPIS: features.get('max_kpis', 500),
-            ResourceType.DEPARTMENTS: 50,
-            ResourceType.CONCURRENT_SESSIONS: 5,
-        }
 
-        for resource_type, limit in default_limits.items():
-            TenantResource.objects.get_or_create(
-                tenant=tenant,
-                resource_type=resource_type,
-                defaults={
-                    'limit_value': limit,
-                    'current_value': 0,
-                    'warning_threshold': 80
-                }
-            )
 
     # ========== Tenant Lifecycle Actions ==========
     @action(detail=True, methods=['post'], url_path='activate')

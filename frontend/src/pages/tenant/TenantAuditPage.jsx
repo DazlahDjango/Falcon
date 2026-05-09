@@ -5,7 +5,7 @@ import { AuditLogTable, AuditLogFilter, AuditLogDetailModal } from '../../compon
 import { fetchAuditLogs, exportAuditLogs, setAuditPage, setAuditPageSize, setAuditFilters, clearAuditFilters, setSelectedLog, selectAuditLogs, selectAuditTotal, selectAuditPage, selectAuditPageSize, selectAuditFilters, selectSelectedAuditLog, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantAuditPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const logs = useSelector(selectAuditLogs);
     const total = useSelector(selectAuditTotal);
@@ -19,10 +19,10 @@ export const TenantAuditPage = () => {
     const [detailModalOpen, setDetailModalOpen] = useState(false);
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchAuditLogs({ tenantId: id, params: { page, page_size: pageSize, ...filters } }));
+        if (tenantId) {
+            dispatch(fetchAuditLogs({ tenantId, params: { page, page_size: pageSize, ...filters } }));
         }
-    }, [dispatch, id, page, pageSize, filters]);
+    }, [dispatch, tenantId, page, pageSize, filters]);
 
     const handlePageChange = (newPage) => {
         dispatch(setAuditPage(newPage));
@@ -47,7 +47,7 @@ export const TenantAuditPage = () => {
     };
 
     const handleExport = async (format) => {
-        await dispatch(exportAuditLogs({ tenantId: id, format, filters }));
+        await dispatch(exportAuditLogs({ tenantId, format, filters }));
     };
 
     return (

@@ -25,9 +25,7 @@ class TenantSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
 
 
-# apps/tenant/api/v1/serializers/tenant.py
 
-# apps/tenant/api/v1/serializers/tenant.py
 
 class TenantCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new tenant."""
@@ -174,7 +172,7 @@ class TenantDetailSerializer(serializers.ModelSerializer):
             'primary_color', 'secondary_color', 'logo', 'favicon',
             'user_count', 'resource_summary', 'branding',
             'settings', 'features', 'metadata',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'provisioned_at'
         ]
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at', 'provisioned_at']
 
