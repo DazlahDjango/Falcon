@@ -4,7 +4,7 @@ import { FiRefreshCw, FiActivity, FiCheckCircle, FiXCircle } from 'react-icons/f
 import ConnectionTable from '../../../components/tenant/connection/ConnectionTable';
 import { useConnections } from '../../../hooks/tenant';
 
-const TenantConnectionsPage = () => {
+export const TenantConnectionsPage = () => {
     const { tenantId } = useParams();
     const [filterStatus, setFilterStatus] = useState('');
 

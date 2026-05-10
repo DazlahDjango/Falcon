@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Building2, Users, Briefcase, TrendingUp, AlertTriangle, 
   CheckCircle, Activity, GitBranch, Calendar, Download,
-  ChevronRight, Home, PieChart, BarChart3, MapPin, DollarSign
+  ChevronRight, Home, PieChart, BarChart3, MapPin, DollarSign,
+  History
 } from 'lucide-react';
 import { 
   DepartmentBreakdown, 

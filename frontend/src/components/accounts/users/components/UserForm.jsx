@@ -5,7 +5,7 @@ import UserRoleBadge from './UserRoleBadge';
 import PasswordStrength from '../../../common/Forms/PasswordStrength';
 
 const UserForm = ({ initialData = {}, onSubmit, onCancel, isEdit = false }) => {
-    const [formData, setFormData] = ({
+    const [formData, setFormData] = useState({
         email: initialData.email || '',
         username: initialData.username || '',
         first_name: initialData.first_name || '',

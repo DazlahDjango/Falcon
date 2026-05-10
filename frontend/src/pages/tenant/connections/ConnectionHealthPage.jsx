@@ -15,10 +15,12 @@ export const ConnectionHealthPage = () => {
         checkTenant
     } = useHealthDashboard();
 
-    const { tenants, fetchAllTenants } = useTenants();
+    const { tenants, refetch: fetchAllTenants } = useTenants();
 
     useEffect(() => {
-        fetchAllTenants();
+        if (fetchAllTenants) {
+            fetchAllTenants();
+        }
     }, [fetchAllTenants]);
 
     const handleRunScan = async () => {
