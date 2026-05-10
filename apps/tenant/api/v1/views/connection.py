@@ -183,11 +183,12 @@ class ConnectionPoolViewSet(viewsets.ModelViewSet):
         closed = queryset.filter(status=ConnectionStatus.CLOSED).count()
         
         # Calculate average connection duration
+        from django.db.models import F
         active_connections = queryset.filter(
             status=ConnectionStatus.ACTIVE, connected_at__isnull=False
         )
         avg_duration = active_connections.aggregate(
-            avg_duration=Avg('last_used_at')
+            avg_duration=Avg(timezone.now() - F('connected_at'))
         )['avg_duration']
         
         # Get max concurrent connections
@@ -208,7 +209,7 @@ class ConnectionPoolViewSet(viewsets.ModelViewSet):
             'idle_connections': idle,
             'error_connections': error,
             'closed_connections': closed,
-            'avg_connection_duration_seconds': float(avg_duration) if avg_duration else None,
+            'avg_connection_duration_seconds': avg_duration.total_seconds() if hasattr(avg_duration, 'total_seconds') else None,
             'max_concurrent_connections': int(max_concurrent or 0),
             'connections_last_hour': connections_last_hour,
             'connections_last_24h': connections_last_24h,

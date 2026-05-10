@@ -33,6 +33,7 @@ class TenantCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = [
+            'id',
             'name',
             'slug',
             'domain',
@@ -47,6 +48,7 @@ class TenantCreateSerializer(serializers.ModelSerializer):
             'settings',
             'features',
         ]
+        read_only_fields = ['id']
 
     def validate_name(self, value):
         """Ensure tenant name is unique."""

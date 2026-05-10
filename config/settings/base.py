@@ -481,7 +481,10 @@ SIMPLE_JWT = {
 # CORS CONFIGURATION
 # ----------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
-CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS')
+if not CORS_ALLOWED_ORIGINS and env('CORS_ALLOWED_ORIGINS', default=''):
+    CORS_ALLOWED_ORIGINS = [env('CORS_ALLOWED_ORIGINS')]
+
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=False)
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',

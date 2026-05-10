@@ -1,60 +1,63 @@
-// frontend/src/components/tenant/connections/ConnectionStatsCards.jsx
 import React from 'react';
 import { FiActivity, FiZap, FiAlertCircle, FiCheckCircle, FiClock } from 'react-icons/fi';
 
 const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
-    <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between">
-            <div>
-                <p className="text-sm font-medium text-gray-600">{title}</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-2">{value}</p>
-                {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-            </div>
-            <div className={`p-3 rounded-full bg-${color}-100`}>
+    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all p-6">
+        <div className="flex items-center justify-between mb-4">
+            <div className={`p-3 bg-${color}-50 rounded-2xl`}>
                 <Icon className={`h-6 w-6 text-${color}-600`} />
             </div>
+            {subtitle && (
+                <div className="px-3 py-1 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full">
+                    {subtitle}
+                </div>
+            )}
         </div>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{title}</p>
+        <p className="text-3xl font-black text-slate-900 mt-1">{value}</p>
     </div>
 );
 
 const ConnectionStatsCards = ({ stats, metrics }) => {
     const cards = [
         {
-            title: 'Total Connections',
+            title: 'Total Stream',
             value: stats?.total || 0,
             icon: FiActivity,
             color: 'blue',
         },
         {
-            title: 'Active',
+            title: 'Active Now',
             value: stats?.active || 0,
             icon: FiZap,
             color: 'green',
-            subtitle: `${metrics?.active_connections || 0} in pool`,
+            subtitle: 'Real-time',
         },
         {
-            title: 'Idle',
+            title: 'Idle Pool',
             value: stats?.idle || 0,
             icon: FiClock,
-            color: 'yellow',
+            color: 'amber',
+            subtitle: 'Standby',
         },
         {
-            title: 'Errors',
+            title: 'Faults',
             value: stats?.error || 0,
             icon: FiAlertCircle,
             color: 'red',
+            subtitle: 'Critical',
         },
         {
-            title: 'Health Status',
-            value: `${stats?.healthy || 0}/${stats?.total || 0}`,
+            title: 'Cluster Health',
+            value: `${((stats?.healthy / (stats?.total || 1)) * 100 || 0).toFixed(0)}%`,
             icon: FiCheckCircle,
-            color: 'teal',
-            subtitle: `${stats?.unhealthy || 0} unhealthy`,
+            color: 'indigo',
+            subtitle: 'Sync Status',
         },
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {cards.map((card, index) => (
                 <StatCard key={index} {...card} />
             ))}
@@ -62,4 +65,4 @@ const ConnectionStatsCards = ({ stats, metrics }) => {
     );
 };
 
-export default ConnectionStatsCards;
+export default ConnectionStatsCards;
