@@ -8,7 +8,7 @@ import { useAuth } from '../../../hooks/accounts/useAuth';
 
 import { FiRefreshCw, FiSettings, FiAlertTriangle, FiActivity, FiZap, FiServer, FiShield } from 'react-icons/fi';
 
-const ConnectionDashboardPage = () => {
+export const ConnectionDashboardPage = () => {
     const user = useAuth();
     const isSuperAdmin = user?.role === 'super_admin';
 

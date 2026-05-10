@@ -62,14 +62,14 @@ class IsDashboardChampion(HasRole):
 class IsAdminOrExecutive(HasAnyRole):
     message = _("Admin or Executive privileges required")
     def __init__(self):
-        super().__init__(UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE)
+        super().__init__([UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE])
 
 class IsAdminOrSupervisor(HasAnyRole):
     message = _("Admin or supervisor privilege required")
     def __init__(self):
-        super().__init__(UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.SUPERVISOR)
+        super().__init__([UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.SUPERVISOR])
 
 class IsManagement(HasAnyRole):
     message = _("Management privileges required")
     def __init__(self):
-        super().__init__(UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.SUPERVISOR)
+        super().__init__([UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.SUPERVISOR])

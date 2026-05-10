@@ -9,7 +9,7 @@ import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
 
 const AuditLogs = () => {
     const dispatch = useDispatch();
-    const { logs, pagination, filters, isLoading } = useSelector((state) => state.audit);
+    const { logs, pagination, filters, isLoading } = useSelector((state) => state.auditLogs);
     const [showFilters, setShowFilters] = useState(false);
     const [showExport, setShowExport] = useState(false);
     useEffect(() => {

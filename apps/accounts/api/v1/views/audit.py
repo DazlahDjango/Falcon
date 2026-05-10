@@ -14,7 +14,7 @@ from apps.accounts.api.v1.serializers import (
     AuditLogExportSerializer
 )
 from apps.accounts.api.v1.filters import AuditLogFilter
-from apps.accounts.api.v1.permissions import IsSuperAdmin, IsClientAdmin, IsExecutive
+from apps.accounts.api.v1.permissions import IsSuperAdmin, IsClientAdmin, IsExecutive, IsAdminOrExecutive, IsManagement
 from .base import BaseReadOnlyViewset
 
 
@@ -33,9 +33,9 @@ class AuditLogViewSet(BaseReadOnlyViewset):
     
     def get_permissions(self):
         if self.action in ['export', 'user_activity', 'tenant_activity', 'security_events', 'compliance_report']:
-            self.permission_classes = [IsAuthenticated, IsClientAdmin]
+            self.permission_classes = [IsAuthenticated, IsManagement]
         else:
-            self.permission_classes = [IsAuthenticated, IsExecutive]
+            self.permission_classes = [IsAuthenticated, IsAdminOrExecutive]
         
         return super().get_permissions()
     

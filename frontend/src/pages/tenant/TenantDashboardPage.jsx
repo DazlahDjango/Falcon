@@ -14,7 +14,7 @@ import {
 } from '../../components/tenant/dashboard/index.js';
 import { fetchTenants } from '../../store/tenant/slice/tenantSlice.js';
 
-const TenantDashboardPage = () => {
+export const TenantDashboardPage = () => {
     const dispatch = useDispatch();
     const { tenants, loading, error } = useSelector((state) => state.tenants);
 
