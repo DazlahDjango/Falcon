@@ -100,27 +100,30 @@ class ActualSubmitter:
         return results
 
 class ActualBatchUpload:
-    def upload_from_csv(self, csv_content: str, tenant_id: str, user) -> Dict:
+    def upload_from_csv(self, csv_content: str, tenant_id: str, user, dry_run: bool = False) -> Dict:
         reader = csv.DictReader(io.StringIO(csv_content))
         created = []
         errors = []
         for row_num, row in enumerate(reader, start=2):
             try:
-                actual = MonthlyActual.objects.create(
-                    tenant_id=tenant_id,
-                    kpi_id=row['kpi_id'],
-                    user_id=row['user_id'],
-                    year=int(row['year']),
-                    month=int(row['month']),
-                    actual_value=Decimal(row['actual_value']),
-                    notes=row.get('notes', ''),
-                    submitted_by=user,
-                    status='PENDING'
-                )
-                created.append(actual.id)
+                with transaction.atomic():
+                    actual = MonthlyActual.objects.create(
+                        tenant_id=tenant_id,
+                        kpi_id=row['kpi_id'],
+                        user_id=row['user_id'],
+                        year=int(row['year']),
+                        month=int(row['month']),
+                        actual_value=Decimal(row['actual_value']),
+                        notes=row.get('notes', ''),
+                        submitted_by=user,
+                        status='PENDING'
+                    )
+                    created.append(actual.id)
+                    if dry_run:
+                        transaction.set_rollback(True)
             except Exception as e:
                 errors.append({'row': row_num, 'error': str(e)})
-        return {'created': len(created), 'errors': errors}
+        return {'created': len(created), 'errors': errors, 'total': len(created) + len(errors)}
     def validate_batch_template(self, headers: List[str]) -> List[str]:
         required = ['kpi_id', 'user_id', 'year', 'month', 'actual_value']
         missing = [r for r in required if r not in headers]

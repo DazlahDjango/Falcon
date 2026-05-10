@@ -58,11 +58,20 @@ class TeamViewSet(BaseStructureViewSet):
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('position', 'user')
+        ).select_related('position')
+        
+        from apps.accounts.models.user import User
+        user_ids = [m.user_id for m in members]
+        users = {u.id: u for u in User.objects.filter(id__in=user_ids)}
+        
         member_data = []
         for member in members:
+            user = users.get(member.user_id)
             member_data.append({
                 'user_id': str(member.user_id),
+                'name': user.get_full_name() if user else str(member.user_id),
+                'first_name': user.first_name if user else '',
+                'last_name': user.last_name if user else '',
                 'position_code': member.position.job_code if member.position else None,
                 'position_title': member.position.title if member.position else None,
                 'is_manager': member.is_manager,

@@ -5,6 +5,7 @@ import { Save, X, Briefcase, AlertCircle } from 'lucide-react';
 import { PositionSelector } from '../../components/structure/position';
 import { DepartmentSelector } from '../../components/structure/department';
 import { TeamSelector } from '../../components/structure/team';
+import UserSelector from '../../components/accounts/users/UserSelector';
 import { useEmployment, useEmploymentMutations, usePositions, useDepartments, useTeams } from '../../hooks/structure';
 import { createEmployment, updateEmployment } from '../../store/structure';
 import { showToast } from '../../store/ui/slices/uiSlice';
@@ -153,18 +154,13 @@ const EmploymentForm = () => {
         <div className="p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              User ID <span className="text-red-500">*</span>
+              User <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="user_id"
+            <UserSelector
               value={formData.user_id}
-              onChange={handleChange}
-              placeholder="Enter user UUID"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono ${
-                errors.user_id ? 'border-red-500' : 'border-gray-300'
-              }`}
+              onChange={(value) => handleSelectChange('user_id', value)}
               disabled={isEditMode}
+              className={errors.user_id ? 'border-red-500' : ''}
             />
             {errors.user_id && <p className="mt-1 text-sm text-red-500">{errors.user_id}</p>}
           </div>

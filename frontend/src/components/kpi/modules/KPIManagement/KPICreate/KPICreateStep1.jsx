@@ -1,8 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUsers } from '../../../../../store/accounts/slice/userSlice';
+import {
+    fetchSectors,
+    fetchFrameworks,
+    fetchCategories
+} from '../../../../../store/kpi/slice/kpi/frameworkSlice';
 import styles from './KPICreate.module.css';
 
 const KPICreateStep1 = ({ data, onNext, onCancel }) => {
+    const dispatch = useDispatch();
+
+    // Selectors for real data with robust defensive defaults
+    const frameworkState = useSelector(state => state.framework || {});
+    
+    const sectors = Array.isArray(frameworkState.sectors?.items) 
+        ? frameworkState.sectors.items 
+        : [];
+    const sectorsLoading = frameworkState.sectors?.loading || false;
+    
+    const frameworks = Array.isArray(frameworkState.frameworks?.items) 
+        ? frameworkState.frameworks.items 
+        : [];
+    const frameworksLoading = frameworkState.frameworks?.loading || false;
+    
+    const categories = Array.isArray(frameworkState.categories?.items) 
+        ? frameworkState.categories.items 
+        : [];
+    const categoriesLoading = frameworkState.categories?.loading || false;
+    
+    const usersState = useSelector(state => state.users || {});
+    const users = usersState.users || [];
+    const usersLoading = usersState.isLoading || false;
+
     const [formData, setFormData] = useState({
         name: data.name || '',
         code: data.code || '',
@@ -17,7 +48,17 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         ownerId: data.ownerId || '',
         departmentId: data.departmentId || '',
     });
+
     const [errors, setErrors] = useState({});
+
+    // Fetch data on mount
+    useEffect(() => {
+        dispatch(fetchSectors());
+        dispatch(fetchFrameworks());
+        dispatch(fetchCategories());
+        dispatch(fetchUsers({ page_size: 100 })); // Fetch more users for selection
+    }, [dispatch]);
+
     const kpiTypes = [
         { value: 'COUNT', label: 'Count / Number' },
         { value: 'PERCENTAGE', label: 'Percentage (%)' },
@@ -26,20 +67,24 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         { value: 'TIME', label: 'Time / Turnaround' },
         { value: 'IMPACT', label: 'Impact Score' }
     ];
+
     const calculationLogics = [
         { value: 'HIGHER_IS_BETTER', label: 'Higher is Better', formula: '(Actual ÷ Target) × 100' },
         { value: 'LOWER_IS_BETTER', label: 'Lower is Better', formula: '(Target ÷ Actual) × 100' }
     ];
+
     const measureTypes = [
         { value: 'CUMULATIVE', label: 'Cumulative (YTD)', desc: 'Values add up over time' },
         { value: 'NON_CUMULATIVE', label: 'Non-Cumulative', desc: 'Period-only values' }
     ];
+
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));
         }
     };
+
     const validate = () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'KPI name is required';
@@ -50,15 +95,20 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
+
     const handleSubmit = () => {
         if (validate()) {
             onNext(formData);
         }
     };
+
     return (
         <div className={styles.step}>
-            <h3>Basic Information</h3>
-            
+            <div className={styles.stepHeader}>
+                <h3>Basic Information</h3>
+                <p>Define the core identity and logic of your KPI.</p>
+            </div>
+
             <div className={styles.formGrid}>
                 <div className={styles.fieldGroup}>
                     <label>KPI Name <span className={styles.required}>*</span></label>
@@ -82,15 +132,15 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         className={errors.code ? styles.error : ''}
                     />
                     {errors.code && <span className={styles.errorText}>{errors.code}</span>}
-                    <small>Use uppercase letters, numbers, underscores, and hyphens</small>
+                    <small className={styles.helperText}>Use uppercase letters, numbers, and underscores</small>
                 </div>
 
-                <div className={styles.fieldGroup}>
+                <div className={`${styles.fieldGroup} ${styles.fullWidth}`}>
                     <label>Description</label>
                     <textarea
                         value={formData.description}
                         onChange={(e) => handleChange('description', e.target.value)}
-                        rows={3}
+                        rows={2}
                         placeholder="Describe what this KPI measures..."
                     />
                 </div>
@@ -115,10 +165,13 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                     >
                         {calculationLogics.map(logic => (
                             <option key={logic.value} value={logic.value}>
-                                {logic.label} ({logic.formula})
+                                {logic.label}
                             </option>
                         ))}
                     </select>
+                    <small className={styles.helperText}>
+                        {calculationLogics.find(l => l.value === formData.calculationLogic)?.formula}
+                    </small>
                 </div>
 
                 <div className={styles.fieldGroup}>
@@ -129,10 +182,13 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                     >
                         {measureTypes.map(type => (
                             <option key={type.value} value={type.value}>
-                                {type.label} - {type.desc}
+                                {type.label}
                             </option>
                         ))}
                     </select>
+                    <small className={styles.helperText}>
+                        {measureTypes.find(t => t.value === formData.measureType)?.desc}
+                    </small>
                 </div>
 
                 <div className={styles.fieldGroup}>
@@ -141,7 +197,7 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         type="text"
                         value={formData.unit}
                         onChange={(e) => handleChange('unit', e.target.value)}
-                        placeholder="e.g., KES, %, people, days"
+                        placeholder="e.g., KES, %, people"
                     />
                 </div>
 
@@ -151,10 +207,12 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         value={formData.frameworkId}
                         onChange={(e) => handleChange('frameworkId', e.target.value)}
                         className={errors.frameworkId ? styles.error : ''}
+                        disabled={frameworksLoading}
                     >
-                        <option value="">Select Framework</option>
-                        <option value="1">Commercial Framework v1.0</option>
-                        <option value="2">NGO Framework v1.0</option>
+                        <option value="">{frameworksLoading ? 'Loading...' : 'Select Framework'}</option>
+                        {frameworks.map(fw => (
+                            <option key={fw.id} value={fw.id}>{fw.name}</option>
+                        ))}
                     </select>
                     {errors.frameworkId && <span className={styles.errorText}>{errors.frameworkId}</span>}
                 </div>
@@ -165,12 +223,12 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         value={formData.sectorId}
                         onChange={(e) => handleChange('sectorId', e.target.value)}
                         className={errors.sectorId ? styles.error : ''}
+                        disabled={sectorsLoading}
                     >
-                        <option value="">Select Sector</option>
-                        <option value="1">Commercial / Corporate</option>
-                        <option value="2">NGO / Non-Profit</option>
-                        <option value="3">Public Sector</option>
-                        <option value="4">Consulting</option>
+                        <option value="">{sectorsLoading ? 'Loading...' : 'Select Sector'}</option>
+                        {sectors.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
                     </select>
                     {errors.sectorId && <span className={styles.errorText}>{errors.sectorId}</span>}
                 </div>
@@ -180,12 +238,12 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                     <select
                         value={formData.categoryId}
                         onChange={(e) => handleChange('categoryId', e.target.value)}
+                        disabled={categoriesLoading}
                     >
                         <option value="">Select Category</option>
-                        <option value="1">Financial</option>
-                        <option value="2">Impact</option>
-                        <option value="3">Operational</option>
-                        <option value="4">Customer</option>
+                        {categories.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
                     </select>
                 </div>
 
@@ -195,10 +253,14 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         value={formData.ownerId}
                         onChange={(e) => handleChange('ownerId', e.target.value)}
                         className={errors.ownerId ? styles.error : ''}
+                        disabled={usersLoading}
                     >
-                        <option value="">Select Owner</option>
-                        <option value="1">John Doe (john@example.com)</option>
-                        <option value="2">Jane Smith (jane@example.com)</option>
+                        <option value="">{usersLoading ? 'Loading...' : 'Select Owner'}</option>
+                        {users.map(u => (
+                            <option key={u.id} value={u.id}>
+                                {u.first_name} {u.last_name} ({u.email})
+                            </option>
+                        ))}
                     </select>
                     {errors.ownerId && <span className={styles.errorText}>{errors.ownerId}</span>}
                 </div>
@@ -209,21 +271,25 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         type="text"
                         value={formData.departmentId}
                         onChange={(e) => handleChange('departmentId', e.target.value)}
-                        placeholder="Department ID (optional)"
+                        placeholder="Search department..."
                     />
                 </div>
             </div>
 
             <div className={styles.actions}>
                 <button onClick={onCancel} className={styles.cancelButton}>Cancel</button>
-                <button onClick={handleSubmit} className={styles.nextButton}>Next →</button>
+                <button onClick={handleSubmit} className={styles.nextButton}>
+                    Next Step <span>→</span>
+                </button>
             </div>
         </div>
     );
 };
+
 KPICreateStep1.propTypes = {
     data: PropTypes.object,
     onNext: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
 };
+
 export default KPICreateStep1;

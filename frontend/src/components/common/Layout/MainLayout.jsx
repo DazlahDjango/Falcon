@@ -28,11 +28,6 @@ const MainLayout = () => {
         }
     }, [isAuthenticated, navigate]);
     
-    // Show loading while checking auth
-    if (!isAuthenticated) {
-        return <LoadingScreen fullScreen message="Checking authentication..." />;
-    }
-    
     useEffect(() => {
         if (isMobile) {
             setSidebarOpen(false);
@@ -43,6 +38,17 @@ const MainLayout = () => {
         }
     }, [isMobile]);
     
+    useEffect(() => {
+        if (isMobile) {
+            setSidebarOpen(false);
+        }
+    }, [location.pathname, isMobile]);
+    
+    // Show loading while checking auth - Moved AFTER hooks to comply with Rules of Hooks
+    if (!isAuthenticated) {
+        return <LoadingScreen fullScreen message="Checking authentication..." />;
+    }
+    
     const toggleSidebar = () => {
         if (isMobile) {
             setSidebarOpen(!sidebarOpen);
@@ -51,12 +57,6 @@ const MainLayout = () => {
             setSidebarOpen(!sidebarCollapsed);
         }
     };
-    
-    useEffect(() => {
-        if (isMobile) {
-            setSidebarOpen(false);
-        }
-    }, [location.pathname, isMobile]);
     
     const handleLogout = async () => {
         try {

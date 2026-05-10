@@ -40,6 +40,8 @@ class CostCenterDetailSerializer(BaseStructureDetailSerializer):
 
 
 class CostCenterCreateUpdateSerializer(serializers.ModelSerializer):
+    parent_id = serializers.UUIDField(required=False, allow_null=True)
+    
     class Meta:
         model = CostCenter
         fields = [

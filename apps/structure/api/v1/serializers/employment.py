@@ -11,16 +11,48 @@ class EmploymentSerializer(BaseStructureSerializer):
     department_name = serializers.CharField(source='department.name', read_only=True)
     team_code = serializers.CharField(source='team.code', read_only=True, allow_null=True)
     team_name = serializers.CharField(source='team.name', read_only=True, allow_null=True)
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
+    user_first_name = serializers.SerializerMethodField()
+    user_last_name = serializers.SerializerMethodField()
     class Meta:
         model = Employment
         fields = [
-            'id', 'tenant_id', 'user_id', 'position_id', 'position_code',
+            'id', 'tenant_id', 'user_id', 'user_name', 'user_email', 
+            'user_first_name', 'user_last_name',
+            'position_id', 'position_code',
             'position_title', 'department_id', 'department_code', 'department_name',
             'team_id', 'team_code', 'team_name', 'employment_type',
             'effective_from', 'effective_to', 'is_current', 'is_manager',
             'is_executive', 'is_board_member', 'is_active', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at']
+
+    def _get_user(self, obj):
+        if not hasattr(self, '_users_cache'):
+            self._users_cache = {}
+        if obj.user_id not in self._users_cache:
+            from apps.accounts.models.user import User
+            user = User.objects.filter(id=obj.user_id).first()
+            self._users_cache[obj.user_id] = user
+        return self._users_cache[obj.user_id]
+
+    def get_user_name(self, obj):
+        user = self._get_user(obj)
+        return user.get_full_name() if user else str(obj.user_id)
+
+    def get_user_email(self, obj):
+        user = self._get_user(obj)
+        return user.email if user else None
+
+    def get_user_first_name(self, obj):
+        user = self._get_user(obj)
+        return user.first_name if user else ''
+
+    def get_user_last_name(self, obj):
+        user = self._get_user(obj)
+        return user.last_name if user else ''
+
 
 class EmploymentDetailSerializer(BaseStructureDetailSerializer):
     position_code = serializers.CharField(source='position.job_code', read_only=True, allow_null=True)
@@ -33,11 +65,17 @@ class EmploymentDetailSerializer(BaseStructureDetailSerializer):
     manager_user_id = serializers.SerializerMethodField()
     manager_position = serializers.SerializerMethodField()
     dotted_line_manager_user_id = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
+    user_first_name = serializers.SerializerMethodField()
+    user_last_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Employment
         fields = [
-            'id', 'tenant_id', 'user_id', 'position_id', 'position_code',
+            'id', 'tenant_id', 'user_id', 'user_name', 'user_email', 
+            'user_first_name', 'user_last_name',
+            'position_id', 'position_code',
             'position_title', 'position_level', 'department_id', 'department_code',
             'department_name', 'team_id', 'team_code', 'team_name',
             'employment_type', 'effective_from', 'effective_to', 'is_current',
@@ -48,6 +86,32 @@ class EmploymentDetailSerializer(BaseStructureDetailSerializer):
             'deleted_at', 'deleted_by'
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at', 'deleted_at']
+
+    def _get_user(self, obj):
+        if not hasattr(self, '_users_cache'):
+            self._users_cache = {}
+        if obj.user_id not in self._users_cache:
+            from apps.accounts.models.user import User
+            user = User.objects.filter(id=obj.user_id).first()
+            self._users_cache[obj.user_id] = user
+        return self._users_cache[obj.user_id]
+
+    def get_user_name(self, obj):
+        user = self._get_user(obj)
+        return user.get_full_name() if user else str(obj.user_id)
+
+    def get_user_email(self, obj):
+        user = self._get_user(obj)
+        return user.email if user else None
+
+    def get_user_first_name(self, obj):
+        user = self._get_user(obj)
+        return user.first_name if user else ''
+
+    def get_user_last_name(self, obj):
+        user = self._get_user(obj)
+        return user.last_name if user else ''
+
     def get_manager_user_id(self, obj):
         return obj.manager_user_id
     
@@ -62,6 +126,12 @@ class EmploymentDetailSerializer(BaseStructureDetailSerializer):
         return None
 
 class EmploymentCreateUpdateSerializer(serializers.ModelSerializer):
+    position_id = serializers.UUIDField(required=True)
+    department_id = serializers.UUIDField(required=True)
+    team_id = serializers.UUIDField(required=False, allow_null=True)
+    dotted_line_manager_id = serializers.UUIDField(required=False, allow_null=True)
+    approved_by_id = serializers.UUIDField(required=False, allow_null=True)
+    
     class Meta:
         model = Employment
         fields = [

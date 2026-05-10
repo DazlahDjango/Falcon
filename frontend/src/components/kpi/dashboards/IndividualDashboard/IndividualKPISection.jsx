@@ -18,7 +18,7 @@ const IndividualKPISection = ({ kpis, onKpiClick }) => {
                 return true;
         }
     };
-    const filteredkpis = kpis.filter(kpi => {
+    const filteredKpis = kpis.filter(kpi => {
         const matchesStatus = getStatusFilter(kpi.status);
         const matchesSearch = kpi.kpiName.toLowerCase().includes(searchTerm.toLowerCase()) || kpi.kpiCode?.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesStatus && matchesSearch;

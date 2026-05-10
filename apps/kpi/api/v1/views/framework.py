@@ -59,7 +59,7 @@ class KPIFrameworkViewSet(BaseKpiViewset):
     @action(detail=True, methods=['post'])
     def publish(self, request, pk=None):
         framework = self.get_object()
-        framework.pubish()
+        framework.publish()
         serializer = self.get_serializer(framework)
         return Response(serializer.data)
     @action(detail=True, methods=['post'])

@@ -118,12 +118,12 @@ const ReportingLineForm = () => {
   };
   const employeeOptions = employments?.map(emp => ({
     value: emp.id,
-    label: `${emp.user_id} - ${emp.position?.title || 'No position'}`,
+    label: `${emp.user_name || emp.user_id} - ${emp.position?.title || 'No position'}`,
     department: emp.department?.name,
   })) || [];
   const managerOptions = employments?.filter(emp => emp.is_manager || emp.is_executive).map(emp => ({
     value: emp.id,
-    label: `${emp.user_id} - ${emp.position?.title || 'Manager'}`,
+    label: `${emp.user_name || emp.user_id} - ${emp.position?.title || 'Manager'}`,
     department: emp.department?.name,
   })) || [];
   if (isEditMode && isLoadingLine) {

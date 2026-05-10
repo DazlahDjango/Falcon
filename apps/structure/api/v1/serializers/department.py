@@ -66,6 +66,8 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
         return PathResolver.resolve_department_path(obj.id, obj.tenant_id)
 
 class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
+    parent_id = serializers.UUIDField(required=False, allow_null=True)
+    
     class Meta:
         model = Department
         fields = [

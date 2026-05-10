@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Default config
 export const defaultConfig = {
-    baseURL: process.env.REACT_APP_API_URL || '/api/v1',
+    baseURL: import.meta.env.VITE_API_URL || '/api/v1',
     timeout: 60000, // Increased from 30s to 60s for analytics endpoints
     headers: {
         'Content-Type': 'application/json',

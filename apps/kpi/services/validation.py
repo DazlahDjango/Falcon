@@ -145,6 +145,8 @@ class BatchValidator:
             month=actual.month
         ).first()
         if target:
+            if target.target_value == 0:
+                return actual.actual_value == 0
             variance = abs(actual.actual_value - target.target_value) / target.target_value * 100
             if variance <= 5:
                 return True

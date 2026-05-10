@@ -67,6 +67,9 @@ class TeamDetailSerializer(BaseStructureDetailSerializer):
         return obj.sub_teams.filter(is_deleted=False).count()
 
 class TeamCreateUpdateSerializer(serializers.ModelSerializer):
+    department_id = serializers.UUIDField(required=True)
+    parent_team_id = serializers.UUIDField(required=False, allow_null=True)
+    
     class Meta:
         model = Team
         fields = [

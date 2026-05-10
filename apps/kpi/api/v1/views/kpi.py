@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from decimal import Decimal
 from django.db.models import Q, Avg, Count, Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -91,8 +92,8 @@ class KPIViewSet(BaseKpiViewset):
     def validate(self, request, pk=None):
         kpi = self.get_object()
         validator = KPIValidator()
-        completeness_error = validator.validate_kpi_completeness(kpi)
-        weight_validate, weight_msg = validator.validate_weight_sum(str(kpi.id))
+        completeness_errors = validator.validate_kpi_completeness(kpi)
+        weight_valid, weight_msg = validator.validate_weight_sum(str(kpi.id))
         circular_valid, circular_path = validator.validate_circular_dependency(str(kpi.id))
         return Response({
             'is_valid': len(completeness_errors) == 0 and weight_valid and circular_valid,
@@ -121,11 +122,25 @@ class KPIWeightViewSet(BaseKpiViewset):
     @action(detail=False, methods=['post'])
     def validate_sum(self, request):
         user_id = request.data.get('user_id')
-        weights = request.data.get('weights', [])
+        weights_data = request.data.get('weights') # Optional list of new weights
+        
         try:
-            # This would need to fetch actual weight objects
-            # Simplified for demo
-            return Response({'valid': True, 'message': 'Weights sum is valid'})
+            if weights_data is not None:
+                total = sum(Decimal(str(w)) for w in weights_data)
+            else:
+                if not user_id:
+                    return Response({'valid': False, 'message': 'user_id is required if weights are not provided'}, status=400)
+                total = KPIWeight.objects.filter(
+                    user_id=user_id, 
+                    is_active=True
+                ).aggregate(total=Sum('weight'))['total'] or 0
+            
+            is_valid = abs(total - 100) <= 0.01
+            return Response({
+                'valid': is_valid,
+                'total': float(total),
+                'message': 'Weights sum is valid' if is_valid else f'Weights sum to {total}%, must be 100%'
+            })
         except Exception as e:
             return Response(
                 {'valid': False, 'message': str(e)},

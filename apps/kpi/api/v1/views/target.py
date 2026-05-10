@@ -12,9 +12,9 @@ from ....exceptions import PhasingLockedError, DuplicatePhasingError
 
 class AnnualTargetViewSet(BaseKpiViewset):
     queryset = AnnualTarget.objects.all()
-    serializer_class = AnnualTargetListFilter
+    serializer_class = AnnualTargetSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filter_class = AnnualTargetListFilter
+    filterset_class = AnnualTargetListFilter
     search_fields = ['kpi__name', 'kpi__code', 'user__email']
     ordering_fields = ['year', 'target_value', 'created_at']
     ordering = ['-year', 'kpi__name']

@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Q, Min, Max
 from .base import  ReadOnlyKPIViewset
 from ..serializers import ScoreSerializer, AggregatedScoreSerializer, TrafficLightSerializer
 from ....models import Score, AggregatedScore, TrafficLight
@@ -53,8 +53,8 @@ class ScoreViewSet(ReadOnlyKPIViewset):
             queryset = queryset.filter(month=month)
         stats = queryset.aggregate(
             avg_score=Avg('score'),
-            min_score=Avg('score'),
-            max_score=Avg('score'),
+            min_score=Min('score'),
+            max_score=Max('score'),
             total_count=Count('id'),
             green_count=Count('id', filter=Q(score__gte=90)),
             yellow_count=Count('id', filter=Q(score__gte=50, score__lt=90)),

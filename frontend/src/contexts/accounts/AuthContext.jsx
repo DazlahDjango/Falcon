@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, Children } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout as logoutAction, fetchCurrentUser, login as loginAction, verifyMfa as verifyMfaAction } from '../../store/accounts/slice/authSlice';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../../services/accounts/storage/secureStorage';
 import { login as loginApi, logout as logoutApi, refreshToken as refreshTokenApi } from '../../services/accounts/api/auth';
 import { getCurrentUser, updateProfile } from '../../services/accounts/api/users';
@@ -14,6 +16,7 @@ export const useAuthContext = () => {
 };
 export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -24,52 +27,71 @@ export const AuthProvider = ({ children }) => {
             console.log('LoadUser - token exists:', !!token);
             if (token) {
                 try {
-                    const response = await getCurrentUser();
-                    console.log('User loaded:', response.data);
-                    setUser(response.data);
+                    // Sync with Redux
+                    const result = await dispatch(fetchCurrentUser()).unwrap();
+                    console.log('User loaded from Redux:', result);
+                    setUser(result);
                     setIsAuthenticated(true);
                 } catch (error) {
-                    console.error('Failed to load user:', error)
+                    console.error('Failed to load user from Redux:', error)
                     await clearTokens();
+                    setIsAuthenticated(false);
+                    setUser(null);
                 }
             }
             setIsLoading(false);
         };
         loadUser();
-    }, []);
+
+        const handleLogoutEvent = () => {
+            console.log('[AuthContext] Logout event received');
+            setIsAuthenticated(false);
+            setUser(null);
+            dispatch(logoutAction());
+        };
+        window.addEventListener('auth:logout', handleLogoutEvent);
+
+        return () => {
+            window.removeEventListener('auth:logout', handleLogoutEvent);
+        };
+    }, [dispatch]);
     const login = useCallback(async (credentials) => {
         setError(null);
         try {
-            const response = await loginApi(credentials);
-            const { access, refresh, requires_mfa, mfa_token } = response.data;
-            if (requires_mfa) {
-                return { requiresMfa: true, mfaToken: mfa_token };
+            const result = await dispatch(loginAction(credentials)).unwrap();
+            console.log('Login successful via Redux:', result);
+            
+            // The authSlice reducer already handles setting tokens and user
+            // but we need to update our local context state too
+            if (result.requires_mfa) {
+                return { requiresMfa: true, mfaToken: result.mfa_token };
             }
-            await setTokens(access, refresh);
-            const userResponse = await getCurrentUser();
-            setUser(userResponse.data);
+            
+            setUser(result.user);
             setIsAuthenticated(true);
             return { success: true };
-        } catch (error) {
-            setError(error.response?.data?.error || 'Login failed');
-            return { success: false, error: error.response?.data?.error };
+        } catch (err) {
+            console.error('Login failed via Redux:', err);
+            setError(err || 'Login failed');
+            return { success: false, error: err };
         }
-    }, []);
+    }, [dispatch]);
+
     const verifyMfa = useCallback(async (mfaToken, otp) => {
         setError(null);
         try {
-            const response = await loginApi.verifyMfa({ mfa_token: mfaToken, otp });
-            const { access, refresh } = response.data;
-            await setTokens(access, refresh);
-            const userResponse = await getCurrentUser();
-            setUser(userResponse.data);
+            const result = await dispatch(verifyMfaAction({ mfa_token: mfaToken, otp })).unwrap();
+            console.log('MFA successful via Redux:', result);
+            
+            setUser(result.user);
             setIsAuthenticated(true);
             return { success: true };
-        } catch (error) {
-            setError(error.response?.data?.error || 'MFA verification failed');
-            return { success: false, error: error.response?.data?.error };
+        } catch (err) {
+            console.error('MFA failed via Redux:', err);
+            setError(err || 'MFA verification failed');
+            return { success: false, error: err };
         }
-    }, []);
+    }, [dispatch]);
     const logout = useCallback(async () => {
         try {
             const refreshToken = await getRefreshToken();

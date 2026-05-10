@@ -82,7 +82,7 @@ const EmploymentDetail = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {employment.user_id}
+                  {employment.user_name || employment.user_id}
                 </h1>
                 <EmploymentStatusBadge employment={employment} />
               </div>
@@ -137,7 +137,7 @@ const EmploymentDetail = () => {
               onClick={handleViewUser}
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              {employment.user_id}
+              {employment.user_name || employment.user_id}
             </button>
           </div>
           <div>
@@ -196,8 +196,8 @@ const EmploymentDetail = () => {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
         title="Delete Employment Record"
-        message={`Are you sure you want to delete this employment record for user ${employment.user_id}?`}
-        itemName={`Employment - ${employment.user_id}`}
+        message={`Are you sure you want to delete this employment record for user ${employment.user_name || employment.user_id}?`}
+        itemName={`Employment - ${employment.user_name || employment.user_id}`}
       />
     </div>
   );

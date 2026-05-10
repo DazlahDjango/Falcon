@@ -46,7 +46,7 @@ class SplitRules:
             return parent_target * (weight / 100)
         return self._equal_split(parent_target, 'INDIVIDUAL', entity_id)
     def _get_department_count(self) -> int:
-        from apps.organisations.models import Department
+        from apps.structure.models import Department
         return Department.objects.filter(is_active=True).count()
     def _get_user_count(self, department_id: str) -> int:
         from apps.accounts.models import User

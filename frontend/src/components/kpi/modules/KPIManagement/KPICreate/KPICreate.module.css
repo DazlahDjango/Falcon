@@ -1,43 +1,54 @@
 .kpiCreate {
     background: #fff;
-    border-radius: 12px;
-    margin: 20px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 900px;
+    margin: 1rem auto;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    color: #111827;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 .header {
+    margin-bottom: 2.5rem;
     text-align: center;
-    margin-bottom: 24px;
 }
 
 .header h2 {
-    margin: 0 0 8px 0;
-    font-size: 24px;
-    color: #1f2937;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.025em;
 }
 
 .header p {
-    margin: 0;
     color: #6b7280;
-    font-size: 14px;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
+/* Progress Bar */
 .progressBar {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 32px;
+    margin-bottom: 3rem;
     position: relative;
 }
 
 .progressBar::before {
     content: '';
     position: absolute;
-    top: 20px;
-    left: 0;
-    right: 0;
+    top: 1.25rem;
+    left: 10%;
+    right: 10%;
     height: 2px;
-    background: #e5e7eb;
+    background: #f3f4f6;
     z-index: 0;
 }
 
@@ -45,339 +56,239 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    position: relative;
+    gap: 0.75rem;
     z-index: 1;
-    background: #fff;
-    padding: 0 12px;
+    flex: 1;
 }
 
 .stepNumber {
-    width: 40px;
-    height: 40px;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 50%;
-    background: #e5e7eb;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
+    color: #9ca3af;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progressStep span:last-child {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #9ca3af;
+    transition: color 0.4s;
+}
+
+.progressStep.active .stepNumber {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #fff;
+}
+
+.progressStep.completed .stepNumber {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+}
+
+.progressStep.completed span:last-child {
+    color: #111827;
+}
+
+/* Form Layout */
+.step {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.stepHeader {
+    margin-bottom: 2rem;
+}
+
+.stepHeader h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.stepHeader p {
     color: #6b7280;
 }
 
-.completed .stepNumber {
-    background: #3b82f6;
-    color: white;
-}
-
-.completed span:last-child {
-    color: #3b82f6;
-    font-weight: 500;
-}
-
-.formContainer {
-    min-height: 500px;
-}
-
-/* Step Container */
-.step {
-    animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.step h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 20px 0;
-    border-bottom: 2px solid #f3f4f6;
-    padding-bottom: 12px;
-}
-
-/* Form Grid */
 .formGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
 }
 
-/* Field Group */
+.fullWidth {
+    grid-column: span 2;
+}
+
 .fieldGroup {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0.5rem;
 }
 
 .fieldGroup label {
+    font-size: 0.875rem;
     font-weight: 500;
-    font-size: 14px;
     color: #374151;
+}
+
+.required {
+    color: #ef4444;
+    margin-left: 0.25rem;
 }
 
 .fieldGroup input,
 .fieldGroup select,
 .fieldGroup textarea {
-    padding: 10px 12px;
+    background: #f9fafb;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: #111827;
+    font-size: 0.95rem;
+    transition: all 0.2s;
 }
 
 .fieldGroup input:focus,
 .fieldGroup select:focus,
 .fieldGroup textarea:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #4f46e5;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
 
-.fieldGroup textarea {
-    resize: vertical;
-    font-family: inherit;
-}
-
-.fieldGroup small {
-    font-size: 12px;
-    color: #6b7280;
-    font-style: italic;
-}
-
-/* Required Indicator */
-.required {
-    color: #ef4444;
-    font-weight: bold;
-}
-
-/* Error State */
-.error {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+.fieldGroup input.error {
+    border-color: #ef4444;
 }
 
 .errorText {
-    font-size: 12px;
     color: #ef4444;
-    margin-top: 4px;
-    display: block;
+    font-size: 0.75rem;
 }
 
-/* Range Inputs */
-.rangeInputs {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.rangeInputs input {
-    flex: 1;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-.rangeInputs span {
-    color: #6b7280;
-    font-weight: 500;
-}
-
-/* Checkbox Label */
-.checkboxLabel {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-weight: 400;
-}
-
-.checkboxLabel input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+.helperText {
+    font-size: 0.75rem;
+    color: #9ca3af;
 }
 
 /* Actions */
 .actions {
+    margin-top: 3rem;
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.cancelButton,
-.backButton,
-.nextButton,
-.submitButton {
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
+    gap: 1rem;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 2rem;
 }
 
 .cancelButton {
-    background-color: #f3f4f6;
-    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #4b5563;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.cancelButton:hover:not(:disabled) {
-    background-color: #e5e7eb;
-}
-
-.backButton {
-    background-color: #f3f4f6;
-    color: #374151;
-}
-
-.backButton:hover:not(:disabled) {
-    background-color: #e5e7eb;
+.cancelButton:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #111827;
 }
 
 .nextButton,
 .submitButton {
-    background-color: #3b82f6;
-    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
 }
 
-.nextButton:hover:not(:disabled),
-.submitButton:hover:not(:disabled) {
-    background-color: #2563eb;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+.nextButton:hover,
+.submitButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
 }
 
-.cancelButton:disabled,
-.backButton:disabled,
-.nextButton:disabled,
-.submitButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Review Section */
-.reviewNote {
-    color: #6b7280;
-    font-size: 14px;
-    margin: 0 0 20px 0;
-    padding: 12px;
-    background-color: #f0f9ff;
-    border-left: 4px solid #3b82f6;
-    border-radius: 4px;
-}
-
-.reviewSection {
-    margin-bottom: 24px;
-    padding: 16px;
-    background-color: #f9fafb;
-    border-radius: 6px;
+.backButton {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    background: #f3f4f6;
     border: 1px solid #e5e7eb;
+    color: #374151;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.backButton:hover {
+    background: #e5e7eb;
+}
+
+/* Review Styles */
+.reviewSection {
+    background: #f9fafb;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .reviewSection h4 {
-    font-size: 15px;
+    margin-bottom: 1rem;
+    color: #4f46e5;
+    font-size: 1rem;
     font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 16px 0;
 }
 
 .reviewGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
 }
 
 .reviewItem {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0.25rem;
 }
 
 .reviewItem label {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 0.75rem;
     color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .reviewItem span {
-    font-size: 14px;
-    color: #1f2937;
-    word-break: break-word;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #111827;
 }
 
-/* Status Badges */
 .activeStatus {
-    display: inline-block;
-    padding: 4px 12px;
-    background-color: #dcfce7;
-    color: #166534;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
+    color: #4ade80;
 }
 
 .inactiveStatus {
-    display: inline-block;
-    padding: 4px 12px;
-    background-color: #fee2e2;
-    color: #991b1b;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-@media (max-width: 768px) {
-    .kpiCreate {
-        margin: 12px;
-        padding: 16px;
-    }
-    
-    .progressStep span:last-child {
-        font-size: 12px;
-    }
-    
-    .stepNumber {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-    }
-
-    .formGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .rangeInputs {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .rangeInputs input {
-        width: 100%;
-    }
-
-    .actions {
-        flex-direction: column;
-    }
-
-    .actions button {
-        width: 100%;
-    }
-
-    .reviewGrid {
-        grid-template-columns: 1fr;
-    }
+    color: #f87171;
 }
