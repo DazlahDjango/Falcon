@@ -1,35 +1,65 @@
-// frontend/src/components/tenant/dashboard/TenantStatsCards.jsx
 import React from 'react';
-import './dashboard.css';
+import { FiUsers, FiCheckCircle, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 
-export const TenantStatsCards = ({ stats }) => {
+export const TenantStatsCards = ({ tenants = [] }) => {
+    // Calculate stats from tenants array if stats object not provided
+    const totalTenants = tenants.length;
+    const activeTenants = tenants.filter(t => t.is_active).length;
+    const suspendedTenants = tenants.filter(t => !t.is_active).length;
+    const provisioningTenants = tenants.filter(t => t.status === 'provisioning').length;
+
     const cards = [
-        { label: 'Total Tenants', value: stats?.totalTenants || 0, icon: '🏢', color: 'blue' },
-        { label: 'Active Tenants', value: stats?.activeTenants || 0, icon: '✅', color: 'green' },
-        { label: 'Suspended Tenants', value: stats?.suspendedTenants || 0, icon: '⛔', color: 'red' },
-        { label: 'Provisioning', value: stats?.provisioningTenants || 0, icon: '🔄', color: 'yellow' },
+        { 
+            label: 'Total Tenants', 
+            value: totalTenants, 
+            icon: FiUsers, 
+            color: 'blue',
+            subtitle: 'Registered'
+        },
+        { 
+            label: 'Active', 
+            value: activeTenants, 
+            icon: FiCheckCircle, 
+            color: 'green',
+            subtitle: 'Operational'
+        },
+        { 
+            label: 'Suspended', 
+            value: suspendedTenants, 
+            icon: FiAlertCircle, 
+            color: 'red',
+            subtitle: 'Action Required'
+        },
+        { 
+            label: 'Provisioning', 
+            value: provisioningTenants, 
+            icon: FiRefreshCw, 
+            color: 'amber',
+            subtitle: 'In Progress'
+        },
     ];
 
-    const colorClasses = {
-        blue: 'bg-blue-100',
-        green: 'bg-green-100',
-        red: 'bg-red-100',
-        yellow: 'bg-yellow-100',
-    };
-
     return (
-        <div className="tenant-stats-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {cards.map((card, index) => (
-                <div key={index} className="tenant-stat-card">
-                    <div className={`tenant-stat-icon ${colorClasses[card.color]}`}>
-                        {card.icon}
+                <div 
+                    key={index} 
+                    className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <div className={`p-3 bg-${card.color}-50 rounded-2xl group-hover:scale-110 transition-transform`}>
+                            <card.icon className={`h-6 w-6 text-${card.color}-600`} />
+                        </div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-lg">
+                            {card.subtitle}
+                        </div>
                     </div>
-                    <div className="tenant-stat-content">
-                        <div className="tenant-stat-value">{card.value.toLocaleString()}</div>
-                        <div className="tenant-stat-label">{card.label}</div>
-                    </div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</p>
+                    <p className="text-3xl font-black text-slate-900 mt-1">{card.value.toLocaleString()}</p>
                 </div>
             ))}
         </div>
     );
 };
+
+export default TenantStatsCards;

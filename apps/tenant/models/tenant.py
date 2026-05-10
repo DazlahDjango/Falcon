@@ -64,6 +64,8 @@ class Client(BaseModel):
     is_active = models.BooleanField(_('active'), default=True)
     is_verified = models.BooleanField(
         _('verified'), default=False, help_text='Email/domain verified')
+    provisioned_at = models.DateTimeField(
+        _('provisioned at'), null=True, blank=True, help_text='When the tenant was fully provisioned')
 
     # Contact information
     contact_email = models.EmailField(_('contact email'), blank=True)

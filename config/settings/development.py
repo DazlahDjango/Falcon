@@ -27,7 +27,15 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-tenant-id',
-    'x-request-id', 
+    'x-request-id',
+    'x-correlation-id',
+    'x-request-time',
+    'x-csrf-protection',
+    'x-idempotency-key',
+    'X-Tenant-ID',
+    'X-Correlation-ID',
+    'X-Request-ID',
+    'X-Requested-With',
 ]
 CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
 # CSRF

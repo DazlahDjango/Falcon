@@ -481,21 +481,10 @@ SIMPLE_JWT = {
 
 # Read from environment or use defaults
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
+if not CORS_ALLOWED_ORIGINS and env('CORS_ALLOWED_ORIGINS', default=''):
+    CORS_ALLOWED_ORIGINS = [env('CORS_ALLOWED_ORIGINS')]
 
-# OVERRIDE FOR DEVELOPMENT - Allows frontend to connect
-if DEBUG:
-    # Add development frontend URLs
-    DEV_CORS_ORIGINS = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
-    # Merge with existing origins
-    CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS + DEV_CORS_ORIGINS))
-    # For development, also allow all origins (simpler)
-    CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=False)
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
