@@ -25,16 +25,12 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const TENANT_API_BASE = `${API_BASE_URL}/tenant`;
 
 // Security Headers
+// Only include headers that are valid request headers. Response-only security headers
+// like X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy,
+// Permissions-Policy, Cache-Control, and Pragma should not be sent by the client.
 const SECURITY_HEADERS = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
-    'Cache-Control': 'no-store, no-cache, must-revalidate',
-    'Pragma': 'no-cache',
 };
 
 // Rate Limiting Configuration
