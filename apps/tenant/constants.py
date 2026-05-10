@@ -6,6 +6,8 @@ class TenantStatus(models.TextChoices):
     INACTIVE = 'inactive', 'Inactive'
     SUSPENDED = 'suspended', 'Suspended'
     PENDING = 'pending', 'Pending Approval'
+    PROVISIONING = 'provisioning', 'Provisioning'
+    FAILED = 'failed', 'Failed'
     DELETED = 'deleted', 'Deleted'
 
 
@@ -78,47 +80,47 @@ class MigrationStatus(models.TextChoices):
 
 
 DEFAULT_TENANT_LIMITS = {
-    'max_users': 100,
-    'max_storage_mb': 10240,
-    'max_api_calls_per_day': 10000,
-    'max_kpis': 500,
-    'max_departments': 50,
-    'max_concurrent_sessions': 5,
+    ResourceType.USERS: 100,
+    ResourceType.STORAGE_MB: 10240,
+    ResourceType.API_CALLS_PER_DAY: 10000,
+    ResourceType.KPIS: 500,
+    ResourceType.DEPARTMENTS: 50,
+    ResourceType.CONCURRENT_SESSIONS: 5,
 }
 
 
 PLAN_LIMITS = {
     SubscriptionPlan.TRIAL: {
-        'max_users': 10,
-        'max_storage_mb': 1024,
-        'max_api_calls_per_day': 1000,
-        'max_kpis': 50,
-        'max_departments': 5,
-        'max_concurrent_sessions': 2,
+        ResourceType.USERS: 10,
+        ResourceType.STORAGE_MB: 1024,
+        ResourceType.API_CALLS_PER_DAY: 1000,
+        ResourceType.KPIS: 50,
+        ResourceType.DEPARTMENTS: 5,
+        ResourceType.CONCURRENT_SESSIONS: 2,
     },
     SubscriptionPlan.BASIC: {
-        'max_users': 50,
-        'max_storage_mb': 5120,
-        'max_api_calls_per_day': 5000,
-        'max_kpis': 200,
-        'max_departments': 20,
-        'max_concurrent_sessions': 3,
+        ResourceType.USERS: 50,
+        ResourceType.STORAGE_MB: 5120,
+        ResourceType.API_CALLS_PER_DAY: 5000,
+        ResourceType.KPIS: 200,
+        ResourceType.DEPARTMENTS: 20,
+        ResourceType.CONCURRENT_SESSIONS: 3,
     },
     SubscriptionPlan.PROFESSIONAL: {
-        'max_users': 500,
-        'max_storage_mb': 51200,
-        'max_api_calls_per_day': 50000,
-        'max_kpis': 2000,
-        'max_departments': 100,
-        'max_concurrent_sessions': 10,
+        ResourceType.USERS: 500,
+        ResourceType.STORAGE_MB: 51200,
+        ResourceType.API_CALLS_PER_DAY: 50000,
+        ResourceType.KPIS: 2000,
+        ResourceType.DEPARTMENTS: 100,
+        ResourceType.CONCURRENT_SESSIONS: 10,
     },
     SubscriptionPlan.ENTERPRISE: {
-        'max_users': 10000,
-        'max_storage_mb': 512000,
-        'max_api_calls_per_day': 500000,
-        'max_kpis': 10000,
-        'max_departments': 500,
-        'max_concurrent_sessions': 50,
+        ResourceType.USERS: 10000,
+        ResourceType.STORAGE_MB: 512000,
+        ResourceType.API_CALLS_PER_DAY: 500000,
+        ResourceType.KPIS: 10000,
+        ResourceType.DEPARTMENTS: 500,
+        ResourceType.CONCURRENT_SESSIONS: 50,
     },
 }
 

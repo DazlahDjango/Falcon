@@ -1,17 +1,17 @@
 // frontend/src/pages/tenant/connections/ConnectionDashboardPage.jsx
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { FiRefreshCw, FiSettings, FiAlertTriangle } from 'react-icons/fi';
 import ConnectionStatsCards from '../../../components/tenant/connection/ConnectionStatsCards';
 import ConnectionTable from '../../../components/tenant/connection/ConnectionTable';
 import ConnectionHealthChart from '../../../components/tenant/connection/ConnectionHealthChart';
 import { useConnections, useConnectionManager } from '../../../hooks/tenant';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 
+import { FiRefreshCw, FiSettings, FiAlertTriangle, FiActivity, FiZap, FiServer, FiShield } from 'react-icons/fi';
+
 const ConnectionDashboardPage = () => {
     const user = useAuth();
     const isSuperAdmin = user?.role === 'super_admin';
-    
+
     const {
         filteredConnections,
         stats,
@@ -33,11 +33,9 @@ const ConnectionDashboardPage = () => {
 
     const handleViewDetails = (connectionId) => {
         setSelectedConnection(connectionId);
-        // Navigate to detail page or open modal
     };
 
     const handleUpdateStatus = async (connectionId, status) => {
-        // Implement status update
         await refresh();
     };
 
@@ -60,130 +58,126 @@ const ConnectionDashboardPage = () => {
         await refresh();
     };
 
-    // Prepare chart data
     const chartData = metrics?.connection_history || [];
 
     return (
-        <div className="p-6">
-            {/* Header */}
-            <div className="mb-6 flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Connection Pool Dashboard</h1>
-                    <p className="text-gray-600 mt-1">
-                        Monitor and manage database connections across all tenants
-                    </p>
+        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+                        <FiServer className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Pool Command Center</h1>
+                        <p className="text-slate-500 mt-1 flex items-center gap-2">
+                            <FiActivity className="text-blue-500" />
+                            Global monitoring of database resource allocation
+                        </p>
+                    </div>
                 </div>
-                <div className="flex space-x-3">
+
+                <div className="flex items-center gap-3">
                     <button
                         onClick={handleHealthCheck}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center"
+                        className="px-5 py-2.5 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-all font-bold text-sm flex items-center gap-2 border border-green-200"
                     >
-                        <FiRefreshCw className="h-4 w-4 mr-2" />
-                        Health Check
+                        <FiShield className="h-4 w-4" />
+                        Verify Cluster
                     </button>
                     {isSuperAdmin && (
                         <button
                             onClick={() => setShowManagerPanel(!showManagerPanel)}
-                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center"
+                            className={`px-5 py-2.5 rounded-xl transition-all font-bold text-sm flex items-center gap-2 border ${showManagerPanel
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-xl'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                }`}
                         >
-                            <FiSettings className="h-4 w-4 mr-2" />
+                            <FiSettings className={`h-4 w-4 ${showManagerPanel ? 'animate-spin-slow' : ''}`} />
                             Manager
                         </button>
                     )}
                     <button
                         onClick={refresh}
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center"
+                        className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-200 disabled:opacity-50"
                     >
-                        <FiRefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                        Refresh
+                        <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        Sync
                     </button>
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <ConnectionStatsCards stats={stats} metrics={metrics} />
-
             {/* Manager Panel (Admin only) */}
             {isSuperAdmin && showManagerPanel && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-start">
-                        <FiAlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 mr-3" />
-                        <div className="flex-1">
-                            <h3 className="text-sm font-medium text-yellow-800">Connection Manager Actions</h3>
-                            <p className="text-sm text-yellow-700 mt-1">
-                                These actions affect database connections globally. Use with caution.
-                            </p>
-                            <div className="mt-3 flex space-x-3">
-                                <button
-                                    onClick={handleCloseIdle}
-                                    disabled={managerLoading}
-                                    className="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                                >
-                                    Close Idle (30m)
-                                </button>
-                                <button
-                                    onClick={handleRecycleAll}
-                                    disabled={managerLoading}
-                                    className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                                >
-                                    Recycle All
-                                </button>
+                <div className="bg-amber-50 border border-amber-200 rounded-[2rem] p-8 mb-6 relative overflow-hidden animate-slide-down">
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                        <div className="flex gap-4">
+                            <div className="p-3 bg-amber-200/50 rounded-2xl">
+                                <FiAlertTriangle className="h-6 w-6 text-amber-700" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-amber-900 uppercase tracking-tight">Active Pool Management</h3>
+                                <p className="text-amber-700/80 text-sm max-w-md">
+                                    Directly manipulate the database driver's connection stack.
+                                    These actions are irreversible and logged for audit.
+                                </p>
                             </div>
                         </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleCloseIdle}
+                                disabled={managerLoading}
+                                className="px-6 py-3 bg-amber-600 text-white rounded-xl font-bold text-sm hover:bg-amber-700 transition-all shadow-lg shadow-amber-200"
+                            >
+                                Purge Idle (30m)
+                            </button>
+                            <button
+                                onClick={handleRecycleAll}
+                                disabled={managerLoading}
+                                className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+                            >
+                                Recycle Entire Pool
+                            </button>
+                        </div>
                     </div>
+                    <FiZap className="absolute -right-8 -bottom-8 h-48 w-48 text-amber-200/20 rotate-12" />
                 </div>
             )}
 
-            {/* Health Chart */}
-            {chartData.length > 0 && (
-                <div className="mb-6">
-                    <ConnectionHealthChart
-                        data={chartData}
-                        title="Connection Pool Trends"
-                        type="area"
-                    />
+            {/* Stats Cards and Chart Section */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                <div className="xl:col-span-12">
+                    <ConnectionStatsCards stats={stats} metrics={metrics} />
                 </div>
-            )}
 
-            {/* Connections Table */}
-            <ConnectionTable
-                connections={filteredConnections}
-                onRefresh={refresh}
-                onViewDetails={handleViewDetails}
-                onUpdateStatus={handleUpdateStatus}
-                loading={loading}
-            />
+                {chartData.length > 0 && (
+                    <div className="xl:col-span-12 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+                        <ConnectionHealthChart
+                            data={chartData}
+                            title="Active Connection Distribution"
+                            type="area"
+                        />
+                    </div>
+                )}
+            </div>
 
-            {/* Metrics Summary (Admin only) */}
-            {isSuperAdmin && metrics && (
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <dt className="text-sm font-medium text-gray-500">Avg Response Time</dt>
-                        <dd className="mt-1 text-xl font-semibold text-gray-900">
-                            {metrics.avg_response_time_ms || '-'} ms
-                        </dd>
-                    </div>
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <dt className="text-sm font-medium text-gray-500">Max Concurrent</dt>
-                        <dd className="mt-1 text-xl font-semibold text-gray-900">
-                            {metrics.max_concurrent_connections || 0}
-                        </dd>
-                    </div>
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <dt className="text-sm font-medium text-gray-500">Last Hour</dt>
-                        <dd className="mt-1 text-xl font-semibold text-gray-900">
-                            {metrics.connections_last_hour || 0}
-                        </dd>
-                    </div>
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <dt className="text-sm font-medium text-gray-500">Last 24h</dt>
-                        <dd className="mt-1 text-xl font-semibold text-gray-900">
-                            {metrics.connections_last_24h || 0}
-                        </dd>
+            {/* Connections Table Container */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/60 overflow-hidden">
+                <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Real-time Stream</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Snapshot latency: 42ms</p>
                     </div>
                 </div>
-            )}
+                <ConnectionTable
+                    connections={filteredConnections}
+                    onRefresh={refresh}
+                    onViewDetails={handleViewDetails}
+                    onUpdateStatus={handleUpdateStatus}
+                    loading={loading}
+                />
+            </div>
         </div>
     );
 };

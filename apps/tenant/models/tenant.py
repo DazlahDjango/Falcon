@@ -102,6 +102,8 @@ class Client(BaseModel):
     @property
     def is_subscription_active(self):
         """Check if subscription is active."""
+        if not self.is_active:
+            return False
         if self.subscription_expires_at is None:
             return True
         return timezone.now() < self.subscription_expires_at

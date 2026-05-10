@@ -7,7 +7,7 @@ import { fetchTenantById, updateTenant, selectCurrentTenant, selectTenantLoading
 import '../../components/tenant/tenant/tenant.css';
 
 export const TenantEditPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -17,23 +17,23 @@ export const TenantEditPage = () => {
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchTenantById(id));
+        if (tenantId) {
+            dispatch(fetchTenantById(tenantId));
         }
-    }, [dispatch, id]);
+    }, [dispatch, tenantId]);
 
     const handleSubmit = async (data) => {
         setSubmitting(true);
-        const result = await dispatch(updateTenant({ id, data }));
+        const result = await dispatch(updateTenant({ id: tenantId, data }));
         setSubmitting(false);
 
         if (result.meta.requestStatus === 'fulfilled') {
-            navigate(`/tenants/${id}`);
+            navigate(`/tenants/${tenantId}`);
         }
     };
 
     const handleCancel = () => {
-        navigate(`/tenants/${id}`);
+        navigate(`/tenants/${tenantId}`);
     };
 
     if (loading && !tenant) {

@@ -165,10 +165,16 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
                         aria-label="User menu"
                     >
                         <div className="user-avatar-small">
-                            <img 
-                                src={user?.avatar_url || '/static/accounts/img/default-avatar.png'} 
-                                alt={user?.username}
-                            />
+                            {user?.avatar_url ? (
+                                <img 
+                                    src={user.avatar_url} 
+                                    alt={user.username}
+                                />
+                            ) : (
+                                <div className="avatar-placeholder">
+                                    {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                            )}
                         </div>
                         <div className="user-info">
                             <span className="user-name">{user?.first_name || user?.username}</span>
@@ -181,10 +187,16 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
                         <div className="user-dropdown">
                             <div className="user-dropdown-header">
                                 <div className="user-avatar">
-                                    <img 
-                                        src={user?.avatar_url || '/static/accounts/img/default-avatar.png'} 
-                                        alt={user?.username}
-                                    />
+                                    {user?.avatar_url ? (
+                                        <img 
+                                            src={user.avatar_url} 
+                                            alt={user.username}
+                                        />
+                                    ) : (
+                                        <div className="avatar-placeholder large">
+                                            {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="user-details">
                                     <div className="user-name">{user?.first_name} {user?.last_name}</div>

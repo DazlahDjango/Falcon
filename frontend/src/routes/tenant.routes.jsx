@@ -18,8 +18,8 @@ const TenantSchemaPage = React.lazy(() => import('../pages/tenant/TenantSchemaPa
 
 // Connections
 const ConnectionDashboardPage = React.lazy(() => import('../pages/tenant/connections/ConnectionDashboardPage').then((module) => ({ default: module.ConnectionDashboardPage })));
-// const ConnectionMetricsPage = React.lazy(() => import('../pages/tenant/connections/ConnectionMetricsPage').then((module) => ({ default: module.ConnectionMetricsPage })));
-// const ConnectionHealthPage = React.lazy(() => import('../pages/tenant/connections/ConnectionHealthPage').then((module) => ({ default: module.ConnectionHealthPage })));
+const ConnectionMetricsPage = React.lazy(() => import('../pages/tenant/connections/ConnectionMetricsPage').then((module) => ({ default: module.ConnectionMetricsPage })));
+const ConnectionHealthPage = React.lazy(() => import('../pages/tenant/connections/ConnectionHealthPage').then((module) => ({ default: module.ConnectionHealthPage })));
 const TenantConnectionsPage = React.lazy(() => import('../pages/tenant/connections/TenantConnectionsPage').then((module) => ({ default: module.TenantConnectionsPage })));
 
 // Domain & Backup
@@ -53,27 +53,27 @@ const tenantRoutes = [
             { path: 'dashboard', element: withSuspense(TenantDashboardPage) },
             { path: 'create', element: withSuspense(TenantCreatePage) },
             
-            // Dynamic tenant routes (using :id parameter)
-            { path: ':id', element: withSuspense(TenantDetailPage) },
-            { path: ':id/edit', element: withSuspense(TenantEditPage) },
-            { path: ':id/settings', element: withSuspense(TenantSettingsPage) },
-            { path: ':id/resources', element: withSuspense(TenantResourcesPage) },
-            { path: ':id/usage', element: withSuspense(TenantUsagePage) },
-            { path: ':id/provisioning', element: withSuspense(TenantProvisioningPage) },
-            { path: ':id/audit', element: withSuspense(TenantAuditPage) },
-            { path: ':id/migrations', element: withSuspense(TenantMigrationsPage) },
-            { path: ':id/schema', element: withSuspense(TenantSchemaPage) },
-            { path: ':id/domains', element: withSuspense(TenantDomainsPage) },
-            { path: ':id/backups', element: withSuspense(TenantBackupsPage) },
-            { path: ':id/connections', element: withSuspense(TenantConnectionsPage) },
+            // Dynamic tenant routes (using :tenantId parameter)
+            { path: ':tenantId', element: withSuspense(TenantDetailPage) },
+            { path: ':tenantId/edit', element: withSuspense(TenantEditPage) },
+            { path: ':tenantId/settings', element: withSuspense(TenantSettingsPage) },
+            { path: ':tenantId/resources', element: withSuspense(TenantResourcesPage) },
+            { path: ':tenantId/usage', element: withSuspense(TenantUsagePage) },
+            { path: ':tenantId/provisioning', element: withSuspense(TenantProvisioningPage) },
+            { path: ':tenantId/audit', element: withSuspense(TenantAuditPage) },
+            { path: ':tenantId/migrations', element: withSuspense(TenantMigrationsPage) },
+            { path: ':tenantId/schema', element: withSuspense(TenantSchemaPage) },
+            { path: ':tenantId/domains', element: withSuspense(TenantDomainsPage) },
+            { path: ':tenantId/backups', element: withSuspense(TenantBackupsPage) },
+            { path: ':tenantId/connections', element: withSuspense(TenantConnectionsPage) },
         ],
     },
     {
         path: 'tenants/connections',
         children: [
             { index: true, element: withSuspense(ConnectionDashboardPage) },
-            // { path: 'metrics', element: withSuspense(ConnectionMetricsPage) },
-            // { path: 'health', element: withSuspense(ConnectionHealthPage) },
+            { path: 'metrics', element: withSuspense(ConnectionMetricsPage) },
+            { path: 'health', element: withSuspense(ConnectionHealthPage) },
         ],
     },
     // Redirects

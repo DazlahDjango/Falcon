@@ -6,7 +6,7 @@ import { MigrationListTable, MigrationSummaryCard, MigrationFilterBar, Migration
 import { fetchMigrations, runMigrations, selectMigrations, selectMigrationSummary, selectMigrationsRunning, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantMigrationsPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const migrations = useSelector(selectMigrations);
     const summary = useSelector(selectMigrationSummary);
@@ -16,13 +16,13 @@ export const TenantMigrationsPage = () => {
     const [filters, setFilters] = useState({});
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchMigrations(id));
+        if (tenantId) {
+            dispatch(fetchMigrations(tenantId));
         }
-    }, [dispatch, id, filters]);
+    }, [dispatch, tenantId, filters]);
 
     const handleRunMigrations = async () => {
-        await dispatch(runMigrations({ tenantId: id, appName: null }));
+        await dispatch(runMigrations({ tenantId, appName: null }));
     };
 
     const handleViewDetails = (migration) => {

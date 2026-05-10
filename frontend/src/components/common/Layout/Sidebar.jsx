@@ -24,10 +24,10 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         connections: true,
         tenantSpecific: true,
     });
-    const { tenantId } = useParams();
+    const { tenantId: paramTenantId } = useParams();
     const location = useLocation();
-    const { tenant } = useSelector((state) => state.tenant);
-    const hasTenantContext = tenantId || tenant?.id;
+    const currentTenant = useSelector((state) => state.appTenant.currentTenant);
+    const hasTenantContext = paramTenantId || currentTenant?.id;
 
     // ✅ Add toggleMenu function
     const toggleMenu = (menuKey) => {
@@ -88,6 +88,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/tenants/:tenantId/backups', name: 'Backups', icon: MdBackup, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/migrations', name: 'Migrations', icon: FiRefreshCw, roles: ['super_admin'] },
             { path: '/tenants/:tenantId/schema', name: 'Database Schema', icon: MdSchema, roles: ['super_admin', 'client_admin'] },
+            { path: '/tenants/:tenantId/connections', name: 'Database Connections', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/provisioning', name: 'Provisioning Status', icon: FiCloud, roles: ['super_admin'] },
             { path: '/tenants/:tenantId/audit', name: 'Audit Logs', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/settings', name: 'Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
@@ -107,7 +108,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         ];
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
-            { path: '/admin/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
+            { path: '/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
             { path: '/admin/system', name: 'System', icon: FiServer, roles: ['super_admin'] },
             { path: '/admin/cache', name: 'Cache', icon: FiDatabase, roles: ['super_admin'] },
         ];
@@ -136,7 +137,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
     };
     
     const resolvePath = (path) => {
-        return path.replace(':tenantId', tenantId || tenant?.id || '');
+        return path.replace(':tenantId', paramTenantId || currentTenant?.id || '');
     };
     
     const renderNavGroup = (title, items, groupKey) => {
@@ -191,10 +192,10 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             </div>
             
             {/* Tenant Info */}
-            {!isCollapsed && tenant && (
+            {!isCollapsed && currentTenant && (
                 <div className="sidebar-tenant">
-                    <div className="tenant-name">{tenant.name}</div>
-                    <div className="tenant-plan">{tenant.subscription_plan}</div>
+                    <div className="tenant-name">{currentTenant.name}</div>
+                    <div className="tenant-plan">{currentTenant.subscription_plan}</div>
                 </div>
             )}
             
@@ -211,7 +212,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 
                 {hasTenantContext && (user?.role === 'super_admin' || user?.role === 'client_admin') && 
                     renderNavGroup(
-                        `Tenant: ${tenant?.name || 'Current Tenant'}`, 
+                        `Tenant: ${currentTenant?.name || 'Current Tenant'}`, 
                         navigation.tenantSpecific, 
                         'tenantSpecific'
                     )
@@ -226,11 +227,16 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             {!isCollapsed && user && (
                 <div className="sidebar-user">
                     <div className="user-avatar-small">
-                        <img 
-                            src={user.avatar_url || '/static/accounts/img/default-avatar.png'} 
-                            alt={user.username}
-                            onError={(e) => { e.target.src = '/static/accounts/img/default-avatar.png'; }}
-                        />
+                        {user.avatar_url ? (
+                            <img 
+                                src={user.avatar_url} 
+                                alt={user.username}
+                            />
+                        ) : (
+                            <div className="avatar-placeholder">
+                                {user.username?.charAt(0).toUpperCase()}
+                            </div>
+                        )}
                     </div>
                     <div className="user-info">
                         <div className="user-name">{user.first_name || user.username}</div>

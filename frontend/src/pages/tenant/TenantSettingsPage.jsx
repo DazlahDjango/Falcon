@@ -6,7 +6,7 @@ import { TenantGeneralSettings, TenantBrandingSettings } from '../../components/
 import { updateTenant, selectCurrentTenant } from '../../store/tenant/slice';
 
 export const TenantSettingsPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const tenant = useSelector(selectCurrentTenant);
     const [activeTab, setActiveTab] = useState('general');
@@ -19,11 +19,11 @@ export const TenantSettingsPage = () => {
     ];
 
     const handleSaveGeneral = async (data) => {
-        await dispatch(updateTenant({ id, data }));
+        await dispatch(updateTenant({ id: tenantId, data }));
     };
 
     const handleSaveBranding = async (data) => {
-        await dispatch(updateTenant({ id, data }));
+        await dispatch(updateTenant({ id: tenantId, data }));
     };
 
     return (

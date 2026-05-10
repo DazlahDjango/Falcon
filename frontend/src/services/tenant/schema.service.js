@@ -37,7 +37,7 @@ class SchemaService extends BaseTenantService {
      */
     async getSchemaForTenant(tenantId) {
         const response = await this.apiClient.get(`/tenants/${tenantId}/schema/`);
-        return response.data;
+        return response;
     }
 
     /**
@@ -84,7 +84,7 @@ class SchemaService extends BaseTenantService {
      */
     async getSchemaTables(tenantId) {
         const response = await this.apiClient.get(`/tenants/${tenantId}/schema/tables/`);
-        return response.data;
+        return response;
     }
 
     // ==================== Schema Actions ====================
@@ -96,7 +96,7 @@ class SchemaService extends BaseTenantService {
      */
     async refreshSchemaStats(tenantId) {
         const response = await this.apiClient.post(`/tenants/${tenantId}/schema/refresh/`);
-        return response.data;
+        return response;
     }
 }
 

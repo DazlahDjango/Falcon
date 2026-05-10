@@ -6,7 +6,7 @@ import { BackupListTable, BackupCreateButton, BackupRestoreModal, BackupDeleteMo
 import { fetchBackups, createBackup, restoreBackup, deleteBackup, selectBackups, selectTenantLoading, selectCreatingBackup, selectRestoringBackup } from '../../store/tenant/slice';
 
 export const TenantBackupsPage = () => {
-    const { id } = useParams();
+    const { tenantId } = useParams();
     const dispatch = useDispatch();
     const backups = useSelector(selectBackups);
     const loading = useSelector(selectTenantLoading);
@@ -16,25 +16,25 @@ export const TenantBackupsPage = () => {
     const [deletingBackupId, setDeletingBackupId] = useState(null);
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchBackups(id));
+        if (tenantId) {
+            dispatch(fetchBackups(tenantId));
         }
-    }, [dispatch, id]);
+    }, [dispatch, tenantId]);
 
     const handleCreateBackup = async (data) => {
-        await dispatch(createBackup({ tenantId: id, backupType: data.backup_type }));
+        await dispatch(createBackup({ tenantId, backupType: data.backup_type }));
     };
 
     const handleRestoreBackup = async () => {
         if (restoringBackupId) {
-            await dispatch(restoreBackup({ tenantId: id, backupId: restoringBackupId }));
+            await dispatch(restoreBackup({ tenantId, backupId: restoringBackupId }));
             setRestoringBackupId(null);
         }
     };
 
     const handleDeleteBackup = async () => {
         if (deletingBackupId) {
-            await dispatch(deleteBackup({ tenantId: id, backupId: deletingBackupId }));
+            await dispatch(deleteBackup({ tenantId, backupId: deletingBackupId }));
             setDeletingBackupId(null);
         }
     };

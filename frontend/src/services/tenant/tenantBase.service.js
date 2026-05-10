@@ -170,9 +170,9 @@ apiClient.interceptors.request.use(
         let tenantId = await getTenantId();
         if (!tenantId) {
             const state = store.getState();
-            tenantId = state?.auth?.user?.tenant_id || 
-                       state?.appTenant?.currentTenant?.id ||
-                       state?.tenant?.tenant?.id;
+            // Standardized priority for tenant context
+            tenantId = state?.appTenant?.currentTenant?.id ||
+                       state?.auth?.user?.tenant_id;
         }
 
         if (tenantId) {
