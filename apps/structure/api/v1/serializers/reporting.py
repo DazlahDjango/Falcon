@@ -7,19 +7,38 @@ from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
 class ReportingLineSerializer(BaseStructureSerializer):
     employee_user_id = serializers.UUIDField(source='employee.user_id', read_only=True)
+    employee_name = serializers.SerializerMethodField()
     employee_position = serializers.CharField(source='employee.position.job_code', read_only=True, allow_null=True)
     manager_user_id = serializers.UUIDField(source='manager.user_id', read_only=True)
+    manager_name = serializers.SerializerMethodField()
     manager_position = serializers.CharField(source='manager.position.job_code', read_only=True, allow_null=True)
     
     class Meta:
         model = ReportingLine
         fields = [
-            'id', 'tenant_id', 'employee_id', 'employee_user_id', 'employee_position',
-            'manager_id', 'manager_user_id', 'manager_position', 'relation_type',
+            'id', 'tenant_id', 'employee_id', 'employee_user_id', 'employee_name', 'employee_position',
+            'manager_id', 'manager_user_id', 'manager_name', 'manager_position', 'relation_type',
             'reporting_weight', 'effective_from', 'effective_to', 'is_active',
             'can_approve_kpi', 'can_conduct_review', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at']
+
+    def _get_user_names(self, user_ids):
+        if not hasattr(self, '_user_names_cache'):
+            from apps.accounts.models.user import User
+            users = User.objects.filter(id__in=user_ids)
+            self._user_names_cache = {u.id: u.get_full_name() for u in users}
+        return self._user_names_cache
+
+    def get_employee_name(self, obj):
+        if not obj.employee: return None
+        names = self._get_user_names([obj.employee.user_id])
+        return names.get(obj.employee.user_id, str(obj.employee.user_id))
+
+    def get_manager_name(self, obj):
+        if not obj.manager: return None
+        names = self._get_user_names([obj.manager.user_id])
+        return names.get(obj.manager.user_id, str(obj.manager.user_id))
 
 
 class ReportingLineDetailSerializer(BaseStructureDetailSerializer):
@@ -44,17 +63,28 @@ class ReportingLineDetailSerializer(BaseStructureDetailSerializer):
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at', 'deleted_at']
     
+    def _get_user_names(self, user_ids):
+        if not hasattr(self, '_user_names_cache'):
+            from apps.accounts.models.user import User
+            users = User.objects.filter(id__in=user_ids)
+            self._user_names_cache = {u.id: u.get_full_name() for u in users}
+        return self._user_names_cache
+
     def get_employee_name(self, obj):
-        if obj.employee:
-            return f"{obj.employee.user_id}"
-        return None
-    
+        if not obj.employee: return None
+        names = self._get_user_names([obj.employee.user_id])
+        return names.get(obj.employee.user_id, str(obj.employee.user_id))
+
     def get_manager_name(self, obj):
-        if obj.manager:
-            return f"{obj.manager.user_id}"
-        return None
+        if not obj.manager: return None
+        names = self._get_user_names([obj.manager.user_id])
+        return names.get(obj.manager.user_id, str(obj.manager.user_id))
 
 class ReportingLineCreateUpdateSerializer(serializers.ModelSerializer):
+    employee_id = serializers.UUIDField(required=True)
+    manager_id = serializers.UUIDField(required=True)
+    approved_by_id = serializers.UUIDField(required=False, allow_null=True)
+    
     class Meta:
         model = ReportingLine
         fields = [

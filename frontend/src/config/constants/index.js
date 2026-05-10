@@ -86,130 +86,186 @@ export const ROUTES = {
 // API Endpoints (only implemented - matches your backend)
 export const API_ENDPOINTS = {
     // Auth
-    LOGIN: '/auth/login/',
-    LOGOUT: '/auth/logout/',
-    REFRESH: '/auth/refresh/',
-    REGISTER: '/auth/register/',
-    VERIFY_EMAIL: '/auth/verify-email/',
-    RESEND_VERIFICATION: '/auth/resend-verification/',
-    FORGOT_PASSWORD: '/auth/password-reset/',
-    RESET_PASSWORD: '/auth/password-reset/confirm/',
-    CHANGE_PASSWORD: '/auth/change-password/',
-    // MFA
-    MFA_SETUP: '/auth/mfa/setup/',
-    MFA_VERIFY: '/auth/mfa/verify/',
-    MFA_VERIFY_SETUP: '/auth/mfa/verify-setup/',
-    MFA_DISABLE: '/auth/mfa/disable/',
-    MFA_DEVICES: '/auth/mfa/devices/',
-    MFA_BACKUP_CODES: '/auth/mfa/backup-codes/',
-    // Invitations
-    INVITATIONS: '/auth/invitations/',
-    ACCEPT_INVITATION: '/auth/invitations/accept/',
-    // Users
-    USERS: '/users/',
-    USER_DETAIL: '/users/{id}/',
-    USER_ME: '/users/me/',
-    USER_AVATAR: '/users/me/avatar/',
-    USER_TEAM: '/users/me/team/',
-    USER_REPORTING_CHAIN: '/users/me/reporting-chain/',
-    // Roles
-    ROLES: '/roles/',
-    ROLE_DETAIL: '/roles/{id}/',
-    ROLE_SYSTEM: '/roles/system/',
-    ROLE_ASSIGNABLE: '/roles/assignable/',
-    ROLE_PERMISSIONS: '/roles/{id}/permissions/',
-    // Permissions
-    PERMISSIONS: '/permissions/',
-    // Sessions
-    SESSIONS: '/sessions/',
-    SESSIONS_ACTIVE: '/sessions/active/',
-    SESSIONS_CURRENT: '/sessions/current/',
-    SESSIONS_TERMINATE_ALL: '/sessions/terminate-all/',
-    // Dashboard
-    INDIVIDUAL_DASHBOARD: '/kpis/dashboard/individual/',
-    MANAGER_DASHBOARD: '/kpis/dashboard/manager/',
-    EXECUTIVE_DASHBOARD: '/kpis/dashboard/executive/',
-    CHAMPION_DASHBOARD: '/kpis/dashboard/champion/',
-
-    // KPI
-    // ==========
-    KPI_LIST: '/kpis/kpis/',
-    KPI_DETAIL: '/kpis/kpis/{id}/',
-    KPI_CREATE: '/kpis/kpis/',
-    KPI_UPDATE: '/kpis/kpis/{id}/',
-    KPI_DELETE: '/kpis/kpis/{id}/',
-    KPI_ACTIVATE: '/kpis/kpis/{id}/activate/',
-    KPI_DEACTIVATE: '/kpis/kpis/{id}/deactivate/',
-    KPI_VALIDATE: '/kpis/kpis/{id}/validate/',
-    KPI_WEIGHTS: '/kpis/kpis/{id}/weights/',
-    KPI_STRATEGIC_LINKAGES: '/kpis/kpis/{id}/strategic-linkages/',
-    KPI_DEPENDENCIES: '/kpis/kpis/{id}/dependencies/',
-    // Frameworks
-    SECTORS: '/kpis/sectors/',
-    FRAMEWORKS: '/kpis/frameworks/',
-    CATEGORIES: '/kpis/categories/',
-    TEMPLATES: '/kpis/templates/',
-    // Targets
-    TARGETS: '/kpis/targets/',
-    TARGET_DETAIL: '/kpis/targets/{id}/',
-    TARGET_PHASING: '/kpis/targets/{id}/phasing/',
-    TARGET_VALIDATE: '/kpis/targets/{id}/validate/',
-    TARGET_CASCADE: '/kpis/targets/cascade/',
-    MONTHLY_PHASING: '/kpis/monthly-phasing/',
-    // Actuals
-    ACTUALS: '/kpis/actuals/',
-    ACTUAL_DETAIL: '/kpis/actuals/{id}/',
-    ACTUAL_SUBMIT: '/kpis/actuals/{id}/submit/',
-    ACTUAL_APPROVE: '/kpis/actuals/{id}/approve/',
-    ACTUAL_REJECT: '/kpis/actuals/{id}/reject/',
-    ACTUAL_EVIDENCE: '/kpis/actuals/{id}/evidence/',
-    // Scores
-    SCORES: '/kpis/scores/',
-    SCORE_DETAIL: '/kpis/scores/{id}/',
-    AGGREGATED_SCORES: '/kpis/aggregated-scores/',
-    TRAFFIC_LIGHTS: '/kpis/traffic-lights/',
-     // Stats
-    KPI_SUMMARIES: '/kpis/kpi-summaries/',           
-    DEPARTMENT_ROLLUPS: '/kpis/department-rollups/',
-    ORGANIZATION_HEALTH: '/kpis/organization-health/',
+    AUTH: {
+        LOGIN: '/auth/login/',
+        LOGOUT: '/auth/logout/',
+        REFRESH: '/auth/refresh/',
+        REGISTER: '/auth/register/',
+        VERIFY_EMAIL: '/auth/verify-email/',
+        RESEND_VERIFICATION: '/auth/resend-verification/',
+        FORGOT_PASSWORD: '/auth/password-reset/',
+        RESET_PASSWORD: '/auth/password-reset/confirm/',
+        CHANGE_PASSWORD: '/auth/change-password/',
+        MFA_SETUP: '/auth/mfa/setup/',
+        MFA_VERIFY: '/auth/mfa/verify/',
+        MFA_DISABLE: '/auth/mfa/disable/',
+        INVITATIONS: '/auth/invitations/',
+        ACCEPT_INVITATION: '/auth/invitations/accept/',
+    },
     
-    // Organisations
-    // ================
-    ORGANISATIONS: '/organisations/',
-    ORGANISATION_CURRENT: '/organisations/current/',
-    ORGANISATION_SETTINGS: '/organisations/settings/',
-    ORGANISATION_BRANDING: '/organisations/branding/',
-    ORGANISATION_USERS: '/organisations/users/',
-    ORGANISATION_TEAMS: '/organisations/teams/',
-    ORGANISATION_DEPARTMENTS: '/organisations/departments/',
-    ORGANISATION_POSITIONS: '/organisations/positions/',
-    ORGANISATION_SUBSCRIPTION: '/organisations/subscription/',
+    // Users (from accounts)
+    USERS: {
+        LIST: '/users/',
+        DETAIL: (id) => `/users/${id}/`,
+        ME: '/users/me/',
+        AVATAR: '/users/me/avatar/',
+        TEAM: '/users/me/team/',
+        REPORTING_CHAIN: '/users/me/reporting-chain/',
+    },
     
-    // Admin
-    ADMIN_USERS: '/admin/users/',
-    ADMIN_TENANTS: '/admin/tenants/',
-    ADMIN_SYSTEM: '/admin/system/',
-    ADMIN_CLEAR_CACHE: '/admin/system/clear-cache/',
-    ADMIN_SYSTEM_HEALTH: '/admin/system/health/',
+    // Roles & Permissions
+    ROLES: {
+        LIST: '/roles/',
+        DETAIL: (id) => `/roles/${id}/`,
+        SYSTEM: '/roles/system/',
+        ASSIGNABLE: '/roles/assignable/',
+        PERMISSIONS: '/permissions/',
+    },
     
-    // Audit
-    AUDIT_LOGS: '/audit-logs/',
-    AUDIT_EXPORT: '/audit-logs/export/',
-    AUDIT_COMPLIANCE: '/audit-logs/compliance-report/',
+    // KPI Module
+    KPI: {
+        LIST: '/kpis/kpis/',
+        DETAIL: (id) => `/kpis/kpis/${id}/`,
+        CREATE: '/kpis/kpis/',
+        UPDATE: (id) => `/kpis/kpis/${id}/`,
+        DELETE: (id) => `/kpis/kpis/${id}/`,
+        ACTIVATE: (id) => `/kpis/kpis/${id}/activate/`,
+        DEACTIVATE: (id) => `/kpis/kpis/${id}/deactivate/`,
+        VALIDATE: (id) => `/kpis/kpis/${id}/validate/`,
+        VALIDATE_SUM: '/kpis/kpi-weights/validate_sum/',
+        WEIGHTS: (id) => `/kpis/kpis/${id}/weights/`,
+        STRATEGIC_LINKAGES: (id) => `/kpis/kpis/${id}/strategic-linkages/`,
+        DEPENDENCIES: (id) => `/kpis/kpis/${id}/dependencies/`,
+    },
     
-    // Bulk Operations
-    BULK_KPI_UPLOAD: '/bulk/kpi-upload/',
-    BULK_ACTUAL_UPLOAD: '/bulk/actual-upload/',
-    BULK_TARGET_UPLOAD: '/bulk/target-upload/',
+    FRAMEWORK: {
+        SECTORS: '/kpis/sectors/',
+        FRAMEWORKS: '/kpis/frameworks/',
+        CATEGORIES: '/kpis/categories/',
+        TEMPLATES: '/kpis/templates/',
+    },
     
-    // Calculations
-    CALCULATIONS_TRIGGER: '/calculations/trigger/',
-    CALCULATIONS_STATUS: '/calculations/status/{taskId}/',
+    TARGET: {
+        LIST: '/kpis/targets/',
+        DETAIL: (id) => `/kpis/targets/${id}/`,
+        PHASING: (id) => `/kpis/targets/${id}/phasing/`,
+        VALIDATE: (id) => `/kpis/targets/${id}/validate/`,
+        CASCADE: '/kpis/targets/cascade/',
+        MONTHLY_PHASING: '/kpis/monthly-phasing/',
+    },
     
-    // Exports
-    EXPORT_KPIS: '/export/kpis/',
-    EXPORT_SCORES: '/export/scores/',
-    EXPORT_REPORTS: '/export/reports/',
+    ACTUAL: {
+        LIST: '/kpis/actuals/',
+        DETAIL: (id) => `/kpis/actuals/${id}/`,
+        SUBMIT: (id) => `/kpis/actuals/${id}/submit/`,
+        APPROVE: (id) => `/kpis/actuals/${id}/approve/`,
+        REJECT: (id) => `/kpis/actuals/${id}/reject/`,
+        EVIDENCE: (id) => `/kpis/actuals/${id}/evidence/`,
+    },
+    
+    SCORE: {
+        LIST: '/kpis/Scores/',
+        DETAIL: (id) => `/kpis/Scores/${id}/`,
+        AGGREGATED: '/kpis/aggregated-scores/',
+        TRAFFIC_LIGHTS: '/kpis/traffic-lights/',
+        STATISTICS: '/kpis/Scores/statistics/',
+    },
+    
+    DASHBOARD: {
+        INDIVIDUAL: '/kpis/dashboard/individual/',
+        MANAGER: '/kpis/dashboard/manager/',
+        EXECUTIVE: '/kpis/dashboard/executive/',
+        CHAMPION: '/kpis/dashboard/champion/',
+    },
+    
+    ANALYTICS: {
+        KPI_SUMMARIES: '/kpis/kpi-summaries/',
+        DEPARTMENT_ROLLUPS: '/kpis/department-rollups/',
+        ORGANIZATION_HEALTH: '/kpis/organization-health/',
+        INSIGHTS: '/kpis/analytics/insights/',
+        PREDICTIONS: '/kpis/analytics/predictions/',
+    },
+    
+    BULK: {
+        KPI_UPLOAD: '/kpis/bulk/kpi-upload/',
+        ACTUAL_UPLOAD: '/kpis/bulk/actual-upload/',
+        TARGET_UPLOAD: '/kpis/bulk/target-upload/',
+    },
+    
+    CALCULATION: {
+        TRIGGER: '/kpis/calculations/trigger/',
+        STATUS: (taskId) => `/kpis/calculations/status/${taskId}/`,
+    },
+    
+    EXPORT: {
+        KPIS: '/kpis/export/kpis/',
+        SCORES: '/kpis/export/scores/',
+        REPORTS: '/kpis/export/reports/',
+    },
+    
+    CASCADE: {
+        RULES: '/kpis/cascade-rules/',
+        RULE_DETAIL: (id) => `/kpis/cascade-rules/${id}/`,
+        MAPS: '/kpis/cascade-maps/',
+        MAP_DETAIL: (id) => `/kpis/cascade-maps/${id}/`,
+        CASCADE_DEPARTMENT: '/kpis/cascade-maps/cascade_department/',
+        TREE: '/kpis/cascade-maps/tree/',
+    },
+    
+    HISTORY: {
+        KPI: '/kpis/kpi-history/',
+        ACTUAL: '/kpis/actual-history/',
+        TARGET: '/kpis/target-history/',
+        FOR_KPI: (kpiId) => `/kpis/kpi-history/for_kpi/?kpi_id=${kpiId}`,
+        FOR_ACTUAL: (actualId) => `/kpis/actual-history/for_actual/?actual_id=${actualId}`,
+        FOR_TARGET: (targetId) => `/kpis/target-history/for_target/?target_id=${targetId}`,
+    },
+    
+    WEIGHT: {
+        LIST: '/kpis/kpi-weights/',
+        DETAIL: (id) => `/kpis/kpi-weights/${id}/`,
+        VALIDATE_SUM: '/kpis/kpi-weights/validate_sum/',
+    },
+    
+    LINKAGE: {
+        LIST: '/kpis/strategic-linkages/',
+        DETAIL: (id) => `/kpis/strategic-linkages/${id}/`,
+    },
+    
+    DEPENDENCY: {
+        LIST: '/kpis/kpi-dependencies/',
+        DETAIL: (id) => `/kpis/kpi-dependencies/${id}/`,
+        IMPACT_CHAIN: (id) => `/kpis/kpi-dependencies/${id}/impact_chain/`,
+    },
+    
+    VALIDATION: {
+        LIST: '/kpis/validations/',
+        DETAIL: (id) => `/kpis/validations/${id}/`,
+        PENDING: '/kpis/validations/pending/',
+        REJECTION_REASONS: '/kpis/rejection-reasons/',
+        ESCALATIONS: '/kpis/escalations/',
+        ESCALATION_DETAIL: (id) => `/kpis/escalations/${id}/`,
+    },
+    
+    ORGANISATION: {
+        BASE: '/organisations/',
+        CURRENT: '/organisations/current/',
+        SETTINGS: '/organisations/settings/',
+        BRANDING: '/organisations/branding/',
+        USERS: '/organisations/users/',
+        TEAMS: '/organisations/teams/',
+        DEPARTMENTS: '/organisations/departments/',
+        POSITIONS: '/organisations/positions/',
+        SUBSCRIPTION: '/organisations/subscription/',
+    },
+    
+    ADMIN: {
+        USERS: '/admin/users/',
+        TENANTS: '/admin/tenants/',
+        SYSTEM: '/admin/system/',
+        CLEAR_CACHE: '/admin/system/clear-cache/',
+        HEALTH: '/admin/system/health/',
+    },
 };
 
 // Role Constants

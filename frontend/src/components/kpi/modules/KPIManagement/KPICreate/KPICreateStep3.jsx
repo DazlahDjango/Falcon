@@ -1,8 +1,23 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 import styles from './KPICreate.module.css';
 
 const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
+    // Get names for IDs from store
+    const sectors = useSelector(state => state.framework.sectors.items);
+    const frameworks = useSelector(state => state.framework.frameworks.items);
+    const categories = useSelector(state => state.framework.categories.items);
+    const users = useSelector(state => state.users.users);
+
+    const getSectorName = (id) => sectors.find(s => s.id == id)?.name || id;
+    const getFrameworkName = (id) => frameworks.find(f => f.id == id)?.name || id;
+    const getCategoryName = (id) => categories.find(c => c.id == id)?.name || id;
+    const getOwnerName = (id) => {
+        const user = users.find(u => u.id == id);
+        return user ? `${user.first_name} ${user.last_name}` : id;
+    };
+
     const getKpiTypeLabel = (type) => {
         const types = {
             COUNT: 'Count / Number',
@@ -14,39 +29,63 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
         };
         return types[type] || type;
     };
+
     const getCalculationLogicLabel = (logic) => {
-        if (logic === 'HIGHER_IS_BETTER') return 'Higher is Better (Actual ÷ Target × 100)';
-        return 'Lower is Better (Target ÷ Actual × 100)';
+        if (logic === 'HIGHER_IS_BETTER') return 'Higher is Better';
+        return 'Lower is Better';
     };
+
     const getMeasureTypeLabel = (type) => {
-        if (type === 'CUMULATIVE') return 'Cumulative (YTD) - Values add up over time';
-        return 'Non-Cumulative - Period-only values';
+        if (type === 'CUMULATIVE') return 'Cumulative (YTD)';
+        return 'Non-Cumulative';
     };
+
     return (
         <div className={styles.step}>
-            <h3>Review KPI Details</h3>
-            <p className={styles.reviewNote}>Please review the information below before creating the KPI.</p>
+            <div className={styles.stepHeader}>
+                <h3>Review & Confirm</h3>
+                <p>Please double-check the details before creating the KPI.</p>
+            </div>
+
             <div className={styles.reviewSection}>
-                <h4>Basic Information</h4>
+                <h4>Core Identity</h4>
                 <div className={styles.reviewGrid}>
                     <div className={styles.reviewItem}>
                         <label>Name</label>
-                        <span>{data.name || '—'}</span>
+                        <span>{data.name}</span>
                     </div>
                     <div className={styles.reviewItem}>
                         <label>Code</label>
-                        <span>{data.code || '—'}</span>
+                        <span>{data.code}</span>
                     </div>
                     <div className={styles.reviewItem}>
-                        <label>Description</label>
-                        <span>{data.description || '—'}</span>
+                        <label>Owner</label>
+                        <span>{getOwnerName(data.ownerId)}</span>
                     </div>
+                    <div className={styles.reviewItem}>
+                        <label>Framework</label>
+                        <span>{getFrameworkName(data.frameworkId)}</span>
+                    </div>
+                    <div className={styles.reviewItem}>
+                        <label>Sector</label>
+                        <span>{getSectorName(data.sectorId)}</span>
+                    </div>
+                    <div className={styles.reviewItem}>
+                        <label>Category</label>
+                        <span>{getCategoryName(data.categoryId) || 'None'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.reviewSection}>
+                <h4>Logic & Configuration</h4>
+                <div className={styles.reviewGrid}>
                     <div className={styles.reviewItem}>
                         <label>KPI Type</label>
                         <span>{getKpiTypeLabel(data.kpiType)}</span>
                     </div>
                     <div className={styles.reviewItem}>
-                        <label>Calculation Logic</label>
+                        <label>Calculation</label>
                         <span>{getCalculationLogicLabel(data.calculationLogic)}</span>
                     </div>
                     <div className={styles.reviewItem}>
@@ -55,44 +94,11 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
                     </div>
                     <div className={styles.reviewItem}>
                         <label>Unit</label>
-                        <span>{data.unit || '—'}</span>
+                        <span>{data.unit || 'No unit'}</span>
                     </div>
-                    <div className={styles.reviewItem}>
-                        <label>Framework</label>
-                        <span>{data.frameworkId || '—'}</span>
-                    </div>
-                    <div className={styles.reviewItem}>
-                        <label>Sector</label>
-                        <span>{data.sectorId || '—'}</span>
-                    </div>
-                    <div className={styles.reviewItem}>
-                        <label>Category</label>
-                        <span>{data.categoryId || '—'}</span>
-                    </div>
-                    <div className={styles.reviewItem}>
-                        <label>Owner</label>
-                        <span>{data.ownerId || '—'}</span>
-                    </div>
-                    <div className={styles.reviewItem}>
-                        <label>Department</label>
-                        <span>{data.departmentId || '—'}</span>
-                    </div>
-                </div>
-            </div>
-            <div className={styles.reviewSection}>
-                <h4>Target Settings</h4>
-                <div className={styles.reviewGrid}>
                     <div className={styles.reviewItem}>
                         <label>Target Range</label>
-                        <span>{data.targetMin || '—'} to {data.targetMax || '—'}</span>
-                    </div>
-                    <div className={styles.reviewItem}>
-                        <label>Decimal Places</label>
-                        <span>{data.decimalPlaces}</span>
-                    </div>
-                    <div className={styles.reviewItem}>
-                        <label>Strategic Objective</label>
-                        <span>{data.strategicObjective || '—'}</span>
+                        <span>{data.targetMin || '0'} — {data.targetMax || '∞'}</span>
                     </div>
                     <div className={styles.reviewItem}>
                         <label>Status</label>
@@ -102,6 +108,7 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
                     </div>
                 </div>
             </div>
+
             <div className={styles.actions}>
                 <button onClick={onCancel} className={styles.cancelButton} disabled={loading}>
                     Cancel
@@ -109,13 +116,18 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
                 <button onClick={onBack} className={styles.backButton} disabled={loading}>
                     ← Back
                 </button>
-                <button onClick={() => onSubmit({})} className={styles.submitButton} disabled={loading}>
+                <button
+                    onClick={() => onSubmit({})}
+                    className={styles.submitButton}
+                    disabled={loading}
+                >
                     {loading ? 'Creating...' : 'Create KPI'}
                 </button>
             </div>
         </div>
     );
 };
+
 KPICreateStep3.propTypes = {
     data: PropTypes.object.isRequired,
     onSubmit: PropTypes.func.isRequired,
@@ -123,4 +135,5 @@ KPICreateStep3.propTypes = {
     onCancel: PropTypes.func.isRequired,
     loading: PropTypes.bool,
 };
+
 export default KPICreateStep3;

@@ -114,7 +114,7 @@ class MonthlyActualViewSet(BaseKpiViewset):
     def validations(self, request, pk=None):
         actual = self.get_object()
         validations = actual.validations.all()
-        serializer = ValidationRecordSerializer(validations)
+        serializer = ValidationRecordSerializer(validations, many=True)
         return Response(serializer.data)
 
 class EvidenceViewSet(BaseKpiViewset):

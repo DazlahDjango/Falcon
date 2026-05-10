@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.db import transaction
 import csv
 import io
 from ..serializers import (
@@ -36,17 +37,13 @@ class BulkKPIUploadView(APIView):
             content = output.getvalue()
         # Process upload
         import_export = KPIImportExport()
-        if dry_run:
-            # Validate only, don't save
-            # This would need a dry run implementation
-            result = {'created': [], 'errors': [], 'total': 0}
-        else:
-            result = import_export.import_from_csv(
-                content,
-                framework_id,
-                str(request.tenant.id),
-                request.user
-            )
+        result = import_export.import_from_csv(
+            content,
+            framework_id,
+            str(request.tenant.id),
+            request.user,
+            dry_run=dry_run
+        )
         result_serializer = BulkUploadResultSerializer({
             'total_rows': result.get('total', len(result.get('created', [])) + len(result.get('errors', []))),
             'created': len(result.get('created', [])),
@@ -83,16 +80,12 @@ class BulkActualUploadView(APIView):
             content = output.getvalue()
         # Process upload
         batch_upload = ActualBatchUpload()
-        
-        if dry_run:
-            # Validate only
-            result = {'created': 0, 'errors': []}
-        else:
-            result = batch_upload.upload_from_csv(
-                content,
-                str(request.tenant.id),
-                request.user
-            )
+        result = batch_upload.upload_from_csv(
+            content,
+            str(request.tenant.id),
+            request.user,
+            dry_run=dry_run
+        )
         
         result_serializer = BulkUploadResultSerializer({
             'total_rows': result.get('total', result.get('created', 0) + len(result.get('errors', []))),
@@ -131,7 +124,7 @@ class BulkTargetUploadView(APIView):
         target_setter = TargetSetter()
         for row_num, row in enumerate(reader, start=2):
             try:
-                if not dry_run:
+                with transaction.atomic():
                     target_setter.set_annual_target(
                         kpi_id=row['kpi_id'],
                         user_id=row['user_id'],
@@ -139,7 +132,9 @@ class BulkTargetUploadView(APIView):
                         target_value=row['target_value'],
                         user=request.user
                     )
-                created += 1
+                    created += 1
+                    if dry_run:
+                        transaction.set_rollback(True)
             except Exception as e:
                 errors.append({'row': row_num, 'error': str(e)})
         result_serializer = BulkUploadResultSerializer({

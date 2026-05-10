@@ -172,7 +172,7 @@ class ExecutiveDashboard:
 
 class ChampionDashboard:
     def get_dashboard(self, champion_id: str, year: int, month: int) -> Dict:
-        from apps.organisations.models import Department
+        from apps.structure.models import Department
         from apps.accounts.models import User
         tenant_id = User.objects.get(id=champion_id).tenant_id
         departments = Department.objects.filter(tenant_id=tenant_id)

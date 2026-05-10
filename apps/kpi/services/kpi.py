@@ -235,7 +235,7 @@ class KPIImportExport:
             ])
         return output.getvalue()
     
-    def import_from_csv(self, csv_content: str, framework_id: str, tenant_id: str, user) -> Dict:
+    def import_from_csv(self, csv_content: str, framework_id: str, tenant_id: str, user, dry_run: bool = False) -> Dict:
         reader = csv.DictReader(io.StringIO(csv_content))
         created = []
         errors = []
@@ -266,6 +266,8 @@ class KPIImportExport:
                         updated_by=user
                     )
                     created.append(kpi.code)
+                    if dry_run:
+                        transaction.set_rollback(True)
             except Exception as e:
                 errors.append({'row': row_num, 'code': row.get('Code'), 'error': str(e)})
         return {'created': created, 'errors': errors, 'total': len(created) + len(errors)}

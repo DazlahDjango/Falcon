@@ -239,7 +239,7 @@ const TeamForm = () => {
                 <option value="">Select team lead...</option>
                 {availableTeamLeads.map(emp => (
                   <option key={emp.user_id} value={emp.user_id}>
-                    {emp.user_id} - {emp.position?.title || 'Manager'}
+                    {emp.user_name || emp.user_id} - {emp.position?.title || 'Manager'}
                   </option>
                 ))}
               </select>

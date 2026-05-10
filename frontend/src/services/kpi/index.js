@@ -8,3 +8,4 @@ export { default as dashboardService } from './dashboard.service';
 export { default as analyticsService } from './analytics.service';
 export { default as exportService } from './export.service';
 export { default as bulkService } from './bulk.service';
+export { default as frameworkService } from './framework.service';

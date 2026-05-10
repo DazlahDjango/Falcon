@@ -158,5 +158,5 @@ export const {
     createKPISuccess,
     updateKPISuccess,
     deleteKPISuccess,
-} = kpiSlice.reducer;
+} = kpiSlice.actions;
 export default kpiSlice.reducer;

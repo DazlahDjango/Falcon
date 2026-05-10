@@ -41,27 +41,16 @@ class KPIService {
         const response = await api.get(API_ENDPOINTS.KPI.STRATEGIC_LINKAGES(kpiId));
         return response.data;
     }
-    async createStrategicLinkage(data) {
-        const response = await api.post(API_ENDPOINTS.LINKAGE.LIST, data);
-        return response.data;
-    }
     async getDependencies(kpiId) {
         const response = await api.get(API_ENDPOINTS.KPI.DEPENDENCIES(kpiId));
-        return response.data;
-    }
-    async createDependency(data) {
-        const response = await api.post(API_ENDPOINTS.DEPENDENCY.LIST, data);
         return response.data;
     }
     async validateKPI(id) {
         const response = await api.get(API_ENDPOINTS.KPI.VALIDATE(id));
         return response.data;
     }
-    async exportKPIs(frameworkId) {
-        const response = await api.get(API_ENDPOINTS.EXPORT.KPIS, {
-            params: { framework_id: frameworkId },
-            responseType: 'blob'
-        });
+    async validateWeightSum() {
+        const response = await api.get(API_ENDPOINTS.KPI.VALIDATE_SUM);
         return response.data;
     }
 }

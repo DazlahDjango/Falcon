@@ -1,82 +1,368 @@
 .dashboard {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 24px;
-    background: #f9fafb;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background: #0f111a;
     min-height: 100vh;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
 }
 
-.loadingContainer {
+.emptyContainer {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 400px;
-    gap: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 24px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    gap: 1.5rem;
 }
 
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #e5e7eb;
-    border-top-color: #3b82f6;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+.emptyContainer p {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.125rem;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.refreshButton {
+    padding: 0.75rem 2rem;
+    background: #6366f1;
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.emptyContainer {
-    text-align: center;
-    padding: 60px 20px;
-    color: #6b7280;
+.refreshButton:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
 }
 
 .periodSelector {
-    margin-bottom: 24px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    margin-bottom: 1rem;
 }
 
 .scoreSection {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 32px;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+    .scoreSection {
+        grid-template-columns: 1fr;
+    }
+}
+
+.scoreCard {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.scoreCard::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;
+    text-align: left;
+}
+
+.headerLeft .title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.025em;
+}
+
+.headerLeft .subtitle {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1rem;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+.headerRight {
+    display: flex;
+    gap: 1rem;
+}
+
+.refreshIcon {
+    font-size: 1.25rem;
+    display: inline-block;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.refreshing .refreshIcon {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.scoreExcellent { color: #4ade80; text-shadow: 0 0 30px rgba(74, 222, 128, 0.3); }
+.scoreGood { color: #60a5fa; text-shadow: 0 0 30px rgba(96, 165, 250, 0.3); }
+.scoreFair { color: #fbbf24; text-shadow: 0 0 30px rgba(251, 191, 36, 0.3); }
+.scorePoor { color: #f87171; text-shadow: 0 0 30px rgba(248, 113, 113, 0.3); }
+
+.scoreMessage {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+}
+
+.scoreStats {
+    display: flex;
+    gap: 3rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 1.5rem;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .gaugeWrapper {
-    background: #fff;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .kpiSection {
-    margin-bottom: 32px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 2rem;
 }
 
-.activitySection {
+.kpiHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.kpiHeader h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.kpiControls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.searchInput {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.625rem 1rem;
+    color: #fff;
+    width: 250px;
+    transition: all 0.2s;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.filterButtons {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.25rem;
+    border-radius: 14px;
+}
+
+.filterButton {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0.5rem 1rem;
+    border-radius: 11px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.filterButton.active {
     background: #fff;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: #000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 768px) {
-    .dashboard {
-        padding: 16px;
-    }
-    
-    .scoreSection {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-    
-    .periodSelector {
-        justify-content: center;
-        margin-bottom: 20px;
-    }
+.greenFilter.active { background: #4ade80; color: #000; }
+.yellowFilter.active { background: #fbbf24; color: #000; }
+.redFilter.active { background: #f87171; color: #000; }
+
+.kpiGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.noResults {
+    text-align: center;
+    padding: 3rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.activityContainer h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+.activityList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activityItem {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: all 0.2s;
+}
+
+.activityItem:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(4px);
+}
+
+.activityIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.activityContent {
+    flex: 1;
+}
+
+.activityTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.activityKpi {
+    font-weight: 600;
+    color: #fff;
+}
+
+.activityStatus {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+}
+
+.activityApproved { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
+.activityRejected { background: rgba(248, 113, 113, 0.1); color: #f87171; }
+.activityPending { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+
+.activityDetails {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.activityValue {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.activityNotes {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+    border-left: 3px solid #6366f1;
+}
+
+.noActivity {
+    text-align: center;
+    padding: 3rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Animations */
+.dashboard > div {
+    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.dashboard > div:nth-child(1) { animation-delay: 0.1s; }
+.dashboard > div:nth-child(2) { animation-delay: 0.2s; }
+.dashboard > div:nth-child(3) { animation-delay: 0.3s; }
+.dashboard > div:nth-child(4) { animation-delay: 0.4s; }
+.dashboard > div:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }

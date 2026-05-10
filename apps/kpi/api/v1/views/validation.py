@@ -58,7 +58,7 @@ class EscalationViewSet(BaseKpiViewset):
                 reason=request.data.get('reason'),
                 user=request.user
             )
-            serializer = self.get_serializer(escalator)
+            serializer = self.get_serializer(escalation)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response(

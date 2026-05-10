@@ -7,6 +7,7 @@ import IndividualRecentActivity from './IndividualRecentActivity';
 import PeriodSelector from '../../common/PeriodSelector';
 import { ScoreGauge } from '../../common';
 import styles from './IndividualDashboard.module.css';
+import { useScoreUpdates } from '../../../../hooks/kpi';
 
 const IndividualDashboard = ({
     userId,
@@ -17,13 +18,36 @@ const IndividualDashboard = ({
 }) => {
     const [dashboardData, setDashboardData] = useState(initialData || null);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Real-time score updates
+    const { latestScore } = useScoreUpdates(userId);
+
+    useEffect(() => {
+        if (latestScore && dashboardData) {
+            // Update individual KPI score if it matches
+            const updatedKpis = dashboardData.kpis.map(kpi => {
+                if (kpi.kpiId === latestScore.kpi_id) {
+                    return { ...kpi, score: latestScore.score, status: latestScore.status };
+                }
+                return kpi;
+            });
+
+            setDashboardData(prev => ({
+                ...prev,
+                kpis: updatedKpis,
+                overallScore: latestScore.overall_score || prev.overallScore
+            }));
+        }
+    }, [latestScore]);
+
     useEffect(() => {
         if (initialData) {
             setDashboardData(initialData);
         }
     }, [initialData]);
+
     const handlePeriodChange = (year, month) => {
         setSelectedYear(year);
         setSelectedMonth(month);
@@ -51,7 +75,7 @@ const IndividualDashboard = ({
     const { overallScore, kpis, recentActivity } = dashboardData;
     return (
         <div className={styles.dashboard}>
-            <IndividualDashboardHeader 
+            <IndividualDashboardHeader
                 userName={dashboardData.userName}
                 period={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
                 onRefresh={handleRefresh}
@@ -69,12 +93,12 @@ const IndividualDashboard = ({
             </div>
 
             <div className={styles.scoreSection}>
-                <IndividualScoreCard 
+                <IndividualScoreCard
                     overallScore={overallScore}
                     kpiCount={kpis?.length || 0}
                 />
                 <div className={styles.gaugeWrapper}>
-                    <ScoreGauge 
+                    <ScoreGauge
                         score={overallScore || 0}
                         title="Overall Performance"
                         size="lg"
@@ -84,7 +108,7 @@ const IndividualDashboard = ({
             </div>
 
             <div className={styles.kpiSection}>
-                <IndividualKPISection 
+                <IndividualKPISection
                     kpis={kpis || []}
                     onKpiClick={(kpiId) => {
                         // Handle KPI click - navigate to detail
@@ -94,7 +118,7 @@ const IndividualDashboard = ({
             </div>
 
             <div className={styles.activitySection}>
-                <IndividualRecentActivity 
+                <IndividualRecentActivity
                     activities={recentActivity || []}
                 />
             </div>

@@ -31,14 +31,14 @@ class ScoreAggregator:
     def aggregate_user(self, user_id: str, year: int, month: int, force: bool = False) -> Decimal:
         return self.aggregator.aggregate_for_user(user_id, year, month, force)
     def aggregate_team(self, team_id: str, year: int, month: int, force: bool = False) -> Decimal:
-        from apps.organisations.models import Team
+        from apps.structure.models import Team
         team = Team.objects.get(id=team_id)
         member_ids = team.members.values_list('id', flat=True)
         return self.aggregator.team.aggregate_for_team(
             str(team.id), team.name, team.tenant_id, member_ids, year, month, force
         )
     def aggregate_department(self, department_id: str, year: int, month: int, force: bool = False) -> Decimal:
-        from apps.organisations.models import Department
+        from apps.structure.models import Department
         department = Department.objects.get(id=department_id)
         member_ids = department.members.values_list('id', flat=True)
         return self.aggregator.department.aggregate_for_department(

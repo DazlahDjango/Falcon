@@ -44,6 +44,9 @@ class PositionDetailSerializer(BaseStructureDetailSerializer):
         return obj.direct_reports.filter(is_deleted=False).count()
 
 class PositionCreateUpdateSerializer(serializers.ModelSerializer):
+    reports_to_id = serializers.UUIDField(required=False, allow_null=True)
+    default_department_id = serializers.UUIDField(required=False, allow_null=True)
+    
     class Meta:
         model = Position
         fields = [

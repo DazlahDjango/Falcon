@@ -84,7 +84,7 @@ class TrendAnalyzer:
             avg = sum(scores[i:i+window]) / window
             result.append(avg)
         return result
-    def _caclulate_slope(self, scores: List[Decimal]) -> float:
+    def _calculate_slope(self, scores: List[Decimal]) -> float:
         if len(scores) < 2:
             return 0
         n = len(scores)

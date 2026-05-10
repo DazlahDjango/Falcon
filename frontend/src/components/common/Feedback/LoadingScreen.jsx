@@ -1,8 +1,8 @@
 import React from 'react';
 import Spinner from '../UI/Spinner';
 
-const LoadingScreen = ({ 
-    fullScreen = true, 
+const LoadingScreen = ({
+    fullScreen = true,
     message = 'Loading...',
     spinnerSize = 'lg',
     transparent = false,
@@ -14,7 +14,7 @@ const LoadingScreen = ({
         transparent ? 'transparent' : '',
         className
     ].filter(Boolean).join(' ');
-    
+
     return (
         <div className={containerClasses}>
             <div className="loading-content">
@@ -26,8 +26,8 @@ const LoadingScreen = ({
 };
 
 // Skeleton loader for content
-export const SkeletonLoader = ({ 
-    type = 'card', 
+export const SkeletonLoader = ({
+    type = 'card',
     count = 1,
     className = ''
 }) => {
@@ -42,7 +42,7 @@ export const SkeletonLoader = ({
                         <div className="skeleton-text short"></div>
                     </div>
                 );
-                
+
             case 'table':
                 return (
                     <div className="skeleton-table">
@@ -62,7 +62,7 @@ export const SkeletonLoader = ({
                         ))}
                     </div>
                 );
-                
+
             case 'list':
                 return (
                     <div className="skeleton-list">
@@ -77,7 +77,7 @@ export const SkeletonLoader = ({
                         ))}
                     </div>
                 );
-                
+
             case 'form':
                 return (
                     <div className="skeleton-form">
@@ -90,7 +90,7 @@ export const SkeletonLoader = ({
                         <div className="skeleton-button"></div>
                     </div>
                 );
-                
+
             default:
                 return (
                     <div className="skeleton-default">
@@ -100,11 +100,11 @@ export const SkeletonLoader = ({
                 );
         }
     };
-    
+
     return (
         <div className={`skeleton-loader ${className}`}>
             {renderSkeleton()}
         </div>
     );
 };
-export default SkeletonLoader;
+export default LoadingScreen;

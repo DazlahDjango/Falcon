@@ -1,11 +1,12 @@
-import { getAccessToken } from '../accounts/storage/secureStorage';
+import axios from 'axios';
+import { getAccessToken, getRefreshToken, setTokens } from '../accounts/storage/secureStorage';
 import { logout, login } from '../accounts/api/auth';
 
 export const setupInterceptors = (api) => {
     // Request interceptor - add auth token
     api.interceptors.request.use(
-        (config) => {
-            const token = getAccessToken();
+        async (config) => {
+            const token = await getAccessToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -29,18 +30,22 @@ export const setupInterceptors = (api) => {
                 
                 // Try to refresh token
                 try {
-                    const refreshToken = localStorage.getItem('refresh_token');
+                    const refreshToken = await getRefreshToken();
                     if (refreshToken) {
-                        const response = await api.post('/auth/refresh/', {
+                        // Use a separate axios instance or skip interceptors for refresh call
+                        // to avoid recursion if refresh itself returns 401
+                        const response = await axios.post('/api/v1/auth/refresh/', {
                             refresh: refreshToken
                         });
-                        localStorage.setItem('access_token', response.data.access);
-                        originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
+                        
+                        const newAccessToken = response.data.access;
+                        await setTokens(newAccessToken, refreshToken);
+                        
+                        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                         return api(originalRequest);
                     }
                 } catch (refreshError) {
                     // Refresh failed, logout
-                    logout();
                     window.location.href = '/login';
                     return Promise.reject(refreshError);
                 }
