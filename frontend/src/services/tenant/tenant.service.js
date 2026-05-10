@@ -1,4 +1,4 @@
-    // frontend/src/services/tenant/tenant.service.js
+// frontend/src/services/tenant/tenant.service.js
     /**
      * Tenant Core Service
      * Handles all tenant CRUD operations, provisioning, and management
