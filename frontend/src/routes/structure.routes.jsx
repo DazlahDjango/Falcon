@@ -150,6 +150,8 @@ const structureRoutes = [
     
     // Visualizations
     { path: STRUCTURE_ROUTES.ORG_CHART, element: <OrganizationChart /> },
+    { path: STRUCTURE_ROUTES.DEPARTMENT_TREES, element: <DepartmentTree /> },
+    { path: STRUCTURE_ROUTES.TEAM_HIERARCHIES, element: <TeamHierarchy /> },
     
     // My Information
     { path: STRUCTURE_ROUTES.MY_EMPLOYMENT, element: <EmploymentDetail /> },
