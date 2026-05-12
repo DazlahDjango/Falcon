@@ -2,7 +2,7 @@ from django.db import models
 import uuid
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-# Create your models here.
+
 
 class BillingBaseModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -45,6 +45,7 @@ urlpatterns = [
     path('api/v1/tenant/', include('apps.tenant.api.v1.urls')),
     path('api/v1/structure/', include('apps.structure.urls')),
     path('api/v1/kpis/', include('apps.kpi.urls')),
+    path('api/v1/billing/', include('apps.billing.api.v1.urls')),
     path('api/v1/health/', health_check, name='api-health'),
 ]
 

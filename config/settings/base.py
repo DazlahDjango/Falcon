@@ -130,6 +130,7 @@ PROJECT_APPS = [
     'apps.tenant.apps.TenantConfig',
     'apps.structure.apps.StructureConfig',
     'apps.kpi.apps.KpiConfig',
+    'apps.billing.apps.BillingConfig',
     'apps.core',
     'apps.dashboard',
     'apps.notification',

@@ -19,6 +19,51 @@ task_routes_dict = {
     'apps.kpi.tasks.email_tasks.send_*_email_task': {'queue': 'email'},
     'apps.kpi.tasks.cleanup.cleanup_*': {'queue': 'cleanup'},
     'apps.kpi.tasks.cascade.cascade_*': {'queue': 'cascade'},
+    # Billing Tasks
+    'billing.tasks.process_webhook_event': {
+        'queue': 'priority',
+        'routing_key': 'priority',
+    },
+    'billing.tasks.sync_subscription_with_stripe': {
+        'queue': 'billing',
+        'routing_key': 'billing',
+    },
+    'billing.tasks.check_expired_subscriptions': {
+        'queue': 'billing',
+        'routing_key': 'billing',
+    },
+    'billing.tasks.sync_invoices_for_tenant': {
+        'queue': 'billing',
+        'routing_key': 'billing',
+    },
+    'billing.tasks.process_webhook_event': {
+        'queue': 'webhook',
+        'routing_key': 'webhook',
+    },
+    'billing.tasks.send_upcoming_invoice_reminder': {
+        'queue': 'email',
+        'routing_key': 'email',
+    },
+    'billing.tasks.send_payment_failed_notification': {
+        'queue': 'email',
+        'routing_key': 'email',
+    },
+    'billing.tasks.handle_trial_ending_soon': {
+        'queue': 'email',
+        'routing_key': 'email',
+    },
+    'billing.tasks.reset_daily_api_quotas': {
+        'queue': 'default',
+        'routing_key': 'default',
+    },
+    'billing.tasks.generate_monthly_invoice_report': {
+        'queue': 'default',
+        'routing_key': 'default',
+    },
+    'billing.tasks.cleanup_old_webhook_events': {
+        'queue': 'default',
+        'routing_key': 'default',
+    },
 }
 
 # Function-based routes for complex patterns
