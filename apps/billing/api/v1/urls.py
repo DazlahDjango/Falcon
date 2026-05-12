@@ -30,13 +30,10 @@ router.register(r'quota', QuotaViewSet, basename='quota')
 subscription_router = routers.NestedDefaultRouter(router, r'subscriptions', lookup='subscription')
 subscription_router.register(r'invoices', InvoiceViewSet, basename='subscription-invoices')
 subscription_router.register(r'payments', PaymentViewSet, basename='subscription-payments')
-# Note: Don't register history here - use custom endpoint instead
-
 # Invoice nested routes
 invoice_router = routers.NestedDefaultRouter(router, r'invoices', lookup='invoice')
 invoice_router.register(r'line-items', InvoiceViewSet, basename='invoice-line-items')
 invoice_router.register(r'payments', PaymentViewSet, basename='invoice-payments')
-
 # Plan nested routes
 plan_router = routers.NestedDefaultRouter(router, r'plans', lookup='plan')
 plan_router.register(r'features', PlanViewSet, basename='plan-features')
@@ -45,30 +42,11 @@ plan_router.register(r'subscriptions', SubscriptionViewSet, basename='plan-subsc
 urlpatterns = [
     # Webhook endpoint (no auth)
     path('webhook/stripe/', WebhookView.as_view(), name='stripe-webhook'),
-    
     # Include router URLs
     path('', include(router.urls)),
     path('', include(subscription_router.urls)),
     path('', include(invoice_router.urls)),
     path('', include(plan_router.urls)),
-    
-    # ========== CUSTOM ACTION ENDPOINTS (use @action in views, not separate paths) ==========
-    # These should be handled by @action decorators in the views, not separate paths
-    # Remove these duplicate path definitions:
-    # - subscription/current/
-    # - subscription/status/
-    # - plans/compare/
-    # - quota/refresh/
-    # - quota/limits/
-    # - payment-methods/default/
-    # - payment-methods/expiring-soon/
-    # - invoices/download/
-    # - invoices/outstanding/
-    # - invoices/remind/
-    # - subscriptions/cancel/
-    # - subscriptions/reactivate/
-    # - subscriptions/sync/
-    # - subscriptions/history/
 ]
 
 app_name = 'billing'
