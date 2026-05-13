@@ -68,6 +68,10 @@ import {
     connectionReducer,
 } from './tenant/slice';
 
+// ===================================
+// Billing App Reducer
+// ===================================
+import { planReducer, subscriptionReducer, quotaReducer, paymentReducer, paymentMethodReducer, invoiceReducer } from './billing';
 const rootReducer = combineReducers({
     // Accounts State
     auth: authReducer,
@@ -113,8 +117,6 @@ const rootReducer = combineReducers({
         ui: structureUiReducer,
     }),
     
-    
-
     // KPI State
     kpi: kpiReducer,
     target: targetReducer,
@@ -126,6 +128,14 @@ const rootReducer = combineReducers({
     kpiUi: kpiUiReducer,
     kpiNotifications: kpiNotificationReducer,
     kpiAnalytics: kpiAnalyticsReducer,
+
+    // Billing
+    billingPlans: planReducer,
+    billingSubscription: subscriptionReducer,
+    billingQuota: quotaReducer,
+    billingPayments: paymentReducer,
+    billingPaymentMethods: paymentMethodReducer,
+    billingInvoices: invoiceReducer,
 
 });
 

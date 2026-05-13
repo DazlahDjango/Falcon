@@ -1,4 +1,3 @@
-# config/celery_routes.py
 task_routes_dict = {
     # Accounts Tasks
     'apps.accounts.tasks.send_*': {'queue': 'email'},
