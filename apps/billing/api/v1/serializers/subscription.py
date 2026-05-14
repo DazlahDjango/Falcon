@@ -121,6 +121,7 @@ class SubscriptionReactivateSerializer(serializers.Serializer):
 
 class SubscriptionStatusSerializer(serializers.Serializer):
     has_subscription = serializers.BooleanField()
+    id = serializers.UUIDField(source='subscription_id', required=False)
     subscription_id = serializers.UUIDField(required=False)
     status = serializers.CharField(required=False)
     plan = serializers.DictField(required=False)

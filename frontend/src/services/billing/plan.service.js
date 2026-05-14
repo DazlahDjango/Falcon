@@ -14,6 +14,10 @@ class PlanService extends BaseBillingService {
         return withRetry(() => this.apiClient.get(PLAN_API_ENDPOINTS.DETAIL(id)));
     }
 
+    async getPlanBySlug(slug) {
+        return withRetry(() => this.apiClient.get(`${PLAN_API_ENDPOINTS.LIST}${slug}/`));
+    }
+
     async getPlanFeatures(id) {
         return withRetry(() => this.apiClient.get(PLAN_API_ENDPOINTS.FEATURES(id)));
     }
