@@ -261,7 +261,7 @@ def user_logged_out_handler(sender, request, user, **kwargs):
     except Exception as e:
         logger.error(f"Error in user_logged_out_handler: {e}", exc_info=True)
 
-@receiver(user_login_failed)
+# @receiver(user_login_failed)
 def user_login_failed_handler(sender, credentials, request, **kwargs):
     try:
         email = credentials.get('email', credentials.get('username', 'unknown'))

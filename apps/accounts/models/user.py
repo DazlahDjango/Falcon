@@ -124,14 +124,29 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         """Get all direct reports (active users only)"""
         return self.direct_reports.filter(is_active=True)
 
-    def get_team_members(self, include_self=False):
+    def get_team_members(self, include_self=False, visited=None):
         """Get all team members recursively (active users only)"""
-        team = list(self.get_direct_reports())
-        for member in self.get_direct_reports():
-            team.extend(member.get_team_members())
+        if visited is None:
+            visited = set()
+        
+        if self.id in visited:
+            return []
+        
+        visited.add(self.id)
+        
+        team = []
+        direct_reports = self.get_direct_reports()
+        for member in direct_reports:
+            if member.id not in visited:
+                team.append(member)
+                team.extend(member.get_team_members(visited=visited))
+        
         if include_self:
-            team.insert(0, self)
-        return team
+            # Only add self if we are at the top level of recursion
+            if len(visited) == 1:
+                team.insert(0, self)
+                
+        return list(dict.fromkeys(team))  # Remove duplicates while preserving order
 
     def get_team_ids(self):
         """Get IDs of all team members"""
@@ -155,9 +170,16 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
 
     def is_manager_of(self, user):
         """Check if this user is a manager of the given user"""
-        if not user or not user.manager:
+        if not user or not user.manager_id:
             return False
-        return user.manager == self or user in self.get_team_members()
+        
+        # Direct check
+        if user.manager_id == self.id:
+            return True
+            
+        # Recursive check
+        team_ids = self.get_team_ids()
+        return user.id in team_ids
 
     def set_manager(self, manager):
         """Set the manager for this user"""

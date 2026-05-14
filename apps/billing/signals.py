@@ -163,8 +163,11 @@ def quota_usage_post_save(sender, created, instance, **kwargs):
     if created:
         logger.debug(f"Quota usage created for tenant {instance.tenant_id}")
     else:
-        if instance.current_users >= instance.max_users * 0.9:
-            logger.warning(f"Tenant {instance.tenant_id} nearing user limit: {instance.current_users}/{instance.max_users}")
+        # Get limits to check if nearing them
+        limits = QuotaService().get_limits(instance.tenant)
+        if limits:
+            if instance.current_users >= limits.max_users * 0.9:
+                logger.warning(f"Tenant {instance.tenant_id} nearing user limit: {instance.current_users}/{limits.max_users}")
 
 @receiver(post_save, sender=WebhookEvent)
 def webhook_event_post_save(sender, created, instance, **kwargs):
@@ -206,13 +209,22 @@ def tenant_post_save(sender, created, instance, **kwargs):
             logger.warning(f"No trial plan found for new tenant {instance.name}")
 
 @receiver(post_save, sender='accounts.User')
-def user_post_save(sender, created, instance, **kwargs):
-    if instance.tenant_id:
+def user_post_save(sender, created, instance, update_fields, **kwargs):
+    # Only refresh if it's a new user or if relevant fields changed
+    # During login, we update last_login etc. which shouldn't trigger quota refresh
+    should_refresh = created
+    if update_fields:
+        relevant_fields = {'is_active', 'is_deleted', 'role', 'tenant_id'}
+        if any(field in update_fields for field in relevant_fields):
+            should_refresh = True
+            
+    if should_refresh and instance.tenant_id:
         from apps.tenant.models import Client
         try:
             tenant = Client.objects.get(id=instance.tenant_id)
-            QuotaService().refresh_usage(tenant)
-            logger.debug(f"Updated quota usage for tenant {tenant.name} after user change")
+            # Defer refresh to after transaction commit to avoid recursion issues during save
+            transaction.on_commit(lambda: QuotaService().refresh_usage(tenant))
+            logger.debug(f"Queued quota usage refresh for tenant {tenant.name} after user change")
         except Client.DoesNotExist:
             logger.warning(f"Tenant not found for user {instance.id}")
 

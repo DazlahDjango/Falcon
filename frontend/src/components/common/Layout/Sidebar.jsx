@@ -6,7 +6,7 @@ import { BILLING_ROUTES, ADMIN_BILLING_ROUTES } from '../../../config/constants/
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
-    FiCloud, FiHardDrive, FiRefreshCw, FiGrid, FiHeart
+    FiCloud, FiHardDrive, FiRefreshCw, FiGrid, FiHeart, FiCreditCard
 } from 'react-icons/fi';
 import { MdDomain, MdBusiness, MdStorage, MdBackup, MdSchema } from 'react-icons/md';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
