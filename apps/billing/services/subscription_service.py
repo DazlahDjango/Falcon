@@ -195,7 +195,13 @@ class SubscriptionService:
                 'id': str(subscription.plan.id),
                 'name': subscription.plan.name,
                 'type': subscription.plan.plan_type,
-                'features': subscription.features_snapshot
+                'price_monthly': str(subscription.plan.price_monthly),
+                'price_yearly': str(subscription.plan.price_yearly),
+                'currency': subscription.plan.currency,
+                'features': [
+                    {'name': name, 'value': data['value'], 'is_highlight': data['is_highlight']}
+                    for name, data in subscription.features_snapshot.items()
+                ] if subscription.features_snapshot else []
             },
             'billing_interval': subscription.billing_interval,
             'current_period_start': subscription.current_period_start.isoformat() if subscription.current_period_start else None,

@@ -316,8 +316,10 @@ export const getCurrencySymbol = (currencyCode) => {
     return currency?.symbol || currencyCode;
 };
 export const formatCurrency = (amount, currencyCode = DEFAULT_CURRENCY) => {
+    if (amount === null || amount === undefined) return '—';
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     const symbol = getCurrencySymbol(currencyCode);
-    return `${symbol} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${symbol} ${numAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 // Quota Thresholds

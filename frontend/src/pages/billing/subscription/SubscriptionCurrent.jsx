@@ -13,7 +13,8 @@ const SubscriptionCurrent = () => {
     const navigate = useNavigate();
     const [showHistory, setShowHistory] = useState(false);
     const { data: subscription, isLoading, refetch } = useCurrentSubscription();
-    const { data: history, isLoading: historyLoading, refetch: refetchHistory } = useSubscriptionHistory(subscription?.id);
+    const subscriptionId = subscription?.subscription_id || subscription?.id;
+    const { data: history, isLoading: historyLoading, refetch: refetchHistory } = useSubscriptionHistory(subscriptionId);
     const syncSubscription = useSyncSubscription();
     const handleUpgrade = () => {
         navigate(BILLING_ROUTES.SUBSCRIPTION_UPGRADE);
@@ -25,8 +26,8 @@ const SubscriptionCurrent = () => {
         refetch();
     };
     const handleSync = async () => {
-        if (subscription?.id) {
-            await syncSubscription.mutateAsync(subscription.id);
+        if (subscriptionId) {
+            await syncSubscription.mutateAsync(subscriptionId);
             await refetch();
             if (showHistory) {
                 await refetchHistory();
