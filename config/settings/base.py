@@ -191,13 +191,13 @@ MIDDLEWARE = [
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
     # Reviews app middleware (order matters!)
-    'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
-    'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
-    'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
-    'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
-    'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
-    'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
-    'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
+    # 'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
+    # 'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
+    # 'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
+    # 'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
+    # 'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
+    # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
+    # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     
 
 
