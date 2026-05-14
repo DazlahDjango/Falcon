@@ -4,6 +4,23 @@ import {
     FiUsers, FiActivity, FiAlertCircle, FiTrendingUp, 
     FiShield, FiRefreshCw, FiGrid, FiLayers 
 } from 'react-icons/fi';
+import { 
+    fetchTenants,
+    selectTenants, 
+    selectTenantLoading, 
+    selectTenantError 
+} from '../../store/tenant/slice/tenantSlice.js';
+import {
+    fetchTenantStats,
+    fetchActivityData,
+    fetchHealthData,
+    fetchDashboardAlerts,
+    selectDashboardStats,
+    selectActivityData,
+    selectHealthData,
+    selectDashboardAlerts,
+    selectDashboardLoading
+} from '../../store/tenant/slice/tenantDashboardSlice.js';
 import {
     TenantStatsCards,
     TenantListWidget,
@@ -12,21 +29,42 @@ import {
     TenantHealthWidget,
     TenantAlertsWidget
 } from '../../components/tenant/dashboard/index.js';
-import { fetchTenants } from '../../store/tenant/slice/tenantSlice.js';
 
 export const TenantDashboardPage = () => {
     const dispatch = useDispatch();
-    const { tenants, loading, error } = useSelector((state) => state.tenants);
+    
+    // Selectors from appTenant slice
+    const tenants = useSelector(selectTenants);
+    const tenantsLoading = useSelector(selectTenantLoading);
+    const tenantsError = useSelector(selectTenantError);
+
+    // Selectors from tenantDashboard slice
+    const stats = useSelector(selectDashboardStats);
+    const activityData = useSelector(selectActivityData);
+    const healthData = useSelector(selectHealthData);
+    const alerts = useSelector(selectDashboardAlerts);
+    const dashboardLoading = useSelector(selectDashboardLoading);
 
     useEffect(() => {
         dispatch(fetchTenants());
+        dispatch(fetchTenantStats());
+        dispatch(fetchActivityData());
+        dispatch(fetchHealthData());
+        dispatch(fetchDashboardAlerts());
     }, [dispatch]);
 
     const handleRefresh = () => {
         dispatch(fetchTenants());
+        dispatch(fetchTenantStats());
+        dispatch(fetchActivityData());
+        dispatch(fetchHealthData());
+        dispatch(fetchDashboardAlerts());
     };
 
-    if (loading && !tenants?.length) {
+    const isLoading = tenantsLoading || (dashboardLoading && !stats);
+    const error = tenantsError;
+
+    if (isLoading && !tenants?.length) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="kpi-spinner" />
@@ -74,7 +112,7 @@ export const TenantDashboardPage = () => {
                         onClick={handleRefresh}
                         className="px-5 py-2.5 bg-white text-slate-700 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all font-bold text-sm flex items-center gap-2"
                     >
-                        <FiRefreshCw className={loading ? 'animate-spin' : ''} />
+                        <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
                         Refresh
                     </button>
                     <button className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-200">
@@ -85,7 +123,7 @@ export const TenantDashboardPage = () => {
             </div>
 
             {/* Quick Stats */}
-            <TenantStatsCards tenants={tenants} />
+            <TenantStatsCards tenants={tenants} stats={stats} />
 
             {/* Charts and Widgets */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -96,7 +134,7 @@ export const TenantDashboardPage = () => {
                             <h3 className="text-xl font-bold text-slate-900">Activity Overview</h3>
                         </div>
                     </div>
-                    <TenantActivityChart tenants={tenants} />
+                    <TenantActivityChart data={activityData} />
                 </div>
                 
                 <div className="lg:col-span-4 space-y-8">
@@ -106,7 +144,7 @@ export const TenantDashboardPage = () => {
                                 <FiShield className="text-green-400" />
                                 <h3 className="text-xl font-bold">Health Status</h3>
                             </div>
-                            <TenantHealthWidget tenants={tenants} />
+                            <TenantHealthWidget healthData={healthData} />
                         </div>
                         <FiActivity className="absolute -right-8 -bottom-8 h-48 w-48 text-white/5" />
                     </div>
@@ -116,11 +154,11 @@ export const TenantDashboardPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
                     <h3 className="text-xl font-bold text-slate-900 mb-6">Resource Allocation</h3>
-                    <TenantResourceSummary tenants={tenants} />
+                    <TenantResourceSummary resources={stats?.resources} loading={dashboardLoading} />
                 </div>
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
                     <h3 className="text-xl font-bold text-slate-900 mb-6">System Alerts</h3>
-                    <TenantAlertsWidget tenants={tenants} />
+                    <TenantAlertsWidget alerts={alerts} loading={dashboardLoading} />
                 </div>
             </div>
 

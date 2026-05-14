@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { NavLink, useParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ROUTES } from '../../../config/constants';
+import { BILLING_ROUTES, ADMIN_BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
@@ -23,6 +24,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         tenant: true,
         connections: true,
         tenantSpecific: true,
+        billing: true,
+        adminBilling: true,
     });
     const { tenantId: paramTenantId } = useParams();
     const location = useLocation();
@@ -113,6 +116,21 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/admin/cache', name: 'Cache', icon: FiDatabase, roles: ['super_admin'] },
         ];
         
+        const billingItems = [
+            { path: BILLING_ROUTES.DASHBOARD, name: 'Billing Dashboard', icon: FiGrid, roles: ['super_admin', 'client_admin'] },
+            { path: BILLING_ROUTES.SUBSCRIPTION_CURRENT, name: 'Subscription', icon: FiLayers, roles: ['super_admin', 'client_admin'] },
+            { path: BILLING_ROUTES.INVOICES, name: 'Invoices', icon: FiFileText, roles: ['super_admin', 'client_admin'] },
+            { path: BILLING_ROUTES.PAYMENTS, name: 'Payments', icon: FiDollarSign, roles: ['super_admin', 'client_admin'] },
+            { path: BILLING_ROUTES.PAYMENT_METHODS, name: 'Payment Methods', icon: FiCreditCard, roles: ['super_admin', 'client_admin'] },
+            { path: BILLING_ROUTES.QUOTA, name: 'Usage & Quota', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
+        ];
+        const adminBillingItems = [
+            { path: ADMIN_BILLING_ROUTES.REVENUE_DASHBOARD, name: 'Revenue Analytics', icon: FiTrendingUp, roles: ['super_admin'] },
+            { path: ADMIN_BILLING_ROUTES.TENANTS, name: 'Tenant Billing', icon: MdBusiness, roles: ['super_admin'] },
+            { path: ADMIN_BILLING_ROUTES.PLANS_MANAGEMENT, name: 'Plan Management', icon: FiLayers, roles: ['super_admin'] },
+            { path: ADMIN_BILLING_ROUTES.ALL_INVOICES, name: 'All Invoices', icon: FiFileText, roles: ['super_admin'] },
+        ];
+        
         return {
             main: baseItems,
             team: teamItems,
@@ -124,6 +142,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             tenantSpecific: tenantSpecificItems,
             connections: connectionItems,
             kpi: kpiItems,
+            billing: billingItems,
+            adminBilling: adminBillingItems,
             admin: adminItems
         };
     };
@@ -220,6 +240,15 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 
                 {user?.role === 'super_admin' && renderNavGroup('Connection Management', navigation.connections, 'connections')}
                 {renderNavGroup('KPI', navigation.kpi, 'kpi')}
+                
+                {(user?.role === 'super_admin' || user?.role === 'client_admin') && 
+                    renderNavGroup('Billing', navigation.billing, 'billing')
+                }
+                
+                {user?.role === 'super_admin' && 
+                    renderNavGroup('Billing Admin', navigation.adminBilling, 'adminBilling')
+                }
+                
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>
             

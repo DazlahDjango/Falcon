@@ -1,17 +1,12 @@
 # billing/models/__init__.py
 from .base import BillingBaseModel
-from .plan.plan import Plan
-from .plan.feature import PlanFeature
-from .plan.price import Price
-from .subscription.subscription import Subscription
-from .subscription.history import SubscriptionHistory
-from .invoice.invoice import Invoice
-from .invoice.line_item import InvoiceLineItem
-from .payment.payment import Payment
-from .payment.payment_method import PaymentMethod
-from .webhook.event import WebhookEvent
-from .quota.limit import QuotaLimit
-from .quota.usage import QuotaUsage
+from .plan import Plan, PlanFeature, Price
+from .subscription import Subscription, SubscriptionHistory
+from .invoice import Invoice
+from .invoice import InvoiceLineItem
+from .payment import Payment, PaymentMethod
+from .webhook import WebhookEvent
+from .quota import QuotaLimit, QuotaUsage
 
 __all__ = [
     'BillingBaseModel',

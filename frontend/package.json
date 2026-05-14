@@ -22,6 +22,7 @@
         "type-check": "tsc --noEmit"
     },
     "dependencies": {
+        "@heroicons/react": "^2.2.0",
         "@reduxjs/toolkit": "^2.2.0",
         "@tanstack/react-query": "^5.100.8",
         "@tanstack/react-query-devtools": "^5.100.5",

@@ -1,12 +1,12 @@
 import React from 'react';
 import { FiUsers, FiCheckCircle, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 
-export const TenantStatsCards = ({ tenants = [] }) => {
+export const TenantStatsCards = ({ tenants = [], stats }) => {
     // Calculate stats from tenants array if stats object not provided
-    const totalTenants = tenants.length;
-    const activeTenants = tenants.filter(t => t.is_active).length;
-    const suspendedTenants = tenants.filter(t => !t.is_active).length;
-    const provisioningTenants = tenants.filter(t => t.status === 'provisioning').length;
+    const totalTenants = stats?.totalTenants ?? tenants.length;
+    const activeTenants = stats?.activeTenants ?? tenants.filter(t => t.is_active).length;
+    const suspendedTenants = stats?.suspendedTenants ?? tenants.filter(t => !t.is_active).length;
+    const provisioningTenants = stats?.provisioningTenants ?? tenants.filter(t => t.status === 'provisioning').length;
 
     const cards = [
         { 

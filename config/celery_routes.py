@@ -1,4 +1,3 @@
-# config/celery_routes.py
 task_routes_dict = {
     # Accounts Tasks
     'apps.accounts.tasks.send_*': {'queue': 'email'},
@@ -90,6 +89,51 @@ task_routes_dict = {
     
     # Default for all other reviews tasks
     'apps.reviews.tasks.*': {'queue': 'reviews_default'},
+    # Billing Tasks
+    'billing.tasks.process_webhook_event': {
+        'queue': 'priority',
+        'routing_key': 'priority',
+    },
+    'billing.tasks.sync_subscription_with_stripe': {
+        'queue': 'billing',
+        'routing_key': 'billing',
+    },
+    'billing.tasks.check_expired_subscriptions': {
+        'queue': 'billing',
+        'routing_key': 'billing',
+    },
+    'billing.tasks.sync_invoices_for_tenant': {
+        'queue': 'billing',
+        'routing_key': 'billing',
+    },
+    'billing.tasks.process_webhook_event': {
+        'queue': 'webhook',
+        'routing_key': 'webhook',
+    },
+    'billing.tasks.send_upcoming_invoice_reminder': {
+        'queue': 'email',
+        'routing_key': 'email',
+    },
+    'billing.tasks.send_payment_failed_notification': {
+        'queue': 'email',
+        'routing_key': 'email',
+    },
+    'billing.tasks.handle_trial_ending_soon': {
+        'queue': 'email',
+        'routing_key': 'email',
+    },
+    'billing.tasks.reset_daily_api_quotas': {
+        'queue': 'default',
+        'routing_key': 'default',
+    },
+    'billing.tasks.generate_monthly_invoice_report': {
+        'queue': 'default',
+        'routing_key': 'default',
+    },
+    'billing.tasks.cleanup_old_webhook_events': {
+        'queue': 'default',
+        'routing_key': 'default',
+    },
 }
 
 # Function-based routes for complex patterns
