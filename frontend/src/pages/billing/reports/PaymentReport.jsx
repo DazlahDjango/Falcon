@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usePayments, usePaymentSummary } from '../../../hooks/billing/usePayments';
+import { usePayments, usePaymentSummary } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowLeftIcon, DocumentArrowDownIcon, PrinterIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiDownload, FiPrinter, FiCalendar } from 'react-icons/fi';
 import { formatCurrency } from '../../../config/constants/billingConstants';
 
 const PaymentReport = () => {
@@ -14,17 +14,17 @@ const PaymentReport = () => {
     });
     const [statusFilter, setStatusFilter] = useState('all');
     const [isExporting, setIsExporting] = useState(false);
-    
+
     const { data: paymentsData, isLoading, refetch } = usePayments({
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         status: statusFilter !== 'all' ? statusFilter : null,
     });
     const { data: summary } = usePaymentSummary();
-    
+
     const payments = paymentsData?.payments || [];
     const pagination = paymentsData?.pagination || {};
-    
+
     const calculateTotals = () => {
         const totalSucceeded = payments
             .filter(p => p.status === 'succeeded')
@@ -35,13 +35,13 @@ const PaymentReport = () => {
         const totalRefunded = payments
             .filter(p => p.status === 'refunded')
             .reduce((sum, p) => sum + (p.refunded_amount || 0), 0);
-        
+
         return { totalSucceeded, totalFailed, totalRefunded };
     };
-    
+
     const totals = calculateTotals();
     const successRate = payments.filter(p => p.status === 'succeeded').length / (payments.length || 1) * 100;
-    
+
     const formatDate = (dateString) => {
         if (!dateString) return '—';
         return new Date(dateString).toLocaleDateString('en-KE');
@@ -78,7 +78,7 @@ const PaymentReport = () => {
                         onClick={() => navigate(BILLING_ROUTES.REPORTS)}
                         className="text-gray-500 hover:text-gray-700"
                     >
-                        <ArrowLeftIcon className="w-5 h-5" />
+                        <FiArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Payment Report</h1>
@@ -90,7 +90,7 @@ const PaymentReport = () => {
                         onClick={handlePrint}
                         className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                     >
-                        <PrinterIcon className="w-4 h-4" />
+                        <FiPrinter className="w-4 h-4" />
                         Print
                     </button>
                     <button
@@ -98,7 +98,7 @@ const PaymentReport = () => {
                         disabled={isExporting}
                         className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 disabled:opacity-50"
                     >
-                        <DocumentArrowDownIcon className="w-4 h-4" />
+                        <FiDownload className="w-4 h-4" />
                         {isExporting ? 'Exporting...' : 'Export CSV'}
                     </button>
                 </div>
@@ -106,7 +106,7 @@ const PaymentReport = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex flex-wrap gap-4 items-center">
                     <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-5 h-5 text-gray-400" />
+                        <FiCalendar className="w-5 h-5 text-gray-400" />
                         <input
                             type="date"
                             value={dateRange.startDate}
@@ -190,12 +190,11 @@ const PaymentReport = () => {
                                             {formatCurrency(payment.amount, payment.currency)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                                payment.status === 'succeeded' ? 'bg-green-100 text-green-800' :
-                                                payment.status === 'failed' ? 'bg-red-100 text-red-800' :
-                                                payment.status === 'refunded' ? 'bg-gray-100 text-gray-800' :
-                                                'bg-yellow-100 text-yellow-800'
-                                            }`}>
+                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${payment.status === 'succeeded' ? 'bg-green-100 text-green-800' :
+                                                    payment.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                                        payment.status === 'refunded' ? 'bg-gray-100 text-gray-800' :
+                                                            'bg-yellow-100 text-yellow-800'
+                                                }`}>
                                                 {payment.status}
                                             </span>
                                         </td>

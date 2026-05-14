@@ -4,7 +4,7 @@ import { usePayments, usePaymentSummary, useRetryPayment } from '../../../hooks/
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import PaymentHistoryTable from '../../../components/billing/PaymentHistoryTable';
 import { Spinner } from '../../../components/common/UI';
-import { CreditCardIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { FiCreditCard, FiFilter } from 'react-icons/fi';
 
 const PaymentList = () => {
     const navigate = useNavigate();
@@ -63,7 +63,7 @@ const PaymentList = () => {
             </div>
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                    <FunnelIcon className="w-5 h-5 text-gray-400" />
+                    <FiFilter className="w-5 h-5 text-gray-400" />
                     <select
                         value={statusFilter}
                         onChange={(e) => {
@@ -85,7 +85,7 @@ const PaymentList = () => {
             </div>
             {payments.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <CreditCardIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <FiCreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment Records</h3>
                     <p className="text-gray-500">No payment transactions found.</p>
                 </div>

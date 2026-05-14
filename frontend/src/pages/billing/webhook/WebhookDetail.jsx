@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { ArrowLeftIcon, PencilIcon, TrashIcon, BellIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiEdit, FiTrash2, FiBell, FiRefreshCw } from 'react-icons/fi';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 const mockWebhook = {
@@ -75,7 +75,7 @@ const WebhookDetail = () => {
                         onClick={() => navigate(BILLING_ROUTES.WEBHOOKS)}
                         className="text-gray-500 hover:text-gray-700"
                     >
-                        <ArrowLeftIcon className="w-5 h-5" />
+                        <FiArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
                         {isEditing ? (
@@ -114,7 +114,7 @@ const WebhookDetail = () => {
                                     onClick={() => setIsEditing(true)}
                                     className="text-gray-400 hover:text-gray-600"
                                 >
-                                    <PencilIcon className="w-4 h-4" />
+                                    <FiEdit className="w-4 h-4" />
                                 </button>
                             </div>
                         )}
@@ -125,7 +125,7 @@ const WebhookDetail = () => {
                     onClick={() => setShowDeleteConfirm(true)}
                     className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
                 >
-                    <TrashIcon className="w-5 h-5" />
+                    <FiTrash2 className="w-5 h-5" />
                 </button>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -255,7 +255,7 @@ const WebhookDetail = () => {
                                                 disabled={isRedelivering}
                                                 className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 ml-auto"
                                             >
-                                                <ArrowPathIcon className="w-4 h-4" />
+                                                <FiRefreshCw className="w-4 h-4" />
                                                 Redeliver
                                             </button>
                                         )}

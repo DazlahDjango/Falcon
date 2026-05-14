@@ -1,45 +1,53 @@
 import { BaseBillingService, withRetry } from './client';
+import { INVOICE_API_ENDPOINTS } from '../../config/constants/billingApiConstants';
 
 class InvoiceService extends BaseBillingService {
     constructor() {
         super('invoices');
     }
+
     async getInvoices(params = {}) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(), { params }));
+        return withRetry(() => this.apiClient.get(INVOICE_API_ENDPOINTS.LIST, { params }));
     }
+
     async getInvoiceById(id) {
-        return this.getById(id);
+        return withRetry(() => this.apiClient.get(INVOICE_API_ENDPOINTS.DETAIL(id)));
     }
+
     async downloadInvoice(id) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/download/`), {
+        return withRetry(() => this.apiClient.get(INVOICE_API_ENDPOINTS.DOWNLOAD(id), {
             responseType: 'blob'
         }));
     }
+
     async getInvoiceDownloadUrl(id) {
         const response = await this.getInvoiceById(id);
         return response.data?.invoice_pdf_url;
     }
+
     async sendPaymentReminder(id) {
-        return withRetry(() => this.apiClient.post(this.getEndpoint(`${id}/remind/`)));
+        return withRetry(() => this.apiClient.post(INVOICE_API_ENDPOINTS.REMIND(id)));
     }
+
     async getOutstandingInvoices() {
-        return withRetry(() => this.apiClient.get('/invoices/outstanding/'));
+        return withRetry(() => this.apiClient.get(INVOICE_API_ENDPOINTS.OUTSTANDING));
     }
-    async getInvoiceSummary() {
-        return withRetry(() => this.apiClient.get('/invoices/summary/'));
-    }
+
     async getInvoiceLineItems(id) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/line-items/`)));
+        return withRetry(() => this.apiClient.get(INVOICE_API_ENDPOINTS.LINE_ITEMS(id)));
     }
+
     async getInvoicePayments(id) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/payments/`)));
+        return withRetry(() => this.apiClient.get(INVOICE_API_ENDPOINTS.PAYMENTS(id)));
     }
+
     async getInvoicesByDateRange(startDate, endDate) {
         return this.getInvoices({
             date_from: startDate.toISOString().split('T')[0],
             date_to: endDate.toISOString().split('T')[0]
         });
     }
+
     async getPaidInvoices(startDate, endDate) {
         return this.getInvoices({
             status: 'paid',
@@ -48,5 +56,6 @@ class InvoiceService extends BaseBillingService {
         });
     }
 }
+
 export const invoiceService = new InvoiceService();
 export default invoiceService;

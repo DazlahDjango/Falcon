@@ -124,19 +124,23 @@ class AuditLog(BaseModel):
         }
         
         if request:
-            data['ip_address'] = cls.get_client_ip(request)
+            data['ip_address'] = cls.get_client_ip(request) or '127.0.0.1'
             data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:500]
             data['referer'] = request.META.get('HTTP_REFERER', '')[:500]
             data['request_method'] = request.method
             data['request_path'] = request.path
             data['session_key'] = request.session.session_key or ''
+        else:
+            data['ip_address'] = '127.0.0.1'
         
         return cls.objects.create(**data)
     
     @staticmethod
     def get_client_ip(request):
         """Extract client IP from request."""
+        if not request:
+            return '127.0.0.1'
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
-        return request.META.get('REMOTE_ADDR')
+        return request.META.get('REMOTE_ADDR', '') or '127.0.0.1'

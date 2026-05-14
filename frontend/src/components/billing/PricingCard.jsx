@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { CheckIcon, SparklesIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { FiCheck, FiZap, FiArrowRight } from 'react-icons/fi';
 import { formatCurrency } from '../../config/constants/billingConstants';
 
 const PricingCard = ({ 
@@ -31,7 +31,7 @@ const PricingCard = ({
             {isPopular && !isCurrent && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md">
-                        <SparklesIcon className="w-3 h-3" />
+                        <FiZap className="w-3 h-3" />
                         Most Popular
                     </span>
                 </div>
@@ -76,7 +76,7 @@ const PricingCard = ({
                 <div className="space-y-3 mb-8">
                     {plan.features?.slice(0, 8).map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
-                            <CheckIcon className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                            <FiCheck className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                             <span className="text-sm text-gray-600">
                                 {feature.name}
                                 {feature.value && feature.value !== 'Yes' && feature.value !== 'No' && (
@@ -103,7 +103,7 @@ const PricingCard = ({
                     }`}
                 >
                     {isCurrent ? 'Current Plan' : isSelected ? 'Selected' : 'Choose Plan'}
-                    {!isCurrent && <ArrowRightIcon className="w-4 h-4" />}
+                    {!isCurrent && <FiArrowRight className="w-4 h-4" />}
                 </button>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { FiX } from 'react-icons/fi';
 import { useStripeElements } from '../../hooks/billing/useStripeElements';
 import { useAddPaymentMethod } from '../../hooks/billing/usePaymentMethods';
 
@@ -59,7 +59,7 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
                                 onClick={onClose}
                                 className="text-gray-400 hover:text-gray-500"
                             >
-                                <XMarkIcon className="w-6 h-6" />
+                                <FiX className="w-6 h-6" />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit}>

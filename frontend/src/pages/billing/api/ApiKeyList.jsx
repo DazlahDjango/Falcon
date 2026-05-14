@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { PlusIcon, KeyIcon, TrashIcon, DocumentDuplicateIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { FiPlus, FiKey, FiTrash2, FiCopy, FiEye, FiEyeOff } from 'react-icons/fi';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 const mockApiKeys = [
@@ -59,7 +59,7 @@ const ApiKeyList = () => {
                     onClick={handleCreateKey}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
-                    <PlusIcon className="w-5 h-5" />
+                    <FiPlus className="w-5 h-5" />
                     Create API Key
                 </button>
             </div>
@@ -79,7 +79,7 @@ const ApiKeyList = () => {
                                     onClick={() => handleCopyKey(showNewKey)}
                                     className="text-green-700 hover:text-green-900"
                                 >
-                                    <DocumentDuplicateIcon className="w-5 h-5" />
+                                    <FiCopy className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
@@ -94,7 +94,7 @@ const ApiKeyList = () => {
             )}
             {apiKeys.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <KeyIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <FiKey className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No API Keys</h3>
                     <p className="text-gray-500 mb-4">Create your first API key to start using the Falcon PMS API.</p>
                     <button
@@ -131,13 +131,13 @@ const ApiKeyList = () => {
                                                 onClick={() => toggleShowKey(key.id)}
                                                 className="text-gray-400 hover:text-gray-600"
                                             >
-                                                {showKeyValue[key.id] ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                                                {showKeyValue[key.id] ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                                             </button>
                                             <button
                                                 onClick={() => handleCopyKey(key.key)}
                                                 className="text-gray-400 hover:text-gray-600"
                                             >
-                                                <DocumentDuplicateIcon className="w-4 h-4" />
+                                                <FiCopy className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </td>
@@ -151,7 +151,7 @@ const ApiKeyList = () => {
                                             }}
                                             className="text-red-600 hover:text-red-800"
                                         >
-                                            <TrashIcon className="w-5 h-5" />
+                                            <FiTrash2 className="w-5 h-5" />
                                         </button>
                                     </td>
                                 </tr>

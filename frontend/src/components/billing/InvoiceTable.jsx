@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { EyeIcon, DocumentArrowDownIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { FiEye, FiDownload, FiMail } from 'react-icons/fi';
 import { formatCurrency } from '../../config/constants/billingConstants';
 import { INVOICE_STATUS, INVOICE_STATUS_COLORS, INVOICE_STATUS_LABELS } from '../../config/constants/billingConstants';
 const InvoiceTable = ({ 
@@ -137,7 +137,7 @@ const InvoiceTable = ({
                                                 className="text-gray-400 hover:text-gray-600 transition-colors"
                                                 title="View Details"
                                             >
-                                                <EyeIcon className="w-5 h-5" />
+                                                <FiEye className="w-5 h-5" />
                                             </button>
                                             {invoice.status !== 'paid' && (
                                                 <button
@@ -145,7 +145,7 @@ const InvoiceTable = ({
                                                     className="text-gray-400 hover:text-amber-600 transition-colors"
                                                     title="Send Reminder"
                                                 >
-                                                    <EnvelopeIcon className="w-5 h-5" />
+                                                    <FiMail className="w-5 h-5" />
                                                 </button>
                                             )}
                                             <button
@@ -153,7 +153,7 @@ const InvoiceTable = ({
                                                 className="text-gray-400 hover:text-blue-600 transition-colors"
                                                 title="Download PDF"
                                             >
-                                                <DocumentArrowDownIcon className="w-5 h-5" />
+                                                <FiDownload className="w-5 h-5" />
                                             </button>
                                         </div>
                                     </td>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSubscriptionHistory, useCurrentSubscription } from '../../../hooks/billing/useSubscription';
+import { useSubscriptionHistory, useCurrentSubscription } from '../../../hooks/billing';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowLeftIcon, ClockIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiClock, FiFileText } from 'react-icons/fi';
 
 const SubscriptionHistory = () => {
     const navigate = useNavigate();
@@ -44,7 +44,7 @@ const SubscriptionHistory = () => {
     const itemsPerPage = 20;
     const totalPages = Math.ceil(historyList.length / itemsPerPage);
     const paginatedHistory = historyList.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-    
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -52,7 +52,7 @@ const SubscriptionHistory = () => {
                     onClick={() => navigate('/app/billing/subscription/current')}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Subscription History</h1>
@@ -77,7 +77,7 @@ const SubscriptionHistory = () => {
             </div>
             {historyList.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <ClockIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <FiClock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No History Records</h3>
                     <p className="text-gray-500">No subscription changes have been recorded yet.</p>
                 </div>
@@ -111,12 +111,11 @@ const SubscriptionHistory = () => {
                                             {formatDate(record.created_at)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                                record.new_status === 'active' ? 'bg-green-100 text-green-800' :
-                                                record.new_status === 'canceled' ? 'bg-red-100 text-red-800' :
-                                                record.previous_plan !== record.new_plan ? 'bg-blue-100 text-blue-800' :
-                                                'bg-gray-100 text-gray-800'
-                                            }`}>
+                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${record.new_status === 'active' ? 'bg-green-100 text-green-800' :
+                                                    record.new_status === 'canceled' ? 'bg-red-100 text-red-800' :
+                                                        record.previous_plan !== record.new_plan ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                }`}>
                                                 {record.previous_plan !== record.new_plan ? 'Plan Change' : 'Status Change'}
                                             </span>
                                         </td>

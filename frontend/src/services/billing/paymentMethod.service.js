@@ -1,39 +1,45 @@
 import { BaseBillingService, withRetry, getStripe } from './client';
+import { PAYMENT_METHOD_API_ENDPOINTS } from '../../config/constants/billingApiConstants';
 
 class PaymentMethodService extends BaseBillingService {
     constructor() {
         super('payment-methods');
     }
+
     async getPaymentMethods() {
-        return withRetry(() => this.apiClient.get(this.getEndpoint()));
+        return withRetry(() => this.apiClient.get(PAYMENT_METHOD_API_ENDPOINTS.LIST));
     }
+
     async getPaymentMethodById(id) {
-        return this.getById(id);
+        return withRetry(() => this.apiClient.get(PAYMENT_METHOD_API_ENDPOINTS.DETAIL(id)));
     }
+
     async getDefaultPaymentMethod() {
-        return withRetry(() => this.apiClient.get('/payment-methods/default/'));
+        return withRetry(() => this.apiClient.get(PAYMENT_METHOD_API_ENDPOINTS.DEFAULT));
     }
+
     async getExpiringSoon() {
-        return withRetry(() => this.apiClient.get('/payment-methods/expiring-soon/'));
+        return withRetry(() => this.apiClient.get(PAYMENT_METHOD_API_ENDPOINTS.EXPIRING_SOON));
     }
-    async createSetupIntent() {
-        return withRetry(() => this.apiClient.post('/payment-methods/setup-intent/'));
-    }
+
     async addPaymentMethod(paymentMethodId, setAsDefault = true) {
         if (!paymentMethodId) {
             throw new Error('Payment method ID is required');
         }
-        return this.create({ payment_method_id: paymentMethodId, set_as_default: setAsDefault });
+        return withRetry(() => this.apiClient.post(PAYMENT_METHOD_API_ENDPOINTS.CREATE, { 
+            payment_method_id: paymentMethodId, 
+            set_as_default: setAsDefault 
+        }));
     }
+
     async deletePaymentMethod(id) {
-        return this.delete(id);
+        return withRetry(() => this.apiClient.delete(PAYMENT_METHOD_API_ENDPOINTS.DELETE(id)));
     }
+
     async setDefaultPaymentMethod(id) {
-        return withRetry(() => this.apiClient.post(this.getEndpoint(`${id}/set_default/`)));
+        return withRetry(() => this.apiClient.post(PAYMENT_METHOD_API_ENDPOINTS.SET_DEFAULT(id)));
     }
-    async detachPaymentMethod(id) {
-        return withRetry(() => this.apiClient.post(this.getEndpoint(`${id}/detach/`)));
-    }
+
     async initStripeElements(options = {}) {
         const stripe = await getStripe();
         if (!stripe) {
@@ -78,6 +84,7 @@ class PaymentMethodService extends BaseBillingService {
         });
         return { stripe, elements, cardElement };
     }
+
     async confirmSetup(stripe, cardElement, clientSecret) {
         const { setupIntent, error } = await stripe.confirmCardSetup(clientSecret, {
             payment_method: {
@@ -89,6 +96,7 @@ class PaymentMethodService extends BaseBillingService {
         }
         return setupIntent;
     }
+
     async processPayment(paymentMethodId, paymentData) {
         const stripe = await getStripe();
         if (!stripe) {
@@ -104,5 +112,6 @@ class PaymentMethodService extends BaseBillingService {
         return { success: true };
     }
 }
+
 export const paymentMethodService = new PaymentMethodService();
 export default paymentMethodService;

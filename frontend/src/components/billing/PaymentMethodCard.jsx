@@ -1,25 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { 
-    CreditCardIcon, 
-    BanknotesIcon, 
-    DevicePhoneMobileIcon,
-    CheckCircleIcon,
-    TrashIcon,
-    StarIcon 
-} from '@heroicons/react/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
+    FiCreditCard, 
+    FiDollarSign, 
+    FiSmartphone,
+    FiCheckCircle,
+    FiTrash2,
+    FiStar 
+} from 'react-icons/fi';
+
 
 const getMethodIcon = (methodType) => {
     switch (methodType) {
         case 'card':
-            return CreditCardIcon;
+            return FiCreditCard;
         case 'bank_account':
-            return BanknotesIcon;
+            return FiDollarSign;
         case 'mobile_money':
-            return DevicePhoneMobileIcon;
+            return FiSmartphone;
         default:
-            return CreditCardIcon;
+            return FiCreditCard;
     }
 };
 const getCardBrandLogo = (brand) => {
@@ -71,7 +71,7 @@ const PaymentMethodCard = ({
                             </p>
                             {isDefault && (
                                 <span className="inline-flex items-center gap-0.5 text-xs text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
-                                    <StarSolidIcon className="w-3 h-3" />
+                                    <FiStar className="w-3 h-3 fill-current" />
                                     Default
                                 </span>
                             )}
@@ -106,7 +106,7 @@ const PaymentMethodCard = ({
                             className="text-gray-400 hover:text-red-600 transition-colors"
                             title="Delete"
                         >
-                            <TrashIcon className="w-5 h-5" />
+                            <FiTrash2 className="w-5 h-5" />
                         </button>
                     </div>
                 )}

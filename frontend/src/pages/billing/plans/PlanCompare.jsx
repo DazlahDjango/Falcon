@@ -4,7 +4,7 @@ import { usePlans, usePlanComparisonMatrix } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import PlanComparisonTable from '../../../components/billing/PlanComparisonTable';
 import { Spinner } from '../../../components/common/UI';
-import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { FiCheck, FiX } from 'react-icons/fi';
 
 const PlanCompare = () => {
     const navigate = useNavigate();
@@ -72,7 +72,7 @@ const PlanCompare = () => {
                         >
                             {plan.name}
                             {selectedPlanIds.includes(plan.id) && (
-                                <CheckIcon className="w-4 h-4 inline ml-2" />
+                                <FiCheck className="w-4 h-4 inline ml-2" />
                             )}
                         </button>
                     ))}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { SaveIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { FiSave, FiX } from 'react-icons/fi';
 
 const BillingSettingsForm = ({ 
     initialSettings, 
@@ -253,7 +253,7 @@ const BillingSettingsForm = ({
                         </>
                     ) : (
                         <>
-                            <SaveIcon className="w-4 h-4" />
+                            <FiSave className="w-4 h-4" />
                             Save Settings
                         </>
                     )}

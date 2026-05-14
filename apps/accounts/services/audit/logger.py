@@ -148,8 +148,9 @@ class AuditService:
     
     def _get_client_ip(self, request) -> str:
         if not request:
-            return ''
+            return '127.0.0.1'
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
-        return request.META.get('REMOTE_ADDR', '')
+        return request.META.get('REMOTE_ADDR', '') or '127.0.0.1'
+        

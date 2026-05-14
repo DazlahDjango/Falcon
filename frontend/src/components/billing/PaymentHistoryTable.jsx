@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { EyeIcon, ArrowPathIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { FiEye, FiRefreshCw, FiDollarSign } from 'react-icons/fi';
 import { formatCurrency } from '../../config/constants/billingConstants';
 import { PAYMENT_STATUS, PAYMENT_STATUS_COLORS, PAYMENT_STATUS_LABELS } from '../../config/constants/billingConstants';
 
@@ -147,7 +147,7 @@ const PaymentHistoryTable = ({
                                                 className="text-gray-400 hover:text-gray-600 transition-colors"
                                                 title="View Details"
                                             >
-                                                <EyeIcon className="w-5 h-5" />
+                                                <FiEye className="w-5 h-5" />
                                             </button>
                                             {showRetryButton && payment.status === 'failed' && (
                                                 <button
@@ -155,7 +155,7 @@ const PaymentHistoryTable = ({
                                                     className="text-gray-400 hover:text-blue-600 transition-colors"
                                                     title="Retry Payment"
                                                 >
-                                                    <ArrowPathIcon className="w-5 h-5" />
+                                                    <FiRefreshCw className="w-5 h-5" />
                                                 </button>
                                             )}
                                             {payment.receipt_url && (
@@ -166,7 +166,7 @@ const PaymentHistoryTable = ({
                                                     className="text-gray-400 hover:text-green-600 transition-colors"
                                                     title="View Receipt"
                                                 >
-                                                    <CurrencyDollarIcon className="w-5 h-5" />
+                                                    <FiDollarSign className="w-5 h-5" />
                                                 </a>
                                             )}
                                         </div>

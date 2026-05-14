@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { featureService } from '../../services/billing/feature.service';
+import { featureService } from '../../services/billing';
 import { FEATURE_FLAGS } from '../../config/constants/billingConstants';
 
 export const useBillingPermissions = () => {
@@ -29,7 +29,7 @@ export const useBillingPermissions = () => {
     const isSuperAdmin = userRole === 'super_admin';
     const isClientAdmin = userRole === 'client_admin';
     const isExecutive = userRole === 'executive';
-    const isDashboardChampion = userRole === 'dashboard_champion';  
+    const isDashboardChampion = userRole === 'dashboard_champion';
     return {
         canViewBilling,
         canManageBilling,
@@ -58,7 +58,7 @@ export const useBillingFeatures = () => {
     };
     const getRequiredPlan = (featureName) => {
         return features?.[featureName]?.min_plan || null;
-    };  
+    };
     return {
         features,
         hasFeature,

@@ -4,17 +4,17 @@ import { useCurrentSubscription } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import BillingSettingsForm from '../../../components/billing/BillingSettingsForm';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowLeftIcon, BellIcon, CreditCardIcon, KeyIcon, WebhookIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiBell, FiCreditCard, FiKey, FiActivity } from 'react-icons/fi';
 
 const BillingSettings = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('billing');
     const { data: subscription, isLoading } = useCurrentSubscription();
     const tabs = [
-        { id: 'billing', label: 'Billing Information', icon: CreditCardIcon },
-        { id: 'notifications', label: 'Notifications', icon: BellIcon },
-        { id: 'api', label: 'API Keys', icon: KeyIcon },
-        { id: 'webhooks', label: 'Webhooks', icon: WebhookIcon },
+        { id: 'billing', label: 'Billing Information', icon: FiCreditCard },
+        { id: 'notifications', label: 'Notifications', icon: FiBell },
+        { id: 'api', label: 'API Keys', icon: FiKey },
+        { id: 'webhooks', label: 'Webhooks', icon: FiActivity },
     ];
     if (isLoading) {
         return (
@@ -31,7 +31,7 @@ const BillingSettings = () => {
                     onClick={() => navigate(BILLING_ROUTES.DASHBOARD)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Billing Settings</h1>
@@ -126,7 +126,7 @@ const BillingSettings = () => {
                 )}                
                 {activeTab === 'api' && (
                     <div className="text-center py-8">
-                        <KeyIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <FiKey className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">API Access</h3>
                         <p className="text-gray-500 mb-4">
                             API access is available on Professional and Enterprise plans.
@@ -150,7 +150,7 @@ const BillingSettings = () => {
                 )}
                 {activeTab === 'webhooks' && (
                     <div className="text-center py-8">
-                        <WebhookIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <FiActivity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Webhook Endpoints</h3>
                         <p className="text-gray-500 mb-4">
                             Configure webhook endpoints to receive real-time events from Falcon PMS.

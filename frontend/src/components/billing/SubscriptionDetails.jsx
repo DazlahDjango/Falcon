@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { CalendarIcon, CurrencyDollarIcon, CreditCardIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { FiCalendar, FiDollarSign, FiCreditCard, FiRefreshCw } from 'react-icons/fi';
 import SubscriptionStatusBadge from './SubscriptionStatusBadge';
 import { formatCurrency } from '../../config/constants/billingConstants';
 import { useSubscriptionStatus } from '../../hooks/billing/useSubscription';
@@ -57,14 +57,14 @@ const SubscriptionDetails = ({ subscription, onSync, isLoading = false }) => {
                     className="text-gray-400 hover:text-gray-600 transition-colors"
                     title="Sync with Stripe"
                 >
-                    <ArrowPathIcon className="w-5 h-5" />
+                    <FiRefreshCw className="w-5 h-5" />
                 </button>
             </div>
             <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <CreditCardIcon className="w-5 h-5 text-primary-600" />
+                            <FiCreditCard className="w-5 h-5 text-primary-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Current Plan</p>
@@ -74,7 +74,7 @@ const SubscriptionDetails = ({ subscription, onSync, isLoading = false }) => {
                     </div>
                     <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
+                            <FiDollarSign className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Monthly Price</p>
@@ -90,7 +90,7 @@ const SubscriptionDetails = ({ subscription, onSync, isLoading = false }) => {
                     </div>
                     <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <CalendarIcon className="w-5 h-5 text-blue-600" />
+                            <FiCalendar className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Status</p>
@@ -102,7 +102,7 @@ const SubscriptionDetails = ({ subscription, onSync, isLoading = false }) => {
                     </div>
                     <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <CalendarIcon className="w-5 h-5 text-purple-600" />
+                            <FiCalendar className="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Next Renewal</p>

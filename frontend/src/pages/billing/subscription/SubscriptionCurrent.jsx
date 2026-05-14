@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCurrentSubscription, useSubscriptionHistory, useSyncSubscription } from '../../../hooks/billing/useSubscription';
-import { useCancelSubscription, useReactivateSubscription } from '../../../hooks/billing/useSubscription';
+import { useCurrentSubscription, useSubscriptionHistory, useSyncSubscription } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import SubscriptionDetails from '../../../components/billing/SubscriptionDetails';
 import SubscriptionStatusBadge from '../../../components/billing/SubscriptionStatusBadge';
 import SubscriptionActions from '../../../components/billing/SubscriptionActions';
 import { Spinner } from '../../../components/common/UI';
 import { formatCurrency } from '../../../config/constants/billingConstants';
-import { CalendarIcon, ClockIcon, DocumentTextIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { FiCalendar, FiClock, FiFileText, FiRefreshCw } from 'react-icons/fi';
 
 const SubscriptionCurrent = () => {
     const navigate = useNavigate();
@@ -53,7 +52,7 @@ const SubscriptionCurrent = () => {
         return (
             <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <DocumentTextIcon className="w-8 h-8 text-gray-400" />
+                    <FiFileText className="w-8 h-8 text-gray-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">No Active Subscription</h2>
                 <p className="text-gray-500 mb-6">You don't have an active subscription. Choose a plan to get started.</p>
@@ -68,7 +67,7 @@ const SubscriptionCurrent = () => {
     }
     const plan = subscription.plan || {};
     const price = subscription.billing_interval === 'month' ? plan.price_monthly : plan.price_yearly;
-    
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -81,7 +80,7 @@ const SubscriptionCurrent = () => {
                     disabled={syncSubscription.isLoading}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                    <ArrowPathIcon className={`w-4 h-4 ${syncSubscription.isLoading ? 'animate-spin' : ''}`} />
+                    <FiRefreshCw className={`w-4 h-4 ${syncSubscription.isLoading ? 'animate-spin' : ''}`} />
                     Sync with Stripe
                 </button>
             </div>
@@ -175,7 +174,7 @@ const SubscriptionCurrent = () => {
                 onClick={() => setShowHistory(!showHistory)}
                 className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2"
             >
-                <ClockIcon className="w-4 h-4" />
+                <FiClock className="w-4 h-4" />
                 {showHistory ? 'Hide' : 'Show'} Subscription History
             </button>
             {showHistory && (

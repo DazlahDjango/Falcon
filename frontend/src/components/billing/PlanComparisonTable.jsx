@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { CheckIcon, XMarkIcon, MinusIcon } from '@heroicons/react/24/outline';
+import { FiCheck, FiX, FiMinus } from 'react-icons/fi';
 import { formatCurrency } from '../../config/constants/billingConstants';
 
 const PlanComparisonTable = ({ plans, features, billingInterval = 'month' }) => {
@@ -22,13 +22,13 @@ const PlanComparisonTable = ({ plans, features, billingInterval = 'month' }) => 
         if (!planFeature) return '—';  
         const value = planFeature.value;
         if (value === 'Yes' || value === 'yes' || value === 'true') {
-            return <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />;
+            return <FiCheck className="w-5 h-5 text-green-500 mx-auto" />;
         }
         if (value === 'No' || value === 'no' || value === 'false') {
-            return <XMarkIcon className="w-5 h-5 text-red-500 mx-auto" />;
+            return <FiX className="w-5 h-5 text-red-500 mx-auto" />;
         }
         if (value === '—' || !value) {
-            return <MinusIcon className="w-5 h-5 text-gray-400 mx-auto" />;
+            return <FiMinus className="w-5 h-5 text-gray-400 mx-auto" />;
         }
         return <span className="text-sm text-gray-700">{value}</span>;
     };

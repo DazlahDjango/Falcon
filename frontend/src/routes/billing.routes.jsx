@@ -2,72 +2,77 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { BILLING_ROUTES, ADMIN_BILLING_ROUTES, buildBillingPath } from '../config/constants/billingRoutesConstants';
 
+// ============================================================================
+// USER BILLING PAGES
+// ============================================================================
+
 // Main billing pages
-const BillingDashboard = React.lazy(() => import('../pages/billing'));
-const SubscriptionCurrent = React.lazy(() => import('../pages/billing'));
-const SubscriptionHistory = React.lazy(() => import('../pages/billing'));
-const SubscriptionCancel = React.lazy(() => import('../pages/billing'));
-const SubscriptionReactivate = React.lazy(() => import('../pages/billing'));
-const SubscriptionUpgrade = React.lazy(() => import('../pages/billing'));
-const SubscriptionDowngrade = React.lazy(() => import('../pages/billing'));
+const BillingDashboard = React.lazy(() => import('../pages/billing/dashboards/BillingDashboard'));
+const SubscriptionCurrent = React.lazy(() => import('../pages/billing/subscription/SubscriptionCurrent'));
+const SubscriptionHistory = React.lazy(() => import('../pages/billing/subscription/SubscriptionHistory'));
+const SubscriptionCancel = React.lazy(() => import('../pages/billing/subscription/SubscriptionCancel'));
+const SubscriptionReactivate = React.lazy(() => import('../pages/billing/subscription/SubscriptionReactivate'));
+const SubscriptionUpgrade = React.lazy(() => import('../pages/billing/subscription/SubscriptionUpgrade'));
+const SubscriptionDowngrade = React.lazy(() => import('../pages/billing/subscription/SubscriptionDowngrade'));
 
 // Plan pages
-const PlanList = React.lazy(() => import('../pages/billing/PlanList'));
-const PlanDetail = React.lazy(() => import('../pages/billing/PlanDetail'));
-const PlanCompare = React.lazy(() => import('../pages/billing/PlanCompare'));
+const PlanList = React.lazy(() => import('../pages/billing/plans/PlanList'));
+const PlanDetail = React.lazy(() => import('../pages/billing/plans/PlanDetail'));
+const PlanCompare = React.lazy(() => import('../pages/billing/plans/PlanCompare'));
 
 // Checkout pages
-const Checkout = React.lazy(() => import('../pages/billing/Checkout'));
-const CheckoutSuccess = React.lazy(() => import('../pages/billing/CheckoutSuccess'));
-const CheckoutCancel = React.lazy(() => import('../pages/billing/CheckoutCancel'));
+const Checkout = React.lazy(() => import('../pages/billing/checkout/Checkout'));
+const CheckoutSuccess = React.lazy(() => import('../pages/billing/checkout/CheckoutSuccess'));
+const CheckoutCancel = React.lazy(() => import('../pages/billing/checkout/CheckoutCancel'));
 
 // Customer Portal
-const CustomerPortal = React.lazy(() => import('../pages/billing/CustomerPortal'));
-const CustomerPortalReturn = React.lazy(() => import('../pages/billing/CustomerPortalReturn'));
+const CustomerPortal = React.lazy(() => import('../pages/billing/dashboards/CustomerPortal'));
+const CustomerPortalReturn = React.lazy(() => import('../pages/billing/dashboards/CustomerPortalReturn'));
 
 // Invoice pages
-const InvoiceList = React.lazy(() => import('../pages/billing/InvoiceList'));
-const InvoiceDetail = React.lazy(() => import('../pages/billing/InvoiceDetail'));
+const InvoiceList = React.lazy(() => import('../pages/billing/invoice/InvoiceList'));
+const InvoiceDetail = React.lazy(() => import('../pages/billing/invoice/InvoiceDetail'));
 
 // Payment pages
-const PaymentList = React.lazy(() => import('../pages/billing/PaymentList'));
-const PaymentDetail = React.lazy(() => import('../pages/billing/PaymentDetail'));
+const PaymentList = React.lazy(() => import('../pages/billing/payment/PaymentList'));
+const PaymentDetail = React.lazy(() => import('../pages/billing/payment/PaymentDetail'));
 
 // Payment Method pages
-const PaymentMethodList = React.lazy(() => import('../pages/billing/PaymentMethodList'));
-const PaymentMethodAdd = React.lazy(() => import('../pages/billing/PaymentMethodAdd'));
-const PaymentMethodEdit = React.lazy(() => import('../pages/billing/PaymentMethodEdit'));
+const PaymentMethodList = React.lazy(() => import('../pages/billing/paymentMethod/PaymentMethodList'));
+const PaymentMethodAdd = React.lazy(() => import('../pages/billing/paymentMethod/PaymentMethodAdd'));
+const PaymentMethodEdit = React.lazy(() => import('../pages/billing/paymentMethod/PaymentMethodEdit'));
 
 // Quota pages
-const QuotaStatus = React.lazy(() => import('../pages/billing/QuotaStatus'));
-const QuotaUsage = React.lazy(() => import('../pages/billing/QuotaUsage'));
-const UsageAnalytics = React.lazy(() => import('../pages/billing/UsageAnalytics'));
+const QuotaStatus = React.lazy(() => import('../pages/billing/Quota/QuotaStatus'));
+const QuotaUsage = React.lazy(() => import('../pages/billing/Quota/QuotaUsage'));
+const UsageAnalytics = React.lazy(() => import('../pages/billing/reports/UsageAnalytics'));
 
 // Settings pages
-const BillingSettings = React.lazy(() => import('../pages/billing/BillingSettings'));
-const NotificationSettings = React.lazy(() => import('../pages/billing/NotificationSettings'));
+const BillingSettings = React.lazy(() => import('../pages/billing/settings/BillingSettings'));
+const NotificationSettings = React.lazy(() => import('../pages/billing/settings/NotificationSettings'));
 
-// API Keys pages (for API access feature)
-const ApiKeyList = React.lazy(() => import('../pages/billing/ApiKeyList'));
-const ApiKeyCreate = React.lazy(() => import('../pages/billing/ApiKeyCreate'));
-const ApiKeyDetail = React.lazy(() => import('../pages/billing/ApiKeyDetail'));
+// API Keys pages
+const ApiKeyList = React.lazy(() => import('../pages/billing/api/ApiKeyList'));
+const ApiKeyCreate = React.lazy(() => import('../pages/billing/api/ApiKeyCreate'));
+const ApiKeyDetail = React.lazy(() => import('../pages/billing/api/ApiKeyDetail'));
 
-// Webhook pages (for webhook feature)
-const WebhookList = React.lazy(() => import('../pages/billing/WebhookList'));
-const WebhookCreate = React.lazy(() => import('../pages/billing/WebhookCreate'));
-const WebhookDetail = React.lazy(() => import('../pages/billing/WebhookDetail'));
-const WebhookLogs = React.lazy(() => import('../pages/billing/WebhookLogs'));
+// Webhook pages
+const WebhookList = React.lazy(() => import('../pages/billing/webhook/WebhookList'));
+const WebhookCreate = React.lazy(() => import('../pages/billing/webhook/WebhookCreate'));
+const WebhookDetail = React.lazy(() => import('../pages/billing/webhook/WebhookDetail'));
+const WebhookLogs = React.lazy(() => import('../pages/billing/webhook/WebhookLogs'));
 
 // Report pages
-const InvoiceReport = React.lazy(() => import('../pages/billing/InvoiceReport'));
-const PaymentReport = React.lazy(() => import('../pages/billing/PaymentReport'));
-const UsageReport = React.lazy(() => import('../pages/billing/UsageReport'));
-const ExportData = React.lazy(() => import('../pages/billing/ExportData'));
+const InvoiceReport = React.lazy(() => import('../pages/billing/reports/InvoiceReport'));
+const PaymentReport = React.lazy(() => import('../pages/billing/reports/PaymentReport'));
+const UsageReport = React.lazy(() => import('../pages/billing/reports/UsageReport'));
+const ExportData = React.lazy(() => import('../pages/billing/reports/ExportData'));
 
 // ============================================================================
-// Admin Billing Pages (Super Admin only)
+// ADMIN BILLING PAGES (Super Admin only - Commented out until created)
 // ============================================================================
 
+/*
 const TenantBillingList = React.lazy(() => import('../pages/admin/billing/TenantBillingList'));
 const TenantBillingDetail = React.lazy(() => import('../pages/admin/billing/TenantBillingDetail'));
 const TenantSubscriptionManage = React.lazy(() => import('../pages/admin/billing/TenantSubscriptionManage'));
@@ -104,8 +109,10 @@ const PaymentGatewaySettings = React.lazy(() => import('../pages/admin/billing/P
 const EmailTemplates = React.lazy(() => import('../pages/admin/billing/EmailTemplates'));
 const BillingAuditLogs = React.lazy(() => import('../pages/admin/billing/BillingAuditLogs'));
 const BillingAuditDetail = React.lazy(() => import('../pages/admin/billing/BillingAuditDetail'));
+*/
+
 // Regular user billing routes
-const userBillingRoutes = [
+export const billingRoutes = [
     // Dashboard
     { path: BILLING_ROUTES.INDEX, element: <Navigate to={BILLING_ROUTES.DASHBOARD} replace /> },
     { path: BILLING_ROUTES.DASHBOARD, element: <BillingDashboard /> },
@@ -172,8 +179,11 @@ const userBillingRoutes = [
     { path: BILLING_ROUTES.EXPORT_DATA, element: <ExportData /> },
 ];
 
-// Admin billing routes (Super Admin only)
-const adminBillingRoutes = [
+// Admin billing routes (Super Admin only - placeholder array for now)
+export const adminBillingRoutes = [];
+
+/*
+const adminBillingRouteList = [
     // Tenant management
     { path: ADMIN_BILLING_ROUTES.TENANTS, element: <TenantBillingList /> },
     { path: ADMIN_BILLING_ROUTES.TENANT_DETAIL(), element: <TenantBillingDetail /> },
@@ -221,8 +231,8 @@ const adminBillingRoutes = [
     { path: ADMIN_BILLING_ROUTES.BILLING_AUDIT_LOGS, element: <BillingAuditLogs /> },
     { path: ADMIN_BILLING_ROUTES.BILLING_AUDIT_DETAIL(), element: <BillingAuditDetail /> },
 ];
-export const billingRoutes = userBillingRoutes;
-export const adminBillingRoutes = adminBillingRoutes;
+*/
+
 export {
     BILLING_ROUTES,
     ADMIN_BILLING_ROUTES,

@@ -5,7 +5,7 @@ import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants
 import { formatCurrency } from '../../../config/constants/billingConstants';
 import { Spinner } from '../../../components/common/UI';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
-import { ArrowLeftIcon, DocumentTextIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiFileText, FiRefreshCw } from 'react-icons/fi';
 const PaymentDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -62,7 +62,7 @@ const PaymentDetail = () => {
                     onClick={() => navigate(BILLING_ROUTES.PAYMENTS)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Payment Details</h1>
@@ -135,7 +135,7 @@ const PaymentDetail = () => {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                     >
-                        <DocumentTextIcon className="w-5 h-5" />
+                        <FiFileText className="w-5 h-5" />
                         View Receipt
                     </a>
                 )}
@@ -144,7 +144,7 @@ const PaymentDetail = () => {
                         onClick={() => setShowRetryConfirm(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                     >
-                        <ArrowPathIcon className="w-5 h-5" />
+                        <FiRefreshCw className="w-5 h-5" />
                         Retry Payment
                     </button>
                 )}

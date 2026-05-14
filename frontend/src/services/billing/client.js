@@ -1,25 +1,29 @@
 import axios from 'axios';
 import { loadStripe } from '@stripe/stripe-js';
-import { getAccessToken, getTenantId, clearTokens, clearTenantId } from '../accounts/storage/secureStorage';
+import { getAccessToken, getRefreshToken, setTokens, getTenantId, clearTokens, clearTenantId } from '../accounts/storage/secureStorage';
 import { store } from '../../store';
 import { logout } from '../../store/accounts/slice/authSlice';
 import { showToast } from '../../store/ui/slices/uiSlice';
+import environment from '../../config/environment';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'api/v1';
+const API_BASE_URL = environment.API_URL || 'http://localhost:8000/api/v1';
 const BILLING_API_BASE = `${API_BASE_URL}/billing`;
-const STIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || '';
+const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || '';
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 const RETRY_ON_STATUS = [408, 429, 500, 502, 503, 504];
+
 // Circuit breaker state
 let failureCount = 0;
 let circuitOpen = false;
 let circuitResetTime = null;
 let isRefreshing = false;
 let failedQueue = [];
-// Helper function to delay execution
+
+// Helper functions
 const generateRequestId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const processQueue = (error, token = null) => {
     failedQueue.forEach(prom => {
         if (error) prom.reject(error);
@@ -27,6 +31,7 @@ const processQueue = (error, token = null) => {
     });
     failedQueue = [];
 };
+
 const isCircuitOpen = () => {
     if (circuitOpen && circuitResetTime && Date.now() > circuitResetTime) {
         circuitOpen = false;
@@ -35,6 +40,7 @@ const isCircuitOpen = () => {
     }
     return circuitOpen;
 };
+
 const recordFailure = () => {
     failureCount++;
     if (failureCount >= 5) {
@@ -43,9 +49,11 @@ const recordFailure = () => {
         console.warn('[BillingAPI] Circuit breaker opened');
     }
 };
+
 const recordSuccess = () => {
     failureCount = Math.max(0, failureCount - 1);
 };
+
 // Create axios instance
 const billingApiClient = axios.create({
     baseURL: BILLING_API_BASE,
@@ -57,27 +65,34 @@ const billingApiClient = axios.create({
     },
     withCredentials: true,
 });
+
 billingApiClient.interceptors.request.use(
     async (config) => {
-        if (isCircuitOpen() && config.method == 'get') {
+        if (isCircuitOpen() && config.method === 'get') {
             throw new Error('Service temporarily unavailable. Please try again later');
         }
+
         config.headers['X-Request-ID'] = generateRequestId();
+
         const token = await getAccessToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
         let tenantId = await getTenantId();
         if (!tenantId) {
             const state = store.getState();
             tenantId = state?.auth?.user?.tenant_id || state?.tenant?.currentTenant?.id;
         }
+
         if (tenantId) {
             config.headers['X-Tenant-ID'] = tenantId;
         }
+
         if (import.meta.env.DEV) {
             console.log(`[BillingAPI] ${config.method.toUpperCase()} ${config.url}`);
         }
+
         return config;
     },
     (error) => {
@@ -85,6 +100,7 @@ billingApiClient.interceptors.request.use(
         return Promise.reject(error);
     }
 );
+
 billingApiClient.interceptors.response.use(
     (response) => {
         recordSuccess();
@@ -104,20 +120,24 @@ billingApiClient.interceptors.response.use(
         const originalRequest = error.config;
         const status = error.response?.status;
         const message = error.response?.data?.message || error.message || 'An error occurred';
+
         if (status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 }).then(() => billingApiClient(originalRequest));
             }
+
             originalRequest._retry = true;
             isRefreshing = true;
+
             try {
                 const refreshToken = await getRefreshToken();
                 if (refreshToken) {
                     const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
                         refresh: refreshToken,
                     });
+
                     if (response.data?.access) {
                         await setTokens(response.data.access, refreshToken);
                         originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
@@ -136,6 +156,7 @@ billingApiClient.interceptors.response.use(
                 isRefreshing = false;
             }
         }
+
         if (status === 402) {
             store.dispatch(showToast({ message: message || 'Payment required. Please update your subscription.', type: 'warning' }));
         } else if (status === 403) {
@@ -145,6 +166,7 @@ billingApiClient.interceptors.response.use(
         } else if (status >= 500) {
             store.dispatch(showToast({ message: 'Server error. Please try again.', type: 'error' }));
         }
+
         const standardizedError = {
             success: false,
             status: status || 0,
@@ -153,16 +175,18 @@ billingApiClient.interceptors.response.use(
             errors: error.response?.data?.errors || null,
             timestamp: new Date().toISOString(),
         };
+
         return Promise.reject(standardizedError);
     }
 );
+
 const withRetry = async (fn, options = {}) => {
     const { maxRetries = MAX_RETRIES, retryDelay = RETRY_DELAY, retryOnStatus = RETRY_ON_STATUS } = options;
     let lastError = null;
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            const result = await fn();
-            return result;
+            return await fn();
         } catch (error) {
             lastError = error;
             const shouldRetry = retryOnStatus.includes(error.status) && attempt < maxRetries;
@@ -176,6 +200,7 @@ const withRetry = async (fn, options = {}) => {
     }
     throw lastError;
 };
+
 let stripePromise = null;
 export const getStripe = () => {
     if (!stripePromise && STRIPE_PUBLIC_KEY) {

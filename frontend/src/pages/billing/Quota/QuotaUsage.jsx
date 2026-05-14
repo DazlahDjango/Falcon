@@ -6,7 +6,7 @@ import QuotaGauge from '../../../components/billing/QuotaGauge';
 import QuotaUsageBar from '../../../components/billing/QuotaUsageBar';
 import UsageChart from '../../../components/billing/UsageChart';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowPathIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { FiRefreshCw, FiArrowLeft } from 'react-icons/fi';
 
 const mockUsageHistory = [
     { date: 'Jan', api_calls: 8500, users: 42, kpis: 180, storage_mb: 5120 },
@@ -50,7 +50,7 @@ const QuotaUsage = () => {
                         onClick={() => navigate(BILLING_ROUTES.QUOTA)}
                         className="text-gray-500 hover:text-gray-700"
                     >
-                        <ArrowLeftIcon className="w-5 h-5" />
+                        <FiArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Usage Analytics</h1>
@@ -62,7 +62,7 @@ const QuotaUsage = () => {
                     disabled={refreshQuota.isLoading}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                    <ArrowPathIcon className={`w-4 h-4 ${refreshQuota.isLoading ? 'animate-spin' : ''}`} />
+                    <FiRefreshCw className={`w-4 h-4 ${refreshQuota.isLoading ? 'animate-spin' : ''}`} />
                     Refresh
                 </button>
             </div>

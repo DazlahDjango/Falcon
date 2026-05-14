@@ -1,57 +1,65 @@
 import { BaseBillingService, withRetry } from './client';
+import { SUBSCRIPTION_API_ENDPOINTS } from '../../config/constants/billingApiConstants';
 
 class SubscriptionService extends BaseBillingService {
     constructor() {
         super('subscriptions');
     }
+
     async getSubscriptions(params = {}) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(), { params }));
+        return withRetry(() => this.apiClient.get(SUBSCRIPTION_API_ENDPOINTS.LIST, { params }));
     }
+
     async getCurrentSubscription() {
-        return withRetry(() => this.apiClient.get('/subscriptions/current/'));
+        return withRetry(() => this.apiClient.get(SUBSCRIPTION_API_ENDPOINTS.CURRENT));
     }
+
     async getSubscriptionStatus() {
-        return withRetry(() => this.apiClient.get('/subscriptions/status/'));
+        return withRetry(() => this.apiClient.get(SUBSCRIPTION_API_ENDPOINTS.STATUS));
     }
+
     async getSubscriptionById(id) {
-        return this.getById(id);
+        return withRetry(() => this.apiClient.get(SUBSCRIPTION_API_ENDPOINTS.DETAIL(id)));
     }
+
     async createSubscription(data) {
         if (!data.plan_id) {
             throw new Error('Plan ID is required');
         }
-        return this.create(data);
+        return withRetry(() => this.apiClient.post(SUBSCRIPTION_API_ENDPOINTS.CREATE, data));
     }
+
     async updateSubscription(id, data) {
-        return this.update(id, data);
+        return withRetry(() => this.apiClient.patch(SUBSCRIPTION_API_ENDPOINTS.UPDATE(id), data));
     }
+
     async cancelSubscription(id, atPeriodEnd = true, reason = '') {
-        return withRetry(() => this.apiClient.post(this.getEndpoint(`${id}/cancel/`), {
+        return withRetry(() => this.apiClient.post(SUBSCRIPTION_API_ENDPOINTS.CANCEL(id), {
             at_period_end: atPeriodEnd,
             reason
         }));
     }
+
     async reactivateSubscription(id) {
-        return withRetry(() => this.apiClient.post(this.getEndpoint(`${id}/reactivate/`)));
+        return withRetry(() => this.apiClient.post(SUBSCRIPTION_API_ENDPOINTS.REACTIVATE(id)));
     }
+
     async syncSubscription(id) {
-        return withRetry(() => this.apiClient.post(this.getEndpoint(`${id}/sync/`)));
+        return withRetry(() => this.apiClient.post(SUBSCRIPTION_API_ENDPOINTS.SYNC(id)));
     }
+
     async getSubscriptionHistory(id) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/history/`)));
+        return withRetry(() => this.apiClient.get(SUBSCRIPTION_API_ENDPOINTS.HISTORY(id)));
     }
-    async getSubscriptionInvoices(id, params = {}) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/invoices/`), { params }));
-    }
-    async getSubscriptionPayments(id, params = {}) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/payments/`), { params }));
-    }
+
     async upgradeSubscription(id, newPlanId) {
         return this.updateSubscription(id, { plan_id: newPlanId });
     }
+
     async downgradeSubscription(id, newPlanId) {
         return this.updateSubscription(id, { plan_id: newPlanId });
     }
 }
+
 export const subscriptionService = new SubscriptionService();
 export default subscriptionService;

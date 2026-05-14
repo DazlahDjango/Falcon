@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { PlusIcon, WebhookIcon, TrashIcon, PencilIcon, BellIcon } from '@heroicons/react/24/outline';
+import { FiPlus, FiActivity, FiTrash2, FiEdit, FiBell } from 'react-icons/fi';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 const mockWebhooks = [
@@ -56,13 +56,13 @@ const WebhookList = () => {
                     onClick={() => navigate(BILLING_ROUTES.WEBHOOK_CREATE)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
-                    <PlusIcon className="w-5 h-5" />
+                    <FiPlus className="w-5 h-5" />
                     Add Endpoint
                 </button>
             </div>
             {webhooks.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <WebhookIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <FiActivity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Webhook Endpoints</h3>
                     <p className="text-gray-500 mb-4">Create your first webhook endpoint to start receiving events.</p>
                     <button
@@ -111,13 +111,13 @@ const WebhookList = () => {
                                                 onClick={() => navigate(BILLING_ROUTES.WEBHOOK_DETAIL(webhook.id))}
                                                 className="text-gray-400 hover:text-gray-600"
                                             >
-                                                <BellIcon className="w-5 h-5" />
+                                                <FiBell className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => navigate(BILLING_ROUTES.WEBHOOK_DETAIL(webhook.id))}
                                                 className="text-gray-400 hover:text-gray-600"
                                             >
-                                                <PencilIcon className="w-5 h-5" />
+                                                <FiEdit className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -126,7 +126,7 @@ const WebhookList = () => {
                                                 }}
                                                 className="text-red-600 hover:text-red-800"
                                             >
-                                                <TrashIcon className="w-5 h-5" />
+                                                <FiTrash2 className="w-5 h-5" />
                                             </button>
                                         </div>
                                      </td>

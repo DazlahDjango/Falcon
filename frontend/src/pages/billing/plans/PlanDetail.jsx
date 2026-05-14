@@ -1,12 +1,11 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePlan, usePlanFeatures, useCurrentSubscription } from '../../../hooks/billing';
-import { useCurrentSubscription } from '../../../hooks/billing/useSubscription';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import { formatCurrency } from '../../../config/constants/billingConstants';
 import { Spinner } from '../../../components/common/UI';
 import SubscriptionStatusBadge from '../../../components/billing/SubscriptionStatusBadge';
-import { ArrowLeftIcon, CheckIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiCheck, FiZap, FiX } from 'react-icons/fi';
 
 const PlanDetail = () => {
     const { slug } = useParams();
@@ -43,7 +42,7 @@ const PlanDetail = () => {
             </div>
         );
     }
-    
+
     return (
         <div className="max-w-4xl mx-auto">
             <div className="mb-6">
@@ -51,7 +50,7 @@ const PlanDetail = () => {
                     onClick={() => navigate(BILLING_ROUTES.PLANS)}
                     className="text-gray-500 hover:text-gray-700 flex items-center gap-2 mb-4"
                 >
-                    <ArrowLeftIcon className="w-4 h-4" />
+                    <FiArrowLeft className="w-4 h-4" />
                     Back to Plans
                 </button>
                 <div className="flex justify-between items-start">
@@ -60,7 +59,7 @@ const PlanDetail = () => {
                             <h1 className="text-3xl font-bold text-gray-900">{plan.name}</h1>
                             {plan.is_recommended && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
-                                    <SparklesIcon className="w-3 h-3" />
+                                    <FiZap className="w-3 h-3" />
                                     Recommended
                                 </span>
                             )}
@@ -76,21 +75,19 @@ const PlanDetail = () => {
                 <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
                     <button
                         onClick={() => setBillingInterval('month')}
-                        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                            billingInterval === 'month'
+                        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${billingInterval === 'month'
                                 ? 'bg-white text-primary-600 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                            }`}
                     >
                         Monthly Billing
                     </button>
                     <button
                         onClick={() => setBillingInterval('year')}
-                        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                            billingInterval === 'year'
+                        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${billingInterval === 'year'
                                 ? 'bg-white text-primary-600 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                            }`}
                     >
                         Yearly Billing
                         <span className="ml-1 text-xs text-green-600">(Save {savings}%)</span>
@@ -112,11 +109,10 @@ const PlanDetail = () => {
                     <button
                         onClick={() => navigate(BILLING_ROUTES.CHECKOUT, { state: { planId: plan.id, billingInterval } })}
                         disabled={isCurrentPlan}
-                        className={`px-8 py-3 rounded-xl font-semibold transition-all ${
-                            isCurrentPlan
+                        className={`px-8 py-3 rounded-xl font-semibold transition-all ${isCurrentPlan
                                 ? 'bg-gray-500 cursor-default'
                                 : 'bg-white text-primary-700 hover:bg-gray-100'
-                        }`}
+                            }`}
                     >
                         {isCurrentPlan ? 'Current Plan' : 'Get Started'}
                     </button>
@@ -132,7 +128,7 @@ const PlanDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {features?.map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                            <CheckIcon className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                            <FiCheck className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                             <div>
                                 <p className="font-medium text-gray-900">{feature.name}</p>
                                 {feature.description && (

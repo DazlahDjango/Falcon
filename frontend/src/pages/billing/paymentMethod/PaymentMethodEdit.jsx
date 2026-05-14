@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { usePaymentMethod } from '../../../hooks/billing/usePaymentMethods';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowLeftIcon, SaveIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiSave } from 'react-icons/fi';
 
 const PaymentMethodEdit = () => {
     const { id } = useParams();
@@ -88,7 +88,7 @@ const PaymentMethodEdit = () => {
                     onClick={() => navigate(BILLING_ROUTES.PAYMENT_METHODS)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Edit Payment Method</h1>
@@ -219,7 +219,7 @@ const PaymentMethodEdit = () => {
                                 </>
                             ) : (
                                 <>
-                                    <SaveIcon className="w-4 h-4" />
+                                    <FiSave className="w-4 h-4" />
                                     Save Changes
                                 </>
                             )}

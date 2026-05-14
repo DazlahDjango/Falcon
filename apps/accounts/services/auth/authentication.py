@@ -64,8 +64,8 @@ class AuthenticationService:
                 return user, {'requires_mfa': True, 'mfa_token': partial_token}, None
             return self._complete_authentication(user, ip_address, user_agent, request)
         except Exception as e:
-            logger.error(f"Authentication error for {email}: {str(e)}")
-            return None, None, "Authentication failed. Please try again"
+            logger.error(f"Authentication error for {email}: {str(e)}", exc_info=True)
+            return None, None, f"Authentication failed: {str(e)}"
     
     def verify_mfa(self, user: User, mfa_token: str, otp: str, ip_address: str, user_agent: str, request=None) -> Tuple[Optional[User], Optional[Dict], Optional[str]]:
         try:

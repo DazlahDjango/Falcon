@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const eventOptions = [
     { value: 'customer.subscription.created', label: 'Subscription Created' },
@@ -51,7 +51,7 @@ const WebhookCreate = () => {
                     onClick={() => navigate(BILLING_ROUTES.WEBHOOKS)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Add Webhook Endpoint</h1>

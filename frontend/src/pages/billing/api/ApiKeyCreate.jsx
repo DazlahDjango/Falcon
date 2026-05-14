@@ -1,12 +1,7 @@
-// frontend/src/pages/billing/ApiKeyCreate.jsx
-/**
- * API Key Create Page
- * Create new API key
- */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { ArrowLeftIcon, KeyIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiKey } from 'react-icons/fi';
 
 const ApiKeyCreate = () => {
     const navigate = useNavigate();
@@ -15,13 +10,13 @@ const ApiKeyCreate = () => {
         permissions: ['read'],
         expires_in_days: 365,
     });
-    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         // API call would go here
         navigate(BILLING_ROUTES.API_KEYS);
     };
-    
+
     return (
         <div className="max-w-2xl mx-auto">
             {/* Header */}
@@ -30,14 +25,14 @@ const ApiKeyCreate = () => {
                     onClick={() => navigate(BILLING_ROUTES.API_KEYS)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Create API Key</h1>
                     <p className="text-gray-500 mt-1">Generate a new API key for programmatic access</p>
                 </div>
             </div>
-            
+
             <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Key Name */}
@@ -55,7 +50,7 @@ const ApiKeyCreate = () => {
                         />
                         <p className="text-xs text-gray-500 mt-1">Give your key a descriptive name to identify its purpose</p>
                     </div>
-                    
+
                     {/* Permissions */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -109,7 +104,7 @@ const ApiKeyCreate = () => {
                             </label>
                         </div>
                     </div>
-                    
+
                     {/* Expiration */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -127,17 +122,17 @@ const ApiKeyCreate = () => {
                             <option value="0">No expiration</option>
                         </select>
                     </div>
-                    
+
                     {/* Security Note */}
                     <div className="p-4 bg-amber-50 rounded-lg">
                         <div className="flex items-start gap-2">
-                            <KeyIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <FiKey className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                             <p className="text-sm text-amber-800">
                                 Store your API key securely. It provides access to your account data. Never share it publicly or commit it to version control.
                             </p>
                         </div>
                     </div>
-                    
+
                     {/* Actions */}
                     <div className="flex gap-3 pt-4">
                         <button

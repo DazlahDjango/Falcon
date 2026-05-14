@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { ArrowPathIcon, XMarkIcon, ArrowUpIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { FiRefreshCw, FiX, FiArrowUp, FiCheck } from 'react-icons/fi';
 import { useCancelSubscription, useReactivateSubscription, useUpgradeSubscription } from '../../hooks/billing/useSubscription';
 import ConfirmDialog from '../common/ConfirmDialog';
 
@@ -49,7 +49,7 @@ const SubscriptionActions = ({
                         onClick={handleUpgrade}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                     >
-                        <ArrowUpIcon className="w-4 h-4" />
+                        <FiArrowUp className="w-4 h-4" />
                         Upgrade Plan
                     </button>
                 )}
@@ -60,9 +60,9 @@ const SubscriptionActions = ({
                         className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                     >
                         {reactivateSubscription.isLoading ? (
-                            <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                            <FiRefreshCw className="w-4 h-4 animate-spin" />
                         ) : (
-                            <CheckIcon className="w-4 h-4" />
+                            <FiCheck className="w-4 h-4" />
                         )}
                         {isScheduledForCancel ? 'Keep Subscription' : 'Reactivate'}
                     </button>
@@ -72,7 +72,7 @@ const SubscriptionActions = ({
                         onClick={() => setShowCancelModal(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors"
                     >
-                        <XMarkIcon className="w-4 h-4" />
+                        <FiX className="w-4 h-4" />
                         Cancel Subscription
                     </button>
                 )}

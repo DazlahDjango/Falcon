@@ -6,7 +6,7 @@ import InvoiceTable from '../../../components/billing/InvoiceTable';
 import InvoiceDetailModal from '../../../components/billing/InvoiceDetailModal';
 import BillingSummaryCard from '../../../components/billing/BillingSummaryCard';
 import { Spinner } from '../../../components/common/UI';
-import { DocumentTextIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { FiFileText, FiFilter } from 'react-icons/fi';
 
 const InvoiceList = () => {
     const navigate = useNavigate();
@@ -61,7 +61,7 @@ const InvoiceList = () => {
             />
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                    <FunnelIcon className="w-5 h-5 text-gray-400" />
+                    <FiFilter className="w-5 h-5 text-gray-400" />
                     <select
                         value={statusFilter}
                         onChange={(e) => {
@@ -83,7 +83,7 @@ const InvoiceList = () => {
             </div>
             {invoices.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <DocumentTextIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <FiFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Invoices Found</h3>
                     <p className="text-gray-500">You don't have any invoices yet.</p>
                 </div>

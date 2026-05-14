@@ -1,3 +1,5 @@
+import featureService from './feature.service';
+
 export { billingApiClient, getStripe, withRetry, BaseBillingService } from './client';
 export { planService } from './plan.service';
 export { subscriptionService } from './subscription.service';
@@ -9,6 +11,7 @@ export { customerPortalService } from './customerPortal.service';
 export { quotaService } from './quota.service';
 export { webhookService } from './webhook.service';
 export { adminBillingService } from './admin.service';
+export { featureService } from './feature.service';
 
 export default {
     planService,
@@ -22,4 +25,5 @@ export default {
     webhookService,
     adminBillingService,
     getStripe,
+    featureService,
 };

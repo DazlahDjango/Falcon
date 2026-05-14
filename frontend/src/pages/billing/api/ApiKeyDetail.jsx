@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { ArrowLeftIcon, PencilIcon, TrashIcon, EyeIcon, EyeSlashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiEdit, FiTrash2, FiEye, FiEyeOff, FiCopy } from 'react-icons/fi';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 const mockKey = {
@@ -52,7 +52,7 @@ const ApiKeyDetail = () => {
                     onClick={() => navigate(BILLING_ROUTES.API_KEYS)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div className="flex-1">
                     {isEditing ? (
@@ -86,7 +86,7 @@ const ApiKeyDetail = () => {
                                 onClick={() => setIsEditing(true)}
                                 className="text-gray-400 hover:text-gray-600"
                             >
-                                <PencilIcon className="w-4 h-4" />
+                                <FiEdit className="w-4 h-4" />
                             </button>
                         </div>
                     )}
@@ -105,13 +105,13 @@ const ApiKeyDetail = () => {
                                 onClick={() => setShowKeyValue(!showKeyValue)}
                                 className="text-gray-400 hover:text-gray-600"
                             >
-                                {showKeyValue ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                                {showKeyValue ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                             </button>
                             <button
                                 onClick={handleCopyKey}
                                 className="text-gray-400 hover:text-gray-600"
                             >
-                                <DocumentDuplicateIcon className="w-4 h-4" />
+                                <FiCopy className="w-4 h-4" />
                             </button>
                         </div>
                     </div>

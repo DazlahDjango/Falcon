@@ -14,7 +14,7 @@ import InvoiceTable from '../../../components/billing/InvoiceTable';
 import PaymentMethodCard from '../../../components/billing/PaymentMethodCard';
 import AddPaymentMethodModal from '../../../components/billing/AddPaymentMethodModal';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowPathIcon, PlusIcon, CreditCardIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { FiRefreshCw, FiPlus, FiCreditCard, FiFileText } from 'react-icons/fi';
 
 const BillingDashboard = () => {
     const navigate = useNavigate();
@@ -80,7 +80,7 @@ const BillingDashboard = () => {
                     disabled={refreshing}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
-                    <ArrowPathIcon className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                     Refresh
                 </button>
             </div>
@@ -137,13 +137,13 @@ const BillingDashboard = () => {
                                 onClick={() => setShowAddPaymentModal(true)}
                                 className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
                             >
-                                <PlusIcon className="w-4 h-4" />
+                                <FiPlus className="w-4 h-4" />
                                 Add New
                             </button>
                         </div>  
                         {paymentMethods?.length === 0 ? (
                             <div className="text-center py-6">
-                                <CreditCardIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                <FiCreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                                 <p className="text-sm text-gray-500">No payment methods added</p>
                                 <button
                                     onClick={() => setShowAddPaymentModal(true)}
@@ -208,7 +208,7 @@ const BillingDashboard = () => {
                         />                      
                         {(!outstandingInvoices?.invoices || outstandingInvoices.invoices.length === 0) && (
                             <div className="text-center py-8">
-                                <DocumentTextIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                <FiFileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                                 <p className="text-gray-500">No recent invoices</p>
                             </div>
                         )}

@@ -5,7 +5,7 @@ import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants
 import PricingCard from '../../../components/billing/PricingCard';
 import { Spinner } from '../../../components/common/UI';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
-import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
 
 const SubscriptionUpgrade = () => {
     const navigate = useNavigate();
@@ -50,7 +50,7 @@ const SubscriptionUpgrade = () => {
         return (
             <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ArrowPathIcon className="w-8 h-8 text-gray-400" />
+                    <FiRefreshCw className="w-8 h-8 text-gray-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">No Upgrade Available</h2>
                 <p className="text-gray-500 mb-6">
@@ -74,7 +74,7 @@ const SubscriptionUpgrade = () => {
                     onClick={() => navigate(BILLING_ROUTES.SUBSCRIPTION_CURRENT)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Upgrade Subscription</h1>

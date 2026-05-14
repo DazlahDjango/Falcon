@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { XMarkIcon, DocumentArrowDownIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { FiX, FiDownload, FiPrinter } from 'react-icons/fi';
 import { formatCurrency } from '../../config/constants/billingConstants';
 import InvoiceStatusBadge from './SubscriptionStatusBadge';
 
@@ -41,20 +41,20 @@ const InvoiceDetailModal = ({ invoice, isOpen, onClose, onDownload }) => {
                                 className="text-gray-400 hover:text-gray-600"
                                 title="Print"
                             >
-                                <PrinterIcon className="w-5 h-5" />
+                                <FiPrinter className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => onDownload?.(invoice.id)}
                                 className="text-gray-400 hover:text-primary-600"
                                 title="Download PDF"
                             >
-                                <DocumentArrowDownIcon className="w-5 h-5" />
+                                <FiDownload className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={onClose}
                                 className="text-gray-400 hover:text-gray-500"
                             >
-                                <XMarkIcon className="w-6 h-6" />
+                                <FiX className="w-6 h-6" />
                             </button>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { XCircleIcon, ArrowLeftIcon, RefreshIcon } from '@heroicons/react/24/outline';
+import { FiXCircle, FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
 
 const CheckoutCancel = () => {
     const navigate = useNavigate();
@@ -9,7 +9,7 @@ const CheckoutCancel = () => {
     return (
         <div className="max-w-md mx-auto text-center">
             <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <XCircleIcon className="w-10 h-10 text-amber-600" />
+                <FiXCircle className="w-10 h-10 text-amber-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Checkout Cancelled</h1>
             <p className="text-gray-500 mb-6">
@@ -41,14 +41,14 @@ const CheckoutCancel = () => {
                     onClick={() => navigate(BILLING_ROUTES.PLANS)}
                     className="w-full px-4 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
                 >
-                    <RefreshIcon className="w-5 h-5" />
+                    <FiRefreshCw className="w-5 h-5" />
                     View Plans Again
                 </button>
                 <button
                     onClick={() => navigate(BILLING_ROUTES.DASHBOARD)}
                     className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                     Return to Dashboard
                 </button>
             </div>

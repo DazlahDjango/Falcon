@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuota, useQuotaLimits } from '../../../hooks/billing/useQuota';
+import { useQuota, useQuotaLimits } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import { Spinner } from '../../../components/common/UI';
 import UsageChart from '../../../components/billing/UsageChart';
 import QuotaUsageBar from '../../../components/billing/QuotaUsageBar';
-import { ArrowLeftIcon, DocumentArrowDownIcon, PrinterIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiDownload, FiPrinter, FiCalendar } from 'react-icons/fi';
 
 const mockHistoricalData = [
     { date: 'Week 1', api_calls: 3200, users: 48, kpis: 210, storage_mb: 8900 },
@@ -41,7 +41,7 @@ const UsageReport = () => {
     }
     const metrics = ['api_calls', 'storage', 'users', 'kpis'];
     const displayMetrics = selectedMetric === 'all' ? metrics : [selectedMetric];
-    
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -50,7 +50,7 @@ const UsageReport = () => {
                         onClick={() => navigate(BILLING_ROUTES.REPORTS)}
                         className="text-gray-500 hover:text-gray-700"
                     >
-                        <ArrowLeftIcon className="w-5 h-5" />
+                        <FiArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Usage Report</h1>
@@ -62,7 +62,7 @@ const UsageReport = () => {
                         onClick={handlePrint}
                         className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                     >
-                        <PrinterIcon className="w-4 h-4" />
+                        <FiPrinter className="w-4 h-4" />
                         Print
                     </button>
                     <button
@@ -70,7 +70,7 @@ const UsageReport = () => {
                         disabled={isExporting}
                         className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 disabled:opacity-50"
                     >
-                        <DocumentArrowDownIcon className="w-4 h-4" />
+                        <FiDownload className="w-4 h-4" />
                         {isExporting ? 'Exporting...' : 'Export CSV'}
                     </button>
                 </div>
@@ -78,7 +78,7 @@ const UsageReport = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex flex-wrap gap-4 items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-5 h-5 text-gray-400" />
+                        <FiCalendar className="w-5 h-5 text-gray-400" />
                         <input
                             type="date"
                             value={dateRange.startDate}

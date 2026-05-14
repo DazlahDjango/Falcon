@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { ArrowLeftIcon, BellIcon, MailIcon, ShieldIcon } from '@heroicons/react/24/outline';
-import { FiMail, FiShield } from 'react-icons/fi';
+import { FiArrowLeft, FiBell, FiMail, FiShield } from 'react-icons/fi';
 
 const NotificationSettings = () => {
     const navigate = useNavigate();
@@ -34,7 +33,7 @@ const NotificationSettings = () => {
                     onClick={() => navigate(BILLING_ROUTES.BILLING_SETTINGS)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Notification Settings</h1>
@@ -44,7 +43,7 @@ const NotificationSettings = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <MailIcon className="w-6 h-6 text-primary-600" />
+                        <FiMail className="w-6 h-6 text-primary-600" />
                         <h2 className="text-lg font-semibold text-gray-900">Email Notifications</h2>
                     </div>
                     <div className="space-y-4">
@@ -117,7 +116,7 @@ const NotificationSettings = () => {
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <BellIcon className="w-6 h-6 text-primary-600" />
+                        <FiBell className="w-6 h-6 text-primary-600" />
                         <h2 className="text-lg font-semibold text-gray-900">In-App Notifications</h2>
                     </div>
                     <div className="space-y-4">
@@ -156,7 +155,7 @@ const NotificationSettings = () => {
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <ShieldIcon className="w-6 h-6 text-primary-600" />
+                        <FiShield className="w-6 h-6 text-primary-600" />
                         <h2 className="text-lg font-semibold text-gray-900">Security Alerts</h2>
                     </div>
                     <div className="space-y-4">

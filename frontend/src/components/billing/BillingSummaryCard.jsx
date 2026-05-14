@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { CurrencyDollarIcon, DocumentTextIcon, CreditCardIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { FiDollarSign, FiFileText, FiCreditCard, FiAlertTriangle } from 'react-icons/fi';
 
 const StatCard = ({ title, value, subValue, icon: Icon, color, onClick }) => (
     <div 
@@ -41,7 +41,7 @@ const BillingSummaryCard = ({ summary, onViewInvoices, onViewPayments }) => {
                 title="Total Billed"
                 value={formatCurrency(summary?.total_amount)}
                 subValue="Lifetime"
-                icon={CurrencyDollarIcon}
+                icon={FiDollarSign}
                 color="#10B981"
                 onClick={onViewInvoices}
             />
@@ -49,7 +49,7 @@ const BillingSummaryCard = ({ summary, onViewInvoices, onViewPayments }) => {
                 title="Outstanding"
                 value={formatCurrency(summary?.total_outstanding)}
                 subValue={summary?.overdue_count > 0 ? `${summary.overdue_count} overdue` : 'All paid'}
-                icon={DocumentTextIcon}
+                icon={FiFileText}
                 color={summary?.total_outstanding > 0 ? '#F59E0B' : '#6B7280'}
                 onClick={onViewInvoices}
             />
@@ -57,7 +57,7 @@ const BillingSummaryCard = ({ summary, onViewInvoices, onViewPayments }) => {
                 title="Total Paid"
                 value={formatCurrency(summary?.total_paid)}
                 subValue="Successful payments"
-                icon={CreditCardIcon}
+                icon={FiCreditCard}
                 color="#3B82F6"
                 onClick={onViewPayments}
             />
@@ -65,7 +65,7 @@ const BillingSummaryCard = ({ summary, onViewInvoices, onViewPayments }) => {
                 title="Payment Success Rate"
                 value={`${summary?.payment_success_rate || 100}%`}
                 subValue={summary?.failed_payments > 0 ? `${summary.failed_payments} failed` : 'No failures'}
-                icon={ExclamationTriangleIcon}
+                icon={FiAlertTriangle}
                 color={summary?.failed_payments > 0 ? '#EF4444' : '#10B981'}
             />
         </div>

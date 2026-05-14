@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { PlusIcon, DocumentTextIcon, ClockIcon, TrashIcon, PencilIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { FiPlus, FiFileText, FiClock, FiTrash2, FiEdit, FiRefreshCw } from 'react-icons/fi';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 const mockSavedReports = [
@@ -44,7 +44,7 @@ const ReportList = () => {
                     onClick={() => navigate(BILLING_ROUTES.INVOICE_REPORT)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
-                    <PlusIcon className="w-5 h-5" />
+                    <FiPlus className="w-5 h-5" />
                     New Report
                 </button>
             </div>
@@ -61,7 +61,7 @@ const ReportList = () => {
             </div>
             {reports.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <DocumentTextIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <FiFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Saved Reports</h3>
                     <p className="text-gray-500 mb-4">Create your first report to get started.</p>
                     <button
@@ -78,7 +78,7 @@ const ReportList = () => {
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3">
-                                        <DocumentTextIcon className="w-5 h-5 text-primary-600" />
+                                        <FiFileText className="w-5 h-5 text-primary-600" />
                                         <h3 className="font-semibold text-gray-900">{report.name}</h3>
                                         <span className="px-2 py-0.5 bg-gray-100 text-xs text-gray-600 rounded-full">
                                             {getReportTypeLabel(report.type)}
@@ -86,7 +86,7 @@ const ReportList = () => {
                                     </div>
                                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                                         <span className="flex items-center gap-1">
-                                            <ClockIcon className="w-4 h-4" />
+                                            <FiClock className="w-4 h-4" />
                                             {report.schedule}
                                         </span>
                                         <span>Last run: {formatDate(report.last_run)}</span>
@@ -99,14 +99,14 @@ const ReportList = () => {
                                         className="p-2 text-gray-400 hover:text-primary-600"
                                         title="Run Now"
                                     >
-                                        <ArrowPathIcon className="w-5 h-5" />
+                                        <FiRefreshCw className="w-5 h-5" />
                                     </button>
                                     <button
                                         onClick={() => navigate(`/app/billing/reports/${report.id}/edit`)}
                                         className="p-2 text-gray-400 hover:text-gray-600"
                                         title="Edit"
                                     >
-                                        <PencilIcon className="w-5 h-5" />
+                                        <FiEdit className="w-5 h-5" />
                                     </button>
                                     <button
                                         onClick={() => {
@@ -116,7 +116,7 @@ const ReportList = () => {
                                         className="p-2 text-gray-400 hover:text-red-600"
                                         title="Delete"
                                     >
-                                        <TrashIcon className="w-5 h-5" />
+                                        <FiTrash2 className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>

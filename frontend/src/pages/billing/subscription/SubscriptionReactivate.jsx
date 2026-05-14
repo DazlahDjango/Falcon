@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCurrentSubscription, useReactivateSubscription } from '../../../hooks/billing';
 import { Spinner } from '../../../components/common/UI';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
-import { ArrowLeftIcon, ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiRefreshCw, FiCheckCircle } from 'react-icons/fi';
 
 const SubscriptionReactivate = () => {
     const navigate = useNavigate();
@@ -44,7 +44,7 @@ const SubscriptionReactivate = () => {
         return (
             <div className="max-w-md mx-auto text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircleIcon className="w-8 h-8 text-gray-400" />
+                    <FiCheckCircle className="w-8 h-8 text-gray-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Subscription Active</h2>
                 <p className="text-gray-500 mb-6">
@@ -74,13 +74,13 @@ const SubscriptionReactivate = () => {
                     onClick={() => navigate('/app/billing/subscription/current')}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <h1 className="text-2xl font-bold text-gray-900">Reactivate Subscription</h1>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
                 <div className="flex items-start gap-3">
-                    <ArrowPathIcon className="w-6 h-6 text-green-600 flex-shrink-0" />
+                    <FiRefreshCw className="w-6 h-6 text-green-600 flex-shrink-0" />
                     <div>
                         <h3 className="font-semibold text-green-800">Reactivate Your Subscription</h3>
                         <p className="text-sm text-green-700 mt-1">
@@ -115,19 +115,19 @@ const SubscriptionReactivate = () => {
                 <h3 className="font-semibold text-gray-900 mb-3">What you keep by reactivating</h3>
                 <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-sm text-gray-700">
-                        <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                        <FiCheckCircle className="w-4 h-4 text-green-500" />
                         All your data and KPIs remain intact
                     </li>
                     <li className="flex items-center gap-2 text-sm text-gray-700">
-                        <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                        <FiCheckCircle className="w-4 h-4 text-green-500" />
                         No setup or configuration needed
                     </li>
                     <li className="flex items-center gap-2 text-sm text-gray-700">
-                        <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                        <FiCheckCircle className="w-4 h-4 text-green-500" />
                         Continue using all premium features
                     </li>
                     <li className="flex items-center gap-2 text-sm text-gray-700">
-                        <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                        <FiCheckCircle className="w-4 h-4 text-green-500" />
                         No price changes - same rate as before
                     </li>
                 </ul>

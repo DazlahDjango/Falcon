@@ -4,7 +4,7 @@ import PaymentMethodCard from '../../../components/billing/PaymentMethodCard';
 import AddPaymentMethodModal from '../../../components/billing/AddPaymentMethodModal';
 import { Spinner } from '../../../components/common/UI';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
-import { PlusIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import { FiPlus, FiCreditCard } from 'react-icons/fi';
 
 const PaymentMethods = () => {
     const [showAddModal, setShowAddModal] = useState(false);
@@ -46,7 +46,7 @@ const PaymentMethods = () => {
                     onClick={() => setShowAddModal(true)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
-                    <PlusIcon className="w-5 h-5" />
+                    <FiPlus className="w-5 h-5" />
                     Add Payment Method
                 </button>
             </div>
@@ -84,7 +84,7 @@ const PaymentMethods = () => {
             )}
             {(!methods || methods.length === 0) && (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <CreditCardIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <FiCreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment Methods</h3>
                     <p className="text-gray-500 mb-4">Add your first payment method to manage subscriptions.</p>
                     <button

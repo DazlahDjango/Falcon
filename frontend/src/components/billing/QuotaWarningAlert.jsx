@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ExclamationTriangleIcon, ArrowPathIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { FiAlertTriangle, FiRefreshCw, FiX } from 'react-icons/fi';
 
 const QuotaWarningAlert = ({ 
     quotaStatus, 
@@ -63,7 +63,7 @@ const QuotaWarningAlert = ({
                     >
                         <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3">
-                                <ExclamationTriangleIcon className={`w-5 h-5 mt-0.5 ${config.icon}`} />
+                                <FiAlertTriangle className={`w-5 h-5 mt-0.5 ${config.icon}`} />
                                 <div>
                                     <p className={`text-sm font-medium ${config.text}`}>
                                         {warning.label} Limit Alert
@@ -86,7 +86,7 @@ const QuotaWarningAlert = ({
                                 }}
                                 className="text-gray-400 hover:text-gray-600"
                             >
-                                <XMarkIcon className="w-4 h-4" />
+                                <FiX className="w-4 h-4" />
                             </button>
                         </div>
                         <div className="flex gap-3 mt-4">
@@ -94,7 +94,7 @@ const QuotaWarningAlert = ({
                                 onClick={onRefresh}
                                 className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
                             >
-                                <ArrowPathIcon className="w-4 h-4" />
+                                <FiRefreshCw className="w-4 h-4" />
                                 Refresh
                             </button>
                             {warning.level !== 'warning' && (

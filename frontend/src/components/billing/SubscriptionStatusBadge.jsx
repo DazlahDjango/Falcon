@@ -1,24 +1,24 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { 
-    CheckCircleIcon, 
-    ExclamationTriangleIcon, 
-    XCircleIcon,
-    ClockIcon,
-    ArrowPathIcon,
-    BoltIcon 
-} from '@heroicons/react/24/solid';
+    FiCheckCircle, 
+    FiAlertTriangle, 
+    FiXCircle,
+    FiClock,
+    FiRefreshCw,
+    FiZap 
+} from 'react-icons/fi';
 import { SUBSCRIPTION_STATUS, SUBSCRIPTION_STATUS_COLORS, SUBSCRIPTION_STATUS_LABELS } from '../../config/constants/billingConstants';
 
 const STATUS_ICONS = {
-    [SUBSCRIPTION_STATUS.ACTIVE]: CheckCircleIcon,
-    [SUBSCRIPTION_STATUS.TRIALING]: BoltIcon,
-    [SUBSCRIPTION_STATUS.PAST_DUE]: ExclamationTriangleIcon,
-    [SUBSCRIPTION_STATUS.CANCELED]: XCircleIcon,
-    [SUBSCRIPTION_STATUS.INCOMPLETE]: ClockIcon,
-    [SUBSCRIPTION_STATUS.UNPAID]: ExclamationTriangleIcon,
-    [SUBSCRIPTION_STATUS.SUSPENDED]: XCircleIcon,
-    default: ClockIcon,
+    [SUBSCRIPTION_STATUS.ACTIVE]: FiCheckCircle,
+    [SUBSCRIPTION_STATUS.TRIALING]: FiZap,
+    [SUBSCRIPTION_STATUS.PAST_DUE]: FiAlertTriangle,
+    [SUBSCRIPTION_STATUS.CANCELED]: FiXCircle,
+    [SUBSCRIPTION_STATUS.INCOMPLETE]: FiClock,
+    [SUBSCRIPTION_STATUS.UNPAID]: FiAlertTriangle,
+    [SUBSCRIPTION_STATUS.SUSPENDED]: FiXCircle,
+    default: FiClock,
 };
 const SubscriptionStatusBadge = ({ status, showIcon = true, showLabel = true, size = 'md', className = '' }) => {
     const IconComponent = STATUS_ICONS[status] || STATUS_ICONS.default;

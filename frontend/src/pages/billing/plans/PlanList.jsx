@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usePlans } from '../../../hooks/billing/usePlans';
-import { useCurrentSubscription } from '../../../hooks/billing/useSubscription';
+import { usePlans, useCurrentSubscription } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import PricingCard from '../../../components/billing/PricingCard';
 import { Spinner } from '../../../components/common/UI';
@@ -35,7 +34,7 @@ const PlanList = () => {
             </div>
         );
     }
-    
+
     return (
         <div className="space-y-8">
             <div className="text-center">
@@ -48,11 +47,10 @@ const PlanList = () => {
                         <button
                             key={value}
                             onClick={() => setBillingInterval(value)}
-                            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                                billingInterval === value
+                            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${billingInterval === value
                                     ? 'bg-white text-primary-600 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
-                            }`}
+                                }`}
                         >
                             {label}
                             {value === 'year' && (

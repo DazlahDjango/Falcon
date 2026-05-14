@@ -1,16 +1,10 @@
-// frontend/src/pages/billing/UsageAnalytics.jsx
-/**
- * Usage Analytics Page
- * Advanced analytics for resource usage with insights
- */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuota } from '../../../hooks/billing/useQuota';
+import { useQuota } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import UsageChart from '../../../components/billing/UsageChart';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowLeftIcon, TrendUpIcon, TrendDownIcon } from '@heroicons/react/24/outline';
-import { FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
+import { FiArrowLeft, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
 
 const mockTrendData = {
     users: { trend: 'up', percentage: 12, insight: 'User growth is steady. Consider upgrading if this trend continues.' },
@@ -39,7 +33,7 @@ const UsageAnalytics = () => {
     const navigate = useNavigate();
     const [timeframe, setTimeframe] = useState('6months');
     const { data: quotaStatus, isLoading } = useQuota();
-    
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -53,7 +47,7 @@ const UsageAnalytics = () => {
         return mockUsageHistory.slice(-monthsToShow);
     };
     const filteredData = getFilteredData();
-    
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -63,7 +57,7 @@ const UsageAnalytics = () => {
                         onClick={() => navigate(BILLING_ROUTES.QUOTA)}
                         className="text-gray-500 hover:text-gray-700"
                     >
-                        <ArrowLeftIcon className="w-5 h-5" />
+                        <FiArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Usage Analytics</h1>
@@ -73,31 +67,28 @@ const UsageAnalytics = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => setTimeframe('3months')}
-                        className={`px-3 py-1 text-sm rounded-lg ${
-                            timeframe === '3months' 
-                                ? 'bg-primary-600 text-white' 
+                        className={`px-3 py-1 text-sm rounded-lg ${timeframe === '3months'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                            }`}
                     >
                         3 Months
                     </button>
                     <button
                         onClick={() => setTimeframe('6months')}
-                        className={`px-3 py-1 text-sm rounded-lg ${
-                            timeframe === '6months' 
-                                ? 'bg-primary-600 text-white' 
+                        className={`px-3 py-1 text-sm rounded-lg ${timeframe === '6months'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                            }`}
                     >
                         6 Months
                     </button>
                     <button
                         onClick={() => setTimeframe('12months')}
-                        className={`px-3 py-1 text-sm rounded-lg ${
-                            timeframe === '12months' 
-                                ? 'bg-primary-600 text-white' 
+                        className={`px-3 py-1 text-sm rounded-lg ${timeframe === '12months'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                            }`}
                     >
                         12 Months
                     </button>
@@ -112,15 +103,15 @@ const UsageAnalytics = () => {
                         </div>
                         <div className={`p-2 rounded-lg ${mockTrendData.users.trend === 'up' ? 'bg-green-100' : 'bg-red-100'}`}>
                             {mockTrendData.users.trend === 'up' ? (
-                                <TrendUpIcon className="w-5 h-5 text-green-600" />
+                                <FiTrendingUp className="w-5 h-5 text-green-600" />
                             ) : (
-                                <TrendDownIcon className="w-5 h-5 text-red-600" />
+                                <FiTrendingDown className="w-5 h-5 text-red-600" />
                             )}
                         </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">{mockTrendData.users.insight}</p>
                 </div>
-                
+
                 <div className="bg-white rounded-xl border border-gray-200 p-4">
                     <div className="flex justify-between items-start">
                         <div>
@@ -129,15 +120,15 @@ const UsageAnalytics = () => {
                         </div>
                         <div className={`p-2 rounded-lg ${mockTrendData.kpis.trend === 'up' ? 'bg-green-100' : 'bg-red-100'}`}>
                             {mockTrendData.kpis.trend === 'up' ? (
-                                <TrendUpIcon className="w-5 h-5 text-green-600" />
+                                <FiTrendingUp className="w-5 h-5 text-green-600" />
                             ) : (
-                                <TrendDownIcon className="w-5 h-5 text-red-600" />
+                                <FiTrendingDown className="w-5 h-5 text-red-600" />
                             )}
                         </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">{mockTrendData.kpis.insight}</p>
                 </div>
-                
+
                 <div className="bg-white rounded-xl border border-gray-200 p-4">
                     <div className="flex justify-between items-start">
                         <div>
@@ -146,9 +137,9 @@ const UsageAnalytics = () => {
                         </div>
                         <div className={`p-2 rounded-lg ${mockTrendData.apiCalls.trend === 'up' ? 'bg-green-100' : 'bg-red-100'}`}>
                             {mockTrendData.apiCalls.trend === 'up' ? (
-                                <TrendUpIcon className="w-5 h-5 text-green-600" />
+                                <FiTrendingUp className="w-5 h-5 text-green-600" />
                             ) : (
-                                <TrendDownIcon className="w-5 h-5 text-red-600" />
+                                <FiTrendingDown className="w-5 h-5 text-red-600" />
                             )}
                         </div>
                     </div>
@@ -162,9 +153,9 @@ const UsageAnalytics = () => {
                         </div>
                         <div className={`p-2 rounded-lg ${mockTrendData.storage.trend === 'up' ? 'bg-green-100' : 'bg-red-100'}`}>
                             {mockTrendData.storage.trend === 'up' ? (
-                                <TrendUpIcon className="w-5 h-5 text-green-600" />
+                                <FiTrendingUp className="w-5 h-5 text-green-600" />
                             ) : (
-                                <TrendDownIcon className="w-5 h-5 text-red-600" />
+                                <FiTrendingDown className="w-5 h-5 text-red-600" />
                             )}
                         </div>
                     </div>
@@ -207,7 +198,7 @@ const UsageAnalytics = () => {
                             </div>
                             <div className="mt-2">
                                 <div className="w-full bg-gray-200 rounded-full h-1">
-                                    <div 
+                                    <div
                                         className="bg-purple-600 rounded-full h-1"
                                         style={{ width: `${pred.confidence}%` }}
                                     />

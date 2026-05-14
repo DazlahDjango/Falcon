@@ -6,7 +6,7 @@ import QuotaGauge from '../../../components/billing/QuotaGauge';
 import QuotaUsageBar from '../../../components/billing/QuotaUsageBar';
 import UsageChart from '../../../components/billing/UsageChart';
 import { Spinner } from '../../../components/common/UI';
-import { ArrowPathIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
+import { FiRefreshCw, FiArrowUp } from 'react-icons/fi';
 
 const mockUsageHistory = [
     { date: '2024-01', api_calls: 8500, users: 42, kpis: 180, storage_mb: 5120 },
@@ -60,7 +60,7 @@ const QuotaStatus = () => {
                     disabled={refreshQuota.isLoading}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                    <ArrowPathIcon className={`w-4 h-4 ${refreshQuota.isLoading ? 'animate-spin' : ''}`} />
+                    <FiRefreshCw className={`w-4 h-4 ${refreshQuota.isLoading ? 'animate-spin' : ''}`} />
                     Refresh
                 </button>
             </div>
@@ -74,7 +74,7 @@ const QuotaStatus = () => {
                         onClick={handleUpgrade}
                         className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 flex items-center gap-2"
                     >
-                        <ArrowUpIcon className="w-4 h-4" />
+                        <FiArrowUp className="w-4 h-4" />
                         Upgrade Plan
                     </button>
                 </div>

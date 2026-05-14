@@ -1,13 +1,7 @@
-// frontend/src/config/constants/billingApiConstants.js
-/**
- * Billing API Endpoints
- * Centralized API endpoint configuration for billing module
- */
+import environment from '../environment';
 
-import { API_BASE_URL } from '../environment.js';
-
-// Base billing API path
-const BILLING_API_BASE = `${API_BASE_URL}/billing`;
+// Base billing API path relative to API_BASE_URL
+const BILLING_API_BASE = '/billing';
 
 // ============================================================================
 // PLAN ENDPOINTS
@@ -15,13 +9,11 @@ const BILLING_API_BASE = `${API_BASE_URL}/billing`;
 
 export const PLAN_API_ENDPOINTS = {
     // Base endpoints
-    LIST: `${BILLING_API_BASE}/plans/`,
-    DETAIL: (id) => `${BILLING_API_BASE}/plans/${id}/`,
-    FEATURES: (id) => `${BILLING_API_BASE}/plans/${id}/features/`,
-    SUBSCRIPTIONS: (id) => `${BILLING_API_BASE}/plans/${id}/subscriptions/`,
-    COMPARE: `${BILLING_API_BASE}/plans/compare/`,
-    PUBLIC_LIST: `${BILLING_API_BASE}/plans/public/`,
-    RECOMMENDED: `${BILLING_API_BASE}/plans/recommended/`,
+    LIST: '/plans/',
+    DETAIL: (id) => `/plans/${id}/`,
+    FEATURES: (id) => `/plans/${id}/features/`,
+    SUBSCRIPTIONS: (id) => `/plans/${id}/subscriptions/`,
+    COMPARE: '/plans/compare/',
 };
 
 // ============================================================================
@@ -30,26 +22,20 @@ export const PLAN_API_ENDPOINTS = {
 
 export const SUBSCRIPTION_API_ENDPOINTS = {
     // Base endpoints
-    LIST: `${BILLING_API_BASE}/subscriptions/`,
-    DETAIL: (id) => `${BILLING_API_BASE}/subscriptions/${id}/`,
-    CREATE: `${BILLING_API_BASE}/subscriptions/`,
-    UPDATE: (id) => `${BILLING_API_BASE}/subscriptions/${id}/`,
-    DELETE: (id) => `${BILLING_API_BASE}/subscriptions/${id}/`,
-    PARTIAL_UPDATE: (id) => `${BILLING_API_BASE}/subscriptions/${id}/`,
+    LIST: '/subscriptions/',
+    DETAIL: (id) => `/subscriptions/${id}/`,
+    CREATE: '/subscriptions/',
+    UPDATE: (id) => `/subscriptions/${id}/`,
+    DELETE: (id) => `/subscriptions/${id}/`,
+    PARTIAL_UPDATE: (id) => `/subscriptions/${id}/`,
     
     // Actions
-    CURRENT: `${BILLING_API_BASE}/subscriptions/current/`,
-    STATUS: `${BILLING_API_BASE}/subscriptions/status/`,
-    CANCEL: (id) => `${BILLING_API_BASE}/subscriptions/${id}/cancel/`,
-    REACTIVATE: (id) => `${BILLING_API_BASE}/subscriptions/${id}/reactivate/`,
-    SYNC: (id) => `${BILLING_API_BASE}/subscriptions/${id}/sync/`,
-    HISTORY: (id) => `${BILLING_API_BASE}/subscriptions/${id}/history/`,
-    
-    // Nested resources
-    INVOICES: (id) => `${BILLING_API_BASE}/subscriptions/${id}/invoices/`,
-    PAYMENTS: (id) => `${BILLING_API_BASE}/subscriptions/${id}/payments/`,
-    INVOICE_DETAIL: (subId, invId) => `${BILLING_API_BASE}/subscriptions/${subId}/invoices/${invId}/`,
-    PAYMENT_DETAIL: (subId, payId) => `${BILLING_API_BASE}/subscriptions/${subId}/payments/${payId}/`,
+    CURRENT: '/subscriptions/current/',
+    STATUS: '/subscriptions/status/',
+    CANCEL: (id) => `/subscriptions/${id}/cancel/`,
+    REACTIVATE: (id) => `/subscriptions/${id}/reactivate/`,
+    SYNC: (id) => `/subscriptions/${id}/sync/`,
+    HISTORY: (id) => `/subscriptions/${id}/history/`,
 };
 
 // ============================================================================
@@ -58,16 +44,15 @@ export const SUBSCRIPTION_API_ENDPOINTS = {
 
 export const INVOICE_API_ENDPOINTS = {
     // Base endpoints
-    LIST: `${BILLING_API_BASE}/invoices/`,
-    DETAIL: (id) => `${BILLING_API_BASE}/invoices/${id}/`,
-    DOWNLOAD: (id) => `${BILLING_API_BASE}/invoices/${id}/download/`,
-    REMIND: (id) => `${BILLING_API_BASE}/invoices/${id}/remind/`,
-    OUTSTANDING: `${BILLING_API_BASE}/invoices/outstanding/`,
-    SUMMARY: `${BILLING_API_BASE}/invoices/summary/`,
+    LIST: '/invoices/',
+    DETAIL: (id) => `/invoices/${id}/`,
+    DOWNLOAD: (id) => `/invoices/${id}/download/`,
+    REMIND: (id) => `/invoices/${id}/remind/`,
+    OUTSTANDING: '/invoices/outstanding/',
     
     // Nested resources
-    LINE_ITEMS: (id) => `${BILLING_API_BASE}/invoices/${id}/line-items/`,
-    PAYMENTS: (id) => `${BILLING_API_BASE}/invoices/${id}/payments/`,
+    LINE_ITEMS: (id) => `/invoices/${id}/line-items/`,
+    PAYMENTS: (id) => `/invoices/${id}/payments/`,
 };
 
 // ============================================================================
@@ -76,11 +61,10 @@ export const INVOICE_API_ENDPOINTS = {
 
 export const PAYMENT_API_ENDPOINTS = {
     // Base endpoints
-    LIST: `${BILLING_API_BASE}/payments/`,
-    DETAIL: (id) => `${BILLING_API_BASE}/payments/${id}/`,
-    RETRY: (id) => `${BILLING_API_BASE}/payments/${id}/retry/`,
-    REFUND: (id) => `${BILLING_API_BASE}/payments/${id}/refund/`,
-    SUMMARY: `${BILLING_API_BASE}/payments/summary/`,
+    LIST: '/payments/',
+    DETAIL: (id) => `/payments/${id}/`,
+    RETRY: (id) => `/payments/${id}/retry/`,
+    REFUND: (id) => `/payments/${id}/refund/`,
 };
 
 // ============================================================================
@@ -89,15 +73,13 @@ export const PAYMENT_API_ENDPOINTS = {
 
 export const PAYMENT_METHOD_API_ENDPOINTS = {
     // Base endpoints
-    LIST: `${BILLING_API_BASE}/payment-methods/`,
-    DETAIL: (id) => `${BILLING_API_BASE}/payment-methods/${id}/`,
-    CREATE: `${BILLING_API_BASE}/payment-methods/`,
-    DELETE: (id) => `${BILLING_API_BASE}/payment-methods/${id}/`,
-    SET_DEFAULT: (id) => `${BILLING_API_BASE}/payment-methods/${id}/set_default/`,
-    DEFAULT: `${BILLING_API_BASE}/payment-methods/default/`,
-    EXPIRING_SOON: `${BILLING_API_BASE}/payment-methods/expiring-soon/`,
-    SETUP_INTENT: `${BILLING_API_BASE}/payment-methods/setup-intent/`,
-    DETACH: (id) => `${BILLING_API_BASE}/payment-methods/${id}/detach/`,
+    LIST: '/payment-methods/',
+    DETAIL: (id) => `/payment-methods/${id}/`,
+    CREATE: '/payment-methods/',
+    DELETE: (id) => `/payment-methods/${id}/`,
+    SET_DEFAULT: (id) => `/payment-methods/${id}/set_default/`,
+    DEFAULT: '/payment-methods/default/',
+    EXPIRING_SOON: '/payment-methods/expiring-soon/',
 };
 
 // ============================================================================
@@ -105,10 +87,10 @@ export const PAYMENT_METHOD_API_ENDPOINTS = {
 // ============================================================================
 
 export const CHECKOUT_API_ENDPOINTS = {
-    CREATE_SESSION: `${BILLING_API_BASE}/checkout/`,
-    GET_SESSION: (sessionId) => `${BILLING_API_BASE}/checkout/session/?session_id=${sessionId}`,
-    GET_SESSION_BY_ID: (id) => `${BILLING_API_BASE}/checkout/${id}/`,
-    CREATE_PORTAL_SESSION: `${BILLING_API_BASE}/portal/`,
+    CREATE_SESSION: '/checkout/',
+    GET_SESSION: (sessionId) => `/checkout/session/?session_id=${sessionId}`,
+    GET_SESSION_BY_ID: (id) => `/checkout/${id}/`,
+    CREATE_PORTAL_SESSION: '/portal/',
 };
 
 // ============================================================================
@@ -116,18 +98,13 @@ export const CHECKOUT_API_ENDPOINTS = {
 // ============================================================================
 
 export const QUOTA_API_ENDPOINTS = {
-    STATUS: `${BILLING_API_BASE}/quota/`,
-    LIMITS: `${BILLING_API_BASE}/quota/limits/`,
-    REFRESH: `${BILLING_API_BASE}/quota/refresh/`,
-    USAGE_HISTORY: `${BILLING_API_BASE}/quota/usage-history/`,
+    STATUS: '/quota/',
+    LIMITS: '/quota/limits/',
+    REFRESH: '/quota/refresh/',
 };
 
-// ============================================================================
-// WEBHOOK ENDPOINT
-// ============================================================================
-
 export const WEBHOOK_API_ENDPOINTS = {
-    STRIPE: `${API_BASE_URL}/webhook/stripe/`,
+    STRIPE: '/webhook/stripe/',
 };
 
 // ============================================================================

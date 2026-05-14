@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
-import { ArrowLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, TableCellsIcon, DocumentChartBarIcon } from '@heroicons/react/24/outline';
+import { FiArrowLeft, FiDownload, FiFileText, FiTable, FiBarChart2 } from 'react-icons/fi';
 
 const ExportData = () => {
     const navigate = useNavigate();
@@ -13,10 +13,10 @@ const ExportData = () => {
     const [format, setFormat] = useState('csv');
     const [isExporting, setIsExporting] = useState(false);
     const exportOptions = [
-        { id: 'invoices', label: 'Invoices', icon: DocumentTextIcon, description: 'Export invoice data including amounts, dates, and status' },
-        { id: 'payments', label: 'Payments', icon: TableCellsIcon, description: 'Export payment transactions and history' },
-        { id: 'usage', label: 'Usage Analytics', icon: DocumentChartBarIcon, description: 'Export resource usage and consumption data' },
-        { id: 'subscriptions', label: 'Subscriptions', icon: DocumentChartBarIcon, description: 'Export subscription details and history' },
+        { id: 'invoices', label: 'Invoices', icon: FiFileText, description: 'Export invoice data including amounts, dates, and status' },
+        { id: 'payments', label: 'Payments', icon: FiTable, description: 'Export payment transactions and history' },
+        { id: 'usage', label: 'Usage Analytics', icon: FiBarChart2, description: 'Export resource usage and consumption data' },
+        { id: 'subscriptions', label: 'Subscriptions', icon: FiBarChart2, description: 'Export subscription details and history' },
     ];
     const formatOptions = [
         { id: 'csv', label: 'CSV', description: 'Comma-separated values for spreadsheet applications' },
@@ -38,7 +38,7 @@ const ExportData = () => {
                     onClick={() => navigate(BILLING_ROUTES.REPORTS)}
                     className="text-gray-500 hover:text-gray-700"
                 >
-                    <ArrowLeftIcon className="w-5 h-5" />
+                    <FiArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Export Data</h1>
@@ -165,7 +165,7 @@ const ExportData = () => {
                             </>
                         ) : (
                             <>
-                                <DocumentArrowDownIcon className="w-5 h-5" />
+                                <FiDownload className="w-5 h-5" />
                                 Export Data
                             </>
                         )}

@@ -4,7 +4,7 @@ import { usePlan, useCheckout } from '../../../hooks/billing';
 import { BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
 import { formatCurrency } from '../../../config/constants/billingConstants';
 import { Spinner } from '../../../components/common/UI';
-import { CheckIcon, ShieldCheckIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { FiCheck, FiShield, FiArrowLeft } from 'react-icons/fi';
 
 const Checkout = () => {
     const location = useLocation();
@@ -52,7 +52,7 @@ const Checkout = () => {
                 onClick={() => navigate(BILLING_ROUTES.PLANS)}
                 className="mb-6 inline-flex items-center gap-2 text-gray-500 hover:text-gray-700"
             >
-                <ArrowLeftIcon className="w-4 h-4" />
+                <FiArrowLeft className="w-4 h-4" />
                 Back to Plans
             </button>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -90,7 +90,7 @@ const Checkout = () => {
                         <div className="space-y-2">
                             {plan.features?.slice(0, 6).map((feature, idx) => (
                                 <div key={idx} className="flex items-start gap-2">
-                                    <CheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                    <FiCheck className="w-5 h-5 text-green-500 flex-shrink-0" />
                                     <span className="text-sm text-gray-600">
                                         {feature.name}
                                         {feature.value && feature.value !== 'Yes' && (
@@ -116,7 +116,7 @@ const Checkout = () => {
                             </p>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <ShieldCheckIcon className="w-5 h-5 text-green-600" />
+                            <FiShield className="w-5 h-5 text-green-600" />
                             <span>Secure payment powered by Stripe</span>
                         </div>
                         <button

@@ -100,13 +100,17 @@ class LoginAttempt(BaseModel):
         }
         
         if request:
-            data['ip_address'] = cls.get_client_ip(request)
-            data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:500]
-            data['referer'] = request.META.get('HTTP_REFERER', '')[:500]
+            data['ip_address'] = kwargs.get('ip_address') or cls.get_client_ip(request) or '127.0.0.1'
+            data['user_agent'] = kwargs.get('user_agent') or request.META.get('HTTP_USER_AGENT', '')[:500]
+            data['referer'] = kwargs.get('referer') or request.META.get('HTTP_REFERER', '')[:500]
             data['session_key'] = request.session.session_key or ''
+        else:
+            data['ip_address'] = kwargs.get('ip_address') or '127.0.0.1'
+            data['user_agent'] = kwargs.get('user_agent', '')[:500]
+            data['referer'] = kwargs.get('referer', '')[:500]
         
         return cls.objects.create(**data)
-    
+     
     @staticmethod
     def get_client_ip(request):
         """Extract client IP from request."""

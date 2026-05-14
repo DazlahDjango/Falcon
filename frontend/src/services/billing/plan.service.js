@@ -1,41 +1,40 @@
 import { BaseBillingService, withRetry } from './client';
+import { PLAN_API_ENDPOINTS } from '../../config/constants/billingApiConstants';
 
 class PlanService extends BaseBillingService {
     constructor() {
         super('plans');
     }
+
     async getPlans(params = {}) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(), { params }));
+        return withRetry(() => this.apiClient.get(PLAN_API_ENDPOINTS.LIST, { params }));
     }
-    async getPublicPlans() {
-        return withRetry(() => this.apiClient.get('/plans/public/'));
-    }
+
     async getPlanById(id) {
-        return this.getById(id);
+        return withRetry(() => this.apiClient.get(PLAN_API_ENDPOINTS.DETAIL(id)));
     }
-    async getPlanBySlug(slug) {
-        return withRetry(() => this.apiClient.get(`/plans/by-slug/${slug}/`));
-    }
+
     async getPlanFeatures(id) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/features/`)));
+        return withRetry(() => this.apiClient.get(PLAN_API_ENDPOINTS.FEATURES(id)));
     }
+
     async getPlanSubscriptions(id) {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/subscriptions/`)));
+        return withRetry(() => this.apiClient.get(PLAN_API_ENDPOINTS.SUBSCRIPTIONS(id)));
     }
+
     async comparePlans(planIds) {
         if (!planIds || planIds.length < 2) {
             throw new Error('At least 2 plans are required for comparison');
         }
-        return withRetry(() => this.apiClient.post('/plans/compare/', { plan_ids: planIds }));
+        return withRetry(() => this.apiClient.post(PLAN_API_ENDPOINTS.COMPARE, { plan_ids: planIds }));
     }
-    async getRecommendedPlan() {
-        return withRetry(() => this.apiClient.get('/plans/recommended/'));
-    }
+
     async getPlanPricing(id, interval = 'month') {
-        return withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/pricing/`), {
+        return withRetry(() => this.apiClient.get(`${PLAN_API_ENDPOINTS.DETAIL(id)}pricing/`, {
             params: { interval }
         }));
     }
 }
+
 export const planService = new PlanService();
 export default planService;
