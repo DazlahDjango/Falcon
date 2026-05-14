@@ -152,7 +152,11 @@ class HierarchyAccessEnforcer:
         return [line.employee.user_id for line in reporting_lines]
     
     def _get_indirect_reports(self, manager_user_id: UUID, tenant_id: UUID) -> List[UUID]:
-        def collect_descendants(current_manager_id: UUID) -> List[UUID]:
+        def collect_descendants(current_manager_id: UUID, visited: set, depth: int = 0) -> List[UUID]:
+            if current_manager_id in visited or depth > 20:
+                return []
+            
+            visited.add(current_manager_id)
             descendants = []
             current_emp = Employment.objects.filter(
                 user_id=current_manager_id,
@@ -172,9 +176,11 @@ class HierarchyAccessEnforcer:
             ).select_related('employee')
             for report in direct:
                 descendants.append(report.employee.user_id)
-                descendants.extend(collect_descendants(report.employee.user_id))
+                descendants.extend(collect_descendants(report.employee.user_id, visited, depth + 1))
             return descendants
-        all_descendants = collect_descendants(manager_user_id)
+            
+        visited_ids = set()
+        all_descendants = collect_descendants(manager_user_id, visited_ids)
         direct = self._get_direct_reports(manager_user_id, tenant_id)
         return [d for d in all_descendants if d not in direct]
     

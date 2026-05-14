@@ -81,34 +81,65 @@ class AuthenticationService:
             logger.error(f"MFA verification error for {user.email}: {str(e)}")
             return None, None, 'MFA verification failed'
         
-    def _complete_authentication(self, user: User, ip_address: str, user_agent: str, request=None, mfa_verified: bool = False) -> Tuple[User, Dict, None]:
-        user.reset_login_attempts()
-        user.last_login = timezone.now()
-        user.last_login_ip = ip_address
-        user.last_login_agent = user_agent[:500]
-        user.save(update_fields=['last_login', 'last_login_ip', 'last_login_agent'])
-        tokens = self.jwt_service.create_token(user)
-        session = self.session_service.create_session(
-            user=user,
-            session_key=request.session.session_key if request else None,
-            jwt_token_id=tokens.get('jti', ''),
-            ip_address=ip_address,
-            user_agent=user_agent,
-            mfa_verified=mfa_verified
-        )
-        tokens['session_id'] = str(session.id)
-        # Record successful login
-        LoginAttempt.record_attempt(
-            identifier=user.email, user=user, result='success',
-            request=request, ip_address=ip_address, user_agent=user_agent
-        )
-        # Audit log
-        self.audit_service.log(
-            user=user, action='user.login', action_type='login',
-            request=request, severity='info',
-            metadata={'ip_address': ip_address, 'mfa_verified': mfa_verified}
-        )
-        return user, tokens, None
+    def _complete_authentication(self, user: User, ip_address: str, user_agent: str, request=None, mfa_verified: bool = False) -> Tuple[User, Dict, Optional[str]]:
+        """Complete the authentication process and return tokens."""
+        logger.info(f"Completing authentication for user: {user.email}")
+        
+        try:
+            # 1. Update user login info
+            user.last_login = timezone.now()
+            user.last_login_ip = ip_address
+            user.last_login_agent = user_agent[:500]
+            user.login_attempts = 0
+            user.locked_until = None
+            user.save(update_fields=['last_login', 'last_login_ip', 'last_login_agent', 'login_attempts', 'locked_until'])
+            logger.debug("User login info updated")
+
+            # 2. Create session
+            session = self.session_service.create_session(
+                user=user,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                mfa_verified=mfa_verified
+            )
+            logger.debug(f"Session created: {session.id}")
+
+            # 3. Generate tokens
+            tokens = self.jwt_service.create_token(user)
+            tokens['session_id'] = str(session.id)
+            logger.debug("JWT tokens generated")
+
+            # 4. Record successful login attempt
+            LoginAttempt.record_attempt(
+                identifier=user.email,
+                user=user,
+                result='success',
+                request=request,
+                ip_address=ip_address,
+                user_agent=user_agent
+            )
+            logger.debug("Login attempt recorded")
+
+            # 5. Audit log
+            self.audit_service.log(
+                user=user,
+                action='user.login',
+                action_type='login',
+                request=request,
+                severity='info',
+                metadata={
+                    'session_id': str(session.id),
+                    'ip': ip_address,
+                    'mfa_verified': mfa_verified
+                }
+            )
+            logger.debug("Audit log created")
+
+            return user, tokens, None
+            
+        except Exception as e:
+            logger.error(f"Error in _complete_authentication for {user.email}: {str(e)}", exc_info=True)
+            raise e
     
     def logout(self, user: User, session_id: str = None, token: str = None, request=None):
         try:
