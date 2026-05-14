@@ -133,6 +133,8 @@ PROJECT_APPS = [
     'apps.reports',
     'apps.workflowsapi', 
     'apps.tenant.api',  # For API endpoints
+    'apps.reviews.apps.ReviewsConfig',
+    
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -187,6 +189,16 @@ MIDDLEWARE = [
     'apps.kpi.middleware.AuditMiddleware',
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
+    # Reviews app middleware (order matters!)
+    'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
+    'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
+    'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
+    'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
+    'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
+    'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
+    'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
+    
+
 
 ]
 
@@ -436,6 +448,21 @@ REST_FRAMEWORK = {
         'tenant_user_creation': '50/day',  # New users per tenant
         'tenant_api': '10000/day',   # API calls per tenant
         'connection_ops': '100/hour',
+        # Review throttles
+        'review_submission': '10/hour',
+        'review_approval': '20/hour',
+        'feedback_submission': '5/hour',
+        'calibration_action': '30/min',
+        'review_export': '5/hour',
+        'bulk_review': '3/hour',
+        
+        # PIP throttles
+        'pip_creation': '2/month',
+        'pip_action': '20/hour',
+        'pip_approval': '10/hour',
+        'pip_comment': '30/hour',
+        
+
     },
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',

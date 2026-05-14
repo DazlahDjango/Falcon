@@ -135,4 +135,4 @@ class Evidence(BaseKPIModel):
         ordering = ['-uploaded_at']
     
     def __str__(self):
-        return f"Evidence for {self.actual.kpi.name} - {self.evidence_type}"
+        return f"Evidence for {self.actual.kpi.name} - {self.evidence_type}"       
