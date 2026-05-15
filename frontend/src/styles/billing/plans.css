@@ -1,0 +1,1244 @@
+/* ============================================================================
+ * Billing Layout
+ * ============================================================================ */
+
+.billing-layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.billing-layout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.billing-layout-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.billing-layout-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.billing-layout-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.billing-layout-content {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ============================================================================
+ * Billing Card
+ * ============================================================================ */
+
+.billing-card {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.billing-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.billing-card-highlight {
+    border: 2px solid #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.billing-card-success {
+    border-left: 4px solid #10b981;
+}
+
+.billing-card-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.billing-card-error {
+    border-left: 4px solid #ef4444;
+}
+
+.billing-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.billing-card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.billing-card-icon {
+    font-size: 1.25rem;
+}
+
+.billing-card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.billing-card-body {
+    padding: 1.25rem;
+}
+
+.billing-card-action {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ============================================================================
+ * Price Display
+ * ============================================================================ */
+
+.price-display {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.price-display-amount {
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.price-display-period {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.price-display-strikethrough {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+.price-display-small .price-display-amount {
+    font-size: 1rem;
+}
+
+.price-display-medium .price-display-amount {
+    font-size: 1.25rem;
+}
+
+.price-display-large .price-display-amount {
+    font-size: 1.875rem;
+}
+
+.price-display-xlarge .price-display-amount {
+    font-size: 2.5rem;
+}
+
+/* ============================================================================
+ * Status Badge
+ * ============================================================================ */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.status-badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge-warning {
+    background-color: #fed7aa;
+    color: #92400e;
+}
+
+.status-badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.status-badge-small {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+}
+
+.status-badge-medium {
+    font-size: 0.875rem;
+}
+
+.status-badge-large {
+    font-size: 1rem;
+    padding: 0.375rem 0.875rem;
+}
+
+.status-badge-icon {
+    font-size: 0.875rem;
+}
+
+/* ============================================================================
+ * Loading Skeleton
+ * ============================================================================ */
+
+.skeleton-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.skeleton-card {
+    background: #f3f4f6;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    width: 100%;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-header {
+    height: 80px;
+    background: #e5e7eb;
+}
+
+.skeleton-body {
+    padding: 1rem;
+}
+
+.skeleton-line {
+    height: 16px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-line.short {
+    width: 60%;
+}
+
+.skeleton-line.large {
+    height: 32px;
+}
+
+.skeleton-list-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    background: #e5e7eb;
+    border-radius: 50%;
+}
+
+.skeleton-content {
+    flex: 1;
+}
+
+.skeleton-table {
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.skeleton-table-header,
+.skeleton-table-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.skeleton-table-header {
+    background: #e5e7eb;
+}
+
+.skeleton-metric {
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ============================================================================
+ * Empty State
+ * ============================================================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-state-compact {
+    padding: 2rem 1.5rem;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state-message {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-action {
+    display: inline-block;
+}
+
+/* ============================================================================
+ * Plans
+ * ============================================================================ */
+
+.plans-container {
+    padding: 1rem 0;
+}
+
+.plans-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.plans-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.plans-subtitle {
+    font-size: 1.125rem;
+    color: #6b7280;
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.plan-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.plan-card-popular {
+    border: 2px solid #2563eb;
+    transform: scale(1.02);
+}
+
+.plan-card-popular:hover {
+    transform: scale(1.02) translateY(-4px);
+}
+
+.plan-card-selected {
+    border: 2px solid #10b981;
+}
+
+.plan-card-badge {
+    position: absolute;
+    top: 0;
+    right: 1rem;
+    background: #2563eb;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 1rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.plan-card-header {
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.plan-card-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.plan-card-trial {
+    margin-top: 1rem;
+}
+
+.plan-card-trial-text {
+    display: block;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #10b981;
+}
+
+.plan-card-trial-subtext {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.plan-card-footer {
+    padding: 1.5rem;
+    text-align: center;
+    border-top: 1px solid #e5e7eb;
+}
+
+.plan-card-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.plan-card-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.plan-card-button-selected {
+    background: #10b981;
+}
+
+.plan-card-button-selected:hover:not(:disabled) {
+    background: #059669;
+}
+
+.plan-card-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.plan-card-contact {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.75rem;
+}
+
+/* Plan Features */
+.plan-features {
+    padding: 1.5rem;
+}
+
+.plan-features-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.plan-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+}
+
+.plan-feature-icon {
+    width: 20px;
+    text-align: center;
+}
+
+.plan-feature-icon-included {
+    color: #10b981;
+}
+
+.plan-feature-icon-not-included {
+    color: #9ca3af;
+}
+
+.plan-feature-label {
+    flex: 1;
+    color: #4b5563;
+}
+
+.plan-feature-value {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.plan-features-more {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Plan Comparison Table */
+.plan-comparison {
+    overflow-x: auto;
+    margin-top: 2rem;
+}
+
+.plan-comparison-header {
+    display: grid;
+    grid-template-columns: 200px repeat(auto-fit, minmax(180px, 1fr));
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.plan-comparison-feature {
+    padding: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.plan-comparison-plan {
+    padding: 1rem;
+    text-align: center;
+}
+
+.plan-comparison-plan h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.125rem;
+}
+
+.plan-comparison-select {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.plan-comparison-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-comparison-row {
+    display: grid;
+    grid-template-columns: 200px repeat(auto-fit, minmax(180px, 1fr));
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.plan-comparison-feature-name {
+    padding: 0.75rem 1rem;
+    color: #4b5563;
+}
+
+.plan-comparison-value {
+    padding: 0.75rem 1rem;
+    text-align: center;
+    color: #1f2937;
+}
+
+/* Plan Selector */
+.plan-selector {
+    padding: 1rem;
+}
+
+.plan-selector-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.plan-selector-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.plan-selector-subtitle {
+    color: #6b7280;
+}
+
+.plan-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* Pricing Tiers */
+.pricing-tiers {
+    padding: 1rem;
+}
+
+.pricing-tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.pricing-tier {
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.pricing-tier:hover {
+    transform: translateY(-4px);
+}
+
+.pricing-tier-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.pricing-tier-savings {
+    font-size: 0.75rem;
+    color: #10b981;
+    margin-top: 0.5rem;
+}
+
+.pricing-tier-button {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.pricing-tier-button:hover {
+    background: #1d4ed8;
+}
+
+/* Billing Cycle Selector */
+.billing-cycle-selector {
+    display: inline-flex;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    padding: 0.25rem;
+}
+
+.billing-cycle-option {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    background: transparent;
+    border-radius: 9999px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.billing-cycle-option-active {
+    background: #2563eb;
+    color: white;
+}
+
+.billing-cycle-option-savings {
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+
+/* ============================================================================
+ * Invoice Components
+ * ============================================================================ */
+
+.invoices-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.invoice-card {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.invoice-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.invoice-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.invoice-card-number {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.invoice-card-date {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.invoice-card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.invoice-card-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.invoice-card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.invoice-detail {
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.invoice-detail-header {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.invoice-detail-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.invoice-table th,
+.invoice-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.invoice-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.invoice-totals {
+    padding: 1.5rem;
+    text-align: right;
+    background: #f9fafb;
+}
+
+.invoice-filter {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+/* ============================================================================
+ * Transaction Components
+ * ============================================================================ */
+
+.transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.transaction-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    transition: background 0.2s ease;
+}
+
+.transaction-row:hover {
+    background: #f9fafb;
+}
+
+.transaction-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.transaction-reference {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.transaction-date {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.transaction-amount {
+    font-weight: 600;
+    text-align: right;
+}
+
+.transaction-amount-success {
+    color: #10b981;
+}
+
+.transaction-amount-failed {
+    color: #ef4444;
+}
+
+.transaction-details {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+/* ============================================================================
+ * Payment Method Components
+ * ============================================================================ */
+
+.payment-methods-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.payment-method-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+}
+
+.payment-method-card-default {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.payment-method-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.payment-method-icon {
+    font-size: 1.5rem;
+}
+
+.payment-method-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-method-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.payment-method-expiry {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.payment-method-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ============================================================================
+ * Checkout Components
+ * ============================================================================ */
+
+.checkout-modal {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.checkout-form {
+    padding: 1.5rem;
+}
+
+.checkout-form-group {
+    margin-bottom: 1rem;
+}
+
+.checkout-form-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.checkout-form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+}
+
+.checkout-form-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    ring: 2px solid #2563eb;
+}
+
+.checkout-success {
+    text-align: center;
+    padding: 2rem;
+}
+
+.checkout-success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+/* ============================================================================
+ * Billing Portal
+ * ============================================================================ */
+
+.billing-portal {
+    display: flex;
+    gap: 2rem;
+}
+
+.billing-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.billing-content {
+    flex: 1;
+}
+
+.billing-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.billing-metric {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.billing-metric-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+.billing-metric-value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* ============================================================================
+ * Analytics Components
+ * ============================================================================ */
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.analytics-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.analytics-card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+/* ============================================================================
+ * Admin Components
+ * ============================================================================ */
+
+.admin-billing-dashboard {
+    padding: 1rem;
+}
+
+.admin-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* ============================================================================
+ * Responsive Design
+ * ============================================================================ */
+
+@media (max-width: 768px) {
+    .billing-layout-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .plans-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .plan-card-popular {
+        transform: none;
+    }
+    
+    .billing-portal {
+        flex-direction: column;
+    }
+    
+    .billing-sidebar {
+        width: 100%;
+    }
+    
+    .plan-comparison-header,
+    .plan-comparison-row {
+        grid-template-columns: 150px repeat(auto-fit, minmax(140px, 1fr));
+    }
+    
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .billing-layout {
+        padding: 1rem;
+    }
+    
+    .plan-card-header,
+    .plan-features,
+    .plan-card-footer {
+        padding: 1rem;
+    }
+    
+    .invoice-card-header,
+    .invoice-card-body {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .transaction-row {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .transaction-amount {
+        text-align: center;
+    }
+}
+
+/* ============================================================================
+ * Animations
+ * ============================================================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+ * Utility Classes
+ * ============================================================================ */
+
+.text-success {
+    color: #10b981;
+}
+
+.text-error {
+    color: #ef4444;
+}
+
+.text-warning {
+    color: #f59e0b;
+}
+
+.text-info {
+    color: #2563eb;
+}
+
+.bg-success {
+    background-color: #d1fae5;
+}
+
+.bg-error {
+    background-color: #fee2e2;
+}
+
+.bg-warning {
+    background-color: #fed7aa;
+}
+
+.bg-info {
+    background-color: #dbeafe;
+}
+
+/* ============================================================================
+ * Button Styles
+ * ============================================================================ */
+
+.btn-primary {
+    background-color: #2563eb;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+.btn-secondary {
+    background-color: #6b7280;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #4b5563;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #2563eb;
+    padding: 0.5rem 1rem;
+    border: 1px solid #2563eb;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    background-color: #2563eb;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}

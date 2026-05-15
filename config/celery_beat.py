@@ -130,53 +130,57 @@ beat_schedule = {
     
     # ======== Billing =======
     # Daily tasks
-    'check-expired-subscriptions': {
-        'task': 'billing.tasks.check_expired_subscriptions',
-        'schedule': crontab(hour=0, minute=0),  # Midnight daily
-        'options': {'expires': 3600},
+    'process-due-renewals': {
+        'task': 'billing.tasks.process_due_renewals',
+        'schedule': crontab(hour=2, minute=0),  # Daily at 2 AM
+        'options': {'queue': 'billing'}
     },
-    'reset-daily-api-quotas': {
-        'task': 'billing.tasks.reset_daily_api_quotas',
-        'schedule': crontab(hour=0, minute=5),  # 12:05 AM daily
-        'options': {'expires': 1800},
+    'process-expired-trials': {
+        'task': 'billing.tasks.process_expired_trials',
+        'schedule': crontab(hour=3, minute=0),  # Daily at 3 AM
+        'options': {'queue': 'billing'}
     },
-    'cleanup-old-webhook-events': {
-        'task': 'billing.tasks.cleanup_old_webhook_events',
-        'schedule': crontab(hour=2, minute=0),  # 2:00 AM daily
-        'args': [30],  # Keep 30 days
-        'options': {'expires': 7200},
+    'send-renewal-reminders': {
+        'task': 'billing.tasks.send_renewal_reminders',
+        'schedule': crontab(hour=9, minute=0),  # Daily at 9 AM
+        'options': {'queue': 'notifications'}
     },
-    'generate-monthly-invoice-report': {
-        'task': 'billing.tasks.generate_monthly_invoice_report',
-        'schedule': crontab(hour=0, minute=0, day_of_month=1),  # 1st of each month
-        'options': {'expires': 86400},
-    },
-    
-    # Hourly tasks
-    'send-upcoming-invoice-reminders': {
-        'task': 'billing.tasks.send_upcoming_invoice_reminder',
-        'schedule': crontab(minute=0, hour='9,12,15'),  # 9 AM, 12 PM, 3 PM
-        'args': [3],  # 3 days before
-        'options': {'expires': 3600},
-    },
-    'handle-trial-ending-soon': {
-        'task': 'billing.tasks.handle_trial_ending_soon',
-        'schedule': crontab(minute=0, hour='10'),  # 10 AM daily
-        'args': [3],  # 3 days before
-        'options': {'expires': 3600},
+    'apply-pending-plan-changes': {
+        'task': 'billing.tasks.apply_pending_plan_changes',
+        'schedule': crontab(hour=1, minute=0),  # Daily at 1 AM
+        'options': {'queue': 'billing'}
     },
     
-    # Every 30 minutes
-    'send-payment-failed-notifications': {
-        'task': 'billing.tasks.send_payment_failed_notification',
-        'schedule': crontab(minute='*/30'),
-        'options': {'expires': 1800},
+    # Invoice tasks
+    'send-invoice-emails': {
+        'task': 'billing.tasks.send_invoice_emails',
+        'schedule': crontab(hour=10, minute=0),  # Daily at 10 AM
+        'options': {'queue': 'notifications'}
     },
     
-    # Every 6 hours
-    'sync-invoices-recent': {
-        'task': 'billing.tasks.sync_invoices_for_tenant',
-        'schedule': crontab(minute=0, hour='*/6'),
-        'options': {'expires': 21600},
+    # Webhook tasks
+    'retry-failed-webhooks': {
+        'task': 'billing.tasks.retry_failed_webhooks',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'webhooks'}
+    },
+    
+    # Cleanup tasks
+    'cleanup-expired-webhooks': {
+        'task': 'billing.tasks.cleanup_expired_webhooks',
+        'schedule': crontab(day_of_month=1, hour=0, minute=0),  # Monthly on 1st
+        'options': {'queue': 'cleanup'}
+    },
+    'cleanup-expired-sessions': {
+        'task': 'billing.tasks.cleanup_expired_sessions',
+        'schedule': crontab(hour=4, minute=0),  # Daily at 4 AM
+        'options': {'queue': 'cleanup'}
+    },
+    
+    # Sync tasks
+    'sync-paystack-transactions': {
+        'task': 'billing.tasks.sync_paystack_transactions',
+        'schedule': crontab(hour=5, minute=0),  # Daily at 5 AM
+        'options': {'queue': 'billing'}
     },
 }

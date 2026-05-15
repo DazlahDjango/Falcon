@@ -1,0 +1,221 @@
+apps/billing/
+├── __init__.py
+├── apps.py                      # App configuration
+├── admin.py                     # Django admin (subscription management, invoices)
+├── constants.py                 # Plan types, transaction statuses, webhook events
+├── exceptions.py                # Custom exceptions (PaymentError, WebhookError, etc.)
+├── signals.py                   # Post-payment, subscription changed signals
+├── tasks.py                     # Celery tasks (expiry checks, reminders, invoice generation)
+├── urls.py                      # App URL routing
+├── validators.py                # Webhook signature validator, amount validators
+├── utils.py                     # Helpers (invoice number generation, currency formatting)
+│
+├── models/                      # Database models
+│   ├── __init__.py
+│   ├── base.py                  # Base models with audit mixin
+│   ├── plan.py                  # SubscriptionPlan model (name, price, features, interval)
+│   ├── subscription.py          # Subscription model (tenant, plan, status, start/end dates)
+│   ├── transaction.py           # Transaction model (reference, amount, status, paystack_ref)
+│   ├── invoice.py               # Invoice model (invoice number, amount, tax, total, PDF)
+│   ├── webhook_log.py           # WebhookEventLog (idempotency, raw payload, processed flag)
+│   ├── payment_method.py        # PaymentMethod model (card, bank, authorization code)
+│   └── audit_log.py             # BillingAuditLog (who did what, when, IP, etc.)
+│
+├── managers/                    # Custom query managers
+│   ├── __init__.py
+│   ├── base.py                  # Tenant-aware base manager
+│   ├── subscription_manager.py  # Active subscriptions, expiring soon, trial ending
+│   ├── transaction_manager.py   # By reference, by status, successful only
+│   ├── invoice_manager.py       # Unpaid, overdue, by tenant
+│   └── webhook_manager.py       # Idempotency keys, processed/unprocessed
+│
+├── services/                    # Business logic layer (SECURITY FOCUSED)
+│   ├── __init__.py
+│   ├── paystack/
+│   │   ├── __init__.py
+│   │   ├── client.py            # PayStack API client (with retry, timeout, logging)
+│   │   ├── signature.py         # Webhook signature verification (CRITICAL)
+│   │   ├── initialization.py    # Initialize payment, get auth URL
+│   │   ├── verification.py      # Verify transaction, get status
+│   │   ├── webhook_handler.py   # Process incoming webhooks (IDEMPOTENT)
+│   │   └── refund.py            # Refund handling
+│   ├── subscription/
+│   │   ├── __init__.py
+│   │   ├── lifecycle.py         # Create, activate, pause, cancel, expire
+│   │   ├── trial.py             # Trial management
+│   │   ├── renewal.py           # Auto-renewal, renewal reminders
+│   │   └── upgrade_downgrade.py # Plan changes (proration, effective date)
+│   ├── billing/
+│   │   ├── __init__.py
+│   │   ├── checkout.py          # Checkout session creation
+│   │   ├── invoice.py           # Invoice generation (PDF, email)
+│   │   ├── tax.py               # Tax calculation (VAT, etc.)
+│   │   └── currency.py          # Currency conversion (if needed)
+│   ├── webhook/
+│   │   ├── __init__.py
+│   │   ├── processor.py         # Main webhook processor (with idempotency lock)
+│   │   ├── events/
+│   │   │   ├── __init__.py
+│   │   │   ├── charge_success.py    # Handle charge.success event
+│   │   │   ├── subscription_create.py
+│   │   │   ├── subscription_disable.py
+│   │   │   ├── subscription_enable.py
+│   │   │   └── invoice_payment_failed.py
+│   │   └── retry.py             # Failed webhook retry logic
+│   └── audit/
+│       ├── __init__.py
+│       ├── logger.py            # Audit logging for all billing actions
+│       └── reporter.py          # Billing audit report generation
+│
+├── api/                         # REST API (DRF) - SECURITY FIRST
+│   ├── __init__.py
+│   ├── v1/
+│   │   ├── __init__.py
+│   │   ├── urls.py              # API URL routing
+│   │   ├── serializers/
+│   │   │   ├── __init__.py
+│   │   │   ├── plan.py          # Plan serializers (read-only for clients)
+│   │   │   ├── subscription.py  # Subscription serializers
+│   │   │   ├── transaction.py   # Transaction serializers
+│   │   │   ├── invoice.py       # Invoice serializers
+│   │   │   ├── checkout.py      # Checkout request/response
+│   │   │   └── webhook.py       # Webhook payload serializer
+│   │   ├── views/
+│   │   │   ├── __init__.py
+│   │   │   ├── public/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── plans.py     # GET /plans - Available plans (public)
+│   │   │   │   ├── webhook.py   # POST /webhook/paystack/ (NO AUTH - signature verified)
+│   │   │   │   └── payment_callback.py  # GET /payment/callback/ (redirect)
+│   │   │   ├── protected/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── subscriptions.py  # CRUD for tenant subscriptions
+│   │   │   │   ├── checkout.py      # POST /checkout/initialize
+│   │   │   │   ├── invoices.py      # GET /invoices/, download PDF
+│   │   │   │   ├── transactions.py  # Transaction history
+│   │   │   │   ├── payment_methods.py  # Saved payment methods
+│   │   │   │   └── billing_portal.py  # Customer portal (cancel, update payment)
+│   │   │   └── admin/           # Falcon Admin only
+│   │   │       ├── __init__.py
+│   │   │       ├── tenants.py   # Manage tenant subscriptions
+│   │   │       ├── plans.py     # CRUD for plans (create, update price)
+│   │   │       └── reports.py   # Billing reports, revenue
+│   │   ├── permissions/
+│   │   │   ├── __init__.py
+│   │   │   ├── billing.py       # Billing-specific permissions
+│   │   │   ├── tenant_billing.py # Tenant can only see own billing
+│   │   │   └── webhook.py       # Webhook endpoint special permission
+│   │   ├── throttles/
+│   │   │   ├── __init__.py
+│   │   │   ├── checkout.py      # Rate limit checkout (prevent abuse)
+│   │   │   └── webhook.py       # Webhook throttle (higher limit)
+│   │   └── filters/
+│   │       ├── __init__.py
+│   │       └── subscription_filter.py
+│   └── v2/                      # Reserved for future
+│       └── __init__.py
+│
+├── middleware/                  # Custom middleware
+│   ├── __init__.py
+│   ├── subscription_guard.py    # Check subscription status on tenant requests
+│   ├── webhook_signature.py     # Verify webhook signature before processing
+│   └── audit_middleware.py      # Log all billing API access
+│
+├── consumers.py                 # WebSocket consumers (real-time payment updates)
+├── routing.py                   # WebSocket routing
+│
+├── management/                  # Management commands
+│   └── commands/
+│       ├── __init__.py
+│       ├── check_expiring_subscriptions.py   # Daily check for upcoming expirations
+│       ├── deactivate_expired_subscriptions.py  # Deactivate expired tenants
+│       ├── send_invoice_reminders.py
+│       ├── process_failed_webhooks.py
+│       ├── sync_paystack_transactions.py   # Reconciliation
+│       └── generate_monthly_billing_reports.py
+│
+├── migrations/                  # Database migrations
+│   ├── __init__.py
+│   └── (auto-generated)
+│
+├── fixtures/                    # Initial data
+│   ├── __init__.py
+│   ├── plans.yaml               # Basic, Professional, Enterprise plans
+│   └── webhook_test_payloads.yaml  # For testing
+│
+├── templates/                   # Email templates
+│   └── billing/
+│       └── email/
+│           ├── invoice.html                 # Invoice email
+│           ├── payment_success.html         # Payment confirmation
+│           ├── payment_failed.html
+│           ├── subscription_created.html
+│           ├── subscription_cancelled.html
+│           ├── subscription_expiring.html   # Reminder
+│           ├── subscription_expired.html
+│           ├── trial_ending.html
+│           └── webhook_failed.html          # Admin alert
+│
+├── static/                      # Static assets
+│   └── billing/
+│       ├── css/
+│       └── js/
+│
+├── frontend/                    # React/Vue components (if separate SPA)
+│   └── components/
+│       ├── PricingPlans.jsx
+│       ├── CheckoutButton.jsx
+│       ├── SubscriptionStatus.jsx
+│       ├── BillingHistory.jsx
+│       ├── InvoiceDownload.jsx
+│       ├── PaymentMethodManager.jsx
+│       └── BillingPortal.jsx
+│
+└── tests/                       # Comprehensive tests (SECURITY FOCUSED)
+    ├── __init__.py
+    ├── conftest.py
+    ├── factories/
+    │   ├── __init__.py
+    │   ├── plan_factory.py
+    │   ├── subscription_factory.py
+    │   ├── transaction_factory.py
+    │   └── invoice_factory.py
+    ├── unit/
+    │   ├── __init__.py
+    │   ├── test_models/
+    │   │   ├── test_plan.py
+    │   │   ├── test_subscription.py
+    │   │   ├── test_transaction.py
+    │   │   └── test_invoice.py
+    │   ├── test_services/
+    │   │   ├── test_paystack_client.py
+    │   │   ├── test_webhook_signature.py    # CRITICAL: test signature verification
+    │   │   ├── test_subscription_lifecycle.py
+    │   │   ├── test_idempotency.py          # CRITICAL: webhook idempotency
+    │   │   └── test_tax_calculation.py
+    │   └── test_utils/
+    ├── integration/
+    │   ├── __init__.py
+    │   ├── test_api/
+    │   │   ├── test_checkout_flow.py
+    │   │   ├── test_webhook_endpoint.py     # Test with real/mock PayStack payloads
+    │   │   ├── test_subscription_endpoints.py
+    │   │   └── test_invoice_endpoints.py
+    │   └── test_workflows/
+    │       ├── test_complete_payment_flow.py
+    │       ├── test_subscription_renewal.py
+    │       └── test_webhook_retry.py
+    ├── security/
+    │   ├── __init__.py
+    │   ├── test_tenant_isolation.py         # Tenant A can't see Tenant B's billing
+    │   ├── test_webhook_signature_required.py  # Unsigned webhooks rejected
+    │   ├── test_idempotency_attack.py       # Same webhook processed once
+    │   ├── test_checkout_rate_limit.py
+    │   ├── test_payment_method_ownership.py
+    │   ├── test_audit_logging.py            # Every billing action logged
+    │   └── test_refund_authorization.py
+    └── e2e/
+        ├── __init__.py
+        ├── test_customer_subscribes.py
+        ├── test_subscription_expires.py
+        └── test_admin_billing_management.py

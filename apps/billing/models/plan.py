@@ -1,170 +1,179 @@
 from django.db import models
-from decimal import Decimal
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator, MaxValueValidator
-from .base import BillingBaseModel
-import uuid
+from .base import BaseBillingModel
 
-class Plan(BillingBaseModel):
-    """Billing plans with pricing and Stripe integration."""
+class SubscriptionPlan(BaseBillingModel):
     PLAN_TRIAL = 'trial'
     PLAN_BASIC = 'basic'
     PLAN_PROFESSIONAL = 'professional'
     PLAN_ENTERPRISE = 'enterprise'
+    
     PLAN_CHOICES = [
         (PLAN_TRIAL, 'Trial'),
         (PLAN_BASIC, 'Basic'),
         (PLAN_PROFESSIONAL, 'Professional'),
         (PLAN_ENTERPRISE, 'Enterprise'),
     ]
-    BILLING_INTERVAL_MONTHLY = 'month'
-    BILLING_INTERVAL_YEARLY = 'year'
-    BILLING_INTERVAL_CHOICES = [
-        (BILLING_INTERVAL_MONTHLY, 'Monthly'),
-        (BILLING_INTERVAL_YEARLY, 'Yearly'),
+    INTERVAL_MONTHLY = 'monthly'
+    INTERVAL_YEARLY = 'yearly'
+    INTERVAL_CHOICES = [
+        (INTERVAL_MONTHLY, 'Monthly'),
+        (INTERVAL_YEARLY, 'Yearly'),
     ]
     name = models.CharField(_('plan name'), max_length=100, db_index=True)
-    slug = models.SlugField(_('slug'), unique=True, db_index=True)
-    description = models.TextField(_('description'), blank=True)
-    plan_type = models.CharField(_('plan type'), max_length=20, choices=PLAN_CHOICES, db_index=True)
-    stripe_product_id = models.CharField(_('Stripe product ID'), max_length=100, blank=True, db_index=True)
-    stripe_price_id_monthly = models.CharField(_('Stripe price ID (monthly)'), max_length=100, blank=True)
-    stripe_price_id_yearly = models.CharField(_('Stripe price ID (Yearly)'), max_length=100, blank=True)
-    price_monthly = models.DecimalField(_('monthly price'), max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0.00'))])
-    price_yearly = models.DecimalField(_('yearly price'), max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0.00'))])
+    slug = models.SlugField(_('slug'), unique=True, db_index=True, help_text="URL-friendly identifier (basic, professional, enterprise)")
+    plan_type = models.CharField(_('plan type'), max_length=20, choices=PLAN_CHOICES, unique=True, db_index=True)
+    billing_interval = models.CharField(_('billing interval'), max_length=10, choices=INTERVAL_CHOICES, default=INTERVAL_MONTHLY)
+    price = models.PositiveIntegerField(_('price'), help_text="Price in smallest currency unit (e.g., KES cents)")
+    yearly_price = models.PositiveIntegerField(_('yearly price'), null=True, blank=True, help_text="Discounted yearly price")
     currency = models.CharField(_('currency'), max_length=3, default='KES')
-    trial_days = models.PositiveSmallIntegerField(_('trial days'), default=14)
-    is_active = models.BooleanField(_('active'), default=True, db_index=True)
-    is_recommended = models.BooleanField(_('recommended'), default=False)
-    display_order = models.PositiveSmallIntegerField(_('display order'), default=0)
-    metadata = models.JSONField(_('metadata'), default=dict, blank=True)
-    
+    paystack_plan_code = models.CharField(_('PayStack plan code'), max_length=100, blank=True, help_text="Plan code from PayStack for recurring payments")
+    paystack_plan_id = models.CharField(_('PayStack plan ID'), max_length=100, blank=True)
+    max_users = models.IntegerField(_('max users'), default=10, help_text="Maximum number of users allowed (-1 for unlimited)")
+    max_kpis = models.IntegerField(_('max KPIs'), default=50, help_text="Maximum number of KPIs allowed (-1 for unlimited)")
+    max_departments = models.IntegerField(_('max departments'), default=10, help_text="Maximum number of departments (-1 for unlimited)")
+    max_storage_mb = models.IntegerField(_('max storage MB'), default=100, help_text="Maximum storage in MB (-1 for unlimited)")
+    custom_branding = models.BooleanField(_('custom branding'), default=False)
+    api_access = models.BooleanField(_('API access'), default=False)
+    sso_enabled = models.BooleanField(_('SSO enabled'), default=False)
+    advanced_analytics = models.BooleanField(_('advanced analytics'), default=False)
+    audit_logs = models.BooleanField(_('audit logs'), default=True)
+    custom_reports = models.BooleanField(_('custom reports'), default=False)
+    priority_support = models.BooleanField(_('priority support'), default=False)
+    description = models.TextField(_('description'), blank=True)
+    features_list = models.JSONField(_('features list'), default=list, blank=True, help_text="List of feature descriptions for UI display")
+    is_active = models.BooleanField(_('is active'), default=True)
+    display_order = models.IntegerField(_('display order'), default=0, help_text="Order to display plans in UI")
     class Meta:
-        db_table = 'billing_plan'
-        verbose_name = _('plan')
-        verbose_name_plural = _('plans')
-        ordering = ['display_order', 'plan_type']
+        db_table = 'billing_subscription_plan'
+        verbose_name = _('subscription plan')
+        verbose_name_plural = _('subscription plans')
+        ordering = ['display_order', 'price']
         indexes = [
-            models.Index(fields=['slug']),
             models.Index(fields=['plan_type', 'is_active']),
-            models.Index(fields=['is_active', 'display_order']),
+            models.Index(fields=['slug']),
+            models.Index(fields=['price']),
         ]
-    
-    def __str__(self):
-        return f"{self.name} ({self.get_plan_type_display()})"
-    
-    @property
-    def annual_discount_percent(self) -> float:
-        """Calculate discount percentage if annual < monthly * 12."""
-        if self.price_monthly > 0:
-            annual_vs_monthly = (self.price_monthly * 12 - self.price_yearly) / (self.price_monthly * 12) * 100
-            return max(0, annual_vs_monthly)
-        return 0
 
-class PlanFeature(BillingBaseModel):
-    """Plan features with unlimited or numeric values."""
-    plan = models.ForeignKey('billing.Plan', on_delete=models.CASCADE, related_name='features', verbose_name=_('plan'))
-    name = models.CharField(_('feature name'), max_length=200, db_index=True)
-    value = models.CharField(_('feature value'), max_length=100, blank=True)
-    description = models.TextField(_('description'), blank=True)
-    is_highlight = models.BooleanField(_('highlight'), default=False)
-    display_order = models.PositiveSmallIntegerField(_('display order'), default=0)
-    numeric_value = models.PositiveIntegerField(_('numeric value'), null=True, blank=True)
-    is_unlimited = models.BooleanField(_('unlimited'), default=False)
-    class Meta:
-        db_table = 'billing_plan_feature'
-        verbose_name = _('plan feature')
-        verbose_name_plural = _('plan features')
-        ordering = ['display_order', 'name']
-        unique_together = [['plan', 'name']]
-        indexes = [
-            models.Index(fields=['plan', 'is_highlight']),
-            models.Index(fields=['name']),
+    def __str__(self):
+        return f"{self.get_plan_type_display()} - {self.get_billing_interval_display()} ({self.currency} {self.price})"
+
+    @property
+    def price_display(self):
+        """Display price with currency."""
+        return f"{self.currency} {self.price / 100:.2f}"
+
+    @property
+    def yearly_price_display(self):
+        """Display yearly price if available."""
+        if self.yearly_price:
+            return f"{self.currency} {self.yearly_price / 100:.2f}"
+        return None
+
+    @property
+    def is_unlimited_users(self):
+        return self.max_users == -1
+
+    @property
+    def is_unlimited_kpis(self):
+        return self.max_kpis == -1
+
+    @property
+    def is_trial(self):
+        return self.plan_type == self.PLAN_TRIAL
+
+    @property
+    def feature_dict(self):
+        """Return features as dictionary for easy access."""
+        return {
+            'max_users': self.max_users,
+            'max_kpis': self.max_kpis,
+            'max_departments': self.max_departments,
+            'max_storage_mb': self.max_storage_mb,
+            'custom_branding': self.custom_branding,
+            'api_access': self.api_access,
+            'sso_enabled': self.sso_enabled,
+            'advanced_analytics': self.advanced_analytics,
+            'audit_logs': self.audit_logs,
+            'custom_reports': self.custom_reports,
+            'priority_support': self.priority_support,
+        }
+
+    def get_yearly_price_value(self):
+        """Get yearly price or calculate from monthly."""
+        if self.yearly_price:
+            return self.yearly_price
+        return self.price * 10  # 2 months free for yearly
+
+    def save(self, *args, **kwargs):
+        """Auto-create PayStack plan if needed."""
+        if not self.slug:
+            self.slug = self.plan_type
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_default_plans(cls):
+        """Get or create default plans from your proposal."""
+        plans_data = [
+            {
+                'plan_type': cls.PLAN_BASIC,
+                'name': 'Basic',
+                'slug': 'basic',
+                'price': 500000,  # 5000 KES (in cents)
+                'max_users': 50,
+                'max_kpis': 100,
+                'custom_branding': False,
+                'api_access': False,
+                'sso_enabled': False,
+                'advanced_analytics': False,
+                'display_order': 1,
+            },
+            {
+                'plan_type': cls.PLAN_PROFESSIONAL,
+                'name': 'Professional',
+                'slug': 'professional',
+                'price': 250000,  # 25000 KES
+                'max_users': 500,
+                'max_kpis': 1000,
+                'custom_branding': True,
+                'api_access': True,
+                'sso_enabled': False,
+                'advanced_analytics': True,
+                'display_order': 2,
+            },
+            {
+                'plan_type': cls.PLAN_ENTERPRISE,
+                'name': 'Enterprise',
+                'slug': 'enterprise',
+                'price': 1000000,  # 100000 KES
+                'max_users': -1,
+                'max_kpis': -1,
+                'custom_branding': True,
+                'api_access': True,
+                'sso_enabled': True,
+                'advanced_analytics': True,
+                'display_order': 3,
+            },
+            {
+                'plan_type': cls.PLAN_TRIAL,
+                'name': 'Trial',
+                'slug': 'trial',
+                'price': 0,
+                'max_users': 10,
+                'max_kpis': 50,
+                'custom_branding': False,
+                'api_access': False,
+                'sso_enabled': False,
+                'advanced_analytics': False,
+                'display_order': 0,
+            },
         ]
-    
-    def __str__(self):
-        if self.is_unlimited:
-            return f"{self.name}: Unlimited"
-        if self.value:
-            return f"{self.name}: {self.value}"
-        return self.name
-    
-    @property
-    def display_value(self) -> str:
-        if self.is_unlimited:
-            return 'Unlimited'
-        if self.numeric_value:
-            return str(self.numeric_value)
-        return self.value or '—'
-    
-    @property
-    def is_boolean(self) -> bool:
-        return self.value.lower() in ['yes', 'no', 'true', 'false', 'enabled', 'disabled']
-    
-    @property
-    def boolean_value(self) -> bool:
-        if not self.is_boolean:
-            return False
-        return self.value.lower() in ['yes', 'true', 'enabled']
-
-
-class Price(BillingBaseModel):
-    INTERVAL_MONTH = 'month'
-    INTERVAL_YEAR = 'year'
-    INTERVAL_ONE_TIME = 'one_time'
-    INTERVAL_CHOICES = [
-        (INTERVAL_MONTH, 'Monthly'),
-        (INTERVAL_YEAR, 'Yearly'),
-        (INTERVAL_ONE_TIME, 'One Time'),
-    ]
-    TYPE_RECURRING = 'recurring'
-    TYPE_ONE_TIME = 'one_time'
-    TYPE_CHOICES = [
-        (TYPE_RECURRING, 'Recurring'),
-        (TYPE_ONE_TIME, 'One Time'),
-    ]
-    stripe_price_id = models.CharField(_('Stripe price ID'), max_length=100, unique=True, db_index=True)
-    stripe_product_id = models.CharField(_('Stripe product ID'), max_length=100, db_index=True)
-    plan = models.ForeignKey('billing.Plan', on_delete=models.SET_NULL, null=True, blank=True, related_name='prices')
-    amount = models.DecimalField(_('amount'), max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
-    currency = models.CharField(_('currency'), max_length=3, default='KES')
-    interval = models.CharField(_('interval'), max_length=10, choices=INTERVAL_CHOICES, default=INTERVAL_MONTH)
-    interval_count = models.PositiveSmallIntegerField(_('interval count'), default=1)
-    price_type = models.CharField(_('price type'), max_length=10, choices=TYPE_CHOICES, default=TYPE_RECURRING)
-    is_active = models.BooleanField(_('active'), default=True)
-    is_recurring = models.BooleanField(_('recurring'), default=True)
-    nickname = models.CharField(_('nickname'), max_length=200, blank=True)
-    last_synced_at = models.DateTimeField(_('last synced at'), null=True, blank=True)
-    metadata = models.JSONField(_('metadata'), default=dict, blank=True)
-    
-    class Meta:
-        db_table = 'billing_price'
-        verbose_name = _('price')
-        verbose_name_plural = _('prices')
-        indexes = [
-            models.Index(fields=['stripe_price_id']),
-            models.Index(fields=['stripe_product_id', 'is_active']),
-            models.Index(fields=['plan', 'interval', 'is_active']),
-            models.Index(fields=['currency']),
-        ]
-    
-    def __str__(self):
-        return f"{self.amount} {self.currency}/{self.interval}"
-    
-    @property
-    def amount_in_cents(self) -> int:
-        return int(self.amount * 100)
-    
-    @property
-    def formatted_amount(self) -> str:
-        from apps.billing.utils.formatters import format_currency
-        return format_currency(self.amount, self.currency)
-    
-    def mark_synced(self):
-        self.last_synced_at = timezone.now()
-        self.save(update_fields=['last_synced_at'])
-    
-    def deactivate(self):
-        self.is_active = False
-        self.save(update_fields=['is_active'])
+        
+        plans = []
+        for plan_data in plans_data:
+            plan, created = cls.objects.get_or_create(
+                plan_type=plan_data['plan_type'],
+                defaults=plan_data
+            )
+            plans.append(plan)
+        return plans

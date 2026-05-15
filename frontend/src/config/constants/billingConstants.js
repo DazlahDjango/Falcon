@@ -1,432 +1,499 @@
+// ============================================================================
+// Subscription Plan Types
+// ============================================================================
+
 export const PLAN_TYPES = {
     TRIAL: 'trial',
     BASIC: 'basic',
     PROFESSIONAL: 'professional',
     ENTERPRISE: 'enterprise',
 };
-export const PLAN_TYPE_LABELS = {
+
+export const PLAN_TYPES_DISPLAY = {
     [PLAN_TYPES.TRIAL]: 'Trial',
     [PLAN_TYPES.BASIC]: 'Basic',
     [PLAN_TYPES.PROFESSIONAL]: 'Professional',
     [PLAN_TYPES.ENTERPRISE]: 'Enterprise',
 };
-export const PLAN_TYPE_COLORS = {
-    [PLAN_TYPES.TRIAL]: '#8B5CF6',
-    [PLAN_TYPES.BASIC]: '#3B82F6',
-    [PLAN_TYPES.PROFESSIONAL]: '#10B981',
-    [PLAN_TYPES.ENTERPRISE]: '#F59E0B',
-};
-export const PLAN_TYPE_ICONS = {
-    [PLAN_TYPES.TRIAL]: 'RocketIcon',
-    [PLAN_TYPES.BASIC]: 'UserIcon',
-    [PLAN_TYPES.PROFESSIONAL]: 'BriefcaseIcon',
-    [PLAN_TYPES.ENTERPRISE]: 'BuildingIcon',
+
+export const PLAN_TYPE_ORDER = {
+    [PLAN_TYPES.TRIAL]: 0,
+    [PLAN_TYPES.BASIC]: 1,
+    [PLAN_TYPES.PROFESSIONAL]: 2,
+    [PLAN_TYPES.ENTERPRISE]: 3,
 };
 
+// ============================================================================
 // Billing Intervals
+// ============================================================================
+
 export const BILLING_INTERVALS = {
     MONTHLY: 'monthly',
     YEARLY: 'yearly',
 };
-export const BILLING_INTERVAL_LABELS = {
+
+export const BILLING_INTERVALS_DISPLAY = {
     [BILLING_INTERVALS.MONTHLY]: 'Monthly',
     [BILLING_INTERVALS.YEARLY]: 'Yearly',
 };
-export const BILLING_INTERVAL_MONTHS = {
-    [BILLING_INTERVALS.MONTHLY]: 1,
-    [BILLING_INTERVALS.YEARLY]: 12,
+
+export const BILLING_INTERVAL_DAYS = {
+    [BILLING_INTERVALS.MONTHLY]: 30,
+    [BILLING_INTERVALS.YEARLY]: 365,
 };
 
+// ============================================================================
 // Subscription Status
+// ============================================================================
+
 export const SUBSCRIPTION_STATUS = {
-    TRIALING: 'trialing',
     ACTIVE: 'active',
+    TRIALING: 'trialing',
     PAST_DUE: 'past_due',
-    CANCELED: 'canceled',
-    INCOMPLETE: 'incomplete',
-    INCOMPLETE_EXPIRED: 'incomplete_expired',
-    UNPAID: 'unpaid',
-    SUSPENDED: 'suspended',
+    CANCELLED: 'cancelled',
+    EXPIRED: 'expired',
+    PENDING_CANCELLATION: 'pending_cancellation',
 };
-export const SUBSCRIPTION_STATUS_LABELS = {
-    [SUBSCRIPTION_STATUS.TRIALING]: 'Trial',
+
+export const SUBSCRIPTION_STATUS_DISPLAY = {
     [SUBSCRIPTION_STATUS.ACTIVE]: 'Active',
+    [SUBSCRIPTION_STATUS.TRIALING]: 'Trial',
     [SUBSCRIPTION_STATUS.PAST_DUE]: 'Past Due',
-    [SUBSCRIPTION_STATUS.CANCELED]: 'Canceled',
-    [SUBSCRIPTION_STATUS.INCOMPLETE]: 'Setup Incomplete',
-    [SUBSCRIPTION_STATUS.INCOMPLETE_EXPIRED]: 'Setup Expired',
-    [SUBSCRIPTION_STATUS.UNPAID]: 'Unpaid',
-    [SUBSCRIPTION_STATUS.SUSPENDED]: 'Suspended',
+    [SUBSCRIPTION_STATUS.CANCELLED]: 'Cancelled',
+    [SUBSCRIPTION_STATUS.EXPIRED]: 'Expired',
+    [SUBSCRIPTION_STATUS.PENDING_CANCELLATION]: 'Pending Cancellation',
 };
+
 export const SUBSCRIPTION_STATUS_COLORS = {
-    [SUBSCRIPTION_STATUS.TRIALING]: '#8B5CF6',
-    [SUBSCRIPTION_STATUS.ACTIVE]: '#10B981',
-    [SUBSCRIPTION_STATUS.PAST_DUE]: '#F59E0B',
-    [SUBSCRIPTION_STATUS.CANCELED]: '#6B7280',
-    [SUBSCRIPTION_STATUS.INCOMPLETE]: '#3B82F6',
-    [SUBSCRIPTION_STATUS.INCOMPLETE_EXPIRED]: '#EF4444',
-    [SUBSCRIPTION_STATUS.UNPAID]: '#DC2626',
-    [SUBSCRIPTION_STATUS.SUSPENDED]: '#9CA3AF',
-};
-export const SUBSCRIPTION_STATUS_BADGE_VARIANTS = {
-    [SUBSCRIPTION_STATUS.TRIALING]: 'secondary',
     [SUBSCRIPTION_STATUS.ACTIVE]: 'success',
+    [SUBSCRIPTION_STATUS.TRIALING]: 'info',
     [SUBSCRIPTION_STATUS.PAST_DUE]: 'warning',
-    [SUBSCRIPTION_STATUS.CANCELED]: 'default',
-    [SUBSCRIPTION_STATUS.INCOMPLETE]: 'info',
-    [SUBSCRIPTION_STATUS.INCOMPLETE_EXPIRED]: 'danger',
-    [SUBSCRIPTION_STATUS.UNPAID]: 'danger',
-    [SUBSCRIPTION_STATUS.SUSPENDED]: 'default',
+    [SUBSCRIPTION_STATUS.CANCELLED]: 'secondary',
+    [SUBSCRIPTION_STATUS.EXPIRED]: 'error',
+    [SUBSCRIPTION_STATUS.PENDING_CANCELLATION]: 'warning',
 };
 
-// Invoice Status
-export const INVOICE_STATUS = {
-    DRAFT: 'draft',
-    OPEN: 'open',
-    PAID: 'paid',
-    UNCOLLECTIBLE: 'uncollectible',
-    VOID: 'void',
-};
-export const INVOICE_STATUS_LABELS = {
-    [INVOICE_STATUS.DRAFT]: 'Draft',
-    [INVOICE_STATUS.OPEN]: 'Open',
-    [INVOICE_STATUS.PAID]: 'Paid',
-    [INVOICE_STATUS.UNCOLLECTIBLE]: 'Uncollectible',
-    [INVOICE_STATUS.VOID]: 'Void',
-};
-export const INVOICE_STATUS_COLORS = {
-    [INVOICE_STATUS.DRAFT]: '#6B7280',
-    [INVOICE_STATUS.OPEN]: '#F59E0B',
-    [INVOICE_STATUS.PAID]: '#10B981',
-    [INVOICE_STATUS.UNCOLLECTIBLE]: '#EF4444',
-    [INVOICE_STATUS.VOID]: '#9CA3AF',
+export const SUBSCRIPTION_STATUS_ICONS = {
+    [SUBSCRIPTION_STATUS.ACTIVE]: 'CheckCircle',
+    [SUBSCRIPTION_STATUS.TRIALING]: 'Rocket',
+    [SUBSCRIPTION_STATUS.PAST_DUE]: 'AlertTriangle',
+    [SUBSCRIPTION_STATUS.CANCELLED]: 'XCircle',
+    [SUBSCRIPTION_STATUS.EXPIRED]: 'Clock',
+    [SUBSCRIPTION_STATUS.PENDING_CANCELLATION]: 'MinusCircle',
 };
 
-// Payment Status
-export const PAYMENT_STATUS = {
-    SUCCEEDED: 'succeeded',
+// ============================================================================
+// Transaction Status
+// ============================================================================
+
+export const TRANSACTION_STATUS = {
     PENDING: 'pending',
+    SUCCESS: 'success',
     FAILED: 'failed',
     REFUNDED: 'refunded',
-    PARTIALLY_REFUNDED: 'partially_refunded',
-};
-export const PAYMENT_STATUS_LABELS = {
-    [PAYMENT_STATUS.SUCCEEDED]: 'Successful',
-    [PAYMENT_STATUS.PENDING]: 'Pending',
-    [PAYMENT_STATUS.FAILED]: 'Failed',
-    [PAYMENT_STATUS.REFUNDED]: 'Refunded',
-    [PAYMENT_STATUS.PARTIALLY_REFUNDED]: 'Partially Refunded',
-};
-export const PAYMENT_STATUS_COLORS = {
-    [PAYMENT_STATUS.SUCCEEDED]: '#10B981',
-    [PAYMENT_STATUS.PENDING]: '#F59E0B',
-    [PAYMENT_STATUS.FAILED]: '#EF4444',
-    [PAYMENT_STATUS.REFUNDED]: '#6B7280',
-    [PAYMENT_STATUS.PARTIALLY_REFUNDED]: '#8B5CF6',
+    DISPUTED: 'disputed',
 };
 
-// Payment Methods Types
+export const TRANSACTION_STATUS_DISPLAY = {
+    [TRANSACTION_STATUS.PENDING]: 'Pending',
+    [TRANSACTION_STATUS.SUCCESS]: 'Success',
+    [TRANSACTION_STATUS.FAILED]: 'Failed',
+    [TRANSACTION_STATUS.REFUNDED]: 'Refunded',
+    [TRANSACTION_STATUS.DISPUTED]: 'Disputed',
+};
+
+export const TRANSACTION_STATUS_COLORS = {
+    [TRANSACTION_STATUS.PENDING]: 'warning',
+    [TRANSACTION_STATUS.SUCCESS]: 'success',
+    [TRANSACTION_STATUS.FAILED]: 'error',
+    [TRANSACTION_STATUS.REFUNDED]: 'info',
+    [TRANSACTION_STATUS.DISPUTED]: 'error',
+};
+
+// ============================================================================
+// Transaction Types
+// ============================================================================
+
+export const TRANSACTION_TYPES = {
+    SUBSCRIPTION: 'subscription',
+    RENEWAL: 'renewal',
+    UPGRADE: 'upgrade',
+    DOWNGRADE: 'downgrade',
+    REFUND: 'refund',
+    ONE_TIME: 'one_time',
+};
+
+export const TRANSACTION_TYPES_DISPLAY = {
+    [TRANSACTION_TYPES.SUBSCRIPTION]: 'Subscription Creation',
+    [TRANSACTION_TYPES.RENEWAL]: 'Renewal',
+    [TRANSACTION_TYPES.UPGRADE]: 'Plan Upgrade',
+    [TRANSACTION_TYPES.DOWNGRADE]: 'Plan Downgrade',
+    [TRANSACTION_TYPES.REFUND]: 'Refund',
+    [TRANSACTION_TYPES.ONE_TIME]: 'One Time Payment',
+};
+
+// ============================================================================
+// Invoice Status
+// ============================================================================
+
+export const INVOICE_STATUS = {
+    DRAFT: 'draft',
+    PENDING: 'pending',
+    PAID: 'paid',
+    OVERDUE: 'overdue',
+    CANCELLED: 'cancelled',
+    REFUNDED: 'refunded',
+};
+
+export const INVOICE_STATUS_DISPLAY = {
+    [INVOICE_STATUS.DRAFT]: 'Draft',
+    [INVOICE_STATUS.PENDING]: 'Pending',
+    [INVOICE_STATUS.PAID]: 'Paid',
+    [INVOICE_STATUS.OVERDUE]: 'Overdue',
+    [INVOICE_STATUS.CANCELLED]: 'Cancelled',
+    [INVOICE_STATUS.REFUNDED]: 'Refunded',
+};
+
+export const INVOICE_STATUS_COLORS = {
+    [INVOICE_STATUS.DRAFT]: 'secondary',
+    [INVOICE_STATUS.PENDING]: 'warning',
+    [INVOICE_STATUS.PAID]: 'success',
+    [INVOICE_STATUS.OVERDUE]: 'error',
+    [INVOICE_STATUS.CANCELLED]: 'secondary',
+    [INVOICE_STATUS.REFUNDED]: 'info',
+};
+
+// ============================================================================
+// Payment Method Types
+// ============================================================================
+
 export const PAYMENT_METHOD_TYPES = {
     CARD: 'card',
-    BANK_ACCOUNT: 'bank_account',
+    BANK: 'bank',
+    USSD: 'ussd',
+    QR: 'qr',
     MOBILE_MONEY: 'mobile_money',
-    US_BANK: 'us_bank_account',
-    LINK: 'link',
-};
-export const PAYMENT_METHOD_TYPE_LABELS = {
-    [PAYMENT_METHOD_TYPES.CARD]: 'Credit/Debit Card',
-    [PAYMENT_METHOD_TYPES.BANK_ACCOUNT]: 'Bank Account',
-    [PAYMENT_METHOD_TYPES.MOBILE_MONEY]: 'Mobile Money',
-    [PAYMENT_METHOD_TYPES.US_BANK]: 'US Bank Account',
-    [PAYMENT_METHOD_TYPES.LINK]: 'Link',
-};
-export const PAYMENT_METHOD_TYPE_ICONS = {
-    [PAYMENT_METHOD_TYPES.CARD]: 'CreditCardIcon',
-    [PAYMENT_METHOD_TYPES.BANK_ACCOUNT]: 'BanknotesIcon',
-    [PAYMENT_METHOD_TYPES.MOBILE_MONEY]: 'DevicePhoneMobileIcon',
-    [PAYMENT_METHOD_TYPES.US_BANK]: 'BuildingLibraryIcon',
-    [PAYMENT_METHOD_TYPES.LINK]: 'LinkIcon',
 };
 
+export const PAYMENT_METHOD_TYPES_DISPLAY = {
+    [PAYMENT_METHOD_TYPES.CARD]: 'Credit/Debit Card',
+    [PAYMENT_METHOD_TYPES.BANK]: 'Bank Account',
+    [PAYMENT_METHOD_TYPES.USSD]: 'USSD',
+    [PAYMENT_METHOD_TYPES.QR]: 'QR Code',
+    [PAYMENT_METHOD_TYPES.MOBILE_MONEY]: 'Mobile Money',
+};
+
+export const PAYMENT_METHOD_STATUS = {
+    ACTIVE: 'active',
+    EXPIRED: 'expired',
+    REMOVED: 'removed',
+    DEFAULT: 'default',
+};
+
+// ============================================================================
 // Card Brands
+// ============================================================================
+
 export const CARD_BRANDS = {
     VISA: 'visa',
     MASTERCARD: 'mastercard',
-    AMEX: 'amex',
+    AMERICAN_EXPRESS: 'american express',
     DISCOVER: 'discover',
-    DINERS: 'diners',
-    JCB: 'jcb',
-    UNIONPAY: 'unionpay',
-    UNKNOWN: 'unknown',
-};
-export const CARD_BRAND_LOGOS = {
-    [CARD_BRANDS.VISA]: '/assets/images/payment/visa.svg',
-    [CARD_BRANDS.MASTERCARD]: '/assets/images/payment/mastercard.svg',
-    [CARD_BRANDS.AMEX]: '/assets/images/payment/amex.svg',
-    [CARD_BRANDS.DISCOVER]: '/assets/images/payment/discover.svg',
-    [CARD_BRANDS.DINERS]: '/assets/images/payment/diners.svg',
-    [CARD_BRANDS.JCB]: '/assets/images/payment/jcb.svg',
-    [CARD_BRANDS.UNIONPAY]: '/assets/images/payment/unionpay.svg',
+    OTHER: 'other',
 };
 
-// Quota Resources
-export const QUOTA_RESOURCES = {
-    USERS: 'users',
-    ADMINS: 'admins',
-    KPIS: 'kpis',
-    KPI_FRAMEWORKS: 'kpi_frameworks',
-    STORAGE_MB: 'storage_mb',
-    API_CALLS: 'api_calls',
-};
-export const QUOTA_RESOURCE_LABELS = {
-    [QUOTA_RESOURCES.USERS]: 'Users',
-    [QUOTA_RESOURCES.ADMINS]: 'Admins',
-    [QUOTA_RESOURCES.KPIS]: 'KPIs',
-    [QUOTA_RESOURCES.KPI_FRAMEWORKS]: 'KPI Frameworks',
-    [QUOTA_RESOURCES.STORAGE_MB]: 'Storage',
-    [QUOTA_RESOURCES.API_CALLS]: 'API Calls',
-};
-export const QUOTA_RESOURCE_UNITS = {
-    [QUOTA_RESOURCES.USERS]: 'users',
-    [QUOTA_RESOURCES.ADMINS]: 'admins',
-    [QUOTA_RESOURCES.KPIS]: 'KPIs',
-    [QUOTA_RESOURCES.KPI_FRAMEWORKS]: 'frameworks',
-    [QUOTA_RESOURCES.STORAGE_MB]: 'MB',
-    [QUOTA_RESOURCES.API_CALLS]: 'calls/day',
+export const CARD_BRANDS_DISPLAY = {
+    [CARD_BRANDS.VISA]: 'Visa',
+    [CARD_BRANDS.MASTERCARD]: 'Mastercard',
+    [CARD_BRANDS.AMERICAN_EXPRESS]: 'American Express',
+    [CARD_BRANDS.DISCOVER]: 'Discover',
+    [CARD_BRANDS.OTHER]: 'Card',
 };
 
-// Webhook Event Types
-export const WEBHOOK_EVENT_TYPES = {
-    SUBSCRIPTION_CREATED: 'customer.subscription.created',
-    SUBSCRIPTION_UPDATED: 'customer.subscription.updated',
-    SUBSCRIPTION_DELETED: 'customer.subscription.deleted',
-    SUBSCRIPTION_TRIAL_WILL_END: 'customer.subscription.trial_will_end',
-    INVOICE_CREATED: 'invoice.created',
-    INVOICE_PAID: 'invoice.paid',
-    INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
-    INVOICE_PAYMENT_SUCCEEDED: 'invoice.payment_succeeded',
-    PAYMENT_INTENT_SUCCEEDED: 'payment_intent.succeeded',
-    PAYMENT_INTENT_PAYMENT_FAILED: 'payment_intent.payment_failed',
-    CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed',
-    CUSTOMER_UPDATED: 'customer.updated',
-    CUSTOMER_DELETED: 'customer.deleted',
-};
-export const WEBHOOK_EVENT_LABELS = {
-    [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED]: 'Subscription Created',
-    [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED]: 'Subscription Updated',
-    [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED]: 'Subscription Deleted',
-    [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END]: 'Trial Ending Soon',
-    [WEBHOOK_EVENT_TYPES.INVOICE_CREATED]: 'Invoice Created',
-    [WEBHOOK_EVENT_TYPES.INVOICE_PAID]: 'Invoice Paid',
-    [WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_FAILED]: 'Payment Failed',
-    [WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED]: 'Payment Succeeded',
-    [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_SUCCEEDED]: 'Payment Intent Succeeded',
-    [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_PAYMENT_FAILED]: 'Payment Intent Failed',
-    [WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED]: 'Checkout Completed',
-    [WEBHOOK_EVENT_TYPES.CUSTOMER_UPDATED]: 'Customer Updated',
-    [WEBHOOK_EVENT_TYPES.CUSTOMER_DELETED]: 'Customer Deleted',
+export const CARD_BRAND_COLORS = {
+    [CARD_BRANDS.VISA]: '#1A1F71',
+    [CARD_BRANDS.MASTERCARD]: '#EB001B',
+    [CARD_BRANDS.AMERICAN_EXPRESS]: '#2E77BC',
+    [CARD_BRANDS.DISCOVER]: '#FF6000',
+    [CARD_BRANDS.OTHER]: '#6B7280',
 };
 
-// Feature Flags
+// ============================================================================
+// Currency Configuration
+// ============================================================================
+
+export const SUPPORTED_CURRENCIES = {
+    KES: 'KES',
+    USD: 'USD',
+    GBP: 'GBP',
+    EUR: 'EUR',
+};
+
+export const CURRENCY_SYMBOLS = {
+    [SUPPORTED_CURRENCIES.KES]: 'KSh',
+    [SUPPORTED_CURRENCIES.USD]: '$',
+    [SUPPORTED_CURRENCIES.GBP]: '£',
+    [SUPPORTED_CURRENCIES.EUR]: '€',
+};
+
+export const CURRENCY_LOCALES = {
+    [SUPPORTED_CURRENCIES.KES]: 'sw-KE',
+    [SUPPORTED_CURRENCIES.USD]: 'en-US',
+    [SUPPORTED_CURRENCIES.GBP]: 'en-GB',
+    [SUPPORTED_CURRENCIES.EUR]: 'de-DE',
+};
+
+export const DEFAULT_CURRENCY = SUPPORTED_CURRENCIES.KES;
+
+// ============================================================================
+// Plan Limits (from backend proposal)
+// ============================================================================
+
+export const PLAN_LIMITS = {
+    [PLAN_TYPES.TRIAL]: {
+        maxUsers: 10,
+        maxKpis: 50,
+        maxDepartments: 5,
+        maxStorageMb: 100,
+        trialDays: 14,
+    },
+    [PLAN_TYPES.BASIC]: {
+        maxUsers: 50,
+        maxKpis: 100,
+        maxDepartments: 10,
+        maxStorageMb: 500,
+        priceMonthly: 5000,
+        priceYearly: 50000,
+    },
+    [PLAN_TYPES.PROFESSIONAL]: {
+        maxUsers: 500,
+        maxKpis: 1000,
+        maxDepartments: 50,
+        maxStorageMb: 5000,
+        priceMonthly: 25000,
+        priceYearly: 250000,
+    },
+    [PLAN_TYPES.ENTERPRISE]: {
+        maxUsers: -1,
+        maxKpis: -1,
+        maxDepartments: -1,
+        maxStorageMb: -1,
+        priceMonthly: 100000,
+        priceYearly: 1000000,
+    },
+};
+
+// ============================================================================
+// Feature Flags (from backend proposal)
+// ============================================================================
+
 export const FEATURE_FLAGS = {
     CUSTOM_BRANDING: 'custom_branding',
     API_ACCESS: 'api_access',
-    SSO: 'sso',
+    SSO_ENABLED: 'sso_enabled',
     ADVANCED_ANALYTICS: 'advanced_analytics',
     AUDIT_LOGS: 'audit_logs',
-    REPORTS: 'reports',
-    EXPORT: 'export',
-    WEBHOOKS: 'webhooks',
-    MULTI_CURRENCY: 'multi_currency',
+    CUSTOM_REPORTS: 'custom_reports',
     PRIORITY_SUPPORT: 'priority_support',
-    SLA: 'sla',
+    UNLIMITED_USERS: 'unlimited_users',
+    UNLIMITED_KPIS: 'unlimited_kpis',
+    DATA_EXPORT: 'data_export',
+    WEBHOOKS: 'webhooks',
     WHITE_LABEL: 'white_label',
 };
-export const FEATURE_FLAG_LABELS = {
+
+export const FEATURE_FLAGS_DISPLAY = {
     [FEATURE_FLAGS.CUSTOM_BRANDING]: 'Custom Branding',
     [FEATURE_FLAGS.API_ACCESS]: 'API Access',
-    [FEATURE_FLAGS.SSO]: 'Single Sign-On (SSO)',
+    [FEATURE_FLAGS.SSO_ENABLED]: 'Single Sign-On (SSO)',
     [FEATURE_FLAGS.ADVANCED_ANALYTICS]: 'Advanced Analytics',
     [FEATURE_FLAGS.AUDIT_LOGS]: 'Audit Logs',
-    [FEATURE_FLAGS.REPORTS]: 'Advanced Reports',
-    [FEATURE_FLAGS.EXPORT]: 'Data Export',
-    [FEATURE_FLAGS.WEBHOOKS]: 'Webhooks',
-    [FEATURE_FLAGS.MULTI_CURRENCY]: 'Multi-Currency Support',
-    [FEATURE_FLAGS.PRIORITY_SUPPORT]: 'Priority Support',
-    [FEATURE_FLAGS.SLA]: 'SLA Guarantee',
-    [FEATURE_FLAGS.WHITE_LABEL]: 'White Label',
+    [FEATURE_FLAGS.CUSTOM_REPORTS]: 'Custom Reports',
+    [FEATURE_FLAGS.PRIORITY_SUPPORT]: '24/7 Priority Support',
+    [FEATURE_FLAGS.UNLIMITED_USERS]: 'Unlimited Users',
+    [FEATURE_FLAGS.UNLIMITED_KPIS]: 'Unlimited KPIs',
+    [FEATURE_FLAGS.DATA_EXPORT]: 'Data Export',
+    [FEATURE_FLAGS.WEBHOOKS]: 'Webhook Integrations',
+    [FEATURE_FLAGS.WHITE_LABEL]: 'White Label Solution',
 };
 
-// Plan Features
+// ============================================================================
+// Plan Feature Mapping (from backend)
+// ============================================================================
+
 export const PLAN_FEATURES = {
-    USERS: 'users',
-    ADMIN_USERS: 'admin_users',
-    STORAGE: 'storage',
-    API_CALLS: 'api_calls',
-    CUSTOM_REPORTS: 'custom_reports',
-    EXPORT_DATA: 'export_data',
-    AUDIT_TRAIL: 'audit_trail',
-    CUSTOM_BRANDING: 'custom_branding',
-    API_ACCESS: 'api_access',
-    SSO: 'sso',
-    PRIORITY_SUPPORT: 'priority_support',
-    SLA: 'sla',
-    ADVANCED_ANALYTICS: 'advanced_analytics',
-    MULTI_CURRENCY: 'multi_currency',
-    WEBHOOKS: 'webhooks',
-    WHITE_LABEL: 'white_label',
-};
-export const PLAN_FEATURE_DESCRIPTIONS = {
-    [PLAN_FEATURES.USERS]: 'Number of team members you can add',
-    [PLAN_FEATURES.ADMIN_USERS]: 'Number of admin users',
-    [PLAN_FEATURES.STORAGE]: 'Total storage space for your data',
-    [PLAN_FEATURES.API_CALLS]: 'API calls per day',
-    [PLAN_FEATURES.CUSTOM_REPORTS]: 'Create custom reports',
-    [PLAN_FEATURES.EXPORT_DATA]: 'Export data to CSV, Excel, PDF',
-    [PLAN_FEATURES.AUDIT_TRAIL]: 'Complete audit trail of all actions',
-    [PLAN_FEATURES.CUSTOM_BRANDING]: 'Use your own logo and colors',
-    [PLAN_FEATURES.API_ACCESS]: 'Access our REST API',
-    [PLAN_FEATURES.SSO]: 'Single Sign-On integration',
-    [PLAN_FEATURES.PRIORITY_SUPPORT]: '24/7 priority support',
-    [PLAN_FEATURES.SLA]: 'Service Level Agreement',
-    [PLAN_FEATURES.ADVANCED_ANALYTICS]: 'Advanced analytics and insights',
-    [PLAN_FEATURES.MULTI_CURRENCY]: 'Multi-currency support',
-    [PLAN_FEATURES.WEBHOOKS]: 'Webhook integrations',
-    [PLAN_FEATURES.WHITE_LABEL]: 'Complete white label solution',
+    [PLAN_TYPES.TRIAL]: [
+        FEATURE_FLAGS.AUDIT_LOGS,
+    ],
+    [PLAN_TYPES.BASIC]: [
+        FEATURE_FLAGS.AUDIT_LOGS,
+        FEATURE_FLAGS.DATA_EXPORT,
+    ],
+    [PLAN_TYPES.PROFESSIONAL]: [
+        FEATURE_FLAGS.CUSTOM_BRANDING,
+        FEATURE_FLAGS.API_ACCESS,
+        FEATURE_FLAGS.ADVANCED_ANALYTICS,
+        FEATURE_FLAGS.AUDIT_LOGS,
+        FEATURE_FLAGS.DATA_EXPORT,
+        FEATURE_FLAGS.CUSTOM_REPORTS,
+    ],
+    [PLAN_TYPES.ENTERPRISE]: [
+        FEATURE_FLAGS.CUSTOM_BRANDING,
+        FEATURE_FLAGS.API_ACCESS,
+        FEATURE_FLAGS.SSO_ENABLED,
+        FEATURE_FLAGS.ADVANCED_ANALYTICS,
+        FEATURE_FLAGS.AUDIT_LOGS,
+        FEATURE_FLAGS.CUSTOM_REPORTS,
+        FEATURE_FLAGS.PRIORITY_SUPPORT,
+        FEATURE_FLAGS.UNLIMITED_USERS,
+        FEATURE_FLAGS.UNLIMITED_KPIS,
+        FEATURE_FLAGS.DATA_EXPORT,
+        FEATURE_FLAGS.WEBHOOKS,
+        FEATURE_FLAGS.WHITE_LABEL,
+    ],
 };
 
-// Default Values
-export const DEFAULT_PLAN = PLAN_TYPES.BASIC;
-export const DEFAULT_BILLING_INTERVAL = BILLING_INTERVALS.MONTHLY;
-export const DEFAULT_CURRENCY = 'KES';
-export const DEFAULT_TRIAL_DAYS = 14;
-export const DEFAULT_PAGE_SIZE = 20;
+// ============================================================================
+// Tax Configuration
+// ============================================================================
 
-// Currency Symbols
-export const SUPPORTED_CURRENCIES = [
-    { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
-    { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
-    { code: 'UGX', symbol: 'USh', name: 'Ugandan Shilling' },
-    { code: 'TZS', symbol: 'TSh', name: 'Tanzanian Shilling' },
-];
-export const getCurrencySymbol = (currencyCode) => {
-    const currency = SUPPORTED_CURRENCIES.find(c => c.code === currencyCode);
-    return currency?.symbol || currencyCode;
-};
-export const formatCurrency = (amount, currencyCode = DEFAULT_CURRENCY) => {
-    if (amount === null || amount === undefined) return '—';
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    const symbol = getCurrencySymbol(currencyCode);
-    return `${symbol} ${numAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const TAX_RATES = {
+    KENYA: 0.16,      // 16% VAT
+    UGANDA: 0.18,     // 18% VAT
+    TANZANIA: 0.18,   // 18% VAT
+    NIGERIA: 0.075,   // 7.5% VAT
+    DEFAULT: 0.16,
 };
 
-// Quota Thresholds
-export const QUOTA_WARNING_THRESHOLD = 0.8;   
-export const QUOTA_CRITICAL_THRESHOLD = 0.9;    
-export const QUOTA_DANGER_THRESHOLD = 0.95;    
+export const TAX_EXEMPT_COUNTRIES = [];
 
-// Table Columns
-export const PLAN_TABLE_COLUMNS = [
-    { key: 'name', label: 'Plan Name', sortable: true },
-    { key: 'price_monthly', label: 'Monthly Price', sortable: true },
-    { key: 'price_yearly', label: 'Yearly Price', sortable: true },
-    { key: 'trial_days', label: 'Trial Days', sortable: true },
-    { key: 'is_recommended', label: 'Recommended', sortable: true },
-    { key: 'actions', label: 'Actions', sortable: false },
-];
-export const SUBSCRIPTION_TABLE_COLUMNS = [
-    { key: 'plan', label: 'Plan', sortable: true },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'billing_interval', label: 'Billing', sortable: true },
-    { key: 'current_period_end', label: 'Renewal Date', sortable: true },
-    { key: 'amount', label: 'Amount', sortable: true },
-    { key: 'actions', label: 'Actions', sortable: false },
-];
-export const INVOICE_TABLE_COLUMNS = [
-    { key: 'invoice_number', label: 'Invoice #', sortable: true },
-    { key: 'invoice_date', label: 'Date', sortable: true },
-    { key: 'due_date', label: 'Due Date', sortable: true },
-    { key: 'amount_due', label: 'Amount', sortable: true },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'actions', label: 'Actions', sortable: false },
-];
-export const PAYMENT_TABLE_COLUMNS = [
-    { key: 'payment_date', label: 'Date', sortable: true },
-    { key: 'amount', label: 'Amount', sortable: true },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'receipt', label: 'Receipt', sortable: false },
-];
-export const PAYMENT_METHOD_TABLE_COLUMNS = [
-    { key: 'type', label: 'Type', sortable: true },
-    { key: 'details', label: 'Details', sortable: true },
-    { key: 'expiry', label: 'Expiry', sortable: true },
-    { key: 'is_default', label: 'Default', sortable: true },
-    { key: 'actions', label: 'Actions', sortable: false },
-];
+// ============================================================================
+// Time Constants
+// ============================================================================
 
+export const BILLING_TIME_CONSTANTS = {
+    TRIAL_DAYS_DEFAULT: 14,
+    INVOICE_DUE_DAYS: 30,
+    RENEWAL_REMINDER_DAYS: [30, 14, 7, 3, 1],
+    PAYMENT_TIMEOUT_MINUTES: 30,
+    WEBHOOK_RETRY_MAX_ATTEMPTS: 3,
+    WEBHOOK_RETRY_DELAY_MINUTES: 5,
+    CACHE_TTL: {
+        PLANS: 3600,        // 1 hour
+        SUBSCRIPTION: 300,  // 5 minutes
+        INVOICES: 600,      // 10 minutes
+    },
+};
+
+// ============================================================================
+// Pagination Defaults
+// ============================================================================
+
+export const BILLING_PAGINATION = {
+    DEFAULT_PAGE_SIZE: 20,
+    PAGE_SIZE_OPTIONS: [10, 20, 50, 100],
+    MAX_PAGE_SIZE: 100,
+};
+
+// ============================================================================
+// Route Constants (for navigation)
+// ============================================================================
+
+export const BILLING_ROUTES = {
+    // Public routes
+    PLANS: '/plans',
+    PLAN_DETAIL: (id) => `/plans/${id}`,
+    PLAN_COMPARE: '/plans/compare',
+    
+    // Subscription routes
+    SUBSCRIPTIONS: '/subscriptions',
+    SUBSCRIPTION_DETAIL: (id) => `/subscriptions/${id}`,
+    SUBSCRIPTION_UPGRADE: (id) => `/subscriptions/${id}/upgrade`,
+    SUBSCRIPTION_DOWNGRADE: (id) => `/subscriptions/${id}/downgrade`,
+    SUBSCRIPTION_CANCEL: (id) => `/subscriptions/${id}/cancel`,
+    
+    // Checkout routes
+    CHECKOUT: '/checkout',
+    CHECKOUT_SUCCESS: '/checkout/success',
+    CHECKOUT_CANCEL: '/checkout/cancel',
+    
+    // Invoice routes
+    INVOICES: '/invoices',
+    INVOICE_DETAIL: (id) => `/invoices/${id}`,
+    
+    // Transaction routes
+    TRANSACTIONS: '/transactions',
+    TRANSACTION_DETAIL: (id) => `/transactions/${id}`,
+    
+    // Payment methods
+    PAYMENT_METHODS: '/payment-methods',
+    
+    // Billing portal
+    BILLING_PORTAL: '/billing/portal',
+    BILLING_SETTINGS: '/billing/settings',
+    
+    // Admin routes
+    ADMIN_BILLING: '/admin/billing',
+    ADMIN_PLANS: '/admin/billing/plans',
+    ADMIN_SUBSCRIPTIONS: '/admin/billing/subscriptions',
+    ADMIN_TRANSACTIONS: '/admin/billing/transactions',
+    ADMIN_WEBHOOKS: '/admin/billing/webhooks',
+    ADMIN_ANALYTICS: '/admin/billing/analytics',
+    
+    // Reports
+    REPORTS_REVENUE: '/reports/revenue',
+    REPORTS_SUBSCRIPTIONS: '/reports/subscriptions',
+    REPORTS_TAX: '/reports/tax',
+};
+
+// ============================================================================
 // Storage Keys
+// ============================================================================
+
 export const BILLING_STORAGE_KEYS = {
-    SELECTED_PLAN: 'billing_selected_plan',
-    BILLING_FILTERS: 'billing_filters',
-    INVOICE_FILTERS: 'billing_invoice_filters',
-    PAYMENT_FILTERS: 'billing_payment_filters',
-    UI_PREFERENCES: 'billing_ui_preferences',
-    RECENT_PLANS: 'billing_recent_plans',
-};
-
-// Webhook event for websocket
-export const WS_BILLING_EVENTS = {
-    SUBSCRIPTION_UPDATED: 'subscription_updated',
-    INVOICE_CREATED: 'invoice_created',
-    INVOICE_PAID: 'invoice_paid',
-    PAYMENT_RECEIVED: 'payment_received',
-    PAYMENT_FAILED: 'payment_failed',
-    QUOTA_ALERT: 'quota_alert',
-    TRIAL_ENDING: 'trial_ending',
-    UPCOMING_INVOICE: 'upcoming_invoice',
-};
-
-// Local Storage keys
-export const BILLING_LOCAL_STORAGE = {
-    CACHED_PLANS: 'billing_cached_plans',
-    CACHED_PLANS_TIMESTAMP: 'billing_cached_plans_ts',
+    PLANS_CACHE: 'billing_plans_cache',
     SUBSCRIPTION_CACHE: 'billing_subscription_cache',
-    SUBSCRIPTION_CACHE_TIMESTAMP: 'billing_subscription_cache_ts',
+    LAST_ACTIVE_PLAN: 'billing_last_active_plan',
+    CHECKOUT_SESSION: 'billing_checkout_session',
 };
 
-// Cache duration
-export const BILLING_CACHE_DURATIONS = {
-    PLANS: 5 * 60 * 1000,        // 5 minutes
-    SUBSCRIPTION: 60 * 1000,     // 1 minute
-    INVOICES: 2 * 60 * 1000,     // 2 minutes
-    QUOTA: 30 * 1000,            // 30 seconds
-    PAYMENT_METHODS: 60 * 1000,  // 1 minute
-};
+// ============================================================================
+// Export all constants as default object
+// ============================================================================
 
-// Error Codes
-export const BILLING_ERROR_CODES = {
-    SUBSCRIPTION_NOT_FOUND: 'subscription_not_found',
-    SUBSCRIPTION_ALREADY_ACTIVE: 'subscription_already_active',
-    SUBSCRIPTION_CANCELLATION_FAILED: 'subscription_cancellation_failed',
-    PAYMENT_FAILED: 'payment_failed',
-    PAYMENT_METHOD_INVALID: 'payment_method_invalid',
-    INVOICE_NOT_FOUND: 'invoice_not_found',
-    QUOTA_EXCEEDED: 'quota_exceeded',
-    FEATURE_NOT_AVAILABLE: 'feature_not_available',
-    PLAN_NOT_FOUND: 'plan_not_found',
-    TENANT_NOT_FOUND: 'tenant_not_found',
-};
-export const BILLING_ERROR_MESSAGES = {
-    [BILLING_ERROR_CODES.SUBSCRIPTION_NOT_FOUND]: 'Subscription not found',
-    [BILLING_ERROR_CODES.SUBSCRIPTION_ALREADY_ACTIVE]: 'You already have an active subscription',
-    [BILLING_ERROR_CODES.SUBSCRIPTION_CANCELLATION_FAILED]: 'Failed to cancel subscription',
-    [BILLING_ERROR_CODES.PAYMENT_FAILED]: 'Payment processing failed',
-    [BILLING_ERROR_CODES.PAYMENT_METHOD_INVALID]: 'Invalid payment method',
-    [BILLING_ERROR_CODES.INVOICE_NOT_FOUND]: 'Invoice not found',
-    [BILLING_ERROR_CODES.QUOTA_EXCEEDED]: 'Quota limit exceeded',
-    [BILLING_ERROR_CODES.FEATURE_NOT_AVAILABLE]: 'Feature not available in your current plan',
-    [BILLING_ERROR_CODES.PLAN_NOT_FOUND]: 'Plan not found',
-    [BILLING_ERROR_CODES.TENANT_NOT_FOUND]: 'Organization not found',
+export default {
+    PLAN_TYPES,
+    PLAN_TYPES_DISPLAY,
+    BILLING_INTERVALS,
+    BILLING_INTERVALS_DISPLAY,
+    SUBSCRIPTION_STATUS,
+    SUBSCRIPTION_STATUS_DISPLAY,
+    SUBSCRIPTION_STATUS_COLORS,
+    SUBSCRIPTION_STATUS_ICONS,
+    TRANSACTION_STATUS,
+    TRANSACTION_STATUS_DISPLAY,
+    TRANSACTION_STATUS_COLORS,
+    TRANSACTION_TYPES,
+    TRANSACTION_TYPES_DISPLAY,
+    INVOICE_STATUS,
+    INVOICE_STATUS_DISPLAY,
+    INVOICE_STATUS_COLORS,
+    PAYMENT_METHOD_TYPES,
+    PAYMENT_METHOD_TYPES_DISPLAY,
+    CARD_BRANDS,
+    CARD_BRANDS_DISPLAY,
+    CARD_BRAND_COLORS,
+    SUPPORTED_CURRENCIES,
+    CURRENCY_SYMBOLS,
+    CURRENCY_LOCALES,
+    DEFAULT_CURRENCY,
+    PLAN_LIMITS,
+    FEATURE_FLAGS,
+    FEATURE_FLAGS_DISPLAY,
+    PLAN_FEATURES,
+    TAX_RATES,
+    BILLING_TIME_CONSTANTS,
+    BILLING_PAGINATION,
+    BILLING_ROUTES,
+    BILLING_STORAGE_KEYS,
 };

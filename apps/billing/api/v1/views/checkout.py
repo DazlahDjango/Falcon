@@ -1,73 +1,169 @@
-from rest_framework import status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.views import APIView
 from django.conf import settings
-from apps.billing.api.v1.serializers import (
-    CheckoutSessionCreateSerializer, CheckoutSessionSerializer
+from django.shortcuts import redirect
+from django.urls import reverse
+from ....services.billing.checkout import CheckoutService
+from ....services.paystack.verification import PaymentVerifier
+from ....services.audit.logger import audit_logger
+from ..serializers import (
+    CheckoutInitializeSerializer,
+    CheckoutResponseSerializer,
+    CheckoutVerifySerializer,
 )
-from apps.billing.api.v1.permission import CanManageBilling
-from apps.billing.api.v1.views.base import BillingBaseViewSet
-from apps.billing.services.checkout_service import CheckoutService
-from apps.billing.exceptions import SubscriptionError
+from ..permissions import CanMakePayment
+from ..throttles import BillingCheckoutThrottle, PaymentInitiationThrottle
 
-class CheckoutViewSet(BillingBaseViewSet):
-    permission_classes = [IsAuthenticated, CanManageBilling]
+
+class CheckoutViewSet(viewsets.GenericViewSet):
+    """
+    Checkout ViewSet for payment processing.
+    
+    Actions:
+    - initialize: Initialize a checkout session
+    - verify: Verify payment status
+    - callback: Handle PayStack redirect callback
+    """
+    
+    permission_classes = [IsAuthenticated, CanMakePayment]
+    throttle_classes = [BillingCheckoutThrottle, PaymentInitiationThrottle]
+    
     def get_serializer_class(self):
-        if self.action == 'create':
-            return CheckoutSessionCreateSerializer
-        return CheckoutSessionSerializer
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        """Return appropriate serializer based on action."""
+        if self.action == 'initialize':
+            return CheckoutInitializeSerializer
+        elif self.action == 'verify':
+            return CheckoutVerifySerializer
+        return CheckoutResponseSerializer
+    
+    @action(detail=False, methods=['post'])
+    def initialize(self, request):
+        """Initialize a checkout session."""
+        return self.initialize_checkout(request)
+    
+    def initialize_checkout(self, request):
+        """Internal method for checkout initialization."""
+        serializer = CheckoutInitializeSerializer(
+            data=request.data,
+            context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
-        tenant = self.get_tenant()
-        if not tenant:
-            return Response(
-                {'error': 'No tenant associated with user'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        plan = serializer.validated_data['plan_id']
-        billing_interval = serializer.validated_data['billing_interval']
-        success_url = serializer.validated_data.get('success_url')
-        cancel_url = serializer.validated_data.get('cancel_url')
-        allow_promotion_codes = serializer.validated_data.get('allow_promotion_codes', True)
-        if not success_url:
-            success_url = f"{settings.FRONTEND_URL}/billing/success?session_id={{CHECKOUT_SESSION_ID}}"
-        if not cancel_url:
-            cancel_url = f"{settings.FRONTEND_URL}/billing/cancel"
+        
+        data = serializer.validated_data
+        tenant_id = request.tenant_id
+        
+        # Get user email
+        email = request.user.email
+        
         checkout_service = CheckoutService()
+        
         try:
-            session_data = checkout_service.create_checkout_session(
-                tenant=tenant,
-                plan=plan,
-                billing_interval=billing_interval,
-                success_url=success_url,
-                cancel_url=cancel_url,
-                allow_promotion_codes=allow_promotion_codes
+            # Determine checkout type
+            if data.get('plan_id'):
+                # Subscription checkout
+                result = checkout_service.initialize_subscription_checkout(
+                    tenant_id=tenant_id,
+                    plan_id=str(data['plan_id']),
+                    email=email,
+                    callback_url=data.get('success_url'),
+                    metadata=data.get('metadata')
+                )
+            else:
+                # One-time payment checkout
+                result = checkout_service.initialize_one_time_checkout(
+                    tenant_id=tenant_id,
+                    amount=data['amount'],
+                    email=email,
+                    description=data['description'],
+                    callback_url=data.get('success_url'),
+                    metadata=data.get('metadata')
+                )
+            
+            # Log audit
+            audit_logger.log(
+                user=request.user,
+                tenant_id=tenant_id,
+                action='create',
+                resource_type='transaction',
+                resource_id=result['transaction_id'],
+                metadata={'checkout_type': 'subscription' if data.get('plan_id') else 'one_time'},
+                request=request
             )
-            return Response(session_data, status=status.HTTP_201_CREATED)
-        except SubscriptionError as e:
-            return self.handle_exception(e)
+            
+            return Response({
+                'authorization_url': result['authorization_url'],
+                'access_code': result['access_code'],
+                'reference': result['reference'],
+                'transaction_id': result['transaction_id']
+            }, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
             return Response(
-                {'error': f'Failed to create checkout session: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    @action(detail=False, methods=['get'])
-    def session(self, request):
-        session_id = request.query_params.get('session_id')
-        if not session_id:
-            return Response(
-                {'error': 'session_id query parameter is required'},
+                {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        checkout_service = CheckoutService()
-        try:
-            session_data = checkout_service.get_checkout_session(session_id)
-            return Response(session_data)
-        except Exception as e:
+    
+    @action(detail=False, methods=['get', 'post'])
+    def callback(self, request):
+        """
+        Handle PayStack redirect callback.
+        This endpoint receives the redirect after payment.
+        """
+        reference = request.GET.get('reference') or request.data.get('reference')
+        
+        if not reference:
             return Response(
-                {'error': f'Failed to retrieve session: {str(e)}'},
+                {'error': 'Missing transaction reference'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Verify transaction
+        verifier = PaymentVerifier()
+        transaction = verifier.verify_and_update_transaction(reference)
+        
+        if not transaction:
+            return Response(
+                {'error': 'Transaction not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+        # Redirect to success or failure page
+        base_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
+        
+        if transaction.status == 'success':
+            return redirect(f"{base_url}/payment/success?reference={reference}")
+        else:
+            return redirect(f"{base_url}/payment/failed?reference={reference}")
+    
+    @action(detail=False, methods=['post'])
+    def verify(self, request):
+        """Verify payment status."""
+        serializer = CheckoutVerifySerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        
+        reference = serializer.validated_data['reference']
+        transaction = serializer.context.get('transaction')
+        
+        # Verify with PayStack if needed
+        if transaction and transaction.status == 'pending':
+            verifier = PaymentVerifier()
+            transaction = verifier.verify_and_update_transaction(reference)
+        
+        if not transaction:
+            return Response(
+                {'error': 'Transaction not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        return Response({
+            'verified': transaction.status == 'success',
+            'status': transaction.status,
+            'reference': transaction.reference,
+            'amount': transaction.amount_display,
+            'transaction_id': str(transaction.id)
+        })

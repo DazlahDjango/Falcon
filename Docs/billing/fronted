@@ -1,0 +1,251 @@
+frontend/src/
+├── components/billing/                    # Billing UI Components
+│   ├── __init__.js
+│   ├── index.js                           # Barrel export
+│   │
+│   ├── checkout/                          # Checkout flow components
+│   │   ├── CheckoutButton.jsx
+│   │   ├── CheckoutForm.jsx
+│   │   ├── CheckoutModal.jsx
+│   │   ├── PaymentMethodSelector.jsx
+│   │   ├── BillingAddressForm.jsx
+│   │   └── CheckoutSuccess.jsx
+│   │
+│   ├── plans/                             # Subscription plans display
+│   │   ├── PlansList.jsx
+│   │   ├── PlanCard.jsx
+│   │   ├── PlanComparisonTable.jsx
+│   │   ├── PlanFeatureList.jsx
+│   │   ├── PricingTiers.jsx
+│   │   └── PlanSelector.jsx
+│   │
+│   ├── subscription/                      # Subscription management
+│   │   ├── SubscriptionStatus.jsx
+│   │   ├── SubscriptionDetails.jsx
+│   │   ├── SubscriptionCard.jsx
+│   │   ├── CancelSubscriptionModal.jsx
+│   │   ├── RenewSubscriptionButton.jsx
+│   │   ├── UpgradeDowngradeModal.jsx
+│   │   ├── TrialBanner.jsx
+│   │   └── BillingCycleSelector.jsx
+│   │
+│   ├── invoices/                          # Invoice components
+│   │   ├── InvoicesList.jsx
+│   │   ├── InvoiceCard.jsx
+│   │   ├── InvoiceDetail.jsx
+│   │   ├── InvoiceTable.jsx
+│   │   ├── InvoiceDownloadButton.jsx
+│   │   ├── InvoicePaymentButton.jsx
+│   │   └── InvoiceFilter.jsx
+│   │
+│   ├── transactions/                      # Transaction history
+│   │   ├── TransactionsList.jsx
+│   │   ├── TransactionRow.jsx
+│   │   ├── TransactionDetails.jsx
+│   │   ├── TransactionFilter.jsx
+│   │   └── TransactionStatusBadge.jsx
+│   │
+│   ├── payment-methods/                   # Payment method management
+│   │   ├── PaymentMethodsList.jsx
+│   │   ├── PaymentMethodCard.jsx
+│   │   ├── AddPaymentMethodForm.jsx
+│   │   ├── DefaultPaymentMethodBadge.jsx
+│   │   ├── DeletePaymentMethodModal.jsx
+│   │   └── PaymentMethodForm.jsx
+│   │
+│   ├── billing-portal/                    # Customer billing portal
+│   │   ├── BillingPortal.jsx
+│   │   ├── BillingOverview.jsx
+│   │   ├── BillingSidebar.jsx
+│   │   ├── BillingSettings.jsx
+│   │   ├── UsageStats.jsx
+│   │   └── BillingHistoryTab.jsx
+│   │
+│   ├── analytics/                         # Billing analytics (admin)
+│   │   ├── RevenueChart.jsx
+│   │   ├── SubscriptionTrends.jsx
+│   │   ├── MRRCard.jsx
+│   │   ├── ChurnRate.jsx
+│   │   ├── RevenueBreakdown.jsx
+│   │   ├── BillingMetricsCards.jsx
+│   │   ├── InvoiceAnalytics.jsx
+│   │   └── TaxReport.jsx
+│   │
+│   ├── admin/                             # Admin billing management
+│   │   ├── AdminBillingDashboard.jsx
+│   │   ├── TenantsList.jsx
+│   │   ├── TenantSubscriptionManager.jsx
+│   │   ├── PlanManager.jsx
+│   │   ├── PlanFormModal.jsx
+│   │   ├── RefundModal.jsx
+│   │   ├── WebhookLogsViewer.jsx
+│   │   └── FailedTransactionsMonitor.jsx
+│   │
+│   ├── webhooks/                          # Webhook monitoring (admin)
+│   │   ├── WebhookLogsList.jsx
+│   │   ├── WebhookEventRow.jsx
+│   │   ├── WebhookRetryButton.jsx
+│   │   └── WebhookStats.jsx
+│   │
+│   └── shared/                            # Shared billing components
+│       ├── BillingLayout.jsx
+│       ├── BillingCard.jsx
+│       ├── PriceDisplay.jsx
+│       ├── CurrencyFormatter.jsx
+│       ├── StatusBadge.jsx
+│       ├── LoadingSkeleton.jsx
+│       └── EmptyState.jsx
+│
+├── pages/billing/                         # Billing Page Components
+│   ├── __init__.js
+│   ├── index.js                           # Barrel export
+│   │
+│   ├── PlansPage.jsx                      # /plans - View subscription plans
+│   ├── PlanDetailPage.jsx                 # /plans/:id - Plan details
+│   ├── CheckoutPage.jsx                   # /checkout - Payment checkout
+│   ├── CheckoutSuccessPage.jsx            # /checkout/success - Success page
+│   ├── CheckoutCancelPage.jsx             # /checkout/cancel - Cancelled page
+│   │
+│   ├── SubscriptionsPage.jsx              # /subscriptions - List subscriptions
+│   ├── SubscriptionDetailPage.jsx         # /subscriptions/:id - Subscription details
+│   ├── UpgradePage.jsx                    # /subscriptions/upgrade - Upgrade plan
+│   ├── CancelPage.jsx                     # /subscriptions/cancel - Cancel subscription
+│   │
+│   ├── InvoicesPage.jsx                   # /invoices - List invoices
+│   ├── InvoiceDetailPage.jsx              # /invoices/:id - Invoice details
+│   │
+│   ├── TransactionsPage.jsx               # /transactions - Transaction history
+│   ├── TransactionDetailPage.jsx          # /transactions/:id - Transaction details
+│   │
+│   ├── PaymentMethodsPage.jsx             # /payment-methods - Manage payment methods
+│   │
+│   ├── BillingPortalPage.jsx              # /billing/portal - Customer portal
+│   ├── BillingSettingsPage.jsx            # /billing/settings - Billing settings
+│   │
+│   ├── admin/                             # Admin billing pages
+│   │   ├── AdminBillingPage.jsx           # /admin/billing - Admin dashboard
+│   │   ├── AdminPlansPage.jsx             # /admin/billing/plans - Manage plans
+│   │   ├── AdminSubscriptionsPage.jsx     # /admin/billing/subscriptions
+│   │   ├── AdminTransactionsPage.jsx      # /admin/billing/transactions
+│   │   ├── AdminRefundsPage.jsx           # /admin/billing/refunds
+│   │   ├── AdminWebhooksPage.jsx          # /admin/billing/webhooks
+│   │   └── AdminAnalyticsPage.jsx         # /admin/billing/analytics
+│   │
+│   └── reports/                           # Billing reports
+│       ├── RevenueReportPage.jsx          # /reports/revenue
+│       ├── SubscriptionReportPage.jsx     # /reports/subscriptions
+│       └── TaxReportPage.jsx              # /reports/tax
+│
+├── services/billing/                      # Billing API Services
+│   ├── __init__.js
+│   ├── index.js                           # Barrel export
+│   │
+│   ├── planService.js                     # Plan API calls
+│   ├── subscriptionService.js             # Subscription API calls
+│   ├── transactionService.js              # Transaction API calls
+│   ├── invoiceService.js                  # Invoice API calls
+│   ├── checkoutService.js                 # Checkout API calls
+│   ├── paymentMethodService.js            # Payment method API calls
+│   ├── billingPortalService.js            # Billing portal API calls
+│   ├── analyticsService.js                # Analytics API calls
+│   ├── webhookService.js                  # Webhook API calls (admin)
+│   └── adminBillingService.js             # Admin billing API calls
+│
+├── hooks/billing/                         # Billing Custom Hooks
+│   ├── __init__.js
+│   ├── index.js                           # Barrel export
+│   │
+│   ├── usePlans.js                        # Fetch and manage plans
+│   ├── useSubscription.js                 # Current subscription state
+│   ├── useSubscriptions.js                # List subscriptions
+│   ├── useInvoices.js                     # Fetch invoices
+│   ├── useInvoice.js                      # Single invoice
+│   ├── useTransactions.js                 # Transaction history
+│   ├── usePaymentMethods.js               # Payment methods
+│   ├── useCheckout.js                     # Checkout flow
+│   ├── useBillingPortal.js                # Billing portal access
+│   ├── useBillingAnalytics.js             # Analytics data
+│   ├── useBillingWebSocket.js             # Real-time billing updates
+│   └── useAdminBilling.js                 # Admin billing operations
+│
+├── store/billing/                         # Redux Store for Billing
+│   ├── __init__.js
+│   ├── index.js                           # Barrel export
+│   │
+│   ├── slices/                            # Redux slices
+│   │   ├── planSlice.js                   # Plans state management
+│   │   ├── subscriptionSlice.js           # Subscription state
+│   │   ├── invoiceSlice.js                # Invoices state
+│   │   ├── transactionSlice.js            # Transactions state
+│   │   ├── paymentMethodSlice.js          # Payment methods state
+│   │   ├── checkoutSlice.js               # Checkout state
+│   │   ├── analyticsSlice.js              # Analytics state
+│   │   └── adminBillingSlice.js           # Admin billing state
+│   │
+│   ├── middlewares/                       # Redux middlewares
+│   │   ├── billingMiddleware.js           # Billing specific middleware
+│   │   ├── webhookMiddleware.js           # WebSocket webhook handling
+│   │   └── analyticsMiddleware.js         # Analytics tracking
+│   │
+│   └── selectors/                         # Redux selectors
+│       ├── planSelectors.js
+│       ├── subscriptionSelectors.js
+│       ├── invoiceSelectors.js
+│       ├── transactionSelectors.js
+│       ├── paymentMethodSelectors.js
+│       ├── checkoutSelectors.js
+│       └── analyticsSelectors.js
+│
+├── contexts/billing/                      # React Contexts for Billing
+│   ├── __init__.js
+│   ├── BillingContext.jsx                 # Main billing context
+│   ├── SubscriptionContext.jsx            # Subscription context
+│   ├── CheckoutContext.jsx                # Checkout flow context
+│   └── BillingWebSocketContext.jsx        # WebSocket connection context
+│
+├── config/constants/                      # Billing Constants (Existing + New)
+│   ├── billingConstants.js                # ✅ Exists - Billing constants
+│   ├── billingApiConstants.js             # ✅ Exists - API endpoints
+│   ├── billingRoutesConstants.js          # ✅ Exists - Route constants
+│   └── billingValidationConstants.js      # NEW - Validation rules
+│
+├── utils/billing/                         # Billing Utilities
+│   ├── __init__.js
+│   ├── index.js                           # Barrel export
+│   │
+│   ├── formatters.js                      # Price, currency formatting
+│   ├── validators.js                      # Payment form validation
+│   ├── calculators.js                     # Proration, discount calc
+│   ├── paymentUtils.js                    # Payment helper functions
+│   ├── invoiceUtils.js                    # Invoice utilities
+│   ├── subscriptionUtils.js               # Subscription helpers
+│   ├── errorHandlers.js                   # Billing error handling
+│   └── analyticsHelpers.js                # Analytics calculations
+│
+├── assets/                                # Static Assets (Existing)
+│   └── billing/                           # NEW - Billing specific assets
+│       ├── icons/
+│       │   ├── visa.svg
+│       │   ├── mastercard.svg
+│       │   ├── paystack.svg
+│       │   ├── invoice.svg
+│       │   └── subscription.svg
+│       ├── images/
+│       │   ├── payment-success.svg
+│       │   ├── payment-failed.svg
+│       │   └── empty-invoices.svg
+│       └── styles/
+│           └── billing.css
+│
+├── routes/                                # Route Configuration (Existing)
+│   └── billingRoutes.js                   # NEW - Billing route definitions
+│
+└── types/                                 # TypeScript Types (if using TS)
+    └── billing/
+        ├── index.ts
+        ├── plan.types.ts
+        ├── subscription.types.ts
+        ├── transaction.types.ts
+        ├── invoice.types.ts
+        ├── payment-method.types.ts
+        └── webhook.types.ts

@@ -1,45 +1,39 @@
-import { billingApiClient, getStripe, withRetry, BaseBillingService } from './client';
-import { planService } from './plan.service';
-import { subscriptionService } from './subscription.service';
-import { invoiceService } from './invoice.service';
-import { paymentService } from './payment.service';
-import { paymentMethodService } from './paymentMethod.service';
-import { checkoutService } from './checkout.service';
-import { customerPortalService } from './customerPortal.service';
-import { quotaService } from './quota.service';
-import { webhookService } from './webhook.service';
-import { adminBillingService } from './admin.service';
-import { featureService } from './feature.service';
+import AdminBillingService from './AdminBillingService';
+import BillingAnalyticsService from './BillingAnalyticsService';
+import BillingPortalService from './BillingPortalService';
+import CheckoutService from './CheckoutService';
+import InvoiceService from './InvoiceService';
+import PaymentMethodService from './PaymentMethodService';
+import PlanService from './PlanService';
+import SubscriptionService from './SubscriptionService';
+import TransactionService from './TransactionService';
+import WebhookService from './WebhookService';
 
-export {
-    billingApiClient,
-    getStripe,
-    withRetry,
-    BaseBillingService,
-    planService,
-    subscriptionService,
-    invoiceService,
-    paymentService,
-    paymentMethodService,
-    checkoutService,
-    customerPortalService,
-    quotaService,
-    webhookService,
-    adminBillingService,
-    featureService,
+export { BillingBaseService, billingApiClient, withRetry } from './BillingBaseService';
+export { PlanService } from './PlanService';
+export { SubscriptionService } from './SubscriptionService';
+export { TransactionService } from './TransactionService';
+export { InvoiceService } from './InvoiceService';
+export { CheckoutService } from './CheckoutService';
+export { PaymentMethodService } from './PaymentMethodService';
+export { BillingPortalService } from './BillingPortalService';
+export { BillingAnalyticsService } from './BillingAnalyticsService';
+export { AdminBillingService } from './AdminBillingService';
+export { WebhookService } from './WebhookService';
+
+// Create a combined billing service object for convenience
+export const BillingService = {
+    plans: PlanService,
+    subscriptions: SubscriptionService,
+    transactions: TransactionService,
+    invoices: InvoiceService,
+    checkout: CheckoutService,
+    paymentMethods: PaymentMethodService,
+    portal: BillingPortalService,
+    analytics: BillingAnalyticsService,
+    admin: AdminBillingService,
+    webhooks: WebhookService,
 };
 
-export default {
-    planService,
-    subscriptionService,
-    invoiceService,
-    paymentService,
-    paymentMethodService,
-    checkoutService,
-    customerPortalService,
-    quotaService,
-    webhookService,
-    adminBillingService,
-    getStripe,
-    featureService,
-};
+// Default export
+export default BillingService;

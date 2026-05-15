@@ -259,3 +259,23 @@ INSTALLED_APPS = [app for app in INSTALLED_APPS if app not in [
     'debug_toolbar',
     'django_extensions',
 ]]
+
+# PAYSTACK PRODUCTION CONFIG
+# Production must have real keys - fail if not set
+if not PAYSTACK_SECRET_KEY or PAYSTACK_SECRET_KEY.startswith("sk_test_"):
+    raise ValueError("PRODUCTION: Valid PAYSTACK_SECRET_KEY required (must be live key)")
+
+if not PAYSTACK_PUBLIC_KEY or PAYSTACK_PUBLIC_KEY.startswith("pk_test_"):
+    raise ValueError("PRODUCTION: Valid PAYSTACK_PUBLIC_KEY required (must be live key)")
+
+# Always verify webhook signatures in production
+PAYSTACK_VERIFY_WEBHOOK_SIGNATURE = True
+
+# Never log raw webhook payloads in production
+BILLING_LOG_WEBHOOK_PAYLOADS = False
+
+# Stricter timeout for payments
+BILLING_PAYMENT_TIMEOUT_MINUTES = 15
+
+# Enable audit logging for all billing transactions
+BILLING_AUDIT_ENABLED = True

@@ -1,148 +1,258 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { subscriptionService } from '../../services/billing/subscription.service';
-import { BILLING_QUERY_KEYS } from '../../config/constants/billingApiConstants';
-import { showToast } from '../../store/ui/slices/uiSlice';
-import { useDispatch } from 'react-redux';
+/**
+ * useSubscription Hook
+ * Manages current subscription state with real-time updates
+ */
 
-export const useSubscription = (subscriptionId, options = {}) => {
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { SubscriptionService } from '../../services/billing';
+import { SUBSCRIPTION_STATUS, BILLING_INTERVALS } from '../../config/constants/billingConstants';
+
+export const useSubscription = (options = {}) => {
     const {
-        enabled = !!subscriptionId,
-        staleTime = 60 * 1000, // 1 minute
+        autoFetch = true,
+        refreshInterval = null, // Auto-refresh in ms
+        onSubscriptionChange = null,
     } = options;
-    return useQuery({
-        queryKey: BILLING_QUERY_KEYS.SUBSCRIPTION_DETAIL(subscriptionId),
-        queryFn: async () => {
-            const response = await subscriptionService.getSubscriptionById(subscriptionId);
-            return response.data;
-        },
-        enabled,
-        staleTime,
-    });
-};
-export const useCurrentSubscription = () => {
-    return useQuery({
-        queryKey: BILLING_QUERY_KEYS.CURRENT_SUBSCRIPTION,
-        queryFn: async () => {
-            const response = await subscriptionService.getCurrentSubscription();
-            return response.data;
-        },
-        staleTime: 60 * 1000, // 1 minute
-        refetchOnWindowFocus: true,
-    });
-};
-export const useSubscriptionStatus = () => {
-    return useQuery({
-        queryKey: BILLING_QUERY_KEYS.SUBSCRIPTION_STATUS,
-        queryFn: async () => {
-            const response = await subscriptionService.getSubscriptionStatus();
-            return response.data;
-        },
-        staleTime: 30 * 1000, // 30 seconds - important for real-time status
-        refetchOnWindowFocus: true,
-    });
-};
-export const useCreateSubscription = () => {
-    const queryClient = useQueryClient();
-    const dispatch = useDispatch();
 
-    return useMutation({
-        mutationFn: (data) => subscriptionService.createSubscription(data),
-        onSuccess: (response) => {
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.CURRENT_SUBSCRIPTION] });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.SUBSCRIPTION_STATUS] });
-            dispatch(showToast({ message: 'Subscription created successfully', type: 'success' }));
-        },
-        onError: (error) => {
-            dispatch(showToast({ message: error.message || 'Failed to create subscription', type: 'error' }));
-        },
-    });
-};
-export const useUpdateSubscription = () => {
-    const queryClient = useQueryClient();
-    const dispatch = useDispatch();
+    const [subscription, setSubscription] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
-    return useMutation({
-        mutationFn: ({ id, data }) => subscriptionService.updateSubscription(id, data),
-        onSuccess: (response, variables) => {
-            queryClient.invalidateQueries({ queryKey: BILLING_QUERY_KEYS.SUBSCRIPTION_DETAIL(variables.id) });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.CURRENT_SUBSCRIPTION] });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.SUBSCRIPTION_STATUS] });
-            dispatch(showToast({ message: 'Subscription updated successfully', type: 'success' }));
-        },
-        onError: (error) => {
-            dispatch(showToast({ message: error.message || 'Failed to update subscription', type: 'error' }));
-        },
-    });
-};
-export const useCancelSubscription = () => {
-    const queryClient = useQueryClient();
-    const dispatch = useDispatch();
-    return useMutation({
-        mutationFn: ({ id, atPeriodEnd = true, reason = '' }) => 
-            subscriptionService.cancelSubscription(id, atPeriodEnd, reason),
-        onSuccess: (response, variables) => {
-            queryClient.invalidateQueries({ queryKey: BILLING_QUERY_KEYS.SUBSCRIPTION_DETAIL(variables.id) });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.CURRENT_SUBSCRIPTION] });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.SUBSCRIPTION_STATUS] });
-            dispatch(showToast({ 
-                message: variables.atPeriodEnd 
-                    ? 'Subscription will be cancelled at period end' 
-                    : 'Subscription cancelled successfully', 
-                type: 'success' 
+    // Fetch current subscription
+    const fetchSubscription = useCallback(async (forceRefresh = false) => {
+        if (forceRefresh) setRefreshing(true);
+        setLoading(true);
+
+        try {
+            const response = await SubscriptionService.getCurrentSubscription();
+            const data = response?.data || null;
+            
+            const previousStatus = subscription?.status;
+            setSubscription(data);
+            
+            // Notify on status change
+            if (previousStatus && previousStatus !== data?.status && onSubscriptionChange) {
+                onSubscriptionChange({
+                    previousStatus,
+                    newStatus: data?.status,
+                    subscription: data,
+                });
+            }
+            
+            return data;
+        } catch (err) {
+            setError(err.message || 'Failed to fetch subscription');
+            console.error('[useSubscription] Error:', err);
+            return null;
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, [subscription?.status, onSubscriptionChange]);
+
+    // Cancel subscription
+    const cancelSubscription = useCallback(async (options = {}) => {
+        if (!subscription?.id) {
+            throw new Error('No active subscription to cancel');
+        }
+
+        try {
+            const response = await SubscriptionService.cancelSubscription(
+                subscription.id,
+                options
+            );
+            
+            // Refresh subscription state
+            await fetchSubscription(true);
+            return response?.data;
+        } catch (err) {
+            console.error('[useSubscription] Error cancelling:', err);
+            throw err;
+        }
+    }, [subscription, fetchSubscription]);
+
+    // Renew subscription
+    const renewSubscription = useCallback(async (paymentMethodId = null) => {
+        if (!subscription?.id) {
+            throw new Error('No subscription to renew');
+        }
+
+        try {
+            const response = await SubscriptionService.renewSubscription(
+                subscription.id,
+                { payment_method_id: paymentMethodId }
+            );
+            
+            await fetchSubscription(true);
+            return response?.data;
+        } catch (err) {
+            console.error('[useSubscription] Error renewing:', err);
+            throw err;
+        }
+    }, [subscription, fetchSubscription]);
+
+    // Upgrade subscription
+    const upgradePlan = useCallback(async (planId, immediate = true) => {
+        if (!subscription?.id) {
+            throw new Error('No subscription to upgrade');
+        }
+
+        try {
+            const response = await SubscriptionService.upgradeSubscription(
+                subscription.id,
+                { plan_id: planId, immediate }
+            );
+            
+            await fetchSubscription(true);
+            return response?.data;
+        } catch (err) {
+            console.error('[useSubscription] Error upgrading:', err);
+            throw err;
+        }
+    }, [subscription, fetchSubscription]);
+
+    // Downgrade subscription
+    const downgradePlan = useCallback(async (planId, immediate = false) => {
+        if (!subscription?.id) {
+            throw new Error('No subscription to downgrade');
+        }
+
+        try {
+            const response = await SubscriptionService.downgradeSubscription(
+                subscription.id,
+                { plan_id: planId, immediate }
+            );
+            
+            await fetchSubscription(true);
+            return response?.data;
+        } catch (err) {
+            console.error('[useSubscription] Error downgrading:', err);
+            throw err;
+        }
+    }, [subscription, fetchSubscription]);
+
+    // Update auto-renew setting
+    const updateAutoRenew = useCallback(async (autoRenew) => {
+        if (!subscription?.id) return;
+
+        try {
+            const response = await SubscriptionService.updateSubscription(
+                subscription.id,
+                { auto_renew: autoRenew }
+            );
+            
+            setSubscription(prev => ({
+                ...prev,
+                auto_renew: autoRenew,
             }));
-        },
-        onError: (error) => {
-            dispatch(showToast({ message: error.message || 'Failed to cancel subscription', type: 'error' }));
-        },
-    });
+            
+            return response?.data;
+        } catch (err) {
+            console.error('[useSubscription] Error updating auto-renew:', err);
+            throw err;
+        }
+    }, [subscription]);
+
+    // Auto-refresh subscription
+    useEffect(() => {
+        if (autoFetch) {
+            fetchSubscription();
+        }
+    }, [autoFetch, fetchSubscription]);
+
+    useEffect(() => {
+        if (!refreshInterval) return;
+
+        const intervalId = setInterval(() => {
+            fetchSubscription(true);
+        }, refreshInterval);
+
+        return () => clearInterval(intervalId);
+    }, [refreshInterval, fetchSubscription]);
+
+    // Memoized values
+    const isActive = useMemo(() => {
+        return subscription?.is_active_status?.is_active || false;
+    }, [subscription]);
+
+    const isOnTrial = useMemo(() => {
+        return subscription?.is_active_status?.is_on_trial || false;
+    }, [subscription]);
+
+    const trialDaysRemaining = useMemo(() => {
+        return subscription?.is_active_status?.trial_days_remaining || 0;
+    }, [subscription]);
+
+    const daysUntilExpiry = useMemo(() => {
+        return subscription?.is_active_status?.days_until_expiry || 0;
+    }, [subscription]);
+
+    const isExpiringSoon = useMemo(() => {
+        return daysUntilExpiry > 0 && daysUntilExpiry <= 7;
+    }, [daysUntilExpiry]);
+
+    const status = useMemo(() => {
+        return subscription?.status || null;
+    }, [subscription]);
+
+    const plan = useMemo(() => {
+        return subscription?.plan || null;
+    }, [subscription]);
+
+    const canUpgrade = useMemo(() => {
+        if (!subscription || !isActive) return false;
+        const currentType = subscription.plan?.plan_type;
+        return currentType === 'basic' || currentType === 'professional';
+    }, [subscription, isActive]);
+
+    const canDowngrade = useMemo(() => {
+        if (!subscription || !isActive) return false;
+        const currentType = subscription.plan?.plan_type;
+        return currentType === 'professional' || currentType === 'enterprise';
+    }, [subscription, isActive]);
+
+    const canCancel = useMemo(() => {
+        return isActive && !subscription?.cancel_at_period_end;
+    }, [isActive, subscription]);
+
+    const canRenew = useMemo(() => {
+        return isActive && subscription?.auto_renew === false;
+    }, [isActive, subscription]);
+
+    return {
+        // State
+        subscription,
+        loading,
+        error,
+        refreshing,
+        
+        // Status flags
+        isActive,
+        isOnTrial,
+        isExpiringSoon,
+        canUpgrade,
+        canDowngrade,
+        canCancel,
+        canRenew,
+        
+        // Details
+        status,
+        plan,
+        trialDaysRemaining,
+        daysUntilExpiry,
+        autoRenew: subscription?.auto_renew || false,
+        cancelAtPeriodEnd: subscription?.cancel_at_period_end || false,
+        currentPeriodEnd: subscription?.current_period_end,
+        
+        // Actions
+        fetchSubscription,
+        cancelSubscription,
+        renewSubscription,
+        upgradePlan,
+        downgradePlan,
+        updateAutoRenew,
+    };
 };
-export const useReactivateSubscription = () => {
-    const queryClient = useQueryClient();
-    const dispatch = useDispatch();
-    return useMutation({
-        mutationFn: (id) => subscriptionService.reactivateSubscription(id),
-        onSuccess: (response, id) => {
-            queryClient.invalidateQueries({ queryKey: BILLING_QUERY_KEYS.SUBSCRIPTION_DETAIL(id) });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.CURRENT_SUBSCRIPTION] });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.SUBSCRIPTION_STATUS] });
-            dispatch(showToast({ message: 'Subscription reactivated successfully', type: 'success' }));
-        },
-        onError: (error) => {
-            dispatch(showToast({ message: error.message || 'Failed to reactivate subscription', type: 'error' }));
-        },
-    });
-};
-export const useSyncSubscription = () => {
-    const queryClient = useQueryClient();
-    const dispatch = useDispatch();
-    return useMutation({
-        mutationFn: (id) => subscriptionService.syncSubscription(id),
-        onSuccess: (response, id) => {
-            queryClient.invalidateQueries({ queryKey: BILLING_QUERY_KEYS.SUBSCRIPTION_DETAIL(id) });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.CURRENT_SUBSCRIPTION] });
-            queryClient.invalidateQueries({ queryKey: [BILLING_QUERY_KEYS.SUBSCRIPTION_STATUS] });
-            dispatch(showToast({ message: 'Subscription synced successfully', type: 'success' }));
-        },
-        onError: (error) => {
-            dispatch(showToast({ message: error.message || 'Failed to sync subscription', type: 'error' }));
-        },
-    });
-};
-export const useUpgradeSubscription = () => {
-    const updateSubscription = useUpdateSubscription();
-    return useMutation({
-        mutationFn: ({ id, newPlanId }) => 
-            updateSubscription.mutateAsync({ id, data: { plan_id: newPlanId } }),
-        onSuccess: () => {
-        },
-    });
-};
-export const useDowngradeSubscription = () => {
-    const updateSubscription = useUpdateSubscription();
-    return useMutation({
-        mutationFn: ({ id, newPlanId }) => 
-            updateSubscription.mutateAsync({ id, data: { plan_id: newPlanId } }),
-        onSuccess: () => {
-        },
-    });
-};
+
+export default useSubscription;
