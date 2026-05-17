@@ -3,18 +3,42 @@
  * Handles payment checkout operations
  */
 
-import { BillingBaseService } from './BillingBaseService';
+import axios from 'axios';
 import { CHECKOUT_ENDPOINTS } from '../../config/constants/billingApiConstants';
+import { getAccessToken, getTenantId } from '../accounts/storage/secureStorage';
+import { store } from '../../store';
 
-class CheckoutServiceClass extends BillingBaseService {
-    constructor() {
-        super('checkout');
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const BILLING_API_BASE = `${API_BASE_URL}/billing`;
+
+const checkoutApiClient = axios.create({
+    baseURL: BILLING_API_BASE,
+    timeout: 15000,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    },
+});
+
+checkoutApiClient.interceptors.request.use(async (config) => {
+    const token = await getAccessToken();
+    if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
     }
+    
+    let tenantId = await getTenantId();
+    if (!tenantId) {
+        const state = store.getState();
+        tenantId = state?.auth?.user?.tenant_id || state?.tenant?.currentTenant?.id;
+    }
+    if (tenantId) {
+        config.headers['X-Tenant-ID'] = tenantId;
+    }
+    
+    return config;
+});
 
-    /**
-     * Initialize subscription checkout
-     * @param {Object} params - { plan_id, billing_interval, success_url, cancel_url, metadata }
-     */
+class CheckoutServiceClass {
     async initializeSubscriptionCheckout(params) {
         const { plan_id, billing_interval = 'monthly', success_url, cancel_url, metadata = {} } = params;
         
@@ -22,21 +46,15 @@ class CheckoutServiceClass extends BillingBaseService {
             throw new Error('Plan ID is required for subscription checkout');
         }
         
-        return this.withRetry(() => 
-            this.apiClient.post(CHECKOUT_ENDPOINTS.INITIALIZE, {
-                plan_id,
-                billing_interval,
-                success_url,
-                cancel_url,
-                metadata,
-            })
-        );
+        return checkoutApiClient.post(CHECKOUT_ENDPOINTS.INITIALIZE, {
+            plan_id,
+            billing_interval,
+            success_url,
+            cancel_url,
+            metadata,
+        });
     }
-
-    /**
-     * Initialize one-time payment checkout
-     * @param {Object} params - { amount, description, success_url, cancel_url, metadata }
-     */
+    
     async initializeOneTimeCheckout(params) {
         const { amount, description, success_url, cancel_url, metadata = {} } = params;
         
@@ -48,57 +66,36 @@ class CheckoutServiceClass extends BillingBaseService {
             throw new Error('Description is required for one-time checkout');
         }
         
-        return this.withRetry(() => 
-            this.apiClient.post(CHECKOUT_ENDPOINTS.INITIALIZE, {
-                amount,
-                description,
-                success_url,
-                cancel_url,
-                metadata,
-            })
-        );
+        return checkoutApiClient.post(CHECKOUT_ENDPOINTS.INITIALIZE, {
+            amount,
+            description,
+            success_url,
+            cancel_url,
+            metadata,
+        });
     }
-
-    /**
-     * Verify checkout payment status
-     * @param {string} reference - Transaction reference
-     */
+    
     async verifyCheckout(reference) {
         if (!reference) {
             throw new Error('Transaction reference is required');
         }
         
-        return this.withRetry(() => 
-            this.apiClient.post(CHECKOUT_ENDPOINTS.VERIFY, { reference })
-        );
+        return checkoutApiClient.post(CHECKOUT_ENDPOINTS.VERIFY, { reference });
     }
-
-    /**
-     * Get checkout callback URL
-     * @param {string} reference - Transaction reference
-     * @param {boolean} isSuccess - Whether payment was successful
-     */
+    
     getCallbackUrl(reference, isSuccess) {
         const baseUrl = window.location.origin;
         const path = isSuccess ? '/checkout/success' : '/checkout/cancel';
         return `${baseUrl}${path}?reference=${reference}`;
     }
-
-    /**
-     * Redirect to PayStack payment page
-     * @param {string} authorizationUrl - PayStack authorization URL
-     */
+    
     redirectToPayment(authorizationUrl) {
         if (!authorizationUrl) {
             throw new Error('Authorization URL is required');
         }
         window.location.href = authorizationUrl;
     }
-
-    /**
-     * Open PayStack payment in popup
-     * @param {string} authorizationUrl - PayStack authorization URL
-     */
+    
     openPaymentPopup(authorizationUrl) {
         if (!authorizationUrl) {
             throw new Error('Authorization URL is required');
@@ -115,11 +112,7 @@ class CheckoutServiceClass extends BillingBaseService {
             `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
         );
     }
-
-    /**
-     * Save checkout session to storage
-     * @param {Object} session - Checkout session data
-     */
+    
     saveCheckoutSession(session) {
         try {
             sessionStorage.setItem('checkout_session', JSON.stringify({
@@ -132,17 +125,13 @@ class CheckoutServiceClass extends BillingBaseService {
             return false;
         }
     }
-
-    /**
-     * Get saved checkout session
-     */
+    
     getCheckoutSession() {
         try {
             const session = sessionStorage.getItem('checkout_session');
             if (!session) return null;
             
             const parsed = JSON.parse(session);
-            // Check if session is expired (30 minutes)
             if (Date.now() - parsed.timestamp > 30 * 60 * 1000) {
                 sessionStorage.removeItem('checkout_session');
                 return null;
@@ -153,10 +142,7 @@ class CheckoutServiceClass extends BillingBaseService {
             return null;
         }
     }
-
-    /**
-     * Clear checkout session
-     */
+    
     clearCheckoutSession() {
         sessionStorage.removeItem('checkout_session');
     }

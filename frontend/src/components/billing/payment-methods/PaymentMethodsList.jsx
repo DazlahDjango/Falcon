@@ -4,6 +4,7 @@ import { PaymentMethodCard } from './PaymentMethodCard';
 import { AddPaymentMethodForm } from './AddPaymentMethodForm';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
+import { renderBillingIcon } from '../shared/BillingIcons';
 import { usePaymentMethods } from '../../../hooks/billing';
 
 export const PaymentMethodsList = ({ 
@@ -74,7 +75,7 @@ export const PaymentMethodsList = ({
 
             {error && (
                 <div className="payment-methods-error">
-                    <span>⚠️</span>
+                    <span>{renderBillingIcon('warning', { size: 16 })}</span>
                     <span>{error}</span>
                 </div>
             )}
@@ -92,7 +93,7 @@ export const PaymentMethodsList = ({
                 <EmptyState 
                     title="No payment methods"
                     message="Add a payment method to enable automatic billing"
-                    icon="💳"
+                    icon={renderBillingIcon('paymentMethods', { size: 40 })}
                     action={
                         <button 
                             className="empty-state-btn"

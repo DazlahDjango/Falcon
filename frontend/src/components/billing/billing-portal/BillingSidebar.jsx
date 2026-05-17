@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 const MENU_ITEMS = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'subscription', label: 'Subscription', icon: '🔄' },
-    { id: 'payment_methods', label: 'Payment Methods', icon: '💳' },
-    { id: 'invoices', label: 'Invoices', icon: '📄' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
+    { id: 'overview', label: 'Overview', icon: renderBillingIcon('overview') },
+    { id: 'subscription', label: 'Subscription', icon: renderBillingIcon('subscriptions') },
+    { id: 'payment_methods', label: 'Payment Methods', icon: renderBillingIcon('paymentMethods') },
+    { id: 'invoices', label: 'Invoices', icon: renderBillingIcon('invoices') },
+    { id: 'settings', label: 'Settings', icon: renderBillingIcon('settings') },
 ];
 
 export const BillingSidebar = ({ activeTab, onTabChange }) => {

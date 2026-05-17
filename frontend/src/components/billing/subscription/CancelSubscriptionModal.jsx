@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSubscription } from '../../../hooks/billing';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const CancelSubscriptionModal = ({ isOpen, onClose, subscription, onSuccess }) => {
     const [reason, setReason] = useState('');
@@ -42,7 +43,7 @@ export const CancelSubscriptionModal = ({ isOpen, onClose, subscription, onSucce
 
                 <div className="modal-body">
                     <div className="cancel-modal-warning">
-                        <span className="cancel-modal-warning-icon">⚠️</span>
+                        <span className="cancel-modal-warning-icon">{renderBillingIcon('warning', { size: 18 })}</span>
                         <p>
                             Are you sure you want to cancel your {subscription?.plan?.name} subscription?
                         </p>

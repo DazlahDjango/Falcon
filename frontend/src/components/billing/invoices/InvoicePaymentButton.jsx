@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useCheckout } from '../../../hooks/billing';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const InvoicePaymentButton = ({ 
     invoice, 
@@ -63,7 +64,7 @@ export const InvoicePaymentButton = ({
             ) : (
                 children || (
                     <>
-                        <span className="invoice-pay-icon">💰</span>
+                        <span className="invoice-pay-icon">{renderBillingIcon('invoicePay', { size: 18 })}</span>
                         <span>Pay Now</span>
                     </>
                 )

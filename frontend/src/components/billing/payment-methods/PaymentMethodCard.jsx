@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { DefaultPaymentMethodBadge } from './DefaultPaymentMethodBadge';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const PaymentMethodCard = ({ 
     method, 
@@ -10,15 +11,7 @@ export const PaymentMethodCard = ({
     deleting = false,
     settingDefault = false 
 }) => {
-    const getCardIcon = () => {
-        const icons = {
-            visa: '💳',
-            mastercard: '💳',
-            'american express': '💳',
-            discover: '💳',
-        };
-        return icons[method.card_brand?.toLowerCase()] || '💳';
-    };
+    const getCardIcon = () => renderBillingIcon('card', { size: 18 });
 
     const getCardColor = () => {
         const colors = {

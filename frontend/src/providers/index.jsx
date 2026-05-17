@@ -2,6 +2,7 @@ import React from 'react';
 import { AuthProvider } from '../contexts/accounts/AuthContext'
 import { TenantProvider } from '../contexts/tenant/TenantContext';
 import { PermissionProvider } from '../contexts/accounts/PermissionContext';
+import { BillingProviders } from '../contexts/billing';
 import ThemeProvider from './ThemeProvider';
 import ToastProvider from './ToastProvider';
 import QueryProvider from './QueryProvider';
@@ -17,7 +18,9 @@ const Providers = ({ children }) => {
                             <AuthProvider>
                                 <PermissionProvider>
                                     <TenantProvider>
-                                        {children}
+                                        <BillingProviders>
+                                            {children}
+                                        </BillingProviders>
                                     </TenantProvider>
                                 </PermissionProvider>
                             </AuthProvider>

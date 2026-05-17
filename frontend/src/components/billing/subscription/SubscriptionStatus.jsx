@@ -7,6 +7,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StatusBadge } from '../shared/StatusBadge';
 import { PriceDisplay } from '../shared/PriceDisplay';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const SubscriptionStatus = ({ subscription, loading }) => {
     if (loading) {
@@ -44,7 +45,7 @@ export const SubscriptionStatus = ({ subscription, loading }) => {
 
             {isOnTrial && (
                 <div className="subscription-status-trial">
-                    <span className="subscription-status-trial-icon">⏳</span>
+                    <span className="subscription-status-trial-icon">{renderBillingIcon('pending', { size: 16 })}</span>
                     <span>
                         Trial ends in {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''}
                     </span>
@@ -53,7 +54,7 @@ export const SubscriptionStatus = ({ subscription, loading }) => {
 
             {isActive && !isOnTrial && (
                 <div className="subscription-status-renewal">
-                    <span className="subscription-status-renewal-icon">⟳</span>
+                    <span className="subscription-status-renewal-icon">{renderBillingIcon('renewal', { size: 16 })}</span>
                     <span>
                         Next billing: {new Date(subscription.current_period_end).toLocaleDateString()}
                         {daysUntilExpiry <= 7 && daysUntilExpiry > 0 && (
@@ -68,11 +69,11 @@ export const SubscriptionStatus = ({ subscription, loading }) => {
             <div className="subscription-status-features">
                 <h4>Included Features</h4>
                 <ul>
-                    <li>✓ Up to {subscription.plan?.max_users === -1 ? 'unlimited' : subscription.plan?.max_users} users</li>
-                    <li>✓ Up to {subscription.plan?.max_kpis === -1 ? 'unlimited' : subscription.plan?.max_kpis} KPIs</li>
-                    {subscription.plan?.custom_branding && <li>✓ Custom branding</li>}
-                    {subscription.plan?.api_access && <li>✓ API access</li>}
-                    {subscription.plan?.advanced_analytics && <li>✓ Advanced analytics</li>}
+                    <li>{renderBillingIcon('success', { size: 14 })} Up to {subscription.plan?.max_users === -1 ? 'unlimited' : subscription.plan?.max_users} users</li>
+                    <li>{renderBillingIcon('success', { size: 14 })} Up to {subscription.plan?.max_kpis === -1 ? 'unlimited' : subscription.plan?.max_kpis} KPIs</li>
+                    {subscription.plan?.custom_branding && <li>{renderBillingIcon('success', { size: 14 })} Custom branding</li>}
+                    {subscription.plan?.api_access && <li>{renderBillingIcon('success', { size: 14 })} API access</li>}
+                    {subscription.plan?.advanced_analytics && <li>{renderBillingIcon('success', { size: 14 })} Advanced analytics</li>}
                 </ul>
             </div>
 

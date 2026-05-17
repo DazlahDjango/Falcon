@@ -4,6 +4,7 @@ import { InvoiceCard } from './InvoiceCard';
 import { InvoiceFilter } from './InvoiceFilter';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
+import { renderBillingIcon } from '../shared/BillingIcons';
 import { useInvoices } from '../../../hooks/billing';
 
 export const InvoicesList = ({ 
@@ -60,7 +61,7 @@ export const InvoicesList = ({
             <EmptyState 
                 title="Unable to load invoices"
                 message={error}
-                icon="⚠️"
+                icon={renderBillingIcon('warning', { size: 40 })}
             />
         );
     }
@@ -70,7 +71,7 @@ export const InvoicesList = ({
             <EmptyState 
                 title="No invoices found"
                 message="Your invoices will appear here once generated"
-                icon="📄"
+                icon={renderBillingIcon('invoices', { size: 40 })}
             />
         );
     }

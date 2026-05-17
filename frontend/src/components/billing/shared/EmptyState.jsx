@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from './BillingIcons';
 
 export const EmptyState = ({ 
     title, 
     message, 
-    icon = '📭',
+    icon = renderBillingIcon('info', { size: 32 }),
     action = null,
     variant = 'default'
 }) => {

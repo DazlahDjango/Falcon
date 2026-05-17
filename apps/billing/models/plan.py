@@ -1,8 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from .base import BaseBillingModel
+from ..managers import PlanManager
 
 class SubscriptionPlan(BaseBillingModel):
+    objects = PlanManager()
     PLAN_TRIAL = 'trial'
     PLAN_BASIC = 'basic'
     PLAN_PROFESSIONAL = 'professional'

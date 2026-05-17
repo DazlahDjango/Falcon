@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const WebhookStats = ({ stats, loading }) => {
     if (loading) {
@@ -18,10 +19,10 @@ export const WebhookStats = ({ stats, loading }) => {
     }
 
     const statCards = [
-        { label: 'Total Events', value: stats.total, icon: '📡', color: '#2563eb' },
-        { label: 'Processed', value: stats.processed, icon: '✅', color: '#10b981' },
-        { label: 'Failed', value: stats.failed, icon: '❌', color: '#ef4444' },
-        { label: 'Success Rate', value: `${stats.success_rate?.toFixed(1) || 0}%`, icon: '📊', color: '#8b5cf6' },
+        { label: 'Total Events', value: stats.total, icon: renderBillingIcon('totalEvents', { size: 22 }), color: '#2563eb' },
+        { label: 'Processed', value: stats.processed, icon: renderBillingIcon('processed', { size: 22 }), color: '#10b981' },
+        { label: 'Failed', value: stats.failed, icon: renderBillingIcon('failedStat', { size: 22 }), color: '#ef4444' },
+        { label: 'Success Rate', value: `${stats.success_rate?.toFixed(1) || 0}%`, icon: renderBillingIcon('overview', { size: 22 }), color: '#8b5cf6' },
     ];
 
     return (

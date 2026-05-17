@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionManagementMiddleware(MiddlewareMixin):
+    _thread_local = threading.local()
     """
     Middleware to manage database connections per request.
 
@@ -166,14 +167,14 @@ class ConnectionManagementMiddleware(MiddlewareMixin):
 
     def _set_thread_local(self, tenant_id, connection):
         """Set connection in thread-local storage"""
-        if not hasattr(threading.local(), 'tenant_connections'):
-            threading.local().tenant_connections = {}
-        threading.local().tenant_connections[tenant_id] = connection
+        if not hasattr(self._thread_local, 'tenant_connections'):
+            self._thread_local.tenant_connections = {}
+        self._thread_local.tenant_connections[tenant_id] = connection
 
     def _clear_thread_local(self):
         """Clear thread-local storage"""
-        if hasattr(threading.local(), 'tenant_connections'):
-            threading.local().tenant_connections = {}
+        if hasattr(self._thread_local, 'tenant_connections'):
+            self._thread_local.tenant_connections = {}
 
 
 class TenantConnectionHealthCheckMiddleware(MiddlewareMixin):

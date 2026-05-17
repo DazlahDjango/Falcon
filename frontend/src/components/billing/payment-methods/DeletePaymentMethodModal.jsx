@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const DeletePaymentMethodModal = ({ 
     isOpen, 
@@ -34,7 +35,7 @@ export const DeletePaymentMethodModal = ({
 
                 <div className="modal-body">
                     <div className="delete-payment-warning">
-                        <span className="delete-payment-icon">⚠️</span>
+                        <span className="delete-payment-icon">{renderBillingIcon('warning', { size: 18 })}</span>
                         <p>
                             Are you sure you want to remove {getDisplayName()}?
                         </p>

@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const InvoiceDownloadButton = ({ 
     invoice, 
@@ -38,7 +39,7 @@ export const InvoiceDownloadButton = ({
             ) : (
                 children || (
                     <>
-                        <span className="invoice-download-icon">📄</span>
+                        <span className="invoice-download-icon">{renderBillingIcon('invoiceDownload', { size: 18 })}</span>
                         <span>Download PDF</span>
                     </>
                 )

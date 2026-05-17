@@ -7,6 +7,7 @@ import { MRRCard } from '../analytics/MRRCard';
 import { ChurnRate } from '../analytics/ChurnRate';
 import { TenantsList } from './TenantsList';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const AdminBillingDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
@@ -29,9 +30,9 @@ export const AdminBillingDashboard = () => {
     }, []);
 
     const tabs = [
-        { id: 'overview', label: 'Overview', icon: '📊' },
-        { id: 'tenants', label: 'Tenants', icon: '🏢' },
-        { id: 'reports', label: 'Reports', icon: '📈' },
+        { id: 'overview', label: 'Overview', icon: renderBillingIcon('overview') },
+        { id: 'tenants', label: 'Tenants', icon: renderBillingIcon('tenants') },
+        { id: 'reports', label: 'Reports', icon: renderBillingIcon('reports') },
     ];
 
     const renderContent = () => {

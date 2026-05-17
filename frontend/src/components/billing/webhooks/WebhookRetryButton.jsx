@@ -30,7 +30,7 @@ export const WebhookRetryButton = ({ webhookId, onRetry, size = 'medium' }) => {
                 <span className="retry-spinner"></span>
             ) : (
                 <>
-                    <span className="retry-icon">⟳</span>
+                    <span className="retry-icon">{renderBillingIcon('renewal', { size: 16 })}</span>
                     <span>Retry</span>
                 </>
             )}

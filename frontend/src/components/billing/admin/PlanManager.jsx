@@ -5,6 +5,7 @@ import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
 import { PriceDisplay } from '../shared/PriceDisplay';
 import { StatusBadge } from '../shared/StatusBadge';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const PlanManager = () => {
     const { plans, loading, fetchPlans, deletePlan } = usePlans();
@@ -45,7 +46,7 @@ export const PlanManager = () => {
                 <EmptyState 
                     title="No plans configured"
                     message="Create subscription plans for your customers"
-                    icon="📋"
+                    icon={renderBillingIcon('plan', { size: 40 })}
                 />
             ) : (
                 <div className="plans-table-container">

@@ -4,14 +4,17 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import rootReducer from './rootReducer';
-
 // Accounts Middlewares
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
 import { loggerMiddleware } from './accounts/middlewares/loggerMiddleware';
-
 // Tenant Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
-
+// Billing
+import { 
+    billingMiddlewareFn, 
+    webhookMiddlewareFn, 
+    analyticsMiddlewareFn 
+} from './billing/middleware';
 const persistConfig = {
     key: 'root',
     storage,
@@ -29,7 +32,8 @@ const persistConfig = {
         'settings',
         'users',
         'tenantUI',
-        'tenantAudit'
+        'tenantAudit',
+        'billing'
     ],
     transforms: [
         encryptTransform({
@@ -48,20 +52,31 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
-                ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+                ignoredActions: [
+                    'persist/PERSIST', 'persist/REHYDRATE',
+                    'websocket/message',
+                    'websocket/connect',
+                    'websocket/disconnect'
+                ],
                 ignoredActionPaths: [
                     'payload.action',
                     'payload.config',
                     'payload.request',
                     'payload.headers',
-                    'payload.originalArgs'
+                    'payload.originalArgs',
+                    // WebSocket payload paths
+                    'payload.data.raw_payload',
+                    'payload.raw_payload'
                 ],
                 ignoredPaths: [
                     'notifications.socket',
                     'ui.notifications',
                     'kpi.detail.loading',
                     'kpi.list.loading',
-                    'actual.detail.loading'
+                    'actual.detail.loading',
+                    // WebSocket paths
+                    'billing.checkout.currentCheckout',
+                    'billing.webhooks.lastMessage'
                 ]
             },
             thunk: {
@@ -70,7 +85,10 @@ export const store = configureStore({
         }).concat(
             authMiddleware,
             loggerMiddleware,
-            ...tenantMiddlewares  // ← Tenant middleware added here
+            ...tenantMiddlewares,
+            billingMiddlewareFn,
+            webhookMiddlewareFn,
+            analyticsMiddlewareFn
         ),
     devTools: import.meta.env.MODE !== 'production'
 });

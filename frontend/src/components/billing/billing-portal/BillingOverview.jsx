@@ -4,6 +4,7 @@ import { useSubscription, useInvoices, usePaymentMethods, useBillingAnalytics } 
 import { SubscriptionStatus } from '../subscription/SubscriptionStatus';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { TrialBanner } from '../subscription/TrialBanner';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const BillingOverview = ({ onRefresh }) => {
     const { subscription, loading: subLoading, isOnTrial, trialDaysRemaining } = useSubscription();
@@ -32,7 +33,7 @@ export const BillingOverview = ({ onRefresh }) => {
 
             <div className="billing-overview-grid">
                 <div className="billing-metric-card">
-                    <div className="billing-metric-icon">💰</div>
+                    <div className="billing-metric-icon">{renderBillingIcon('totalRevenue', { size: 24 })}</div>
                     <div className="billing-metric-content">
                         <span className="billing-metric-label">Monthly Spend</span>
                         <span className="billing-metric-value">
@@ -47,7 +48,7 @@ export const BillingOverview = ({ onRefresh }) => {
                 </div>
 
                 <div className="billing-metric-card">
-                    <div className="billing-metric-icon">📄</div>
+                    <div className="billing-metric-icon">{renderBillingIcon('invoices', { size: 24 })}</div>
                     <div className="billing-metric-content">
                         <span className="billing-metric-label">Outstanding Balance</span>
                         <span className="billing-metric-value">
@@ -62,7 +63,7 @@ export const BillingOverview = ({ onRefresh }) => {
                 </div>
 
                 <div className="billing-metric-card">
-                    <div className="billing-metric-icon">💳</div>
+                    <div className="billing-metric-icon">{renderBillingIcon('paymentMethods', { size: 24 })}</div>
                     <div className="billing-metric-content">
                         <span className="billing-metric-label">Payment Methods</span>
                         <span className="billing-metric-value">
@@ -82,7 +83,7 @@ export const BillingOverview = ({ onRefresh }) => {
 
             {nextInvoiceAmount && (
                 <div className="billing-overview-note">
-                    <span>ℹ️</span>
+                    <span>{renderBillingIcon('info', { size: 18 })}</span>
                     <p>
                         Your next invoice of <strong>KES {(nextInvoiceAmount / 100).toLocaleString()}</strong> 
                         will be charged on {new Date(subscription.current_period_end).toLocaleDateString()}

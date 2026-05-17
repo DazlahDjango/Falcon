@@ -71,7 +71,8 @@ import {
 // ===================================
 // Billing App Reducer
 // ===================================
-import { planReducer, subscriptionReducer, quotaReducer, paymentReducer, paymentMethodReducer, invoiceReducer } from './billing';
+import { billingReducer } from './billing';
+
 const rootReducer = combineReducers({
     // Accounts State
     auth: authReducer,
@@ -129,13 +130,8 @@ const rootReducer = combineReducers({
     kpiNotifications: kpiNotificationReducer,
     kpiAnalytics: kpiAnalyticsReducer,
 
-    // Billing
-    billingPlans: planReducer,
-    billingSubscription: subscriptionReducer,
-    billingQuota: quotaReducer,
-    billingPayments: paymentReducer,
-    billingPaymentMethods: paymentMethodReducer,
-    billingInvoices: invoiceReducer,
+    // Billing State
+    billing: billingReducer,
 
 });
 

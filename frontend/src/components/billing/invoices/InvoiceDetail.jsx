@@ -5,6 +5,7 @@ import { InvoiceDownloadButton } from './InvoiceDownloadButton';
 import { InvoicePaymentButton } from './InvoicePaymentButton';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const InvoiceDetail = ({ invoice, loading, error, onDownload, onPay, downloading, paying }) => {
     if (loading) {
@@ -16,7 +17,7 @@ export const InvoiceDetail = ({ invoice, loading, error, onDownload, onPay, down
             <EmptyState 
                 title="Invoice not found"
                 message="The invoice you're looking for doesn't exist"
-                icon="🔍"
+                icon={renderBillingIcon('invoiceSearch', { size: 40 })}
             />
         );
     }

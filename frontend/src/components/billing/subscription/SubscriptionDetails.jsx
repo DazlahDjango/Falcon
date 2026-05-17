@@ -4,6 +4,7 @@ import { StatusBadge } from '../shared/StatusBadge';
 import { PriceDisplay } from '../shared/PriceDisplay';
 import { CancelSubscriptionModal } from './CancelSubscriptionModal';
 import { UpgradeDowngradeModal } from './UpgradeDowngradeModal';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const SubscriptionDetails = ({ subscription, onRefresh }) => {
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -87,7 +88,7 @@ export const SubscriptionDetails = ({ subscription, onRefresh }) => {
                         )}
                         {subscription.cancel_at_period_end && (
                             <div className="subscription-details-cancel-note">
-                                ⚠️ Subscription will end on {new Date(subscription.current_period_end).toLocaleDateString()}
+                                {renderBillingIcon('warning', { size: 16 })} Subscription will end on {new Date(subscription.current_period_end).toLocaleDateString()}
                             </div>
                         )}
                     </div>

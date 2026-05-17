@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 const FEATURE_ICONS = {
-    included: '✓',
-    notIncluded: '✗',
-    unlimited: '∞',
+    included: () => renderBillingIcon('success', { size: 14 }),
+    notIncluded: () => renderBillingIcon('failed', { size: 14 }),
+    unlimited: () => renderBillingIcon('unlimited', { size: 14 }),
 };
 
 export const PlanFeatureList = ({ plan, showAll = false }) => {
@@ -21,9 +22,9 @@ export const PlanFeatureList = ({ plan, showAll = false }) => {
     ];
 
     const getIcon = (value) => {
-        if (value === true || value === 'Included') return FEATURE_ICONS.included;
-        if (value === false || value === 'Not Included') return FEATURE_ICONS.notIncluded;
-        if (value === 'Unlimited') return FEATURE_ICONS.unlimited;
+        if (value === true || value === 'Included') return FEATURE_ICONS.included();
+        if (value === false || value === 'Not Included') return FEATURE_ICONS.notIncluded();
+        if (value === 'Unlimited') return FEATURE_ICONS.unlimited();
         return null;
     };
 

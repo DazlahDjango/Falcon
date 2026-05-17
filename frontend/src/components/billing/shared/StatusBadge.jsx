@@ -1,26 +1,27 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from './BillingIcons';
 
 const STATUS_CONFIG = {
     // Subscription statuses
-    active: { color: 'success', icon: '✓', label: 'Active' },
-    trialing: { color: 'info', icon: '⏳', label: 'Trial' },
-    past_due: { color: 'warning', icon: '⚠', label: 'Past Due' },
-    cancelled: { color: 'secondary', icon: '✗', label: 'Cancelled' },
-    expired: { color: 'error', icon: '⌛', label: 'Expired' },
-    pending_cancellation: { color: 'warning', icon: '⟳', label: 'Pending Cancellation' },
+    active: { color: 'success', icon: renderBillingIcon('success'), label: 'Active' },
+    trialing: { color: 'info', icon: renderBillingIcon('pending'), label: 'Trial' },
+    past_due: { color: 'warning', icon: renderBillingIcon('warning'), label: 'Past Due' },
+    cancelled: { color: 'secondary', icon: renderBillingIcon('cancelled'), label: 'Cancelled' },
+    expired: { color: 'error', icon: renderBillingIcon('expired'), label: 'Expired' },
+    pending_cancellation: { color: 'warning', icon: renderBillingIcon('pending_cancellation'), label: 'Pending Cancellation' },
     
     // Transaction statuses
-    success: { color: 'success', icon: '✓', label: 'Success' },
-    failed: { color: 'error', icon: '✗', label: 'Failed' },
-    pending: { color: 'warning', icon: '⟳', label: 'Pending' },
-    refunded: { color: 'info', icon: '↺', label: 'Refunded' },
-    disputed: { color: 'error', icon: '⚖', label: 'Disputed' },
+    success: { color: 'success', icon: renderBillingIcon('success'), label: 'Success' },
+    failed: { color: 'error', icon: renderBillingIcon('failed'), label: 'Failed' },
+    pending: { color: 'warning', icon: renderBillingIcon('pending'), label: 'Pending' },
+    refunded: { color: 'info', icon: renderBillingIcon('refunded'), label: 'Refunded' },
+    disputed: { color: 'error', icon: renderBillingIcon('disputed'), label: 'Disputed' },
     
     // Invoice statuses
-    paid: { color: 'success', icon: '✓', label: 'Paid' },
-    overdue: { color: 'error', icon: '⚠', label: 'Overdue' },
-    draft: { color: 'secondary', icon: '📄', label: 'Draft' },
+    paid: { color: 'success', icon: renderBillingIcon('success'), label: 'Paid' },
+    overdue: { color: 'error', icon: renderBillingIcon('failed'), label: 'Overdue' },
+    draft: { color: 'secondary', icon: renderBillingIcon('draft'), label: 'Draft' },
 };
 
 export const StatusBadge = ({ status, customLabel = null, size = 'medium', showIcon = true }) => {

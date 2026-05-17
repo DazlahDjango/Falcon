@@ -24,9 +24,21 @@ class BillingPortalServiceClass extends BillingBaseService {
     /**
      * Get billing portal overview data
      */
-    async getPortalOverview() {
+async getPortalOverview() {
         return this.withRetry(() => 
             this.apiClient.get(BILLING_PORTAL_ENDPOINTS.OVERVIEW)
+        );
+    }
+    
+    async getBillingSettings() {
+        return this.withRetry(() => 
+            this.apiClient.get(BILLING_PORTAL_ENDPOINTS.SETTINGS)
+        );
+    }
+    
+    async updateBillingSettings(settings) {
+        return this.withRetry(() => 
+            this.apiClient.patch(BILLING_PORTAL_ENDPOINTS.SETTINGS, settings)
         );
     }
 

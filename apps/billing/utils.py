@@ -229,6 +229,14 @@ def serialize_for_audit(obj, fields_to_exclude=None):
         # Handle UUID objects
         elif hasattr(value, 'hex'):
             value = str(value)
+        # Handle Model instances (e.g. ForeignKeys)
+        from django.db.models import Model
+        if isinstance(value, Model):
+            value = str(value.pk)
+        # Handle Decimal objects
+        from decimal import Decimal
+        if isinstance(value, Decimal):
+            value = float(value)
         
         data[field_name] = value
     

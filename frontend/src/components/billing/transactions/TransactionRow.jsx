@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { TransactionStatusBadge } from './TransactionStatusBadge';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const TransactionRow = ({ transaction, onClick, onVerify, verifying }) => {
     const formatDate = (dateString) => {
@@ -18,14 +19,14 @@ export const TransactionRow = ({ transaction, onClick, onVerify, verifying }) =>
 
     const getTypeIcon = () => {
         const icons = {
-            subscription: '🔄',
-            renewal: '⟳',
-            upgrade: '⬆️',
-            downgrade: '⬇️',
-            refund: '↺',
-            one_time: '💳',
+            subscription: renderBillingIcon('subscriptionCreate', { size: 16 }),
+            renewal: renderBillingIcon('renewal', { size: 16 }),
+            upgrade: renderBillingIcon('upgrade', { size: 16 }),
+            downgrade: renderBillingIcon('downgrade', { size: 16 }),
+            refund: renderBillingIcon('refund', { size: 16 }),
+            one_time: renderBillingIcon('card', { size: 16 }),
         };
-        return icons[transaction.transaction_type] || '💳';
+        return icons[transaction.transaction_type] || renderBillingIcon('card', { size: 16 });
     };
 
     const getTypeLabel = () => {

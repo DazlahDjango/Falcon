@@ -11,17 +11,17 @@ export const BILLING_API_PREFIX = `/api/${API_VERSION}${BILLING_API_BASE}`;
 // ============================================================================
 
 export const PLAN_ENDPOINTS = {
-    // Base endpoints
-    LIST: `${BILLING_API_PREFIX}/plans/`,
-    DETAIL: (id) => `${BILLING_API_PREFIX}/plans/${id}/`,
-    CREATE: `${BILLING_API_PREFIX}/plans/`,
-    UPDATE: (id) => `${BILLING_API_PREFIX}/plans/${id}/`,
-    DELETE: (id) => `${BILLING_API_PREFIX}/plans/${id}/`,
-    PARTIAL_UPDATE: (id) => `${BILLING_API_PREFIX}/plans/${id}/`,
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `plans/`,
+    DETAIL: (id) => `plans/${id}/`,
+    CREATE: `plans/`,
+    UPDATE: (id) => `plans/${id}/`,
+    DELETE: (id) => `plans/${id}/`,
+    PARTIAL_UPDATE: (id) => `plans/${id}/`,
     
     // Special endpoints
-    POPULAR: `${BILLING_API_PREFIX}/plans/popular/`,
-    COMPARE: `${BILLING_API_PREFIX}/plans/compare/`,
+    POPULAR: `plans/popular/`,
+    COMPARE: `plans/compare/`,
     
     // Query params
     QUERY_PARAMS: {
@@ -37,22 +37,22 @@ export const PLAN_ENDPOINTS = {
 // ============================================================================
 
 export const SUBSCRIPTION_ENDPOINTS = {
-    // Base endpoints
-    LIST: `${BILLING_API_PREFIX}/subscriptions/`,
-    DETAIL: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/`,
-    CREATE: `${BILLING_API_PREFIX}/subscriptions/`,
-    UPDATE: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/`,
-    DELETE: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/`,
-    PARTIAL_UPDATE: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/`,
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `subscriptions/`,
+    DETAIL: (id) => `subscriptions/${id}/`,
+    CREATE: `subscriptions/`,
+    UPDATE: (id) => `subscriptions/${id}/`,
+    DELETE: (id) => `subscriptions/${id}/`,
+    PARTIAL_UPDATE: (id) => `subscriptions/${id}/`,
     
     // Special endpoints
-    CURRENT: `${BILLING_API_PREFIX}/subscriptions/current/`,
-    CANCEL: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/cancel/`,
-    RENEW: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/renew/`,
-    UPGRADE: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/upgrade/`,
-    DOWNGRADE: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/downgrade/`,
-    INVOICES: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/invoices/`,
-    TRANSACTIONS: (id) => `${BILLING_API_PREFIX}/subscriptions/${id}/transactions/`,
+    CURRENT: `subscriptions/current/`,
+    CANCEL: (id) => `subscriptions/${id}/cancel/`,
+    RENEW: (id) => `subscriptions/${id}/renew/`,
+    UPGRADE: (id) => `subscriptions/${id}/upgrade/`,
+    DOWNGRADE: (id) => `subscriptions/${id}/downgrade/`,
+    INVOICES: (id) => `subscriptions/${id}/invoices/`,
+    TRANSACTIONS: (id) => `subscriptions/${id}/transactions/`,
     
     // Query params
     QUERY_PARAMS: {
@@ -69,13 +69,13 @@ export const SUBSCRIPTION_ENDPOINTS = {
 // ============================================================================
 
 export const TRANSACTION_ENDPOINTS = {
-    // Base endpoints
-    LIST: `${BILLING_API_PREFIX}/transactions/`,
-    DETAIL: (id) => `${BILLING_API_PREFIX}/transactions/${id}/`,
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `transactions/`,
+    DETAIL: (id) => `transactions/${id}/`,
     
     // Special endpoints
-    VERIFY: `${BILLING_API_PREFIX}/transactions/verify/`,
-    REFUND: (id) => `${BILLING_API_PREFIX}/transactions/${id}/refund/`,
+    VERIFY: `transactions/verify/`,
+    REFUND: (id) => `transactions/${id}/refund/`,
     
     // Query params
     QUERY_PARAMS: {
@@ -92,15 +92,15 @@ export const TRANSACTION_ENDPOINTS = {
 // ============================================================================
 
 export const INVOICE_ENDPOINTS = {
-    // Base endpoints
-    LIST: `${BILLING_API_PREFIX}/invoices/`,
-    DETAIL: (id) => `${BILLING_API_PREFIX}/invoices/${id}/`,
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `invoices/`,
+    DETAIL: (id) => `invoices/${id}/`,
     
     // Special endpoints
-    DOWNLOAD: (id) => `${BILLING_API_PREFIX}/invoices/${id}/download/`,
-    SEND: (id) => `${BILLING_API_PREFIX}/invoices/${id}/send/`,
-    PAY: (id) => `${BILLING_API_PREFIX}/invoices/${id}/pay/`,
-    SUMMARY: `${BILLING_API_PREFIX}/invoices/summary/`,
+    DOWNLOAD: (id) => `invoices/${id}/download/`,
+    SEND: (id) => `invoices/${id}/send/`,
+    PAY: (id) => `invoices/${id}/pay/`,
+    SUMMARY: `invoices/summary/`,
     
     // Query params
     QUERY_PARAMS: {
@@ -117,13 +117,13 @@ export const INVOICE_ENDPOINTS = {
 // ============================================================================
 
 export const CHECKOUT_ENDPOINTS = {
-    // Base endpoints
-    INITIALIZE: `${BILLING_API_PREFIX}/checkout/initialize/`,
-    VERIFY: `${BILLING_API_PREFIX}/checkout/verify/`,
-    CALLBACK: `${BILLING_API_PREFIX}/checkout/callback/`,
+    // Base endpoints (relative paths for use with axios baseURL)
+    INITIALIZE: `checkout/initialize/`,
+    VERIFY: `checkout/verify/`,
+    CALLBACK: `checkout/callback/`,
     
     // Payment methods
-    METHODS: `${BILLING_API_PREFIX}/checkout/methods/`,
+    METHODS: `checkout/methods/`,
 };
 
 // ============================================================================
@@ -131,14 +131,14 @@ export const CHECKOUT_ENDPOINTS = {
 // ============================================================================
 
 export const PAYMENT_METHOD_ENDPOINTS = {
-    // Base endpoints
-    LIST: `${BILLING_API_PREFIX}/payment-methods/`,
-    DETAIL: (id) => `${BILLING_API_PREFIX}/payment-methods/${id}/`,
-    CREATE: `${BILLING_API_PREFIX}/payment-methods/`,
-    DELETE: (id) => `${BILLING_API_PREFIX}/payment-methods/${id}/`,
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `payment-methods/`,
+    DETAIL: (id) => `payment-methods/${id}/`,
+    CREATE: `payment-methods/`,
+    DELETE: (id) => `payment-methods/${id}/`,
     
     // Special endpoints
-    SET_DEFAULT: (id) => `${BILLING_API_PREFIX}/payment-methods/${id}/set-default/`,
+    SET_DEFAULT: (id) => `payment-methods/${id}/set_default/`,
     
     // Query params
     QUERY_PARAMS: {
@@ -153,10 +153,10 @@ export const PAYMENT_METHOD_ENDPOINTS = {
 // ============================================================================
 
 export const BILLING_PORTAL_ENDPOINTS = {
-    // Base endpoints
-    ACCESS: `${BILLING_API_PREFIX}/portal/access/`,
-    OVERVIEW: `${BILLING_API_PREFIX}/portal/`,
-    SETTINGS: `${BILLING_API_PREFIX}/portal/settings/`,
+    // Base endpoints (relative paths for use with axios baseURL)
+    ACCESS: `portal/access/`,
+    OVERVIEW: `portal/`,
+    SETTINGS: `portal/settings/`,
 };
 
 // ============================================================================
@@ -164,9 +164,10 @@ export const BILLING_PORTAL_ENDPOINTS = {
 // ============================================================================
 
 export const WEBHOOK_ENDPOINTS = {
-    PAYSTACK: `${BILLING_API_PREFIX}/webhook/paystack/`,
-    LOGS: `${BILLING_API_PREFIX}/webhook/logs/`,
-    RETRY: (id) => `${BILLING_API_PREFIX}/webhook/${id}/retry/`,
+    // Relative paths for use with axios baseURL
+    PAYSTACK: `webhook/paystack/`,
+    LOGS: `webhook/logs/`,
+    RETRY: (id) => `webhook/${id}/retry/`,
 };
 
 // ============================================================================
@@ -174,11 +175,12 @@ export const WEBHOOK_ENDPOINTS = {
 // ============================================================================
 
 export const ANALYTICS_ENDPOINTS = {
-    SUMMARY: `${BILLING_API_PREFIX}/analytics/summary/`,
-    REVENUE: `${BILLING_API_PREFIX}/analytics/revenue/`,
-    SUBSCRIPTIONS: `${BILLING_API_PREFIX}/analytics/subscriptions/`,
-    TAX: `${BILLING_API_PREFIX}/analytics/tax/`,
-    FORECAST: `${BILLING_API_PREFIX}/analytics/forecast/`,
+    // Relative paths for use with axios baseURL
+    SUMMARY: `analytics/summary/`,
+    REVENUE: `analytics/revenue/`,
+    SUBSCRIPTIONS: `analytics/subscriptions/`,
+    TAX: `analytics/tax/`,
+    FORECAST: `analytics/forecast/`,
     
     // Query params
     QUERY_PARAMS: {
@@ -196,17 +198,17 @@ export const ANALYTICS_ENDPOINTS = {
 
 export const ADMIN_BILLING_ENDPOINTS = {
     // Tenant management
-    TENANT_SUBSCRIPTIONS: (tenantId) => `${BILLING_API_PREFIX}/admin/tenants/${tenantId}/subscriptions/`,
-    TENANT_INVOICES: (tenantId) => `${BILLING_API_PREFIX}/admin/tenants/${tenantId}/invoices/`,
-    TENANT_TRANSACTIONS: (tenantId) => `${BILLING_API_PREFIX}/admin/tenants/${tenantId}/transactions/`,
+    TENANT_SUBSCRIPTIONS: (tenantId) => `admin/tenants/${tenantId}/subscriptions/`,
+    TENANT_INVOICES: (tenantId) => `admin/tenants/${tenantId}/invoices/`,
+    TENANT_TRANSACTIONS: (tenantId) => `admin/tenants/${tenantId}/transactions/`,
     
     // Bulk operations
-    BULK_UPDATE_SUBSCRIPTIONS: `${BILLING_API_PREFIX}/admin/subscriptions/bulk-update/`,
+    BULK_UPDATE_SUBSCRIPTIONS: `admin/subscriptions/bulk-update/`,
     
     // Reports
-    REVENUE_REPORT: `${BILLING_API_PREFIX}/admin/reports/revenue/`,
-    SUBSCRIPTION_REPORT: `${BILLING_API_PREFIX}/admin/reports/subscriptions/`,
-    TAX_REPORT: `${BILLING_API_PREFIX}/admin/reports/tax/`,
+    REVENUE_REPORT: `admin/reports/revenue/`,
+    SUBSCRIPTION_REPORT: `admin/reports/subscriptions/`,
+    TAX_REPORT: `admin/reports/tax/`,
 };
 
 // ============================================================================

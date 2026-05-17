@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { NavLink, useParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ROUTES } from '../../../config/constants';
-import { BILLING_ROUTES, ADMIN_BILLING_ROUTES } from '../../../config/constants/billingRoutesConstants';
+import { BILLING_ROUTES } from '../../../routes/billing.routes';
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
-    FiCloud, FiHardDrive, FiRefreshCw, FiGrid, FiHeart, FiCreditCard
+    FiCloud, FiHardDrive, FiRefreshCw, FiGrid, FiHeart, FiCreditCard, FiFileText as FiReceipt, FiShoppingCart, FiDollarSign as FiCurrency,
 } from 'react-icons/fi';
 import { MdDomain, MdBusiness, MdStorage, MdBackup, MdSchema } from 'react-icons/md';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
@@ -109,6 +109,29 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
             { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
         ];
+        // Customer billing items (for all authenticated users)
+        const billingItems = [
+            { path: BILLING_ROUTES.BILLING_PORTAL, name: 'Billing Overview', icon: FiHome, roles: ['all'] },
+            { path: BILLING_ROUTES.SUBSCRIPTIONS, name: 'Subscriptions', icon: FiRotateCcw, roles: ['all'] },
+            { path: BILLING_ROUTES.INVOICES, name: 'Invoices', icon: FiReceipt, roles: ['all'] },
+            { path: BILLING_ROUTES.TRANSACTIONS, name: 'Transactions', icon: MdHistory, roles: ['all'] },
+            { path: BILLING_ROUTES.PAYMENT_METHODS, name: 'Payment Methods', icon: BsCreditCard, roles: ['all'] },
+            { path: BILLING_ROUTES.PLANS, name: 'Plans & Pricing', icon: FiCurrency, roles: ['all'] },
+            { path: BILLING_ROUTES.BILLING_SETTINGS, name: 'Billing Settings', icon: FiSettings, roles: ['all'] },
+        ];
+        // Admin billing items (super_admin only)
+        const billingAdminItems = [
+            { path: BILLING_ROUTES.ADMIN_BILLING, name: 'Billing Dashboard', icon: FiBarChart2, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.ADMIN_PLANS, name: 'Manage Plans', icon: FiGrid, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, name: 'All Subscriptions', icon: FiRotateCcw, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, name: 'All Transactions', icon: MdHistory, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.ADMIN_REFUNDS, name: 'Refunds', icon: FiRotateCcw, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhooks', icon: FiActivity, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.ADMIN_ANALYTICS, name: 'Billing Analytics', icon: FiTrendingUp, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.REPORTS_REVENUE, name: 'Revenue Report', icon: FiCurrency, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.REPORTS_SUBSCRIPTIONS, name: 'Subscription Report', icon: FiBarChart2, roles: ['super_admin'] },
+            { path: BILLING_ROUTES.REPORTS_TAX, name: 'Tax Report', icon: FiAlertCircle, roles: ['super_admin'] },
+        ];
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
             { path: '/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
@@ -116,20 +139,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/admin/cache', name: 'Cache', icon: FiDatabase, roles: ['super_admin'] },
         ];
         
-        const billingItems = [
-            { path: BILLING_ROUTES.DASHBOARD, name: 'Billing Dashboard', icon: FiGrid, roles: ['super_admin', 'client_admin'] },
-            { path: BILLING_ROUTES.SUBSCRIPTION_CURRENT, name: 'Subscription', icon: FiLayers, roles: ['super_admin', 'client_admin'] },
-            { path: BILLING_ROUTES.INVOICES, name: 'Invoices', icon: FiFileText, roles: ['super_admin', 'client_admin'] },
-            { path: BILLING_ROUTES.PAYMENTS, name: 'Payments', icon: FiDollarSign, roles: ['super_admin', 'client_admin'] },
-            { path: BILLING_ROUTES.PAYMENT_METHODS, name: 'Payment Methods', icon: FiCreditCard, roles: ['super_admin', 'client_admin'] },
-            { path: BILLING_ROUTES.QUOTA, name: 'Usage & Quota', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
-        ];
-        const adminBillingItems = [
-            { path: ADMIN_BILLING_ROUTES.REVENUE_DASHBOARD, name: 'Revenue Analytics', icon: FiTrendingUp, roles: ['super_admin'] },
-            { path: ADMIN_BILLING_ROUTES.TENANTS, name: 'Tenant Billing', icon: MdBusiness, roles: ['super_admin'] },
-            { path: ADMIN_BILLING_ROUTES.PLANS_MANAGEMENT, name: 'Plan Management', icon: FiLayers, roles: ['super_admin'] },
-            { path: ADMIN_BILLING_ROUTES.ALL_INVOICES, name: 'All Invoices', icon: FiFileText, roles: ['super_admin'] },
-        ];
+        
         
         return {
             main: baseItems,
@@ -143,7 +153,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             connections: connectionItems,
             kpi: kpiItems,
             billing: billingItems,
-            adminBilling: adminBillingItems,
+            adminBilling: billingAdminItems,
             admin: adminItems
         };
     };
@@ -180,6 +190,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                                 <NavLink 
                                     to={resolvePath(item.path)}
                                     className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                                    end={item.path === BILLING_ROUTES.BILLING_PORTAL || item.path === BILLING_ROUTES.ADMIN_BILLING}
                                 >
                                     <item.icon size={20} />
                                     {!isCollapsed && <span>{item.name}</span>}
@@ -227,6 +238,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
                 {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Hierarchy & Charts', navigation.hierarchy, 'hierarchy')}
+                {renderNavGroup('Billing', navigation.billing, 'billing')}
+                {user?.role === 'super_admin' && renderNavGroup('Billing Admin', navigation.billingAdmin, 'billingAdmin')}
                 
                 {user?.role === 'super_admin' && renderNavGroup('Tenant Management', navigation.tenant, 'tenant')}
                 

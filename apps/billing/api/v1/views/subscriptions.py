@@ -42,7 +42,8 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
     permission_classes = [IsAuthenticated, CanViewBilling]
     filterset_class = SubscriptionFilter
-    throttle_classes = [SubscriptionChangeThrottle]
+    # Default throttle for read actions
+    throttle_classes = []
     
     def get_queryset(self):
         """Filter subscriptions by tenant."""
@@ -90,6 +91,14 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated, CanViewBilling]
         return [permission() for permission in permission_classes]
+    
+    def get_throttles(self):
+        """Set throttles based on action."""
+        if self.action in ['create', 'cancel', 'renew', 'upgrade', 'downgrade', 'change_plan']:
+            from ..throttles import SubscriptionChangeThrottle
+            return [SubscriptionChangeThrottle()]
+        from ..throttles import TieredBillingThrottle
+        return [TieredBillingThrottle()]
     
     @transaction.atomic
     def create(self, request, *args, **kwargs):

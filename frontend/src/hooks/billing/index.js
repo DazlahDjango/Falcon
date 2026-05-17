@@ -11,6 +11,7 @@ import useSubscription from './useSubscription';
 import useSubscriptions from './useSubscriptions';
 import useTransaction from './useTransaction';
 import useTransactions from './useTransactions';
+import useWebhookService from './useWebhookService';
 
 export { usePlans } from './usePlans';
 export { useSubscription } from './useSubscription';
@@ -24,6 +25,7 @@ export { useCheckout } from './useCheckout';
 export { useBillingPortal } from './useBillingPortal';
 export { useBillingAnalytics } from './useBillingAnalytics';
 export { useBillingWebSocket } from './useBillingWebSocket';
+export { useWebhookService } from './useWebhookService';
 export { useAdminBilling } from './useAdminBilling';
 
 // Default export
@@ -40,6 +42,7 @@ const billingHooks = {
     useBillingPortal,
     useBillingAnalytics,
     useBillingWebSocket,
+    useWebhookService,
     useAdminBilling,
 };
 

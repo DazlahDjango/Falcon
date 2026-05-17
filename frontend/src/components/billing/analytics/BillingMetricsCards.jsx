@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const BillingMetricsCards = ({ metrics, loading }) => {
     if (loading) {
@@ -17,28 +18,28 @@ export const BillingMetricsCards = ({ metrics, loading }) => {
             title: 'Total Revenue',
             value: `KES ${((metrics?.total_revenue || 0) / 100).toLocaleString()}`,
             change: metrics?.revenue_growth,
-            icon: '💰',
+            icon: renderBillingIcon('totalRevenue', { size: 22 }),
             color: '#2563eb',
         },
         {
             title: 'Active Subscriptions',
             value: metrics?.active_subscriptions || 0,
             change: metrics?.subscription_growth,
-            icon: '🔄',
+            icon: renderBillingIcon('activeSubscriptions', { size: 22 }),
             color: '#10b981',
         },
         {
             title: 'Avg. Revenue Per User',
             value: `KES ${((metrics?.arpu || 0) / 100).toLocaleString()}`,
             change: metrics?.arpu_change,
-            icon: '👥',
+            icon: renderBillingIcon('revenuePerUser', { size: 22 }),
             color: '#8b5cf6',
         },
         {
             title: 'Payment Success Rate',
             value: `${metrics?.payment_success_rate || 0}%`,
             change: metrics?.success_rate_change,
-            icon: '✅',
+            icon: renderBillingIcon('paymentSuccessRate', { size: 22 }),
             color: '#f59e0b',
         },
     ];

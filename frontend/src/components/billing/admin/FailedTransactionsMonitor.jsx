@@ -4,6 +4,7 @@ import { RefundModal } from './RefundModal';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
 import { StatusBadge } from '../shared/StatusBadge';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const FailedTransactionsMonitor = () => {
     const { transactions, loading, fetchTransactions, verifyTransaction } = useTransactions();
@@ -42,7 +43,7 @@ export const FailedTransactionsMonitor = () => {
             <EmptyState 
                 title="No Failed Transactions"
                 message="All transactions are processing normally"
-                icon="✅"
+                icon={renderBillingIcon('success', { size: 40 })}
             />
         );
     }

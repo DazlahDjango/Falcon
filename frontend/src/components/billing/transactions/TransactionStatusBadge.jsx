@@ -1,31 +1,32 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 const STATUS_CONFIG = {
     success: {
         label: 'Success',
         color: 'success',
-        icon: '✓',
+        icon: renderBillingIcon('success', { size: 14 }),
     },
     pending: {
         label: 'Pending',
         color: 'warning',
-        icon: '⟳',
+        icon: renderBillingIcon('pending', { size: 14 }),
     },
     failed: {
         label: 'Failed',
         color: 'error',
-        icon: '✗',
+        icon: renderBillingIcon('failed', { size: 14 }),
     },
     refunded: {
         label: 'Refunded',
         color: 'info',
-        icon: '↺',
+        icon: renderBillingIcon('refunded', { size: 14 }),
     },
     disputed: {
         label: 'Disputed',
         color: 'error',
-        icon: '⚖',
+        icon: renderBillingIcon('disputed', { size: 14 }),
     },
 };
 

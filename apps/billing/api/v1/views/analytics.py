@@ -14,7 +14,7 @@ from ..serializers import (
     SubscriptionAnalyticsSerializer,
 )
 from ..permissions import CanViewBillingAnalytics
-from ..throttles import BillingReportThrottle
+from ..throttles import TieredBillingThrottle
 from ..filters import BillingAnalyticsFilter
 
 
@@ -31,7 +31,7 @@ class BillingAnalyticsViewSet(viewsets.GenericViewSet):
     """
     
     permission_classes = [IsAuthenticated, CanViewBillingAnalytics]
-    throttle_classes = [BillingReportThrottle]
+    throttle_classes = [TieredBillingThrottle]
     
     @action(detail=False, methods=['get'])
     def summary(self, request):

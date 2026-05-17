@@ -3,65 +3,62 @@
  * Handles billing analytics and reporting operations
  */
 
-import { BillingBaseService } from './BillingBaseService';
+import axios from 'axios';
 import { ANALYTICS_ENDPOINTS } from '../../config/constants/billingApiConstants';
+import { getAccessToken, getTenantId } from '../accounts/storage/secureStorage';
+import { store } from '../../store';
 
-class BillingAnalyticsServiceClass extends BillingBaseService {
-    constructor() {
-        super('analytics');
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const BILLING_API_BASE = `${API_BASE_URL}/billing`;
+
+const analyticsApiClient = axios.create({
+    baseURL: BILLING_API_BASE,
+    timeout: 15000,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    },
+});
+
+analyticsApiClient.interceptors.request.use(async (config) => {
+    const token = await getAccessToken();
+    if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
     }
+    
+    let tenantId = await getTenantId();
+    if (!tenantId) {
+        const state = store.getState();
+        tenantId = state?.auth?.user?.tenant_id || state?.tenant?.currentTenant?.id;
+    }
+    if (tenantId) {
+        config.headers['X-Tenant-ID'] = tenantId;
+    }
+    
+    return config;
+});
 
-    /**
-     * Get billing summary for tenant
-     */
+class BillingAnalyticsServiceClass {
     async getBillingSummary() {
-        return this.withRetry(() => 
-            this.apiClient.get(ANALYTICS_ENDPOINTS.SUMMARY)
-        );
+        return analyticsApiClient.get(ANALYTICS_ENDPOINTS.SUMMARY);
     }
-
-    /**
-     * Get revenue report
-     * @param {Object} params - { days, period, start_date, end_date }
-     */
+    
     async getRevenueReport(params = {}) {
-        return this.withRetry(() => 
-            this.apiClient.get(ANALYTICS_ENDPOINTS.REVENUE, { params })
-        );
+        return analyticsApiClient.get(ANALYTICS_ENDPOINTS.REVENUE, { params });
     }
-
-    /**
-     * Get subscription analytics
-     */
+    
     async getSubscriptionAnalytics() {
-        return this.withRetry(() => 
-            this.apiClient.get(ANALYTICS_ENDPOINTS.SUBSCRIPTIONS)
-        );
+        return analyticsApiClient.get(ANALYTICS_ENDPOINTS.SUBSCRIPTIONS);
     }
-
-    /**
-     * Get tax report
-     * @param {Object} params - { year }
-     */
+    
     async getTaxReport(params = {}) {
-        return this.withRetry(() => 
-            this.apiClient.get(ANALYTICS_ENDPOINTS.TAX, { params })
-        );
+        return analyticsApiClient.get(ANALYTICS_ENDPOINTS.TAX, { params });
     }
-
-    /**
-     * Get revenue forecast
-     */
+    
     async getRevenueForecast() {
-        return this.withRetry(() => 
-            this.apiClient.get(ANALYTICS_ENDPOINTS.FORECAST)
-        );
+        return analyticsApiClient.get(ANALYTICS_ENDPOINTS.FORECAST);
     }
-
-    /**
-     * Get monthly revenue breakdown
-     * @param {number} months - Number of months to analyze
-     */
+    
     async getMonthlyRevenueBreakdown(months = 12) {
         const endDate = new Date();
         const startDate = new Date();
@@ -73,10 +70,7 @@ class BillingAnalyticsServiceClass extends BillingBaseService {
             end_date: endDate.toISOString().split('T')[0],
         });
     }
-
-    /**
-     * Get subscription growth metrics
-     */
+    
     async getSubscriptionGrowth() {
         const analytics = await this.getSubscriptionAnalytics();
         const data = analytics?.data || {};
@@ -91,11 +85,7 @@ class BillingAnalyticsServiceClass extends BillingBaseService {
             mrr: data.total_mrr || 0,
         };
     }
-
-    /**
-     * Calculate churn rate
-     * @param {number} periodDays - Period in days
-     */
+    
     async getChurnRate(periodDays = 30) {
         const analytics = await this.getSubscriptionAnalytics();
         const data = analytics?.data || {};
@@ -106,12 +96,7 @@ class BillingAnalyticsServiceClass extends BillingBaseService {
         if (active === 0) return 0;
         return (cancelled / (active + cancelled)) * 100;
     }
-
-    /**
-     * Format currency for display
-     * @param {number} amount - Amount in cents
-     * @param {string} currency - Currency code
-     */
+    
     formatCurrency(amount, currency = 'KES') {
         if (!amount && amount !== 0) return '—';
         const symbols = { KES: 'KSh', USD: '$', GBP: '£', EUR: '€' };

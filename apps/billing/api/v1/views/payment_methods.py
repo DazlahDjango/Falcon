@@ -27,7 +27,15 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
     """
     
     permission_classes = [IsAuthenticated, CanManagePaymentMethods]
-    throttle_classes = [PaymentMethodThrottle]
+    throttle_classes = []
+    
+    def get_throttles(self):
+        """Set throttles based on action."""
+        if self.action in ['create', 'destroy', 'set_default']:
+            from ..throttles import PaymentMethodThrottle
+            return [PaymentMethodThrottle()]
+        from ..throttles import TieredBillingThrottle
+        return [TieredBillingThrottle()]
     
     def get_queryset(self):
         """Filter payment methods by tenant."""

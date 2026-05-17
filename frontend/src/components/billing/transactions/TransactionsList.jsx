@@ -4,6 +4,7 @@ import { TransactionRow } from './TransactionRow';
 import { TransactionFilter } from './TransactionFilter';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
+import { renderBillingIcon } from '../shared/BillingIcons';
 import { useTransactions } from '../../../hooks/billing';
 
 export const TransactionsList = ({ 
@@ -49,7 +50,7 @@ export const TransactionsList = ({
             <EmptyState 
                 title="Unable to load transactions"
                 message={error}
-                icon="⚠️"
+                icon={renderBillingIcon('warning', { size: 40 })}
             />
         );
     }
@@ -59,7 +60,7 @@ export const TransactionsList = ({
             <EmptyState 
                 title="No transactions found"
                 message="Your transaction history will appear here"
-                icon="💳"
+                icon={renderBillingIcon('noTransactions', { size: 40 })}
             />
         );
     }

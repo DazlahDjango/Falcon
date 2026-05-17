@@ -47,7 +47,7 @@ class BillingAuditLog(BaseBillingModel):
         (RESOURCE_WEBHOOK, 'Webhook'),
         (RESOURCE_CUSTOMER, 'Customer'),
     ]
-    user_id = models.UUIDField(_('user ID'), db_index=True, help_text="User who performed the action")
+    user_id = models.UUIDField(_('user ID'), db_index=True, null=True, blank=True, help_text="User who performed the action")
     user_email = models.EmailField(_('user email'), db_index=True)
     user_role = models.CharField(_('user role'), max_length=50, blank=True)
     user_ip = models.GenericIPAddressField(_('user IP'), null=True, blank=True)

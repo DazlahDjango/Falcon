@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { PlanService } from '../../services/billing';
 import { PLAN_TYPES, BILLING_INTERVALS, BILLING_TIME_CONSTANTS } from '../../config/constants/billingConstants';
 
@@ -21,6 +21,11 @@ export const usePlans = (options = {}) => {
     const [error, setError] = useState(null);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [billingCycle, setBillingCycle] = useState(billingInterval);
+
+    const optionsRef = useRef(options);
+    useEffect(() => {
+        optionsRef.current = options;
+    });
 
     // Check if cache is valid
     const isCacheValid = useCallback(() => {
@@ -46,6 +51,8 @@ export const usePlans = (options = {}) => {
 
     // Fetch plans
     const fetchPlans = useCallback(async (forceRefresh = false) => {
+        const { planType, billingInterval, includeTrial } = optionsRef.current;
+        
         // Check cache first
         if (!forceRefresh && isCacheValid()) {
             const cached = getCachedPlans();
@@ -83,7 +90,7 @@ export const usePlans = (options = {}) => {
         } finally {
             setLoading(false);
         }
-    }, [planType, billingInterval, includeTrial, billingCycle, isCacheValid, getCachedPlans, updateCache]);
+    }, [billingCycle, isCacheValid, getCachedPlans, updateCache]);
 
     // Get single plan by ID
     const getPlanById = useCallback(async (planId) => {

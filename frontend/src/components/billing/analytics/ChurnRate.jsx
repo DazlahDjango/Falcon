@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const ChurnRate = ({ churnRate, newCustomers, lostCustomers, loading }) => {
     if (loading) {
@@ -18,7 +19,7 @@ export const ChurnRate = ({ churnRate, newCustomers, lostCustomers, loading }) =
         <div className="churn-rate">
             <div className="churn-rate-header">
                 <span className="churn-rate-title">Churn Rate</span>
-                <span className="churn-rate-icon">📉</span>
+                <span className="churn-rate-icon">{renderBillingIcon('analytics', { size: 22 })}</span>
             </div>
             <div className={`churn-rate-value churn-rate-${level}`}>
                 {churnRate}%
@@ -34,9 +35,9 @@ export const ChurnRate = ({ churnRate, newCustomers, lostCustomers, loading }) =
                 </div>
             </div>
             <div className="churn-rate-footer">
-                {level === 'good' && <span>✅ Healthy retention rate</span>}
-                {level === 'warning' && <span>⚠️ Monitor churn closely</span>}
-                {level === 'critical' && <span>🔴 High churn rate - action needed</span>}
+                {level === 'good' && <span>{renderBillingIcon('success', { size: 16 })} Healthy retention rate</span>}
+                {level === 'warning' && <span>{renderBillingIcon('warning', { size: 16 })} Monitor churn closely</span>}
+                {level === 'critical' && <span>{renderBillingIcon('failed', { size: 16 })} High churn rate - action needed</span>}
             </div>
         </div>
     );

@@ -1,15 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const PaymentMethodSelector = ({ methods, selectedId, onSelect }) => {
-    const getCardIcon = (brand) => {
-        const icons = {
-            visa: '💳',
-            mastercard: '💳',
-            'american express': '💳',
-        };
-        return icons[brand?.toLowerCase()] || '💳';
-    };
+    const getCardIcon = () => renderBillingIcon('card', { size: 20 });
 
     const formatExpiry = (month, year) => {
         if (!month || !year) return '';

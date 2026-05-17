@@ -4,6 +4,7 @@ import { PlanCard } from './PlanCard';
 import { BillingCycleSelector } from '../subscription/BillingCycleSelector';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const PlansList = ({ 
     plans, 
@@ -27,7 +28,7 @@ export const PlansList = ({
             <EmptyState 
                 title="Unable to load plans"
                 message="Please try again later"
-                icon="⚠️"
+                icon={renderBillingIcon('warning', { size: 40 })}
             />
         );
     }
@@ -37,7 +38,7 @@ export const PlansList = ({
             <EmptyState 
                 title="No plans available"
                 message="Check back soon for available plans"
-                icon="📋"
+                icon={renderBillingIcon('plan', { size: 40 })}
             />
         );
     }

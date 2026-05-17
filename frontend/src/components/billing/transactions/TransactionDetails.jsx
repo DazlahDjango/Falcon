@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { TransactionStatusBadge } from './TransactionStatusBadge';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const TransactionDetails = ({ transaction, loading, error, onVerify, verifying }) => {
     if (loading) {
@@ -14,7 +15,7 @@ export const TransactionDetails = ({ transaction, loading, error, onVerify, veri
             <EmptyState 
                 title="Transaction not found"
                 message="The transaction you're looking for doesn't exist"
-                icon="🔍"
+                icon={renderBillingIcon('invoiceSearch', { size: 40 })}
             />
         );
     }
@@ -157,14 +158,14 @@ export const TransactionDetails = ({ transaction, loading, error, onVerify, veri
 
             {isFailed && (
                 <div className="transaction-details-failed">
-                    <span className="failed-icon">⚠️</span>
+                    <span className="failed-icon">{renderBillingIcon('warning', { size: 18 })}</span>
                     <p>This transaction failed. Please try again or contact support.</p>
                 </div>
             )}
 
             {isSuccessful && (
                 <div className="transaction-details-success">
-                    <span className="success-icon">✓</span>
+                    <span className="success-icon">{renderBillingIcon('success', { size: 18 })}</span>
                     <p>Transaction completed successfully.</p>
                 </div>
             )}

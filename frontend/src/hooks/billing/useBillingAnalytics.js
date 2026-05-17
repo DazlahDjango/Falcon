@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { BillingAnalyticsService } from '../../services/billing';
 
 export const useBillingAnalytics = (options = {}) => {
@@ -20,6 +20,14 @@ export const useBillingAnalytics = (options = {}) => {
         days: defaultDays,
     });
 
+    const optionsRef = useRef(options);
+    const dateRangeRef = useRef(dateRange);
+
+    useEffect(() => {
+        optionsRef.current = options;
+        dateRangeRef.current = dateRange;
+    });
+
     // Fetch billing summary
     const fetchSummary = useCallback(async () => {
         try {
@@ -37,7 +45,7 @@ export const useBillingAnalytics = (options = {}) => {
         setLoading(true);
         try {
             const response = await BillingAnalyticsService.getRevenueReport({
-                days: dateRange.days,
+                days: dateRangeRef.current.days,
                 ...params,
             });
             setRevenue(response?.data || null);
@@ -49,7 +57,7 @@ export const useBillingAnalytics = (options = {}) => {
         } finally {
             setLoading(false);
         }
-    }, [dateRange.days]);
+    }, []);
 
     // Fetch subscription analytics
     const fetchSubscriptions = useCallback(async () => {

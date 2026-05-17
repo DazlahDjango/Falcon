@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { usePaymentMethods } from '../../../hooks/billing';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const AddPaymentMethodForm = ({ onSuccess, onCancel }) => {
     const [email, setEmail] = useState('');
@@ -42,7 +43,7 @@ export const AddPaymentMethodForm = ({ onSuccess, onCancel }) => {
             <form onSubmit={handleSubmit}>
                 <div className="add-payment-method-card-preview">
                     <div className="card-preview">
-                        <div className="card-preview-chip">💳</div>
+                        <div className="card-preview-chip">{renderBillingIcon('cardPreview', { size: 20 })}</div>
                         <div className="card-preview-number">•••• •••• •••• ••••</div>
                         <div className="card-preview-details">
                             <div className="card-preview-expiry">MM/YY</div>
@@ -90,7 +91,7 @@ export const AddPaymentMethodForm = ({ onSuccess, onCancel }) => {
                 </div>
 
                 <p className="add-payment-method-secure">
-                    🔒 Your payment info is securely encrypted
+                    {renderBillingIcon('lock', { size: 16 })} Your payment info is securely encrypted
                 </p>
             </form>
         </div>

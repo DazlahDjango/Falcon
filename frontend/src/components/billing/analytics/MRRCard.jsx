@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TrendingUp, TrendingDown, TrendingFlat } from 'lucide-react';
+import { FiTrendingUp, FiTrendingDown, FiMinus } from 'react-icons/fi';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const MRRCard = ({ mrr, previousMrr, loading }) => {
     if (loading) {
@@ -17,13 +18,13 @@ export const MRRCard = ({ mrr, previousMrr, loading }) => {
     };
 
     const change = calculateChange();
-    const TrendIcon = change.isPositive ? TrendingUp : change.value > 0 ? TrendingDown : TrendingFlat;
+    const TrendIcon = change.isPositive ? FiTrendingUp : change.value > 0 ? FiTrendingDown : FiMinus;
 
     return (
         <div className="mrr-card">
             <div className="mrr-card-header">
                 <span className="mrr-card-title">Monthly Recurring Revenue</span>
-                <span className="mrr-card-icon">💰</span>
+                <span className="mrr-card-icon">{renderBillingIcon('totalRevenue', { size: 22 })}</span>
             </div>
             <div className="mrr-card-value">
                 KES {(mrr / 100).toLocaleString()}

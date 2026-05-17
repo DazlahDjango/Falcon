@@ -2,22 +2,23 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { StatusBadge } from '../shared/StatusBadge';
 import { WebhookRetryButton } from './WebhookRetryButton';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const WebhookEventRow = ({ log, onRetry }) => {
     const [expanded, setExpanded] = useState(false);
 
     const getEventIcon = () => {
         const icons = {
-            'charge.success': '💰',
-            'charge.dispute.create': '⚖️',
-            'subscription.create': '🔄',
-            'subscription.disable': '⛔',
-            'subscription.enable': '✅',
-            'invoice.create': '📄',
-            'invoice.update': '📝',
-            'invoice.payment_failed': '❌',
+            'charge.success': renderBillingIcon('chargeSuccess', { size: 18 }),
+            'charge.dispute.create': renderBillingIcon('chargeDispute', { size: 18 }),
+            'subscription.create': renderBillingIcon('subscriptionCreate', { size: 18 }),
+            'subscription.disable': renderBillingIcon('subscriptionDisable', { size: 18 }),
+            'subscription.enable': renderBillingIcon('subscriptionEnable', { size: 18 }),
+            'invoice.create': renderBillingIcon('invoiceCreate', { size: 18 }),
+            'invoice.update': renderBillingIcon('invoiceUpdate', { size: 18 }),
+            'invoice.payment_failed': renderBillingIcon('invoicePaymentFailed', { size: 18 }),
         };
-        return icons[log.event_type] || '📡';
+        return icons[log.event_type] || renderBillingIcon('event', { size: 18 });
     };
 
     const formatDate = (dateString) => {

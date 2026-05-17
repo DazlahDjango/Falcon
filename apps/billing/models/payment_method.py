@@ -28,7 +28,7 @@ class PaymentMethod(BaseBillingModel):
     ]
     tenant_id = models.UUIDField(_('tenant ID'), db_index=True)
     authorization_code = models.CharField(_('authorization code'), max_length=100, unique=True, db_index=True, help_text="PayStack authorization code")
-    customer_code = models.CharField(_('customer code'), max_length=100, db_index=True)
+    customer_code = models.CharField(_('customer code'), max_length=100, blank=True, db_index=True)
     email = models.EmailField(_('email'))
     payment_type = models.CharField(_('payment type'), max_length=20, choices=TYPE_CHOICES, default=TYPE_CARD)
     card_last4 = models.CharField(_('card last 4'), max_length=4, blank=True)

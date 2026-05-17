@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const TrialBanner = ({ daysRemaining, onUpgrade }) => {
     if (daysRemaining <= 0) return null;
@@ -19,7 +20,7 @@ export const TrialBanner = ({ daysRemaining, onUpgrade }) => {
     return (
         <div className={`trial-banner trial-banner-${getSeverity()}`}>
             <div className="trial-banner-content">
-                <span className="trial-banner-icon">⏳</span>
+                <span className="trial-banner-icon">{renderBillingIcon('pending', { size: 24 })}</span>
                 <div className="trial-banner-text">
                     <strong>{getMessage()}</strong>
                     <span>Upgrade now to continue using all features.</span>

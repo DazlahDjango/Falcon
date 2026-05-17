@@ -191,6 +191,12 @@ MIDDLEWARE = [
     'apps.kpi.middleware.AuditMiddleware',
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
+    # Billing
+    'apps.billing.middleware.SubscriptionGuardMiddleware',
+    'apps.billing.middleware.BillingAuditMiddleware',
+    'apps.billing.middleware.WebhookRateLimitMiddleware',
+    'apps.billing.middleware.TenantBillingContextMiddleware',
+    
 
 ]
 

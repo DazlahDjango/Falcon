@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { PlanSelector } from '../plans/PlanSelector';
 import { usePlans, useSubscription } from '../../../hooks/billing';
+import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const UpgradeDowngradeModal = ({ isOpen, onClose, subscription, changeType, onSuccess }) => {
     const [loading, setLoading] = useState(false);
@@ -78,7 +79,7 @@ export const UpgradeDowngradeModal = ({ isOpen, onClose, subscription, changeTyp
 
                     {!isUpgrade && (
                         <div className="upgrade-modal-note">
-                            <span>ℹ️</span>
+                            <span>{renderBillingIcon('info', { size: 18 })}</span>
                             <p>
                                 Downgrades take effect at the start of your next billing cycle.
                                 You'll keep access to current features until then.

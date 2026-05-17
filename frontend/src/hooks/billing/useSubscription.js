@@ -3,7 +3,7 @@
  * Manages current subscription state with real-time updates
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { SubscriptionService } from '../../services/billing';
 import { SUBSCRIPTION_STATUS, BILLING_INTERVALS } from '../../config/constants/billingConstants';
 
@@ -18,6 +18,15 @@ export const useSubscription = (options = {}) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
+    
+    // Use refs to stabilize callbacks
+    const subscriptionRef = useRef(subscription);
+    const optionsRef = useRef(options);
+
+    useEffect(() => {
+        subscriptionRef.current = subscription;
+        optionsRef.current = options;
+    });
 
     // Fetch current subscription
     const fetchSubscription = useCallback(async (forceRefresh = false) => {
@@ -28,8 +37,10 @@ export const useSubscription = (options = {}) => {
             const response = await SubscriptionService.getCurrentSubscription();
             const data = response?.data || null;
             
-            const previousStatus = subscription?.status;
+            const previousStatus = subscriptionRef.current?.status;
             setSubscription(data);
+            
+            const { onSubscriptionChange } = optionsRef.current;
             
             // Notify on status change
             if (previousStatus && previousStatus !== data?.status && onSubscriptionChange) {
@@ -49,7 +60,7 @@ export const useSubscription = (options = {}) => {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [subscription?.status, onSubscriptionChange]);
+    }, []);
 
     // Cancel subscription
     const cancelSubscription = useCallback(async (options = {}) => {

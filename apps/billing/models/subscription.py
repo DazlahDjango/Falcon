@@ -4,8 +4,10 @@ from django.utils.translation import gettext_lazy as _
 from datetime import timedelta
 from .base import BaseBillingModel
 from .plan import SubscriptionPlan
+from ..managers import SubscriptionManager
 
 class Subscription(BaseBillingModel):
+    objects = SubscriptionManager()
     STATUS_ACTIVE = 'active'
     STATUS_TRIALING = 'trialing'
     STATUS_PAST_DUE = 'past_due'
