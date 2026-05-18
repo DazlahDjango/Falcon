@@ -1,0 +1,99 @@
+/* frontend/src/components/config/schedule/CronHelper.module.css */
+.container {
+  position: relative;
+  margin-top: 0.25rem;
+}
+
+.triggerButton {
+  font-size: 0.75rem;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.triggerButton:hover {
+  color: #1d4ed8;
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 10;
+  margin-top: 0.25rem;
+  width: 16rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.dropdownItem:hover {
+  background-color: #f9fafb;
+}
+
+.dropdownItemFirst {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.dropdownItemLast {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.itemLabel {
+  font-weight: 500;
+}
+
+.itemValue {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-family: monospace;
+}
+/* frontend/src/components/config/schedule/ScheduleNextRuns.module.css */
+.container {
+  margin-top: 0.5rem;
+}
+
+.empty {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.runList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.runItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.runIcon {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.runTime {
+  font-family: monospace;
+  color: #4b5563;
+}

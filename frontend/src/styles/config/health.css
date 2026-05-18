@@ -1,0 +1,149 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.sm {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.md {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+}
+
+.lg {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.healthy {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.degraded {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.unhealthy {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.unknown {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.maintenance {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+/* frontend/src/components/config/health/SystemMetricsDashboard.module.css */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.iconWrapper {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.iconWrapperBlue {
+  background: #dbeafe;
+}
+
+.iconWrapperGreen {
+  background: #dcfce7;
+}
+
+.iconWrapperYellow {
+  background: #fef3c7;
+}
+
+.iconWrapperPurple {
+  background: #f3e8ff;
+}
+
+.icon {
+  font-size: 1.25rem;
+}
+
+.iconBlue {
+  color: #2563eb;
+}
+
+.iconGreen {
+  color: #059669;
+}
+
+.iconYellow {
+  color: #d97706;
+}
+
+.iconPurple {
+  color: #9333ea;
+}
+
+.cardTitle {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.metricValue {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.metricUnit {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-left: 0.25rem;
+}
+
+.progressBar {
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  height: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.progressFill {
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.3s;
+}
+
+.subMetric {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f3f4f6;
+}

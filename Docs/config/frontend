@@ -1,0 +1,228 @@
+frontend/src/
+├── config/
+│   ├── constants/
+│   │   ├── configConstants.js           # Maintenance types, backup types, DR statuses
+│   │   ├── configApiConstants.js        # API endpoints for config
+│   │   └── index.js                     # Export all config constants
+│   │
+│   ├── config/
+│   │   └── index.js                     # Config app configuration
+│
+├── components/
+│   └── config/                          # Config UI components
+│       ├── index.js                     # Export all config components
+│       │
+│       ├── dashboard/                   # Dashboard components
+│       │   ├── ConfigDashboardOverview.jsx      # Main config dashboard
+│       │   ├── BackupStatsCard.jsx             # Backup statistics card
+│       │   ├── MaintenanceStatusCard.jsx       # Active maintenance card
+│       │   ├── DRSummaryCard.jsx               # Disaster recovery summary
+│       │   ├── HealthStatusCard.jsx            # Health check status
+│       │   ├── QuotaUsageCard.jsx              # Storage quota display
+│       │   └── RecentActivityList.jsx          # Recent backup/maintenance/DR
+│       │
+│       ├── backup/                      # Backup management
+│       │   ├── BackupList.jsx                   # List all backups
+│       │   ├── BackupDetails.jsx                # Single backup details
+│       │   ├── BackupTriggerForm.jsx            # Trigger new backup
+│       │   ├── BackupRestoreModal.jsx           # Restore from backup
+│       │   ├── BackupPolicyForm.jsx             # Edit backup policy
+│       │   ├── BackupHistoryTable.jsx           # Historical backups table
+│       │   ├── BackupVerificationBadge.jsx      # Verification status badge
+│       │   └── BackupProgressBar.jsx            # Live backup progress
+│       │
+│       ├── maintenance/                 # Maintenance management
+│       │   ├── MaintenanceList.jsx              # List maintenance windows
+│       │   ├── MaintenanceDetails.jsx           # Single maintenance details
+│       │   ├── MaintenanceScheduleForm.jsx      # Schedule new maintenance
+│       │   ├── MaintenanceActiveBanner.jsx      # Active maintenance banner
+│       │   ├── MaintenanceTimer.jsx             # Countdown timer
+│       │   ├── MaintenanceHistoryTable.jsx      # Past maintenance records
+│       │   └── MaintenanceActions.jsx           # Start/stop/cancel buttons
+│       │
+│       ├── disaster_recovery/           # DR management
+│       │   ├── DRPlanList.jsx                  # List DR plans
+│       │   ├── DRPlanDetails.jsx               # Single DR plan details
+│       │   ├── DRPlanForm.jsx                  # Create/edit DR plan
+│       │   ├── DRExecuteModal.jsx              # Execute DR plan
+│       │   ├── DRDrillModal.jsx                # Run DR drill
+│       │   ├── DRExecutionHistory.jsx          # Past DR executions
+│       │   ├── DRMetricsCard.jsx               # RTO/RPO metrics
+│       │   ├── FailoverButton.jsx              # Failover action
+│       │   ├── FailbackButton.jsx              # Failback action
+│       │   └── DRProgressMonitor.jsx           # Live DR execution progress
+│       │
+│       ├── health/                       # Health monitoring
+│       │   ├── HealthCheckList.jsx              # List health checks
+│       │   ├── HealthStatusBadge.jsx            # Status badge component
+│       │   ├── HealthMetricsChart.jsx           # Response time chart
+│       │   ├── HealthHistoryTable.jsx           # Health check history
+│       │   ├── ConditionalMaintenanceAlert.jsx  # Alert for auto-triggered maintenance
+│       │   └── SystemMetricsDashboard.jsx      # CPU/Memory/Disk metrics
+│       │
+│       ├── schedule/                     # Schedule management
+│       │   ├── ScheduleList.jsx                # List all schedules
+│       │   ├── ScheduleForm.jsx                # Create/edit schedule
+│       │   ├── ScheduleToggle.jsx              # Enable/disable schedule
+│       │   ├── CronHelper.jsx                  # Cron expression helper
+│       │   └── ScheduleNextRuns.jsx            # Display next run times
+│       │
+│       ├── quota/                        # Quota management
+│       │   ├── QuotaList.jsx                  # List quotas by tenant/app
+│       │   ├── QuotaForm.jsx                  # Edit quota limits
+│       │   ├── QuotaUsageBar.jsx              # Visual usage bar
+│       │   ├── QuotaAlertBadge.jsx            # Warning when near limit
+│       │   └── QuotaSettingsPanel.jsx         # Global quota settings
+│       │
+│       ├── encryption/                   # Encryption key management
+│       │   ├── EncryptionKeyList.jsx          # List encryption keys
+│       │   ├── EncryptionKeyForm.jsx          # Add new key
+│       │   ├── RotateKeyModal.jsx             # Rotate encryption key
+│       │   ├── KeyStatusBadge.jsx             # Active/Expired/Compromised
+│       │   └── DefaultKeySelector.jsx         # Set default key
+│       │
+│       ├── audit/                        # Audit logs
+│       │   ├── AuditLogList.jsx               # List audit logs
+│       │   ├── AuditLogFilters.jsx            # Filter by action/role/result
+│       │   ├── AuditLogDetails.jsx            # Single log details
+│       │   └── AuditLogExporter.jsx           # Export audit logs
+│       │
+│       ├── settings/                     # Config settings
+│       │   ├── ConfigSettingsPanel.jsx       # Main settings panel
+│       │   ├── BackupSettingsTab.jsx         # Backup configuration
+│       │   ├── MaintenanceSettingsTab.jsx    # Maintenance defaults
+│       │   ├── DRThresholdsTab.jsx           # RTO/RPO thresholds
+│       │   ├── NotificationSettingsTab.jsx   # Alert preferences
+│       │   └── StorageSettingsTab.jsx        # Storage backend config
+│       │
+│       └── common/                       # Shared config components
+│           ├── ConfigGuard.jsx                # Route guard for Super/Client Admin
+│           ├── MaintenanceGuard.jsx           # Show maintenance notice
+│           ├── StatusBadge.jsx                # Generic status badge
+│           ├── ConfigBreadcrumb.jsx           # Navigation breadcrumb
+│           ├── ConfigSidebar.jsx              # Config app sidebar
+│           └── ConfigHeader.jsx               # Config app header
+│
+├── hooks/
+│   └── config/                          # Config custom hooks
+│       ├── index.js                     # Export all config hooks
+│       ├── useBackup.js                 # Backup operations (trigger, cancel, restore)
+│       ├── useMaintenance.js            # Maintenance operations (schedule, start, stop)
+│       ├── useDisasterRecovery.js       # DR operations (execute, drill, failover)
+│       ├── useHealthCheck.js            # Health check data fetching
+│       ├── useSchedule.js               # Schedule CRUD operations
+│       ├── useQuota.js                  # Quota data and updates
+│       ├── useEncryptionKey.js          # Key management operations
+│       ├── useAuditLog.js               # Audit log fetching
+│       ├── useConfigWebSocket.js        # WebSocket connections for real-time updates
+│       ├── useBackupProgress.js         # Live backup progress
+│       ├── useDRProgress.js             # Live DR execution progress
+│       ├── useMaintenanceStatus.js      # Real-time maintenance status
+│       └── useConfigDashboard.js        # Dashboard data aggregation
+│
+├── contexts/
+│   └── config/                          # Config contexts
+│       ├── index.js                     # Export all config contexts
+│       ├── ConfigContext.jsx            # Main config context (settings, permissions)
+│       ├── BackupContext.jsx            # Backup state management
+│       ├── MaintenanceContext.jsx       # Maintenance state (active windows)
+│       ├── DRContext.jsx                # DR execution state
+│       ├── WebSocketContext.jsx         # WebSocket connection management
+│       └── ConfigAlertContext.jsx       # Config-specific alerts
+│
+├── store/
+│   ├── config/                          # Config Redux slices
+│   │   ├── index.js                     # Export all config slices
+│   │   │
+│   │   ├── slices/
+│   │   │   ├── backupSlice.js           # Backup jobs, policies, artifacts
+│   │   │   ├── maintenanceSlice.js      # Maintenance windows, logs
+│   │   │   ├── drSlice.js               # DR plans, executions
+│   │   │   ├── healthSlice.js           # Health checks, metrics
+│   │   │   ├── scheduleSlice.js         # Schedules
+│   │   │   ├── quotaSlice.js            # Quotas
+│   │   │   ├── encryptionSlice.js       # Encryption keys
+│   │   │   ├── auditSlice.js            # Audit logs
+│   │   │   ├── dashboardSlice.js        # Dashboard data
+│   │   │   └── configSettingsSlice.js   # Config settings
+│   │   │
+│   │   ├── middleware/
+│   │   │   ├── backupMiddleware.js      # Backup side effects
+│   │   │   ├── maintenanceMiddleware.js # Maintenance side effects
+│   │   │   ├── drMiddleware.js          # DR side effects
+│   │   │   └── websocketMiddleware.js   # WebSocket message handling
+│   │   │
+│   │   └── selectors/
+│   │       ├── backupSelectors.js       # Backup data selectors
+│   │       ├── maintenanceSelectors.js  # Maintenance selectors
+│   │       ├── drSelectors.js           # DR selectors
+│   │       ├── healthSelectors.js       # Health selectors
+│   │       ├── scheduleSelectors.js     # Schedule selectors
+│   │       ├── quotaSelectors.js        # Quota selectors
+│   │       ├── auditSelectors.js        # Audit log selectors
+│   │       └── dashboardSelectors.js    # Dashboard selectors
+│   │
+│   ├── rootReducer.js                  # UPDATE: Add config reducers
+│   └── index.js                        # UPDATE: Export config store
+│
+├── services/
+│   └── config/                          # Config API services
+│       ├── index.js                     # Export all config services
+│       ├── backupService.js             # Backup API calls
+│       ├── maintenanceService.js        # Maintenance API calls
+│       ├── drService.js                 # DR API calls
+│       ├── healthService.js             # Health check API calls
+│       ├── scheduleService.js           # Schedule API calls
+│       ├── quotaService.js              # Quota API calls
+│       ├── encryptionService.js         # Encryption key API calls
+│       ├── auditService.js              # Audit log API calls
+│       ├── dashboardService.js          # Dashboard API calls
+│       └── websocketService.js          # WebSocket connection service
+│
+├── pages/
+│   └── config/                          # Config pages
+│       ├── index.js                     # Export all config pages
+│       │
+│       ├── ConfigDashboardPage.jsx      # Main config dashboard
+│       ├── BackupPage.jsx               # Backup management page
+│       ├── BackupDetailsPage.jsx        # Single backup details
+│       ├── MaintenancePage.jsx          # Maintenance management
+│       ├── MaintenanceDetailsPage.jsx   # Single maintenance details
+│       ├── DisasterRecoveryPage.jsx     # DR management
+│       ├── DRPlanDetailsPage.jsx        # Single DR plan details
+│       ├── HealthCheckPage.jsx          # Health monitoring
+│       ├── SchedulePage.jsx             # Schedule management
+│       ├── QuotaPage.jsx                # Quota management
+│       ├── EncryptionPage.jsx           # Encryption key management
+│       ├── AuditLogPage.jsx             # Audit logs
+│       ├── ConfigSettingsPage.jsx       # Config settings
+│       └── ConfigReportsPage.jsx        # Reports and exports
+│
+├── routes/
+│   └── config.routes.jsx                # Config route definitions
+│
+├── types/
+│   └── config/                          # TypeScript/PropTypes definitions
+│       ├── index.js                     # Export all config types
+│       ├── backup.types.js              # Backup job, policy, artifact types
+│       ├── maintenance.types.js         # Maintenance window, log types
+│       ├── dr.types.js                  # DR plan, execution types
+│       ├── health.types.js              # Health check types
+│       ├── schedule.types.js            # Schedule types
+│       ├── quota.types.js               # Quota types
+│       ├── encryption.types.js          # Encryption key types
+│       ├── audit.types.js               # Audit log types
+│       └── config.types.js              # Config app types
+│
+└── utils/
+    └── config/                          # Config utilities
+        ├── index.js                     # Export all config utils
+        ├── cronParser.js                # Cron expression validation and parsing
+        ├── dateFormatter.js             # Date formatting for schedules
+        ├── sizeFormatter.js             # Byte to GB/TB conversion
+        ├── statusColorMapper.js         # Status to color mapping
+        ├── maintenanceNotice.js         # Maintenance message formatting
+        ├── websocketReconnect.js        # WebSocket reconnection logic
+        ├── rpoRtoFormatter.js           # RPO/RTO display formatting
+        ├── riskLevelMapper.js           # Risk level to UI mapping
+        └── validationRules.js           # Config form validation rules

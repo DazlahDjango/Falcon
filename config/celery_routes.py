@@ -31,6 +31,20 @@ task_routes_dict = {
     'billing.tasks.cleanup_*': {'queue': 'cleanup'},
     'billing.tasks.generate_invoice_pdf': {'queue': 'billing'},
     'billing.tasks.store_invoice_pdf': {'queue': 'billing'},
+    # Config Tasks
+    'apps.configs.tasks.execute_backup_task': {'queue': 'backup'},
+    'apps.configs.tasks.apply_retention_policies_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.verify_backups_task': {'queue': 'backup'},
+    'apps.configs.tasks.risk_based_maintenance_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.health_check_all_apps_task': {'queue': 'health_check'},
+    'apps.configs.tasks.conditional_maintenance_trigger_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.execute_due_schedules_task': {'queue': 'scheduler'},
+    'apps.configs.tasks.cleanup_old_artifacts_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.sync_dr_metrics_task': {'queue': 'analytics'},
+    'apps.configs.tasks.disaster_recovery_drill_task': {'queue': 'dr'},
+    'apps.configs.tasks.restore_*': {'queue': 'restore'},
+    'apps.configs.tasks.backup_*': {'queue': 'backup'},
+    'apps.configs.tasks.dr_*': {'queue': 'dr'},
 }
 
 # Function-based routes for complex patterns

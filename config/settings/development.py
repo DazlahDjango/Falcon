@@ -80,7 +80,7 @@ CACHES = {
 }
 # LOGGING (more verbose in development)
 LOGGING['root']['level'] = 'DEBUG'
-LOGGING['loggers']['django.db.backends']['level'] = 'DEBUG'
+LOGGING['loggers']['django.db.backends']['level'] = 'INFO'
 # DEVELOPMENT-SPECIFIC APPS
 INSTALLED_APPS += [
     'django_extensions',

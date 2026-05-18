@@ -1,0 +1,215 @@
+apps/config/
+├── __init__.py
+├── apps.py
+├── admin.py
+├── constants.py                         # Recovery priorities, maintenance types, backup types
+├── exceptions.py                        # Config-specific exceptions (MaintenanceActive, BackupFailed, etc.)
+├── signals.py                           # Post-save triggers for backup schedules
+├── tasks.py                             # Celery tasks (backup jobs, maintenance jobs, health checks)
+├── urls.py                              # API routing (only accessible by Super Admin & Client Admin)
+├── validators.py                        # Schedule validators, cron expression validators
+│
+├── models/                               # Database models
+│   ├── __init__.py
+│   ├── base.py                          # Base model with tenant awareness (for audit logs)
+│   ├── registered_app.py                # App registry (kpi, accounts, billing, reviews, tenants, structure, dashboard)
+│   ├── backup_policy.py                 # Backup strategy per app (Full, Incremental, Differential, Synthetic, CDP)
+│   ├── backup_job.py                    # Backup execution records (start time, end time, status, size, location)
+│   ├── backup_artifact.py               # Actual backup file references (S3 path, encrypted flag, checksum)
+│   ├── maintenance_window.py            # Scheduled maintenance (start, end, type: full/partial, affected_apps)
+│   ├── maintenance_log.py               # Maintenance execution log (what happened, success/failure)
+│   ├── disaster_recovery_plan.py        # DR plans per app (RPO, RTO, recovery priority, recovery steps)
+│   ├── disaster_recovery_execution.py   # DR drill/actual execution records
+│   ├── health_check.py                  # Health check results per app (for conditional maintenance)
+│   ├── risk_assessment.py               # Risk scores per app (for risk-based maintenance)
+│   ├── schedule.py                      # Recurring schedules (cron-based for backups and maintenance)
+│   ├── quota.py                         # Storage quotas per tenant for backups
+│   ├── encryption_key.py                # Key management references (KMS, never store actual keys)
+│   └── audit_log.py                     # All config actions (who triggered backup/maintenance, when)
+│
+├── managers/                             # Custom query managers
+│   ├── __init__.py
+│   ├── base.py                          # Base manager with tenant filtering
+│   ├── backup_job_manager.py            # Filter by status, type, app
+│   ├── maintenance_window_manager.py    # Active maintenance windows only
+│   └── registered_app_manager.py        # Filter by priority, is_critical
+│
+├── services/                             # Business logic layer
+│   ├── __init__.py
+│   │
+│   ├── registry/                         # App registration service
+│   │   ├── __init__.py
+│   │   ├── app_registry.py              # Register/unregister apps for DR/backup
+│   │   ├── dependency_resolver.py       # Understand app dependencies (e.g., accounts before kpi)
+│   │   └── recovery_order.py            # Determine recovery sequence based on dependencies
+│   │
+│   ├── backup/                           # Backup engine
+│   │   ├── __init__.py
+│   │   ├── backup_orchestrator.py       # Main backup coordinator
+│   │   ├── backup_strategy.py           # Full, Incremental, Differential, Synthetic, CDP implementations
+│   │   ├── single_app_backup.py         # Backup just one app (accounts, kpi, etc.)
+│   │   ├── multi_app_backup.py          # Backup multiple apps in correct order
+│   │   ├── backup_compressor.py         # Compress backups (zstd, gzip)
+│   │   ├── backup_encryptor.py          # Encrypt backups before storage (AES-256)
+│   │   ├── backup_storage.py            # S3/local storage abstraction
+│   │   ├── backup_verification.py       # Checksum validation, integrity checks
+│   │   ├── backup_retention.py          # Cleanup old backups based on policy
+│   │   └── backup_scheduler.py          # Schedule coordinator
+│   │
+│   ├── restore/                          # Restore engine
+│   │   ├── __init__.py
+│   │   ├── restore_orchestrator.py      # Main restore coordinator
+│   │   ├── single_app_restore.py        # Restore just one app
+│   │   ├── full_system_restore.py       # Restore everything
+│   │   ├── point_in_time_restore.py     # PITR capability
+│   │   ├── restore_validator.py         # Verify restore success
+│   │   └── restore_rollback.py          # Rollback failed restore
+│   │
+│   ├── maintenance/                      # Maintenance engine
+│   │   ├── __init__.py
+│   │   ├── maintenance_orchestrator.py  # Main maintenance coordinator
+│   │   ├── maintenance_mode.py          # Enable/disable maintenance mode
+│   │   ├── full_maintenance.py          # Stop ALL services/apps
+│   │   ├── partial_maintenance.py       # Stop specific apps only
+│   │   ├── maintenance_notifier.py      # Send notices to attempting users
+│   │   ├── maintenance_scheduler.py     # Schedule maintenance windows
+│   │   └── maintenance_risk.py          # Risk-based maintenance logic
+│   │
+│   ├── disaster_recovery/                # DR engine
+│   │   ├── __init__.py
+│   │   ├── dr_orchestrator.py           # Main DR coordinator
+│   │   ├── dr_plan_executor.py          # Execute DR plan for an app
+│   │   ├── dr_drill.py                  # Test recovery without affecting production
+│   │   ├── failover.py                  # Failover to standby
+│   │   ├── failback.py                  # Return to primary
+│   │   └── dr_metrics.py                # Track RTO/RPO achievement
+│   │
+│   ├── health/                           # Health monitoring (for conditional maintenance)
+│   │   ├── __init__.py
+│   │   ├── health_checker.py            # Run health checks on all registered apps
+│   │   ├── metric_collector.py          # Collect error rates, latency, disk usage
+│   │   ├── threshold_evaluator.py       # Check if thresholds exceeded
+│   │   └── conditional_trigger.py       # Trigger maintenance when conditions met
+│   │
+│   ├── security/                         # Security services (root of your 3S)
+│   │   ├── __init__.py
+│   │   ├── access_enforcer.py           # Only Super Admin & Client Admin allowed (STRICT)
+│   │   ├── audit_logger.py              # Log every config action
+│   │   ├── backup_encryption_service.py # KMS integration for backup keys
+│   │   ├── integrity_verifier.py        # Verify backup integrity before restore
+│   │   └── rotation_manager.py          # Rotate encryption keys
+│   │
+│   └── scheduling/                       # Scheduling engine
+│       ├── __init__.py
+│       ├── cron_parser.py               # Parse cron expressions
+│       ├── calendar_manager.py          # Weekday-only scheduling (Mon-Fri)
+│       ├── conflict_detector.py         # Detect backup/maintenance conflicts
+│       ├── priority_engine.py           # Disaster overrides normal schedule
+│       └── schedule_executor.py         # Execute scheduled jobs
+│
+├── api/                                  # REST API (DRF) - STRICT ROLE ENFORCEMENT
+│   ├── __init__.py
+│   ├── v1/
+│   │   ├── __init__.py
+│   │   ├── urls.py                      # All /api/v1/config/* endpoints
+│   │   │
+│   │   ├── serializers/
+│   │   │   ├── __init__.py
+│   │   │   ├── registered_app.py        # App registration serializer
+│   │   │   ├── backup.py                # Backup request/response serializers
+│   │   │   ├── maintenance.py           # Maintenance window serializers
+│   │   │   ├── disaster_recovery.py     # DR plan serializers
+│   │   │   ├── schedule.py              # Schedule serializers
+│   │   │   ├── health.py                # Health check serializers
+│   │   │   └── audit.py                 # Audit log serializers
+│   │   │
+│   │   ├── views/
+│   │   │   ├── __init__.py
+│   │   │   ├── app_registry_views.py    # Register apps, list registered apps
+│   │   │   ├── backup_views.py          # Trigger backup, list backups, restore from backup
+│   │   │   ├── maintenance_views.py     # Start/stop maintenance, list windows
+│   │   │   ├── disaster_recovery_views.py # Execute DR plan, run drills
+│   │   │   ├── schedule_views.py        # Create/update/delete schedules
+│   │   │   ├── health_views.py          # View health status, trigger health check
+│   │   │   ├── quota_views.py           # View backup storage quota (Client Admin limited)
+│   │   │   └── audit_views.py           # View audit logs (Super Admin only)
+│   │   │
+│   │   ├── permissions/
+│   │   │   ├── __init__.py
+│   │   │   ├── super_admin_only.py      # Super Admin only permission
+│   │   │   ├── client_admin_only.py     # Client Admin only permission
+│   │   │   ├── config_access.py         # Combined: only Super or Client Admin
+│   │   │   └── dr_permissions.py        # DR actions require Super Admin
+│   │   │
+│   │   ├── throttles/
+│   │   │   ├── __init__.py
+│   │   │   ├── backup_throttles.py      # Rate limit backup requests
+│   │   │   └── dr_throttles.py          # Rate limit DR actions
+│   │   │
+│   │   └── filters/
+│   │       ├── __init__.py
+│   │       ├── backup_filter.py         # Filter by app, status, date range
+│   │       ├── maintenance_filter.py    # Filter by type, status, affected_app
+│   │       └── audit_filter.py          # Filter by user, action, date range
+│   │
+│   └── v2/                               # Reserved for future (ML predictions for maintenance)
+│       └── __init__.py
+│
+├── middleware/                           # Custom middleware
+│   ├── __init__.py
+│   ├── maintenance_blocker.py           # Blocks ALL requests during full maintenance (returns 503 with notice)
+│   ├── partial_maintenance_blocker.py   # Blocks only specific app endpoints during partial maintenance
+│   ├── config_access_middleware.py      # Ensures only Super/Client Admin access config endpoints
+│   └── maintenance_notice_injector.py   # Injects maintenance notice into response headers
+│
+├── consumers/                            # WebSocket consumers (for real-time maintenance status)
+│   ├── __init__.py
+│   ├── maintenance_status.py            # Real-time maintenance mode updates
+│   ├── backup_progress.py               # Live backup progress (for large backups)
+│   └── dr_progress.py                   # Live DR execution progress
+│
+├── management/                           # Django management commands
+│   ├── __init__.py
+│   └── commands/
+│       ├── __init__.py
+│       ├── register_all_apps.py         # Register all V1 apps at once
+│       ├── trigger_backup.py            # CLI: trigger backup for specific app
+│       ├── enable_maintenance.py        # CLI: enable maintenance mode
+│       ├── disable_maintenance.py       # CLI: disable maintenance mode
+│       ├── run_dr_drill.py              # CLI: run disaster recovery drill
+│       ├── cleanup_old_backups.py       # CLI: enforce retention policy
+│       ├── verify_backup_integrity.py   # CLI: verify all recent backups
+│       └── health_check_all.py          # CLI: run health check on all apps
+│
+├── migrations/                           # Database migrations
+│   ├── __init__.py
+│   └── ... (auto-generated)
+│
+├── fixtures/                             # Initial data
+│   ├── __init__.py
+│   ├── default_apps.yaml                 # Pre-configured V1 apps (kpi, accounts, etc.)
+│   ├── default_backup_policies.yaml      # Default backup strategies per app
+│   ├── default_maintenance_policies.yaml # Default maintenance windows
+│   └── default_roles.yaml                # Super Admin & Client Admin role references
+│
+├── templates/                            # Email templates (maintenance notices)
+│   └── config/
+│       └── email/
+│           ├── maintenance_notice.html   # User-facing maintenance notification
+│           ├── backup_complete.html      # Backup completion report to admins
+│           ├── backup_failed.html        # Backup failure alert
+│           ├── dr_drill_report.html      # DR drill results
+│           └── health_alert.html         # Health check failure alert
+│
+├── utils/                                # Utility functions
+│   ├── __init__.py
+│   ├── cron_helper.py                   # Cron expression helpers
+│   ├── retention_calculator.py          # Calculate which backups to delete
+│   ├── size_formatter.py                # Human-readable backup sizes
+│   ├── rto_tracker.py                   # Track RTO achievement
+│   └── dependency_sorter.py             # Topological sort of app dependencies
+│
+└── backups/                              # LOCAL backup staging (DO NOT commit to git)
+    ├── .gitkeep
+    └── staging/                          # Temporary before uploading to S3
+        └── .gitkeep

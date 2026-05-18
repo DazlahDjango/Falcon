@@ -15,6 +15,7 @@ import {
     webhookMiddlewareFn, 
     analyticsMiddlewareFn 
 } from './billing/middleware';
+import { backupMiddleware, maintenanceMiddleware, websocketMiddleware } from './config';
 const persistConfig = {
     key: 'root',
     storage,
@@ -86,9 +87,12 @@ export const store = configureStore({
             authMiddleware,
             loggerMiddleware,
             ...tenantMiddlewares,
-            billingMiddlewareFn,
-            webhookMiddlewareFn,
-            analyticsMiddlewareFn
+            backupMiddleware,
+            maintenanceMiddleware,
+            websocketMiddleware,
+            // billingMiddlewareFn,
+            // webhookMiddlewareFn,
+            // analyticsMiddlewareFn
         ),
     devTools: import.meta.env.MODE !== 'production'
 });

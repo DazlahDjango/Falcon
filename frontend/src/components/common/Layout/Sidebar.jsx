@@ -24,8 +24,9 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         tenant: true,
         connections: true,
         tenantSpecific: true,
-        billing: true,
-        adminBilling: true,
+        // billing: true,
+        // adminBilling: true,
+        config: true,
     });
     const { tenantId: paramTenantId } = useParams();
     const location = useLocation();
@@ -109,29 +110,42 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
             { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
         ];
-        // Customer billing items (for all authenticated users)
-        const billingItems = [
-            { path: BILLING_ROUTES.BILLING_PORTAL, name: 'Billing Overview', icon: FiHome, roles: ['all'] },
-            { path: BILLING_ROUTES.SUBSCRIPTIONS, name: 'Subscriptions', icon: FiRotateCcw, roles: ['all'] },
-            { path: BILLING_ROUTES.INVOICES, name: 'Invoices', icon: FiReceipt, roles: ['all'] },
-            { path: BILLING_ROUTES.TRANSACTIONS, name: 'Transactions', icon: MdHistory, roles: ['all'] },
-            { path: BILLING_ROUTES.PAYMENT_METHODS, name: 'Payment Methods', icon: BsCreditCard, roles: ['all'] },
-            { path: BILLING_ROUTES.PLANS, name: 'Plans & Pricing', icon: FiCurrency, roles: ['all'] },
-            { path: BILLING_ROUTES.BILLING_SETTINGS, name: 'Billing Settings', icon: FiSettings, roles: ['all'] },
+        // // Customer billing items (for all authenticated users)
+        // const billingItems = [
+        //     { path: BILLING_ROUTES.BILLING_PORTAL, name: 'Billing Overview', icon: FiHome, roles: ['all'] },
+        //     { path: BILLING_ROUTES.SUBSCRIPTIONS, name: 'Subscriptions', icon: FiRotateCcw, roles: ['all'] },
+        //     { path: BILLING_ROUTES.INVOICES, name: 'Invoices', icon: FiReceipt, roles: ['all'] },
+        //     { path: BILLING_ROUTES.TRANSACTIONS, name: 'Transactions', icon: MdHistory, roles: ['all'] },
+        //     { path: BILLING_ROUTES.PAYMENT_METHODS, name: 'Payment Methods', icon: BsCreditCard, roles: ['all'] },
+        //     { path: BILLING_ROUTES.PLANS, name: 'Plans & Pricing', icon: FiCurrency, roles: ['all'] },
+        //     { path: BILLING_ROUTES.BILLING_SETTINGS, name: 'Billing Settings', icon: FiSettings, roles: ['all'] },
+        // ];
+        // // Admin billing items (super_admin only)
+        // const billingAdminItems = [
+        //     { path: BILLING_ROUTES.ADMIN_BILLING, name: 'Billing Dashboard', icon: FiBarChart2, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.ADMIN_PLANS, name: 'Manage Plans', icon: FiGrid, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, name: 'All Subscriptions', icon: FiRotateCcw, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, name: 'All Transactions', icon: MdHistory, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.ADMIN_REFUNDS, name: 'Refunds', icon: FiRotateCcw, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhooks', icon: FiActivity, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.ADMIN_ANALYTICS, name: 'Billing Analytics', icon: FiTrendingUp, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.REPORTS_REVENUE, name: 'Revenue Report', icon: FiCurrency, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.REPORTS_SUBSCRIPTIONS, name: 'Subscription Report', icon: FiBarChart2, roles: ['super_admin'] },
+        //     { path: BILLING_ROUTES.REPORTS_TAX, name: 'Tax Report', icon: FiAlertCircle, roles: ['super_admin'] },
+        // ];
+        const configItems = [
+            { path: '/config/dashboard', name: 'Config Dashboard', icon: FiServer, roles: ['super_admin', 'client_admin'] },
+            { path: '/config/backups', name: 'Backups', icon: MdBackup, roles: ['super_admin', 'client_admin'] },
+            { path: '/config/maintenance', name: 'Maintenance', icon: FiHardDrive, roles: ['super_admin', 'client_admin'] },
+            { path: '/config/disaster-recovery', name: 'Disaster Recovery', icon: FiShield, roles: ['super_admin', 'client_admin'] },
+            { path: '/config/health', name: 'Health Check', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
+            { path: '/config/schedules', name: 'Schedules', icon: FiCalendar, roles: ['super_admin', 'client_admin'] },
+            { path: '/config/quotas', name: 'Quotas', icon: FiBarChart2, roles: ['super_admin', 'client_admin'] },
+            { path: '/config/encryption', name: 'Encryption', icon: FiLock, roles: ['super_admin'] },
+            { path: '/config/audit-logs', name: 'Audit Logs', icon: FiList, roles: ['super_admin'] },
+            { path: '/config/settings', name: 'Config Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
         ];
-        // Admin billing items (super_admin only)
-        const billingAdminItems = [
-            { path: BILLING_ROUTES.ADMIN_BILLING, name: 'Billing Dashboard', icon: FiBarChart2, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.ADMIN_PLANS, name: 'Manage Plans', icon: FiGrid, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, name: 'All Subscriptions', icon: FiRotateCcw, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, name: 'All Transactions', icon: MdHistory, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.ADMIN_REFUNDS, name: 'Refunds', icon: FiRotateCcw, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhooks', icon: FiActivity, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.ADMIN_ANALYTICS, name: 'Billing Analytics', icon: FiTrendingUp, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.REPORTS_REVENUE, name: 'Revenue Report', icon: FiCurrency, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.REPORTS_SUBSCRIPTIONS, name: 'Subscription Report', icon: FiBarChart2, roles: ['super_admin'] },
-            { path: BILLING_ROUTES.REPORTS_TAX, name: 'Tax Report', icon: FiAlertCircle, roles: ['super_admin'] },
-        ];
+
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
             { path: '/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
@@ -152,8 +166,9 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             tenantSpecific: tenantSpecificItems,
             connections: connectionItems,
             kpi: kpiItems,
-            billing: billingItems,
-            adminBilling: billingAdminItems,
+            // billing: billingItems,
+            // adminBilling: billingAdminItems,
+            config: configItems,
             admin: adminItems
         };
     };
@@ -238,9 +253,10 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
                 {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Hierarchy & Charts', navigation.hierarchy, 'hierarchy')}
-                {renderNavGroup('Billing', navigation.billing, 'billing')}
+                {/* {renderNavGroup('Billing', navigation.billing, 'billing')}
                 {user?.role === 'super_admin' && renderNavGroup('Billing Admin', navigation.billingAdmin, 'billingAdmin')}
-                
+                 */}
+                 {renderNavGroup('Configuration', navigation.config, 'config')}
                 {user?.role === 'super_admin' && renderNavGroup('Tenant Management', navigation.tenant, 'tenant')}
                 
                 {hasTenantContext && (user?.role === 'super_admin' || user?.role === 'client_admin') && 
@@ -253,15 +269,6 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 
                 {user?.role === 'super_admin' && renderNavGroup('Connection Management', navigation.connections, 'connections')}
                 {renderNavGroup('KPI', navigation.kpi, 'kpi')}
-                
-                {(user?.role === 'super_admin' || user?.role === 'client_admin') && 
-                    renderNavGroup('Billing', navigation.billing, 'billing')
-                }
-                
-                {user?.role === 'super_admin' && 
-                    renderNavGroup('Billing Admin', navigation.adminBilling, 'adminBilling')
-                }
-                
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>
             

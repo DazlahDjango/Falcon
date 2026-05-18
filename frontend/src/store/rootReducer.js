@@ -73,6 +73,10 @@ import {
 // ===================================
 import { billingReducer } from './billing';
 
+// Config
+// =====================
+import { configReducer } from './config';
+
 const rootReducer = combineReducers({
     // Accounts State
     auth: authReducer,
@@ -131,8 +135,10 @@ const rootReducer = combineReducers({
     kpiAnalytics: kpiAnalyticsReducer,
 
     // Billing State
-    billing: billingReducer,
+    // billing: billingReducer,
 
+    // Config
+    config: configReducer
 });
 
 export default rootReducer;

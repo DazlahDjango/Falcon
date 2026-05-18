@@ -183,4 +183,52 @@ beat_schedule = {
         'schedule': crontab(hour=5, minute=0),  # Daily at 5 AM
         'options': {'queue': 'billing'}
     },
+
+    # ===== Config ====
+    'health-check-all-apps': {
+        'task': 'apps.configs.tasks.health_check_all_apps_task',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'health_check', 'expires': 300},
+    },
+    'apply-retention-policies': {
+        'task': 'apps.configs.tasks.apply_retention_policies_task',
+        'schedule': crontab(hour=2, minute=0),
+        'options': {'queue': 'maintenance', 'expires': 3600},
+    },
+    'verify-backups': {
+        'task': 'apps.configs.tasks.verify_backups_task',
+        'schedule': crontab(hour=3, minute=30),
+        'options': {'queue': 'backup', 'expires': 7200},
+    },
+    'risk-based-maintenance': {
+        'task': 'apps.configs.tasks.risk_based_maintenance_task',
+        'schedule': crontab(hour='*/6', minute=15),
+        'options': {'queue': 'maintenance', 'expires': 1800},
+    },
+    'conditional-maintenance-trigger': {
+        'task': 'apps.configs.tasks.conditional_maintenance_trigger_task',
+        'schedule': crontab(minute='*/10'),
+        'options': {'queue': 'maintenance', 'expires': 600},
+    },
+    'execute-due-schedules': {
+        'task': 'apps.configs.tasks.execute_due_schedules_task',
+        'schedule': crontab(minute='*'),
+        'options': {'queue': 'scheduler', 'expires': 60},
+    },
+    'cleanup-old-artifacts': {
+        'task': 'apps.configs.tasks.cleanup_old_artifacts_task',
+        'schedule': crontab(hour=1, minute=0, day_of_month='1'),
+        'options': {'queue': 'maintenance', 'expires': 86400},
+    },
+    'sync-dr-metrics': {
+        'task': 'apps.configs.tasks.sync_dr_metrics_task',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'analytics', 'expires': 3600},
+    },
+    'weekly-dr-drill': {
+        'task': 'apps.configs.tasks.disaster_recovery_drill_task',
+        'schedule': crontab(day_of_week='saturday', hour=2, minute=0),
+        'options': {'queue': 'dr', 'expires': 14400},
+        'kwargs': {'plan_id': None},
+    },
 }

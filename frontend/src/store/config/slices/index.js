@@ -1,0 +1,10 @@
+export { default as configSettingsReducer } from './configSettingsSlice';
+export { default as backupReducer } from './backupSlice';
+export { default as maintenanceReducer } from './maintenanceSlice';
+export { default as drReducer } from './drSlice';
+export { default as healthReducer } from './healthSlice';
+export { default as scheduleReducer } from './scheduleSlice';
+export { default as quotaReducer } from './quotaSlice';
+export { default as encryptionReducer } from './encryptionSlice';
+export { default as auditReducer } from './auditSlice';
+export { default as configDashboardReducer } from './dashboardSlice';

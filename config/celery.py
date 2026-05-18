@@ -27,18 +27,18 @@ app.conf.task_routes = task_routes
 
 # Base task configuration
 app.conf.update(
-    # Time limits
     task_time_limit=30 * 60,
     task_soft_time_limit=25 * 60,
-    # Result expiration
     result_expires=24 * 60 * 60,
-    # Task tracking
     task_track_started=True,
     task_send_sent_event=True,
-    # Worker configuration
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
     worker_concurrency=4,
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
+    task_default_rate_limit='100/m',
+    broker_connection_retry_on_startup=True,
 )
 
 @app.task(bind=True, ignore_result=True)

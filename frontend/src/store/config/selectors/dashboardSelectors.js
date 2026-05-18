@@ -1,0 +1,17 @@
+export const selectConfigDashboardOverview = (state) => state.configDashboard?.overview || {};
+export const selectConfigBackupDashboard = (state) => state.configDashboard?.backupDashboard || {};
+export const selectConfigMaintenanceDashboard = (state) => state.configDashboard?.maintenanceDashboard || {};
+export const selectConfigHealthDashboard = (state) => state.configDashboard?.healthDashboard || {};
+export const selectConfigDRDashboard = (state) => state.configDashboard?.drDashboard || {};
+export const selectConfigSchedulingDashboard = (state) => state.configDashboard?.schedulingDashboard || {};
+export const selectConfigSecurityDashboard = (state) => state.configDashboard?.securityDashboard || {};
+export const selectConfigRecentActivity = (state) => state.configDashboard?.recentActivity || {};
+export const selectConfigSystemStatus = (state) => state.configDashboard?.systemStatus || {};
+export const selectConfigDashboardLoading = (state) => state.configDashboard?.loading || false;
+export const selectConfigDashboardError = (state) => state.configDashboard?.error;
+export const selectConfigDashboardLastUpdated = (state) => state.configDashboard?.lastUpdated;
+export const selectHealthyAppCountFromDashboard = (state) => selectConfigDashboardOverview(state).apps?.healthy || 0;
+export const selectTotalBackupStorageFromDashboard = (state) => selectConfigDashboardOverview(state).backups?.totalStorageGB || 0;
+export const selectActiveMaintenanceCountFromDashboard = (state) => selectConfigDashboardOverview(state).maintenance?.active || 0;
+export const selectActiveDRPlansCount = (state) => selectConfigDashboardOverview(state).disasterRecovery?.activePlans || 0;
+export const selectQuotaUsagePercentFromDashboard = (state) => selectConfigDashboardOverview(state).quota?.usagePercent || 0;
