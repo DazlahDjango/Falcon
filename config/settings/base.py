@@ -213,7 +213,7 @@ MIDDLEWARE = [
     'apps.kpi.middleware.AuditMiddleware',
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
-    # Reviews app middleware (order matters!)
+    # # Reviews app middleware (order matters!)
     # 'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
     # 'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
     # 'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
@@ -221,9 +221,6 @@ MIDDLEWARE = [
     # 'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
     # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
     # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
-    
-
-
     # Billing
     'apps.billing.middleware.SubscriptionGuardMiddleware',
     'apps.billing.middleware.BillingAuditMiddleware',
@@ -267,10 +264,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME', default='falcon_pms'),
-        'USER': env('DB_USER', default='postgres'),
-        'PASSWORD': env('DB_PASSWORD', default='Ogutu.1@15'),
+        'USER': env('DB_USER', default='Dazlah'),
+        'PASSWORD': env('DB_PASSWORD', default='Dazl2006'),
         'HOST': env('DB_HOST', default='localhost'),
-        'PORT': env('DB_PORT', default='5433'),
+        'PORT': env('DB_PORT', default='543s'),
         'OPTIONS': {
             'options': '-c search_path=public',  # For RLS
         },
@@ -279,6 +276,7 @@ DATABASES = {
         'CONN_HEALTH_CHECKS': True,
     }
 }
+
 
 DATABASE_ROUTERS = [
     'apps.tenant.services.isolation.db_router.TenantDatabaseRouter',

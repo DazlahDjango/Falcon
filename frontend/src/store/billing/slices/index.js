@@ -27,14 +27,14 @@ const billingReducer = combineReducers({
 export default billingReducer;
 
 // Export individual slices for selective imports
-export { default as planSlice } from './planSlice';
-export { default as subscriptionSlice } from './subscriptionSlice';
-export { default as invoiceSlice } from './invoiceSlice';
-export { default as transactionSlice } from './transactionSlice';
-export { default as paymentMethodSlice } from './paymentMethodSlice';
-export { default as checkoutSlice } from './checkoutSlice';
-export { default as analyticsSlice } from './analyticsSlice';
-export { default as adminBillingSlice } from './adminBillingSlice';
+// export { default as planSlice } from './planSlice';
+// export { default as subscriptionSlice } from './subscriptionSlice';
+// export { default as invoiceSlice } from './invoiceSlice';
+// export { default as transactionSlice } from './transactionSlice';
+// export { default as paymentMethodSlice } from './paymentMethodSlice';
+// export { default as checkoutSlice } from './checkoutSlice';
+// export { default as analyticsSlice } from './analyticsSlice';
+// export { default as adminBillingSlice } from './adminBillingSlice';
 
 export * from './subscriptionSlice';
 export * from './adminBillingSlice';
