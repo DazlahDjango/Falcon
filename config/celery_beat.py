@@ -129,62 +129,53 @@ beat_schedule = {
     },
     
     # ======== Billing =======
-    # Daily tasks
     'process-due-renewals': {
         'task': 'billing.tasks.process_due_renewals',
-        'schedule': crontab(hour=2, minute=0),  # Daily at 2 AM
+        'schedule': crontab(hour=2, minute=0),
         'options': {'queue': 'billing'}
     },
     'process-expired-trials': {
         'task': 'billing.tasks.process_expired_trials',
-        'schedule': crontab(hour=3, minute=0),  # Daily at 3 AM
+        'schedule': crontab(hour=3, minute=0),
         'options': {'queue': 'billing'}
     },
     'send-renewal-reminders': {
         'task': 'billing.tasks.send_renewal_reminders',
-        'schedule': crontab(hour=9, minute=0),  # Daily at 9 AM
+        'schedule': crontab(hour=9, minute=0),
         'options': {'queue': 'notifications'}
     },
     'apply-pending-plan-changes': {
         'task': 'billing.tasks.apply_pending_plan_changes',
-        'schedule': crontab(hour=1, minute=0),  # Daily at 1 AM
+        'schedule': crontab(hour=1, minute=0),
         'options': {'queue': 'billing'}
     },
-    
-    # Invoice tasks
     'send-invoice-emails': {
         'task': 'billing.tasks.send_invoice_emails',
-        'schedule': crontab(hour=10, minute=0),  # Daily at 10 AM
+        'schedule': crontab(hour=10, minute=0),
         'options': {'queue': 'notifications'}
     },
-    
-    # Webhook tasks
     'retry-failed-webhooks': {
         'task': 'billing.tasks.retry_failed_webhooks',
-        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'webhooks'}
     },
-    
-    # Cleanup tasks
     'cleanup-expired-webhooks': {
         'task': 'billing.tasks.cleanup_expired_webhooks',
-        'schedule': crontab(day_of_month=1, hour=0, minute=0),  # Monthly on 1st
+        'schedule': crontab(day_of_month=1, hour=0, minute=0),
         'options': {'queue': 'cleanup'}
     },
     'cleanup-expired-sessions': {
         'task': 'billing.tasks.cleanup_expired_sessions',
-        'schedule': crontab(hour=4, minute=0),  # Daily at 4 AM
+        'schedule': crontab(hour=4, minute=0),
         'options': {'queue': 'cleanup'}
     },
-    
-    # Sync tasks
     'sync-paystack-transactions': {
         'task': 'billing.tasks.sync_paystack_transactions',
-        'schedule': crontab(hour=5, minute=0),  # Daily at 5 AM
+        'schedule': crontab(hour=5, minute=0),
         'options': {'queue': 'billing'}
     },
 
-    # ===== Config ====
+    # ===== Config =====
     'health-check-all-apps': {
         'task': 'apps.configs.tasks.health_check_all_apps_task',
         'schedule': crontab(minute='*/5'),
@@ -230,5 +221,212 @@ beat_schedule = {
         'schedule': crontab(day_of_week='saturday', hour=2, minute=0),
         'options': {'queue': 'dr', 'expires': 14400},
         'kwargs': {'plan_id': None},
+    },
+
+         # ========== Reviews Tasks ==========
+    
+    # ----- Cycle Management -----
+    'reviews-check-cycle-deadlines': {
+        'task': 'apps.reviews.tasks.check_cycle_deadlines',
+        'schedule': crontab(hour=9, minute=0),
+        'options': {'expires': 3600},
+    },
+    'reviews-close-expired-cycles': {
+        'task': 'apps.reviews.tasks.close_expired_cycles',
+        'schedule': crontab(hour=1, minute=0),
+        'options': {'expires': 7200},
+    },
+    'reviews-batch-create-self-assessments': {
+        'task': 'apps.reviews.tasks.batch_create_self_assessments',
+        'schedule': crontab(hour=0, minute=30),
+        'options': {'expires': 3600},
+    },
+    'reviews-batch-generate-final-ratings': {
+        'task': 'apps.reviews.tasks.batch_generate_final_ratings',
+        'schedule': crontab(hour=3, minute=0),
+        'options': {'expires': 10800},
+    },
+    
+    # ----- PIP (Performance Improvement Plans) -----
+    'reviews-check-pip-deadlines': {
+        'task': 'apps.reviews.tasks.check_pip_deadlines',
+        'schedule': crontab(hour=10, minute=0),
+        'options': {'expires': 3600},
+    },
+    'reviews-check-pip-action-deadlines': {
+        'task': 'apps.reviews.tasks.check_pip_action_deadlines',
+        'schedule': crontab(hour=10, minute=30),
+        'options': {'expires': 3600},
+    },
+    'reviews-auto-escalate-pips': {
+        'task': 'apps.reviews.tasks.auto_escalate_pip',
+        'schedule': crontab(hour=0, minute=15),
+        'options': {'expires': 7200},
+    },
+    'reviews-detect-stalled-pips': {
+        'task': 'apps.reviews.tasks.detect_stalled_pips',
+        'schedule': crontab(day_of_week=1, hour=8, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'stalled_days': 14},
+    },
+    
+    # ----- Feedback Management -----
+    'reviews-send-feedback-reminders': {
+        'task': 'apps.reviews.tasks.send_feedback_reminders',
+        'schedule': crontab(hour=11, minute=0),
+        'options': {'expires': 3600},
+    },
+    'reviews-batch-generate-feedback-summaries': {
+        'task': 'apps.reviews.tasks.batch_generate_feedback_summaries',
+        'schedule': crontab(hour=2, minute=0),
+        'options': {'expires': 7200},
+    },
+    'reviews-escalate-unanswered-feedback': {
+        'task': 'apps.reviews.tasks.escalate_unanswered_feedback',
+        'schedule': crontab(day_of_week=3, hour=9, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'overdue_days': 7},
+    },
+    
+    # ----- Calibration Sessions -----
+    'reviews-send-calibration-reminders': {
+        'task': 'apps.reviews.tasks.send_calibration_reminders',
+        'schedule': crontab(hour=9, minute=30),
+        'options': {'expires': 3600},
+    },
+    'reviews-calibration-followup': {
+        'task': 'apps.reviews.tasks.calibration_followup',
+        'schedule': crontab(hour=14, minute=0, day_of_week=4),
+        'options': {'expires': 86400},
+        'kwargs': {'days_since_session': 3},
+    },
+    
+    # ----- Review Reminders (Recurring) -----
+    'reviews-self-assessment-reminder': {
+        'task': 'apps.reviews.tasks.send_self_assessment_reminders',
+        'schedule': crontab(minute=0, hour='*/6'),
+        'options': {'expires': 3600},
+    },
+    'reviews-supervisor-review-reminder': {
+        'task': 'apps.reviews.tasks.send_supervisor_review_reminders',
+        'schedule': crontab(minute=0, hour='*/4'),
+        'options': {'expires': 3600},
+    },
+    
+    # ----- Cleanup & Maintenance -----
+    'reviews-cleanup-old-notifications': {
+        'task': 'apps.reviews.tasks.cleanup_old_notifications',
+        'schedule': crontab(day_of_week=0, hour=2, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'retention_days': 90},
+    },
+    'reviews-archive-completed-cycles': {
+        'task': 'apps.reviews.tasks.archive_completed_cycles',
+        'schedule': crontab(day_of_month=1, hour=3, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'archive_days': 365},
+    },
+    'reviews-cleanup-orphaned-ratings': {
+        'task': 'apps.reviews.tasks.cleanup_orphaned_ratings',
+        'schedule': crontab(hour=4, minute=30, day_of_week=0),
+        'options': {'expires': 86400},
+    },
+    'reviews-validate-data-integrity': {
+        'task': 'apps.reviews.tasks.validate_data_integrity',
+        'schedule': crontab(day_of_month=15, hour=5, minute=0),
+        'options': {'expires': 86400},
+    },
+    
+    # ----- Reporting -----
+    'reviews-generate-monthly-report': {
+        'task': 'apps.reviews.tasks.generate_monthly_report',
+        'schedule': crontab(day_of_month=1, hour=6, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'report_type': 'monthly'},
+    },
+    # Quarterly reports - each quarter separately
+    'reviews-generate-quarterly-report-q1': {
+        'task': 'apps.reviews.tasks.generate_quarterly_report',
+        'schedule': crontab(day_of_month=1, month_of_year=1, hour=7, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'report_type': 'quarterly', 'quarter': 1},
+    },
+    'reviews-generate-quarterly-report-q2': {
+        'task': 'apps.reviews.tasks.generate_quarterly_report',
+        'schedule': crontab(day_of_month=1, month_of_year=4, hour=7, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'report_type': 'quarterly', 'quarter': 2},
+    },
+    'reviews-generate-quarterly-report-q3': {
+        'task': 'apps.reviews.tasks.generate_quarterly_report',
+        'schedule': crontab(day_of_month=1, month_of_year=7, hour=7, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'report_type': 'quarterly', 'quarter': 3},
+    },
+    'reviews-generate-quarterly-report-q4': {
+        'task': 'apps.reviews.tasks.generate_quarterly_report',
+        'schedule': crontab(day_of_month=1, month_of_year=10, hour=7, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'report_type': 'quarterly', 'quarter': 4},
+    },
+    
+    # ----- Analytics & Insights -----
+    'reviews-calculate-rating-distribution': {
+        'task': 'apps.reviews.tasks.calculate_rating_distribution',
+        'schedule': crontab(hour=1, minute=30, day_of_week=0),
+        'options': {'expires': 7200},
+    },
+    'reviews-detect-rating-inflation': {
+        'task': 'apps.reviews.tasks.detect_rating_inflation',
+        'schedule': crontab(day_of_month=1, hour=4, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'threshold_percentage': 15},
+    },
+    'reviews-calculate-manager-consistency': {
+        'task': 'apps.reviews.tasks.calculate_manager_consistency',
+        'schedule': crontab(day_of_week=1, hour=5, minute=0),
+        'options': {'expires': 86400},
+    },
+    
+    # ----- Integration Syncs -----
+    'reviews-sync-kpi-data': {
+        'task': 'apps.reviews.tasks.sync_kpi_data',
+        'schedule': crontab(minute=0, hour='*/2'),
+        'options': {'expires': 3600},
+    },
+    'reviews-sync-mission-data': {
+        'task': 'apps.reviews.tasks.sync_mission_data',
+        'schedule': crontab(hour=1, minute=0),
+        'options': {'expires': 7200},
+    },
+    'reviews-sync-task-data': {
+        'task': 'apps.reviews.tasks.sync_task_data',
+        'schedule': crontab(hour=1, minute=30),
+        'options': {'expires': 7200},
+    },
+    
+    # ----- Cache Management -----
+    'reviews-warm-dashboard-cache': {
+        'task': 'apps.reviews.tasks.warm_dashboard_cache',
+        'schedule': crontab(hour=5, minute=0),
+        'options': {'expires': 3600},
+    },
+    'reviews-clear-stale-cache': {
+        'task': 'apps.reviews.tasks.clear_stale_cache',
+        'schedule': crontab(hour=4, minute=0),
+        'options': {'expires': 3600},
+    },
+    
+    # ----- Health Checks -----
+    'reviews-health-check': {
+        'task': 'apps.reviews.tasks.reviews_health_check',
+        'schedule': crontab(minute='*/30'),
+        'options': {'expires': 1700},
+    },
+    'reviews-check-missing-reviews': {
+        'task': 'apps.reviews.tasks.check_missing_reviews',
+        'schedule': crontab(day_of_week=1, hour=8, minute=0),
+        'options': {'expires': 86400},
+        'kwargs': {'threshold_days': 7},
     },
 }
