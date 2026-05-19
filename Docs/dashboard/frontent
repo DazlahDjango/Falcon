@@ -1,0 +1,221 @@
+frontend/src/
+├── components/
+│   └── dashboard/
+│       ├── index.js
+│       │
+│       ├── common/
+│       │   ├── DashboardCard.jsx
+│       │   ├── KPICard.jsx
+│       │   ├── TrafficLight.jsx
+│       │   ├── StatusBadge.jsx
+│       │   ├── ScoreGauge.jsx
+│       │   ├── TrendIndicator.jsx
+│       │   ├── DateRangePicker.jsx
+│       │   ├── FilterBar.jsx
+│       │   ├── ExportButton.jsx
+│       │   ├── RefreshButton.jsx
+│       │   ├── LoadingSkeleton.jsx
+│       │   ├── EmptyState.jsx
+│       │   └── Icons.jsx
+│       │
+│       ├── layouts/
+│       │   ├── DashboardLayout.jsx
+│       │   ├── DashboardGrid.jsx
+│       │   └── DashboardWidget.jsx
+│       │
+│       ├── sidebars/
+│       │   ├── index.js
+│       │   ├── BaseSidebar.jsx
+│       │   ├── ExecutiveSidebar.jsx
+│       │   ├── ClientAdminSidebar.jsx
+│       │   ├── SuperAdminSidebar.jsx
+│       │   └── SidebarNavItem.jsx
+│       │
+│       ├── widgets/
+│       │   ├── index.js
+│       │   ├── KPITableWidget.jsx
+│       │   ├── TrendChartWidget.jsx
+│       │   ├── DepartmentHeatmapWidget.jsx
+│       │   ├── ComplianceWidget.jsx
+│       │   ├── RedAlertWidget.jsx
+│       │   ├── PendingApprovalsWidget.jsx
+│       │   ├── MissingDataWidget.jsx
+│       │   ├── TenantSummaryWidget.jsx
+│       │   ├── SubscriptionStatusWidget.jsx
+│       │   ├── OrgTreeWidget.jsx
+│       │   ├── ExecutiveScorecardWidget.jsx
+│       │   ├── TeamPerformanceWidget.jsx
+│       │   └── WidgetFactory.jsx
+│       │
+│       ├── hierarchy/
+│       │   ├── OrgTreeView.jsx
+│       │   ├── TeamMemberCard.jsx
+│       │   ├── TeamListView.jsx
+│       │   ├── ReportingChainView.jsx
+│       │   ├── DrillDownModal.jsx
+│       │   └── TeamAggregateCard.jsx
+│       │
+│       ├── comparisons/
+│       │   ├── ComparisonSelector.jsx
+│       │   ├── PeriodComparisonChart.jsx
+│       │   ├── ComparisonResultsTable.jsx
+│       │   └── SaveComparisonModal.jsx
+│       │
+│       ├── alerts/
+│       │   ├── AlertList.jsx
+│       │   ├── AlertCard.jsx
+│       │   ├── AlertConfigModal.jsx
+│       │   └── NotificationBell.jsx
+│       │
+│       ├── exports/
+│       │   ├── ExportScheduleList.jsx
+│       │   ├── ExportConfigModal.jsx
+│       │   └── ExportHistory.jsx
+│       │
+│       └── config/
+│           ├── DashboardConfigModal.jsx
+│           ├── WidgetConfigPanel.jsx
+│           ├── LayoutEditor.jsx
+│           └── FavoriteKPIManager.jsx
+│
+├── pages/
+│   └── dashboard/
+│       ├── index.js
+│       │
+│       ├── ExecutiveDashboard/
+│       │   ├── ExecutiveDashboard.jsx
+│       │   ├── ExecutiveDashboardHeader.jsx
+│       │   ├── ExecutiveOverview.jsx
+│       │   ├── ExecutiveDepartments.jsx
+│       │   ├── ExecutiveTrends.jsx
+│       │   ├── ExecutiveAlerts.jsx
+│       │   └── ExecutiveReports.jsx
+│       │
+│       ├── ClientAdminDashboard/
+│       │   ├── ClientAdminDashboard.jsx
+│       │   ├── ClientAdminHeader.jsx
+│       │   ├── TenantOverview.jsx
+│       │   ├── CompliancePanel.jsx
+│       │   ├── PendingApprovalsPanel.jsx
+│       │   ├── MissingDataPanel.jsx
+│       │   ├── KpiBreakdownPanel.jsx
+│       │   ├── UserActivityPanel.jsx
+│       │   └── SettingsPanel.jsx
+│       │
+│       └── SuperAdminDashboard/
+│           ├── SuperAdminDashboard.jsx
+│           ├── SuperAdminHeader.jsx
+│           ├── PlatformOverview.jsx
+│           ├── TenantsTable.jsx
+│           ├── TenantDetailModal.jsx
+│           ├── SystemHealthPanel.jsx
+│           ├── SubscriptionAlerts.jsx
+│           ├── PlatformMetrics.jsx
+│           └── BillingOverview.jsx
+│
+├── services/
+│   └── dashboard/
+│       ├── index.js
+│       ├── dashboardApi.js
+│       ├── executiveApi.js
+│       ├── clientAdminApi.js
+│       ├── superAdminApi.js
+│       ├── hierarchyApi.js
+│       ├── widgetApi.js
+│       ├── alertApi.js
+│       ├── exportApi.js
+│       ├── comparisonApi.js
+│       └── websocket.js
+│
+├── store/
+│   └── dashboard/
+│       ├── index.js
+│       ├── dashboardSlice.js
+│       ├── executiveSlice.js
+│       ├── clientAdminSlice.js
+│       ├── superAdminSlice.js
+│       ├── hierarchySlice.js
+│       ├── widgetSlice.js
+│       ├── alertSlice.js
+│       ├── exportSlice.js
+│       ├── comparisonSlice.js
+│       ├── selectors/
+│       │   ├── dashboardSelectors.js
+│       │   ├── executiveSelectors.js
+│       │   ├── clientAdminSelectors.js
+│       │   ├── superAdminSelectors.js
+│       │   └── hierarchySelectors.js
+│       └── middleware/
+│           ├── dashboardWebsocket.js
+│           ├── dashboardCache.js
+│           └── dashboardThrottle.js
+│
+├── hooks/
+│   └── dashboard/
+│       ├── index.js
+│       ├── useDashboard.js
+│       ├── useExecutiveDashboard.js
+│       ├── useClientAdminDashboard.js
+│       ├── useSuperAdminDashboard.js
+│       ├── useHierarchy.js
+│       ├── useDrillDown.js
+│       ├── useDashboardWebSocket.js
+│       ├── useDashboardCache.js
+│       ├── useWidgets.js
+│       ├── useAlerts.js
+│       ├── useExports.js
+│       ├── useComparisons.js
+│       └── useDashboardRefresh.js
+│
+├── contexts/
+│   └── dashboard/
+│       ├── index.js
+│       ├── DashboardContext.jsx
+│       ├── ExecutiveContext.jsx
+│       ├── ClientAdminContext.jsx
+│       ├── SuperAdminContext.jsx
+│       ├── HierarchyContext.jsx
+│       └── DashboardFilterContext.jsx
+│
+├── routes/
+│   └── dashboard.routes.jsx
+│
+├── types/
+│   └── dashboard/
+│       ├── index.js
+│       ├── dashboard.types.js
+│       ├── executive.types.js
+│       ├── clientAdmin.types.js
+│       ├── superAdmin.types.js
+│       ├── hierarchy.types.js
+│       ├── widget.types.js
+│       ├── alert.types.js
+│       └── export.types.js
+│
+├── utils/
+│   └── dashboard/
+│       ├── index.js
+│       ├── chartHelpers.js
+│       ├── colorHelpers.js
+│       ├── dateHelpers.js
+│       ├── formatHelpers.js
+│       ├── scoreHelpers.js
+│       ├── trafficLightHelpers.js
+│       ├── validationHelpers.js
+│       └── exportHelpers.js
+│
+├── config/
+│   └── constants/
+│       ├── dashboardConstants.js
+│       ├── dashboardApiConstants.js
+│       └── dashboardRouteConstants.js
+│
+└── assets/
+    └── dashboard/
+        ├── images/
+        ├── icons/
+        └── styles/
+            ├── dashboard.css
+            ├── executive.css
+            ├── client-admin.css
+            └── super-admin.css
