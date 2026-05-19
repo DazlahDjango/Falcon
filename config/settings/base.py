@@ -151,14 +151,10 @@ PROJECT_APPS = [
     'apps.kpi.apps.KpiConfig',
     'apps.billing.apps.BillingConfig',
     'apps.configs.apps.ConfigsConfig',
-    'apps.core',
-    'apps.dashboard',
-    'apps.notification',
-    'apps.reports',
-    'apps.workflowsapi', 
-    'apps.tenant.api',  # For API endpoints
     'apps.reviews.apps.ReviewsConfig',
-    
+    'apps.dashboard.apps.DashboardConfig',
+    'apps.core',
+    'apps.tenant.api',  # For API endpoints
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -214,13 +210,13 @@ MIDDLEWARE = [
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
     # # Reviews app middleware (order matters!)
-     'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
-     'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
-     'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
-     'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
-     'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
-     'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
-     'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
+    'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
+    'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
+    'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
+    'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
+    'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
+    'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
+    'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     # Billing
     'apps.billing.middleware.SubscriptionGuardMiddleware',
     'apps.billing.middleware.BillingAuditMiddleware',
