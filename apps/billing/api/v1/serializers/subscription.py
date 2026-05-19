@@ -1,158 +1,183 @@
 from rest_framework import serializers
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from apps.billing.models import Subscription, SubscriptionHistory
-from apps.billing.constants import SubscriptionStatus, BillingInterval
+from ....models import Subscription, SubscriptionPlan
+from ....constants import SubscriptionStatus, BillingInterval
 from .plan import PlanSerializer
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    plan_details = PlanSerializer(source='plan', read_only=True)
-    tenant_name = serializers.CharField(source='tenant.name', read_only=True)
-    is_active = serializers.BooleanField(read_only=True)
-    days_until_expiry = serializers.IntegerField(read_only=True)
-    formatted_current_period_end = serializers.SerializerMethodField()
+    plan = PlanSerializer(read_only=True)
+    plan_id = serializers.UUIDField(write_only=True, required=False)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    is_active_status = serializers.SerializerMethodField()
+    amount_display = serializers.SerializerMethodField()
+    
     class Meta:
         model = Subscription
         fields = [
-            'id', 'tenant', 'tenant_name', 'plan', 'plan_details',
-            'status', 'status_display', 'billing_interval', 'is_active',
-            'trial_start', 'trial_end', 'current_period_start', 'current_period_end',
-            'cancel_at_period_end', 'canceled_at', 'ended_at', 'auto_renew',
-            'days_until_expiry', 'formatted_current_period_end',
-            'created_at', 'updated_at'
+            'id', 'subscription_code', 'tenant_id', 'plan', 'plan_id',
+            'status', 'status_display', 'is_active_status',
+            'start_date', 'trial_end_date', 'current_period_start',
+            'current_period_end', 'billing_interval', 'amount', 'amount_display',
+            'currency', 'auto_renew', 'cancel_at_period_end',
+            'cancelled_at', 'ended_at', 'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'tenant', 'stripe_customer_id', 'stripe_subscription_id',
-            'features_snapshot', 'created_at', 'updated_at'
-        ]    
-    def get_formatted_current_period_end(self, obj):
-        if obj.current_period_end:
-            return obj.current_period_end.strftime('%Y-%m-%d')
-        return None
+            'id', 'subscription_code', 'tenant_id', 'created_at', 'updated_at',
+            'cancelled_at', 'ended_at', 'start_date'
+        ]
+    
+    def get_is_active_status(self, obj):
+        return {
+            'is_active': obj.is_active,
+            'is_on_trial': obj.is_on_trial,
+            'trial_days_remaining': obj.trial_days_remaining,
+            'days_until_expiry': obj.days_until_expiry,
+            'is_expiring_soon': obj.is_expiring_soon
+        }
+    
+    def get_amount_display(self, obj):
+        return f"{obj.currency} {obj.amount / 100:.2f}"
+
+
+class SubscriptionListSerializer(SubscriptionSerializer):
+    """Lightweight serializer for list views."""
+    
+    plan_name = serializers.CharField(source='plan.name', read_only=True)
+    plan_type = serializers.CharField(source='plan.plan_type', read_only=True)
+    
+    class Meta(SubscriptionSerializer.Meta):
+        fields = [
+            'id', 'subscription_code', 'plan_name', 'plan_type',
+            'status', 'is_active_status', 'current_period_end',
+            'amount', 'currency', 'amount_display', 'auto_renew'
+        ]
+
 
 class SubscriptionDetailSerializer(SubscriptionSerializer):
-    features = serializers.DictField(source='features_snapshot', read_only=True)
-    quota_limits = serializers.SerializerMethodField()
-    history_count = serializers.SerializerMethodField()
-    health_status = serializers.SerializerMethodField()
+    """Full detail serializer with nested data."""
+    
+    plan_detail = PlanSerializer(source='plan', read_only=True)
+    recent_transactions = serializers.SerializerMethodField()
+    upcoming_invoice = serializers.SerializerMethodField()
+    
     class Meta(SubscriptionSerializer.Meta):
         fields = SubscriptionSerializer.Meta.fields + [
-            'features', 'quota_limits', 'history_count', 'health_status'
+            'plan_detail', 'recent_transactions', 'upcoming_invoice',
+            'paystack_subscription_code', 'paystack_authorization_code'
         ]
-    def get_quota_limits(self, obj):
-        if hasattr(obj, 'quota_limits'):
+    
+    def get_recent_transactions(self, obj):
+        """Get recent transactions for this subscription."""
+        from ....models import Transaction
+        transactions = Transaction.objects.filter(subscription=obj).order_by('-created_at')[:5]
+        from .transaction import TransactionListSerializer
+        return TransactionListSerializer(transactions, many=True).data
+    
+    def get_upcoming_invoice(self, obj):
+        """Get upcoming invoice amount."""
+        if obj.is_active and obj.current_period_end > timezone.now():
             return {
-                'max_users': obj.quota_limits.max_users,
-                'max_kpis': obj.quota_limits.max_kpis,
-                'max_storage_mb': obj.quota_limits.max_storage_mb,
-                'max_api_calls_per_day': obj.quota_limits.max_api_calls_per_day,
+                'amount': obj.amount,
+                'amount_display': f"{obj.currency} {obj.amount / 100:.2f}",
+                'due_date': obj.current_period_end,
+                'days_until_due': obj.days_until_expiry
             }
         return None
-    def get_history_count(self, obj):
-        return obj.history.count()    
-    def get_health_status(self, obj):
-        from billing.services.subscription_service import SubscriptionService
-        service = SubscriptionService()
-        return service._check_subscription_health(obj)
+
 
 class SubscriptionCreateSerializer(serializers.Serializer):
+    """Serializer for creating a new subscription."""
+    
     plan_id = serializers.UUIDField(required=True, help_text="ID of the plan to subscribe to")
     billing_interval = serializers.ChoiceField(
-        choices=BillingInterval.CHOICES,
-        default=BillingInterval.MONTHLY
+        choices=BillingInterval.choices,
+        default=BillingInterval.MONTHLY,
+        required=False
     )
-    trial_days = serializers.IntegerField(
-        required=False,
-        min_value=0,
-        max_value=365,
-        help_text="Custom trial days (overrides plan default)"
-    )
-    payment_method_id = serializers.CharField(
-        required=False,
-        help_text="Stripe payment method ID"
-    )
+    auto_renew = serializers.BooleanField(default=True, required=False)
+    trial_days = serializers.IntegerField(default=14, min_value=0, max_value=30, required=False)
+    payment_method_id = serializers.UUIDField(required=False, help_text="Saved payment method ID")
+    
     def validate_plan_id(self, value):
-        from billing.models import Plan
+        """Validate plan exists and is active."""
         try:
-            plan = Plan.objects.get(id=value, is_active=True, is_deleted=False)
-            return plan
-        except Plan.DoesNotExist:
-            raise serializers.ValidationError("Plan not found or inactive")    
+            plan = SubscriptionPlan.objects.get_by_id(value)
+            if not plan.is_active:
+                raise serializers.ValidationError("Plan is not active")
+            return value
+        except SubscriptionPlan.DoesNotExist:
+            raise serializers.ValidationError("Plan not found")
+    
     def validate(self, data):
-        tenant = self.context.get('tenant')
-        if tenant and hasattr(tenant, 'subscription'):
-            existing = tenant.subscription
-            if existing.is_active:
+        """Check if tenant already has active subscription."""
+        tenant_id = self.context.get('tenant_id')
+        if tenant_id:
+            existing = Subscription.objects.get_current_for_tenant(tenant_id)
+            if existing and existing.is_active:
                 raise serializers.ValidationError(
-                    "Tenant already has an active subscription. Cancel existing subscription first."
+                    "Tenant already has an active subscription. Please cancel it first."
                 )
         return data
 
-class SubscriptionUpdateSerializer(serializers.Serializer):
-    plan_id = serializers.UUIDField(required=False, help_text="New plan ID")
-    billing_interval = serializers.ChoiceField(
-        choices=BillingInterval.CHOICES,
-        required=False
-    )
-    auto_renew = serializers.BooleanField(required=False)    
-    def validate_plan_id(self, value):
-        from billing.models import Plan
-        try:
-            plan = Plan.objects.get(id=value, is_active=True, is_deleted=False)
-            return plan
-        except Plan.DoesNotExist:
-            raise serializers.ValidationError("Plan not found or inactive")
+
+class SubscriptionUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating subscription settings."""
+    
+    class Meta:
+        model = Subscription
+        fields = ['auto_renew', 'billing_interval']
+    
+    def validate_billing_interval(self, value):
+        """Validate billing interval change."""
+        instance = self.instance
+        if instance and instance.billing_interval != value:
+            if instance.cancel_at_period_end:
+                raise serializers.ValidationError(
+                    "Cannot change billing interval while subscription is scheduled for cancellation"
+                )
+        return value
+
 
 class SubscriptionCancelSerializer(serializers.Serializer):
+    """Serializer for cancelling a subscription."""
+    
     at_period_end = serializers.BooleanField(
         default=True,
-        help_text="If true, cancel at period end. If false, cancel immediately."
+        help_text="If true, cancel at end of period. If false, cancel immediately."
     )
-    reason = serializers.CharField(
-        required=False,
-        max_length=500,
-        allow_blank=True,
-        help_text="Reason for cancellation"
-    )
+    reason = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    
+    def validate(self, data):
+        """Validate subscription can be cancelled."""
+        subscription = self.context.get('subscription')
+        
+        if not subscription:
+            raise serializers.ValidationError("Subscription not found")
+        
+        if not subscription.is_active:
+            raise serializers.ValidationError("Cannot cancel an inactive subscription")
+        
+        if subscription.cancel_at_period_end:
+            raise serializers.ValidationError("Subscription is already scheduled for cancellation")
+        
+        return data
 
-class SubscriptionReactivateSerializer(serializers.Serializer):
-    pass
 
-class SubscriptionStatusSerializer(serializers.Serializer):
-    has_subscription = serializers.BooleanField()
-    id = serializers.UUIDField(source='subscription_id', required=False)
-    subscription_id = serializers.UUIDField(required=False)
-    status = serializers.CharField(required=False)
-    plan = serializers.DictField(required=False)
-    billing_interval = serializers.CharField(required=False)
-    current_period_start = serializers.DateTimeField(required=False)
-    current_period_end = serializers.DateTimeField(required=False)
-    trial_end = serializers.DateTimeField(required=False)
-    cancel_at_period_end = serializers.BooleanField(required=False)
-    is_active = serializers.BooleanField()
-    health = serializers.DictField(required=False)
-    requires_action = serializers.BooleanField()
-    action_type = serializers.CharField(required=False)
-
-class SubscriptionHistorySerializer(serializers.ModelSerializer):
-    previous_plan_name = serializers.CharField(source='previous_plan.name', read_only=True)
-    new_plan_name = serializers.CharField(source='new_plan.name', read_only=True)
-    created_by_name = serializers.SerializerMethodField()
-    class Meta:
-        model = SubscriptionHistory
-        fields = [
-            'id', 'subscription', 'previous_plan', 'previous_plan_name',
-            'new_plan', 'new_plan_name', 'previous_status', 'new_status',
-            'change_reason', 'metadata', 'created_at', 'created_by_name'
-        ]
-        read_only_fields = '__all__'
-    def get_created_by_name(self, obj):
-        if obj.created_by:
-            from apps.accounts.models import User
-            try:
-                user = User.objects.get(id=obj.created_by)
-                return user.email
-            except User.DoesNotExist:
-                pass
-        return None
+class SubscriptionRenewSerializer(serializers.Serializer):
+    payment_method_id = serializers.UUIDField(required=False, help_text="Payment method to use")
+    
+    def validate(self, data):
+        """Validate subscription can be renewed."""
+        subscription = self.context.get('subscription')
+        
+        if not subscription:
+            raise serializers.ValidationError("Subscription not found")
+        
+        if not subscription.is_active:
+            raise serializers.ValidationError("Cannot renew an inactive subscription")
+        
+        if subscription.cancel_at_period_end:
+            raise serializers.ValidationError("Cannot renew a subscription scheduled for cancellation")
+        
+        return data

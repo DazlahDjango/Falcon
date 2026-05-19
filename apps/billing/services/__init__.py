@@ -1,27 +1,35 @@
-from .stripe_client import StripeClient
-from .subscription_service import SubscriptionService
-from .checkout_service import CheckoutService
-from .webhook_service import WebhookService
-from .invoice_service import InvoiceService
-from .payment_service import PaymentService
-from .quota_service import QuotaService
-from .plan_service import PlanService
-from .customer_portal_service import CustomerPortalService
-from .notification_service import BillingNotificationService
-from .audit_service import BillingAuditService
-from .feature_service import FeatureService
+from .paystack.client import PayStackClient
+from .paystack.signature import WebhookSignatureVerifier
+from .paystack.verification import PaymentVerifier
+from .paystack.webhook_handler import WebhookHandler
+from .subscription.lifecycle import SubscriptionLifecycleService
+from .subscription.trial import TrialService
+from .subscription.renewal import RenewalService
+from .subscription.upgrade_downgrade import PlanChangeService
+from .billing.checkout import CheckoutService
+from .billing.invoice import InvoiceService
+from .billing.tax import TaxCalculator
+from .webhook.processor import WebhookProcessor
+from .audit.logger import AuditLogger, audit_logger
 
 __all__ = [
-    'StripeClient',
-    'SubscriptionService',
+    # PayStack
+    'PayStackClient',
+    'WebhookSignatureVerifier', 
+    'PaymentVerifier',
+    'WebhookHandler',
+    # Subscription
+    'SubscriptionLifecycleService',
+    'TrialService',
+    'RenewalService',
+    'PlanChangeService',
+    # Billing
     'CheckoutService',
-    'WebhookService',
     'InvoiceService',
-    'PaymentService',
-    'QuotaService',
-    'PlanService',
-    'CustomerPortalService',
-    'BillingNotificationService',
-    'BillingAuditService',
-    'FeatureService',
+    'TaxCalculator',
+    # Webhook
+    'WebhookProcessor',
+    # Audit
+    'AuditLogger',
+    'audit_logger',
 ]

@@ -69,6 +69,32 @@
 @import './components/structure//modals/modals.css';
 @import './pages/structure/pages.css';
 
+/* Config Styling */
+@import './styles/config/audit.css';
+@import './styles//config/backups.css';
+@import './styles/config//common.css';
+@import './styles/config/dashboard.css';
+@import './styles/config/dr.css';
+@import './styles/config/encryption.css';
+@import './styles/config/guard.css';
+@import './styles/config/health.css';
+@import './styles/config/maintanence.css';
+@import './styles/config/pages.css';
+@import './styles/config/maintenance.css';
+@import './styles/config/quota.css';
+@import './styles/config/schedule.css';
+@import './styles//config/settings.css';
+@import './styles/config/status.css';
+
+/* Billing */
+@import './styles/billing.css';
+@import './styles/billing/invtrans.css';
+@import './styles/billing/metportal.css';
+@import './styles/billing/pages.css';
+@import './styles/billing/plans.css';
+@import './styles/billing/subcheck.css';
+@import './styles/billing/waa.css';
+
 /* Utility Classes */
 .container-center {
   display: flex;

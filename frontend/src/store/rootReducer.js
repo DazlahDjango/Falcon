@@ -77,6 +77,11 @@ import { planReducer, subscriptionReducer, quotaReducer, paymentReducer, payment
 // Reviews Reducers
 // ===============================
 import { reviewsReducer } from './reviews';
+import { billingReducer } from './billing';
+
+// Config
+// =====================
+import { configReducer } from './config';
 
 const rootReducer = combineReducers({
     // Accounts State
@@ -135,17 +140,14 @@ const rootReducer = combineReducers({
     kpiNotifications: kpiNotificationReducer,
     kpiAnalytics: kpiAnalyticsReducer,
 
-    // Billing
-    billingPlans: planReducer,
-    billingSubscription: subscriptionReducer,
-    billingQuota: quotaReducer,
-    billingPayments: paymentReducer,
-    billingPaymentMethods: paymentMethodReducer,
-    billingInvoices: invoiceReducer,
+    // Billing State
+    billing: billingReducer,
 
     // Reviews State
     reviews: reviewsReducer,
 
+    // Config
+    config: configReducer
 });
 
 export default rootReducer;

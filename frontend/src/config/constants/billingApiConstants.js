@@ -1,339 +1,317 @@
-import environment from '../environment';
-
-// Base billing API path relative to API_BASE_URL
-const BILLING_API_BASE = '/billing';
-
 // ============================================================================
-// PLAN ENDPOINTS
+// Base API Configuration
 // ============================================================================
 
-export const PLAN_API_ENDPOINTS = {
-    // Base endpoints
-    LIST: '/plans/',
-    DETAIL: (id) => `/plans/${id}/`,
-    FEATURES: (id) => `/plans/${id}/features/`,
-    SUBSCRIPTIONS: (id) => `/plans/${id}/subscriptions/`,
-    COMPARE: '/plans/compare/',
-};
+export const BILLING_API_BASE = '/billing';
+export const API_VERSION = 'v1';
+export const BILLING_API_PREFIX = `/api/${API_VERSION}${BILLING_API_BASE}`;
 
 // ============================================================================
-// SUBSCRIPTION ENDPOINTS
+// Plan Endpoints
 // ============================================================================
 
-export const SUBSCRIPTION_API_ENDPOINTS = {
-    // Base endpoints
-    LIST: '/subscriptions/',
-    DETAIL: (id) => `/subscriptions/${id}/`,
-    CREATE: '/subscriptions/',
-    UPDATE: (id) => `/subscriptions/${id}/`,
-    DELETE: (id) => `/subscriptions/${id}/`,
-    PARTIAL_UPDATE: (id) => `/subscriptions/${id}/`,
+export const PLAN_ENDPOINTS = {
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `plans/`,
+    DETAIL: (id) => `plans/${id}/`,
+    CREATE: `plans/`,
+    UPDATE: (id) => `plans/${id}/`,
+    DELETE: (id) => `plans/${id}/`,
+    PARTIAL_UPDATE: (id) => `plans/${id}/`,
     
-    // Actions
-    CURRENT: '/subscriptions/current/',
-    STATUS: '/subscriptions/status/',
-    CANCEL: (id) => `/subscriptions/${id}/cancel/`,
-    REACTIVATE: (id) => `/subscriptions/${id}/reactivate/`,
-    SYNC: (id) => `/subscriptions/${id}/sync/`,
-    HISTORY: (id) => `/subscriptions/${id}/history/`,
-};
-
-// ============================================================================
-// INVOICE ENDPOINTS
-// ============================================================================
-
-export const INVOICE_API_ENDPOINTS = {
-    // Base endpoints
-    LIST: '/invoices/',
-    DETAIL: (id) => `/invoices/${id}/`,
-    DOWNLOAD: (id) => `/invoices/${id}/download/`,
-    REMIND: (id) => `/invoices/${id}/remind/`,
-    OUTSTANDING: '/invoices/outstanding/',
+    // Special endpoints
+    POPULAR: `plans/popular/`,
+    COMPARE: `plans/compare/`,
     
-    // Nested resources
-    LINE_ITEMS: (id) => `/invoices/${id}/line-items/`,
-    PAYMENTS: (id) => `/invoices/${id}/payments/`,
+    // Query params
+    QUERY_PARAMS: {
+        PLAN_TYPE: 'plan_type',
+        BILLING_INTERVAL: 'billing_interval',
+        EXCLUDE_TRIAL: 'exclude_trial',
+        IS_ACTIVE: 'is_active',
+    },
 };
 
 // ============================================================================
-// PAYMENT ENDPOINTS
+// Subscription Endpoints
 // ============================================================================
 
-export const PAYMENT_API_ENDPOINTS = {
-    // Base endpoints
-    LIST: '/payments/',
-    DETAIL: (id) => `/payments/${id}/`,
-    RETRY: (id) => `/payments/${id}/retry/`,
-    REFUND: (id) => `/payments/${id}/refund/`,
-};
-
-// ============================================================================
-// PAYMENT METHOD ENDPOINTS
-// ============================================================================
-
-export const PAYMENT_METHOD_API_ENDPOINTS = {
-    // Base endpoints
-    LIST: '/payment-methods/',
-    DETAIL: (id) => `/payment-methods/${id}/`,
-    CREATE: '/payment-methods/',
-    DELETE: (id) => `/payment-methods/${id}/`,
-    SET_DEFAULT: (id) => `/payment-methods/${id}/set_default/`,
-    DEFAULT: '/payment-methods/default/',
-    EXPIRING_SOON: '/payment-methods/expiring-soon/',
-};
-
-// ============================================================================
-// CHECKOUT ENDPOINTS
-// ============================================================================
-
-export const CHECKOUT_API_ENDPOINTS = {
-    CREATE_SESSION: '/checkout/',
-    GET_SESSION: (sessionId) => `/checkout/session/?session_id=${sessionId}`,
-    GET_SESSION_BY_ID: (id) => `/checkout/${id}/`,
-    CREATE_PORTAL_SESSION: '/portal/',
-};
-
-// ============================================================================
-// QUOTA ENDPOINTS
-// ============================================================================
-
-export const QUOTA_API_ENDPOINTS = {
-    STATUS: '/quota/',
-    LIMITS: '/quota/limits/',
-    REFRESH: '/quota/refresh/',
-};
-
-export const WEBHOOK_API_ENDPOINTS = {
-    STRIPE: '/webhook/stripe/',
-};
-
-// ============================================================================
-// COMPLETE API OBJECT
-// ============================================================================
-
-export const BILLING_API = {
-    plans: PLAN_API_ENDPOINTS,
-    subscriptions: SUBSCRIPTION_API_ENDPOINTS,
-    invoices: INVOICE_API_ENDPOINTS,
-    payments: PAYMENT_API_ENDPOINTS,
-    paymentMethods: PAYMENT_METHOD_API_ENDPOINTS,
-    checkout: CHECKOUT_API_ENDPOINTS,
-    quota: QUOTA_API_ENDPOINTS,
-    webhook: WEBHOOK_API_ENDPOINTS,
-};
-
-// ============================================================================
-// API QUERY KEYS (for React Query)
-// ============================================================================
-
-export const BILLING_QUERY_KEYS = {
-    // Plans
-    PLANS: 'billing-plans',
-    PLAN_DETAIL: (id) => ['billing-plan', id],
-    PLAN_FEATURES: (id) => ['billing-plan-features', id],
-    PLAN_COMPARE: (ids) => ['billing-plan-compare', ids],
+export const SUBSCRIPTION_ENDPOINTS = {
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `subscriptions/`,
+    DETAIL: (id) => `subscriptions/${id}/`,
+    CREATE: `subscriptions/`,
+    UPDATE: (id) => `subscriptions/${id}/`,
+    DELETE: (id) => `subscriptions/${id}/`,
+    PARTIAL_UPDATE: (id) => `subscriptions/${id}/`,
     
-    // Subscriptions
-    SUBSCRIPTIONS: 'billing-subscriptions',
-    SUBSCRIPTION_DETAIL: (id) => ['billing-subscription', id],
-    CURRENT_SUBSCRIPTION: 'billing-current-subscription',
-    SUBSCRIPTION_STATUS: 'billing-subscription-status',
-    SUBSCRIPTION_HISTORY: (id) => ['billing-subscription-history', id],
+    // Special endpoints
+    CURRENT: `subscriptions/current/`,
+    CANCEL: (id) => `subscriptions/${id}/cancel/`,
+    RENEW: (id) => `subscriptions/${id}/renew/`,
+    UPGRADE: (id) => `subscriptions/${id}/upgrade/`,
+    DOWNGRADE: (id) => `subscriptions/${id}/downgrade/`,
+    INVOICES: (id) => `subscriptions/${id}/invoices/`,
+    TRANSACTIONS: (id) => `subscriptions/${id}/transactions/`,
     
-    // Invoices
-    INVOICES: 'billing-invoices',
-    INVOICE_DETAIL: (id) => ['billing-invoice', id],
-    OUTSTANDING_INVOICES: 'billing-outstanding-invoices',
-    INVOICE_SUMMARY: 'billing-invoice-summary',
-    INVOICE_LINE_ITEMS: (id) => ['billing-invoice-line-items', id],
-    
-    // Payments
-    PAYMENTS: 'billing-payments',
-    PAYMENT_DETAIL: (id) => ['billing-payment', id],
-    PAYMENT_SUMMARY: 'billing-payment-summary',
-    
-    // Payment Methods
-    PAYMENT_METHODS: 'billing-payment-methods',
-    PAYMENT_METHOD_DETAIL: (id) => ['billing-payment-method', id],
-    DEFAULT_PAYMENT_METHOD: 'billing-default-payment-method',
-    EXPIRING_PAYMENT_METHODS: 'billing-expiring-payment-methods',
-    
-    // Quota
-    QUOTA_STATUS: 'billing-quota-status',
-    QUOTA_LIMITS: 'billing-quota-limits',
-    QUOTA_USAGE: 'billing-quota-usage',
+    // Query params
+    QUERY_PARAMS: {
+        STATUS: 'status',
+        PLAN_TYPE: 'plan_type',
+        ACTIVE_ONLY: 'active_only',
+        START_DATE: 'start_date',
+        END_DATE: 'end_date',
+    },
 };
 
 // ============================================================================
-// API PARAMS DEFAULTS
+// Transaction Endpoints
 // ============================================================================
 
-export const BILLING_API_DEFAULTS = {
-    PAGE_SIZE: 20,
-    PAGE: 1,
-    SORT_BY: '-created_at',
-    INVOICE_STATUS: 'all',
-    PAYMENT_STATUS: 'all',
-    SUBSCRIPTION_STATUS: 'all',
+export const TRANSACTION_ENDPOINTS = {
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `transactions/`,
+    DETAIL: (id) => `transactions/${id}/`,
+    
+    // Special endpoints
+    VERIFY: `transactions/verify/`,
+    REFUND: (id) => `transactions/${id}/refund/`,
+    
+    // Query params
+    QUERY_PARAMS: {
+        STATUS: 'status',
+        TRANSACTION_TYPE: 'transaction_type',
+        START_DATE: 'start_date',
+        END_DATE: 'end_date',
+        REFERENCE: 'reference',
+    },
 };
 
 // ============================================================================
-// API FILTERS
+// Invoice Endpoints
 // ============================================================================
 
-export const createInvoiceFilters = (filters = {}) => ({
-    status: filters.status || BILLING_API_DEFAULTS.INVOICE_STATUS,
-    date_from: filters.dateFrom || null,
-    date_to: filters.dateTo || null,
-    min_amount: filters.minAmount || null,
-    max_amount: filters.maxAmount || null,
-    search: filters.search || '',
-    page: filters.page || BILLING_API_DEFAULTS.PAGE,
-    page_size: filters.pageSize || BILLING_API_DEFAULTS.PAGE_SIZE,
-    ordering: filters.sortBy || BILLING_API_DEFAULTS.SORT_BY,
-});
-
-export const createPaymentFilters = (filters = {}) => ({
-    status: filters.status || BILLING_API_DEFAULTS.PAYMENT_STATUS,
-    date_from: filters.dateFrom || null,
-    date_to: filters.dateTo || null,
-    min_amount: filters.minAmount || null,
-    max_amount: filters.maxAmount || null,
-    page: filters.page || BILLING_API_DEFAULTS.PAGE,
-    page_size: filters.pageSize || BILLING_API_DEFAULTS.PAGE_SIZE,
-    ordering: filters.sortBy || BILLING_API_DEFAULTS.SORT_BY,
-});
-
-export const createSubscriptionFilters = (filters = {}) => ({
-    status: filters.status || BILLING_API_DEFAULTS.SUBSCRIPTION_STATUS,
-    plan_type: filters.planType || null,
-    billing_interval: filters.billingInterval || null,
-    page: filters.page || BILLING_API_DEFAULTS.PAGE,
-    page_size: filters.pageSize || BILLING_API_DEFAULTS.PAGE_SIZE,
-    ordering: filters.sortBy || BILLING_API_DEFAULTS.SORT_BY,
-});
+export const INVOICE_ENDPOINTS = {
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `invoices/`,
+    DETAIL: (id) => `invoices/${id}/`,
+    
+    // Special endpoints
+    DOWNLOAD: (id) => `invoices/${id}/download/`,
+    SEND: (id) => `invoices/${id}/send/`,
+    PAY: (id) => `invoices/${id}/pay/`,
+    SUMMARY: `invoices/summary/`,
+    
+    // Query params
+    QUERY_PARAMS: {
+        STATUS: 'status',
+        UNPAID_ONLY: 'unpaid_only',
+        START_DATE: 'start_date',
+        END_DATE: 'end_date',
+        INVOICE_NUMBER: 'invoice_number',
+    },
+};
 
 // ============================================================================
-// REQUEST/RESPONSE TYPES (for TypeScript/JSDoc)
+// Checkout Endpoints
 // ============================================================================
 
-/**
- * @typedef {Object} Plan
- * @property {string} id
- * @property {string} name
- * @property {string} slug
- * @property {string} description
- * @property {string} plan_type
- * @property {number} price_monthly
- * @property {number} price_yearly
- * @property {string} currency
- * @property {number} trial_days
- * @property {boolean} is_active
- * @property {boolean} is_recommended
- * @property {Array<PlanFeature>} features
- */
+export const CHECKOUT_ENDPOINTS = {
+    // Base endpoints (relative paths for use with axios baseURL)
+    INITIALIZE: `checkout/initialize/`,
+    VERIFY: `checkout/verify/`,
+    CALLBACK: `checkout/callback/`,
+    
+    // Payment methods
+    METHODS: `checkout/methods/`,
+};
 
-/**
- * @typedef {Object} PlanFeature
- * @property {string} id
- * @property {string} name
- * @property {string} value
- * @property {boolean} is_highlight
- */
+// ============================================================================
+// Payment Method Endpoints
+// ============================================================================
 
-/**
- * @typedef {Object} Subscription
- * @property {string} id
- * @property {string} tenant
- * @property {string} tenant_name
- * @property {Plan} plan
- * @property {string} status
- * @property {string} billing_interval
- * @property {boolean} is_active
- * @property {string} trial_start
- * @property {string} trial_end
- * @property {string} current_period_start
- * @property {string} current_period_end
- * @property {boolean} cancel_at_period_end
- * @property {string} canceled_at
- * @property {string} ended_at
- * @property {boolean} auto_renew
- */
+export const PAYMENT_METHOD_ENDPOINTS = {
+    // Base endpoints (relative paths for use with axios baseURL)
+    LIST: `payment-methods/`,
+    DETAIL: (id) => `payment-methods/${id}/`,
+    CREATE: `payment-methods/`,
+    DELETE: (id) => `payment-methods/${id}/`,
+    
+    // Special endpoints
+    SET_DEFAULT: (id) => `payment-methods/${id}/set_default/`,
+    
+    // Query params
+    QUERY_PARAMS: {
+        STATUS: 'status',
+        PAYMENT_TYPE: 'payment_type',
+        ACTIVE_ONLY: 'active_only',
+    },
+};
 
-/**
- * @typedef {Object} Invoice
- * @property {string} id
- * @property {string} invoice_number
- * @property {string} status
- * @property {number} amount_due
- * @property {number} amount_paid
- * @property {number} amount_remaining
- * @property {string} currency
- * @property {string} invoice_date
- * @property {string} due_date
- * @property {string} invoice_pdf_url
- * @property {boolean} is_overdue
- * @property {Array<InvoiceLineItem>} line_items
- */
+// ============================================================================
+// Billing Portal Endpoints
+// ============================================================================
 
-/**
- * @typedef {Object} InvoiceLineItem
- * @property {string} id
- * @property {string} line_type
- * @property {string} description
- * @property {number} quantity
- * @property {number} unit_amount
- * @property {number} amount
- * @property {number} tax_rate
- * @property {number} tax_amount
- */
+export const BILLING_PORTAL_ENDPOINTS = {
+    // Base endpoints (relative paths for use with axios baseURL)
+    ACCESS: `portal/access/`,
+    OVERVIEW: `portal/`,
+    SETTINGS: `portal/settings/`,
+};
 
-/**
- * @typedef {Object} Payment
- * @property {string} id
- * @property {number} amount
- * @property {string} currency
- * @property {string} status
- * @property {string} payment_date
- * @property {string} receipt_url
- * @property {string} failure_reason
- */
+// ============================================================================
+// Webhook Endpoints (Internal/Admin)
+// ============================================================================
 
-/**
- * @typedef {Object} PaymentMethod
- * @property {string} id
- * @property {string} method_type
- * @property {string} last4
- * @property {string} brand
- * @property {number} exp_month
- * @property {number} exp_year
- * @property {boolean} is_default
- * @property {boolean} is_active
- * @property {string} billing_email
- * @property {string} billing_name
- */
+export const WEBHOOK_ENDPOINTS = {
+    // Relative paths for use with axios baseURL
+    PAYSTACK: `webhook/paystack/`,
+    LOGS: `webhook/logs/`,
+    RETRY: (id) => `webhook/${id}/retry/`,
+};
 
-/**
- * @typedef {Object} QuotaStatus
- * @property {Object} users
- * @property {Object} admins
- * @property {Object} kpis
- * @property {Object} storage
- * @property {Object} api_calls_today
- * @property {Object} features
- * @property {boolean} is_healthy
- */
+// ============================================================================
+// Analytics Endpoints
+// ============================================================================
 
-/**
- * @typedef {Object} CheckoutSession
- * @property {string} session_id
- * @property {string} checkout_url
- * @property {string} stripe_customer_id
- */
+export const ANALYTICS_ENDPOINTS = {
+    // Relative paths for use with axios baseURL
+    SUMMARY: `analytics/summary/`,
+    REVENUE: `analytics/revenue/`,
+    SUBSCRIPTIONS: `analytics/subscriptions/`,
+    TAX: `analytics/tax/`,
+    FORECAST: `analytics/forecast/`,
+    
+    // Query params
+    QUERY_PARAMS: {
+        DAYS: 'days',
+        PERIOD: 'period',
+        YEAR: 'year',
+        START_DATE: 'start_date',
+        END_DATE: 'end_date',
+    },
+};
 
-/**
- * @typedef {Object} CustomerPortal
- * @property {string} portal_url
- * @property {string} session_id
- * @property {string} return_url
- */
+// ============================================================================
+// Admin Billing Endpoints
+// ============================================================================
+
+export const ADMIN_BILLING_ENDPOINTS = {
+    // Tenant management
+    TENANT_SUBSCRIPTIONS: (tenantId) => `admin/tenants/${tenantId}/subscriptions/`,
+    TENANT_INVOICES: (tenantId) => `admin/tenants/${tenantId}/invoices/`,
+    TENANT_TRANSACTIONS: (tenantId) => `admin/tenants/${tenantId}/transactions/`,
+    
+    // Bulk operations
+    BULK_UPDATE_SUBSCRIPTIONS: `admin/subscriptions/bulk-update/`,
+    
+    // Reports
+    REVENUE_REPORT: `admin/reports/revenue/`,
+    SUBSCRIPTION_REPORT: `admin/reports/subscriptions/`,
+    TAX_REPORT: `admin/reports/tax/`,
+};
+
+// ============================================================================
+// API Response Constants
+// ============================================================================
+
+export const API_STATUS = {
+    SUCCESS: 'success',
+    ERROR: 'error',
+    PENDING: 'pending',
+    PROCESSING: 'processing',
+};
+
+export const HTTP_STATUS = {
+    OK: 200,
+    CREATED: 201,
+    ACCEPTED: 202,
+    NO_CONTENT: 204,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    METHOD_NOT_ALLOWED: 405,
+    CONFLICT: 409,
+    UNPROCESSABLE_ENTITY: 422,
+    TOO_MANY_REQUESTS: 429,
+    INTERNAL_SERVER_ERROR: 500,
+    BAD_GATEWAY: 502,
+    SERVICE_UNAVAILABLE: 503,
+};
+
+// ============================================================================
+// Error Codes
+// ============================================================================
+
+export const BILLING_ERROR_CODES = {
+    SUBSCRIPTION_REQUIRED: 'SUBSCRIPTION_REQUIRED',
+    FEATURE_NOT_AVAILABLE: 'feature_not_available',
+    PAYMENT_FAILED: 'PAYMENT_FAILED',
+    INVOICE_NOT_FOUND: 'INVOICE_NOT_FOUND',
+    TRANSACTION_NOT_FOUND: 'TRANSACTION_NOT_FOUND',
+    PLAN_NOT_FOUND: 'PLAN_NOT_FOUND',
+    PAYMENT_METHOD_NOT_FOUND: 'PAYMENT_METHOD_NOT_FOUND',
+    INSUFFICIENT_FUNDS: 'INSUFFICIENT_FUNDS',
+    EXPIRED_CARD: 'EXPIRED_CARD',
+    INVALID_WEBHOOK_SIGNATURE: 'INVALID_WEBHOOK_SIGNATURE',
+    DUPLICATE_WEBHOOK: 'DUPLICATE_WEBHOOK',
+    RATE_LIMIT_EXCEEDED: 'rate_limit_exceeded',
+    SUBSCRIPTION_ALREADY_ACTIVE: 'SUBSCRIPTION_ALREADY_ACTIVE',
+    SUBSCRIPTION_EXPIRED: 'SUBSCRIPTION_EXPIRED',
+    CANNOT_DOWNGRADE: 'CANNOT_DOWNGRADE',
+    CANNOT_UPGRADE: 'CANNOT_UPGRADE',
+};
+
+// ============================================================================
+// Webhook Event Types
+// ============================================================================
+
+export const WEBHOOK_EVENTS = {
+    CHARGE_SUCCESS: 'charge.success',
+    CHARGE_DISPUTE_CREATE: 'charge.dispute.create',
+    CHARGE_DISPUTE_REMIND: 'charge.dispute.remind',
+    CHARGE_DISPUTE_RESOLVE: 'charge.dispute.resolve',
+    SUBSCRIPTION_CREATE: 'subscription.create',
+    SUBSCRIPTION_DISABLE: 'subscription.disable',
+    SUBSCRIPTION_ENABLE: 'subscription.enable',
+    INVOICE_CREATE: 'invoice.create',
+    INVOICE_UPDATE: 'invoice.update',
+    INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
+    PAYMENTREQUEST_SUCCESS: 'paymentrequest.success',
+};
+
+// ============================================================================
+// Checkout Channels
+// ============================================================================
+
+export const PAYMENT_CHANNELS = {
+    CARD: 'card',
+    BANK: 'bank',
+    USSD: 'ussd',
+    QR: 'qr',
+    MOBILE_MONEY: 'mobile_money',
+    BANK_TRANSFER: 'bank_transfer',
+};
+
+// ============================================================================
+// Export all endpoints as default object
+// ============================================================================
+
+export default {
+    PLAN_ENDPOINTS,
+    SUBSCRIPTION_ENDPOINTS,
+    TRANSACTION_ENDPOINTS,
+    INVOICE_ENDPOINTS,
+    CHECKOUT_ENDPOINTS,
+    PAYMENT_METHOD_ENDPOINTS,
+    BILLING_PORTAL_ENDPOINTS,
+    WEBHOOK_ENDPOINTS,
+    ANALYTICS_ENDPOINTS,
+    ADMIN_BILLING_ENDPOINTS,
+    API_STATUS,
+    HTTP_STATUS,
+    BILLING_ERROR_CODES,
+    WEBHOOK_EVENTS,
+    PAYMENT_CHANNELS,
+};

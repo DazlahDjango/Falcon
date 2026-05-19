@@ -90,50 +90,32 @@ task_routes_dict = {
     # Default for all other reviews tasks
     'apps.reviews.tasks.*': {'queue': 'reviews_default'},
     # Billing Tasks
-    'billing.tasks.process_webhook_event': {
-        'queue': 'priority',
-        'routing_key': 'priority',
-    },
-    'billing.tasks.sync_subscription_with_stripe': {
-        'queue': 'billing',
-        'routing_key': 'billing',
-    },
-    'billing.tasks.check_expired_subscriptions': {
-        'queue': 'billing',
-        'routing_key': 'billing',
-    },
-    'billing.tasks.sync_invoices_for_tenant': {
-        'queue': 'billing',
-        'routing_key': 'billing',
-    },
-    'billing.tasks.process_webhook_event': {
-        'queue': 'webhook',
-        'routing_key': 'webhook',
-    },
-    'billing.tasks.send_upcoming_invoice_reminder': {
-        'queue': 'email',
-        'routing_key': 'email',
-    },
-    'billing.tasks.send_payment_failed_notification': {
-        'queue': 'email',
-        'routing_key': 'email',
-    },
-    'billing.tasks.handle_trial_ending_soon': {
-        'queue': 'email',
-        'routing_key': 'email',
-    },
-    'billing.tasks.reset_daily_api_quotas': {
-        'queue': 'default',
-        'routing_key': 'default',
-    },
-    'billing.tasks.generate_monthly_invoice_report': {
-        'queue': 'default',
-        'routing_key': 'default',
-    },
-    'billing.tasks.cleanup_old_webhook_events': {
-        'queue': 'default',
-        'routing_key': 'default',
-    },
+    'billing.tasks.process_due_renewals': {'queue': 'billing'},
+    'billing.tasks.process_expired_trials': {'queue': 'billing'},
+    'billing.tasks.apply_pending_plan_changes': {'queue': 'billing'},
+    'billing.tasks.sync_paystack_transactions': {'queue': 'billing'},
+    'billing.tasks.send_renewal_reminders': {'queue': 'notifications'},
+    'billing.tasks.send_invoice_emails': {'queue': 'notifications'},
+    'billing.tasks.send_payment_confirmation': {'queue': 'notifications'},
+    'billing.tasks.process_webhook': {'queue': 'webhooks'},
+    'billing.tasks.retry_failed_webhooks': {'queue': 'webhooks'},
+    'billing.tasks.cleanup_*': {'queue': 'cleanup'},
+    'billing.tasks.generate_invoice_pdf': {'queue': 'billing'},
+    'billing.tasks.store_invoice_pdf': {'queue': 'billing'},
+    # Config Tasks
+    'apps.configs.tasks.execute_backup_task': {'queue': 'backup'},
+    'apps.configs.tasks.apply_retention_policies_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.verify_backups_task': {'queue': 'backup'},
+    'apps.configs.tasks.risk_based_maintenance_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.health_check_all_apps_task': {'queue': 'health_check'},
+    'apps.configs.tasks.conditional_maintenance_trigger_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.execute_due_schedules_task': {'queue': 'scheduler'},
+    'apps.configs.tasks.cleanup_old_artifacts_task': {'queue': 'maintenance'},
+    'apps.configs.tasks.sync_dr_metrics_task': {'queue': 'analytics'},
+    'apps.configs.tasks.disaster_recovery_drill_task': {'queue': 'dr'},
+    'apps.configs.tasks.restore_*': {'queue': 'restore'},
+    'apps.configs.tasks.backup_*': {'queue': 'backup'},
+    'apps.configs.tasks.dr_*': {'queue': 'dr'},
 }
 
 # Function-based routes for complex patterns

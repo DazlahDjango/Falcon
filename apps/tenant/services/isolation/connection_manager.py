@@ -5,6 +5,7 @@ Handles connection pooling, connection lifecycle, and tenant-specific connection
 """
 
 import logging
+import threading
 from datetime import datetime, timedelta
 from django.db import connections
 from django.conf import settings
@@ -32,9 +33,20 @@ class ConnectionManager:
 
     def __init__(self):
         """Initialize connection manager with cache and tracking."""
-        self._connections = {}  # tenant_id -> connection
-        self._connection_timestamps = {}  # tenant_id -> last_used
+        self._local = threading.local()
         self.logger = logging.getLogger(__name__)
+
+    @property
+    def _connections(self):
+        if not hasattr(self._local, 'connections'):
+            self._local.connections = {}
+        return self._local.connections
+
+    @property
+    def _connection_timestamps(self):
+        if not hasattr(self._local, 'connection_timestamps'):
+            self._local.connection_timestamps = {}
+        return self._local.connection_timestamps
 
     def get_connection(self, tenant_id):
         """
@@ -84,7 +96,7 @@ class ConnectionManager:
             tenant = Client.objects.get(id=tenant_id)
 
             # For separate database isolation
-            if tenant.database_name:
+            if tenant.database_name and hasattr(tenant, 'schema_type') and tenant.schema_type == 'separate_database':
                 # Add tenant database to Django connections if not exists
                 db_name = f"tenant_{tenant_id}"
                 if db_name not in connections.databases:
@@ -97,13 +109,24 @@ class ConnectionManager:
                 # Use default connection with schema path
                 conn = connections['default']
                 conn.ensure_connection()
-
-                # Set search path for schema isolation
-                if tenant.schema_name:
+                schema_to_use = None
+                from apps.tenant.constants import SchemaType
+                
+                if hasattr(tenant, 'schema_type') and tenant.schema_type == SchemaType.SHARED_SCHEMA:
+                    schema_to_use = 'public'
+                elif hasattr(tenant, 'schema_name') and tenant.schema_name:
+                    schema_to_use = tenant.schema_name
+                elif hasattr(tenant, 'database_name') and tenant.database_name:
+                    schema_to_use = tenant.database_name
+                elif hasattr(tenant, 'schema_type') and hasattr(tenant, 'database_name') and tenant.database_name:
+                    schema_to_use = f"{tenant.schema_type}_{tenant.database_name}"
+            
+                if schema_to_use:
                     with conn.cursor() as cursor:
-                        cursor.execute(
-                            f'SET search_path TO "{tenant.schema_name}", public')
-
+                        cursor.execute(f'SET search_path TO "{schema_to_use}", public')
+                        self.logger.info(f"Set search_path to {schema_to_use} for tenant {tenant.id}")
+                else:
+                    self.logger.warning(f"No schema/database name found for tenant {tenant.id}")
             # Cache the connection
             self._connections[tenant_id] = conn
             self._update_timestamp(tenant_id)
@@ -134,12 +157,18 @@ class ConnectionManager:
         # Create new database config based on tenant
         tenant_config = default_config.copy()
         tenant_config['NAME'] = tenant.database_name
-        tenant_config['USER'] = tenant.database_user or default_config['USER']
-        tenant_config['PASSWORD'] = tenant.database_password or default_config['PASSWORD']
-        tenant_config['HOST'] = tenant.database_host or default_config.get(
-            'HOST')
-        tenant_config['PORT'] = tenant.database_port or default_config.get(
-            'PORT')
+        # Only add these if they exist on the tenant model
+        if hasattr(tenant, 'database_user') and tenant.database_user:
+            tenant_config['USER'] = tenant.database_user
+        
+        if hasattr(tenant, 'database_password') and tenant.database_password:
+            tenant_config['PASSWORD'] = tenant.database_password
+        
+        if hasattr(tenant, 'database_host') and tenant.database_host:
+            tenant_config['HOST'] = tenant.database_host
+        
+        if hasattr(tenant, 'database_port') and tenant.database_port:
+            tenant_config['PORT'] = tenant.database_port
 
         # Register in Django's connections
         connections.databases[db_name] = tenant_config
@@ -195,12 +224,13 @@ class ConnectionManager:
             tenant_id: UUID of tenant
         """
         try:
+            import uuid
             from apps.tenant.models import ConnectionPool
             from apps.tenant.constants import ConnectionStatus
 
             ConnectionPool.objects.create(
                 tenant_id=tenant_id,
-                connection_id=f"conn_{tenant_id}_{int(timezone.now().timestamp())}",
+                connection_id=f"conn_{tenant_id}_{int(timezone.now().timestamp())}_{uuid.uuid4().hex[:6]}",
                 status=ConnectionStatus.ACTIVE,
                 connected_at=timezone.now(),
                 last_used_at=timezone.now(),
@@ -254,12 +284,13 @@ class ConnectionManager:
             from apps.tenant.models import ConnectionPool
             from apps.tenant.constants import ConnectionStatus
 
-            ConnectionPool.objects.filter(
+            latest_pool = ConnectionPool.objects.filter(
                 tenant_id=tenant_id
-            ).order_by('-created_at').first().update(
-                status=ConnectionStatus.CLOSED,
-                closed_at=timezone.now()
-            )
+            ).order_by('-created_at').first()
+            if latest_pool:
+                latest_pool.status = ConnectionStatus.CLOSED
+                latest_pool.closed_at = timezone.now()
+                latest_pool.save(update_fields=['status', 'closed_at'])
         except Exception as e:
             self.logger.warning(f"Failed to update closed status: {str(e)}")
 

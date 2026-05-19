@@ -1,84 +1,166 @@
 from rest_framework import serializers
-from decimal import Decimal
 from django.utils.translation import gettext_lazy as _
-from apps.billing.models import Plan, PlanFeature
-from apps.billing.constants import PlanType
-
-class PlanFeatureSerializer(serializers.ModelSerializer):
-    display_value = serializers.ReadOnlyField()
-    is_boolean = serializers.ReadOnlyField()
-    boolean_value = serializers.ReadOnlyField()
-    class Meta:
-        moodel = PlanFeature
-        fields = [
-            'id', 'name', 'value', 'description', 'is_highlight',
-            'display_order', 'display_value', 'is_boolean', 'boolean_value',
-            'numeric_value', 'is_unlimited'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+from ....models import SubscriptionPlan
+from ....constants import PlanType, BillingInterval
 
 class PlanSerializer(serializers.ModelSerializer):
-    features = PlanFeatureSerializer(many=True, read_only=True)
-    formatted_monthly_price = serializers.SerializerMethodField()
-    formatted_yearly_price = serializers.SerializerMethodField()
+    plan_type_display = serializers.CharField(source='get_plan_type_display', read_only=True)
+    billing_interval_display = serializers.CharField(source='get_billing_interval_display', read_only=True)
+    price_display = serializers.SerializerMethodField()
+    yearly_price_display = serializers.SerializerMethodField()
+    features_list_display = serializers.SerializerMethodField()
+    
     class Meta:
-        model = Plan
+        model = SubscriptionPlan
         fields = [
-            'id', 'name', 'slug', 'description', 'plan_type',
-            'price_monthly', 'price_yearly', 'currency', 'trial_days',
-            'display_order', 'is_active', 'is_recommended',
-            'features', 'formatted_monthly_price', 'formatted_yearly_price'
+            'id', 'name', 'slug', 'plan_type', 'plan_type_display',
+            'billing_interval', 'billing_interval_display',
+            'price', 'price_display', 'yearly_price', 'yearly_price_display',
+            'currency', 'description', 'features_list', 'features_list_display',
+            'max_users', 'max_kpis', 'max_departments', 'max_storage_mb',
+            'custom_branding', 'api_access', 'sso_enabled',
+            'advanced_analytics', 'audit_logs', 'custom_reports', 'priority_support',
+            'is_active', 'display_order', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
-    def get_formatted_monthly_price(self, obj):
-        return self._format_price(obj.price_monthly, obj.currency)
-    def get_formatted_yearly_price(self, obj):
-        if obj.price_yearly:
-            return self._format_price(obj.price_yearly, obj.currency)
-        return self._format_price(obj.price_monthly * 12, obj.currency)
-    def _format_price(self, amount, currency):
-        return f"{currency}{amount:,.2f}"
+        read_only_fields = ['id', 'created_at', 'updated_at', 'slug']
+    
+    def get_price_display(self, obj):
+        return obj.price_display
+    
+    def get_yearly_price_display(self, obj):
+        return obj.yearly_price_display
+    
+    def get_features_list_display(self, obj):
+        features = []
+        if obj.features_list:
+            features = obj.features_list
+        else:
+            # Build from feature flags
+            if obj.custom_branding:
+                features.append("Custom Branding & Theming")
+            if obj.api_access:
+                features.append("REST API Access")
+            if obj.sso_enabled:
+                features.append("Single Sign-On (SSO)")
+            if obj.advanced_analytics:
+                features.append("Advanced Analytics & Reports")
+            if obj.audit_logs:
+                features.append("Audit Logs")
+            if obj.custom_reports:
+                features.append("Custom Report Builder")
+            if obj.priority_support:
+                features.append("Priority 24/7 Support")
+            if obj.max_users == -1:
+                features.append("Unlimited Users")
+            elif obj.max_users:
+                features.append(f"Up to {obj.max_users} Users")
+            if obj.max_kpis == -1:
+                features.append("Unlimited KPIs")
+            elif obj.max_kpis:
+                features.append(f"Up to {obj.max_kpis} KPIs")
+        return features
+
+
+class PlanListSerializer(PlanSerializer):
+    """Lightweight serializer for list views."""
+    
+    class Meta(PlanSerializer.Meta):
+        fields = [
+            'id', 'name', 'slug', 'plan_type', 'plan_type_display',
+            'billing_interval', 'price_display', 'currency',
+            'max_users', 'max_kpis', 'is_active', 'display_order'
+        ]
+
 
 class PlanDetailSerializer(PlanSerializer):
-    feature_count = serializers.SerializerMethodField()
+    """Full detail serializer with computed fields."""
+    
     yearly_savings = serializers.SerializerMethodField()
+    is_popular = serializers.SerializerMethodField()
+    
     class Meta(PlanSerializer.Meta):
-        fields = PlanSerializer.Meta.fields + [
-            'metadata', 'feature_count', 'yearly_savings',
-            'stripe_product_id', 'stripe_price_id_monthly', 'stripe_price_id_yearly'
-        ]
-    def get_feature_count(self, obj):
-        return obj.features.count()
+        fields = PlanSerializer.Meta.fields + ['yearly_savings', 'is_popular']
+    
     def get_yearly_savings(self, obj):
-        if obj.price_yearly and obj.price_monthly:
-            yearly_monthly_total = obj.price_monthly * 12
-            savings = yearly_monthly_total - obj.price_yearly
-            return float(savings) if savings > 0 else 0
-        return 0
+        """Calculate savings for yearly plan vs monthly."""
+        if obj.billing_interval == BillingInterval.MONTHLY and obj.yearly_price:
+            monthly_cost = obj.price * 12
+            savings = monthly_cost - obj.yearly_price
+            savings_percent = (savings / monthly_cost) * 100
+            return {
+                'amount': savings,
+                'display': f"{obj.currency} {savings / 100:.2f}",
+                'percent': round(savings_percent)
+            }
+        return None
     
-class PlanListSerializer(serializers.ModelSerializer):
-    formatted_price = serializers.SerializerMethodField()
-    is_popular = serializers.BooleanField(source='is_recommended')
+    def get_is_popular(self, obj):
+        """Mark professional plan as popular."""
+        return obj.plan_type == PlanType.PROFESSIONAL
+
+
+class PlanCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating new plans (admin only)."""
+    
     class Meta:
-        model = Plan
+        model = SubscriptionPlan
         fields = [
-            'id', 'name', 'slug', 'plan_type', 'price_monthly', 
-            'currency', 'trial_days', 'is_recommended', 'is_popular',
-            'formatted_price', 'display_order'
+            'name', 'plan_type', 'billing_interval', 'price', 'yearly_price',
+            'currency', 'description', 'features_list', 'max_users', 'max_kpis',
+            'max_departments', 'max_storage_mb', 'custom_branding', 'api_access',
+            'sso_enabled', 'advanced_analytics', 'audit_logs', 'custom_reports',
+            'priority_support', 'display_order'
         ]
-    def get_formatted_price(self, obj):
-        return f"{obj.currency} {obj.price_monthly:,.2f}/month"
     
-class PlanCompareSerializer(serializers.Serializer):
-    plan_ids = serializers.ListField(
-        child=serializers.UUIDField(),
-        write_only=True,
-        help_text="List of plan IDs to compare"
-    )
-    comparison = serializers.DictField(read_only=True)
-    def validate_plan_ids(self, value):
-        if len(value) < 2:
-            raise serializers.ValidationError("At least 2 plans required for comparison")
-        if len(value) > 4:
-            raise serializers.ValidationError("Maximum 4 plans for comparison")
+    def validate_price(self, value):
+        """Validate price is positive."""
+        if value < 0:
+            raise serializers.ValidationError("Price cannot be negative")
+        if value == 0 and self.initial_data.get('plan_type') != PlanType.TRIAL:
+            raise serializers.ValidationError("Only trial plans can have zero price")
+        return value
+    
+    def validate(self, data):
+        """Cross-field validation."""
+        plan_type = data.get('plan_type')
+        
+        # Trial plan validations
+        if plan_type == PlanType.TRIAL:
+            if data.get('price', 0) != 0:
+                raise serializers.ValidationError({"price": "Trial plans must have price 0"})
+            if data.get('yearly_price'):
+                raise serializers.ValidationError({"yearly_price": "Trial plans cannot have yearly price"})
+        
+        # Enterprise unlimited validations
+        if plan_type == PlanType.ENTERPRISE:
+            if data.get('max_users', -1) != -1:
+                data['max_users'] = -1
+            if data.get('max_kpis', -1) != -1:
+                data['max_kpis'] = -1
+        
+        return data
+    
+    def create(self, validated_data):
+        """Create plan with auto-generated slug."""
+        from django.utils.text import slugify
+        
+        validated_data['slug'] = slugify(validated_data['name'])
+        return super().create(validated_data)
+
+
+class PlanUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionPlan
+        fields = [
+            'name', 'price', 'yearly_price', 'description', 'features_list',
+            'max_users', 'max_kpis', 'max_departments', 'max_storage_mb',
+            'custom_branding', 'api_access', 'sso_enabled', 'advanced_analytics',
+            'audit_logs', 'custom_reports', 'priority_support', 'is_active',
+            'display_order'
+        ]
+    
+    def validate_price(self, value):
+        """Validate price changes."""
+        if value < 0:
+            raise serializers.ValidationError("Price cannot be negative")
         return value

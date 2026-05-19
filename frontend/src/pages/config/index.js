@@ -1,0 +1,13 @@
+export { ConfigDashboardPage } from './ConfigDashboardPage';
+export { BackupPage } from './BackupPage';
+export { BackupDetailsPage } from './BackupDetailsPage';
+export { MaintenancePage } from './MaintenancePage';
+export { MaintenanceDetailsPage } from './MaintenanceDetailsPage';
+export { DisasterRecoveryPage } from './DisasterRecoveryPage';
+export { DRPlanDetailsPage } from './DRPlanDetailsPage';
+export { HealthCheckPage } from './HealthCheckPage';
+export { SchedulePage } from './SchedulePage';
+export { QuotaPage } from './QuotaPage';
+export { EncryptionPage } from './EncryptionPage';
+export { AuditLogPage } from './AuditLogPage';
+export { ConfigSettingsPage } from './ConfigSettingsPage';

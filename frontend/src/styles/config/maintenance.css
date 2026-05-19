@@ -1,0 +1,112 @@
+.banner {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.full {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.partial {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.iconWrapper {
+  padding: 0.5rem;
+  border-radius: 9999px;
+}
+
+.iconWrapperFull {
+  background-color: #fee2e2;
+}
+
+.iconWrapperPartial {
+  background-color: #fef3c7;
+}
+
+.iconFull {
+  color: #dc2626;
+}
+
+.iconPartial {
+  color: #d97706;
+}
+
+.titleFull {
+  font-weight: 600;
+  color: #991b1b;
+}
+
+.titlePartial {
+  font-weight: 600;
+  color: #92400e;
+}
+
+.message {
+  font-size: 0.875rem;
+}
+
+.messageFull {
+  color: #dc2626;
+}
+
+.messagePartial {
+  color: #d97706;
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.dismissButton {
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.dismissButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+/* frontend/src/components/config/maintenance/MaintenanceTimer.module.css */
+.container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.icon {
+  color: #d97706;
+}
+
+.time {
+  font-family: monospace;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: #92400e;
+}

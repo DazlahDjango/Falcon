@@ -1,0 +1,220 @@
+.container {
+  padding: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #ef4444;
+}
+/* frontend/src/components/config/dashboard/BackupStatsCard.module.css */
+.card {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconWrapper {
+  padding: 0.5rem;
+  background: #dbeafe;
+  border-radius: 0.5rem;
+}
+
+.icon {
+  font-size: 1.25rem;
+  color: #2563eb;
+}
+
+.title {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.badge {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.statRight {
+  text-align: right;
+}
+
+.footer {
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.pending {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #d97706;
+}
+
+.running {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #059669;
+}
+
+.failed {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #dc2626;
+}
+
+/* frontend/src/components/config/backup/BackupProgressBar.module.css */
+.container {
+  background: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.statusSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.iconCompleted {
+  color: #10b981;
+  font-size: 1.25rem;
+}
+
+.iconFailed {
+  color: #ef4444;
+  font-size: 1.25rem;
+}
+
+.iconRunning {
+  color: #3b82f6;
+  font-size: 1.25rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.title {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.itemCount {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.progressBar {
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  height: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.progressFill {
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.progressFillSuccess {
+  background: #3b82f6;
+}
+
+.progressFillFailed {
+  background: #ef4444;
+}
+
+.currentItem {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+.connected {
+  color: #10b981;
+}
+
+.disconnected {
+  color: #ef4444;
+}

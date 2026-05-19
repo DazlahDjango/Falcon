@@ -1,0 +1,988 @@
+/* Add to existing billing.css */
+
+/* ============================================================================
+ * Checkout Components
+ * ============================================================================ */
+
+.checkout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.checkout-btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.checkout-btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.checkout-btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.checkout-btn-outline {
+    background: transparent;
+    border: 1px solid #2563eb;
+    color: #2563eb;
+}
+
+.checkout-btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.checkout-btn-medium {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+}
+
+.checkout-btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+}
+
+.checkout-btn-loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.checkout-btn-spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+.checkout-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.checkout-modal {
+    background: white;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+.checkout-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.checkout-form {
+    padding: 1.5rem;
+}
+
+.checkout-form-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.checkout-form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.checkout-form-plan {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.checkout-form-amount {
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+}
+
+.checkout-form-amount-value {
+    font-weight: 700;
+    color: #2563eb;
+}
+
+.checkout-form-section {
+    margin-bottom: 1.5rem;
+}
+
+.checkout-form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #1f2937;
+}
+
+.checkout-form-radio-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.checkout-form-radio {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkout-form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.checkout-form-cancel {
+    flex: 1;
+    padding: 0.75rem;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.checkout-form-submit {
+    flex: 2;
+    padding: 0.75rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.checkout-form-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Payment Method Selector */
+.payment-method-selector {
+    margin-top: 0.5rem;
+}
+
+.payment-method-selector-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+
+.payment-method-selector-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.payment-method-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-method-option:hover {
+    border-color: #2563eb;
+    background: #f0f9ff;
+}
+
+.payment-method-option-selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.payment-method-option-icon {
+    font-size: 1.5rem;
+}
+
+.payment-method-option-details {
+    flex: 1;
+}
+
+.payment-method-option-card {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.payment-method-option-expiry {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.payment-method-option-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    background: #10b981;
+    color: white;
+    border-radius: 0.25rem;
+}
+
+/* Billing Address Form */
+.billing-address-form {
+    margin-top: 0.5rem;
+}
+
+.billing-address-form-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1f2937;
+}
+
+.billing-address-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.billing-address-form-group {
+    margin-bottom: 1rem;
+}
+
+.billing-address-form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #4b5563;
+}
+
+.billing-address-form-input,
+.billing-address-form-select {
+    width: 100%;
+    padding: 0.625rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+}
+
+.billing-address-form-input:focus,
+.billing-address-form-select:focus {
+    outline: none;
+    border-color: #2563eb;
+    ring: 2px solid #2563eb;
+}
+
+/* Checkout Success */
+.checkout-success {
+    text-align: center;
+    padding: 2rem;
+}
+
+.checkout-success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.checkout-success-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.checkout-success-message {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+
+.checkout-success-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.checkout-success-btn-primary,
+.checkout-success-btn-secondary {
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.checkout-success-btn-primary {
+    background: #2563eb;
+    color: white;
+    border: none;
+}
+
+.checkout-success-btn-secondary {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
+/* ============================================================================
+ * Subscription Components
+ * ============================================================================ */
+
+/* Subscription Status */
+.subscription-status {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.subscription-status-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.subscription-status-plan {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 1rem 0;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.subscription-status-plan-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.subscription-status-trial,
+.subscription-status-renewal {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    font-size: 0.875rem;
+}
+
+.subscription-status-trial {
+    color: #f59e0b;
+}
+
+.subscription-status-renewal-warning {
+    color: #ef4444;
+    margin-left: 0.5rem;
+}
+
+.subscription-status-features {
+    margin: 1rem 0;
+    padding: 1rem 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.subscription-status-features h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.subscription-status-features ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.subscription-status-features li {
+    font-size: 0.875rem;
+    color: #4b5563;
+    padding: 0.25rem 0;
+}
+
+.subscription-status-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.subscription-status-cancel {
+    padding: 0.5rem 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.subscription-status-renew {
+    padding: 0.5rem 1rem;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+/* Subscription Details */
+.subscription-details {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.subscription-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.subscription-details-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.subscription-details-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-details-plan {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.subscription-details-plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.subscription-details-plan-billing {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-left: 0.5rem;
+}
+
+.subscription-details-dates {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.subscription-details-date {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
+.subscription-details-date-label {
+    color: #6b7280;
+}
+
+.subscription-details-cancel-note {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: #fef3c7;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: #92400e;
+}
+
+.subscription-details-settings {
+    padding: 1rem 0;
+}
+
+.subscription-details-settings h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.subscription-details-setting {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.subscription-details-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.subscription-details-btn-upgrade,
+.subscription-details-btn-downgrade,
+.subscription-details-btn-cancel {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.subscription-details-btn-upgrade {
+    background: #2563eb;
+    color: white;
+    border: none;
+}
+
+.subscription-details-btn-downgrade {
+    background: #6b7280;
+    color: white;
+    border: none;
+}
+
+.subscription-details-btn-cancel {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+}
+
+/* Subscription Card */
+.subscription-card {
+    display: block;
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.subscription-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.subscription-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.subscription-card-plan {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subscription-card-plan-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.subscription-card-dates {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+}
+
+.subscription-card-date-warning {
+    color: #ef4444;
+}
+
+.subscription-card-footer {
+    text-align: right;
+    font-size: 0.875rem;
+    color: #2563eb;
+}
+
+/* Cancel Modal */
+.cancel-modal {
+    max-width: 500px;
+}
+
+.cancel-modal-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #fef3c7;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.cancel-modal-warning-icon {
+    font-size: 1.5rem;
+}
+
+.cancel-modal-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.cancel-modal-option {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.cancel-modal-option input {
+    margin-top: 0.25rem;
+}
+
+.cancel-modal-option strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.cancel-modal-option p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.cancel-modal-reason {
+    margin-top: 1rem;
+}
+
+.cancel-modal-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.cancel-modal-select,
+.cancel-modal-textarea {
+    width: 100%;
+    padding: 0.625rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+}
+
+.cancel-modal-textarea {
+    margin-top: 0.5rem;
+    min-height: 80px;
+}
+
+/* Renew Button */
+.renew-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.renew-btn-primary {
+    background: #10b981;
+    color: white;
+    border: none;
+}
+
+.renew-btn-secondary {
+    background: #6b7280;
+    color: white;
+    border: none;
+}
+
+.renew-btn-outline {
+    background: transparent;
+    border: 1px solid #10b981;
+    color: #10b981;
+}
+
+.renew-btn-loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Upgrade Modal */
+.upgrade-modal {
+    max-width: 800px;
+}
+
+.upgrade-modal-current {
+    padding: 0.75rem;
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.upgrade-modal-current strong {
+    margin-left: 0.5rem;
+    color: #1f2937;
+}
+
+.upgrade-modal-note {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #eff6ff;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #1e40af;
+}
+
+.upgrade-modal-loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+/* Trial Banner */
+.trial-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.trial-banner-info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+}
+
+.trial-banner-warning {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+}
+
+.trial-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.trial-banner-icon {
+    font-size: 1.25rem;
+}
+
+.trial-banner-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.trial-banner-text strong {
+    font-size: 0.875rem;
+}
+
+.trial-banner-text span {
+    font-size: 0.75rem;
+}
+
+.trial-banner-btn {
+    padding: 0.375rem 0.75rem;
+    background: white;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #2563eb;
+}
+
+/* Billing Cycle Selector */
+.billing-cycle-selector {
+    display: inline-flex;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    padding: 0.25rem;
+}
+
+.billing-cycle-option {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    background: transparent;
+    border-radius: 9999px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.billing-cycle-option-active {
+    background: #2563eb;
+    color: white;
+}
+
+.billing-cycle-option-savings {
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+
+/* Modal Common */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.modal-btn-secondary {
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+}
+
+.modal-btn-danger {
+    padding: 0.5rem 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+}
+
+.modal-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+}
+
+.modal-loading-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #e5e7eb;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .billing-address-form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .subscription-details-actions {
+        flex-direction: column;
+    }
+    
+    .checkout-success-actions {
+        flex-direction: column;
+    }
+    
+    .trial-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+}

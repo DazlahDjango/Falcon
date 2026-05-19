@@ -1,7 +1,16 @@
 (falc) PS C:\Users\Dazlah Administrator\Desktop\Falcon_pms> python manage.py show_urls | Select-String "billing"
-{"time": "2026-05-13 20:27:43,719", "level": "INFO", "module": "apps", "message": "AXES: BEGIN version 8.3.1, blocking by combination of username and ip_address and user_agent"}
-{"time": "2026-05-13 20:27:45,627", "level": "INFO", "module": "connection_cleanup", "message": "Connection cleanup scheduler started"}
+{"time": "2026-05-15 14:10:10,267", "level": "INFO", "module": "apps", "message": "AXES: BEGIN version 8.3.1, blocking by combination of username and ip_address and user_agent"}
+{"time": "2026-05-15 14:10:12,311", "level": "INFO", "module": "connection_cleanup", "message": "Connection cleanup scheduler started"}
 
+/admin/billing/billingauditlog/ django.contrib.admin.options.changelist_view    admin:billing_billingauditlog_changelist
+/admin/billing/billingauditlog/<path:object_id>/        django.views.generic.base.RedirectView
+/admin/billing/billingauditlog/<path:object_id>/change/ django.contrib.admin.options.change_view
+admin:billing_billingauditlog_change
+/admin/billing/billingauditlog/<path:object_id>/delete/ django.contrib.admin.options.delete_view
+admin:billing_billingauditlog_delete
+/admin/billing/billingauditlog/<path:object_id>/history/        django.contrib.admin.options.history_view
+admin:billing_billingauditlog_history
+/admin/billing/billingauditlog/add/     django.contrib.admin.options.add_view   admin:billing_billingauditlog_add
 /admin/billing/invoice/ django.contrib.admin.options.changelist_view    admin:billing_invoice_changelist
 /admin/billing/invoice/<path:object_id>/        django.views.generic.base.RedirectView
 /admin/billing/invoice/<path:object_id>/change/ django.contrib.admin.options.change_view        admin:billing_invoice_change
@@ -9,22 +18,6 @@
 /admin/billing/invoice/<path:object_id>/history/        django.contrib.admin.options.history_view
 admin:billing_invoice_history
 /admin/billing/invoice/add/     django.contrib.admin.options.add_view   admin:billing_invoice_add
-/admin/billing/invoicelineitem/ django.contrib.admin.options.changelist_view    admin:billing_invoicelineitem_changelist
-/admin/billing/invoicelineitem/<path:object_id>/        django.views.generic.base.RedirectView
-/admin/billing/invoicelineitem/<path:object_id>/change/ django.contrib.admin.options.change_view
-admin:billing_invoicelineitem_change
-/admin/billing/invoicelineitem/<path:object_id>/delete/ django.contrib.admin.options.delete_view
-admin:billing_invoicelineitem_delete
-/admin/billing/invoicelineitem/<path:object_id>/history/        django.contrib.admin.options.history_view
-admin:billing_invoicelineitem_history
-/admin/billing/invoicelineitem/add/     django.contrib.admin.options.add_view   admin:billing_invoicelineitem_add
-/admin/billing/payment/ django.contrib.admin.options.changelist_view    admin:billing_payment_changelist
-/admin/billing/payment/<path:object_id>/        django.views.generic.base.RedirectView
-/admin/billing/payment/<path:object_id>/change/ django.contrib.admin.options.change_view        admin:billing_payment_change
-/admin/billing/payment/<path:object_id>/delete/ django.contrib.admin.options.delete_view        admin:billing_payment_delete
-/admin/billing/payment/<path:object_id>/history/        django.contrib.admin.options.history_view
-admin:billing_payment_history
-/admin/billing/payment/add/     django.contrib.admin.options.add_view   admin:billing_payment_add
 /admin/billing/paymentmethod/   django.contrib.admin.options.changelist_view    admin:billing_paymentmethod_changelist
 /admin/billing/paymentmethod/<path:object_id>/  django.views.generic.base.RedirectView
 /admin/billing/paymentmethod/<path:object_id>/change/   django.contrib.admin.options.change_view
@@ -34,45 +27,6 @@ admin:billing_paymentmethod_delete
 /admin/billing/paymentmethod/<path:object_id>/history/  django.contrib.admin.options.history_view
 admin:billing_paymentmethod_history
 /admin/billing/paymentmethod/add/       django.contrib.admin.options.add_view   admin:billing_paymentmethod_add
-/admin/billing/plan/    django.contrib.admin.options.changelist_view    admin:billing_plan_changelist
-/admin/billing/plan/<path:object_id>/   django.views.generic.base.RedirectView
-/admin/billing/plan/<path:object_id>/change/    django.contrib.admin.options.change_view        admin:billing_plan_change
-/admin/billing/plan/<path:object_id>/delete/    django.contrib.admin.options.delete_view        admin:billing_plan_delete
-/admin/billing/plan/<path:object_id>/history/   django.contrib.admin.options.history_view       admin:billing_plan_history
-/admin/billing/plan/add/        django.contrib.admin.options.add_view   admin:billing_plan_add
-/admin/billing/planfeature/     django.contrib.admin.options.changelist_view    admin:billing_planfeature_changelist
-/admin/billing/planfeature/<path:object_id>/    django.views.generic.base.RedirectView
-/admin/billing/planfeature/<path:object_id>/change/     django.contrib.admin.options.change_view
-admin:billing_planfeature_change
-/admin/billing/planfeature/<path:object_id>/delete/     django.contrib.admin.options.delete_view
-admin:billing_planfeature_delete
-/admin/billing/planfeature/<path:object_id>/history/    django.contrib.admin.options.history_view
-admin:billing_planfeature_history
-/admin/billing/planfeature/add/ django.contrib.admin.options.add_view   admin:billing_planfeature_add
-/admin/billing/price/   django.contrib.admin.options.changelist_view    admin:billing_price_changelist
-/admin/billing/price/<path:object_id>/  django.views.generic.base.RedirectView
-/admin/billing/price/<path:object_id>/change/   django.contrib.admin.options.change_view        admin:billing_price_change
-/admin/billing/price/<path:object_id>/delete/   django.contrib.admin.options.delete_view        admin:billing_price_delete
-/admin/billing/price/<path:object_id>/history/  django.contrib.admin.options.history_view       admin:billing_price_history
-/admin/billing/price/add/       django.contrib.admin.options.add_view   admin:billing_price_add
-/admin/billing/quotalimit/      django.contrib.admin.options.changelist_view    admin:billing_quotalimit_changelist
-/admin/billing/quotalimit/<path:object_id>/     django.views.generic.base.RedirectView
-/admin/billing/quotalimit/<path:object_id>/change/      django.contrib.admin.options.change_view
-admin:billing_quotalimit_change
-/admin/billing/quotalimit/<path:object_id>/delete/      django.contrib.admin.options.delete_view
-admin:billing_quotalimit_delete
-/admin/billing/quotalimit/<path:object_id>/history/     django.contrib.admin.options.history_view
-admin:billing_quotalimit_history
-/admin/billing/quotalimit/add/  django.contrib.admin.options.add_view   admin:billing_quotalimit_add
-/admin/billing/quotausage/      django.contrib.admin.options.changelist_view    admin:billing_quotausage_changelist
-/admin/billing/quotausage/<path:object_id>/     django.views.generic.base.RedirectView
-/admin/billing/quotausage/<path:object_id>/change/      django.contrib.admin.options.change_view
-admin:billing_quotausage_change
-/admin/billing/quotausage/<path:object_id>/delete/      django.contrib.admin.options.delete_view
-admin:billing_quotausage_delete
-/admin/billing/quotausage/<path:object_id>/history/     django.contrib.admin.options.history_view
-admin:billing_quotausage_history
-/admin/billing/quotausage/add/  django.contrib.admin.options.add_view   admin:billing_quotausage_add
 /admin/billing/subscription/    django.contrib.admin.options.changelist_view    admin:billing_subscription_changelist
 /admin/billing/subscription/<path:object_id>/   django.views.generic.base.RedirectView
 /admin/billing/subscription/<path:object_id>/change/    django.contrib.admin.options.change_view
@@ -82,227 +36,182 @@ admin:billing_subscription_delete
 /admin/billing/subscription/<path:object_id>/history/   django.contrib.admin.options.history_view
 admin:billing_subscription_history
 /admin/billing/subscription/add/        django.contrib.admin.options.add_view   admin:billing_subscription_add
-/admin/billing/subscriptionhistory/     django.contrib.admin.options.changelist_view
-admin:billing_subscriptionhistory_changelist
-/admin/billing/subscriptionhistory/<path:object_id>/    django.views.generic.base.RedirectView
-/admin/billing/subscriptionhistory/<path:object_id>/change/     django.contrib.admin.options.change_view
-admin:billing_subscriptionhistory_change
-/admin/billing/subscriptionhistory/<path:object_id>/delete/     django.contrib.admin.options.delete_view
-admin:billing_subscriptionhistory_delete
-/admin/billing/subscriptionhistory/<path:object_id>/history/    django.contrib.admin.options.history_view
-admin:billing_subscriptionhistory_history
-/admin/billing/subscriptionhistory/add/ django.contrib.admin.options.add_view   admin:billing_subscriptionhistory_add
-/admin/billing/webhookevent/    django.contrib.admin.options.changelist_view    admin:billing_webhookevent_changelist
-/admin/billing/webhookevent/<path:object_id>/   django.views.generic.base.RedirectView
-/admin/billing/webhookevent/<path:object_id>/change/    django.contrib.admin.options.change_view
-admin:billing_webhookevent_change
-/admin/billing/webhookevent/<path:object_id>/delete/    django.contrib.admin.options.delete_view
-admin:billing_webhookevent_delete
-/admin/billing/webhookevent/<path:object_id>/history/   django.contrib.admin.options.history_view
-admin:billing_webhookevent_history
-/admin/billing/webhookevent/add/        django.contrib.admin.options.add_view   admin:billing_webhookevent_add
-/api/v1/billing/        rest_framework.routers.APIRootView      billing:api-root
-/api/v1/billing/        rest_framework.routers.APIRootView      billing:api-root
-/api/v1/billing/        rest_framework.routers.APIRootView      billing:api-root
+/admin/billing/subscriptionplan/        django.contrib.admin.options.changelist_view    admin:billing_subscriptionplan_changelist
+/admin/billing/subscriptionplan/<path:object_id>/       django.views.generic.base.RedirectView
+/admin/billing/subscriptionplan/<path:object_id>/change/        django.contrib.admin.options.change_view
+admin:billing_subscriptionplan_change
+/admin/billing/subscriptionplan/<path:object_id>/delete/        django.contrib.admin.options.delete_view
+admin:billing_subscriptionplan_delete
+/admin/billing/subscriptionplan/<path:object_id>/history/       django.contrib.admin.options.history_view
+admin:billing_subscriptionplan_history
+/admin/billing/subscriptionplan/add/    django.contrib.admin.options.add_view   admin:billing_subscriptionplan_add
+/admin/billing/transaction/     django.contrib.admin.options.changelist_view    admin:billing_transaction_changelist
+/admin/billing/transaction/<path:object_id>/    django.views.generic.base.RedirectView
+/admin/billing/transaction/<path:object_id>/change/     django.contrib.admin.options.change_view
+admin:billing_transaction_change
+/admin/billing/transaction/<path:object_id>/delete/     django.contrib.admin.options.delete_view
+admin:billing_transaction_delete
+/admin/billing/transaction/<path:object_id>/history/    django.contrib.admin.options.history_view
+admin:billing_transaction_history
+/admin/billing/transaction/add/ django.contrib.admin.options.add_view   admin:billing_transaction_add
+/admin/billing/webhookeventlog/ django.contrib.admin.options.changelist_view    admin:billing_webhookeventlog_changelist
+/admin/billing/webhookeventlog/<path:object_id>/        django.views.generic.base.RedirectView
+/admin/billing/webhookeventlog/<path:object_id>/change/ django.contrib.admin.options.change_view
+admin:billing_webhookeventlog_change
+/admin/billing/webhookeventlog/<path:object_id>/delete/ django.contrib.admin.options.delete_view
+admin:billing_webhookeventlog_delete
+/admin/billing/webhookeventlog/<path:object_id>/history/        django.contrib.admin.options.history_view
+admin:billing_webhookeventlog_history
+/admin/billing/webhookeventlog/add/     django.contrib.admin.options.add_view   admin:billing_webhookeventlog_add
 /api/v1/billing/        rest_framework.routers.APIRootView      billing:api-root
 /api/v1/billing/<drf_format_suffix:format>      rest_framework.routers.APIRootView      billing:api-root
-/api/v1/billing/<drf_format_suffix:format>      rest_framework.routers.APIRootView      billing:api-root
-/api/v1/billing/<drf_format_suffix:format>      rest_framework.routers.APIRootView      billing:api-root
-/api/v1/billing/<drf_format_suffix:format>      rest_framework.routers.APIRootView      billing:api-root
-/api/v1/billing/checkout/       apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-list
-/api/v1/billing/checkout/<pk>/  apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-detail
-/api/v1/billing/checkout/<pk>\.<format>/        apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-detail
-/api/v1/billing/checkout/session/       apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-session
-/api/v1/billing/checkout/session\.<format>/     apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-session
-/api/v1/billing/checkout\.<format>/     apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-list
-/api/v1/billing/invoices/       apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-list
-/api/v1/billing/invoices/<invoice_pk>/line-items/       apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-line-items-list
-/api/v1/billing/invoices/<invoice_pk>/line-items/<pk>/  apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-line-items-detail
-/api/v1/billing/invoices/<invoice_pk>/line-items/<pk>/download/ apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-line-items-download
-/api/v1/billing/invoices/<invoice_pk>/line-items/<pk>/download\.<format>/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-line-items-download
-/api/v1/billing/invoices/<invoice_pk>/line-items/<pk>/remind/   apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-line-items-remind
-/api/v1/billing/invoices/<invoice_pk>/line-items/<pk>/remind\.<format>/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-line-items-remind
-/api/v1/billing/invoices/<invoice_pk>/line-items/<pk>\.<format>/        apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-line-items-detail
-/api/v1/billing/invoices/<invoice_pk>/line-items/outstanding/   apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-line-items-outstanding
-/api/v1/billing/invoices/<invoice_pk>/line-items/outstanding\.<format>/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-line-items-outstanding
-/api/v1/billing/invoices/<invoice_pk>/line-items\.<format>/     apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-line-items-list
-/api/v1/billing/invoices/<invoice_pk>/payments/ apps.billing.api.v1.views.payment.PaymentViewSet
-billing:invoice-payments-list
-/api/v1/billing/invoices/<invoice_pk>/payments/<pk>/    apps.billing.api.v1.views.payment.PaymentViewSet
-billing:invoice-payments-detail
-/api/v1/billing/invoices/<invoice_pk>/payments/<pk>\.<format>/  apps.billing.api.v1.views.payment.PaymentViewSet
-billing:invoice-payments-detail
-/api/v1/billing/invoices/<invoice_pk>/payments\.<format>/       apps.billing.api.v1.views.payment.PaymentViewSet
-billing:invoice-payments-list
-/api/v1/billing/invoices/<pk>/  apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-detail
-/api/v1/billing/invoices/<pk>/download/ apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-download
-/api/v1/billing/invoices/<pk>/download\.<format>/       apps.billing.api.v1.views.invoice.InvoiceViewSet
+/api/v1/billing/analytics/forecast/     apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:analytics-forecast
+/api/v1/billing/analytics/forecast/     apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-forecast
+/api/v1/billing/analytics/forecast\.<format>/   apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-forecast
+/api/v1/billing/analytics/revenue/      apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:analytics-revenue
+/api/v1/billing/analytics/revenue/      apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-revenue
+/api/v1/billing/analytics/revenue\.<format>/    apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-revenue
+/api/v1/billing/analytics/subscriptions/        apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:analytics-subscriptions
+/api/v1/billing/analytics/subscriptions/        apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-subscriptions
+/api/v1/billing/analytics/subscriptions\.<format>/      apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-subscriptions
+/api/v1/billing/analytics/summary/      apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:analytics-summary
+/api/v1/billing/analytics/summary/      apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-summary
+/api/v1/billing/analytics/summary\.<format>/    apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-summary
+/api/v1/billing/analytics/tax/  apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet     billing:analytics-tax
+/api/v1/billing/analytics/tax/  apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-tax
+/api/v1/billing/analytics/tax\.<format>/        apps.billing.api.v1.views.analytics.BillingAnalyticsViewSet
+billing:billing-analytics-tax
+/api/v1/billing/checkout/callback/      apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-callback
+/api/v1/billing/checkout/callback/      apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-callback
+/api/v1/billing/checkout/callback\.<format>/    apps.billing.api.v1.views.checkout.CheckoutViewSet
+billing:checkout-callback
+/api/v1/billing/checkout/initialize/    apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-initialize
+/api/v1/billing/checkout/initialize\.<format>/  apps.billing.api.v1.views.checkout.CheckoutViewSet
+billing:checkout-initialize
+/api/v1/billing/checkout/verify/        apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-verify
+/api/v1/billing/checkout/verify/        apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-verify
+/api/v1/billing/checkout/verify\.<format>/      apps.billing.api.v1.views.checkout.CheckoutViewSet      billing:checkout-verify
+/api/v1/billing/invoices/       apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-list
+/api/v1/billing/invoices/<pk>/  apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-detail
+/api/v1/billing/invoices/<pk>/download/ apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-download
+/api/v1/billing/invoices/<pk>/download\.<format>/       apps.billing.api.v1.views.invoices.InvoiceViewSet
 billing:invoice-download
-/api/v1/billing/invoices/<pk>/remind/   apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-remind
-/api/v1/billing/invoices/<pk>/remind\.<format>/ apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-remind
-/api/v1/billing/invoices/<pk>\.<format>/        apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-detail
-/api/v1/billing/invoices/outstanding/   apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-outstanding
-/api/v1/billing/invoices/outstanding\.<format>/ apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:invoice-outstanding
-/api/v1/billing/invoices\.<format>/     apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:invoice-list
-/api/v1/billing/payment-methods/        apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
+/api/v1/billing/invoices/<pk>/pay/      apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-pay
+/api/v1/billing/invoices/<pk>/pay\.<format>/    apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-pay
+/api/v1/billing/invoices/<pk>/send/     apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-send
+/api/v1/billing/invoices/<pk>/send\.<format>/   apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-send
+/api/v1/billing/invoices/<pk>\.<format>/        apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-detail
+/api/v1/billing/invoices/<uuid:pk>/download/    apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-download
+/api/v1/billing/invoices/<uuid:pk>/pay/ apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-pay
+/api/v1/billing/invoices/<uuid:pk>/send/        apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-send
+/api/v1/billing/invoices/summary/       apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-summary
+/api/v1/billing/invoices/summary/       apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-summary
+/api/v1/billing/invoices/summary\.<format>/     apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-summary
+/api/v1/billing/invoices\.<format>/     apps.billing.api.v1.views.invoices.InvoiceViewSet       billing:invoice-list
+/api/v1/billing/payment-methods/        apps.billing.api.v1.views.payment_methods.PaymentMethodViewSet
 billing:payment-method-list
-/api/v1/billing/payment-methods/<pk>/   apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
+/api/v1/billing/payment-methods/<pk>/   apps.billing.api.v1.views.payment_methods.PaymentMethodViewSet
 billing:payment-method-detail
-/api/v1/billing/payment-methods/<pk>/set_default/       apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
+/api/v1/billing/payment-methods/<pk>/set_default/       apps.billing.api.v1.views.payment_methods.PaymentMethodViewSet
 billing:payment-method-set-default
 /api/v1/billing/payment-methods/<pk>/set_default\.<format>/
-apps.billing.api.v1.views.payment_method.PaymentMethodViewSet   billing:payment-method-set-default
-/api/v1/billing/payment-methods/<pk>\.<format>/ apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
+apps.billing.api.v1.views.payment_methods.PaymentMethodViewSet  billing:payment-method-set-default
+/api/v1/billing/payment-methods/<pk>\.<format>/ apps.billing.api.v1.views.payment_methods.PaymentMethodViewSet
 billing:payment-method-detail
-/api/v1/billing/payment-methods/default/        apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
-billing:payment-method-default
-/api/v1/billing/payment-methods/default\.<format>/      apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
-billing:payment-method-default
-/api/v1/billing/payment-methods/expiring_soon/  apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
-billing:payment-method-expiring-soon
-/api/v1/billing/payment-methods/expiring_soon\.<format>/        apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
-billing:payment-method-expiring-soon
-/api/v1/billing/payment-methods\.<format>/      apps.billing.api.v1.views.payment_method.PaymentMethodViewSet
+/api/v1/billing/payment-methods/<uuid:pk>/set-default/  apps.billing.api.v1.views.payment_methods.PaymentMethodViewSet
+billing:payment-method-set-default
+/api/v1/billing/payment-methods\.<format>/      apps.billing.api.v1.views.payment_methods.PaymentMethodViewSet
 billing:payment-method-list
-/api/v1/billing/payments/       apps.billing.api.v1.views.payment.PaymentViewSet        billing:payment-list
-/api/v1/billing/payments/<pk>/  apps.billing.api.v1.views.payment.PaymentViewSet        billing:payment-detail
-/api/v1/billing/payments/<pk>\.<format>/        apps.billing.api.v1.views.payment.PaymentViewSet        billing:payment-detail
-/api/v1/billing/payments\.<format>/     apps.billing.api.v1.views.payment.PaymentViewSet        billing:payment-list
-/api/v1/billing/plans/  apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-list
-/api/v1/billing/plans/<pk>/     apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-detail
-/api/v1/billing/plans/<pk>/features/    apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-features
-/api/v1/billing/plans/<pk>/features\.<format>/  apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-features
-/api/v1/billing/plans/<pk>\.<format>/   apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-detail
-/api/v1/billing/plans/<plan_pk>/features/       apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-features-list
-/api/v1/billing/plans/<plan_pk>/features/<pk>/  apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-features-detail
-/api/v1/billing/plans/<plan_pk>/features/<pk>/features/ apps.billing.api.v1.views.plan.PlanViewSet
-billing:plan-features-features
-/api/v1/billing/plans/<plan_pk>/features/<pk>/features\.<format>/       apps.billing.api.v1.views.plan.PlanViewSet
-billing:plan-features-features
-/api/v1/billing/plans/<plan_pk>/features/<pk>\.<format>/        apps.billing.api.v1.views.plan.PlanViewSet
-billing:plan-features-detail
-/api/v1/billing/plans/<plan_pk>/features/compare/       apps.billing.api.v1.views.plan.PlanViewSet
-billing:plan-features-compare
-/api/v1/billing/plans/<plan_pk>/features/compare\.<format>/     apps.billing.api.v1.views.plan.PlanViewSet
-billing:plan-features-compare
-/api/v1/billing/plans/<plan_pk>/features\.<format>/     apps.billing.api.v1.views.plan.PlanViewSet
-billing:plan-features-list
-/api/v1/billing/plans/<plan_pk>/subscriptions/  apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-list
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/     apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-detail
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/cancel/      apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-cancel
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/cancel\.<format>/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-cancel
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/history/     apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-history
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/history\.<format>/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-history
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/reactivate/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-reactivate
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/reactivate\.<format>/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-reactivate
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/sync/        apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-sync
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>/sync\.<format>/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-sync
-/api/v1/billing/plans/<plan_pk>/subscriptions/<pk>\.<format>/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-detail
-/api/v1/billing/plans/<plan_pk>/subscriptions/current/  apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-current
-/api/v1/billing/plans/<plan_pk>/subscriptions/current\.<format>/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-current
-/api/v1/billing/plans/<plan_pk>/subscriptions/status/   apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-status
-/api/v1/billing/plans/<plan_pk>/subscriptions/status\.<format>/
-apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:plan-subscriptions-status
-/api/v1/billing/plans/<plan_pk>/subscriptions\.<format>/        apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:plan-subscriptions-list
-/api/v1/billing/plans/compare/  apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-compare
-/api/v1/billing/plans/compare\.<format>/        apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-compare
-/api/v1/billing/plans\.<format>/        apps.billing.api.v1.views.plan.PlanViewSet      billing:plan-list
-/api/v1/billing/portal/ apps.billing.api.v1.views.customer_portal.CustomerPortalViewSet billing:portal-list
-/api/v1/billing/portal/<pk>/    apps.billing.api.v1.views.customer_portal.CustomerPortalViewSet billing:portal-detail
-/api/v1/billing/portal/<pk>\.<format>/  apps.billing.api.v1.views.customer_portal.CustomerPortalViewSet
-billing:portal-detail
-/api/v1/billing/portal\.<format>/       apps.billing.api.v1.views.customer_portal.CustomerPortalViewSet billing:portal-list
-/api/v1/billing/quota/  apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-list
-/api/v1/billing/quota/<pk>/     apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-detail
-/api/v1/billing/quota/<pk>\.<format>/   apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-detail
-/api/v1/billing/quota/limits/   apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-limits
-/api/v1/billing/quota/limits\.<format>/ apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-limits
-/api/v1/billing/quota/refresh/  apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-refresh
-/api/v1/billing/quota/refresh\.<format>/        apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-refresh
-/api/v1/billing/quota\.<format>/        apps.billing.api.v1.views.quota.QuotaViewSet    billing:quota-list
-/api/v1/billing/subscriptions/  apps.billing.api.v1.views.subscription.SubscriptionViewSet      billing:subscription-list
-/api/v1/billing/subscriptions/<pk>/     apps.billing.api.v1.views.subscription.SubscriptionViewSet
+/api/v1/billing/plans/  apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-list
+/api/v1/billing/plans/<pk>/     apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-detail
+/api/v1/billing/plans/<pk>\.<format>/   apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-detail
+/api/v1/billing/plans/compare/  apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-compare
+/api/v1/billing/plans/compare/  apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-compare
+/api/v1/billing/plans/compare\.<format>/        apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-compare
+/api/v1/billing/plans/popular/  apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-popular
+/api/v1/billing/plans/popular/  apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-popular
+/api/v1/billing/plans/popular\.<format>/        apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-popular
+/api/v1/billing/plans\.<format>/        apps.billing.api.v1.views.plans.PlanViewSet     billing:plan-list
+/api/v1/billing/portal/ apps.billing.api.v1.views.billing_portal.BillingPortalView      billing:billing-portal
+/api/v1/billing/portal/access/  apps.billing.api.v1.views.billing_portal.BillingPortalView      billing:billing-portal-access
+/api/v1/billing/subscriptions/  apps.billing.api.v1.views.subscriptions.SubscriptionViewSet     billing:subscription-list
+/api/v1/billing/subscriptions/<pk>/     apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
 billing:subscription-detail
-/api/v1/billing/subscriptions/<pk>/cancel/      apps.billing.api.v1.views.subscription.SubscriptionViewSet
+/api/v1/billing/subscriptions/<pk>/cancel/      apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
 billing:subscription-cancel
-/api/v1/billing/subscriptions/<pk>/cancel\.<format>/    apps.billing.api.v1.views.subscription.SubscriptionViewSet
+/api/v1/billing/subscriptions/<pk>/cancel\.<format>/    apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
 billing:subscription-cancel
-/api/v1/billing/subscriptions/<pk>/history/     apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-history
-/api/v1/billing/subscriptions/<pk>/history\.<format>/   apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-history
-/api/v1/billing/subscriptions/<pk>/reactivate/  apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-reactivate
-/api/v1/billing/subscriptions/<pk>/reactivate\.<format>/        apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-reactivate
-/api/v1/billing/subscriptions/<pk>/sync/        apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-sync
-/api/v1/billing/subscriptions/<pk>/sync\.<format>/      apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-sync
-/api/v1/billing/subscriptions/<pk>\.<format>/   apps.billing.api.v1.views.subscription.SubscriptionViewSet
+/api/v1/billing/subscriptions/<pk>/downgrade/   apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-downgrade
+/api/v1/billing/subscriptions/<pk>/downgrade\.<format>/ apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-downgrade
+/api/v1/billing/subscriptions/<pk>/invoices/    apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-invoices
+/api/v1/billing/subscriptions/<pk>/invoices\.<format>/  apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-invoices
+/api/v1/billing/subscriptions/<pk>/renew/       apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-renew
+/api/v1/billing/subscriptions/<pk>/renew\.<format>/     apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-renew
+/api/v1/billing/subscriptions/<pk>/transactions/        apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-transactions
+/api/v1/billing/subscriptions/<pk>/transactions\.<format>/      apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-transactions
+/api/v1/billing/subscriptions/<pk>/upgrade/     apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-upgrade
+/api/v1/billing/subscriptions/<pk>/upgrade\.<format>/   apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-upgrade
+/api/v1/billing/subscriptions/<pk>\.<format>/   apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
 billing:subscription-detail
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/       apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:subscription-invoices-list
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/<pk>/  apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:subscription-invoices-detail
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/<pk>/download/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:subscription-invoices-download
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/<pk>/download\.<format>/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:subscription-invoices-download
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/<pk>/remind/   apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:subscription-invoices-remind
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/<pk>/remind\.<format>/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:subscription-invoices-remind
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/<pk>\.<format>/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:subscription-invoices-detail
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/outstanding/   apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:subscription-invoices-outstanding
-/api/v1/billing/subscriptions/<subscription_pk>/invoices/outstanding\.<format>/
-apps.billing.api.v1.views.invoice.InvoiceViewSet        billing:subscription-invoices-outstanding
-/api/v1/billing/subscriptions/<subscription_pk>/invoices\.<format>/     apps.billing.api.v1.views.invoice.InvoiceViewSet
-billing:subscription-invoices-list
-/api/v1/billing/subscriptions/<subscription_pk>/payments/       apps.billing.api.v1.views.payment.PaymentViewSet
-billing:subscription-payments-list
-/api/v1/billing/subscriptions/<subscription_pk>/payments/<pk>/  apps.billing.api.v1.views.payment.PaymentViewSet
-billing:subscription-payments-detail
-/api/v1/billing/subscriptions/<subscription_pk>/payments/<pk>\.<format>/
-apps.billing.api.v1.views.payment.PaymentViewSet        billing:subscription-payments-detail
-/api/v1/billing/subscriptions/<subscription_pk>/payments\.<format>/     apps.billing.api.v1.views.payment.PaymentViewSet
-billing:subscription-payments-list
-/api/v1/billing/subscriptions/current/  apps.billing.api.v1.views.subscription.SubscriptionViewSet
+/api/v1/billing/subscriptions/<uuid:pk>/cancel/ apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-cancel
+/api/v1/billing/subscriptions/<uuid:pk>/downgrade/      apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-downgrade
+/api/v1/billing/subscriptions/<uuid:pk>/invoices/       apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-invoices
+/api/v1/billing/subscriptions/<uuid:pk>/renew/  apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-renew
+/api/v1/billing/subscriptions/<uuid:pk>/transactions/   apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-transactions
+/api/v1/billing/subscriptions/<uuid:pk>/upgrade/        apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:subscription-upgrade
+/api/v1/billing/subscriptions/current/  apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
+billing:current-subscription
+/api/v1/billing/subscriptions/current/  apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
 billing:subscription-current
-/api/v1/billing/subscriptions/current\.<format>/        apps.billing.api.v1.views.subscription.SubscriptionViewSet
+/api/v1/billing/subscriptions/current\.<format>/        apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
 billing:subscription-current
-/api/v1/billing/subscriptions/status/   apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-status
-/api/v1/billing/subscriptions/status\.<format>/ apps.billing.api.v1.views.subscription.SubscriptionViewSet
-billing:subscription-status
-/api/v1/billing/subscriptions\.<format>/        apps.billing.api.v1.views.subscription.SubscriptionViewSet
+/api/v1/billing/subscriptions\.<format>/        apps.billing.api.v1.views.subscriptions.SubscriptionViewSet
 billing:subscription-list
-/api/v1/billing/webhook/stripe/ apps.billing.api.v1.views.webhook.WebhookView   billing:stripe-webhook
+/api/v1/billing/transactions/   apps.billing.api.v1.views.transactions.TransactionViewSet       billing:transaction-list
+/api/v1/billing/transactions/<pk>/      apps.billing.api.v1.views.transactions.TransactionViewSet       billing:transaction-detail
+/api/v1/billing/transactions/<pk>/refund/       apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-refund
+/api/v1/billing/transactions/<pk>/refund\.<format>/     apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-refund
+/api/v1/billing/transactions/<pk>\.<format>/    apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-detail
+/api/v1/billing/transactions/<uuid:pk>/refund/  apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-refund
+/api/v1/billing/transactions/verify/    apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-verify
+/api/v1/billing/transactions/verify/    apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-verify
+/api/v1/billing/transactions/verify\.<format>/  apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-verify
+/api/v1/billing/transactions\.<format>/ apps.billing.api.v1.views.transactions.TransactionViewSet
+billing:transaction-list
+/api/v1/billing/webhook/paystack/       apps.billing.api.v1.views.webhook.WebhookView   billing:paystack-webhook

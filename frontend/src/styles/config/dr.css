@@ -1,0 +1,198 @@
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.container {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 32rem;
+  width: 90%;
+  margin: 0 1rem;
+  border-top-width: 4px;
+}
+
+.borderSuccess {
+  border-color: #10b981;
+}
+
+.borderFailed {
+  border-color: #ef4444;
+}
+
+.borderRunning {
+  border-color: #3b82f6;
+}
+
+.content {
+  padding: 1.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.iconSuccess {
+  color: #10b981;
+  font-size: 1.875rem;
+}
+
+.iconFailed {
+  color: #ef4444;
+  font-size: 1.875rem;
+}
+
+.iconRunning {
+  color: #3b82f6;
+  font-size: 1.875rem;
+  animation: spin 1s linear infinite;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.progressSection {
+  margin-bottom: 1.5rem;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.progressLabel {
+  color: #4b5563;
+}
+
+.progressPercent {
+  font-weight: 500;
+}
+
+.progressBar {
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  height: 0.5rem;
+}
+
+.progressFill {
+  background: #3b82f6;
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.3s;
+}
+
+.stepInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+.currentStepBox {
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.currentStepContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.currentStepSpinner {
+  animation: spin 1s linear infinite;
+  color: #3b82f6;
+}
+
+.currentStepText {
+  color: #4b5563;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metricCard {
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.metricLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.metricValue {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.successMessage {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: #065f46;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.failedMessage {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: #991b1b;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.closeButton {
+  padding: 0.5rem 1rem;
+  color: #4b5563;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+  background: #f3f4f6;
+}

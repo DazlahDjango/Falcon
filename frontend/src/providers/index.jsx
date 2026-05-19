@@ -1,7 +1,10 @@
+// frontend/src/providers/index.jsx
 import React from 'react';
-import { AuthProvider } from '../contexts/accounts/AuthContext'
+import { AuthProvider } from '../contexts/accounts/AuthContext';
 import { TenantProvider } from '../contexts/tenant/TenantContext';
 import { PermissionProvider } from '../contexts/accounts/PermissionContext';
+import { BillingProviders } from '../contexts/billing';
+import { ConfigProvider, BackupProvider, MaintenanceProvider, DRProvider, WebSocketProvider, ConfigAlertProvider } from '../contexts/config';
 import ThemeProvider from './ThemeProvider';
 import ToastProvider from './ToastProvider';
 import QueryProvider from './QueryProvider';
@@ -10,6 +13,7 @@ import ErrorBoundary from './ErrorBoundary';
 
 const Providers = ({ children }) => {
     return (
+        <ErrorBoundary>
             <StoreProvider>
                 <QueryProvider>
                     <ThemeProvider>
@@ -17,7 +21,21 @@ const Providers = ({ children }) => {
                             <AuthProvider>
                                 <PermissionProvider>
                                     <TenantProvider>
-                                        {children}
+                                        <ConfigProvider>
+                                            <BackupProvider>
+                                                <MaintenanceProvider>
+                                                    <DRProvider>
+                                                        <WebSocketProvider>
+                                                            <ConfigAlertProvider>
+                                                                <BillingProviders>
+                                                                    {children}
+                                                                </BillingProviders>
+                                                            </ConfigAlertProvider>
+                                                        </WebSocketProvider>
+                                                    </DRProvider>
+                                                </MaintenanceProvider>
+                                            </BackupProvider>
+                                        </ConfigProvider>
                                     </TenantProvider>
                                 </PermissionProvider>
                             </AuthProvider>
@@ -25,6 +43,8 @@ const Providers = ({ children }) => {
                     </ThemeProvider>
                 </QueryProvider>
             </StoreProvider>
+        </ErrorBoundary>
     );
 };
+
 export default Providers;

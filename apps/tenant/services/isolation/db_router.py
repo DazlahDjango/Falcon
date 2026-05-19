@@ -5,12 +5,14 @@ This is CRITICAL for multi-tenancy. It ensures each tenant's data stays isolated
 """
 
 import logging
+import threading
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
 class TenantDatabaseRouter:
+    _thread_local = threading.local()
     """
     Database router for multi-tenant applications.
 
@@ -47,6 +49,8 @@ class TenantDatabaseRouter:
         'health_check',
         'apps.tenant',  # Tenant app itself is global
         'apps.core',
+        'configs',      # Global config app
+        'apps.configs',
     ]
 
     # Tenant-specific apps (data that belongs to tenants)
@@ -109,16 +113,32 @@ class TenantDatabaseRouter:
             2. model.tenant_id (if model has it)
             3. model.tenant.id (if model has tenant FK)
         """
-        # Check hints first
-        if 'tenant_id' in hints:
-            return hints['tenant_id']
+        if getattr(self._thread_local, 'is_resolving', False):
+            return None
 
-        if 'instance' in hints:
-            instance = hints['instance']
-            if hasattr(instance, 'tenant_id') and instance.tenant_id:
-                return instance.tenant_id
-            if hasattr(instance, 'tenant') and instance.tenant:
-                return instance.tenant.id
+        self._thread_local.is_resolving = True
+        try:
+            # Check hints first
+            if 'tenant_id' in hints:
+                return hints['tenant_id']
+
+            if 'instance' in hints:
+                instance = hints['instance']
+                # Avoid recursion when evaluating deferred fields
+                deferred_fields = instance.get_deferred_fields() if hasattr(instance, 'get_deferred_fields') else set()
+                
+                if 'tenant_id' not in deferred_fields and hasattr(instance, 'tenant_id'):
+                    val = getattr(instance, 'tenant_id', None)
+                    if val:
+                        return val
+                        
+                if 'tenant' not in deferred_fields and hasattr(instance, 'tenant'):
+                    # Access the ForeignKey's local id field directly without fetching the model
+                    val = getattr(instance, 'tenant_id', None)
+                    if val:
+                        return val
+        finally:
+            self._thread_local.is_resolving = False
 
         return None
 
@@ -172,18 +192,33 @@ class TenantDatabaseRouter:
         tenant2 = self._get_object_tenant(obj2)
 
         # If both have tenant and they are different, deny relation
-        if tenant1 and tenant2 and tenant1 != tenant2:
-            return False
+        if tenant1 and tenant2:
+            if str(tenant1) != str(tenant2):
+                return False
 
         # Allow relation for global objects or same tenant
         return True
 
     def _get_object_tenant(self, obj):
         """Extract tenant ID from object."""
-        if hasattr(obj, 'tenant_id') and obj.tenant_id:
-            return obj.tenant_id
-        if hasattr(obj, 'tenant') and obj.tenant:
-            return obj.tenant.id
+        if getattr(self._thread_local, 'is_resolving', False):
+            return None
+
+        self._thread_local.is_resolving = True
+        try:
+            deferred_fields = obj.get_deferred_fields() if hasattr(obj, 'get_deferred_fields') else set()
+            
+            if 'tenant_id' not in deferred_fields and hasattr(obj, 'tenant_id'):
+                val = getattr(obj, 'tenant_id', None)
+                if val:
+                    return val
+            if 'tenant' not in deferred_fields and hasattr(obj, 'tenant'):
+                val = getattr(obj, 'tenant_id', None)
+                if val:
+                    return val
+        finally:
+            self._thread_local.is_resolving = False
+
         return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):

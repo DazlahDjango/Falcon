@@ -1,229 +1,252 @@
-from enum import Enum
+from django.db import models
 
-class SubscriptionStatus:
-    TRIALING = 'trialing'
-    ACTIVE = 'active'
-    PAST_DUE = 'past_due'
-    CANCELED = 'canceled'
-    INCOMPLETE = 'incomplete'
-    INCOMPLETE_EXPIRED = 'incomplete_expired'
-    UNPAID = 'unpaid'
-    SUSPENDED = 'suspended'
-    CHOICES = [
-        (TRIALING, 'Trialing'),
-        (ACTIVE, 'Active'),
-        (PAST_DUE, 'Past Due'),
-        (CANCELED, 'Canceled'),
-        (INCOMPLETE, 'Incomplete'),
-        (INCOMPLETE_EXPIRED, 'Incomplete Expired'),
-        (UNPAID, 'Unpaid'),
-        (SUSPENDED, 'Suspended'),
-    ]
-    ACTIVE_STATUSES = [TRIALING, ACTIVE]
-    TERMINAL_STATUSES = [CANCELED, INCOMPLETE_EXPIRED]
+# ============================================================================
+# Plan Constants
+# ============================================================================
 
-class InvoiceStatus:
-    DRAFT = 'draft'
-    OPEN = 'open'
-    PAID = 'paid'
-    UNCOLLECTIBLE = 'uncollectible'
-    VOID = 'void'
-    CHOICES = [
-        (DRAFT, 'Draft'),
-        (OPEN, 'Open'),
-        (PAID, 'Paid'),
-        (UNCOLLECTIBLE, 'Uncollectible'),
-        (VOID, 'Void'),
-    ]
-    UNPAID_STATUSES = [DRAFT, OPEN]
-    PAID_STATUSES = [PAID]
-
-class PaymentStatus:
-    SUCCEEDED = 'succeeded'
-    PENDING = 'pending'
-    FAILED = 'failed'
-    REFUNDED = 'refunded'
-    PARTIALLY_REFUNDED = 'partially_refunded'
-    CHOICES = [
-        (SUCCEEDED, 'Succeeded'),
-        (PENDING, 'Pending'),
-        (FAILED, 'Failed'),
-        (REFUNDED, 'Refunded'),
-        (PARTIALLY_REFUNDED, 'Partially Refunded'),
-    ]
-    SUCCESS_STATUSES = [SUCCEEDED]
-    FAILURE_STATUSES = [FAILED, REFUNDED]
-
-class BillingInterval:
-    MONTHLY = 'month'
-    YEARLY = 'year'
-    CHOICES = [
-        (MONTHLY, 'Monthly'),
-        (YEARLY, 'Yearly'),
-    ]
-
-class PlanType:
-    TRIAL = 'trial'
-    BASIC = 'basic'
-    PROFESSIONAL = 'professional'
-    ENTERPRISE = 'enterprise'
-    CHOICES = [
-        (TRIAL, 'Trial'),
-        (BASIC, 'Basic'),
-        (PROFESSIONAL, 'Professional'),
-        (ENTERPRISE, 'Enterprise'),
-    ]
-    PAID_PLANS = [BASIC, PROFESSIONAL, ENTERPRISE]
-
-class PaymentMethodType:
-    CARD = 'card'
-    BANK_ACCOUNT = 'bank_account'
-    MOBILE_MONEY = 'mobile_money'
-    US_BANK = 'us_bank_account'
-    CHOICES = [
-        (CARD, 'Card'),
-        (BANK_ACCOUNT, 'Bank Account'),
-        (MOBILE_MONEY, 'Mobile Money'),
-        (US_BANK, 'US Bank Account'),
-    ]
-
-class QuotaResource:
-    USERS = 'users'
-    ADMINS = 'admins'
-    KPIS = 'kpis'
-    KPI_FRAMEWORKS = 'kpi_frameworks'
-    STORAGE_MB = 'storage_mb'
-    API_CALLS = 'api_calls'
-    ALL_RESOURCES = [USERS, ADMINS, KPIS, KPI_FRAMEWORKS, STORAGE_MB, API_CALLS]
-
-class FeatureFlag:
-    CUSTOM_BRANDING = 'custom_branding'
-    API_ACCESS = 'api_access'
-    SSO = 'sso'
-    ADVANCED_ANALYTICS = 'advanced_analytics'
-    AUDIT_LOGS = 'audit_logs'
-    REPORTS = 'reports'
-    EXPORT = 'export'
-    WEBHOOKS = 'webhooks'
-    MULTI_CURRENCY = 'multi_currency'
-    PRIORITY_SUPPORT = 'priority_support'
-    SLA = 'sla'
-    WHITE_LABEL = 'white_label'
-    ALL_FLAGS = [
-        CUSTOM_BRANDING, API_ACCESS, SSO, ADVANCED_ANALYTICS,
-        AUDIT_LOGS, REPORTS, EXPORT, WEBHOOKS, MULTI_CURRENCY,
-        PRIORITY_SUPPORT, SLA, WHITE_LABEL
-    ]
+class PlanType(models.TextChoices):
+    """Subscription plan types matching the proposal."""
+    TRIAL = 'trial', 'Trial'
+    BASIC = 'basic', 'Basic'
+    PROFESSIONAL = 'professional', 'Professional'
+    ENTERPRISE = 'enterprise', 'Enterprise'
 
 
-class WebhookEventType:
-    CUSTOMER_SUBSCRIPTION_CREATED = 'customer.subscription.created'
-    CUSTOMER_SUBSCRIPTION_UPDATED = 'customer.subscription.updated'
-    CUSTOMER_SUBSCRIPTION_DELETED = 'customer.subscription.deleted'
-    CUSTOMER_SUBSCRIPTION_TRIAL_WILL_END = 'customer.subscription.trial_will_end'
-    INVOICE_PAID = 'invoice.paid'
-    INVOICE_PAYMENT_FAILED = 'invoice.payment_failed'
-    INVOICE_PAYMENT_SUCCEEDED = 'invoice.payment_succeeded'
-    PAYMENT_INTENT_SUCCEEDED = 'payment_intent.succeeded'
-    PAYMENT_INTENT_PAYMENT_FAILED = 'payment_intent.payment_failed'
-    CHECKOUT_SESSION_COMPLETED = 'checkout.session.completed'
-    CUSTOMER_UPDATED = 'customer.updated'
-    CUSTOMER_DELETED = 'customer.deleted'
-    
-    SUBSCRIPTION_EVENTS = [
-        CUSTOMER_SUBSCRIPTION_CREATED,
-        CUSTOMER_SUBSCRIPTION_UPDATED,
-        CUSTOMER_SUBSCRIPTION_DELETED,
-        CUSTOMER_SUBSCRIPTION_TRIAL_WILL_END,
-    ]
-
-    INVOICE_EVENTS = [
-        INVOICE_PAID,
-        INVOICE_PAYMENT_FAILED,
-        INVOICE_PAYMENT_SUCCEEDED,
-    ]
-    
-    PAYMENT_EVENTS = [
-        PAYMENT_INTENT_SUCCEEDED,
-        PAYMENT_INTENT_PAYMENT_FAILED,
-    ]
+class BillingInterval(models.TextChoices):
+    """Billing interval options."""
+    MONTHLY = 'monthly', 'Monthly'
+    YEARLY = 'yearly', 'Yearly'
 
 
-class ErrorCode:
-    SUBSCRIPTION_NOT_FOUND = 'subscription_not_found'
-    SUBSCRIPTION_ALREADY_ACTIVE = 'subscription_already_active'
-    SUBSCRIPTION_CANCELLATION_FAILED = 'subscription_cancellation_failed'
-    PAYMENT_FAILED = 'payment_failed'
-    PAYMENT_METHOD_INVALID = 'payment_method_invalid'
-    INVOICE_NOT_FOUND = 'invoice_not_found'
-    QUOTA_EXCEEDED = 'quota_exceeded'
-    FEATURE_NOT_AVAILABLE = 'feature_not_available'
-    WEBHOOK_SIGNATURE_INVALID = 'webhook_signature_invalid'
-    WEBHOOK_EVENT_ALREADY_PROCESSED = 'webhook_event_already_processed'
-    STRIPE_API_ERROR = 'stripe_api_error'
-    INVALID_BILLING_INTERVAL = 'invalid_billing_interval'
-    PLAN_NOT_FOUND = 'plan_not_found'
-    TENANT_NOT_FOUND = 'tenant_not_found'
-
-DEFAULT_QUOTA_LIMITS = {
+# Plan limits (from proposal)
+PLAN_LIMITS = {
     PlanType.TRIAL: {
-        'max_users': 25,
-        'max_admins': 5,
-        'max_kpis': 100,
-        'max_kpi_frameworks': 3,
-        'max_storage_mb': 5120,  # 5GB
-        'max_api_calls_per_day': 5000,
-        'allow_custom_branding': True,
-        'allow_api_access': False,
-        'allow_sso': False,
-        'allow_advanced_analytics': False,
-        'allow_audit_logs': True,
-        'allow_reports': True,
-        'allow_export': True,
+        'max_users': 10,
+        'max_kpis': 50,
+        'max_departments': 5,
+        'max_storage_mb': 100,
+        'trial_days': 14,
     },
     PlanType.BASIC: {
         'max_users': 50,
-        'max_admins': 10,
-        'max_kpis': 200,
-        'max_kpi_frameworks': 5,
-        'max_storage_mb': 10240,  # 10GB
-        'max_api_calls_per_day': 10000,
-        'allow_custom_branding': False,
-        'allow_api_access': False,
-        'allow_sso': False,
-        'allow_advanced_analytics': False,
-        'allow_audit_logs': True,
-        'allow_reports': True,
-        'allow_export': True,
+        'max_kpis': 100,
+        'max_departments': 10,
+        'max_storage_mb': 500,
+        'price_monthly': 5000,  # KES
+        'price_yearly': 50000,  # KES (2 months free)
     },
     PlanType.PROFESSIONAL: {
         'max_users': 500,
-        'max_admins': 50,
         'max_kpis': 1000,
-        'max_kpi_frameworks': 20,
-        'max_storage_mb': 51200,  # 50GB
-        'max_api_calls_per_day': 50000,
-        'allow_custom_branding': True,
-        'allow_api_access': True,
-        'allow_sso': False,
-        'allow_advanced_analytics': True,
-        'allow_audit_logs': True,
-        'allow_reports': True,
-        'allow_export': True,
+        'max_departments': 50,
+        'max_storage_mb': 5000,
+        'price_monthly': 25000,
+        'price_yearly': 250000,
     },
     PlanType.ENTERPRISE: {
-        'max_users': 10000,
-        'max_admins': 500,
-        'max_kpis': 10000,
-        'max_kpi_frameworks': 100,
-        'max_storage_mb': 512000,  # 500GB
-        'max_api_calls_per_day': 500000,
-        'allow_custom_branding': True,
-        'allow_api_access': True,
-        'allow_sso': True,
-        'allow_advanced_analytics': True,
-        'allow_audit_logs': True,
-        'allow_reports': True,
-        'allow_export': True,
+        'max_users': -1,  # Unlimited
+        'max_kpis': -1,   # Unlimited
+        'max_departments': -1,
+        'max_storage_mb': -1,
+        'price_monthly': 100000,
+        'price_yearly': 1000000,
     },
+}
+
+
+# ============================================================================
+# Subscription Status Constants
+# ============================================================================
+
+class SubscriptionStatus(models.TextChoices):
+    """Subscription lifecycle statuses."""
+    ACTIVE = 'active', 'Active'
+    TRIALING = 'trialing', 'Trialing'
+    PAST_DUE = 'past_due', 'Past Due'
+    CANCELLED = 'cancelled', 'Cancelled'
+    EXPIRED = 'expired', 'Expired'
+    PENDING_CANCELLATION = 'pending_cancellation', 'Pending Cancellation'
+
+
+# ============================================================================
+# Transaction Constants
+# ============================================================================
+
+class TransactionStatus(models.TextChoices):
+    """Transaction processing statuses."""
+    PENDING = 'pending', 'Pending'
+    SUCCESS = 'success', 'Success'
+    FAILED = 'failed', 'Failed'
+    REFUNDED = 'refunded', 'Refunded'
+    DISPUTED = 'disputed', 'Disputed'
+
+
+class TransactionType(models.TextChoices):
+    """Types of transactions."""
+    SUBSCRIPTION = 'subscription', 'Subscription Creation'
+    RENEWAL = 'renewal', 'Renewal'
+    UPGRADE = 'upgrade', 'Upgrade'
+    DOWNGRADE = 'downgrade', 'Downgrade'
+    REFUND = 'refund', 'Refund'
+    ONE_TIME = 'one_time', 'One Time Payment'
+
+
+# ============================================================================
+# Invoice Constants
+# ============================================================================
+
+class InvoiceStatus(models.TextChoices):
+    """Invoice lifecycle statuses."""
+    DRAFT = 'draft', 'Draft'
+    PENDING = 'pending', 'Pending'
+    PAID = 'paid', 'Paid'
+    OVERDUE = 'overdue', 'Overdue'
+    CANCELLED = 'cancelled', 'Cancelled'
+    REFUNDED = 'refunded', 'Refunded'
+
+
+# ============================================================================
+# Webhook Constants
+# ============================================================================
+
+class WebhookEventType(models.TextChoices):
+    """PayStack webhook event types."""
+    CHARGE_SUCCESS = 'charge.success', 'Charge Success'
+    SUBSCRIPTION_CREATE = 'subscription.create', 'Subscription Create'
+    SUBSCRIPTION_DISABLE = 'subscription.disable', 'Subscription Disable'
+    SUBSCRIPTION_ENABLE = 'subscription.enable', 'Subscription Enable'
+    INVOICE_CREATE = 'invoice.create', 'Invoice Create'
+    INVOICE_UPDATE = 'invoice.update', 'Invoice Update'
+    INVOICE_PAYMENT_FAILED = 'invoice.payment_failed', 'Invoice Payment Failed'
+    PAYMENTREQUEST_SUCCESS = 'paymentrequest.success', 'Payment Request Success'
+
+
+class WebhookProcessingStatus(models.TextChoices):
+    """Webhook processing statuses."""
+    PENDING = 'pending', 'Pending'
+    PROCESSED = 'processed', 'Processed'
+    FAILED = 'failed', 'Failed'
+    DUPLICATE = 'duplicate', 'Duplicate'
+
+
+# ============================================================================
+# Payment Method Constants
+# ============================================================================
+
+class PaymentMethodType(models.TextChoices):
+    """Types of payment methods."""
+    CARD = 'card', 'Card'
+    BANK = 'bank', 'Bank Account'
+    USSD = 'ussd', 'USSD'
+    QR = 'qr', 'QR Code'
+    MOBILE_MONEY = 'mobile_money', 'Mobile Money'
+
+
+class PaymentMethodStatus(models.TextChoices):
+    """Payment method statuses."""
+    ACTIVE = 'active', 'Active'
+    EXPIRED = 'expired', 'Expired'
+    REMOVED = 'removed', 'Removed'
+    DEFAULT = 'default', 'Default'
+
+
+# ============================================================================
+# Audit Log Constants
+# ============================================================================
+
+class AuditAction(models.TextChoices):
+    """Audit log action types."""
+    CREATE = 'create', 'Create'
+    UPDATE = 'update', 'Update'
+    DELETE = 'delete', 'Delete'
+    VIEW = 'view', 'View'
+    PAYMENT = 'payment', 'Payment'
+    REFUND = 'refund', 'Refund'
+    CANCEL = 'cancel', 'Cancel'
+    RENEW = 'renew', 'Renew'
+    UPGRADE = 'upgrade', 'Upgrade'
+    DOWNGRADE = 'downgrade', 'Downgrade'
+    WEBHOOK = 'webhook', 'Webhook'
+    LOGIN = 'login', 'Login'
+    LOGOUT = 'logout', 'Logout'
+
+
+class AuditResource(models.TextChoices):
+    """Audit log resource types."""
+    PLAN = 'plan', 'Plan'
+    SUBSCRIPTION = 'subscription', 'Subscription'
+    TRANSACTION = 'transaction', 'Transaction'
+    INVOICE = 'invoice', 'Invoice'
+    PAYMENT_METHOD = 'payment_method', 'Payment Method'
+    WEBHOOK = 'webhook', 'Webhook'
+    CUSTOMER = 'customer', 'Customer'
+
+
+# ============================================================================
+# Billing Settings Constants
+# ============================================================================
+
+class Currency(models.TextChoices):
+    """Supported currencies."""
+    KES = 'KES', 'Kenyan Shilling'
+    USD = 'USD', 'US Dollar'
+    GBP = 'GBP', 'British Pound'
+    EUR = 'EUR', 'Euro'
+
+
+# Default values
+DEFAULT_CURRENCY = Currency.KES
+DEFAULT_TAX_RATE = 0.16  # 16% VAT for Kenya
+INVOICE_PREFIX = 'FALCON'
+PAYMENT_TIMEOUT_MINUTES = 30
+IDEMPOTENCY_TTL_HOURS = 24
+WEBHOOK_RETRY_MAX_ATTEMPTS = 3
+WEBHOOK_RETRY_DELAY_MINUTES = 5
+# Feature Flags (from proposal)
+FEATURE_FLAGS = {
+    'custom_branding': 'Custom branding and theming',
+    'api_access': 'REST API access',
+    'sso_enabled': 'Single Sign-On integration',
+    'advanced_analytics': 'Advanced analytics and reporting',
+    'audit_logs': 'Comprehensive audit logging',
+    'custom_reports': 'Custom report builder',
+    'priority_support': '24/7 priority support',
+    'unlimited_users': 'Unlimited user accounts',
+    'unlimited_kpis': 'Unlimited KPIs',
+    'data_export': 'Bulk data export',
+    'webhooks': 'Custom webhook endpoints',
+    'white_label': 'White label solution',
+}
+
+# Plan to feature mapping
+PLAN_FEATURES = {
+    PlanType.TRIAL: [
+        'audit_logs',
+    ],
+    PlanType.BASIC: [
+        'audit_logs',
+        'data_export',
+    ],
+    PlanType.PROFESSIONAL: [
+        'custom_branding',
+        'api_access',
+        'advanced_analytics',
+        'audit_logs',
+        'data_export',
+        'custom_reports',
+    ],
+    PlanType.ENTERPRISE: [
+        'custom_branding',
+        'api_access',
+        'sso_enabled',
+        'advanced_analytics',
+        'audit_logs',
+        'custom_reports',
+        'priority_support',
+        'unlimited_users',
+        'unlimited_kpis',
+        'data_export',
+        'webhooks',
+        'white_label',
+    ],
 }

@@ -1,13 +1,6 @@
 # config/celery_queues.py
 from kombu import Queue, Exchange
 
-# Exchange definitions
-default_exchange = Exchange('default', type='direct')
-priority_exchange = Exchange('priority', type='direct')
-billing_exchange = Exchange('billing', type='direct')
-webhook_exchange = Exchange('webhook', type='direct')
-email_exchange = Exchange('email', type='direct')
-
 task_queues = [
     # ========= KPI ======
     Queue('default', Exchange('default'), routing_key='default'),
@@ -41,41 +34,40 @@ task_queues = [
     # ADD THESE TWO MISSING QUEUES:
     Queue('reviews_reports', Exchange('reviews_reports'), routing_key='reviews_reports'),      # NEW - for report generation
     Queue('reviews_aggregation', Exchange('reviews_aggregation'), routing_key='reviews_aggregation'),  # NEW - for data aggregation
-    # ======== Billing ======
-    Queue('priority', priority_exchange, routing_key='priority'),
-    Queue('billing', billing_exchange, routing_key='billing'),
-    Queue('webhook', webhook_exchange, routing_key='webhook'),
-    Queue('email', email_exchange, routing_key='email'),
-    Queue('default', default_exchange, routing_key='default'),
+    
+    # ======== Config =============
+    Queue('default', Exchange('default'), routing_key='default'),
+    Queue('backup', Exchange('backup'), routing_key='backup', consumer_arguments={'prefetch_count': 1}),
+    Queue('restore', Exchange('restore'), routing_key='restore', consumer_arguments={'prefetch_count': 1}),
+    Queue('maintenance', Exchange('maintenance'), routing_key='maintenance'),
+    Queue('dr', Exchange('dr'), routing_key='dr', consumer_arguments={'prefetch_count': 1}),
+    Queue('health_check', Exchange('health_check'), routing_key='health_check'),
+    Queue('scheduler', Exchange('scheduler'), routing_key='scheduler'),
+    Queue('analytics', Exchange('analytics'), routing_key='analytics'),
+    Queue('notifications', Exchange('notifications'), routing_key='notifications'), 
 ]
 
-# Queue configuration
+# Queue for billing
 QUEUE_CONFIG = {
-    'priority': {
-        'max_retries': 3,
-        'time_limit': 300,  # 5 minutes
-        'soft_time_limit': 240,
-    },
     'billing': {
-        'max_retries': 5,
-        'time_limit': 600,  # 10 minutes
-        'soft_time_limit': 540,
+        'exchange': 'billing',
+        'routing_key': 'billing',
     },
-    'webhook': {
-        'max_retries': 3,
-        'time_limit': 120,  # 2 minutes
-        'soft_time_limit': 100,
-        'prefetch_count': 1,  # Process one webhook at a time
+    'notifications': {
+        'exchange': 'notifications',
+        'routing_key': 'notifications',
     },
-    'email': {
-        'max_retries': 5,
-        'time_limit': 60,  # 1 minute
-        'soft_time_limit': 50,
+    'webhooks': {
+        'exchange': 'webhooks',
+        'routing_key': 'webhooks',
+    },
+    'cleanup': {
+        'exchange': 'cleanup',
+        'routing_key': 'cleanup',
     },
     'default': {
-        'max_retries': 3,
-        'time_limit': 300,
-        'soft_time_limit': 240,
+        'exchange': 'default',
+        'routing_key': 'default',
     },
 }
 

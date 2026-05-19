@@ -66,7 +66,8 @@ class JWTServices:
             logger.debug(f"Token verification failed: {str(e)}")
             return None
         except Exception as e:
-            logger.error(f"Token verification error: {str(e)}")
+            import traceback
+            logger.error(f"Token verification error: {str(e)}\n{traceback.format_exc()}")
             return None
         
     def blacklist_token(self, token: str, user: User = None, reason: str = 'logout') -> bool:
