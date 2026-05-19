@@ -6,7 +6,8 @@ import { BILLING_ROUTES, ADMIN_BILLING_ROUTES } from '../../../config/constants/
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
-    FiCloud, FiHardDrive, FiRefreshCw, FiGrid, FiHeart, FiCreditCard
+    FiCloud, FiHardDrive, FiRefreshCw, FiGrid, FiHeart, FiCreditCard, FiFlag, FiSliders
+    // ✅ ADDED FiFlag and FiSliders for Reviews icons
 } from 'react-icons/fi';
 import { MdDomain, MdBusiness, MdStorage, MdBackup, MdSchema } from 'react-icons/md';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
@@ -26,13 +27,13 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         tenantSpecific: true,
         billing: true,
         adminBilling: true,
+        reviews: true, // ✅ ADDED - for Reviews section expand/collapse
     });
     const { tenantId: paramTenantId } = useParams();
     const location = useLocation();
     const currentTenant = useSelector((state) => state.appTenant.currentTenant);
     const hasTenantContext = paramTenantId || currentTenant?.id;
 
-    // ✅ Add toggleMenu function
     const toggleMenu = (menuKey) => {
         setExpandedMenus(prev => ({
             ...prev,
@@ -44,7 +45,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         const baseItems = [
             { path: '/dashboard', name: 'Dashboard', icon: FiHome, roles: ['all'] },
             { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2, roles: ['all'] },
-            { path: '/reviews', name: 'Reviews', icon: FiFileText, roles: ['all'] },
+            // ✅ REMOVED old reviews entry from baseItems - now has its own section
         ];
         const teamItems = [
             { path: '/team', name: 'Team', icon: FiUsers, roles: ['super_admin', 'client_admin', 'executive', 'supervisor'] },
@@ -81,7 +82,6 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/tenants/create', name: 'Create Tenant', icon: MdBusiness, roles: ['super_admin'] },
         ];
         
-        // ✅ Fixed: Added :tenantId to all paths
         const tenantSpecificItems = [
             { path: '/tenants/:tenantId', name: 'Tenant Overview', icon: MdBusiness, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/edit', name: 'Edit Tenant', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
@@ -109,6 +109,21 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
             { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
         ];
+
+        // ✅ ADDED - Reviews navigation items
+        const reviewsItems = [
+            { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
+            { path: '/reviews/cycles', name: 'Review Cycles', icon: FiCalendar, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
+            { path: '/reviews/self-assessment', name: 'Self Assessment', icon: FiUserCheck, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
+            { path: '/reviews/review-queue', name: 'Review Queue', icon: FiActivity, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
+            { path: '/reviews/final-ratings', name: 'Final Ratings', icon: FiBarChart2, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
+            { path: '/reviews/pips', name: 'Performance Plans', icon: FiFlag, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
+            { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
+            { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders, roles: ['supervisor', 'client_admin', "super_admin"] },
+            { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText, roles: ['supervisor', 'client_admin', 'client_admin', 'executive'] },
+            { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings, roles: ['super_admin'] },
+        ];
+
         const adminItems = [
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
             { path: '/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
@@ -131,6 +146,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ADMIN_BILLING_ROUTES.ALL_INVOICES, name: 'All Invoices', icon: FiFileText, roles: ['super_admin'] },
         ];
         
+        // ✅ UPDATED return statement - added reviews
         return {
             main: baseItems,
             team: teamItems,
@@ -142,6 +158,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             tenantSpecific: tenantSpecificItems,
             connections: connectionItems,
             kpi: kpiItems,
+            reviews: reviewsItems, // ✅ ADDED - Reviews section
             billing: billingItems,
             adminBilling: adminBillingItems,
             admin: adminItems
@@ -240,6 +257,9 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 
                 {user?.role === 'super_admin' && renderNavGroup('Connection Management', navigation.connections, 'connections')}
                 {renderNavGroup('KPI', navigation.kpi, 'kpi')}
+                
+                {/* ✅ ADDED - Reviews section in sidebar navigation */}
+                {renderNavGroup('Reviews', navigation.reviews, 'reviews')}
                 
                 {(user?.role === 'super_admin' || user?.role === 'client_admin') && 
                     renderNavGroup('Billing', navigation.billing, 'billing')

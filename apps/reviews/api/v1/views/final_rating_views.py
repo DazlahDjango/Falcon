@@ -205,16 +205,16 @@ class FinalRatingViewSet(BaseReviewViewSet):
         """
         Get final ratings for manager's team.
         """
-        manager = request.user
+        supervisor = request.user
         
-        if manager.role not in ['manager', 'executive', 'admin', 'hr']:
+        if supervisor.role not in ['supervisor', 'executive', 'super_admin', 'client_admin', 'dashboard_champion']:
             return Response(
                 {'error': 'You do not have permission to view team ratings'},
                 status=status.HTTP_403_FORBIDDEN
             )
         
         # Get direct reports
-        direct_reports = manager.direct_reports.all()
+        direct_reports = supervisor.direct_reports.all()
         
         ratings = self.get_queryset().filter(
             employee__in=direct_reports

@@ -1,0 +1,542 @@
+/* src/components/reviews/pip/pip.css */
+
+/* ========== PIP Container ========== */
+.pip-container {
+    padding: 1.5rem;
+}
+
+.pip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pip-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.pip-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* ========== PIP Stats ========== */
+.pip-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.pip-stat-card {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
+    text-align: center;
+}
+
+.pip-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.pip-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* ========== PIP Card ========== */
+.pip-card {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.pip-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.pip-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.pip-card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.pip-card-employee {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.pip-card-dates {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.5rem 0;
+}
+
+.pip-card-progress {
+    margin-top: 0.75rem;
+}
+
+.pip-progress-bar {
+    height: 0.5rem;
+    background: #e5e7eb;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.pip-progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 0.25rem;
+    transition: width 0.3s ease;
+}
+
+.pip-progress-fill.completed {
+    background: #10b981;
+}
+
+.pip-progress-fill.warning {
+    background: #f59e0b;
+}
+
+.pip-progress-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
+/* ========== PIP Detail ========== */
+.pip-detail {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.pip-detail-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.pip-detail-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.pip-detail-section:last-child {
+    border-bottom: none;
+}
+
+.pip-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.pip-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.pip-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.pip-info-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+}
+
+.pip-info-value {
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+/* ========== PIP Action List ========== */
+.pip-action-list {
+    margin-top: 1rem;
+}
+
+.pip-action-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    gap: 1rem;
+}
+
+.pip-action-item:last-child {
+    border-bottom: none;
+}
+
+.pip-action-status {
+    width: 24px;
+    text-align: center;
+}
+
+.pip-action-status.completed {
+    color: #10b981;
+}
+
+.pip-action-status.missed {
+    color: #ef4444;
+}
+
+.pip-action-status.pending {
+    color: #f59e0b;
+}
+
+.pip-action-content {
+    flex: 1;
+}
+
+.pip-action-title {
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.pip-action-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.pip-action-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.pip-action-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ========== PIP Action Form ========== */
+.pip-action-form {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+/* ========== PIP Review Form ========== */
+.pip-review-form {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.review-rating-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.review-rating-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.review-rating-btn.selected {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+.review-rating-btn.no-progress.selected {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.review-rating-btn.excellent.selected {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+/* ========== Status Badge ========== */
+.pip-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.pip-status-draft {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.pip-status-active {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.pip-status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.pip-status-failed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.pip-severity-minor {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.pip-severity-moderate {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.pip-severity-severe {
+    background: #fed7aa;
+    color: #9a3412;
+}
+
+.pip-severity-critical {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ========== Form Elements ========== */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-label.required::after {
+    content: '*';
+    color: #ef4444;
+    margin-left: 0.25rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    background: white;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-error {
+    font-size: 0.75rem;
+    color: #ef4444;
+    margin-top: 0.25rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ========== Buttons ========== */
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+}
+
+/* ========== Loading & Empty States ========== */
+.pip-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    font-size: 1rem;
+    color: #6b7280;
+}
+
+.pip-empty {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+    .pip-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .pip-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pip-action-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .pip-action-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

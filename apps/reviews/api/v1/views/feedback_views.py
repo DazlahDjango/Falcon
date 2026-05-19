@@ -20,7 +20,7 @@ from ..serializers import (
     FeedbackSummarySerializer,
     FeedbackSummaryShareSerializer,
 )
-from .base_views import BaseReviewViewSet, BaseReadOnlyViewSet
+from .base_views import BaseReviewViewSet, BaseReviewViewSet
 from ..permissions import (
     CanRequestFeedback,
     CanProvideFeedback,
@@ -315,7 +315,7 @@ class FeedbackResponseViewSet(BaseReviewViewSet):
         return Response(serializer.data)
 
 
-class FeedbackSummaryViewSet(BaseReadOnlyViewSet):
+class FeedbackSummaryViewSet(BaseReviewViewSet):
     """
     ViewSet for Feedback Summaries (read-only).
     

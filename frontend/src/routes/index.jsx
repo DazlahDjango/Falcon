@@ -8,6 +8,7 @@ import tenantRoutes from "./tenant.routes";
 import structureRoutes from "./structure.routes";
 import kpiRoutes from "./kpi.routes";
 import billingRoutes from "./billing.routes";
+import reviewsRoutes from "./reviews.routes";  // ← LINE 1: ADD THIS IMPORT
 
 // Layouts
 const MainLayout = React.lazy(() => import("../components/common/Layout/MainLayout"));
@@ -60,6 +61,8 @@ const AppRouter = () => {
                     {renderRoutes(kpiRoutes)}
                     {/* Billing routes */}
                     {renderRoutes(billingRoutes)}
+                    {/* Reviews routes - ADD THIS LINE */}
+                    {renderRoutes(reviewsRoutes)}  {/* ← LINE 2: ADD THIS LINE */}
                     {/* Error routes */}
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="/server-error" element={<ServerError />} />

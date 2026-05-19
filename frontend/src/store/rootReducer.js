@@ -72,6 +72,12 @@ import {
 // Billing App Reducer
 // ===================================
 import { planReducer, subscriptionReducer, quotaReducer, paymentReducer, paymentMethodReducer, invoiceReducer } from './billing';
+
+// ===============================
+// Reviews Reducers
+// ===============================
+import { reviewsReducer } from './reviews';
+
 const rootReducer = combineReducers({
     // Accounts State
     auth: authReducer,
@@ -136,6 +142,9 @@ const rootReducer = combineReducers({
     billingPayments: paymentReducer,
     billingPaymentMethods: paymentMethodReducer,
     billingInvoices: invoiceReducer,
+
+    // Reviews State
+    reviews: reviewsReducer,
 
 });
 

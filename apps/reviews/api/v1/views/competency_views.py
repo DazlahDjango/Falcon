@@ -16,7 +16,7 @@ from ..serializers import (
     CompetencyRatingSerializer,
     CompetencyRatingBulkSerializer,
 )
-from .base_views import BaseReviewViewSet, BaseReadOnlyViewSet
+from .base_views import BaseReviewViewSet, BaseReviewViewSet
 from ..permissions import CanEditReview, IsAdminOrReadOnly
 from ..filters import TenantFilter
 
@@ -131,7 +131,7 @@ class CompetencyViewSet(BaseReviewViewSet):
         })
 
 
-class CompetencyRatingViewSet(BaseReadOnlyViewSet):
+class CompetencyRatingViewSet(BaseReviewViewSet):
     """
     ViewSet for Competency Ratings (read-only).
     

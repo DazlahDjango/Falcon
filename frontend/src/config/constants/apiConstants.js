@@ -118,13 +118,13 @@ export const API_ENDPOINTS = {
 };
 
 // // Reviews
-//     REVIEWS: '/reviews/',
-//     REVIEW_DETAIL: '/reviews/{id}/',
-//     REVIEW_APPROVE: '/reviews/{id}/approve/',
-//     REVIEW_SELF_ASSESSMENT: '/reviews/self-assessment/',
-//     SUPERVISOR_EVALUATION: '/reviews/supervisor/',
-//     PIP_LIST: '/reviews/pip/',
-//     PIP_DETAIL: '/reviews/pip/{id}/',
+    //  REVIEWS: '/reviews/',
+    //  REVIEW_DETAIL: '/reviews/{id}/',
+    //  REVIEW_APPROVE: '/reviews/{id}/approve/',
+    //  REVIEW_SELF_ASSESSMENT: '/reviews/self-assessment/',
+    //  SUPERVISOR_EVALUATION: '/reviews/supervisor/',
+    //  PIP_LIST: '/reviews/pip/',
+    //  PIP_DETAIL: '/reviews/pip/{id}/',
     
 //     // Missions
 //     MISSIONS: '/missions/',

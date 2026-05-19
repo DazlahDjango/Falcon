@@ -1,0 +1,416 @@
+/* src/components/reviews/assessment/assessment.css */
+
+/* ========== Assessment Container ========== */
+.assessment-container {
+    padding: 1.5rem;
+}
+
+.assessment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.assessment-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.assessment-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* ========== Assessment Form ========== */
+.assessment-form {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.assessment-section {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.assessment-section-header {
+    padding: 1rem 1.5rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.assessment-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.assessment-section-body {
+    padding: 1.5rem;
+}
+
+.assessment-field {
+    margin-bottom: 1.25rem;
+}
+
+.assessment-field-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.assessment-field-label.required::after {
+    content: '*';
+    color: #ef4444;
+    margin-left: 0.25rem;
+}
+
+.assessment-field-input,
+.assessment-field-textarea,
+.assessment-field-select {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.assessment-field-input:focus,
+.assessment-field-textarea:focus,
+.assessment-field-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.assessment-field-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* ========== Competency Rating Table ========== */
+.competency-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.competency-table th,
+.competency-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.competency-table th {
+    font-weight: 600;
+    color: #374151;
+    background: #f9fafb;
+}
+
+.competency-rating-input {
+    width: 80px;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    text-align: center;
+}
+
+.competency-rating-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+/* ========== Review Queue ========== */
+.review-queue {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.review-queue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.review-queue-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.review-queue-stat {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    flex: 1;
+    border: 1px solid #e5e7eb;
+}
+
+.review-queue-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.review-queue-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* ========== Review Queue Card ========== */
+.review-queue-card {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.review-queue-card:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.review-queue-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.review-queue-card-employee {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.review-queue-card-department {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.review-queue-card-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-submitted {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.review-queue-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+/* ========== Assessment Comparison ========== */
+.comparison-container {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.comparison-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    background: #f9fafb;
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.comparison-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.comparison-row:last-child {
+    border-bottom: none;
+}
+
+.comparison-gap-positive {
+    color: #ef4444;
+}
+
+.comparison-gap-negative {
+    color: #10b981;
+}
+
+.comparison-gap-neutral {
+    color: #6b7280;
+}
+
+/* ========== Assessment Actions ========== */
+.assessment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ========== Buttons ========== */
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+}
+
+/* ========== Loading & Empty States ========== */
+.assessment-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    font-size: 1rem;
+    color: #6b7280;
+}
+
+.assessment-empty {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+    .assessment-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .comparison-header,
+    .comparison-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .review-queue-stats {
+        flex-direction: column;
+    }
+    
+    .competency-table {
+        display: block;
+        overflow-x: auto;
+    }
+}

@@ -33,7 +33,6 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),  # Added trailing slash
     # Health
     path('health/', include('health_check.urls')),
-    # path('api/v1/', include(('config.urls.api', 'v1'))),
     # API Docs
     path('api/docs/', schema_view.with_ui('swagger',
          cache_timeout=0), name='schema-swagger-ui'),
@@ -46,6 +45,7 @@ urlpatterns = [
     path('api/v1/structure/', include('apps.structure.urls')),
     path('api/v1/kpis/', include('apps.kpi.urls')),
     path('api/v1/billing/', include('apps.billing.api.v1.urls')),
+    path('api/v1/reviews/', include('apps.reviews.urls')),  # ADD THIS LINE - Reviews app
     path('api/v1/health/', health_check, name='api-health'),
 ]
 

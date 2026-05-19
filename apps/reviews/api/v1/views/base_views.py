@@ -74,7 +74,7 @@ class BaseReviewViewSet(viewsets.ModelViewSet):
         return super().handle_exception(exc)
 
 
-class BaseReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
+class BaseReviewViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Base ReadOnly ViewSet for models that only need GET access.
     """

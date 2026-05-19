@@ -1,0 +1,22 @@
+// src/pages/reviews/index.js
+export { default as DashboardPage } from './DashboardPage';
+export { default as RatingScalesPage } from './RatingScalesPage';
+export { default as RatingScaleDetailPage } from './RatingScaleDetailPage';
+export { default as CompetenciesPage } from './CompetenciesPage';
+export { default as CyclesPage } from './CyclesPage';
+export { default as CycleDetailPage } from './CycleDetailPage';
+export { default as SelfAssessmentPage } from './SelfAssessmentPage';
+export { default as SupervisorReviewPage } from './SupervisorReviewPage';
+export { default as ReviewQueuePage } from './ReviewQueuePage';
+export { default as FinalRatingsPage } from './FinalRatingsPage';
+export { default as FinalRatingDetailPage } from './FinalRatingDetailPage';
+export { default as PIPsPage } from './PIPsPage';
+export { default as PIPDetailPage } from './PIPDetailPage';
+export { default as CreatePIPPage } from './CreatePIPPage';
+export { default as FeedbackPage } from './FeedbackPage';
+export { default as FeedbackResponsePage } from './FeedbackResponsePage';
+export { default as CalibrationPage } from './CalibrationPage';
+export { default as CalibrationSessionPage } from './CalibrationSessionPage';
+export { default as CalibrationSessionDetailPage } from './CalibrationSessionDetailPage';
+export { default as ReportsPage } from './ReportsPage';
+export { default as SettingsPage } from './SettingsPage';

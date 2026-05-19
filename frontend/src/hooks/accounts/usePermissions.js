@@ -15,6 +15,7 @@ export const usePermissions = () => {
     const canManageUser = useCallback(() => true, []);
     const canViewUser = useCallback(() => true, []);
     
+    
     return {
         permissions: [],
         isLoading: false,
