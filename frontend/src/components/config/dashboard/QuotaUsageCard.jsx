@@ -1,7 +1,9 @@
 import { FiPieChart, FiAlertCircle } from 'react-icons/fi';
 
 export const QuotaUsageCard = ({ usagePercent, totalGB, usedGB }) => {
-  const percent = usagePercent || 0;
+  const percent = Number(usagePercent) || 0;
+  const totalStorage = Number(totalGB) || 0;
+  const usedStorage = Number(usedGB) || 0;
   const getProgressColor = () => {
     if (percent >= 95) return 'bg-red-500';
     if (percent >= 80) return 'bg-yellow-500';
@@ -31,10 +33,10 @@ export const QuotaUsageCard = ({ usagePercent, totalGB, usedGB }) => {
       <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
         <div className={`h-2 rounded-full transition-all ${getProgressColor()}`} style={{ width: `${Math.min(percent, 100)}%` }} />
       </div>
-      {totalGB && usedGB && (
+      {totalStorage > 0 && usedStorage >= 0 && (
         <div className="flex justify-between text-xs text-gray-500">
-          <span>Used: {usedGB.toFixed(1)} GB</span>
-          <span>Total: {totalGB.toFixed(1)} GB</span>
+          <span>Used: {usedStorage.toFixed(1)} GB</span>
+          <span>Total: {totalStorage.toFixed(1)} GB</span>
         </div>
       )}
     </div>

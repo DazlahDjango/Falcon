@@ -62,7 +62,8 @@ const IndividualDashboard = ({
         }
         setRefreshing(false);
     };
-    if (isLoading && !dashboardData) {
+
+    if (!dashboardData) {
         return (
             <div className={styles.emptyContainer}>
                 <p>No data available for the selected period.</p>
@@ -72,6 +73,7 @@ const IndividualDashboard = ({
             </div>
         );
     }
+
     const { overallScore, kpis, recentActivity } = dashboardData;
     return (
         <div className={styles.dashboard}>

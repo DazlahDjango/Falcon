@@ -21,22 +21,21 @@ const Providers = ({ children }) => {
                             <AuthProvider>
                                 <PermissionProvider>
                                     <TenantProvider>
-                                        <BillingProviders>
-                                            {/* Config App Providers */}
-                                            <ConfigProvider>
-                                                <BackupProvider>
-                                                    <MaintenanceProvider>
-                                                        <DRProvider>
-                                                            <WebSocketProvider>
-                                                                <ConfigAlertProvider>
+                                        <ConfigProvider>
+                                            <BackupProvider>
+                                                <MaintenanceProvider>
+                                                    <DRProvider>
+                                                        <WebSocketProvider>
+                                                            <ConfigAlertProvider>
+                                                                <BillingProviders>
                                                                     {children}
-                                                                </ConfigAlertProvider>
-                                                            </WebSocketProvider>
-                                                        </DRProvider>
-                                                    </MaintenanceProvider>
-                                                </BackupProvider>
-                                            </ConfigProvider>
-                                        </BillingProviders>
+                                                                </BillingProviders>
+                                                            </ConfigAlertProvider>
+                                                        </WebSocketProvider>
+                                                    </DRProvider>
+                                                </MaintenanceProvider>
+                                            </BackupProvider>
+                                        </ConfigProvider>
                                     </TenantProvider>
                                 </PermissionProvider>
                             </AuthProvider>

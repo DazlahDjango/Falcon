@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setNotificationChannels, setAlertThresholds } from '../../../store/config/slices/configSettingsSlice';
-import { FiMail, FiMessageSquare, FiBell, FiWebhook } from 'react-icons/fi';
+import { FiMail, FiMessageSquare, FiBell, FiLink } from 'react-icons/fi';  // Changed FiWebhook to FiLink
 
 export const NotificationSettingsTab = () => {
   const dispatch = useDispatch();
@@ -20,7 +20,7 @@ export const NotificationSettingsTab = () => {
     { id: 'email', label: 'Email', icon: FiMail, description: 'Send email notifications' },
     { id: 'in_app', label: 'In-App', icon: FiBell, description: 'Show in-app notifications' },
     { id: 'slack', label: 'Slack', icon: FiMessageSquare, description: 'Send to Slack webhook' },
-    { id: 'webhook', label: 'Webhook', icon: FiWebhook, description: 'Send to custom webhook' }
+    { id: 'webhook', label: 'Webhook', icon: FiLink, description: 'Send to custom webhook' }  // Changed FiWebhook to FiLink
   ];
 
   const handleSave = () => {

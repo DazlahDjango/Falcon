@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.db import models
 from apps.configs.models import BackupQuota
 from apps.configs.api.v1.serializers import BackupQuotaSerializer, BackupQuotaUpdateSerializer
 from apps.configs.api.v1.permissions import CanViewQuota, CanModifyQuota

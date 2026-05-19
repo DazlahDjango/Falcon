@@ -225,7 +225,6 @@ MIDDLEWARE = [
     'apps.configs.middleware.config_access_middleware.ConfigAccessMiddleware',
     'apps.configs.middleware.maintenance_notice_injector.MaintenanceNoticeInjectorMiddleware',
     
-
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -474,6 +473,24 @@ REST_FRAMEWORK = {
         'tenant_user_creation': '50/day',  # New users per tenant
         'tenant_api': '10000/day',   # API calls per tenant
         'connection_ops': '100/hour',
+        # CONFIG APP THROTTLE SCOPES
+        # ============================================
+        # Backup operations
+        'backup': '10/hour',          # BackupRateThrottle
+        'restore': '5/hour',          # RestoreRateThrottle
+        'backup_burst': '2/minute',   # BackupBurstThrottle
+        
+        # Disaster Recovery operations
+        'dr': '2/hour',               # DRRateThrottle
+        'dr_burst': '1/minute',       # DRBurstThrottle
+        
+        # Maintenance operations
+        'maintenance': '20/hour',     # MaintenanceRateThrottle
+        'maintenance_burst': '5/minute',  # MaintenanceBurstThrottle
+        
+        # Config API access
+        'config_read': '100/minute',  # ConfigReadThrottle
+        'config_write': '30/minute',  # ConfigWriteThrottle
     },
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',

@@ -1,10 +1,10 @@
 import { FiActivity, FiCheckCircle, FiAlertTriangle, FiXCircle } from 'react-icons/fi';
 
 export const HealthStatusCard = ({ apps }) => {
-  const healthy = apps?.healthy || 0;
-  const degraded = apps?.degraded || 0;
-  const unhealthy = apps?.unhealthy || 0;
-  const total = (apps?.total || healthy + degraded + unhealthy);
+  const healthy = Number(apps?.healthy) || 0;
+  const degraded = Number(apps?.degraded) || 0;
+  const unhealthy = Number(apps?.unhealthy) || 0;
+  const total = Number(apps?.total) || healthy + degraded + unhealthy;
 
   const getStatusColor = () => {
     if (unhealthy > 0) return 'text-red-600';

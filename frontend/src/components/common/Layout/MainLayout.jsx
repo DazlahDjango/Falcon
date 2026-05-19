@@ -1,33 +1,23 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect, useState } from "react";
+import { Outlet, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import Footer from './Footer';
 import { useMediaQuery } from '../../../hooks/accounts/useMediaQuery';
 import { logout } from '../../../store/accounts/slice/authSlice';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
-import { useAuthContext } from '../../../contexts/accounts/AuthContext';
+import { useAuth } from '../../../hooks/accounts/useAuth';
 import LoadingScreen from '../Feedback/LoadingScreen';
 
 const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
     const location = useLocation();
-    const navigate = useNavigate();
     const dispatch = useDispatch();
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const { isAuthenticated, user } = useAuthContext();
-    const hasRedirected = useRef(false);
-    
-    // Handle redirect in useEffect - NOT during render
-    useEffect(() => {
-        if (!isAuthenticated && !hasRedirected.current) {
-            hasRedirected.current = true;
-            navigate('/login', { replace: true });
-        }
-    }, [isAuthenticated, navigate]);
-    
+    const { isAuthenticated, isLoading, user } = useAuth();
+
     useEffect(() => {
         if (isMobile) {
             setSidebarOpen(false);
@@ -44,9 +34,11 @@ const MainLayout = () => {
         }
     }, [location.pathname, isMobile]);
     
-    // Show loading while checking auth - Moved AFTER hooks to comply with Rules of Hooks
-    if (!isAuthenticated) {
+    if (isLoading) {
         return <LoadingScreen fullScreen message="Checking authentication..." />;
+    }
+    if (!isAuthenticated) {
+        return null;
     }
     
     const toggleSidebar = () => {

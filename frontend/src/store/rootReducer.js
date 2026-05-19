@@ -135,7 +135,7 @@ const rootReducer = combineReducers({
     kpiAnalytics: kpiAnalyticsReducer,
 
     // Billing State
-    // billing: billingReducer,
+    billing: billingReducer,
 
     // Config
     config: configReducer

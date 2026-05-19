@@ -90,9 +90,9 @@ export const store = configureStore({
             backupMiddleware,
             maintenanceMiddleware,
             websocketMiddleware,
-            // billingMiddlewareFn,
-            // webhookMiddlewareFn,
-            // analyticsMiddlewareFn
+            billingMiddlewareFn,
+            webhookMiddlewareFn,
+            analyticsMiddlewareFn
         ),
     devTools: import.meta.env.MODE !== 'production'
 });

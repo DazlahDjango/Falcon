@@ -2,13 +2,13 @@
 import { FiDatabase, FiCheckCircle, FiXCircle, FiClock, FiHardDrive } from 'react-icons/fi';
 
 export const BackupStatsCard = ({ stats }) => {
-  const totalStorageGB = stats?.totalStorageGB || 0;
-  const pending = stats?.pending || 0;
-  const running = stats?.running || 0;
-  const failedToday = stats?.failedToday || 0;
-  const successfulBackups = stats?.successfulBackups || 0;
-  const totalBackups = stats?.totalBackups || 0;
-  const successRate = totalBackups > 0 ? (successfulBackups / totalBackups * 100).toFixed(1) : 0;
+  const totalStorageGB = Number(stats?.totalStorageGB) || 0;
+  const pending = Number(stats?.pending) || 0;
+  const running = Number(stats?.running) || 0;
+  const failedToday = Number(stats?.failedToday) || 0;
+  const successfulBackups = Number(stats?.successfulBackups) || 0;
+  const totalBackups = Number(stats?.totalBackups) || 0;
+  const successRate = totalBackups > 0 ? Number((successfulBackups / totalBackups * 100).toFixed(1)) : 0;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">

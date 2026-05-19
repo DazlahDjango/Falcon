@@ -257,3 +257,13 @@ class AdminSystemView(viewsets.ViewSet):
             return Response({'message': 'Cache cleared successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], url_path='health')
+    def health(self, request):
+        try:
+            from apps.tenant.services.monitoring.health_check import HealthCheck
+            checker = HealthCheck()
+            health_data = checker.check_system_health()
+            return Response(health_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

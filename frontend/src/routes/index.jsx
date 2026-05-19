@@ -60,7 +60,7 @@ const AppRouter = () => {
                     {/* KPI routes */}
                     {renderRoutes(kpiRoutes)}
                     {/* Billing routes */}
-                    {/* {renderRoutes(billingRoutes)} */}
+                    {renderRoutes(billingRoutes)}
                     {/* Config routes */}
                     {renderRoutes(configRoutes)}
                     {/* Error routes */}

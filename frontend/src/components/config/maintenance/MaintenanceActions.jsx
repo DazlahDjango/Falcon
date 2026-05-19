@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMaintenance } from '../../../hooks/config';
-import { FiPlay, FiStop, FiX, FiRefreshCw } from 'react-icons/fi';
+import { FiPlay, FiSquare, FiX, FiRefreshCw } from 'react-icons/fi';  // Changed FiStop to FiSquare
 
 export const MaintenanceActions = ({ window, onActionComplete }) => {
   const { startMaintenance, stopMaintenance, cancelMaintenance } = useMaintenance();
@@ -64,7 +64,7 @@ export const MaintenanceActions = ({ window, onActionComplete }) => {
   if (window.status === 'in_progress') {
     return (
       <button onClick={handleStop} disabled={isLoading} className="flex items-center gap-1 px-3 py-1.5 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 disabled:opacity-50">
-        <FiStop size={14} /> Stop Maintenance
+        <FiSquare size={14} /> Stop Maintenance
       </button>
     );
   }

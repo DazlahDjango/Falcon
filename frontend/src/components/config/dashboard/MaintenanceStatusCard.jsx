@@ -1,10 +1,10 @@
 import { FiHardDrive, FiClock, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 
 export const MaintenanceStatusCard = ({ stats }) => {
-  const active = stats?.active || 0;
-  const scheduled = stats?.scheduled || 0;
-  const completed = stats?.completed || 0;
-  const totalDowntimeHours = stats?.totalDowntimeHours || 0;
+  const active = Number(stats?.active) || 0;
+  const scheduled = Number(stats?.scheduled) || 0;
+  const completed = Number(stats?.completed) || 0;
+  const totalDowntimeHours = Number(stats?.totalDowntimeHours) || 0;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">

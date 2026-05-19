@@ -4,7 +4,7 @@ import { MaintenanceScheduleForm } from '../../components/config/maintenance/Mai
 import { MaintenanceHistoryTable } from '../../components/config/maintenance/MaintenanceHistoryTable';
 import { ConfigBreadcrumb } from '../../components/config/common/ConfigBreadcrumb';
 import { useConfigPermissions } from '../../hooks/config';
-import { FiPlus, FiHistory } from 'react-icons/fi';
+import { FiPlus, FiList } from 'react-icons/fi';  // Changed FiHistory to FiList
 
 export const MaintenancePage = () => {
   const [showScheduleForm, setShowScheduleForm] = useState(false);
@@ -40,13 +40,13 @@ export const MaintenancePage = () => {
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 ${
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors border-b-2 ${
                 activeTab === 'history'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              <FiHistory className="inline mr-1" /> History
+              <FiList /> History
             </button>
           </div>
         </div>

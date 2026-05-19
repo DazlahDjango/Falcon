@@ -5,7 +5,7 @@ import { DRSummaryCard } from './DRSummaryCard';
 import { HealthStatusCard } from './HealthStatusCard';
 import { QuotaUsageCard } from './QuotaUsageCard';
 import { RecentActivityList } from './RecentActivityList';
-import { LoadingOverlay } from '../../common/UI/LoadingOverlay';
+import LoadingOverlay from '../../common/Feedback/LoadingScreen';
 import { FiAlertCircle } from 'react-icons/fi';
 
 export const ConfigDashboardOverview = () => {

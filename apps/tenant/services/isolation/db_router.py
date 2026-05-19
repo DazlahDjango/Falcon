@@ -49,6 +49,8 @@ class TenantDatabaseRouter:
         'health_check',
         'apps.tenant',  # Tenant app itself is global
         'apps.core',
+        'configs',      # Global config app
+        'apps.configs',
     ]
 
     # Tenant-specific apps (data that belongs to tenants)

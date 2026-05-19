@@ -1,5 +1,23 @@
 import React from 'react';
 
+// Loading component
+const LoadingFallback = () => (
+    <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '16rem' 
+    }}>
+        <div>Loading Billing...</div>
+    </div>
+);
+
+const withSuspense = (Component) => (
+    <React.Suspense fallback={<LoadingFallback />}>
+        <Component />
+    </React.Suspense>
+);
+
 // Lazy load billing pages
 const PlansPage = React.lazy(() => import('../pages/billing/PlansPage'));
 const PlanDetailPage = React.lazy(() => import('../pages/billing/PlanDetailPage'));
@@ -85,40 +103,40 @@ export const BILLING_ROUTES = {
 // ======================
 const billingRoutes = [
     // Plans
-    { path: BILLING_ROUTES.PLANS, element: <PlansPage /> },
-    { path: BILLING_ROUTES.PLAN_DETAIL(), element: <PlanDetailPage /> },
+    { path: BILLING_ROUTES.PLANS, element: withSuspense(PlansPage) },
+    { path: BILLING_ROUTES.PLAN_DETAIL(), element: withSuspense(PlanDetailPage) },
     // Checkout
-    { path: BILLING_ROUTES.CHECKOUT, element: <CheckoutPage /> },
-    { path: BILLING_ROUTES.CHECKOUT_SUCCESS, element: <CheckoutSuccessPage /> },
-    { path: BILLING_ROUTES.CHECKOUT_CANCEL, element: <CheckoutCancelPage /> },
+    { path: BILLING_ROUTES.CHECKOUT, element: withSuspense(CheckoutPage) },
+    { path: BILLING_ROUTES.CHECKOUT_SUCCESS, element: withSuspense(CheckoutSuccessPage) },
+    { path: BILLING_ROUTES.CHECKOUT_CANCEL, element: withSuspense(CheckoutCancelPage) },
     // Subscriptions
-    { path: BILLING_ROUTES.SUBSCRIPTIONS, element: <SubscriptionsPage /> },
-    { path: BILLING_ROUTES.SUBSCRIPTION_DETAIL(), element: <SubscriptionDetailPage /> },
-    { path: BILLING_ROUTES.SUBSCRIPTION_UPGRADE, element: <UpgradePage /> },
-    { path: BILLING_ROUTES.SUBSCRIPTION_CANCEL, element: <CancelPage /> },
+    { path: BILLING_ROUTES.SUBSCRIPTIONS, element: withSuspense(SubscriptionsPage) },
+    { path: BILLING_ROUTES.SUBSCRIPTION_DETAIL(), element: withSuspense(SubscriptionDetailPage) },
+    { path: BILLING_ROUTES.SUBSCRIPTION_UPGRADE, element: withSuspense(UpgradePage) },
+    { path: BILLING_ROUTES.SUBSCRIPTION_CANCEL, element: withSuspense(CancelPage) },
     // Invoices
-    { path: BILLING_ROUTES.INVOICES, element: <InvoicesPage /> },
-    { path: BILLING_ROUTES.INVOICE_DETAIL(), element: <InvoiceDetailPage /> },
+    { path: BILLING_ROUTES.INVOICES, element: withSuspense(InvoicesPage) },
+    { path: BILLING_ROUTES.INVOICE_DETAIL(), element: withSuspense(InvoiceDetailPage) },
     // Transactions
-    { path: BILLING_ROUTES.TRANSACTIONS, element: <TransactionsPage /> },
-    { path: BILLING_ROUTES.TRANSACTION_DETAIL(), element: <TransactionDetailPage /> },
+    { path: BILLING_ROUTES.TRANSACTIONS, element: withSuspense(TransactionsPage) },
+    { path: BILLING_ROUTES.TRANSACTION_DETAIL(), element: withSuspense(TransactionDetailPage) },
     // Payment Methods
-    { path: BILLING_ROUTES.PAYMENT_METHODS, element: <PaymentMethodsPage /> },
+    { path: BILLING_ROUTES.PAYMENT_METHODS, element: withSuspense(PaymentMethodsPage) },
     // Billing Portal
-    { path: BILLING_ROUTES.BILLING_PORTAL, element: <BillingPortalPage /> },
-    { path: BILLING_ROUTES.BILLING_SETTINGS, element: <BillingSettingsPage /> },
+    { path: BILLING_ROUTES.BILLING_PORTAL, element: withSuspense(BillingPortalPage) },
+    { path: BILLING_ROUTES.BILLING_SETTINGS, element: withSuspense(BillingSettingsPage) },
     // Admin Routes
-    { path: BILLING_ROUTES.ADMIN_BILLING, element: <AdminBillingPage /> },
-    { path: BILLING_ROUTES.ADMIN_PLANS, element: <AdminPlansPage /> },
-    { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, element: <AdminSubscriptionsPage /> },
-    { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, element: <AdminTransactionsPage /> },
-    { path: BILLING_ROUTES.ADMIN_REFUNDS, element: <AdminRefundsPage /> },
-    { path: BILLING_ROUTES.ADMIN_WEBHOOKS, element: <AdminWebhooksPage /> },
-    { path: BILLING_ROUTES.ADMIN_ANALYTICS, element: <AdminAnalyticsPage /> },
+    { path: BILLING_ROUTES.ADMIN_BILLING, element: withSuspense(AdminBillingPage) },
+    { path: BILLING_ROUTES.ADMIN_PLANS, element: withSuspense(AdminPlansPage) },
+    { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, element: withSuspense(AdminSubscriptionsPage) },
+    { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, element: withSuspense(AdminTransactionsPage) },
+    { path: BILLING_ROUTES.ADMIN_REFUNDS, element: withSuspense(AdminRefundsPage) },
+    { path: BILLING_ROUTES.ADMIN_WEBHOOKS, element: withSuspense(AdminWebhooksPage) },
+    { path: BILLING_ROUTES.ADMIN_ANALYTICS, element: withSuspense(AdminAnalyticsPage) },
     // Report Routes
-    { path: BILLING_ROUTES.REPORTS_REVENUE, element: <RevenueReportPage /> },
-    { path: BILLING_ROUTES.REPORTS_SUBSCRIPTIONS, element: <SubscriptionReportPage /> },
-    { path: BILLING_ROUTES.REPORTS_TAX, element: <TaxReportPage /> },
+    { path: BILLING_ROUTES.REPORTS_REVENUE, element: withSuspense(RevenueReportPage) },
+    { path: BILLING_ROUTES.REPORTS_SUBSCRIPTIONS, element: withSuspense(SubscriptionReportPage) },
+    { path: BILLING_ROUTES.REPORTS_TAX, element: withSuspense(TaxReportPage) },
 ];
 
 // Helper function to build dynamic paths (for use in components)
