@@ -214,13 +214,13 @@ MIDDLEWARE = [
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
     # # Reviews app middleware (order matters!)
-    # 'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
-    # 'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
-    # 'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
-    # 'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
-    # 'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
-    # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
-    # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
+     'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
+     'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
+     'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
+     'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
+     'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
+     'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
+     'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     # Billing
     'apps.billing.middleware.SubscriptionGuardMiddleware',
     'apps.billing.middleware.BillingAuditMiddleware',
@@ -264,10 +264,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME', default='falcon_pms'),
-        'USER': env('DB_USER', default='Dazlah'),
-        'PASSWORD': env('DB_PASSWORD', default='Dazl2006'),
+        'USER': env('DB_USER', default='postgres'),
+        'PASSWORD': env('DB_PASSWORD', default='Ogutu.1@15'),
         'HOST': env('DB_HOST', default='localhost'),
-        'PORT': env('DB_PORT', default='543s'),
+        'PORT': env('DB_PORT', default='5433'),
         'OPTIONS': {
             'options': '-c search_path=public',  # For RLS
         },
