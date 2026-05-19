@@ -151,14 +151,10 @@ PROJECT_APPS = [
     'apps.kpi.apps.KpiConfig',
     'apps.billing.apps.BillingConfig',
     'apps.configs.apps.ConfigsConfig',
-    'apps.core',
-    'apps.dashboard',
-    'apps.notification',
-    'apps.reports',
-    'apps.workflowsapi', 
-    'apps.tenant.api',  # For API endpoints
     'apps.reviews.apps.ReviewsConfig',
-    
+    'apps.dashboard.apps.DashboardConfig',
+    'apps.core',
+    'apps.tenant.api',  # For API endpoints
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
