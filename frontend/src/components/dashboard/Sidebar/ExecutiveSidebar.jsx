@@ -1,0 +1,141 @@
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
+import {
+    FiHome, FiBarChart2, FiUsers, FiTrendingUp, FiAlertCircle, 
+    FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
+    FiDownload, FiSettings, FiHelpCircle, FiLogOut, FiBell,
+    FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar
+} from 'react-icons/fi';
+import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+
+const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath }) => {
+    const [expandedMenus, setExpandedMenus] = useState({
+        main: true,
+        performance: true,
+        team: true,
+        reports: true,
+        settings: false
+    });
+
+    const toggleMenu = (menuKey) => {
+        setExpandedMenus(prev => ({
+            ...prev,
+            [menuKey]: !prev[menuKey]
+        }));
+    };
+
+    const navigation = {
+        main: [
+            { path: DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
+            { path: DASHBOARD_ROUTES.EXECUTIVE.DEPARTMENTS, name: 'Departments', icon: FiGrid },
+            { path: DASHBOARD_ROUTES.EXECUTIVE.TEAM, name: 'Organization', icon: FiUsers },
+        ],
+        performance: [
+            { path: DASHBOARD_ROUTES.EXECUTIVE.TRENDS, name: 'KPIs & Trends', icon: FiTrendingUp },
+            { path: DASHBOARD_ROUTES.EXECUTIVE.COMPARISONS, name: 'Comparisons', icon: FiPieChart },
+            { path: DASHBOARD_ROUTES.EXECUTIVE.ALERTS, name: 'Alerts', icon: FiAlertCircle },
+        ],
+        reports: [
+            { path: DASHBOARD_ROUTES.EXECUTIVE.REPORTS, name: 'Reports', icon: FiFileText },
+            { path: DASHBOARD_ROUTES.EXECUTIVE.EXPORTS, name: 'Exports', icon: FiDownload },
+        ],
+        settings: [
+            { path: DASHBOARD_ROUTES.EXECUTIVE.SETTINGS, name: 'Settings', icon: FiSettings },
+        ]
+    };
+
+    const renderNavGroup = (title, items, groupKey) => {
+        if (!items || items.length === 0) return null;
+        
+        const isExpanded = expandedMenus[groupKey];
+        const Icon = isExpanded ? FiChevronUp : FiChevronDown;
+        
+        return (
+            <div className="nav-group" key={groupKey}>
+                <button 
+                    className="nav-group-header" 
+                    onClick={() => toggleMenu(groupKey)} 
+                    disabled={isCollapsed}
+                >
+                    <span className="nav-group-title">{title}</span>
+                    {!isCollapsed && <Icon size={16} />}
+                </button>
+                {(isExpanded || isCollapsed) && (
+                    <ul className="nav-group-items">
+                        {items.map((item) => (
+                            <li key={item.path}>
+                                <NavLink 
+                                    to={item.path}
+                                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                                    end={item.end}
+                                >
+                                    <item.icon size={20} />
+                                    {!isCollapsed && <span>{item.name}</span>}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <aside className={`sidebar executive-sidebar ${isOpen ? 'open' : 'closed'} ${isCollapsed ? 'collapsed' : ''}`}>
+            {/* Logo Area */}
+            <div className="sidebar-logo">
+                <NavLink to={DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW} className="logo-link">
+                    <div className="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                    </div>
+                    {!isCollapsed && <span className="logo-text">Falcon PMS</span>}
+                </NavLink>
+                <button className="sidebar-toggle" onClick={onToggle}>
+                    {isCollapsed ? <FiChevronRight size={18} /> : <FiChevronLeft size={18} />}
+                </button>
+            </div>
+            
+            {/* Tenant Info */}
+            {!isCollapsed && currentTenant && (
+                <div className="sidebar-tenant">
+                    <div className="tenant-name">{currentTenant.name}</div>
+                    <div className="tenant-plan">Executive View</div>
+                </div>
+            )}
+            
+            {/* Navigation Menu */}
+            <nav className="sidebar-nav">
+                {renderNavGroup('Main', navigation.main, 'main')}
+                {renderNavGroup('Performance', navigation.performance, 'performance')}
+                {renderNavGroup('Reports & Exports', navigation.reports, 'reports')}
+                {renderNavGroup('Settings', navigation.settings, 'settings')}
+            </nav>
+            
+            {/* User Info at Bottom */}
+            {!isCollapsed && user && (
+                <div className="sidebar-user">
+                    <div className="user-avatar-small">
+                        {user.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.username} />
+                        ) : (
+                            <div className="avatar-placeholder">
+                                {user.username?.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <div className="user-info">
+                        <div className="user-name">{user.first_name || user.username}</div>
+                        <div className="user-role">Executive</div>
+                    </div>
+                </div>
+            )}
+        </aside>
+    );
+};
+
+export default ExecutiveSidebar;

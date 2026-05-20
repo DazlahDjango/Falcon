@@ -1,0 +1,447 @@
+/* frontend/src/styles/super-admin.css */
+/* Super Admin Dashboard Specific Styles */
+
+/* Platform Metrics Grid */
+.platform-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.platform-metric {
+  text-align: center;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.platform-metric .metric-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.platform-metric .metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.platform-metric .metric-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Tenants Table */
+.tenants-table-wrapper {
+  overflow-x: auto;
+}
+
+.tenants-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tenants-table th,
+.tenants-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tenants-table th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.tenant-name {
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.health-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.health-bar {
+  width: 60px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 10px;
+}
+
+.expiring-soon {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.view-details-btn {
+  padding: 4px 12px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.view-details-btn:hover {
+  background: #2563eb;
+}
+
+/* System Health */
+.system-health {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.uptime {
+  text-align: center;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.uptime-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.uptime-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.service-icon {
+  font-size: 18px;
+}
+
+.service-name {
+  flex: 1;
+  font-size: 13px;
+}
+
+.last-incident {
+  padding: 8px;
+  background: #fef2f2;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+/* Subscription Alerts */
+.subscription-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert-item {
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid;
+}
+
+.alert-item.alert-critical {
+  background: #fef2f2;
+  border-left-color: #ef4444;
+}
+
+.alert-item.alert-warning {
+  background: #fffbeb;
+  border-left-color: #f59e0b;
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.alert-tenant {
+  font-weight: 600;
+}
+
+.alert-message {
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.renew-btn,
+.contact-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.renew-btn {
+  background: #3b82f6;
+  border: none;
+  color: white;
+}
+
+.contact-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
+/* Platform Metrics */
+.platform-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.metric {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.metric .metric-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.metric .metric-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Billing Overview */
+.billing-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.revenue {
+  text-align: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.revenue-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.revenue-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.subscription-count {
+  text-align: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.count-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.count-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.trend {
+  text-align: center;
+  padding: 8px;
+}
+
+.trend-up {
+  color: #10b981;
+}
+
+.trend-down {
+  color: #ef4444;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: auto;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.tenant-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.refresh-tenant-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.tenant-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tenant-metric {
+  text-align: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.tenant-metric .metric-icon {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.tenant-metric .metric-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.tenant-metric .metric-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.tenant-performance {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.tenant-performance h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.tenant-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.action-btn.primary {
+  background: #3b82f6;
+  border: none;
+  color: white;
+}
+
+.action-btn.danger {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
