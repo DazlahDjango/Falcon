@@ -32,7 +32,6 @@ class ManagerService(BaseDashboardService):
         target_user_id = drill_down_user_id or self.user_id
         
         # Check cache
-        cache_key = f"manager_dashboard:{self.tenant_id}:{target_user_id}:{period}"
         cached = self.cache_service.get_dashboard_data(target_user_id, DashboardType.MANAGER)
         if cached:
             self._audit_log(DashboardType.MANAGER, 'cache_hit')
@@ -222,6 +221,8 @@ class ManagerService(BaseDashboardService):
             self.cache_service.invalidate_user_dashboards(str(submission.user_id))
             self.cache_service.invalidate_user_dashboards(str(self.user_id))
             
+            self._audit_log(DashboardType.MANAGER, 'approve_submission', {'submission_id': submission_id})
+            
             return {'success': True, 'message': 'Submission approved'}
         except Exception as e:
             return {'success': False, 'message': str(e)}
@@ -246,6 +247,8 @@ class ManagerService(BaseDashboardService):
             # Invalidate caches
             self.cache_service.invalidate_user_dashboards(str(submission.user_id))
             self.cache_service.invalidate_user_dashboards(str(self.user_id))
+            
+            self._audit_log(DashboardType.MANAGER, 'reject_submission', {'submission_id': submission_id})
             
             return {'success': True, 'message': 'Submission rejected'}
         except Exception as e:

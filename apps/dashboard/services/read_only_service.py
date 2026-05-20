@@ -4,7 +4,7 @@ from django.utils import timezone
 from typing import Dict, Any, Optional
 from .base_service import BaseDashboardService
 from .cache_service import DashboardCacheService
-from apps.dashboard.constants import DashboardType, Defaults
+from apps.dashboard.constants import DashboardType
 
 
 class ReadOnlyService(BaseDashboardService):
@@ -27,12 +27,11 @@ class ReadOnlyService(BaseDashboardService):
         
         Args:
             period: Time period (current, monthly, quarterly, yearly)
-            view_type: Type of view ('executive', 'manager', 'staff')
+            view_type: Type of view ('executive', 'manager', 'staff', 'champion')
         """
         self._validate_dashboard_access(DashboardType.READ_ONLY)
         
         # Check cache
-        cache_key = f"readonly_dashboard:{self.tenant_id}:{self.user_id}:{period}:{view_type}"
         cached = self.cache_service.get_dashboard_data(self.user_id, DashboardType.READ_ONLY)
         if cached:
             self._audit_log(DashboardType.READ_ONLY, 'cache_hit', {'view_type': view_type})
@@ -41,7 +40,7 @@ class ReadOnlyService(BaseDashboardService):
         # Delegate to appropriate service based on view_type
         data = self._get_delegated_dashboard_data(period, view_type)
         
-        # Add read-only flags to every level
+        # Add read-only flags
         data = self._add_read_only_flags(data)
         
         result = {
@@ -52,7 +51,7 @@ class ReadOnlyService(BaseDashboardService):
             'can_submit': False,
             'can_approve': False,
             'can_configure': False,
-            'can_export': True,  # Usually allowed for read-only
+            'can_export': True,
             'data': data,
             'last_updated': timezone.now().isoformat(),
         }
@@ -69,7 +68,7 @@ class ReadOnlyService(BaseDashboardService):
         if view_type == 'executive':
             from .executive_service import ExecutiveDashboardService
             service = ExecutiveDashboardService(self.user, self.tenant_id)
-            return service.get_dashboard_data(self.user_id, period=period)
+            return service.get_dashboard_data(self.user_id)
         
         elif view_type == 'manager':
             from .manager_service import ManagerService
@@ -87,15 +86,16 @@ class ReadOnlyService(BaseDashboardService):
             return service.get_editable_dashboard(period=period)
         
         else:
-            # Default to staff view
             from .staff_service import StaffService
             service = StaffService(self.user, self.tenant_id)
             return service.get_dashboard_data(period=period)
     
     def _add_read_only_flags(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Recursively add read-only flags to all levels of data."""
+        """Add read-only flags to all levels of data."""
         
-        # Add top-level flag
+        if not isinstance(data, dict):
+            return data
+        
         data['read_only'] = True
         
         # Remove any edit/action buttons data
@@ -107,35 +107,42 @@ class ReadOnlyService(BaseDashboardService):
         # Process KPIs to remove edit actions
         if 'kpis' in data and isinstance(data['kpis'], list):
             for kpi in data['kpis']:
-                kpi['can_edit'] = False
-                kpi['can_submit'] = False
-                if 'actions' in kpi:
-                    kpi['actions'] = []
+                if isinstance(kpi, dict):
+                    kpi['can_edit'] = False
+                    kpi['can_submit'] = False
+                    if 'actions' in kpi:
+                        kpi['actions'] = []
+        
+        # Process personal_kpis
+        if 'personal_kpis' in data and isinstance(data['personal_kpis'], list):
+            for kpi in data['personal_kpis']:
+                if isinstance(kpi, dict):
+                    kpi['can_edit'] = False
+                    kpi['can_submit'] = False
         
         # Process team members
         if 'team_members' in data and isinstance(data['team_members'], list):
             for member in data['team_members']:
-                member['can_drill_down'] = True  # Viewing is allowed
-                member['can_approve'] = False
+                if isinstance(member, dict):
+                    member['can_drill_down'] = True
+                    member['can_approve'] = False
         
         # Process pending submissions/approvals
         if 'pending_submissions' in data and isinstance(data['pending_submissions'], list):
             for submission in data['pending_submissions']:
-                submission['can_edit'] = False
-                submission['can_approve'] = False
+                if isinstance(submission, dict):
+                    submission['can_edit'] = False
         
         if 'pending_approvals' in data:
-            data['pending_approvals'] = []  # Hide approval queue for read-only
+            data['pending_approvals'] = []
         
         return data
     
     def get_export_data(self, period: str = 'current', view_type: str = 'executive') -> Dict[str, Any]:
         """Get data specifically formatted for export (no read-only flags)."""
         
-        # Get raw data without read-only flags
         data = self._get_delegated_dashboard_data(period, view_type)
         
-        # Add export metadata
         return {
             'exported_at': timezone.now().isoformat(),
             'exported_by': self.user.email,

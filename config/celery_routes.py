@@ -116,6 +116,60 @@ task_routes_dict = {
     'apps.configs.tasks.restore_*': {'queue': 'restore'},
     'apps.configs.tasks.backup_*': {'queue': 'backup'},
     'apps.configs.tasks.dr_*': {'queue': 'dr'},
+
+    # ========== Dashboard Cache Routes ==========
+    'apps.dashboard.tasks.warm_*': {'queue': 'dashboard'},
+    'apps.dashboard.tasks.warm_all_tenant_dashboards': {'queue': 'dashboard'},
+    'apps.dashboard.tasks.clear_stale_cache': {'queue': 'cleanup'},
+    'apps.dashboard.tasks.rebuild_org_tree_cache': {'queue': 'dashboard'},
+    'apps.dashboard.tasks.precompute_widget_data': {'queue': 'dashboard'},
+    'apps.dashboard.tasks.aggregate_dashboard_metrics': {'queue': 'aggregation'},
+    
+    # ========== Dashboard Export Routes ==========
+    'apps.dashboard.tasks.process_due_exports': {'queue': 'export'},
+    'apps.dashboard.tasks.process_user_exports': {'queue': 'export'},
+    'apps.dashboard.tasks.clean_expired_exports': {'queue': 'cleanup'},
+    'apps.dashboard.tasks.generate_monthly_reports': {'queue': 'export_high'},
+    'apps.dashboard.tasks.generate_quarterly_reports': {'queue': 'export_high'},
+    'apps.dashboard.tasks.export_*': {'queue': 'export'},
+    
+    # ========== Dashboard Alert Routes ==========
+    'apps.dashboard.tasks.check_alerts': {'queue': 'notifications'},
+    'apps.dashboard.tasks.send_daily_digest': {'queue': 'email'},
+    'apps.dashboard.tasks.send_weekly_digest': {'queue': 'email'},
+    'apps.dashboard.tasks.send_user_alerts': {'queue': 'notifications'},
+    'apps.dashboard.tasks.check_missing_data': {'queue': 'notifications'},
+    'apps.dashboard.tasks.alert_*': {'queue': 'notifications'},
+    
+    # ========== Dashboard Snapshot Routes ==========
+    'apps.dashboard.tasks.refresh_tenant_snapshots': {'queue': 'analytics'},
+    'apps.dashboard.tasks.refresh_executive_snapshots': {'queue': 'analytics'},
+    'apps.dashboard.tasks.snapshot_*': {'queue': 'analytics'},
+    
+    # ========== Dashboard Cleanup Routes ==========
+    'apps.dashboard.tasks.cleanup_old_audit_logs': {'queue': 'cleanup'},
+    'apps.dashboard.tasks.archive_old_dashboard_data': {'queue': 'cleanup'},
+    
+    # ========== Dashboard Health Routes ==========
+    'apps.dashboard.tasks.health_check': {'queue': 'health_check'},
+    'apps.dashboard.tasks.health_*': {'queue': 'health_check'},
+    
+    # ========== Dashboard Sync Routes ==========
+    'apps.dashboard.tasks.sync_permissions': {'queue': 'dashboard'},
+    'apps.dashboard.tasks.sync_widget_configs': {'queue': 'dashboard'},
+    'apps.dashboard.tasks.sync_*': {'queue': 'dashboard'},
+    
+    # ========== Dashboard Real-time Routes ==========
+    'apps.dashboard.tasks.realtime_*': {'queue': 'realtime'},
+    'apps.dashboard.tasks.websocket_*': {'queue': 'realtime'},
+    
+    # ========== Dashboard Calculation Routes ==========
+    'apps.dashboard.tasks.calculate_*': {'queue': 'aggregation'},
+    'apps.dashboard.tasks.compute_*': {'queue': 'aggregation'},
+    
+    # ========== Dashboard User Action Routes ==========
+    'apps.dashboard.tasks.user_*': {'queue': 'dashboard'},
+    'apps.dashboard.tasks.refresh_*': {'queue': 'dashboard'},
 }
 
 # Function-based routes for complex patterns

@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional, List
 from .base_service import BaseDashboardService
 from .hierarchy_service import HierarchyService
 from .cache_service import DashboardCacheService
-from apps.dashboard.constants import DashboardType, TrafficLight, Defaults
+from apps.dashboard.constants import DashboardType, TrafficLight
 
 
 class StaffService(BaseDashboardService):
@@ -27,7 +27,6 @@ class StaffService(BaseDashboardService):
         self._validate_dashboard_access(DashboardType.STAFF)
         
         # Check cache
-        cache_key = f"staff_dashboard:{self.tenant_id}:{self.user_id}:{period}"
         cached = self.cache_service.get_dashboard_data(self.user_id, DashboardType.STAFF)
         if cached:
             self._audit_log(DashboardType.STAFF, 'cache_hit')
