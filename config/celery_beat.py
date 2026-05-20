@@ -231,4 +231,52 @@ beat_schedule = {
         'options': {'queue': 'dr', 'expires': 14400},
         'kwargs': {'plan_id': None},
     },
+
+    # ===== Dashboard Tasks =====
+    'warm-dashboard-caches': {
+        'task': 'dashboard.warm_all_tenant_dashboards',
+        'schedule': crontab(hour=3, minute=0),
+        'options': {'queue': 'dashboard', 'expires': 7200},
+    },
+    'clear-stale-dashboard-cache': {
+        'task': 'dashboard.clear_stale_cache',
+        'schedule': crontab(hour=4, minute=0),
+        'options': {'queue': 'cleanup', 'expires': 3600},
+    },
+    'process-due-exports': {
+        'task': 'dashboard.process_due_exports',
+        'schedule': crontab(minute='*/15'),
+        'options': {'queue': 'export', 'expires': 900},
+    },
+    'check-dashboard-alerts': {
+        'task': 'dashboard.check_alerts',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'notifications', 'expires': 300},
+    },
+    'send-daily-digest': {
+        'task': 'dashboard.send_daily_digest',
+        'schedule': crontab(hour=8, minute=0),
+        'options': {'queue': 'email', 'expires': 3600},
+    },
+    'refresh-tenant-snapshots': {
+        'task': 'dashboard.refresh_tenant_snapshots',
+        'schedule': crontab(hour=5, minute=0),
+        'options': {'queue': 'analytics', 'expires': 7200},
+    },
+    'cleanup-old-audit-logs-dashboard': {
+        'task': 'dashboard.cleanup_old_audit_logs',
+        'schedule': crontab(day_of_month=1, hour=2, minute=0),
+        'options': {'queue': 'cleanup', 'expires': 86400},
+        'kwargs': {'retention_days': 90},
+    },
+    'generate-monthly-reports': {
+        'task': 'dashboard.generate_monthly_reports',
+        'schedule': crontab(day_of_month=1, hour=6, minute=0),
+        'options': {'queue': 'export', 'expires': 86400},
+    },
+    'dashboard-health-check': {
+        'task': 'dashboard.health_check',
+        'schedule': crontab(minute='*/15'),
+        'options': {'queue': 'health_check', 'expires': 900},
+    },
 }

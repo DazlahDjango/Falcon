@@ -45,6 +45,18 @@ task_queues = [
     Queue('scheduler', Exchange('scheduler'), routing_key='scheduler'),
     Queue('analytics', Exchange('analytics'), routing_key='analytics'),
     Queue('notifications', Exchange('notifications'), routing_key='notifications'), 
+
+    # ================= Dashboards ========
+    Queue('dashboard', Exchange('dashboard'), routing_key='dashboard.#'),
+    Queue('export', Exchange('export'), routing_key='export.#'),
+    Queue('export_high', Exchange('export_high'), routing_key='export_high.#', consumer_arguments={'prefetch_count': 1}),
+    Queue('analytics', Exchange('analytics'), routing_key='analytics.#'),
+    Queue('aggregation', Exchange('aggregation'), routing_key='aggregation.#'),
+    Queue('notifications', Exchange('notifications'), routing_key='notifications.#'),
+    Queue('email', Exchange('email'), routing_key='email.#'),
+    Queue('cleanup', Exchange('cleanup'), routing_key='cleanup.#'),
+    Queue('health_check', Exchange('health_check'), routing_key='health_check.#'),
+    Queue('realtime', Exchange('realtime'), routing_key='realtime.#', consumer_arguments={'prefetch_count': 1}),
 ]
 
 # Queue for billing
