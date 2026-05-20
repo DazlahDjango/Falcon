@@ -44,7 +44,7 @@ class DashboardConfigBaseManager(DashboardBaseManager):
         
         user_role = role
         if user_role not in allowed_dashboards:
-            raise PermissionDenied(f"Role {user_role} cannot access dashboard type {dashboard_type}")
+            raise PermissionDenied(f"Role {user_role} cannot access dashboard type {dashboard_type}") 
         
         if dashboard_type not in allowed_dashboards.get(user_role, []):
             raise PermissionDenied(f"Role {user_role} cannot access dashboard type {dashboard_type}")
@@ -53,3 +53,4 @@ class DashboardConfigBaseManager(DashboardBaseManager):
             user_id=user_id,
             dashboard_type=dashboard_type
         )
+    
