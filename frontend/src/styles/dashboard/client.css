@@ -1,0 +1,311 @@
+/* frontend/src/styles/client-admin.css */
+/* Client Admin Dashboard Specific Styles */
+
+/* Tenant Overview */
+.tenant-overview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  flex: 2;
+}
+
+.metric-item {
+  text-align: center;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.metric-item .metric-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.metric-item .metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.metric-item .metric-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.health-score {
+  text-align: center;
+  flex: 1;
+  min-width: 150px;
+}
+
+.health-score .score-label {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Compliance Stats */
+.compliance-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stat {
+  width: 100%;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  background: #e2e8f0;
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.compliance-alerts {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 16px;
+  margin-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+/* Pending Approvals List */
+.pending-approvals-list,
+.missing-data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.approval-item,
+.missing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.approval-info,
+.missing-info {
+  flex: 1;
+}
+
+.approval-title,
+.missing-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.approval-details,
+.missing-details {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.approve-btn,
+.reject-btn,
+.notify-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.approve-btn {
+  background: #10b981;
+  border: none;
+  color: white;
+}
+
+.approve-btn:hover {
+  background: #059669;
+}
+
+.reject-btn {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+.reject-btn:hover {
+  background: #fef2f2;
+}
+
+.notify-btn {
+  background: white;
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+}
+
+.view-all {
+  text-align: center;
+  padding-top: 12px;
+}
+
+.view-all button {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* KPI Breakdown Table */
+.kpi-breakdown-table {
+  overflow-x: auto;
+}
+
+.kpi-breakdown-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.kpi-breakdown-table th,
+.kpi-breakdown-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.kpi-breakdown-table th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.kpi-breakdown-table td.green {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.kpi-breakdown-table td.yellow {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.kpi-breakdown-table td.red {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* User Activity Stats */
+.user-activity-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.stat-card .stat-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Settings Form */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: normal !important;
+}
+
+.setting-group input[type="text"],
+.setting-group input[type="number"],
+.setting-group select {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.save-btn {
+  padding: 10px 20px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+.save-btn:hover {
+  background: #2563eb;
+}

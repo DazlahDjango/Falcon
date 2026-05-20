@@ -1,0 +1,138 @@
+/* frontend/src/styles/executive.css */
+/* Executive Dashboard Specific Styles */
+
+.executive-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.executive-dashboard-header .dashboard-description {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.executive-dashboard-header .header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Overview Metrics */
+.overview-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  text-align: center;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.metric-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* KPI Status Summary */
+.kpi-status-summary {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.kpi-status-summary h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #0f172a;
+}
+
+.status-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-bar.green {
+  background: #10b981;
+}
+
+.status-bar.yellow {
+  background: #f59e0b;
+}
+
+.status-bar.red {
+  background: #ef4444;
+}
+
+/* Trends Page */
+.executive-trends-page .page-header,
+.executive-departments-page .page-header,
+.executive-alerts-page .page-header,
+.executive-reports-page .page-header {
+  margin-bottom: 24px;
+}
+
+.executive-trends-page .page-header h1,
+.executive-departments-page .page-header h1,
+.executive-alerts-page .page-header h1,
+.executive-reports-page .page-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.executive-trends-page .page-header p,
+.executive-departments-page .page-header p,
+.executive-alerts-page .page-header p,
+.executive-reports-page .page-header p {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.trends-grid,
+.alerts-grid,
+.reports-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
