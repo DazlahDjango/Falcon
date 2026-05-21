@@ -1,3 +1,7 @@
+// frontend/src/config/constants/dashboardConstants.js
+
+// ===================== DASHBOARD TYPES =====================
+
 export const DASHBOARD_TYPES = {
   EXECUTIVE: 'executive',
   CLIENT_ADMIN: 'client_admin',
@@ -17,6 +21,8 @@ export const DASHBOARD_LABELS = {
   [DASHBOARD_TYPES.CHAMPION]: 'Dashboard Champion',
   [DASHBOARD_TYPES.READ_ONLY]: 'Read-Only Dashboard'
 }
+
+// ===================== WIDGET TYPES =====================
 
 export const WIDGET_TYPES = {
   KPI_LIST: 'kpi_list',
@@ -50,29 +56,37 @@ export const WIDGET_LABELS = {
   [WIDGET_TYPES.TEAM_PERFORMANCE]: 'Team Performance'
 }
 
+// ===================== TRAFFIC LIGHT =====================
+
 export const TRAFFIC_LIGHT = {
   GREEN: 'green',
   YELLOW: 'yellow',
-  RED: 'red'
+  RED: 'red',
+  GREY: 'grey'
 }
 
 export const TRAFFIC_LIGHT_LABELS = {
   [TRAFFIC_LIGHT.GREEN]: 'On Track',
   [TRAFFIC_LIGHT.YELLOW]: 'At Risk',
-  [TRAFFIC_LIGHT.RED]: 'Off Track'
+  [TRAFFIC_LIGHT.RED]: 'Off Track',
+  [TRAFFIC_LIGHT.GREY]: 'No Data'
 }
 
 export const TRAFFIC_LIGHT_COLORS = {
   [TRAFFIC_LIGHT.GREEN]: '#10b981',
   [TRAFFIC_LIGHT.YELLOW]: '#f59e0b',
-  [TRAFFIC_LIGHT.RED]: '#ef4444'
+  [TRAFFIC_LIGHT.RED]: '#ef4444',
+  [TRAFFIC_LIGHT.GREY]: '#9ca3af'
 }
 
 export const TRAFFIC_LIGHT_BG_COLORS = {
   [TRAFFIC_LIGHT.GREEN]: '#d1fae5',
   [TRAFFIC_LIGHT.YELLOW]: '#fed7aa',
-  [TRAFFIC_LIGHT.RED]: '#fee2e2'
+  [TRAFFIC_LIGHT.RED]: '#fee2e2',
+  [TRAFFIC_LIGHT.GREY]: '#e5e7eb'
 }
+
+// ===================== ALERT TYPES =====================
 
 export const ALERT_TYPES = {
   RED_KPI: 'red_kpi',
@@ -104,6 +118,8 @@ export const ALERT_FREQUENCY = {
   WEEKLY: 'weekly'
 }
 
+// ===================== EXPORT FORMATS =====================
+
 export const EXPORT_FORMATS = {
   PDF: 'pdf',
   EXCEL: 'excel',
@@ -117,6 +133,8 @@ export const EXPORT_FORMAT_LABELS = {
   [EXPORT_FORMATS.CSV]: 'CSV File',
   [EXPORT_FORMATS.PNG]: 'PNG Image'
 }
+
+// ===================== SCHEDULE TYPES =====================
 
 export const SCHEDULE_TYPES = {
   DAILY: 'daily',
@@ -132,6 +150,8 @@ export const SCHEDULE_LABELS = {
   [SCHEDULE_TYPES.QUARTERLY]: 'Quarterly'
 }
 
+// ===================== COMPARISON TYPES =====================
+
 export const COMPARISON_TYPES = {
   MONTH_OVER_MONTH: 'mom',
   QUARTER_OVER_QUARTER: 'qoq',
@@ -146,13 +166,130 @@ export const COMPARISON_LABELS = {
   [COMPARISON_TYPES.CUSTOM]: 'Custom Period'
 }
 
+// ===================== PERIOD TYPES =====================
+
 export const PERIOD_TYPES = {
   DAILY: 'daily',
   WEEKLY: 'weekly',
   MONTHLY: 'monthly',
   QUARTERLY: 'quarterly',
-  YEARLY: 'yearly'
+  YEARLY: 'yearly',
+  CURRENT: 'current'
 }
+
+// ===================== MANAGER DASHBOARD CONSTANTS =====================
+
+export const TEAM_VIEW_MODES = {
+  LIST: 'list',
+  CARDS: 'cards',
+  GRID: 'grid'
+}
+
+export const TEAM_VIEW_MODE_LABELS = {
+  [TEAM_VIEW_MODES.LIST]: 'List View',
+  [TEAM_VIEW_MODES.CARDS]: 'Card View',
+  [TEAM_VIEW_MODES.GRID]: 'Grid View'
+}
+
+export const TEAM_SORT_OPTIONS = [
+  { value: 'name', label: 'By Name' },
+  { value: 'score', label: 'By Score' },
+  { value: 'status', label: 'By Status' }
+]
+
+// ===================== STAFF DASHBOARD CONSTANTS =====================
+
+export const KPI_DISPLAY_MODES = {
+  LIST: 'list',
+  CARDS: 'cards',
+  COMPACT: 'compact'
+}
+
+export const KPI_DISPLAY_MODE_LABELS = {
+  [KPI_DISPLAY_MODES.LIST]: 'List View',
+  [KPI_DISPLAY_MODES.CARDS]: 'Card View',
+  [KPI_DISPLAY_MODES.COMPACT]: 'Compact View'
+}
+
+export const KPI_SUBMISSION_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  NOT_SUBMITTED: 'not_submitted',
+  SUBMITTED: 'submitted'
+}
+
+export const KPI_SUBMISSION_STATUS_LABELS = {
+  [KPI_SUBMISSION_STATUS.PENDING]: 'Pending Approval',
+  [KPI_SUBMISSION_STATUS.APPROVED]: 'Approved',
+  [KPI_SUBMISSION_STATUS.REJECTED]: 'Rejected',
+  [KPI_SUBMISSION_STATUS.NOT_SUBMITTED]: 'Not Submitted',
+  [KPI_SUBMISSION_STATUS.SUBMITTED]: 'Submitted'
+}
+
+export const KPI_SUBMISSION_STATUS_COLORS = {
+  [KPI_SUBMISSION_STATUS.PENDING]: '#f59e0b',
+  [KPI_SUBMISSION_STATUS.APPROVED]: '#10b981',
+  [KPI_SUBMISSION_STATUS.REJECTED]: '#ef4444',
+  [KPI_SUBMISSION_STATUS.NOT_SUBMITTED]: '#9ca3af',
+  [KPI_SUBMISSION_STATUS.SUBMITTED]: '#3b82f6'
+}
+
+// ===================== CHAMPION DASHBOARD CONSTANTS =====================
+
+export const TEMPLATE_CATEGORIES = {
+  SALES: 'sales',
+  FINANCE: 'finance',
+  HR: 'hr',
+  OPERATIONS: 'operations',
+  MARKETING: 'marketing',
+  CUSTOM: 'custom'
+}
+
+export const TEMPLATE_CATEGORY_LABELS = {
+  [TEMPLATE_CATEGORIES.SALES]: 'Sales',
+  [TEMPLATE_CATEGORIES.FINANCE]: 'Finance',
+  [TEMPLATE_CATEGORIES.HR]: 'Human Resources',
+  [TEMPLATE_CATEGORIES.OPERATIONS]: 'Operations',
+  [TEMPLATE_CATEGORIES.MARKETING]: 'Marketing',
+  [TEMPLATE_CATEGORIES.CUSTOM]: 'Custom'
+}
+
+// ===================== READ-ONLY DASHBOARD CONSTANTS =====================
+
+export const READ_ONLY_VIEW_TYPES = {
+  EXECUTIVE: 'executive',
+  MANAGER: 'manager',
+  STAFF: 'staff'
+}
+
+export const READ_ONLY_VIEW_LABELS = {
+  [READ_ONLY_VIEW_TYPES.EXECUTIVE]: 'Executive View',
+  [READ_ONLY_VIEW_TYPES.MANAGER]: 'Manager View',
+  [READ_ONLY_VIEW_TYPES.STAFF]: 'Staff View'
+}
+
+// ===================== GENERIC DASHBOARD CONSTANTS =====================
+
+export const DASHBOARD_FILTERS = {
+  PERIOD: 'period',
+  DEPARTMENT: 'department',
+  KPI_CATEGORY: 'kpi_category',
+  STATUS: 'status',
+  DATE_FROM: 'date_from',
+  DATE_TO: 'date_to',
+  USER_ID: 'user_id',
+  VIEW_TYPE: 'view_type'
+}
+
+export const DEFAULT_FILTERS = {
+  period: PERIOD_TYPES.MONTHLY,
+  status: null,
+  department: null,
+  kpi_category: null
+}
+
+// ===================== DEFAULT LAYOUTS =====================
 
 export const DEFAULT_DASHBOARD_LAYOUT = {
   widgets: [],
@@ -178,6 +315,16 @@ export const DEFAULT_WIDGET_DIMENSIONS = {
   defaultHeight: 3
 }
 
+// ===================== SCORE THRESHOLDS =====================
+
+export const SCORE_THRESHOLDS = {
+  GREEN_MIN: 90,
+  YELLOW_MIN: 50,
+  RED_MAX: 49
+}
+
+// ===================== REFRESH INTERVALS =====================
+
 export const REFRESH_INTERVALS = {
   NEVER: 0,
   THIRTY_SECONDS: 30,
@@ -196,28 +343,7 @@ export const REFRESH_INTERVAL_LABELS = {
   [REFRESH_INTERVALS.TEN_MINUTES]: '10 minutes'
 }
 
-export const DASHBOARD_FILTERS = {
-  PERIOD: 'period',
-  DEPARTMENT: 'department',
-  KPI_CATEGORY: 'kpi_category',
-  STATUS: 'status',
-  DATE_FROM: 'date_from',
-  DATE_TO: 'date_to',
-  USER: 'user'
-}
-
-export const DEFAULT_FILTERS = {
-  period: PERIOD_TYPES.MONTHLY,
-  status: null,
-  department: null,
-  kpi_category: null
-}
-
-export const SCORE_THRESHOLDS = {
-  GREEN_MIN: 90,
-  YELLOW_MIN: 50,
-  RED_MAX: 49
-}
+// ===================== CACHE TTL =====================
 
 export const CACHE_TTL = {
   SHORT: 300,
@@ -226,6 +352,8 @@ export const CACHE_TTL = {
   DAY: 86400
 }
 
+// ===================== RATE LIMITS =====================
+
 export const RATE_LIMITS = {
   DASHBOARD_VIEW: { limit: 60, period: 60 },
   EXPORT: { limit: 20, period: 3600 },
@@ -233,13 +361,25 @@ export const RATE_LIMITS = {
   WIDGET_CONFIG: { limit: 30, period: 60 }
 }
 
+// ===================== HIERARCHY SETTINGS =====================
+
 export const HIERARCHY = {
   MAX_DEPTH: 10,
   DEFAULT_EXPAND_LEVEL: 2
 }
 
+// ===================== WEBSOCKET SETTINGS =====================
+
 export const WEBSOCKET = {
   RECONNECT_DELAY: 3000,
   MAX_RECONNECT_ATTEMPTS: 5,
   HEARTBEAT_INTERVAL: 30000
+}
+
+// ===================== PAGINATION =====================
+
+export const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_PAGE_SIZE: 20,
+  PAGE_SIZE_OPTIONS: [10, 20, 50, 100]
 }

@@ -1,3 +1,5 @@
+// frontend/src/config/constants/dashboardApiConstants.js
+
 const API_VERSION = 'v1'
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 const WS_BASE = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws'
@@ -5,7 +7,7 @@ const WS_BASE = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws'
 export const DASHBOARD_API = {
   BASE: `${API_BASE}/dashboard`,
   
-  // Executive Dashboard
+  // ===================== EXECUTIVE DASHBOARD =====================
   EXECUTIVE: {
     BASE: `${API_BASE}/dashboard/executive`,
     DATA: `${API_BASE}/dashboard/executive/data`,
@@ -18,7 +20,7 @@ export const DASHBOARD_API = {
     KPI_DETAILS: (kpiId) => `${API_BASE}/dashboard/executive/kpis/${kpiId}`
   },
   
-  // Client Admin Dashboard
+  // ===================== CLIENT ADMIN DASHBOARD =====================
   CLIENT_ADMIN: {
     BASE: `${API_BASE}/dashboard/client-admin`,
     DATA: `${API_BASE}/dashboard/client-admin/data`,
@@ -34,7 +36,7 @@ export const DASHBOARD_API = {
     ROLE_MANAGEMENT: `${API_BASE}/dashboard/client-admin/roles`
   },
   
-  // Super Admin Dashboard
+  // ===================== SUPER ADMIN DASHBOARD =====================
   SUPER_ADMIN: {
     BASE: `${API_BASE}/dashboard/super-admin`,
     DATA: `${API_BASE}/dashboard/super-admin/data`,
@@ -48,7 +50,59 @@ export const DASHBOARD_API = {
     REFRESH: `${API_BASE}/dashboard/super-admin/refresh`
   },
   
-  // Hierarchy
+  // ===================== MANAGER DASHBOARD =====================
+  MANAGER: {
+    BASE: `${API_BASE}/dashboard/manager`,
+    DATA: `${API_BASE}/dashboard/manager`,
+    TEAM_MEMBERS: `${API_BASE}/dashboard/manager/team`,
+    TEAM_SUMMARY: `${API_BASE}/dashboard/manager/team-summary`,
+    APPROVE: `${API_BASE}/dashboard/manager/approve`,
+    REJECT: `${API_BASE}/dashboard/manager/reject`,
+    PENDING_APPROVALS: `${API_BASE}/dashboard/manager/pending`,
+    DRILL_DOWN: (userId) => `${API_BASE}/dashboard/manager/user/${userId}`,
+    REFRESH: `${API_BASE}/dashboard/manager/refresh`
+  },
+
+  // ===================== STAFF DASHBOARD =====================
+  STAFF: {
+    BASE: `${API_BASE}/dashboard/staff`,
+    DATA: `${API_BASE}/dashboard/staff`,
+    SUBMIT_KPI: `${API_BASE}/dashboard/staff/submit`,
+    PENDING_SUBMISSIONS: `${API_BASE}/dashboard/staff/pending`,
+    MISSION_STATUS: `${API_BASE}/dashboard/staff/mission-status`,
+    TASKS: `${API_BASE}/dashboard/staff/tasks`,
+    REFRESH: `${API_BASE}/dashboard/staff/refresh`
+  },
+
+  // ===================== CHAMPION DASHBOARD =====================
+  CHAMPION: {
+    BASE: `${API_BASE}/dashboard/champion`,
+    DATA: `${API_BASE}/dashboard/champion`,
+    EDITABLE_DASHBOARD: (userId) => `${API_BASE}/dashboard/champion/user/${userId}`,
+    UPDATE_CONFIG: `${API_BASE}/dashboard/champion/update`,
+    AVAILABLE_KPIS: (userId) => `${API_BASE}/dashboard/champion/user/${userId}/available-kpis`,
+    ASSIGNED_KPIS: (userId) => `${API_BASE}/dashboard/champion/user/${userId}/assigned-kpis`,
+    TEMPLATES: `${API_BASE}/dashboard/champion/templates`,
+    APPLY_TEMPLATE: (templateId) => `${API_BASE}/dashboard/champion/templates/${templateId}/apply`,
+    REFRESH: `${API_BASE}/dashboard/champion/refresh`
+  },
+
+  // ===================== READ-ONLY DASHBOARD =====================
+  READ_ONLY: {
+    BASE: `${API_BASE}/dashboard/read-only`,
+    DATA: `${API_BASE}/dashboard/read-only`,
+    EXPORT: `${API_BASE}/dashboard/read-only/export`,
+    REFRESH: `${API_BASE}/dashboard/read-only/refresh`
+  },
+
+  // ===================== DRILL-DOWN API =====================
+  DRILL_DOWN: {
+    BASE: `${API_BASE}/dashboard/drill-down`,
+    USER: (userId) => `${API_BASE}/dashboard/drill-down/${userId}`,
+    TEAM: (userId) => `${API_BASE}/dashboard/drill-down/${userId}/team`
+  },
+  
+  // ===================== HIERARCHY =====================
   HIERARCHY: {
     BASE: `${API_BASE}/dashboard/hierarchy`,
     TEAM: `${API_BASE}/dashboard/hierarchy/team`,
@@ -59,7 +113,7 @@ export const DASHBOARD_API = {
     TEAM_MEMBERS: (userId) => `${API_BASE}/dashboard/hierarchy/team/${userId}`
   },
   
-  // Dashboard Configurations
+  // ===================== DASHBOARD CONFIGURATIONS =====================
   CONFIGS: {
     BASE: `${API_BASE}/dashboard/configs`,
     LIST: `${API_BASE}/dashboard/configs`,
@@ -69,7 +123,7 @@ export const DASHBOARD_API = {
     SET_DEFAULT: (id) => `${API_BASE}/dashboard/configs/${id}/set-default`
   },
   
-  // Widgets
+  // ===================== WIDGETS =====================
   WIDGETS: {
     BASE: `${API_BASE}/dashboard/widgets`,
     LIST: `${API_BASE}/dashboard/widgets`,
@@ -78,7 +132,7 @@ export const DASHBOARD_API = {
     BULK_POSITION: `${API_BASE}/dashboard/widgets/bulk-position`
   },
   
-  // Favorites
+  // ===================== FAVORITES =====================
   FAVORITES: {
     BASE: `${API_BASE}/dashboard/favorites`,
     LIST: `${API_BASE}/dashboard/favorites`,
@@ -86,7 +140,7 @@ export const DASHBOARD_API = {
     REORDER: `${API_BASE}/dashboard/favorites/reorder`
   },
   
-  // Alerts
+  // ===================== ALERTS =====================
   ALERTS: {
     BASE: `${API_BASE}/dashboard/alerts`,
     LIST: `${API_BASE}/dashboard/alerts`,
@@ -95,7 +149,7 @@ export const DASHBOARD_API = {
     TRIGGER: (id) => `${API_BASE}/dashboard/alerts/${id}/trigger`
   },
   
-  // Exports
+  // ===================== EXPORTS =====================
   EXPORTS: {
     BASE: `${API_BASE}/dashboard/exports`,
     LIST: `${API_BASE}/dashboard/exports`,
@@ -105,7 +159,7 @@ export const DASHBOARD_API = {
     HISTORY: `${API_BASE}/dashboard/exports/history`
   },
   
-  // Comparisons
+  // ===================== COMPARISONS =====================
   COMPARISONS: {
     BASE: `${API_BASE}/dashboard/comparisons`,
     LIST: `${API_BASE}/dashboard/comparisons`,
@@ -113,7 +167,7 @@ export const DASHBOARD_API = {
     CALCULATE: (id) => `${API_BASE}/dashboard/comparisons/${id}/calculate`
   },
   
-  // View Presets
+  // ===================== VIEW PRESETS =====================
   VIEW_PRESETS: {
     BASE: `${API_BASE}/dashboard/view-presets`,
     LIST: `${API_BASE}/dashboard/view-presets`,
@@ -131,6 +185,10 @@ export const DASHBOARD_QUERY_KEYS = {
   EXECUTIVE_DATA: 'executiveDashboardData',
   CLIENT_ADMIN_DATA: 'clientAdminDashboardData',
   SUPER_ADMIN_DATA: 'superAdminDashboardData',
+  MANAGER_DATA: 'managerDashboardData',
+  STAFF_DATA: 'staffDashboardData',
+  CHAMPION_DATA: 'championDashboardData',
+  READ_ONLY_DATA: 'readOnlyDashboardData',
   TEAM_DATA: 'teamData',
   TEAM_AGGREGATE: 'teamAggregate',
   ORG_TREE: 'orgTree',
@@ -176,13 +234,22 @@ export const DASHBOARD_MUTATION_KEYS = {
   DELETE_PRESET: 'deleteViewPreset',
   SET_DEFAULT_PRESET: 'setDefaultPreset',
   REFRESH_DASHBOARD: 'refreshDashboard',
-  REFRESH_TENANT: 'refreshTenant'
+  REFRESH_TENANT: 'refreshTenant',
+  SUBMIT_KPI: 'submitKpi',
+  APPROVE_SUBMISSION: 'approveSubmission',
+  REJECT_SUBMISSION: 'rejectSubmission',
+  UPDATE_CHAMPION_CONFIG: 'updateChampionConfig'
 }
 
 export const DASHBOARD_ENDPOINTS = {
   executive: DASHBOARD_API.EXECUTIVE,
   clientAdmin: DASHBOARD_API.CLIENT_ADMIN,
   superAdmin: DASHBOARD_API.SUPER_ADMIN,
+  manager: DASHBOARD_API.MANAGER,
+  staff: DASHBOARD_API.STAFF,
+  champion: DASHBOARD_API.CHAMPION,
+  readOnly: DASHBOARD_API.READ_ONLY,
+  drillDown: DASHBOARD_API.DRILL_DOWN,
   hierarchy: DASHBOARD_API.HIERARCHY,
   configs: DASHBOARD_API.CONFIGS,
   widgets: DASHBOARD_API.WIDGETS,
