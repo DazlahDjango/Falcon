@@ -6,8 +6,12 @@ from .views import (
     UserViewSet, UserProfileView, CurrentUserView, UserChangePasswordView, UserInvitationsView, InvitationAcceptView,
     ProfileViewSet, RoleViewSet, PermissionViewSet, SessionViewSet, MFADeviceViewSet, MFAAuditLogViewSet,
     UserPreferenceViewSet, TenantPreferenceViewSet, AuditLogViewSet,
-    AdminUserViewSet, AdminRoleViewSet, AdminTenantViewSet, AdminPermissionViewSet, AdminSystemView
+    AdminUserViewSet, AdminRoleViewSet, AdminTenantViewSet, AdminPermissionViewSet, AdminSystemView,
 )
+from .views.system_settings_views import (
+    AccountsSystemSettingsView, AccountsSystemSettingsResetView, AccountsSyncPolicyView,
+)
+from .views.security_views import LoginAttemptViewSet, TenantPolicyView, LockoutSummaryView
 
 # Router configs
 # =============
@@ -25,6 +29,7 @@ router.register(r'mfa/audit-logs', MFAAuditLogViewSet, basename='mfa-audit-log')
 router.register(r'preferences/users', UserPreferenceViewSet, basename='user-preference')
 router.register(r'preferences/tenants', TenantPreferenceViewSet, basename='tenant-preference')
 router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
+router.register(r'security/login-attempts', LoginAttemptViewSet, basename='login-attempt')
 # Admin routes
 router.register(r'admin/users', AdminUserViewSet, basename='admin-user')
 router.register(r'admin/roles', AdminRoleViewSet, basename='admin-role')
@@ -64,10 +69,19 @@ admin_urls = [
     path('admin/system/clear-cache/', AdminSystemView.as_view({'post': 'clear_cache'}), name='admin-clear-cache'),
 ]
 
+security_urls = [
+    path('security/policy/', TenantPolicyView.as_view(), name='tenant-security-policy'),
+    path('security/lockout-summary/', LockoutSummaryView.as_view(), name='lockout-summary'),
+    path('system-settings/', AccountsSystemSettingsView.as_view(), name='accounts-system-settings'),
+    path('system-settings/reset/', AccountsSystemSettingsResetView.as_view(), name='accounts-system-settings-reset'),
+    path('system-settings/sync-policy/', AccountsSyncPolicyView.as_view(), name='accounts-sync-policy'),
+]
+
 # URL Patterns
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(users_router.urls)),
     path('auth/', include(auth_urls)),
-    path('', include(admin_urls))
+    path('', include(admin_urls)),
+    path('', include(security_urls)),
 ]

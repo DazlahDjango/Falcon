@@ -5,8 +5,13 @@ from rest_framework_nested import routers
 from .views import (
     TenantViewSet, DomainViewSet, BackupViewSet, MigrationViewSet,
     SchemaViewSet, ConnectionPoolViewSet,
-    HealthCheckView, TenantsHealthView
+    HealthCheckView, TenantsHealthView,
 )
+from .views.system_settings_views import (
+    TenantSystemSettingsView,
+    TenantSystemSettingsResetView,
+)
+from .views.reference_data import TenantReferenceDataView
 
 app_name = 'tenant_app'
 
@@ -27,6 +32,9 @@ tenant_router.register(r'migrations', MigrationViewSet, basename='tenant-migrati
 tenant_router.register(r'schemas', SchemaViewSet, basename='tenant-schemas')
 
 urlpatterns = [
+    path('system-settings/', TenantSystemSettingsView.as_view(), name='tenant-system-settings'),
+    path('system-settings/reset/', TenantSystemSettingsResetView.as_view(), name='tenant-system-settings-reset'),
+    path('reference-data/', TenantReferenceDataView.as_view(), name='tenant-reference-data'),
     # All CRUD + @action endpoints
     path('', include(router.urls)),
     path('', include(tenant_router.urls)),

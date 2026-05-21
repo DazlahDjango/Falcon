@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { FiUser, FiShield, FiBell, FiDatabase, FiSettings as FiSettingsIcon } from 'react-icons/fi';
+import { FiUser, FiShield, FiBell, FiDatabase } from 'react-icons/fi';
+import { ROUTES } from '../../../config/constants';
 import Tabs from '../../common/UI/Tabs';
 import ProfileSettings from './ProfileSettings';
 import SecuritySettings from './SecuritySettings';
@@ -8,6 +10,7 @@ import NotificationSettings from './NotificationSettings';
 import TenantSettings from './TenantSettings';
 
 const Settings = () => {
+    const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const isAdmin = user?.role === 'client_admin' || user?.role === 'super_admin';
     const tabs = [
@@ -18,7 +21,7 @@ const Settings = () => {
     if (isAdmin) {
         tabs.push({ key: 'tenant', label: 'Tenant Settings', icon: <FiDatabase size={16} /> });
     }
-    const [activeTab, setActiveTabs] = useState('profile');
+    const [activeTab, setActiveTab] = useState('profile');
     const renderContent = () => {
         switch (activeTab) {
             case 'profile':
@@ -38,6 +41,16 @@ const Settings = () => {
             <div className="page-header">
                 <h1>Settings</h1>
                 <p>Manage your account preferences and security</p>
+                {isAdmin && (
+                    <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        style={{ marginTop: '0.75rem' }}
+                        onClick={() => navigate(ROUTES.SECURITY)}
+                    >
+                        <FiShield size={14} /> Open security console
+                    </button>
+                )}
             </div>
             
             <div className="settings-container">

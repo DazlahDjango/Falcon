@@ -7,6 +7,7 @@ from .validation import ValidationRecord, ValidationComment, RejectionReason, Es
 from .calculation import Score, AggregatedScore, TrafficLight, Trend, CalculationLog
 from .cascade import CascadeMap, CascadeRule, CascadeHistory
 from .analytics import KPISummary, DepartmentRollup, OrganizationHealth, RefreshTracker
+from .system_settings import KpiSystemSettings
 
 __all__ = [
     # Base
@@ -27,5 +28,5 @@ __all__ = [
     'CascadeMap', 'CascadeRule', 'CascadeHistory',
     # Analytics
     'KPISummary', 'DepartmentRollup', 'OrganizationHealth', 'RefreshTracker',
-
+    'KpiSystemSettings',
 ]

@@ -32,6 +32,7 @@ const LocationForm = React.lazy(() => import('../pages/structure/LocationForm'))
 
 const HierarchyVersionList = React.lazy(() => import('../pages/structure/HierarchyVersionList'));
 const HierarchyCompare = React.lazy(() => import('../pages/structure/HierarchyCompare'));
+const StructureSettingsPage = React.lazy(() => import('../pages/structure/StructureSettingsPage'));
 
 // ============================================
 // EXPORT STRUCTURE_ROUTES CONSTANTS
@@ -95,12 +96,15 @@ export const STRUCTURE_ROUTES = {
     MY_EMPLOYMENT: '/app/structure/me',
     MY_TEAM: '/app/structure/my-team',
     MY_CHAIN: '/app/structure/my-chain',
+
+    SETTINGS: '/app/structure/settings',
 };
 
 // Simple flat routes array
 const structureRoutes = [
     // Dashboard
     { path: STRUCTURE_ROUTES.DASHBOARD, element: <StructureDashboard /> },
+    { path: STRUCTURE_ROUTES.SETTINGS, element: <StructureSettingsPage /> },
     
     // Departments
     { path: STRUCTURE_ROUTES.DEPARTMENTS, element: <DepartmentList /> },

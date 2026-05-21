@@ -7,6 +7,7 @@ from apps.configs.services.maintenance.partial_maintenance import PartialMainten
 from apps.configs.services.maintenance.maintenance_notifier import MaintenanceNotifier
 from apps.configs.constants import MaintenanceStatus
 from apps.configs.exceptions import MaintenanceConflictError
+from apps.configs.services.realtime import ConfigProgressBroadcaster
 
 class MaintenanceOrchestrator:
     def __init__(self):
@@ -20,13 +21,16 @@ class MaintenanceOrchestrator:
             self.access_enforcer.enforce_super_admin(triggered_by_role)
         else:
             self.access_enforcer.enforce_config_access(triggered_by_role)
-        overlapping = MaintenanceWindow.objects.filter(
-            status__in=['scheduled', 'in_progress'],
-            scheduled_start__lte=scheduled_end,
-            scheduled_end__gte=scheduled_start
-        )
-        if overlapping.exists():
-            raise MaintenanceConflictError("Maintenance window overlaps with existing window")
+        from apps.configs.services.settings import ConfigSettingsService
+        settings = ConfigSettingsService.get_settings()
+        if settings.get('maintenance', {}).get('maintenance_overlap_blocked', True):
+            overlapping = MaintenanceWindow.objects.filter(
+                status__in=['scheduled', 'in_progress'],
+                scheduled_start__lte=scheduled_end,
+                scheduled_end__gte=scheduled_start
+            )
+            if overlapping.exists():
+                raise MaintenanceConflictError("Maintenance window overlaps with existing window")
         window = MaintenanceWindow.objects.create(
             title=title,
             maintenance_type=maintenance_type,
@@ -64,6 +68,15 @@ class MaintenanceOrchestrator:
             details={'affected_apps': list(window.affected_apps.values_list('name', flat=True))}
         )
         self.notifier.notify_users(window)
+        ConfigProgressBroadcaster.broadcast_maintenance_update(
+            'system',
+            maintenance_active=True,
+            maintenance_type=window.maintenance_type,
+            message=window.reason or window.title,
+            affected_apps=list(window.affected_apps.values_list('name', flat=True)),
+            started_at=window.actual_start.isoformat() if window.actual_start else None,
+            expected_end=window.scheduled_end.isoformat() if window.scheduled_end else None,
+        )
         return window
     def stop_maintenance(self, window_id, triggered_by, triggered_by_role):
         window = MaintenanceWindow.objects.get(id=window_id)
@@ -84,5 +97,12 @@ class MaintenanceOrchestrator:
             performed_by=triggered_by,
             performed_by_role=triggered_by_role,
             duration_seconds=(window.actual_end - window.actual_start).total_seconds()
+        )
+        ConfigProgressBroadcaster.broadcast_maintenance_update(
+            'system',
+            maintenance_active=False,
+            maintenance_type='none',
+            message='Maintenance completed',
+            affected_apps=[],
         )
         return window

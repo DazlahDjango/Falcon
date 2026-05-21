@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { superAdminDashboardService } from '../../services/dashboard/superAdmin.service';
 import { showToast } from '../../store/ui/slices/uiSlice';
@@ -17,12 +17,22 @@ export const useSuperAdminDashboard = (options = {}) => {
   const [tenantsLoading, setTenantsLoading] = useState(false);
   const [refreshingTenant, setRefreshingTenant] = useState(false);
 
+  const refreshAllRef = useRef(null);
+
+  const onWebsocketMessage = useCallback((message) => {
+    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update') {
+      if (refreshAllRef.current) {
+        refreshAllRef.current().catch(console.error);
+      }
+    }
+  }, []);
+
   const {
     data: dashboardData,
     loading,
     error,
     refresh: refreshDashboard
-  } = useDashboard('super_admin', options);
+  } = useDashboard('super_admin', { ...options, onWebsocketMessage });
 
   const fetchTenants = useCallback(async (filters = {}) => {
     setTenantsLoading(true);
@@ -151,6 +161,10 @@ export const useSuperAdminDashboard = (options = {}) => {
       fetchBillingOverview()
     ]);
   }, [refreshDashboard, fetchTenants, fetchSystemHealth, fetchSubscriptionAlerts, fetchPlatformMetrics, fetchBillingOverview]);
+
+  useEffect(() => {
+    refreshAllRef.current = refreshAll;
+  }, [refreshAll]);
 
   return {
     dashboardData,

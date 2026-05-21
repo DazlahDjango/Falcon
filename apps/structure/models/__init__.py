@@ -7,6 +7,7 @@ from .reporting_line import ReportingLine
 from .cost_center import CostCenter
 from .location import Location
 from .hierarchy_version import HierarchyVersion
+from .system_settings import StructureSystemSettings
 
 __all__ = [
     'BaseStructureModel',
@@ -18,4 +19,5 @@ __all__ = [
     'CostCenter',
     'Location',
     'HierarchyVersion',
+    'StructureSystemSettings',
 ]

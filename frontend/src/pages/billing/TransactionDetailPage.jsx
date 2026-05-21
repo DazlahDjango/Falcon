@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTransaction } from '../../hooks/billing';
 import { TransactionDetails } from '../../components/billing/transactions/TransactionDetails';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 
 export const TransactionDetailPage = () => {
@@ -23,7 +24,7 @@ export const TransactionDetailPage = () => {
             <BillingLayout title="Transaction Not Found">
                 <div className="error-state">
                     <p>Transaction not found</p>
-                    <button onClick={() => navigate('/transactions')} className="btn-primary">
+                    <button onClick={() => navigate(BILLING_ROUTES.TRANSACTIONS)} className="btn-primary">
                         Back to Transactions
                     </button>
                 </div>

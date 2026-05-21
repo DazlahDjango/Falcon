@@ -32,6 +32,15 @@ class ReviewsConfig(AppConfig):
         # Import signals to register them with Django's signal dispatcher
         import apps.reviews.signals
         
+        try:
+            from apps.configs.services.registry.app_registry import AppRegistry
+            AppRegistry().register_from_definition('reviews')
+        except ImportError:
+            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning('Failed to register reviews with config app: %s', e)
+        
         # Register any system checks (optional)
         # from .checks import register_checks
         # register_checks()

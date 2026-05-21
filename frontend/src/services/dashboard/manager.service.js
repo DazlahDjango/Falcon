@@ -94,4 +94,5 @@ class ManagerService extends BaseDashboardService {
   }
 }
 
-export default new ManagerService();
+export const managerService = new ManagerService();
+export default managerService;

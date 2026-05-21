@@ -5,8 +5,13 @@ import {
   fetchClientAdminDashboard,
   fetchSuperAdminDashboard,
   setActiveDashboard,
-  clearAllDashboards
+  clearAllDashboards,
 } from '../../store/dashboard/slices/dashboardSlice';
+import { fetchManagerDashboard } from '../../store/dashboard/slices/managerDashboardSlice';
+import { fetchStaffDashboard } from '../../store/dashboard/slices/staffDashboardSlice';
+import { refreshChampionDashboard } from '../../store/dashboard/slices/championDashboardSlice';
+import { fetchReadOnlyDashboard } from '../../store/dashboard/slices/readOnlyDashboardSlice';
+import { DASHBOARD_TYPES } from '../../config/constants/dashboardConstants';
 
 const DashboardContext = createContext(null);
 
@@ -51,12 +56,30 @@ export const DashboardProvider = ({ children }) => {
     dispatch({ type: 'CLEAR_ERROR' });
     
     try {
-      if (state.activeDashboard === 'executive') {
-        await reduxDispatch(fetchExecutiveDashboard()).unwrap();
-      } else if (state.activeDashboard === 'client_admin') {
-        await reduxDispatch(fetchClientAdminDashboard()).unwrap();
-      } else if (state.activeDashboard === 'super_admin') {
-        await reduxDispatch(fetchSuperAdminDashboard()).unwrap();
+      switch (state.activeDashboard) {
+        case DASHBOARD_TYPES.EXECUTIVE:
+          await reduxDispatch(fetchExecutiveDashboard()).unwrap();
+          break;
+        case DASHBOARD_TYPES.CLIENT_ADMIN:
+          await reduxDispatch(fetchClientAdminDashboard()).unwrap();
+          break;
+        case DASHBOARD_TYPES.SUPER_ADMIN:
+          await reduxDispatch(fetchSuperAdminDashboard()).unwrap();
+          break;
+        case DASHBOARD_TYPES.MANAGER:
+          await reduxDispatch(fetchManagerDashboard()).unwrap();
+          break;
+        case DASHBOARD_TYPES.STAFF:
+          await reduxDispatch(fetchStaffDashboard()).unwrap();
+          break;
+        case DASHBOARD_TYPES.CHAMPION:
+          await reduxDispatch(refreshChampionDashboard()).unwrap();
+          break;
+        case DASHBOARD_TYPES.READ_ONLY:
+          await reduxDispatch(fetchReadOnlyDashboard()).unwrap();
+          break;
+        default:
+          break;
       }
       
       dispatch({ type: 'SET_LAST_REFRESH_TIME', payload: new Date().toISOString() });

@@ -11,8 +11,9 @@ import {
     FiTarget, FiAward
 } from 'react-icons/fi';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
-const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath }) => {
+const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
     const [expandedMenus, setExpandedMenus] = useState({
         main: true,
         performance: true,
@@ -123,24 +124,7 @@ const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, curr
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>
             
-            {/* User Info at Bottom */}
-            {!isCollapsed && user && (
-                <div className="sidebar-user">
-                    <div className="user-avatar-small">
-                        {user.avatar_url ? (
-                            <img src={user.avatar_url} alt={user.username} />
-                        ) : (
-                            <div className="avatar-placeholder">
-                                {user.username?.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <div className="user-info">
-                        <div className="user-name">{user.first_name || user.username}</div>
-                        <div className="user-role">Staff</div>
-                    </div>
-                </div>
-            )}
+            <SidebarUserPanel user={user} isCollapsed={isCollapsed} wsConnected={wsConnected} />
         </aside>
     );
 };

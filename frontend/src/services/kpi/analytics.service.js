@@ -41,6 +41,17 @@ class AnalyticsService {
         const response = await api.get(API_ENDPOINTS.ANALYTICS.ORGANIZATION_HEALTH, { params });
         return response.data;
     }
+
+    async getOrganizationHealthCurrent(year = null, month = null) {
+        const params = {};
+        if (year) params.year = year;
+        if (month) params.month = month;
+        const response = await api.get(
+            `${API_ENDPOINTS.ANALYTICS.ORGANIZATION_HEALTH}current/`,
+            { params },
+        );
+        return response.data;
+    }
     async getKPITrends(kpiId) {
         const response = await api.get(API_ENDPOINTS.ANALYTICS.TRENDS(kpiId));
         return response.data;

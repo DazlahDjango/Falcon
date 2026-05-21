@@ -1,3 +1,7 @@
+# Structure UI backlog
+
+> **Platform stabilization (May 2026):** Settings API, Channels broadcaster, reference-data, and tenant quota sync are documented in `Docs/structure/implementation_status.md`.
+
 Hierarchy access service
 
 websocketservice -> addNotification

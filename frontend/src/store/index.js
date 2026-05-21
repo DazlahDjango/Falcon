@@ -15,7 +15,7 @@ import {
     webhookMiddlewareFn, 
     analyticsMiddlewareFn 
 } from './billing/middleware';
-import { backupMiddleware, maintenanceMiddleware, websocketMiddleware } from './config';
+import { backupMiddleware, maintenanceMiddleware } from './config';
 const persistConfig = {
     key: 'root',
     storage,
@@ -89,7 +89,6 @@ export const store = configureStore({
             ...tenantMiddlewares,
             backupMiddleware,
             maintenanceMiddleware,
-            websocketMiddleware,
             billingMiddlewareFn,
             webhookMiddlewareFn,
             analyticsMiddlewareFn

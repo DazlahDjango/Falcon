@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 import logging
-from apps.structure.models import Department, ReportingLine
+from apps.structure.models import Department, ReportingLine, Employment
 from .models import (
     KPI, KPIWeight, AnnualTarget, MonthlyActual, ValidationRecord,
     Score, MonthlyPhasing, Escalation, ActualAdjustment, CascadeMap
@@ -16,8 +16,23 @@ from .tasks import (
     send_validation_notification_task, send_red_alert_check_task, send_escalation_notification_task,
     update_traffic_light_task, refresh_materialized_views_task, create_in_app_notification_task
 )
-from .services import ScoreCalculator, KPIValidator, TargetCascader, RealtimeDashboard
+from .services import ScoreCalculator, KPIValidator, TargetCascader, KPIEventBroadcaster
 logger = logging.getLogger(__name__)
+
+
+def _manager_user_id_for_employee(user_id):
+    employment = Employment.objects.filter(
+        user_id=user_id, is_current=True, is_active=True,
+    ).first()
+    if not employment:
+        return None
+    line = ReportingLine.objects.filter(
+        employee=employment, is_active=True, relation_type='solid',
+    ).select_related('manager').first()
+    if line and line.manager:
+        return str(line.manager.user_id)
+    return None
+
 
 # KPI Signals
 # =============
@@ -28,6 +43,12 @@ logger = logging.getLogger(__name__)
 def kpi_post_save_handler(sender, instance, created, **kwargs):
     logger.info(f"KPI {instance.code} {'created' if created else 'updated'}")
     invalidate_kpi_cache(str(instance.id))
+    if created:
+        try:
+            from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
+            ResourceSyncService.sync_tenant(instance.tenant_id, broadcast=True)
+        except Exception:
+            pass
     if not created and not instance.is_active:
         calculator = ScoreCalculator()
         affected_users = KPIWeight.objects.filter(
@@ -144,20 +165,23 @@ def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
             actual_id=str(instance.id),
             notification_type='submitted'
         ))
-    dashboard = RealtimeDashboard()
-    manager = ReportingLine.objects.filter(employee_id=instance.user_id).first()
-    if manager:
-        import asyncio
-        try:
-            asyncio.create_task(
-                dashboard.push_team_update(
-                    str(manager.manager_id),
-                    {'user_id': str(instance.user_id),
-                     'status': instance.status}
-                )
-            )
-        except RuntimeError:
-            pass
+    manager_id = _manager_user_id_for_employee(instance.user_id)
+    if instance.status == 'PENDING' and instance.submitted_at:
+        KPIEventBroadcaster.actual_submitted(
+            user_id=str(instance.user_id),
+            actual_id=str(instance.id),
+            manager_id=manager_id,
+            year=instance.year,
+            month=instance.month,
+        )
+    else:
+        KPIEventBroadcaster.validation_updated(
+            user_id=str(instance.user_id),
+            actual_id=str(instance.id),
+            status=instance.status,
+            kpi_id=str(instance.kpi_id),
+            supervisor_id=manager_id,
+        )
 
 
 @receiver(post_save, sender=ActualAdjustment)
@@ -233,21 +257,13 @@ def score_post_save_handler(sender, instance, created, **kwargs):
             year=instance.year,
             month=instance.month
         ))
-        dashboard = RealtimeDashboard()
-        try:
-            import asyncio
-            asyncio.create_task(
-                dashboard.push_score_update(
-                    str(instance.user_id),
-                    {
-                        'kpi_id': str(instance.kpi_id),
-                        'score': float(instance.score),
-                        'period': f"{instance.year}-{instance.month:02d}"
-                    }
-                )
-            )
-        except RuntimeError:
-            pass
+        KPIEventBroadcaster.score_updated(
+            user_id=str(instance.user_id),
+            kpi_id=str(instance.kpi_id),
+            score=float(instance.score),
+            period=f'{instance.year}-{instance.month:02d}',
+            manager_id=_manager_user_id_for_employee(instance.user_id),
+        )
 
 
 @receiver(post_save, sender=Score)

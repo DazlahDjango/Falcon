@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout as logoutAction, fetchCurrentUser, login as loginAction, verifyMfa as verifyMfaAction } from '../../store/accounts/slice/authSlice';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../../services/accounts/storage/secureStorage';
-import { login as loginApi, logout as logoutApi, refreshToken as refreshTokenApi } from '../../services/accounts/api/auth';
-import { getCurrentUser, updateProfile } from '../../services/accounts/api/users';
+import { logout as logoutApi, refreshToken as refreshTokenApi } from '../../services/accounts/api/auth';
 
 const AuthContext = createContext(null);
 export const useAuthContext = () => {
@@ -24,16 +23,12 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const loadUser = async () => {
             const token = await getAccessToken();
-            console.log('LoadUser - token exists:', !!token);
             if (token) {
                 try {
-                    // Sync with Redux
                     const result = await dispatch(fetchCurrentUser()).unwrap();
-                    console.log('User loaded from Redux:', result);
                     setUser(result);
                     setIsAuthenticated(true);
-                } catch (error) {
-                    console.error('Failed to load user from Redux:', error)
+                } catch {
                     await clearTokens();
                     setIsAuthenticated(false);
                     setUser(null);
@@ -44,9 +39,9 @@ export const AuthProvider = ({ children }) => {
         loadUser();
 
         const handleLogoutEvent = () => {
-            console.log('[AuthContext] Logout event received');
             setIsAuthenticated(false);
             setUser(null);
+            sessionStorage.removeItem('current_session_id');
             dispatch(logoutAction());
         };
         window.addEventListener('auth:logout', handleLogoutEvent);
@@ -59,19 +54,16 @@ export const AuthProvider = ({ children }) => {
         setError(null);
         try {
             const result = await dispatch(loginAction(credentials)).unwrap();
-            console.log('Login successful via Redux:', result);
-            
-            // The authSlice reducer already handles setting tokens and user
-            // but we need to update our local context state too
             if (result.requires_mfa) {
                 return { requiresMfa: true, mfaToken: result.mfa_token };
             }
-            
+            if (result.session_id) {
+                sessionStorage.setItem('current_session_id', result.session_id);
+            }
             setUser(result.user);
             setIsAuthenticated(true);
             return { success: true };
         } catch (err) {
-            console.error('Login failed via Redux:', err);
             setError(err || 'Login failed');
             return { success: false, error: err };
         }
@@ -81,13 +73,13 @@ export const AuthProvider = ({ children }) => {
         setError(null);
         try {
             const result = await dispatch(verifyMfaAction({ mfa_token: mfaToken, otp })).unwrap();
-            console.log('MFA successful via Redux:', result);
-            
+            if (result.session_id) {
+                sessionStorage.setItem('current_session_id', result.session_id);
+            }
             setUser(result.user);
             setIsAuthenticated(true);
             return { success: true };
         } catch (err) {
-            console.error('MFA failed via Redux:', err);
             setError(err || 'MFA verification failed');
             return { success: false, error: err };
         }
@@ -98,10 +90,11 @@ export const AuthProvider = ({ children }) => {
             if (refreshToken) {
                 await logoutApi(refreshToken);
             }
-        } catch (error) {
-            console.error('Logout API error:', error);
+        } catch {
+            /* proceed with local logout */
         } finally {
             await clearTokens();
+            sessionStorage.removeItem('current_session_id');
             setUser(null);
             setIsAuthenticated(false);
             navigate('/login');
@@ -115,8 +108,7 @@ export const AuthProvider = ({ children }) => {
             const { access } = response.data;
             await setTokens(access, refreshToken);
             return true;
-        } catch (error) {
-            console.error('Token refresh failed:', error);
+        } catch {
             await logout();
             return false;
         }
@@ -124,8 +116,8 @@ export const AuthProvider = ({ children }) => {
     const updateUser = useCallback((updatedUser) => {
         setUser(prev => ({ ...prev, ...updatedUser }));
     }, []);
-    const value = {
-        user, 
+    const value = useMemo(() => ({
+        user,
         isAuthenticated,
         isLoading,
         error,
@@ -133,8 +125,8 @@ export const AuthProvider = ({ children }) => {
         verifyMfa,
         logout,
         refreshAuth,
-        updateUser
-    };
+        updateUser,
+    }), [user, isAuthenticated, isLoading, error, login, verifyMfa, logout, refreshAuth, updateUser]);
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );

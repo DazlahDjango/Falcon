@@ -14,6 +14,8 @@ from apps.kpi.routing import websocket_urlpatterns as kpi_websocket
 from apps.reviews.routing import websocket_urlpatterns as reviews_websocket  # ADDED - Reviews app WebSockets
 from apps.billing.routing import websocket_urlpatterns as billing_websocket
 from apps.configs.routing import websocket_urlpatterns as config_websocket
+from apps.dashboard.routing import websocket_urlpatterns as dashboard_websocket
+from apps.tenant.routing import websocket_urlpatterns as tenant_websocket
 
 # Combined WebSocket URL Patterns
 # ===============================
@@ -25,6 +27,8 @@ websocket_urlpatterns.extend(reviews_websocket)  # ADDED - Include Reviews WebSo
 
 websocket_urlpatterns.extend(billing_websocket)
 websocket_urlpatterns.extend(config_websocket)
+websocket_urlpatterns.extend(dashboard_websocket)
+websocket_urlpatterns.extend(tenant_websocket)
 
 # Main Application Router
 # ========================

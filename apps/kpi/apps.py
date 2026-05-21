@@ -8,20 +8,14 @@ class KpiConfig(AppConfig):
 
     def ready(self):
         import apps.kpi.signals
+        self._register_with_config_app()
+
+    def _register_with_config_app(self):
         try:
             from apps.configs.services.registry.app_registry import AppRegistry
-            registry = AppRegistry()
-            registry.register_app(
-                app_name='kpi',
-                display_name='KPI Engine',
-                is_critical=True,
-                recovery_priority=1,
-                rpo_minutes=60,
-                rto_minutes=120,
-                backup_retention_days=90
-            )
+            AppRegistry().register_from_definition('kpi')
         except ImportError:
             pass
         except Exception as e:
             import logging
-            logging.getLogger(__name__).warning(f"Failed to register kpi: {e}")
+            logging.getLogger(__name__).warning('Failed to register kpi with config app: %s', e)

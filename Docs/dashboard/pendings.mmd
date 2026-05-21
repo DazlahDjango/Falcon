@@ -1,0 +1,128 @@
+# Falcon PMS Dashboard System — Client Guide & Training Narrative
+
+> **Implementation status:** For engineering truth (seven dashboards, real-time, profile wiring, go-live checklist), see **[implementation_status.md](./implementation_status.md)**.  
+> User profile in dashboard chrome comes from Accounts **`GET /api/v1/users/me/`**. KPI and team data are live from the KPI and Accounts apps.
+
+---
+
+## Part 1: Dashboard roles & access
+
+Q1: How many different dashboards does Falcon PMS provide?
+A: Falcon provides **seven role-based dashboards**, each tailored to what that person needs to see and do:
+
+- **Executive Dashboard** — Organization-wide performance, department heatmaps, trends, and strategic alerts.
+- **Client Admin Dashboard** — Tenant administration: compliance, pending approvals, missing data, user activity, and KPI breakdown.
+- **Super Admin Dashboard** — Platform-wide tenants, system health, subscriptions, billing overview, and audit visibility.
+- **Manager Dashboard** — Team performance, pending approvals, drill-down to direct reports.
+- **Staff Dashboard** — Personal KPIs, mission status, submissions, and performance history.
+- **Dashboard Champion** — Configure dashboards for others, templates, bulk assignment, and target phasing support.
+- **Read-Only Dashboard** — View executive, manager, or staff perspectives without making changes (auditors, board observers).
+
+The system selects the correct experience from the user’s role in Accounts. You do not need separate logins for each dashboard type.
+
+---
+
+Q2: Is dashboard data real-time?
+A: Yes. Each dashboard maintains a **live WebSocket channel** (`ws/dashboard/<role>/`) that pushes updates when KPI scores change, approvals are pending, or team membership shifts. The UI shows a **Live / Offline** indicator in the sidebar and header.
+
+You can also manually refresh; cached data uses TTLs tuned per role (executive data may cache longer than staff submission status).
+
+---
+
+Q3: Where does the user’s name and photo on the dashboard come from?
+A: From the **Accounts profile** — the same record users maintain under My Profile. The dashboard loads `/users/me/` on entry so name, title, avatar, and tenant context are always current.
+
+---
+
+## Part 2: Executive & leadership views
+
+Q4: What can executives see that managers cannot?
+A: Executives see **all departments** in the tenant (subject to RBAC), period comparisons, organization trends, and cross-department issue lists. Managers are limited to **their team subtree** via the hierarchy service.
+
+Executives can drill down from a department to teams and individuals; the system verifies the target user is within allowed scope before showing detail.
+
+---
+
+Q5: How does drill-down work?
+A: From a scorecard or team list, you select a person or department. The API calls `HierarchyService` to ensure the viewer may access that node, then returns aggregated KPI data for that scope. Drill-down actions are **audited**.
+
+WebSocket action `drill_down` supports interactive navigation without full page reloads.
+
+---
+
+## Part 3: Manager, staff & champion workflows
+
+Q6: How do managers approve KPI submissions?
+A: The Manager Dashboard lists **pending approvals** for direct and indirect reports (configurable). Approve or reject via API (`/dashboard/manager/approve/` and `reject/`). Rejected items return to staff with reason codes; approved items flow into score calculation.
+
+---
+
+Q7: What does staff see on “My Dashboard”?
+A: Staff see assigned KPIs, traffic-light status, due submissions, mission completion panels, and history. They submit actuals through `/dashboard/staff/submit/` which ties into KPI validation rules.
+
+---
+
+Q8: Who is a Dashboard Champion?
+A: A specialist who **designs dashboard layouts** for executives or departments: widget placement, default filters, templates, and bulk KPI assignment. Champions do not bypass validation or approval rules — they configure how data is presented.
+
+---
+
+## Part 4: Administration & platform views
+
+Q9: What is the Client Admin dashboard used for?
+A: Tenant operators monitor **compliance %**, users missing submissions, approval queues, and per-user activity. It complements Accounts user management — focused on **performance operations**, not account passwords.
+
+---
+
+Q10: What does the Super Admin dashboard show?
+A: Cross-tenant health: active tenants, subscription alerts, platform metrics, and billing summaries. It integrates with the Tenant and Billing apps for live platform operations (not mock counters).
+
+---
+
+## Part 5: Security & CIA
+
+Q11: How is dashboard access secured?
+A: Every API uses `IsAuthenticated` plus **dashboard-specific permission classes** (Executive, Client Admin, etc.). Hierarchy checks enforce manager→report boundaries. Throttles prevent refresh and drill-down abuse.
+
+The app is registered in the **Config App Registry** with CIA metadata (Confidentiality / Integrity / Availability) for backup and DR ordering.
+
+---
+
+Q12: Can read-only users export data?
+A: Read-only users may use **scheduled exports** where policy allows (`/dashboard/read-only/export/`). Exports respect the same scope as their view (no hidden admin paths).
+
+---
+
+%% Engineering flow (Mermaid)
+
+```mermaid
+flowchart TB
+    subgraph accounts["Accounts app"]
+        P["GET /users/me/"]
+        U["User.manager_id / direct_reports"]
+    end
+
+    subgraph dashboard["Dashboard app"]
+        H["HierarchyService"]
+        API["7 role APIs"]
+        WS["DashboardConsumer"]
+        H --> API
+        API --> WS
+    end
+
+    subgraph kpi["KPI app"]
+        S["ScoreAggregator"]
+    end
+
+    subgraph frontend["Frontend module"]
+        SH["DashboardShell"]
+        ML["MainLayout + 7 Sidebars"]
+        RT["DashboardRealtimeContext"]
+        SH --> ML --> RT
+    end
+
+    P --> ML
+    U --> H
+    S --> API
+    WS --> RT
+```

@@ -25,6 +25,7 @@ from apps.tenant.api.v1.permissions import IsSuperAdmin, IsTenantAdmin
 from apps.tenant.api.v1.throttles import TenantApiThrottle
 from apps.tenant.tasks import provision_tenant, suspend_tenant
 from apps.tenant.services.monitoring.quota_enforcer import QuotaEnforcer
+from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
 
 
 class TenantViewSet(viewsets.ModelViewSet):
@@ -198,9 +199,11 @@ class TenantViewSet(viewsets.ModelViewSet):
         GET /api/v1/tenant/tenants/{id}/usage-summary/
         """
         tenant = self.get_object()
+        ResourceSyncService.maybe_sync_on_read(tenant.id)
         enforcer = QuotaEnforcer(str(tenant.id))
         
         usage_data = enforcer.check_all_quotas()
+        live_counts = ResourceSyncService.count_live_usage(tenant.id)
         
         return Response({
             'tenant_id': str(tenant.id),
@@ -212,7 +215,18 @@ class TenantViewSet(viewsets.ModelViewSet):
             'is_trial': tenant.subscription_plan == SubscriptionPlan.TRIAL,
             'days_until_expiry': self._get_days_until_expiry(tenant),
             'usage': usage_data,
+            'live_counts': live_counts,
             'warnings': enforcer.get_warnings()
+        })
+
+    @action(detail=True, methods=['post'], url_path='sync-resources')
+    def sync_resources(self, request, pk=None):
+        """Reconcile TenantResource rows from live Accounts/Structure/KPI counts."""
+        tenant = self.get_object()
+        results = ResourceSyncService.sync_tenant(tenant.id, broadcast=True)
+        return Response({
+            'tenant_id': str(tenant.id),
+            'synced': results,
         })
 
     @action(detail=True, methods=['get'], url_path='usage')
@@ -224,6 +238,7 @@ class TenantViewSet(viewsets.ModelViewSet):
         Query params: start_date, end_date, resource_type
         """
         tenant = self.get_object()
+        ResourceSyncService.maybe_sync_on_read(tenant.id)
         enforcer = QuotaEnforcer(str(tenant.id))
         
         # Get date range from query params

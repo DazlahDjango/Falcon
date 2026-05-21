@@ -8,6 +8,7 @@ from .mfa import MFADevice, MFABackupCode, MFAAuditLog
 from .login_attempt import LoginAttempt
 from .audit import AuditLog
 from .preferences import UserPreference, TenantPreference
+from .system_settings import AccountsSystemSettings
 
 
 __all__ = [
@@ -31,4 +32,6 @@ __all__ = [
     'AuditLog',
     # Preferences
     'UserPreference', 'TenantPreference',
+    # System policy
+    'AccountsSystemSettings',
 ]

@@ -1,0 +1,123 @@
+# Falcon PMS Tenant System — Client Guide & Training Narrative
+
+> **Implementation status:** For engineering truth (live quota sync, system settings, WebSocket), see **[implementation_status.md](./implementation_status.md)**.  
+> Department counts reconcile from the **Structure** app; user counts from **Accounts**; KPI counts from the **KPI** app.
+
+---
+
+## Part 1: Multi-tenancy & isolation
+
+Q1: What is a tenant in Falcon PMS?
+A: A tenant represents one **customer organization** on the platform (your company or a client you host). Each tenant has its own users, KPIs, structure, and billing context. Data is isolated by `tenant_id` on every business record.
+
+Tenants can use **shared schema**, **separate schema**, or **separate database** isolation depending on contract tier — configured on the `Client` record.
+
+---
+
+Q2: Who can create or suspend a tenant?
+A: **Super Admins** provision tenants, assign domains, and change status (active, suspended, provisioning). Client Admins manage users **within** their tenant only.
+
+Suspension takes effect immediately: users cannot authenticate, and WebSocket status channels broadcast `tenant_status_changed`.
+
+---
+
+Q3: How do we know if a tenant is approaching resource limits?
+A: The platform tracks **TenantResource** quotas (users, departments, KPIs, concurrent sessions, storage). Counts are **reconciled live** from Accounts, Structure, and KPI — not stale counters on the Client row.
+
+When usage crosses the warning threshold (default 80%), `quota_warning` events fire on `ws/tenant/{id}/status/`. Administrators see this on the tenant operations console and Super Admin dashboards.
+
+---
+
+## Part 2: Provisioning & domains
+
+Q4: How long does tenant provisioning take?
+A: Provisioning runs as a tracked workflow (`TenantProvisioning`). Simple shared-schema tenants may complete in minutes; separate-database tenants depend on infrastructure automation.
+
+The UI shows provisioning steps and errors; WebSocket updates reduce the need to refresh the page.
+
+---
+
+Q5: Can one tenant have multiple domains?
+A: Yes. **Tenant domains** map hostnames to tenants for branded login URLs. SSL and verification status are tracked per domain record.
+
+---
+
+## Part 3: Backups, migration & platform settings
+
+Q6: Are tenant backups handled in the Tenant app?
+A: Backup **execution** lives in the **Config** app (orchestration, encryption, retention). The Tenant app tracks **backup metadata**, restore points, and migration jobs linked to each client.
+
+Super Admins trigger backups from Config; Tenant surfaces status and history.
+
+---
+
+Q7: What are Tenant System Settings?
+A: A **singleton policy document** (`TenantSystemSettings`) for platform-wide defaults: quota warning thresholds, whether to reconcile on usage reads, feature flags, and notification hooks.
+
+API: `GET/PATCH /api/v1/tenant/system-settings/`, `POST .../reset/`.  
+Seed: `python manage.py seed_tenant_settings [--sync-resources]`.
+
+---
+
+## Part 4: Real-time & integrations
+
+Q8: What triggers a resource recount?
+A: **ResourceSyncService** runs when:
+
+- Accounts creates or deletes a user
+- Structure creates or deletes a department
+- KPI creates a definition
+- An admin calls `POST .../tenants/{id}/sync-resources/`
+- Usage summary is read (if `reconcile_on_usage_read` is enabled)
+
+---
+
+Q9: How does Structure affect tenant quotas?
+A: Each active department in Structure increments the tenant’s department quota usage. Deleting or deactivating departments frees capacity after sync.
+
+This keeps **Client Admin** and **Super Admin** dashboard numbers aligned with org design in Structure.
+
+---
+
+## Part 5: Security & CIA
+
+Q10: How is tenant data protected?
+A: **Confidentiality:** Schema/DB isolation options; super-admin-only system settings.  
+**Integrity:** Versioned settings, audited status changes, live sync (no manual counter edits).  
+**Availability:** Registered as a **critical** app in Config registry; status WebSocket for operators.
+
+---
+
+%% Engineering flow (Mermaid)
+
+```mermaid
+flowchart TB
+    subgraph realtime["Real-time & live data"]
+        A1["User counts → Accounts"]
+        A2["Department counts → Structure"]
+        A3["KPI counts → KPI app"]
+        A4["ResourceSyncService"]
+        A5["TenantEventBroadcaster"]
+        A1 --> A4
+        A2 --> A4
+        A3 --> A4
+        A4 --> A5
+    end
+
+    subgraph security["Platform policy"]
+        S1["TenantSystemSettings"]
+        S2["Quota + isolation policy"]
+        S3["Operations console UI"]
+        S1 --> S2 --> S3
+    end
+
+    subgraph deps["Dependencies"]
+        D1["structure — org data"]
+        D2["accounts — users & sessions"]
+        D3["configs — registry & DR"]
+    end
+
+    D1 -.-> A2
+    D2 -.-> A1
+    D3 -.-> S1
+```

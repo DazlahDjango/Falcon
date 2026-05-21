@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
+import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
 import { StatusBadge } from '../shared/StatusBadge';
 import { PriceDisplay } from '../shared/PriceDisplay';
 import { CancelSubscriptionModal } from './CancelSubscriptionModal';
@@ -15,7 +17,7 @@ export const SubscriptionDetails = ({ subscription, onRefresh }) => {
         return (
             <div className="subscription-details-empty">
                 <p>No subscription found</p>
-                <a href="/plans" className="subscription-details-link">Get Started</a>
+                <Link to={BILLING_ROUTES.PLANS} className="subscription-details-link">Get Started</Link>
             </div>
         );
     }

@@ -27,7 +27,7 @@ websocket_urlpatterns = [
         name='structure-department-events'
     ),
     re_path(
-        r'^ws/structure/(?P<tenant_id>[0a-f-]+)/teams/(?P<team_id>[0-9a-f-]+)/$',
+        r'^ws/structure/(?P<tenant_id>[0-9a-f-]+)/teams/(?P<team_id>[0-9a-f-]+)/$',
         consumers.OrgEventsConsumer.as_asgi(),
         name='structure-team-events'
     ),

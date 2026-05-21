@@ -56,8 +56,32 @@ export const useRegistry = () => {
     mutationFn: () => registryService.registerV1Apps(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.REGISTERED_APPS] });
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.RECOVERY_SEQUENCE] });
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.PRIORITY_ORDER] });
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.APP_DEPENDENCIES] });
     }
   });
+
+  const syncRegistry = useMutation({
+    mutationKey: [CONFIG_MUTATION_KEYS.SYNC_REGISTRY],
+    mutationFn: (appNames) => registryService.syncRegistry(appNames),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.REGISTERED_APPS] });
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.RECOVERY_SEQUENCE] });
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.PRIORITY_ORDER] });
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.APP_DEPENDENCIES] });
+      queryClient.invalidateQueries({ queryKey: [CONFIG_QUERY_KEYS.REGISTRY_DEFINITIONS] });
+    }
+  });
+
+  const useRegistryDefinitions = (options = {}) => {
+    return useQuery({
+      queryKey: [CONFIG_QUERY_KEYS.REGISTRY_DEFINITIONS],
+      queryFn: () => registryService.getDefinitions(),
+      staleTime: 3600000,
+      ...options
+    });
+  };
 
   const updateApp = useMutation({
     mutationKey: [CONFIG_MUTATION_KEYS.UPDATE_APP],
@@ -98,7 +122,9 @@ export const useRegistry = () => {
     useRecoverySequence,
     usePriorityOrder,
     useAppDependencies,
+    useRegistryDefinitions,
     registerV1Apps,
+    syncRegistry,
     updateApp,
     unregisterApp,
     createDependency,

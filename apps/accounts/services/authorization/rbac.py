@@ -26,6 +26,14 @@ class RBACService:
                 'new_role': role_code
             }
         )
+        from apps.accounts.services.realtime import AccountsEventBroadcaster
+        AccountsEventBroadcaster.role_changed(
+            user_id=str(user.id),
+            tenant_id=str(user.tenant_id),
+            old_role=old_role,
+            new_role=role_code,
+            assigned_by_id=str(assigned_by.id) if assigned_by else None,
+        )
         return True, 'Role assigned successfully'
     
     def can_assign_role(self, assigner: User, role_code: str) -> bool:

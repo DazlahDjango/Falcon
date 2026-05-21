@@ -9,20 +9,14 @@ class AccountsConfig(AppConfig):
 
     def ready(self):
         import apps.accounts.signals
+        self._register_with_config_app()
+
+    def _register_with_config_app(self):
         try:
             from apps.configs.services.registry.app_registry import AppRegistry
-            registry = AppRegistry()
-            registry.register_app(
-                app_name='accounts',
-                display_name='Accounts & Authentication',
-                is_critical=True,
-                recovery_priority=1,
-                rpo_minutes=15,
-                rto_minutes=30,
-                backup_retention_days=90
-            )
+            AppRegistry().register_from_definition('accounts')
         except ImportError:
-            pass  # Config app not installed yet
+            pass
         except Exception as e:
             import logging
-            logging.getLogger(__name__).warning(f"Failed to register accounts: {e}")
+            logging.getLogger(__name__).warning('Failed to register accounts with config app: %s', e)

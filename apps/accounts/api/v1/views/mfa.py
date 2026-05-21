@@ -61,6 +61,12 @@ class MFADeviceViewSet(BaseModelViewset):
         is_valid, _ = mfa_service.verify_otp(request.user, otp, str(device.id))
         if not is_valid:
             return Response({'error': 'Invalid OTP code'}, status=status.HTTP_400_BAD_REQUEST)
+        from apps.accounts.services.realtime import AccountsEventBroadcaster
+        AccountsEventBroadcaster.mfa_enabled(
+            user_id=str(request.user.id),
+            tenant_id=str(request.user.tenant_id),
+            device_id=str(device.id),
+        )
         return Response({'message': 'Device verified successfully'}, status=status.HTTP_200_OK)
     
 class MFAAuditLogViewSet(BaseReadOnlyViewset):

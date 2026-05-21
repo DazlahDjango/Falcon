@@ -8,8 +8,9 @@ import {
     FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar
 } from 'react-icons/fi';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
-const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath }) => {
+const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
     const [expandedMenus, setExpandedMenus] = useState({
         main: true,
         performance: true,
@@ -108,7 +109,6 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
                 </div>
             )}
             
-            {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
                 {renderNavGroup('Performance', navigation.performance, 'performance')}
@@ -116,24 +116,7 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>
             
-            {/* User Info at Bottom */}
-            {!isCollapsed && user && (
-                <div className="sidebar-user">
-                    <div className="user-avatar-small">
-                        {user.avatar_url ? (
-                            <img src={user.avatar_url} alt={user.username} />
-                        ) : (
-                            <div className="avatar-placeholder">
-                                {user.username?.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <div className="user-info">
-                        <div className="user-name">{user.first_name || user.username}</div>
-                        <div className="user-role">Executive</div>
-                    </div>
-                </div>
-            )}
+            <SidebarUserPanel user={user} isCollapsed={isCollapsed} wsConnected={wsConnected} />
         </aside>
     );
 };

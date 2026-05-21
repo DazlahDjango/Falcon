@@ -6,6 +6,7 @@ from .schema import TenantSchema, SchemaStatus
 from .resource import TenantResource, ResourceType
 from .connection import ConnectionPool, ConnectionStatus
 from .migration import TenantMigration, MigrationStatus
+from .system_settings import TenantSystemSettings
 
 __all__ = [
     'BaseModel',
@@ -23,4 +24,5 @@ __all__ = [
     'ConnectionStatus',
     'TenantMigration',
     'MigrationStatus',
+    'TenantSystemSettings',
 ]

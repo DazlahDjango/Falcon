@@ -400,50 +400,33 @@ export const BILLING_PAGINATION = {
 // ============================================================================
 
 export const BILLING_ROUTES = {
-    // Public routes
-    PLANS: '/plans',
-    PLAN_DETAIL: (id) => `/plans/${id}`,
-    PLAN_COMPARE: '/plans/compare',
-    
-    // Subscription routes
-    SUBSCRIPTIONS: '/subscriptions',
-    SUBSCRIPTION_DETAIL: (id) => `/subscriptions/${id}`,
-    SUBSCRIPTION_UPGRADE: (id) => `/subscriptions/${id}/upgrade`,
-    SUBSCRIPTION_DOWNGRADE: (id) => `/subscriptions/${id}/downgrade`,
-    SUBSCRIPTION_CANCEL: (id) => `/subscriptions/${id}/cancel`,
-    
-    // Checkout routes
-    CHECKOUT: '/checkout',
-    CHECKOUT_SUCCESS: '/checkout/success',
-    CHECKOUT_CANCEL: '/checkout/cancel',
-    
-    // Invoice routes
-    INVOICES: '/invoices',
-    INVOICE_DETAIL: (id) => `/invoices/${id}`,
-    
-    // Transaction routes
-    TRANSACTIONS: '/transactions',
-    TRANSACTION_DETAIL: (id) => `/transactions/${id}`,
-    
-    // Payment methods
-    PAYMENT_METHODS: '/payment-methods',
-    
-    // Billing portal
+    // Canonical paths — prefer billingRouteConstants.js for new code
+    PLANS: '/billing/plans',
+    PLAN_DETAIL: (id) => `/billing/plans/${id}`,
+    PLAN_COMPARE: '/billing/plans/compare',
+    SUBSCRIPTIONS: '/billing/subscriptions',
+    SUBSCRIPTION_DETAIL: (id) => `/billing/subscriptions/${id}`,
+    SUBSCRIPTION_UPGRADE: '/billing/subscriptions/upgrade',
+    SUBSCRIPTION_CANCEL: '/billing/subscriptions/cancel',
+    CHECKOUT: '/billing/checkout',
+    CHECKOUT_SUCCESS: '/billing/checkout/success',
+    CHECKOUT_CANCEL: '/billing/checkout/cancel',
+    INVOICES: '/billing/invoices',
+    INVOICE_DETAIL: (id) => `/billing/invoices/${id}`,
+    TRANSACTIONS: '/billing/transactions',
+    TRANSACTION_DETAIL: (id) => `/billing/transactions/${id}`,
+    PAYMENT_METHODS: '/billing/payment-methods',
     BILLING_PORTAL: '/billing/portal',
     BILLING_SETTINGS: '/billing/settings',
-    
-    // Admin routes
-    ADMIN_BILLING: '/admin/billing',
-    ADMIN_PLANS: '/admin/billing/plans',
-    ADMIN_SUBSCRIPTIONS: '/admin/billing/subscriptions',
-    ADMIN_TRANSACTIONS: '/admin/billing/transactions',
-    ADMIN_WEBHOOKS: '/admin/billing/webhooks',
-    ADMIN_ANALYTICS: '/admin/billing/analytics',
-    
-    // Reports
-    REPORTS_REVENUE: '/reports/revenue',
-    REPORTS_SUBSCRIPTIONS: '/reports/subscriptions',
-    REPORTS_TAX: '/reports/tax',
+    ADMIN_BILLING: '/billing/admin',
+    ADMIN_PLANS: '/billing/admin/plans',
+    ADMIN_SUBSCRIPTIONS: '/billing/admin/subscriptions',
+    ADMIN_TRANSACTIONS: '/billing/admin/transactions',
+    ADMIN_WEBHOOKS: '/billing/admin/webhooks',
+    ADMIN_ANALYTICS: '/billing/admin/analytics',
+    REPORTS_REVENUE: '/billing/reports/revenue',
+    REPORTS_SUBSCRIPTIONS: '/billing/reports/subscriptions',
+    REPORTS_TAX: '/billing/reports/tax',
 };
 
 // ============================================================================

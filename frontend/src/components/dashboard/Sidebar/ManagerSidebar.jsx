@@ -10,8 +10,9 @@ import {
     FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar, FiCheckCircle, FiClock
 } from 'react-icons/fi';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
-const ManagerSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath }) => {
+const ManagerSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
     const [expandedMenus, setExpandedMenus] = useState({
         main: true,
         team: true,
@@ -122,24 +123,7 @@ const ManagerSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, cu
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>
             
-            {/* User Info at Bottom */}
-            {!isCollapsed && user && (
-                <div className="sidebar-user">
-                    <div className="user-avatar-small">
-                        {user.avatar_url ? (
-                            <img src={user.avatar_url} alt={user.username} />
-                        ) : (
-                            <div className="avatar-placeholder">
-                                {user.username?.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <div className="user-info">
-                        <div className="user-name">{user.first_name || user.username}</div>
-                        <div className="user-role">Manager</div>
-                    </div>
-                </div>
-            )}
+            <SidebarUserPanel user={user} isCollapsed={isCollapsed} wsConnected={wsConnected} />
         </aside>
     );
 };

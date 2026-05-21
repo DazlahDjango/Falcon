@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
+import { useKPIRealtime } from '../../contexts/kpi/KPIRealtimeContext';
 import { usePermissionContext } from "../../contexts/accounts/PermissionContext";
 import { useIndividualDashboard, useManagerDashboard, useExecutiveDashboard, useChampionDashboard } from '../../hooks/kpi';
 import { IndividualDashboard, ManagerDashboard, ExecutiveDashboard, ChampionDashboard } from '../../components/kpi/dashboards';
@@ -16,7 +17,14 @@ const KPIDashboardPage = () => {
     };
     
     const [dashboardType, fetchDashboardType] = useState('individual');
-    
+    const { latestScore, validationRefreshToken } = useKPIRealtime() || {};
+
+    useEffect(() => {
+        if (latestScore || validationRefreshToken) {
+            dispatch(refreshDashboard(dashboardType));
+        }
+    }, [latestScore, validationRefreshToken, dashboardType, dispatch]);
+
     useEffect(() => {
         // Use correct role names from your backend
         if (hasAnyRole(['executive', 'super_admin', 'client_admin'])) {

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useCheckout, usePaymentMethods } from '../../hooks/billing';
 import { CheckoutForm } from '../../components/billing/checkout/CheckoutForm';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 
 export const CheckoutPage = () => {
@@ -19,7 +20,7 @@ export const CheckoutPage = () => {
     }, []);
 
     if (!plan) {
-        navigate('/plans');
+        navigate(BILLING_ROUTES.PLANS);
         return null;
     }
 
@@ -63,7 +64,7 @@ export const CheckoutPage = () => {
                             amount={amount}
                             planName={plan.name}
                             onSubmit={handleSubmit}
-                            onCancel={() => navigate('/plans')}
+                            onCancel={() => navigate(BILLING_ROUTES.PLANS)}
                             loading={loading}
                         />
                     </div>

@@ -1,92 +1,159 @@
-import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useState, useEffect, useCallback } from 'react';
+import { FiDatabase, FiHardDrive, FiShield, FiBell, FiTarget, FiSave, FiRefreshCw, FiRotateCcw, FiAlertCircle } from 'react-icons/fi';
 import { BackupSettingsTab } from './BackupSettingsTab';
 import { MaintenanceSettingsTab } from './MaintenanceSettingsTab';
 import { DRThresholdsTab } from './DRThresholdsTab';
 import { NotificationSettingsTab } from './NotificationSettingsTab';
 import { StorageSettingsTab } from './StorageSettingsTab';
-import { FiDatabase, FiHardDrive, FiShield, FiBell, FiTarget, FiSave, FiRefreshCw } from 'react-icons/fi';
+import { useConfigSettings, useConfigPermissions } from '../../../hooks/config';
 
 const TABS = [
-  { id: 'backup', label: 'Backup Settings', icon: FiDatabase },
-  { id: 'maintenance', label: 'Maintenance', icon: FiHardDrive },
-  { id: 'dr', label: 'DR Thresholds', icon: FiTarget },
-  { id: 'notifications', label: 'Notifications', icon: FiBell },
-  { id: 'storage', label: 'Storage', icon: FiShield }
+  { id: 'backup', label: 'Backup Settings', icon: FiDatabase, section: 'backup' },
+  { id: 'maintenance', label: 'Maintenance', icon: FiHardDrive, section: 'maintenance' },
+  { id: 'dr', label: 'DR Thresholds', icon: FiTarget, section: 'dr' },
+  { id: 'notifications', label: 'Notifications', icon: FiBell, section: 'notifications' },
+  { id: 'storage', label: 'Storage', icon: FiShield, section: 'storage' },
 ];
+
+const emptySections = () => ({
+  backup: {},
+  maintenance: {},
+  dr: {},
+  notifications: {},
+  storage: {},
+  alert_thresholds: {},
+});
 
 export const ConfigSettingsPanel = () => {
   const [activeTab, setActiveTab] = useState('backup');
-  const [isSaving, setIsSaving] = useState(false);
-  const dispatch = useDispatch();
-  const settings = useSelector((state) => state.config?.settings);
+  const [draftSections, setDraftSections] = useState(emptySections);
+  const [dirty, setDirty] = useState(false);
+  const { isSuperAdmin } = useConfigPermissions();
+  const canEdit = isSuperAdmin;
+  const {
+    settings,
+    isLoading,
+    isSaving,
+    isResetting,
+    saveAll,
+    resetToDefaults,
+    refetch,
+  } = useConfigSettings();
+
+  useEffect(() => {
+    if (settings) {
+      setDraftSections({
+        backup: settings.backup ?? {},
+        maintenance: settings.maintenance ?? {},
+        dr: settings.dr ?? {},
+        notifications: settings.notifications ?? {},
+        storage: settings.storage ?? {},
+        alert_thresholds: settings.alert_thresholds ?? {},
+      });
+      setDirty(false);
+    }
+  }, [settings]);
+
+  const updateSection = useCallback((section, data) => {
+    setDraftSections((prev) => ({ ...prev, [section]: data }));
+    setDirty(true);
+  }, []);
 
   const handleSaveAll = async () => {
-    setIsSaving(true);
-    try {
-      // Dispatch save actions for each tab
-      await new Promise(resolve => setTimeout(resolve, 500));
-      alert('All settings saved successfully');
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-      alert('Failed to save settings');
-    } finally {
-      setIsSaving(false);
-    }
+    if (!canEdit) return;
+    await saveAll(draftSections);
+    setDirty(false);
   };
+
+  const handleReset = async () => {
+    if (!canEdit || !window.confirm('Reset all settings to platform defaults?')) return;
+    await resetToDefaults();
+    setDirty(false);
+  };
+
+  const tabProps = { canEdit, onSectionChange: updateSection, sections: draftSections };
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'backup': return <BackupSettingsTab />;
-      case 'maintenance': return <MaintenanceSettingsTab />;
-      case 'dr': return <DRThresholdsTab />;
-      case 'notifications': return <NotificationSettingsTab />;
-      case 'storage': return <StorageSettingsTab />;
-      default: return <BackupSettingsTab />;
+      case 'backup': return <BackupSettingsTab {...tabProps} />;
+      case 'maintenance': return <MaintenanceSettingsTab {...tabProps} />;
+      case 'dr': return <DRThresholdsTab {...tabProps} />;
+      case 'notifications': return <NotificationSettingsTab {...tabProps} />;
+      case 'storage': return <StorageSettingsTab {...tabProps} />;
+      default: return <BackupSettingsTab {...tabProps} />;
     }
   };
 
+  if (isLoading && !settings) {
+    return <div className="config-settings-skeleton" />;
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Configuration Settings</h1>
-        <div className="flex gap-3">
-          <button 
-            onClick={handleSaveAll} 
-            disabled={isSaving} 
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {isSaving ? <FiRefreshCw className="animate-spin" /> : <FiSave />}
-            Save All Changes
+    <div className="config-settings-panel">
+      <div className="config-settings-panel-header">
+        <div>
+          <h2 className="config-settings-panel-title">Platform Settings</h2>
+          {settings?.version != null && (
+            <p className="config-settings-meta">
+              Version {settings.version}
+              {settings.updated_at && ` · Last updated ${new Date(settings.updated_at).toLocaleString()}`}
+              {dirty && ' · Unsaved changes'}
+            </p>
+          )}
+        </div>
+        <div className="config-settings-actions">
+          <button type="button" onClick={() => refetch()} className="config-settings-btn-secondary">
+            <FiRefreshCw /> Reload
           </button>
+          {canEdit && (
+            <>
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={isResetting || isSaving}
+                className="config-settings-btn-secondary config-settings-btn-danger"
+              >
+                <FiRotateCcw /> Reset Defaults
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAll}
+                disabled={isSaving || !dirty}
+                className="config-settings-btn-primary"
+              >
+                {isSaving ? <FiRefreshCw className="animate-spin" /> : <FiSave />}
+                Save All Changes
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="border-b border-gray-200">
-          <div className="flex overflow-x-auto">
-            {TABS.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
-                    activeTab === tab.id 
-                      ? 'border-blue-600 text-blue-600' 
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="text-lg" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+      {!canEdit && (
+        <div className="config-settings-readonly-banner">
+          <FiAlertCircle />
+          Read-only mode — only Super Admins can modify persisted system settings (Confidentiality).
         </div>
-        <div className="p-6">
-          {renderTabContent()}
+      )}
+
+      <div className="config-settings-tabs-panel">
+        <div className="config-settings-tabs-nav">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`config-settings-tab ${activeTab === tab.id ? 'config-settings-tab--active' : ''}`}
+              >
+                <Icon />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
+        <div className="config-settings-tab-content">{renderTabContent()}</div>
       </div>
     </div>
   );

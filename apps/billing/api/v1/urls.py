@@ -11,6 +11,10 @@ from .views import (
     BillingAnalyticsViewSet,
 )
 from .views.webhook import WebhookView
+from .views.system_settings_views import (
+    BillingSystemSettingsView,
+    BillingSystemSettingsResetView,
+)
 router = DefaultRouter()
 router.register(r'plans', PlanViewSet, basename='plan')
 router.register(r'subscriptions', SubscriptionViewSet, basename='subscription')
@@ -23,6 +27,8 @@ router.register(r'analytics', BillingAnalyticsViewSet, basename='billing-analyti
 app_name = 'billing'
 
 urlpatterns = [
+    path('system-settings/', BillingSystemSettingsView.as_view(), name='billing-system-settings'),
+    path('system-settings/reset/', BillingSystemSettingsResetView.as_view(), name='billing-system-settings-reset'),
     # ViewSet URLs
     path('', include(router.urls)),
     

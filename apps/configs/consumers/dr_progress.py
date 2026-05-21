@@ -1,12 +1,14 @@
 import json
+from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
 class DRProgressConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.execution_id = self.scope['url_route']['kwargs'].get('execution_id')
-        self.user_id = self.scope['user'].id if hasattr(self.scope, 'user') else None
-        if not self.execution_id or not self.user_id:
+        user = self.scope.get('user')
+        self.user_id = getattr(user, 'id', None) if user and user.is_authenticated else None
+        if not self.execution_id or (not self.user_id and not settings.DEBUG):
             await self.close()
             return
         self.room_group_name = f'dr_progress_{self.execution_id}'

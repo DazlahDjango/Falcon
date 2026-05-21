@@ -3,7 +3,6 @@ from django.utils import timezone
 from datetime import timedelta
 from typing import Dict, List, Any, Optional
 from .base_service import BaseDashboardService
-from .hierarchy_service import HierarchyService
 from .cache_service import DashboardCacheService
 from apps.dashboard.constants import DashboardType, TrafficLight, Defaults
 from apps.dashboard.models import DashboardConfig, WidgetConfig, ExecutiveViewPreset, PeriodComparison
@@ -12,7 +11,6 @@ from apps.dashboard.models import DashboardConfig, WidgetConfig, ExecutiveViewPr
 class ExecutiveDashboardService(BaseDashboardService):
     def __init__(self, user, tenant_id):
         super().__init__(user, tenant_id)
-        self.hierarchy_service = HierarchyService(user, tenant_id)
         self.cache_service = DashboardCacheService(user, tenant_id)
     
     def get_dashboard_data(self, executive_user_id: str, filters: dict = None) -> Dict:
@@ -238,6 +236,7 @@ class ExecutiveDashboardService(BaseDashboardService):
     def get_department_details(self, department_id: str) -> Dict:
         from apps.structure.models import Department
         from apps.accounts.models import User
+        from apps.kpi.services import ScoreAggregator
         
         department = Department.objects.get(id=department_id, tenant_id=self.tenant_id)
         
@@ -247,7 +246,34 @@ class ExecutiveDashboardService(BaseDashboardService):
             is_active=True
         )
         
-        team_data = self.hierarchy_service.get_team_aggregate(str(users.first().id)) if users.exists() else {}
+        calc_service = ScoreAggregator(self.user, self.tenant_id)
+        user_scores = []
+        green_count = yellow_count = red_count = 0
+        
+        employees_data = []
+        for u in users:
+            score = calc_service.aggregate_user(str(u.id)) or 0
+            if score >= 90: green_count += 1
+            elif score >= 50: yellow_count += 1
+            else: red_count += 1
+            
+            user_scores.append(score)
+            employees_data.append({
+                'id': str(u.id),
+                'name': u.get_full_name(),
+                'title': u.title,
+                'score': float(score)
+            })
+
+        avg_score = sum(user_scores) / len(user_scores) if user_scores else 0
+
+        team_data = {
+            'total_members': users.count(),
+            'green_count': green_count,
+            'yellow_count': yellow_count,
+            'red_count': red_count,
+            'average_score': avg_score,
+        }
         
         return {
             'department': {
@@ -255,15 +281,7 @@ class ExecutiveDashboardService(BaseDashboardService):
                 'name': department.name,
                 'description': department.description
             },
-            'employees': [
-                {
-                    'id': str(u.id),
-                    'name': u.get_full_name(),
-                    'title': u.title,
-                    'score': None
-                }
-                for u in users
-            ],
+            'employees': employees_data,
             'team_aggregate': team_data
         }
     

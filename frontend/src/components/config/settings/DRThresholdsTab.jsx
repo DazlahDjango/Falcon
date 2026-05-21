@@ -1,61 +1,115 @@
-import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { setDRAutoFailover } from '../../../store/config/slices/configSettingsSlice';
+import { useState, useEffect } from 'react';
+import { SettingsToggle } from './SettingsToggle';
+import { useConfigSettings } from '../../../hooks/config';
 
-export const DRThresholdsTab = () => {
-  const dispatch = useDispatch();
-  const settings = useSelector((state) => state.config?.settings);
-  const [localSettings, setLocalSettings] = useState({
-    auto_failover: settings?.drAutoFailover ?? false,
-    default_rto_target: 60,
-    default_rpo_target: 240,
-    drill_frequency_days: 30,
-    max_parallel_recovery: 2,
-    failover_timeout_minutes: 30,
-    auto_failback_enabled: false
-  });
+const DEFAULT_DR = {
+  auto_failover: false,
+  auto_failback_enabled: false,
+  default_rto_target_minutes: 60,
+  default_rpo_target_minutes: 240,
+  drill_frequency_days: 30,
+  max_parallel_recovery: 2,
+  failover_timeout_minutes: 30,
+};
 
-  const handleSave = () => {
-    dispatch(setDRAutoFailover(localSettings.auto_failover));
-    alert('DR threshold settings saved');
+export const DRThresholdsTab = ({ sections, onSectionChange, canEdit }) => {
+  const { saveSection, isSaving } = useConfigSettings();
+  const [local, setLocal] = useState({ ...DEFAULT_DR, ...sections.dr });
+
+  useEffect(() => {
+    setLocal({ ...DEFAULT_DR, ...sections.dr });
+  }, [sections.dr]);
+
+  const update = (patch) => {
+    const next = { ...local, ...patch };
+    setLocal(next);
+    onSectionChange('dr', next);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div><label className="font-medium text-gray-700">Auto Failover</label><p className="text-sm text-gray-500">Automatically failover when health checks fail</p></div>
-            <button onClick={() => setLocalSettings({ ...localSettings, auto_failover: !localSettings.auto_failover })} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${localSettings.auto_failover ? 'bg-blue-600' : 'bg-gray-300'}`}>
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${localSettings.auto_failover ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
+    <div className="config-settings-section">
+      <div className="config-settings-grid-2">
+        <div className="config-settings-section">
+          <SettingsToggle
+            label="Auto Failover"
+            hint="Automatically failover when health checks fail (Availability)"
+            checked={local.auto_failover}
+            onChange={(v) => update({ auto_failover: v })}
+            disabled={!canEdit}
+          />
+          <SettingsToggle
+            label="Auto Failback"
+            checked={local.auto_failback_enabled}
+            onChange={(v) => update({ auto_failback_enabled: v })}
+            disabled={!canEdit}
+          />
+          <div className="config-settings-field">
+            <label>Default RTO Target (minutes)</label>
+            <input
+              type="number"
+              min={5}
+              max={1440}
+              disabled={!canEdit}
+              value={local.default_rto_target_minutes}
+              onChange={(e) => update({ default_rto_target_minutes: parseInt(e.target.value, 10) })}
+            />
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Default RTO Target (minutes)</label>
-            <input type="number" value={localSettings.default_rto_target} onChange={(e) => setLocalSettings({ ...localSettings, default_rto_target: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" min="5" max="1440" />
-            <p className="text-xs text-gray-500 mt-1">Recovery Time Objective for new DR plans</p>
-          </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Default RPO Target (minutes)</label>
-            <input type="number" value={localSettings.default_rpo_target} onChange={(e) => setLocalSettings({ ...localSettings, default_rpo_target: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" min="5" max="10080" />
+          <div className="config-settings-field">
+            <label>Default RPO Target (minutes)</label>
+            <input
+              type="number"
+              min={5}
+              max={10080}
+              disabled={!canEdit}
+              value={local.default_rpo_target_minutes}
+              onChange={(e) => update({ default_rpo_target_minutes: parseInt(e.target.value, 10) })}
+            />
+            <p className="config-settings-field-hint">RTO must be ≥ RPO when saving</p>
           </div>
         </div>
-        <div className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Drill Frequency (days)</label>
-            <input type="number" value={localSettings.drill_frequency_days} onChange={(e) => setLocalSettings({ ...localSettings, drill_frequency_days: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" min="7" max="180" />
+        <div className="config-settings-section">
+          <div className="config-settings-field">
+            <label>Drill Frequency (days)</label>
+            <input
+              type="number"
+              min={7}
+              max={180}
+              disabled={!canEdit}
+              value={local.drill_frequency_days}
+              onChange={(e) => update({ drill_frequency_days: parseInt(e.target.value, 10) })}
+            />
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Max Parallel Recovery</label>
-            <input type="number" value={localSettings.max_parallel_recovery} onChange={(e) => setLocalSettings({ ...localSettings, max_parallel_recovery: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" min="1" max="10" />
+          <div className="config-settings-field">
+            <label>Max Parallel Recovery</label>
+            <input
+              type="number"
+              min={1}
+              max={10}
+              disabled={!canEdit}
+              value={local.max_parallel_recovery}
+              onChange={(e) => update({ max_parallel_recovery: parseInt(e.target.value, 10) })}
+            />
           </div>
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div><label className="font-medium text-gray-700">Auto Failback</label><p className="text-sm text-gray-500">Automatically return to primary after recovery</p></div>
-            <button onClick={() => setLocalSettings({ ...localSettings, auto_failback_enabled: !localSettings.auto_failback_enabled })} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${localSettings.auto_failback_enabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${localSettings.auto_failback_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
+          <div className="config-settings-field">
+            <label>Failover Timeout (minutes)</label>
+            <input
+              type="number"
+              min={5}
+              max={120}
+              disabled={!canEdit}
+              value={local.failover_timeout_minutes}
+              onChange={(e) => update({ failover_timeout_minutes: parseInt(e.target.value, 10) })}
+            />
           </div>
         </div>
       </div>
-      <div className="flex justify-end pt-4 border-t border-gray-200">
-        <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save DR Settings</button>
-      </div>
+      {canEdit && (
+        <div className="config-settings-footer">
+          <button type="button" onClick={() => saveSection('dr', local)} disabled={isSaving} className="config-settings-btn-primary">
+            Save DR Settings
+          </button>
+        </div>
+      )}
     </div>
   );
 };

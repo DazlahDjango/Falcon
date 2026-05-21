@@ -1,5 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views.system_settings_views import (
+    StructureSystemSettingsView,
+    StructureSystemSettingsResetView,
+)
+from .views.reference_data import StructureReferenceDataView
 from rest_framework_nested import routers
 from .views import (
     DepartmentViewSet, DepartmentTreeViewSet,
@@ -51,6 +56,9 @@ positions_router.register(r'reports', PositionViewSet, basename='position-report
 employments_router = routers.NestedDefaultRouter(router, r'employments', lookup='employment')
 employments_router.register(r'reporting-lines', ReportingLineViewSet, basename='employment-reporting')
 urlpatterns = [
+    path('system-settings/', StructureSystemSettingsView.as_view(), name='structure-system-settings'),
+    path('system-settings/reset/', StructureSystemSettingsResetView.as_view(), name='structure-system-settings-reset'),
+    path('reference-data/', StructureReferenceDataView.as_view(), name='structure-reference-data'),
     # Main router URLs
     path('', include(router.urls)),
     # Nested router URLs

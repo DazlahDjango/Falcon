@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { EmptyState } from '../../components/billing/shared/EmptyState';
 
 export const CheckoutCancelPage = () => {
@@ -14,10 +15,10 @@ export const CheckoutCancelPage = () => {
                 icon="❌"
                 action={
                     <div className="cancel-page-actions">
-                        <button onClick={() => navigate('/plans')} className="btn-primary">
+                        <button onClick={() => navigate(BILLING_ROUTES.PLANS)} className="btn-primary">
                             View Plans
                         </button>
-                        <button onClick={() => navigate('/billing/portal')} className="btn-secondary">
+                        <button onClick={() => navigate(BILLING_ROUTES.PORTAL)} className="btn-secondary">
                             Go to Billing
                         </button>
                     </div>

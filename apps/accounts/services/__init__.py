@@ -13,6 +13,7 @@ from .profile.profile_manager import ProfileService
 from .profile.avatar import AvatarService
 from .profile.preferences import PreferenceService
 from .audit.logger import AuditService
+from .policy import AccountsPolicyService
 from .audit.reporter import AuditReporterService
 from .sso.oauth import OAuthService
 from .sso.saml import SAMLService
@@ -35,6 +36,7 @@ __all__ = [
     'AvatarService',
     'PreferenceService',
     'AuditService',
+    'AccountsPolicyService',
     'AuditReporterService',
     'OAuthService',
     'SAMLService',

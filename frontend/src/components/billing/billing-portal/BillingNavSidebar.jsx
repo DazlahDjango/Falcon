@@ -1,15 +1,16 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { BILLING_ROUTES } from '../../../routes/billing.routes';
+import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
 import { renderBillingIcon } from '../shared/BillingIcons';
 
 const NAV_ITEMS = [
-    { path: BILLING_ROUTES.BILLING_PORTAL, label: 'Overview', icon: renderBillingIcon('overview') },
+    { path: BILLING_ROUTES.PORTAL, label: 'Overview', icon: renderBillingIcon('overview') },
+    { path: BILLING_ROUTES.PLANS, label: 'Plans', icon: renderBillingIcon('plan') },
     { path: BILLING_ROUTES.SUBSCRIPTIONS, label: 'Subscriptions', icon: renderBillingIcon('subscriptions') },
     { path: BILLING_ROUTES.INVOICES, label: 'Invoices', icon: renderBillingIcon('invoices') },
     { path: BILLING_ROUTES.TRANSACTIONS, label: 'Transactions', icon: renderBillingIcon('transactions') },
     { path: BILLING_ROUTES.PAYMENT_METHODS, label: 'Payment Methods', icon: renderBillingIcon('paymentMethods') },
-    { path: BILLING_ROUTES.BILLING_SETTINGS, label: 'Settings', icon: renderBillingIcon('settings') },
+    { path: BILLING_ROUTES.SETTINGS, label: 'Settings', icon: renderBillingIcon('settings') },
 ];
 
 export const BillingNavSidebar = () => {
@@ -26,7 +27,7 @@ export const BillingNavSidebar = () => {
                         className={({ isActive }) => 
                             `billing-nav-item ${isActive ? 'active' : ''}`
                         }
-                        end={item.path === BILLING_ROUTES.BILLING_PORTAL}
+                        end={item.path === BILLING_ROUTES.PORTAL}
                     >
                         <span className="billing-nav-icon">{item.icon}</span>
                         <span className="billing-nav-label">{item.label}</span>

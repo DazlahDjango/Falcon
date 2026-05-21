@@ -4,7 +4,10 @@ import { BillingLayout } from '../../../components/billing/shared/BillingLayout'
 
 export const AdminBillingPage = () => {
     return (
-        <BillingLayout>
+        <BillingLayout
+            title="Billing Administration"
+            subtitle="Platform revenue, subscriptions, and tenant billing health"
+        >
             <AdminBillingDashboard />
         </BillingLayout>
     );

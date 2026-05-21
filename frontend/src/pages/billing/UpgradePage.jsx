@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSubscription, usePlans } from '../../hooks/billing';
 import { PlanSelector } from '../../components/billing/plans/PlanSelector';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 
 export const UpgradePage = () => {
@@ -15,7 +16,7 @@ export const UpgradePage = () => {
         setUpgrading(true);
         try {
             await upgradePlan(plan.id, false);
-            navigate('/subscriptions');
+            navigate(BILLING_ROUTES.SUBSCRIPTIONS);
         } catch (error) {
             console.error('Upgrade error:', error);
             alert('Failed to upgrade plan. Please try again.');

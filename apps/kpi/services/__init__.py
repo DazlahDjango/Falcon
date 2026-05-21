@@ -8,6 +8,8 @@ from .dashboard import IndividualDashboard, ManagerDashboard, ExecutiveDashboard
 from .notifications import NotificationTrigger, RedAlertService, MissingDataReminder, PendingValidationAlert, ThresholdBreachService
 from .audit import AuditLogger, AuditReporter, ComplianceChecker
 from .report import ReportGenerator
+from .settings import KpiSettingsService
+from .realtime import KPIEventBroadcaster
 
 __all__ = [
     'KPICreator', 'KPIUpdater', 'KPIActivator', 'KPIValidator', 'KPIImportExport',
@@ -20,4 +22,6 @@ __all__ = [
     'NotificationTrigger', 'RedAlertService', 'MissingDataReminder', 'PendingValidationAlert', 'ThresholdBreachService',
     'AuditLogger', 'AuditReporter', 'ComplianceChecker',
     'ReportGenerator',
+    'KpiSettingsService',
+    'KPIEventBroadcaster',
 ]

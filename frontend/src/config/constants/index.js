@@ -17,6 +17,7 @@ export const ROUTES = {
     KPI_DETAIL: '/kpi/detail/:id',
     KPI_EDIT: '/kpi/edit/:id',
     KPI_VALIDATION: '/kpi/validation',
+    KPI_SETTINGS: '/kpi/settings',
     KPI_ADJUSTMENTS: '/kpi/adjustments',
     KPI_REPORTS: '/kpi/reports',
     // Targets
@@ -182,6 +183,7 @@ export const API_ENDPOINTS = {
         KPI_SUMMARIES: '/kpis/kpi-summaries/',
         DEPARTMENT_ROLLUPS: '/kpis/department-rollups/',
         ORGANIZATION_HEALTH: '/kpis/organization-health/',
+        ORGANIZATION_HEALTH_CURRENT: '/kpis/organization-health/current/',
         INSIGHTS: '/kpis/analytics/insights/',
         PREDICTIONS: '/kpis/analytics/predictions/',
     },
@@ -242,6 +244,7 @@ export const API_ENDPOINTS = {
         LIST: '/kpis/validations/',
         DETAIL: (id) => `/kpis/validations/${id}/`,
         PENDING: '/kpis/validations/pending/',
+        PENDING_SUMMARY: '/kpis/validations/pending-summary/',
         REJECTION_REASONS: '/kpis/rejection-reasons/',
         ESCALATIONS: '/kpis/escalations/',
         ESCALATION_DETAIL: (id) => `/kpis/escalations/${id}/`,

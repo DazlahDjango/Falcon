@@ -37,7 +37,9 @@ export const BackupProgressBar = ({ jobId, onComplete }) => {
       </div>
       {progress.currentItem && <p className="text-xs text-gray-400 mt-2 truncate">Current: {progress.currentItem}</p>}
       <div className="flex justify-between text-xs text-gray-400 mt-2">
-        <span>Connected: {isConnected ? '✓' : '✗'}</span>
+        <span className={isConnected ? 'config-ws-connected' : 'config-ws-disconnected'}>
+          {isConnected ? '● Live' : '○ Offline'}
+        </span>
         {progress.durationSeconds && <span>Elapsed: {Math.floor(progress.durationSeconds / 60)}m {progress.durationSeconds % 60}s</span>}
       </div>
     </div>

@@ -4,6 +4,7 @@ import { usePlans } from '../../hooks/billing';
 import { PlanFeatureList } from '../../components/billing/plans/PlanFeatureList';
 import { PriceDisplay } from '../../components/billing/shared/PriceDisplay';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 import { EmptyState } from '../../components/billing/shared/EmptyState';
 
@@ -25,7 +26,7 @@ export const PlanDetailPage = () => {
     const getPeriod = () => billingCycle === 'yearly' ? 'year' : 'month';
 
     const handleSelect = () => {
-        navigate('/checkout', { state: { plan, billingCycle } });
+        navigate(BILLING_ROUTES.CHECKOUT, { state: { plan, billingCycle } });
     };
 
     if (isLoading) {
@@ -44,7 +45,7 @@ export const PlanDetailPage = () => {
                     message="The plan you're looking for doesn't exist"
                     icon="🔍"
                     action={
-                        <button onClick={() => navigate('/plans')} className="btn-primary">
+                        <button onClick={() => navigate(BILLING_ROUTES.PLANS)} className="btn-primary">
                             View All Plans
                         </button>
                     }

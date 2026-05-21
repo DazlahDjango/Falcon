@@ -1,23 +1,22 @@
-import React from 'react';
 import { ConfigSettingsPanel } from '../../components/config/settings/ConfigSettingsPanel';
 import { ConfigBreadcrumb } from '../../components/config/common/ConfigBreadcrumb';
 import { FiSettings } from 'react-icons/fi';
 
 export const ConfigSettingsPage = () => {
   return (
-    <div className="p-6">
+    <div className="config-settings-page">
       <div className="mb-4">
         <ConfigBreadcrumb />
       </div>
-
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          <FiSettings className="text-blue-600" />
+        <h1 className="config-page-title" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.5rem', fontWeight: 700 }}>
+          <FiSettings style={{ color: '#2563eb' }} />
           Configuration Settings
         </h1>
-        <p className="text-gray-500 mt-1">Global settings for backup, maintenance, and disaster recovery</p>
+        <p className="config-page-subtitle" style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: 4 }}>
+          Persisted platform settings — backup, maintenance, DR, notifications, and storage
+        </p>
       </div>
-
       <ConfigSettingsPanel />
     </div>
   );

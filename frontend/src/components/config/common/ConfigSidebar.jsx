@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { 
-  FiDatabase, FiHardDrive, FiActivity, FiShield, FiClock, 
-  FiBarChart2, FiKey, FiList, FiSettings, FiServer, FiAlertTriangle 
+  FiDatabase, FiHardDrive, FiShield, FiClock, 
+  FiBarChart2, FiKey, FiList, FiSettings, FiServer, FiGrid
 } from 'react-icons/fi';
 import { MdBackup, MdOutlineDashboard } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
@@ -9,6 +9,7 @@ import { BsShieldLock } from 'react-icons/bs';
 
 const menuItems = [
   { path: '/config/dashboard', icon: MdOutlineDashboard, label: 'Dashboard' },
+  { path: '/config/registry', icon: FiGrid, label: 'App Registry' },
   { path: '/config/backups', icon: MdBackup, label: 'Backups' },
   { path: '/config/maintenance', icon: FiHardDrive, label: 'Maintenance' },
   { path: '/config/disaster-recovery', icon: FiShield, label: 'Disaster Recovery' },

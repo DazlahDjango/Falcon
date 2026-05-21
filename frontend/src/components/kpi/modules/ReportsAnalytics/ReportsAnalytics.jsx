@@ -4,6 +4,7 @@ import KPIReports from './KPIReports';
 import ScoreReports from './ScoreReports';
 import DepartmentReports from './DepartmentReports';
 import ExportModal from './Export';
+import { downloadKpiReport, downloadScoreExport } from '../../../../services/kpi/export.service';
 import styles from './ReportsAnalytics.module.css';
 
 const ReportsAnalytics = ({ onError }) => {
@@ -16,10 +17,30 @@ const ReportsAnalytics = ({ onError }) => {
         { id: 'score', label: 'Score Reports', icon: '📈' },
         { id: 'department', label: 'Department Reports', icon: '🏢' }
     ];
-    const handleExport = (exportType, format) => {
-        // Handle export logic
-        console.log('Exporting:', exportType, format, { year: selectedYear, month: selectedMonth });
-        setShowExportModal(false);
+    const handleExport = async (exportType, format) => {
+        try {
+            if (exportType === 'score' && format === 'csv') {
+                await downloadScoreExport(selectedYear, selectedMonth);
+            } else {
+                const reportMap = {
+                    kpi: 'performance',
+                    score: 'performance',
+                    department: 'department_summary',
+                };
+                const fmt = format === 'xlsx' ? 'excel' : format;
+                await downloadKpiReport({
+                    format: fmt,
+                    report: reportMap[exportType] || 'performance',
+                    year: selectedYear,
+                    month: selectedMonth,
+                });
+            }
+        } catch (err) {
+            console.error('Export failed:', err);
+            if (onError) onError(err);
+        } finally {
+            setShowExportModal(false);
+        }
     };
     return (
         <div className={styles.reportsAnalytics}>

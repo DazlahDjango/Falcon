@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSubscription } from '../../hooks/billing';
 import { SubscriptionDetails } from '../../components/billing/subscription/SubscriptionDetails';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 import { EmptyState } from '../../components/billing/shared/EmptyState';
 
@@ -33,7 +34,7 @@ export const SubscriptionDetailPage = () => {
                     message="The subscription you're looking for doesn't exist"
                     icon="🔍"
                     action={
-                        <button onClick={() => navigate('/subscriptions')} className="btn-primary">
+                        <button onClick={() => navigate(BILLING_ROUTES.SUBSCRIPTIONS)} className="btn-primary">
                             Back to Subscriptions
                         </button>
                     }

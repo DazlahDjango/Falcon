@@ -60,6 +60,11 @@ def user_post_save(sender, instance, created, **kwargs):
                 }
             )
             logger.info(f"User created: {instance.email} (ID: {instance.id})")
+            try:
+                from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
+                ResourceSyncService.sync_tenant(instance.tenant_id, broadcast=True)
+            except Exception:
+                pass
         else:
             # Detect changes
             changes = {}
@@ -91,6 +96,11 @@ def user_post_save(sender, instance, created, **kwargs):
 
 @receiver(pre_delete, sender=User, dispatch_uid='user_pre_delete_unique')
 def user_pre_delete(sender, instance, **kwargs):
+    try:
+        from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
+        ResourceSyncService.sync_tenant(instance.tenant_id, broadcast=True)
+    except Exception:
+        pass
     try:
         audit_service.log(
             user=instance,

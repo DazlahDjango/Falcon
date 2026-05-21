@@ -1,0 +1,26 @@
+[Unit]
+Description=Falcon PMS API (Daphne ASGI)
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=falcon
+Group=falcon
+WorkingDirectory=/opt/falcon-pms
+EnvironmentFile=/opt/falcon-pms/.env.production
+Environment=DJANGO_ENV=production
+ExecStart=/opt/falcon-pms/fasc/bin/daphne -b 127.0.0.1 -p 8000 config.asgi:application
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/falcon-pms/logs /opt/falcon-pms/media /opt/falcon-pms/staticfiles
+
+[Install]
+WantedBy=multi-user.target

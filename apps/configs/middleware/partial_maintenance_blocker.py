@@ -5,11 +5,11 @@ import re
 
 class PartialMaintenanceBlockerMiddleware(MiddlewareMixin):
     APP_PATH_MAPPING = {
-        'accounts': ['/api/v1/accounts/', '/api/v1/', '/api/v1/auth/', '/admin/accounts/'],
+        'accounts': ['/api/v1/accounts/', '/api/v1/auth/', '/admin/accounts/'],
         'kpi': ['/api/v1/kpi/', '/admin/kpi/'],
         'billing': ['/api/v1/billing/', '/admin/billing/'],
         'reviews': ['/api/v1/reviews/', '/admin/reviews/'],
-        'tenants': ['/api/v1/tenants/', '/admin/tenants/'],
+        'tenant': ['/api/v1/tenant/', '/api/v1/tenants/', '/admin/tenant/', '/admin/tenants/'],
         'structure': ['/api/v1/structure/', '/admin/structure/'],
         'dashboard': ['/api/v1/dashboard/', '/admin/dashboard/'],
     }

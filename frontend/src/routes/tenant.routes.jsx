@@ -9,6 +9,7 @@ const TenantDetailPage = React.lazy(() => import('../pages/tenant/TenantDetailPa
 const TenantCreatePage = React.lazy(() => import('../pages/tenant/TenantCreatePage').then((module) => ({ default: module.TenantCreatePage })));
 const TenantEditPage = React.lazy(() => import('../pages/tenant/TenantEditPage').then((module) => ({ default: module.TenantEditPage })));
 const TenantSettingsPage = React.lazy(() => import('../pages/tenant/TenantSettingsPage').then((module) => ({ default: module.TenantSettingsPage })));
+const TenantPlatformSettingsPage = React.lazy(() => import('../pages/tenant/TenantPlatformSettingsPage').then((module) => ({ default: module.TenantPlatformSettingsPage })));
 const TenantResourcesPage = React.lazy(() => import('../pages/tenant/TenantResourcesPage').then((module) => ({ default: module.TenantResourcesPage })));
 const TenantUsagePage = React.lazy(() => import('../pages/tenant/TenantUsagePage').then((module) => ({ default: module.TenantUsagePage })));
 const TenantProvisioningPage = React.lazy(() => import('../pages/tenant/TenantProvisioningPage').then((module) => ({ default: module.TenantProvisioningPage })));
@@ -51,6 +52,7 @@ const tenantRoutes = [
             // Core routes
             { index: true, element: withSuspense(TenantListPage) },
             { path: 'dashboard', element: withSuspense(TenantDashboardPage) },
+            { path: 'platform-settings', element: withSuspense(TenantPlatformSettingsPage) },
             { path: 'create', element: withSuspense(TenantCreatePage) },
             
             // Dynamic tenant routes (using :tenantId parameter)

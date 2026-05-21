@@ -1,83 +1,149 @@
-import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { setNotificationChannels, setAlertThresholds } from '../../../store/config/slices/configSettingsSlice';
-import { FiMail, FiMessageSquare, FiBell, FiLink } from 'react-icons/fi';  // Changed FiWebhook to FiLink
+import { useState, useEffect } from 'react';
+import { FiMail, FiMessageSquare, FiBell, FiLink } from 'react-icons/fi';
+import { useConfigSettings } from '../../../hooks/config';
 
-export const NotificationSettingsTab = () => {
-  const dispatch = useDispatch();
-  const settings = useSelector((state) => state.config?.settings);
-  const [localSettings, setLocalSettings] = useState({
-    channels: settings?.notificationChannels ?? ['email', 'in_app'],
-    email_recipients: ['admin@falcon.com'],
-    slack_webhook: '',
-    backup_failure_threshold: 3,
-    maintenance_reminder_hours: 24,
-    quota_alert_threshold: 80,
-    health_check_failure_threshold: 3
-  });
+const DEFAULT_NOTIFICATIONS = {
+  channels: ['email', 'in_app'],
+  email_recipients: [],
+  slack_webhook: '',
+  webhook_url: '',
+  backup_failure_threshold: 3,
+  maintenance_reminder_hours: 24,
+  quota_alert_threshold_percent: 80,
+  health_check_failure_threshold: 3,
+};
 
-  const channels = [
-    { id: 'email', label: 'Email', icon: FiMail, description: 'Send email notifications' },
-    { id: 'in_app', label: 'In-App', icon: FiBell, description: 'Show in-app notifications' },
-    { id: 'slack', label: 'Slack', icon: FiMessageSquare, description: 'Send to Slack webhook' },
-    { id: 'webhook', label: 'Webhook', icon: FiLink, description: 'Send to custom webhook' }  // Changed FiWebhook to FiLink
-  ];
+const CHANNELS = [
+  { id: 'email', label: 'Email', icon: FiMail },
+  { id: 'in_app', label: 'In-App', icon: FiBell },
+  { id: 'slack', label: 'Slack', icon: FiMessageSquare },
+  { id: 'webhook', label: 'Webhook', icon: FiLink },
+];
 
-  const handleSave = () => {
-    dispatch(setNotificationChannels(localSettings.channels));
-    dispatch(setAlertThresholds({
-      backupFailure: localSettings.backup_failure_threshold,
-      quotaWarningPercent: localSettings.quota_alert_threshold,
-      healthCheckConsecutiveFailures: localSettings.health_check_failure_threshold
-    }));
-    alert('Notification settings saved');
+export const NotificationSettingsTab = ({ sections, onSectionChange, canEdit }) => {
+  const { saveSection, isSaving } = useConfigSettings();
+  const [local, setLocal] = useState({ ...DEFAULT_NOTIFICATIONS, ...sections.notifications });
+
+  useEffect(() => {
+    setLocal({ ...DEFAULT_NOTIFICATIONS, ...sections.notifications });
+  }, [sections.notifications]);
+
+  const update = (patch) => {
+    const next = { ...local, ...patch };
+    setLocal(next);
+    onSectionChange('notifications', next);
+    onSectionChange('alert_thresholds', {
+      ...sections.alert_thresholds,
+      backup_failure: next.backup_failure_threshold,
+      quota_warning_percent: next.quota_alert_threshold_percent,
+      health_check_consecutive_failures: next.health_check_failure_threshold,
+    });
   };
 
-  const toggleChannel = (channelId) => {
-    setLocalSettings(prev => ({
-      ...prev,
-      channels: prev.channels.includes(channelId)
-        ? prev.channels.filter(c => c !== channelId)
-        : [...prev.channels, channelId]
-    }));
+  const toggleChannel = (id) => {
+    if (!canEdit) return;
+    const channels = local.channels || [];
+    update({
+      channels: channels.includes(id) ? channels.filter((c) => c !== id) : [...channels, id],
+    });
+  };
+
+  const handleSave = async () => {
+    await saveSection('notifications', local);
+    await saveSection('alert_thresholds', {
+      backup_failure: local.backup_failure_threshold,
+      quota_warning_percent: local.quota_alert_threshold_percent,
+      health_check_consecutive_failures: local.health_check_failure_threshold,
+      maintenance_overlap: sections.alert_thresholds?.maintenance_overlap ?? true,
+      max_response_ms: sections.alert_thresholds?.max_response_ms ?? 5000,
+    });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {channels.map((channel) => {
-          const Icon = channel.icon;
-          const isEnabled = localSettings.channels.includes(channel.id);
+    <div className="config-settings-section">
+      <div className="config-settings-channel-grid">
+        {CHANNELS.map((ch) => {
+          const Icon = ch.icon;
+          const active = (local.channels || []).includes(ch.id);
           return (
-            <div key={channel.id} className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${isEnabled ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`} onClick={() => toggleChannel(channel.id)}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${isEnabled ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Icon className="text-xl" /></div>
-                <div><h4 className="font-medium text-gray-800">{channel.label}</h4><p className="text-sm text-gray-500">{channel.description}</p></div>
-                <div className="ml-auto"><input type="checkbox" checked={isEnabled} onChange={() => {}} className="w-5 h-5 text-blue-600 rounded" /></div>
+            <div
+              key={ch.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => toggleChannel(ch.id)}
+              onKeyDown={(e) => e.key === 'Enter' && toggleChannel(ch.id)}
+              className={`config-settings-channel-card ${active ? 'config-settings-channel-card--active' : ''} ${!canEdit ? 'config-settings-channel-card--disabled' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Icon style={{ fontSize: '1.25rem' }} />
+                <span style={{ fontWeight: 500 }}>{ch.label}</span>
               </div>
             </div>
           );
         })}
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Email Recipients</label>
-          <input type="text" value={localSettings.email_recipients.join(', ')} onChange={(e) => setLocalSettings({ ...localSettings, email_recipients: e.target.value.split(',').map(s => s.trim()) })} placeholder="admin@example.com, ops@example.com" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+      <div className="config-settings-grid-2">
+        <div className="config-settings-field">
+          <label>Email Recipients (comma-separated)</label>
+          <input
+            type="text"
+            disabled={!canEdit}
+            value={(local.email_recipients || []).join(', ')}
+            onChange={(e) => update({ email_recipients: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
+            placeholder="ops@example.com"
+          />
         </div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Slack Webhook URL</label>
-          <input type="url" value={localSettings.slack_webhook} onChange={(e) => setLocalSettings({ ...localSettings, slack_webhook: e.target.value })} placeholder="https://hooks.slack.com/services/..." className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+        <div className="config-settings-field">
+          <label>Slack Webhook URL</label>
+          <input
+            type="url"
+            disabled={!canEdit}
+            value={local.slack_webhook || ''}
+            onChange={(e) => update({ slack_webhook: e.target.value })}
+            placeholder="https://hooks.slack.com/..."
+          />
         </div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Backup Failure Threshold</label>
-          <input type="number" value={localSettings.backup_failure_threshold} onChange={(e) => setLocalSettings({ ...localSettings, backup_failure_threshold: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" min="1" max="10" />
+        <div className="config-settings-field">
+          <label>Backup Failure Threshold</label>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            disabled={!canEdit}
+            value={local.backup_failure_threshold}
+            onChange={(e) => update({ backup_failure_threshold: parseInt(e.target.value, 10) })}
+          />
         </div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Quota Alert Threshold (%)</label>
-          <input type="number" value={localSettings.quota_alert_threshold} onChange={(e) => setLocalSettings({ ...localSettings, quota_alert_threshold: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" min="50" max="95" />
+        <div className="config-settings-field">
+          <label>Quota Alert Threshold (%)</label>
+          <input
+            type="number"
+            min={50}
+            max={95}
+            disabled={!canEdit}
+            value={local.quota_alert_threshold_percent}
+            onChange={(e) => update({ quota_alert_threshold_percent: parseInt(e.target.value, 10) })}
+          />
+        </div>
+        <div className="config-settings-field">
+          <label>Health Failure Threshold (consecutive)</label>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            disabled={!canEdit}
+            value={local.health_check_failure_threshold}
+            onChange={(e) => update({ health_check_failure_threshold: parseInt(e.target.value, 10) })}
+          />
         </div>
       </div>
-
-      <div className="flex justify-end pt-4 border-t border-gray-200">
-        <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Notification Settings</button>
-      </div>
+      {canEdit && (
+        <div className="config-settings-footer">
+          <button type="button" onClick={handleSave} disabled={isSaving} className="config-settings-btn-primary">
+            Save Notification Settings
+          </button>
+        </div>
+      )}
     </div>
   );
 };

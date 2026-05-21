@@ -10,9 +10,10 @@ class ConfigWebSocketService {
     this.reconnectDelay = 3000;
   }
   connectMaintenance(tenantId = null, onMessage, onError, onClose) {
-    const wsTenantId = tenantId || getTenantId();
+    const wsTenantId = tenantId || getTenantId() || 'system';
+    const connectionId = `maintenance_${wsTenantId}`;
     const url = CONFIG_WS.MAINTENANCE_STATUS(wsTenantId);
-    return this._connect('maintenance', url, onMessage, onError, onClose);
+    return this._connect(connectionId, url, onMessage, onError, onClose);
   }
   connectBackupProgress(backupJobId, onMessage, onError, onClose) {
     const url = CONFIG_WS.BACKUP_PROGRESS(backupJobId);

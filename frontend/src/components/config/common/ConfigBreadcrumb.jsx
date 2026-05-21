@@ -4,6 +4,7 @@ import { FiHome, FiChevronRight } from 'react-icons/fi';
 const routeLabels = {
   config: 'Configuration',
   dashboard: 'Dashboard',
+  registry: 'App Registry',
   backups: 'Backups',
   maintenance: 'Maintenance',
   'disaster-recovery': 'Disaster Recovery',

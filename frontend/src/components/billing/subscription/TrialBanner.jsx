@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
 import { renderBillingIcon } from '../shared/BillingIcons';
 
 export const TrialBanner = ({ daysRemaining, onUpgrade }) => {
@@ -27,7 +28,7 @@ export const TrialBanner = ({ daysRemaining, onUpgrade }) => {
                 </div>
             </div>
             <div className="trial-banner-actions">
-                <Link to="/plans" className="trial-banner-btn" onClick={onUpgrade}>
+                <Link to={BILLING_ROUTES.PLANS} className="trial-banner-btn" onClick={onUpgrade}>
                     Upgrade Now
                 </Link>
             </div>

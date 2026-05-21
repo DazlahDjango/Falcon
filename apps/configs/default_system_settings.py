@@ -1,0 +1,58 @@
+"""Canonical defaults for persisted config system settings."""
+
+DEFAULT_CONFIG_SYSTEM_SETTINGS = {
+    'backup': {
+        'compression_enabled': True,
+        'compression_algorithm': 'zstd',
+        'encryption_enabled': True,
+        'default_retention_days': 30,
+        'parallel_backup_workers': 4,
+        'backup_timeout_minutes': 60,
+        'storage_class': 'standard',
+    },
+    'maintenance': {
+        'auto_approve': False,
+        'health_check_interval_seconds': 300,
+        'max_concurrent_maintenance': 3,
+        'default_maintenance_duration_minutes': 60,
+        'notify_before_minutes': [15, 30, 60],
+        'emergency_requires_super_admin': True,
+        'maintenance_overlap_blocked': True,
+    },
+    'dr': {
+        'auto_failover': False,
+        'auto_failback_enabled': False,
+        'default_rto_target_minutes': 60,
+        'default_rpo_target_minutes': 240,
+        'drill_frequency_days': 30,
+        'max_parallel_recovery': 2,
+        'failover_timeout_minutes': 30,
+    },
+    'notifications': {
+        'channels': ['email', 'in_app'],
+        'email_recipients': [],
+        'slack_webhook': '',
+        'webhook_url': '',
+        'backup_failure_threshold': 3,
+        'maintenance_reminder_hours': 24,
+        'quota_alert_threshold_percent': 80,
+        'health_check_failure_threshold': 3,
+    },
+    'storage': {
+        'storage_type': 's3',
+        's3_bucket': '',
+        's3_region': 'us-east-1',
+        's3_path_prefix': 'backups/',
+        'local_path': '/var/backups/falcon-pms',
+        'glacier_transition_days': 90,
+        'deep_archive_transition_days': 365,
+        'lifecycle_enabled': True,
+    },
+    'alert_thresholds': {
+        'backup_failure': 3,
+        'maintenance_overlap': True,
+        'quota_warning_percent': 80,
+        'health_check_consecutive_failures': 3,
+        'max_response_ms': 5000,
+    },
+}

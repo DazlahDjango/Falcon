@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useInvoice } from '../../hooks/billing';
 import { InvoiceDetail } from '../../components/billing/invoices/InvoiceDetail';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 
 export const InvoiceDetailPage = () => {
@@ -33,7 +34,7 @@ export const InvoiceDetailPage = () => {
             <BillingLayout title="Invoice Not Found">
                 <div className="error-state">
                     <p>Invoice not found</p>
-                    <button onClick={() => navigate('/invoices')} className="btn-primary">
+                    <button onClick={() => navigate(BILLING_ROUTES.INVOICES)} className="btn-primary">
                         Back to Invoices
                     </button>
                 </div>

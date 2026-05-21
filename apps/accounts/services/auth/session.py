@@ -5,6 +5,7 @@ from django.utils import timezone
 from user_agents import parse
 from apps.accounts.models import User, UserSession
 from apps.accounts.managers import UserSessionManager
+from apps.accounts.services.policy import AccountsPolicyService
 logger = logging.getLogger(__name__)
 
 class SessionService:
@@ -17,6 +18,8 @@ class SessionService:
         """Create a new session for a user."""
         device_info = self._parse_user_agent(user_agent) if user_agent else {}
         is_trusted = self._is_trusted_device(user, ip_address, user_agent)
+        session_cfg = AccountsPolicyService.get_session_config(str(user.tenant_id))
+        timeout_minutes = session_cfg.get('default_timeout_minutes', 480)
         session = UserSession.objects.create(
             user=user,
             tenant_id=user.tenant_id,
@@ -29,7 +32,7 @@ class SessionService:
             os=device_info.get('os', ''),
             login_time=timezone.now(),
             last_activity=timezone.now(),
-            expires_at=timezone.now() + timezone.timedelta(days=7),
+            expires_at=timezone.now() + timezone.timedelta(minutes=timeout_minutes),
             status='active',
             is_trusted_device=is_trusted,
             mfa_verified=mfa_verified,
@@ -138,7 +141,10 @@ class SessionService:
             is_trusted_device=True
         ).exists()
 
-    def _enforce_session_limit(self, user: User, max_sessions: int = 5):
+    def _enforce_session_limit(self, user: User, max_sessions: int = None):
+        if max_sessions is None:
+            session_cfg = AccountsPolicyService.get_session_config(str(user.tenant_id))
+            max_sessions = session_cfg.get('max_concurrent_sessions', 5)
         active_sessions = self.get_active_sessions(user)
         if len(active_sessions) > max_sessions:
             to_terminate = active_sessions[:len(active_sessions) - max_sessions]

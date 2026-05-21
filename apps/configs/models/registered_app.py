@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from .base import BaseConfigModel
+from apps.configs.managers.registered_app_manager import RegisteredAppManager
 
 class RegisteredApp(BaseConfigModel):
     APP_CHOICES = [
@@ -8,9 +9,10 @@ class RegisteredApp(BaseConfigModel):
         ('kpi', 'KPI Engine'),
         ('billing', 'Billing & Subscription'),
         ('reviews', 'Performance Reviews'),
-        ('tenants', 'Tenant Management'),
+        ('tenant', 'Tenant Management'),
         ('structure', 'Organization Structure'),
         ('dashboard', 'Dashboard & Analytics'),
+        ('configs', 'Configuration Management'),
     ]
     PRIORITY_CHOICES = [(1, 'Critical - RTO < 1hr'), (2, 'High - RTO < 4hr'), (3, 'Medium - RTO < 24hr'), (4, 'Low - RTO < 72hr')]
     
@@ -26,6 +28,8 @@ class RegisteredApp(BaseConfigModel):
     health_check_endpoint = models.CharField(max_length=200, blank=True, help_text="Internal API endpoint for health checks")
     recovery_script_path = models.CharField(max_length=500, blank=True, help_text="Path to recovery script")
     metadata = models.JSONField(default=dict, blank=True)
+
+    objects = RegisteredAppManager()
     
     class Meta:
         db_table = 'config_registered_app'

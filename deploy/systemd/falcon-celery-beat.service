@@ -1,0 +1,18 @@
+[Unit]
+Description=Falcon PMS Celery Beat Scheduler
+After=network.target falcon-api.service
+Requires=falcon-api.service
+
+[Service]
+Type=simple
+User=falcon
+Group=falcon
+WorkingDirectory=/opt/falcon-pms
+EnvironmentFile=/opt/falcon-pms/.env.production
+Environment=DJANGO_ENV=production
+ExecStart=/opt/falcon-pms/fasc/bin/celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -65,25 +65,49 @@ class EventPublisherService:
     
     def _publish(self, event: dict) -> None:
         from django.utils import timezone
-        import json
         event['timestamp'] = timezone.now().isoformat()
-        try:
-            import redis
-            from django.conf import settings
-            redis_client = redis.Redis(
-                host=getattr(settings, 'REDIS_HOST', 'localhost'),
-                port=getattr(settings, 'REDIS_PORT', 6379),
-                db=getattr(settings, 'REDIS_DB', 0)
-            )
-            channel = f"org_events:{event['tenant_id']}"
-            redis_client.publish(channel, json.dumps(event))
-        except Exception:
-            pass
+        self._broadcast_channels(event)
         for subscriber in self._subscribers:
             try:
                 subscriber(event)
             except Exception:
                 pass
+
+    def _broadcast_channels(self, event: dict) -> None:
+        try:
+            from apps.structure.services.settings import StructureSettingsService
+            sync_cfg = StructureSettingsService.get_section('sync')
+            rt_cfg = StructureSettingsService.get_section('realtime')
+            if not sync_cfg.get('publish_org_events', True):
+                return
+            if not rt_cfg.get('use_channels_primary', True):
+                return
+            from apps.structure.services.realtime import StructureEventBroadcaster
+            tenant_id = event.get('tenant_id')
+            etype = event.get('type', '')
+            if etype == 'department_change':
+                StructureEventBroadcaster.department_change(
+                    tenant_id=tenant_id,
+                    department_id=event.get('department_id'),
+                    change_type=event.get('change_type', 'updated'),
+                    data=event.get('new_data') or event.get('old_data'),
+                )
+            elif etype == 'team_change':
+                StructureEventBroadcaster.team_change(
+                    tenant_id=tenant_id,
+                    team_id=event.get('team_id'),
+                    change_type=event.get('change_type', 'updated'),
+                    data=event.get('new_data') or event.get('old_data'),
+                )
+            elif etype == 'employment_change':
+                StructureEventBroadcaster.employment_change(
+                    tenant_id=tenant_id,
+                    user_id=event.get('user_id'),
+                    change_type=event.get('change_type', 'updated'),
+                    data=event.get('new_data') or event.get('old_data'),
+                )
+        except Exception:
+            pass
     
     def subscribe(self, callback) -> None:
         self._subscribers.append(callback)

@@ -175,3 +175,25 @@ class HierarchyService(BaseDashboardService):
         for report in reports:
             node['children'].append(self._build_org_tree_node(report, depth + 1))
         return node
+    def is_direct_report(self, user_id: str) -> bool:
+        """True if user_id is a direct report of the current dashboard user."""
+        from apps.accounts.models import User
+        try:
+            return User.objects.filter(
+                id=user_id,
+                tenant_id=self.tenant_id,
+                is_active=True,
+                manager_id=self.user.id,
+            ).exists()
+        except Exception:
+            return False
+
+    def has_direct_reports(self, user_id: Optional[str] = None) -> bool:
+        from apps.accounts.models import User
+        uid = user_id or self.user_id
+        return User.objects.filter(
+            manager_id=uid,
+            tenant_id=self.tenant_id,
+            is_active=True,
+        ).exists()
+

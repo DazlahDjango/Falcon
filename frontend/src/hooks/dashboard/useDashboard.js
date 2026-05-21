@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { dashboardWebSocket } from '../../services/dashboard';
-import { showToast } from '../../store/ui/slices/uiSlice';
+import { showAlert } from '../../store/accounts/slice/uiSlice';
+import { store as appStore } from '../../store';
 
 export const useDashboard = (dashboardType, options = {}) => {
   const {
@@ -27,7 +28,7 @@ export const useDashboard = (dashboardType, options = {}) => {
     setError(err);
     setLoading(false);
     if (onError) onError(err);
-    dispatch(showToast({ message: err.message || 'Dashboard error occurred', type: 'error' }));
+    appStore.dispatch(showAlert({ type: 'error', message: err.message || 'Dashboard error occurred' }));
   }, [dispatch, onError]);
 
   const handleDataUpdate = useCallback((newData) => {
@@ -74,7 +75,11 @@ export const useDashboard = (dashboardType, options = {}) => {
         if (message.type === 'update' || message.type === 'initial') {
           handleDataUpdate(message.data);
         } else if (message.type === 'alert') {
-          dispatch(showToast({ message: message.message, type: 'warning' }));
+          appStore.dispatch(showAlert({ type: 'warning', message: message.message }));
+        }
+        
+        if (options.onWebsocketMessage) {
+          options.onWebsocketMessage(message);
         }
       };
       dashboardWebSocket.connect(dashboardType, handleWebSocketMessage, handleError);
@@ -107,17 +112,10 @@ export const useDashboard = (dashboardType, options = {}) => {
 };
 
 const fetchDashboardData = async (dashboardType) => {
-  switch (dashboardType) {
-    case 'executive':
-      const { executiveDashboardService } = await import('../../services/dashboard/executive.service');
-      return executiveDashboardService.getDashboardData();
-    case 'client_admin':
-      const { clientAdminDashboardService } = await import('../../services/dashboard/clientAdmin.service');
-      return clientAdminDashboardService.getDashboardData();
-    case 'super_admin':
-      const { superAdminDashboardService } = await import('../../services/dashboard/superAdmin.service');
-      return superAdminDashboardService.getDashboardData();
-    default:
-      throw new Error(`Unknown dashboard type: ${dashboardType}`);
+  const { getDashboardService } = await import('../../services/dashboard');
+  const service = getDashboardService(dashboardType);
+  if (!service) {
+    throw new Error(`Unknown dashboard type: ${dashboardType}`);
   }
+  return service.getDashboardData();
 };

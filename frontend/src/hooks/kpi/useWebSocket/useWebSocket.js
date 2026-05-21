@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { websocketService } from '../../../services/websocket';
 import * as authService from '../../../services/accounts/storage/secureStorage';
+import environment from '../../../config/environment';
+
+function wsBaseUrl() {
+    const raw = environment.WS_URL || 'ws://localhost:8000/ws';
+    return raw.replace(/\/ws\/?$/, '');
+}
 
 const useWebSocket = (endpoint, onMessage, options = {}) => {
     const { autoConnect = true, reconnectOnClose = true } = options;
@@ -12,9 +18,13 @@ const useWebSocket = (endpoint, onMessage, options = {}) => {
         const token = authService.getAccessToken();
         return `${endpoint}_${token?.substring(0, 8)}`;
     }, [endpoint]);
-    const connect = useCallback(() => {
+    const connect = useCallback(async () => {
         const key = getConnectionKey();
         connectionKey.current = key;
+        const token = await authService.getAccessToken();
+        if (token) {
+            websocketService.init(wsBaseUrl(), token);
+        }
         ws.current = websocketService.connect(
             key,
             endpoint,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSubscriptions } from '../../hooks/billing';
 import { SubscriptionCard } from '../../components/billing/subscription/SubscriptionCard';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 import { EmptyState } from '../../components/billing/shared/EmptyState';
 
@@ -38,7 +39,7 @@ export const SubscriptionsPage = () => {
                     message="You don't have any active subscriptions"
                     icon="🔄"
                     action={
-                        <button onClick={() => navigate('/plans')} className="btn-primary">
+                        <button onClick={() => navigate(BILLING_ROUTES.PLANS)} className="btn-primary">
                             View Plans
                         </button>
                     }

@@ -14,6 +14,7 @@ from .views.dashboard_views import (
     ConfigHealthDashboard, ConfigDRDashboard, ConfigSchedulingDashboard,
     ConfigSecurityDashboard, ConfigRecentActivityDashboard, ConfigSystemStatus
 )
+from .views.system_settings_views import ConfigSystemSettingsView, ConfigSystemSettingsResetView
 
 router = DefaultRouter()
 router.register(r'registered-apps', RegisteredAppViewSet)
@@ -35,6 +36,8 @@ router.register(r'audit-logs', ConfigAuditLogViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('system-settings/', ConfigSystemSettingsView.as_view(), name='config-system-settings'),
+    path('system-settings/reset/', ConfigSystemSettingsResetView.as_view(), name='config-system-settings-reset'),
     path('dashboard/overview/', ConfigDashboardOverview.as_view(), name='config-dashboard-overview'),
     path('dashboard/backup/', ConfigBackupDashboard.as_view(), name='config-dashboard-backup'),
     path('dashboard/maintenance/', ConfigMaintenanceDashboard.as_view(), name='config-dashboard-maintenance'),

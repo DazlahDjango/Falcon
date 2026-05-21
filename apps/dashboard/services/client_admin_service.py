@@ -1,9 +1,7 @@
-# apps/dashboard/services/client_admin_service.py
 from django.db.models import Count, Avg
 from django.utils import timezone
 from typing import Dict, List, Any, Optional
 from .base_service import BaseDashboardService
-from .hierarchy_service import HierarchyService
 from .cache_service import DashboardCacheService
 from apps.dashboard.constants import DashboardType, TrafficLight, Defaults
 from apps.dashboard.models import ExportSchedule, DashboardAlert
@@ -11,7 +9,6 @@ from apps.dashboard.models import ExportSchedule, DashboardAlert
 class ClientAdminDashboardService(BaseDashboardService):
     def __init__(self, user, tenant_id):
         super().__init__(user, tenant_id)
-        self.hierarchy_service = HierarchyService(user, tenant_id)
         self.cache_service = DashboardCacheService(user, tenant_id)
     
     def get_dashboard_data(self) -> Dict:

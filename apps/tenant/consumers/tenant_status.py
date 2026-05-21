@@ -95,7 +95,13 @@ class TenantStatusConsumer(AsyncWebsocketConsumer):
         from apps.tenant.models import Client
 
         try:
+            from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
+            from apps.tenant.services.monitoring.quota_enforcer import QuotaEnforcer
+
             tenant = Client.objects.get(id=self.tenant_id, is_deleted=False)
+            ResourceSyncService.maybe_sync_on_read(tenant.id)
+            live = ResourceSyncService.count_live_usage(tenant.id)
+            enforcer = QuotaEnforcer(str(tenant.id))
 
             return {
                 'id': str(tenant.id),
@@ -107,8 +113,8 @@ class TenantStatusConsumer(AsyncWebsocketConsumer):
                 'subscription_plan': tenant.subscription_plan,
                 'subscription_expires_at': tenant.subscription_expires_at.isoformat() if tenant.subscription_expires_at else None,
                 'provisioned_at': tenant.provisioned_at.isoformat() if hasattr(tenant, 'provisioned_at') and tenant.provisioned_at else None,
-                'current_users': getattr(tenant, 'current_users', 0),
-                'max_users': getattr(tenant, 'max_users', 100),
+                'live_counts': live,
+                'usage': enforcer.check_all_quotas(),
             }
         except Exception as e:
             logger.error(f"Failed to get tenant status: {e}")

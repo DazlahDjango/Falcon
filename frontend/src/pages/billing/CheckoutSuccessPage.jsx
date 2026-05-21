@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useCheckout } from '../../hooks/billing';
 import { CheckoutSuccess } from '../../components/billing/checkout/CheckoutSuccess';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton';
 
 export const CheckoutSuccessPage = () => {
@@ -16,7 +17,7 @@ export const CheckoutSuccessPage = () => {
     useEffect(() => {
         const verifyPayment = async () => {
             if (!reference) {
-                navigate('/billing/portal');
+                navigate(BILLING_ROUTES.PORTAL);
                 return;
             }
             
@@ -47,7 +48,7 @@ export const CheckoutSuccessPage = () => {
         <BillingLayout title="Payment Successful">
             <CheckoutSuccess 
                 amount={amount}
-                onClose={() => navigate('/billing/portal')}
+                onClose={() => navigate(BILLING_ROUTES.PORTAL)}
             />
         </BillingLayout>
     );

@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '../shared/StatusBadge';
 import { PriceDisplay } from '../shared/PriceDisplay';
+import { buildBillingPath, BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
 
 export const SubscriptionCard = ({ subscription }) => {
     const isExpiringSoon = subscription.is_active_status?.days_until_expiry <= 7 && 
                           subscription.is_active_status?.days_until_expiry > 0;
 
     return (
-        <Link to={`/subscriptions/${subscription.id}`} className="subscription-card">
+        <Link to={buildBillingPath(BILLING_ROUTES.SUBSCRIPTION_DETAIL(), { id: subscription.id })} className="subscription-card">
             <div className="subscription-card-header">
                 <div className="subscription-card-plan">
                     <h3 className="subscription-card-plan-name">{subscription.plan?.name}</h3>

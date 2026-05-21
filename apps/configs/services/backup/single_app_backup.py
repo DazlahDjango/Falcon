@@ -28,10 +28,10 @@ class SingleAppBackup:
         if not strategy:
             raise BackupError(f"Unknown backup type {backup_type}")
         app_config = apps.get_app_config(app_name)
-        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(suffix='.json', mode='w', delete=False, encoding='utf-8') as tmp_file:
             call_command('dumpdata', app_name, indent=2, stdout=tmp_file)
             tmp_file_path = tmp_file.name
-        with open(tmp_file_path, 'r') as f:
+        with open(tmp_file_path, 'r', encoding='utf-8') as f:
             raw_data = f.read()
         compressed_data = self.compressor.compress(raw_data.encode(), policy.compression_algorithm if policy.compression_enabled else None)
         if policy.encryption_enabled:
@@ -49,4 +49,5 @@ class SingleAppBackup:
             'storage_path': storage_path,
             'encrypted_key_id': key_id,
             'iv': iv,
+            'compression_algorithm': policy.compression_algorithm if policy.compression_enabled else None,
         }

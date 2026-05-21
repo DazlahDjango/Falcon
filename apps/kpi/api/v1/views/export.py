@@ -74,29 +74,52 @@ class ScoreExportView(APIView):
 class ReportExportView(APIView):
     permission_classes = [IsAuthenticatedAndActive, IsManager]
     throttle_classes = [ExportThrottle]
+
     def get(self, request):
+        from ....services import ReportGenerator
+        from ....services.report_catalog import PHASE_D_REPORT_REGISTRY
+
         report_type = request.query_params.get('type', 'pdf')
+        report_name = request.query_params.get('report', 'performance')
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        from ....services import ReportGenerator
+        y = int(year) if year else None
+        m = int(month) if month else None
+        tenant_id = request.tenant.id
         generator = ReportGenerator()
+
         if report_type == 'pdf':
-            pdf_content = generator.generate_pdf_report(
-                request.tenant.id,
-                year=int(year) if year else None,
-                month=int(month) if month else None
-            )
+            pdf_content = generator.generate_pdf_report(tenant_id, year=y, month=m)
             response = HttpResponse(pdf_content, content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="performance_report.pdf"'
             return response
-        elif report_type == 'excel':
-            excel_content = generator.generate_excel_report(
-                request.tenant.id,
-                year=int(year) if year else None,
-                month=int(month) if month else None
+        if report_type in ('excel', 'xlsx'):
+            excel_content = generator.generate_excel_report(tenant_id, year=y, month=m)
+            response = HttpResponse(
+                excel_content,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             )
-            response = HttpResponse(excel_content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = 'attachment; filename="performance_report.xlsx"'
             return response
-        
-        return Response({'error': 'Unsupported format'}, status=status.HTTP_400_BAD_REQUEST)
+        if report_type == 'csv':
+            if report_name not in PHASE_D_REPORT_REGISTRY:
+                return Response(
+                    {'error': f'Unknown report: {report_name}'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            csv_content = generator.generate_csv_report(
+                tenant_id, report_name, year=y, month=m,
+            )
+            filename = f'{report_name}_{y or "all"}_{m or "all"}.csv'
+            response = HttpResponse(csv_content, content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+
+        return Response(
+            {
+                'error': 'Unsupported format',
+                'supported_formats': ['pdf', 'excel', 'csv'],
+                'supported_reports': list(PHASE_D_REPORT_REGISTRY.keys()),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )

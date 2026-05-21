@@ -210,13 +210,13 @@ MIDDLEWARE = [
     'apps.kpi.middleware.ThrottleMiddleware',
     'apps.kpi.middleware.CacheMiddleware',
     # # Reviews app middleware (order matters!)
-    'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
-    'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
-    'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
-    'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
-    'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
-    'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
-    'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
+    # 'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
+    # 'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
+    # 'apps.reviews.middleware.ReviewCycleRequiredMiddleware',     # Enforces cycle requirement
+    # 'apps.reviews.middleware.ReviewAPIPermissionMiddleware',     # API authentication
+    # 'apps.reviews.middleware.ReviewObjectPermissionMiddleware',  # Object-level permissions
+    # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
+    # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     # Billing
     'apps.billing.middleware.SubscriptionGuardMiddleware',
     'apps.billing.middleware.BillingAuditMiddleware',
@@ -260,8 +260,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME', default='falcon_pms'),
-        'USER': env('DB_USER', default='postgres'),
-        'PASSWORD': env('DB_PASSWORD', default='Ogutu.1@15'),
+        'USER': env('DB_USER', default='Dazlah'),
+        'PASSWORD': env('DB_PASSWORD', default='Dazl2006'),
         'HOST': env('DB_HOST', default='localhost'),
         'PORT': env('DB_PORT', default='5433'),
         'OPTIONS': {
@@ -522,7 +522,7 @@ REST_FRAMEWORK = {
 # JWT CONFIGURATION (with security best practices)
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=env.int('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', default=60)),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=env.int('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', default=30)),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=env.int('JWT_REFRESH_TOKEN_LIFETIME_DAYS', default=7)),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -936,6 +936,7 @@ BACKUP_STORAGE_TYPE = env.str('BACKUP_STORAGE_TYPE', default='s3')
 BACKUP_S3_BUCKET = env.str('BACKUP_S3_BUCKET', default='falcon-pms-backups')
 BACKUP_S3_REGION = env.str('BACKUP_S3_REGION', default='us-east-1')
 BACKUP_LOCAL_PATH = env.str('BACKUP_LOCAL_PATH', default='/var/backups/falcon-pms')
+CONFIG_INTERNAL_HEALTH_BASE_URL = env.str('CONFIG_INTERNAL_HEALTH_BASE_URL', default='http://127.0.0.1:8000')
 BACKUP_NFS_MOUNT = env.str('BACKUP_NFS_MOUNT', default='')
 BACKUP_NFS_SERVER = env.str('BACKUP_NFS_SERVER', default='')
 

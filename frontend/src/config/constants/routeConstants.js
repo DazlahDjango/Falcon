@@ -79,6 +79,7 @@ export const ROUTES = {
     KPI_DETAIL: '/kpi/detail/:id',
     KPI_EDIT: '/kpi/edit/:id',
     KPI_VALIDATION: '/kpi/validation',
+    KPI_SETTINGS: '/kpi/settings',
     KPI_ADJUSTMENTS: '/kpi/adjustments',
     KPI_TARGETS: '/kpi/targets',
     KPI_TRACKING: '/kpi/tracking',

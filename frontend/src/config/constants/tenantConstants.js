@@ -32,6 +32,11 @@ export const TENANT_ENDPOINTS = {
     RESOURCES: (id) => `/tenants/${id}/resources/`,
     UPDATE_LIMITS: (id) => `/tenants/${id}/update-limits/`,
     PROVISIONING_STATUS: (id) => `/tenants/${id}/provisioning-status/`,
+    SYNC_RESOURCES: (id) => `/tenants/${id}/sync-resources/`,
+
+    SYSTEM_SETTINGS: '/system-settings/',
+    SYSTEM_SETTINGS_RESET: '/system-settings/reset/',
+    REFERENCE_DATA: '/reference-data/',
 };
 
 /**

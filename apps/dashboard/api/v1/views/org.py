@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from drf_yasg.utils import swagger_auto_schema
 import logging
-from apps.dashboard.services import HierarchyService
+from apps.dashboard.services.hierarchy_service import HierarchyService
 from apps.dashboard.api.v1.serializers import (
     TeamMemberSerializer, TeamAggregateSerializer, OrgTreeNodeSerializer,
     ReportingChainSerializer
@@ -26,7 +26,7 @@ class HierarchyViewSet(viewsets.GenericViewSet):
         if not self.service:
             self.service = HierarchyService(
                 self.request.user,
-                getattr(self.request.user, 'tenant_id', None)
+                getattr(self.request.user, 'tenant_id', None),
             )
         return self.service
     

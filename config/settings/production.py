@@ -78,6 +78,16 @@ DATABASES['default']['OPTIONS']['sslmode'] = env('DB_SSLMODE', default='require'
 # ----------------------------------------------------------------------------
 # CACHING (Redis - must be configured)
 # ----------------------------------------------------------------------------
+# Channels (WebSockets) — required in production
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [env('REDIS_URL')],
+        },
+    },
+}
+
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',

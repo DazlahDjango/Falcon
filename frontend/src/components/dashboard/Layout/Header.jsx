@@ -1,27 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid } from "react-icons/fi";
-import { logout } from '../../../store/accounts/slice/authSlice';
+import { useSyncExternalStore } from 'react';
+import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio } from "react-icons/fi";
 import { markAllAsRead, fetchUnreadCount } from '../../../store/accounts/slice/notificationSlice';
-import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { formatDate } from '../../../utils/accounts/formatters';
-import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { getDefaultRouteByRole } from '../../../config/constants/dashboardRouteConstants';
+import store from '../../../store';
 
-const getDashboardRoute = (role) => {
-    switch (role) {
-        case 'executive':
-            return DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW;
-        case 'client_admin':
-            return DASHBOARD_ROUTES.CLIENT_ADMIN.OVERVIEW;
-        case 'super_admin':
-            return DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW;
-        default:
-            return '/dashboard';
-    }
-};
-
-const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed }) => {
+const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed, wsConnected }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -30,8 +16,11 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
     const notificationsRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
-    const dispatch = useDispatch();
-    const { unreadCount, notifications } = useSelector((state) => state.notifications || { unreadCount: 0, notifications: [] });
+    const notificationsState = useSyncExternalStore(
+        (listener) => store.subscribe(listener),
+        () => store.getState().notifications || { unreadCount: 0, notifications: [] },
+    );
+    const { unreadCount, notifications } = notificationsState;
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -47,7 +36,7 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
     }, []);
 
     useEffect(() => {
-        dispatch(fetchUnreadCount());
+        store.dispatch(fetchUnreadCount());
     }, [dispatch]);
 
     useEffect(() => {
@@ -56,7 +45,7 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
         const breadcrumbItems = [];
         
         if (segments[0] === 'dashboard') {
-            breadcrumbItems.push({ name: 'Dashboard', path: getDashboardRoute(user?.role) });
+            breadcrumbItems.push({ name: 'Dashboard', path: getDefaultRouteByRole(dashboardRole || user?.role) });
             if (segments[1]) {
                 const labels = {
                     'executive': 'Executive',
@@ -174,7 +163,7 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
     };
 
     const handleMarkAllRead = () => {
-        dispatch(markAllAsRead());
+        store.dispatch(markAllAsRead());
         setShowNotifications(false);
     };
 
@@ -184,7 +173,7 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
     };
 
     const handleDashboardClick = () => {
-        navigate(getDashboardRoute(user?.role));
+        navigate(getDefaultRouteByRole(dashboardRole || user?.role));
     };
 
     const getNotificationIcon = (level) => {
@@ -238,6 +227,13 @@ const Header = ({ user, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed
             </div>
             
             <div className="header-right">
+                <span
+                  className={`dashboard-header-live ${wsConnected ? 'dashboard-header-live--on' : ''}`}
+                  title={wsConnected ? 'Dashboard live' : 'Dashboard offline'}
+                >
+                  <FiRadio size={14} />
+                  {wsConnected ? 'Live' : 'Offline'}
+                </span>
                 <button 
                     className="dashboard-quick-btn"
                     onClick={handleDashboardClick}

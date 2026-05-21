@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
 
 export const CheckoutSuccess = ({ amount, onClose }) => {
     const navigate = useNavigate();
 
     const handleViewSubscription = () => {
-        navigate('/subscriptions');
+        navigate(BILLING_ROUTES.SUBSCRIPTIONS);
         onClose();
     };
 

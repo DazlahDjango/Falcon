@@ -39,6 +39,11 @@ def department_post_save(sender, instance, created, **kwargs):
             new_data={'code': instance.code, 'name': instance.name}
         )
     cache_warmer.invalidate_tenant_cache(instance.tenant_id)
+    try:
+        from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
+        ResourceSyncService.sync_tenant(instance.tenant_id, broadcast=True)
+    except Exception:
+        pass
 
 @receiver(pre_delete, sender=Department)
 def department_pre_delete(sender, instance, **kwargs):
@@ -54,6 +59,11 @@ def department_post_delete(sender, instance, **kwargs):
         old_data={'code': instance.code, 'name': instance.name}
     )
     cache_warmer.invalidate_tenant_cache(instance.tenant_id)
+    try:
+        from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
+        ResourceSyncService.sync_tenant(instance.tenant_id, broadcast=True)
+    except Exception:
+        pass
 
 
 @receiver(pre_save, sender=Team)

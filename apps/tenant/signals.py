@@ -46,6 +46,15 @@ def tenant_post_save_handler(sender, instance, created, **kwargs):
             if old_status != new_status:
                 logger.info(
                     f"Tenant {instance.id} status changed: {old_status} -> {new_status}")
+                try:
+                    from apps.tenant.services.realtime import TenantEventBroadcaster
+                    TenantEventBroadcaster.tenant_status_changed(
+                        tenant_id=str(instance.id),
+                        status=new_status,
+                        is_active=instance.is_active,
+                    )
+                except Exception as exc:
+                    logger.debug('Tenant status WS broadcast skipped: %s', exc)
 
                 # Handle specific status changes
                 if new_status == 'suspended':
@@ -233,6 +242,18 @@ def resource_pre_save_handler(sender, instance, **kwargs):
                     f"Resource {instance.resource_type} near limit "
                     f"for tenant {instance.tenant_id}: {new_value}/{instance.limit_value}"
                 )
+                try:
+                    from apps.tenant.services.realtime import TenantEventBroadcaster
+                    pct = (new_value / instance.limit_value * 100) if instance.limit_value else 0
+                    TenantEventBroadcaster.quota_warning(
+                        tenant_id=str(instance.tenant_id),
+                        resource_type=instance.resource_type,
+                        current_value=new_value,
+                        limit_value=instance.limit_value,
+                        percentage=round(pct, 1),
+                    )
+                except Exception as exc:
+                    logger.debug('Quota WS broadcast skipped: %s', exc)
 
                 # Send quota warning
                 try:

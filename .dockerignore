@@ -89,7 +89,7 @@ node_modules/
 docker-compose*.yml
 Dockerfile*
 !Dockerfile
-!Dockerfile.nginx
+!Dockerfile.production
 
 # Security
 safety-project.ini

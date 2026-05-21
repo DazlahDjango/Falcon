@@ -25,9 +25,10 @@ class BackupEncryptor:
         if not encrypted_data:
             return encrypted_data
         key_material = hashlib.sha256(self.master_key).digest()
-        iv = base64.b64decode(iv_b64)
-        tag = encrypted_data[-16:]
-        ciphertext = encrypted_data[:-16]
+        # The encrypt method prepends iv (12 bytes) and tag (16 bytes)
+        iv = encrypted_data[:12]
+        tag = encrypted_data[12:28]
+        ciphertext = encrypted_data[28:]
         cipher = Cipher(algorithms.AES(key_material), modes.GCM(iv, tag), backend=default_backend())
         decryptor = cipher.decryptor()
         return decryptor.update(ciphertext) + decryptor.finalize()

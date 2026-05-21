@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSubscription } from '../../hooks/billing';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 
 export const CancelPage = () => {
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ export const CancelPage = () => {
         setSubmitting(true);
         try {
             await cancelSubscription(subscription.id, { at_period_end: atPeriodEnd, reason });
-            navigate('/subscriptions');
+            navigate(BILLING_ROUTES.SUBSCRIPTIONS);
         } catch (error) {
             console.error('Cancel error:', error);
             alert('Failed to cancel subscription. Please try again.');
@@ -28,7 +29,7 @@ export const CancelPage = () => {
     }
 
     if (!subscription) {
-        navigate('/subscriptions');
+        navigate(BILLING_ROUTES.SUBSCRIPTIONS);
         return null;
     }
 
@@ -83,7 +84,7 @@ export const CancelPage = () => {
                 </div>
 
                 <div className="cancel-actions">
-                    <button className="btn-secondary" onClick={() => navigate('/subscriptions')}>
+                    <button className="btn-secondary" onClick={() => navigate(BILLING_ROUTES.SUBSCRIPTIONS)}>
                         Keep Subscription
                     </button>
                     <button className="btn-danger" onClick={handleCancel} disabled={submitting}>

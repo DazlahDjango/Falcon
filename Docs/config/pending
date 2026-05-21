@@ -1,0 +1,346 @@
+# Falcon PMS Config System — Implementation Status & Operations Guide
+
+**Document purpose:** This replaces the earlier presentation Q&A draft. It records what the Config app is designed to do, what is **implemented in code today**, what is **partially** available, and what remains **planned** for a later phase. It also documents capabilities added during stabilization work (Phases A–D) that were not in the original training outline.
+
+**Last updated:** May 2026  
+**Codebase areas:** `apps/configs/` (backend), `frontend/src/pages/config`, `frontend/src/components/config`, `Docs/config/`
+
+---
+
+## Executive summary
+
+The Config app is the operational control plane for Falcon PMS: backups, maintenance, disaster recovery, health monitoring, scheduling, quotas, encryption, audit, and platform settings. The **backend engine is largely complete**; the **admin UI covers most operational flows**. Recent work standardized app registration (CIA-aligned), added real-time progress over WebSockets, persisted system settings, and an App Registry console.
+
+| Area | Backend | Frontend UI | Real-time |
+|------|---------|-------------|-----------|
+| App registry & recovery order | Complete | Complete (`/config/registry`) | N/A |
+| Backups & restore | Complete | Complete | WebSocket progress |
+| Maintenance | Complete | Complete | WebSocket + global banner |
+| Disaster recovery | Complete | Complete | WebSocket progress |
+| Health monitoring | Complete | Complete | Polling |
+| Schedules | Complete | Complete | Polling |
+| Quotas & encryption | Complete | Complete | Polling |
+| Audit logs | Complete | Complete | Polling |
+| System settings (persisted) | Complete | Complete | API-driven |
+| Risk-based maintenance | API/service | Limited UI | Polling |
+| Blackout periods | Not dedicated | Not built | — |
+| Custom health check CRUD | Partial | Not built | — |
+| Granular record-level restore UI | Service-level | Not built | — |
+
+---
+
+## What we achieved from the original training outline
+
+The original document described user-facing capabilities across ten themes. Below is an honest mapping to the current product.
+
+### 1. Config app overview — **Achieved**
+
+The Config app registers Falcon modules (accounts, tenant, kpi, billing, structure, dashboard, reviews, configs), coordinates backup/DR/maintenance, and enforces **Super Admin / Client Admin** access via `IsConfigAccess` and stricter rules on sensitive writes.
+
+**Automatic background work (Celery):** backup execution, retention, health checks, conditional maintenance triggers, risk-based maintenance assessment, schedule execution, DR drills, backup verification.
+
+**User experience:** Regular users do not use Config; administrators use `/config/dashboard` and related pages.
+
+---
+
+### 2. Backups — **Mostly achieved**
+
+**Implemented today:**
+
+- Per-app backup via `dumpdata` (real data export, not mocks)
+- Backup policies (full/incremental/differential/synthetic/CDP types in model; primary path uses configured policy)
+- Manual trigger from **Config → Backups**
+- Backup jobs, artifacts, verification, retention application
+- Cancel and restore actions via API
+- Development mode: local storage + eager Celery for safe local simulation
+
+**Partial vs. training narrative:**
+
+| Training claim | Current state |
+|----------------|---------------|
+| Hourly incremental + nightly full (default schedule) | Schedules are supported; **default cron must be configured** per environment (not hard-coded 2 AM / hourly in UI copy alone) |
+| 30d / 3mo / 1y tiered retention in prose | Retention is **per policy / settings** (`default_retention_days`, `backup_retention_days` on registry apps) |
+| Restore a single KPI or one user without full app restore | Restore is **app-level** via `single_app_restore`; **no admin UI** to pick individual records |
+| “All apps” one-click backup | Multi-app backup exists in backend (`multi_app_backup`); UI triggers **per registered app** |
+
+---
+
+### 3. Disaster recovery — **Achieved (core); drills & failover documented**
+
+**Implemented:**
+
+- DR plans per app (RPO/RTO targets, steps, approval flags)
+- DR execution and drill endpoints
+- `DRProgressMonitor` with live WebSocket updates during execution
+- Failover and failback services and UI buttons
+- Recovery ordering from **App Registry** dependencies (topological sequence)
+- Per-app RPO/RTO on `RegisteredApp` plus defaults in **System Settings**
+
+**Training alignment:**
+
+- RPO/RTO in the doc (1 hr / 4 hr) are **examples**; actual values come from registry + DR plans + settings
+- DR drills: `POST .../dr-plans/{id}/drill/` and management command `run_dr_drill`
+- Tabletop vs. full simulation: **operational process**, not separate product modes
+
+---
+
+### 4. Maintenance — **Mostly achieved**
+
+**Implemented:**
+
+- Maintenance windows: full, partial, rolling, emergency
+- Start / stop / cancel with logs
+- Maintenance mode cache + middleware blocking
+- Partial maintenance by affected apps
+- **Global maintenance banner** on all pages (`MainLayout` + `ConfigContext`)
+- Real-time maintenance WebSocket (`maintenance_{tenantId}` or `system`)
+- Risk assessment API (`risk_assessment` on maintenance windows)
+- Conditional maintenance via `ConditionalTrigger` + `evaluate_thresholds` / `conditional_trigger` health actions
+
+**Partial vs. training narrative:**
+
+| Training claim | Current state |
+|----------------|---------------|
+| Blackout periods (month-end, tax season, etc.) | **Not implemented** as a dedicated model/UI; use schedule discipline or future feature |
+| 7-day / 24h / 1h user warning ladder | Notifier exists; **full multi-stage user banner ladder** is not fully productized beyond active banner |
+| Risk-based maintenance UI | Backend `MaintenanceRisk` + API; **no dedicated risk dashboard page** |
+| Auto-approve maintenance | Supported in **persisted system settings** (`maintenance.auto_approve`) |
+
+---
+
+### 5. Health monitoring — **Mostly achieved**
+
+**Implemented:**
+
+- Per-app health checks using configured `health_check_endpoint` (set at registry sync)
+- Health history, metrics, `check_all`, `latest`, `evaluate_thresholds`, `conditional_trigger`
+- Dashboard health widgets and `HealthCheckPage`
+- Thresholds driven by **System Settings** (`health_check_failure_threshold`, `max_response_ms`, etc.)
+
+**Partial:**
+
+| Training claim | Current state |
+|----------------|---------------|
+| Custom health check CRUD UI | API supports checks; **no “Custom Checks” admin page** as described in training |
+| CPU/memory/disk “fitness tracker” for infra | `metric_collector` exists; UI is app-health focused, not full infra dashboard |
+| SMS alerts | Notification **channels** in settings (email, in_app, slack, webhook); SMS is **configuration intent**, not a separate Twilio integration in code |
+
+---
+
+### 6. Schedules — **Achieved**
+
+- Cron-based schedules with `CronHelper` in schedule forms
+- Execute due schedules (API + Celery)
+- Enable/disable via schedule status
+- Conflict detection in scheduling services
+
+**Note:** “Pause until date” is modeled via schedule status; dedicated “pause until” UX may need verification on `ScheduleForm`.
+
+---
+
+### 7. Storage & quotas — **Achieved**
+
+- Quota model per tenant/app
+- Over-threshold and exceeded endpoints
+- Storage settings tab (S3/local, lifecycle fields) **persisted** in system settings
+- `BACKUP_STORAGE_TYPE` env still overrides runtime storage backend
+
+---
+
+### 8. Security & access — **Achieved**
+
+- Role enforcement: Super Admin (full), Client Admin (read-mostly on registry/settings writes)
+- Backup encryption (AES-256 path in backup encryptor)
+- Encryption key management UI (rotate, revoke, default key)
+- Audit log UI and immutable-style logging via `AuditLogger`
+- CIA metadata on registered apps (confidentiality / integrity / availability tiers)
+
+---
+
+### 9. Cost & value — **Documentation only**
+
+Subscription tiers and ROI examples in the original training doc are **business/pricing** content, not enforced in code. Config features are available when the configs app is installed and roles are assigned.
+
+---
+
+### 10. Getting started — **Achieved with updated checklist**
+
+Use this **implementation-aligned** 30-day checklist instead of the generic Q&A version:
+
+**Week 1**
+
+1. Run `python manage.py register_all_apps` or **Config → App Registry → Sync Registry**
+2. Confirm health endpoints on registry table (“Configured” column)
+3. Review **Config → Settings** (persisted); set notification emails and thresholds
+4. Verify dashboard overview and audit log access
+
+**Week 2**
+
+1. Trigger manual backup; open job detail; confirm **Live** on progress bar
+2. Run restore for one app in a test environment
+3. Run DR drill on a non-production plan
+
+**Week 3**
+
+1. Schedule maintenance window (partial first)
+2. Document internal blackout dates (calendar process until product feature exists)
+3. Review recovery sequence on **App Registry → Recovery Order**
+
+**Week 4**
+
+1. Cross-train two Super Admins on registry sync, backup, maintenance, settings reset
+2. Review audit log weekly
+
+**Ongoing:** Monthly backup verification, quarterly DR drill, review `config_system_settings` version after changes.
+
+---
+
+## Phases A–D — Stabilization & standardization (added work)
+
+These items were **not** in the original Q&A but are now part of the platform.
+
+### Phase A — Single source of truth (Integrity)
+
+- **`apps/configs/default_system_settings.py`** and **`app_definitions.py`**: canonical metadata for all V1 apps
+- Each Django app calls `AppRegistry().register_from_definition('<name>')` on startup
+- `POST /api/v1/config/registered-apps/sync_registry/` reconciles DB with definitions (replaces broken `register_v1_apps` data)
+- `python manage.py register_all_apps` uses the same definitions
+- `RegisteredAppManager` wired on the model (`.critical()`, `.by_priority()`, etc.)
+- Health probe URLs resolved via `CONFIG_INTERNAL_HEALTH_BASE_URL`
+
+### Phase B — App Registry UI (Availability + Integrity)
+
+- Route: **`/config/registry`**
+- Registered apps table with CIA badges, RPO/RTO, retention, dependency count
+- Recovery sequence and priority order views
+- Dependency editor (Super Admin)
+- Edit modal for display name, criticality, priority, health endpoint
+
+### Phase C — Real-time (real-change)
+
+- **`ConfigProgressBroadcaster`**: `group_send` for backup, DR, and maintenance events
+- WebSocket consumers: backup job, DR execution, maintenance status
+- Frontend: fixed `maintenance_{tenantId}` socket IDs; removed duplicate `WebSocketProvider` / dead Redux WS middleware
+- **`GlobalMaintenanceBanner`** in main application layout
+- Live indicators on backup/DR progress components
+
+### Phase D — Persisted system settings (real-change)
+
+- Model: **`ConfigSystemSettings`** (singleton JSON + version)
+- API: `GET/PATCH /api/v1/config/system-settings/`, `POST .../reset/`
+- Frontend: all settings tabs load/save via API; **Save All**, per-tab save, **Reset Defaults**
+- Settings drive: health failure thresholds, maintenance overlap blocking, notification alert thresholds
+- Migration: `0003_config_system_settings`; seed: `python manage.py seed_config_settings`
+
+---
+
+## CIA triad — how the implementation supports it
+
+| Pillar | Implementation |
+|--------|----------------|
+| **Confidentiality** | Config routes restricted to Super Admin / Client Admin; registry and system settings **writes** Super Admin only; encryption at rest for backups; audit log of sensitive actions; no secrets in registry metadata |
+| **Integrity** | Canonical app definitions + sync; immutable app `name` on PATCH; RTO ≥ RPO validation; versioned settings; backup checksum verification; dependency cycle detection |
+| **Availability** | `is_critical`, `recovery_priority`, recovery sequence; health endpoints; maintenance mode; DR failover/failback; real-time ops visibility |
+
+---
+
+## Operations reference — what administrators can do today
+
+### API base: `/api/v1/config/`
+
+| Domain | Key operations |
+|--------|----------------|
+| **Registry** | List/update apps, sync registry, recovery sequence, priority order, app dependencies |
+| **Backups** | Policies, trigger/cancel jobs, restore, verify, retention |
+| **Maintenance** | Windows CRUD, start/stop/cancel, risk assessment |
+| **DR** | Plans, execute, drill, failover, failback, metrics |
+| **Health** | Checks, history, check_all, evaluate_thresholds, conditional_trigger |
+| **Schedules** | CRUD, execute_due, cron evaluate |
+| **Quotas** | List, update, over_threshold, exceeded |
+| **Encryption** | Keys, rotate, revoke, default |
+| **Audit** | Query config audit logs |
+| **Settings** | Get/patch system settings, reset to defaults |
+| **Dashboard** | Overview, backup, maintenance, health, DR, scheduling, security, recent, status |
+
+### Frontend routes
+
+| Route | Purpose |
+|-------|---------|
+| `/config/dashboard` | Overview |
+| `/config/registry` | App registry & CIA classification |
+| `/config/backups` | Backup operations |
+| `/config/maintenance` | Maintenance windows |
+| `/config/disaster-recovery` | DR plans & executions |
+| `/config/health` | Health monitoring |
+| `/config/schedules` | Cron schedules |
+| `/config/quotas` | Storage quotas |
+| `/config/encryption` | Key management |
+| `/config/audit-logs` | Audit trail |
+| `/config/settings` | Persisted platform settings |
+
+### Management commands
+
+| Command | Purpose |
+|---------|---------|
+| `register_all_apps` | Sync registry from canonical definitions |
+| `seed_config_settings` | Initialize or refresh system settings |
+| `trigger_backup` | CLI backup trigger |
+| `run_dr_drill` | CLI DR drill |
+| `health_check_all` | Run health checks |
+| `apply_retention_policies` | Retention cleanup |
+| `emergency_failover` | Emergency failover flow |
+
+### WebSocket channels (real-time)
+
+| Channel | When to use |
+|---------|-------------|
+| `ws/config/backup/{job_id}/` | Live backup job progress |
+| `ws/config/dr/{execution_id}/` | Live DR execution progress |
+| `ws/config/maintenance/{tenant_id}/` | Maintenance on/off and metadata |
+
+Requires Channels layer (e.g. Redis) in production for push; otherwise UI falls back to polling.
+
+---
+
+## Gap analysis — training doc vs. product (remaining work)
+
+| Capability described in training | Status | Recommendation |
+|----------------------------------|--------|----------------|
+| Blackout periods calendar | Not built | Add model + UI or document calendar SOP |
+| Custom health checks admin page | Not built | Add CRUD page wired to health API |
+| Granular restore (single KPI/user) | Backend app-level only | Add restore wizard or document app-restore SOP |
+| Default 2 AM full + hourly incremental | Configurable, not pre-seeded | Seed default schedules on install |
+| Multi-stage maintenance user notifications (7d/24h/1h) | Partial | Extend notifier + email templates |
+| Dedicated risk-based maintenance dashboard | API only | Add page using `runRiskAssessment` |
+| Auditor read-only role | Mentioned in training | Add role in accounts + `IsAuditorReadOnly` permission |
+| SMS notifications | Not integrated | Integrate provider or remove from customer-facing docs |
+| Hourly incremental backup in UI defaults | Policy types exist | Document chosen strategy per deployment |
+
+---
+
+## Architecture & further reading
+
+- **Backend layout:** `Docs/config/architecture`
+- **Frontend layout:** `Docs/config/frontend`
+- **Styles:** `frontend/src/styles/config/` (`registry.css`, `realtime.css`, `settings.css`, plus domain-specific sheets)
+
+---
+
+## Conclusion
+
+The Falcon PMS Config system **delivers the core promise** of the original training material: protected data through backups, planned maintenance, health-aware automation, disaster recovery with drills, and administrative visibility through audit and dashboards.
+
+**Fully delivered in this implementation cycle:** standardized app registry, CIA-oriented controls, App Registry UI, WebSocket progress, global maintenance banner, and **persisted system settings** replacing stub “Save All” behavior.
+
+**Still aspirational or process-only:** blackout calendars, custom health UI, record-level restore UX, SMS, and some narrative defaults (schedule times, tiered retention marketing copy) should be aligned with what is configured in each deployment.
+
+For operators, the practical rule unchanged: **test backups and DR drills before an emergency**. The product now provides the registry, APIs, UI, and real-time feedback to make that testing straightforward.
+
+---
+
+## Document history
+
+| Version | Change |
+|---------|--------|
+| Original | Presentation & training Q&A format |
+| Current | Implementation status, gap analysis, Phases A–D additions, operations reference |

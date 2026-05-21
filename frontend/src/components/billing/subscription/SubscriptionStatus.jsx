@@ -5,6 +5,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
+import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
 import { StatusBadge } from '../shared/StatusBadge';
 import { PriceDisplay } from '../shared/PriceDisplay';
 import { renderBillingIcon } from '../shared/BillingIcons';
@@ -18,7 +20,7 @@ export const SubscriptionStatus = ({ subscription, loading }) => {
         return (
             <div className="subscription-status-empty">
                 <p>No active subscription</p>
-                <a href="/plans" className="subscription-status-link">View Plans</a>
+                <Link to={BILLING_ROUTES.PLANS} className="subscription-status-link">View Plans</Link>
             </div>
         );
     }

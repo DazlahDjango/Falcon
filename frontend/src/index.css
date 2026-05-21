@@ -85,12 +85,15 @@
 @import './styles/config/schedule.css';
 @import './styles//config/settings.css';
 @import './styles/config/status.css';
+@import './styles/config/registry.css';
+@import './styles/config/realtime.css';
 
 /* Billing */
 @import './styles/billing.css';
 @import './styles/billing/invtrans.css';
 @import './styles/billing/metportal.css';
 @import './styles/billing/pages.css';
+@import './styles/billing/shell.css';
 @import './styles/billing/plans.css';
 @import './styles/billing/subcheck.css';
 @import './styles/billing/waa.css';

@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { usePlans } from '../../hooks/billing';
 import { PlansList } from '../../components/billing/plans/PlansList';
 import { BillingLayout } from '../../components/billing/shared/BillingLayout';
+import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 
 export const PlansPage = () => {
     const navigate = useNavigate();
     const { plans, loading, error, billingCycle, setBillingCycle } = usePlans();
 
     const handleSelectPlan = (plan) => {
-        navigate('/checkout', { state: { plan, billingCycle } });
+        navigate(BILLING_ROUTES.CHECKOUT, { state: { plan, billingCycle } });
     };
 
     return (

@@ -1,56 +1,52 @@
 import api from '../api';
 import { API_ENDPOINTS } from '../api/endpoints';
 
-class ExportService {
-    async exportKPIs(format = 'csv', frameworkId = null) {
-        const params = { format };
-        if (frameworkId) params.framework_id = frameworkId;
-        const response = await api.get(API_ENDPOINTS.EXPORT.KPIS, {
-            params,
-            responseType: 'blob'
-        });
-        return response.data;
-    }
-    async exportScores(year, month, format = 'csv') {
-        const response = await api.get(API_ENDPOINTS.EXPORT.SCORES, {
-            params: { year, month, format },
-            responseType: 'blob'
-        });
-        return response.data;
-    }
-    async exportReport(type = 'pdf', year = null, month = null) {
-        const params = { type };
-        if (year) params.year = year;
-        if (month) params.month = month;
-        const response = await api.get(API_ENDPOINTS.EXPORT.REPORTS, {
-            params,
-            responseType: 'blob'
-        });
-        return response.data;
-    }
-    async exportDepartmentReport(departmentId, year, month, format = 'pdf') {
-        const response = await api.get('/export/department-report/', {
-            params: { department_id: departmentId, year, month, format },
-            responseType: 'blob'
-        });
-        return response.data;
-    }
-    async exportKPIDetail(kpiId, year, format = 'pdf') {
-        const response = await api.get('/export/kpi-detail/', {
-            params: { kpi_id: kpiId, year, format },
-            responseType: 'blob'
-        });
-        return response.data;
-    }
-    downloadFile(blob, filename) {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-    }
-}
-export default new ExportService();
+const reportFilename = (report, format, year, month) => {
+    const period = year && month ? `${year}_${String(month).padStart(2, '0')}` : 'current';
+    const ext = format === 'excel' || format === 'xlsx' ? 'xlsx' : format === 'pdf' ? 'pdf' : 'csv';
+    return `kpi_${report}_${period}.${ext}`;
+};
+
+export const downloadKpiReport = async ({
+    format = 'pdf',
+    report = 'performance',
+    year,
+    month,
+}) => {
+    const type = format === 'xlsx' ? 'excel' : format;
+    const response = await api.get(API_ENDPOINTS.EXPORT.REPORTS, {
+        params: {
+            type,
+            report,
+            year,
+            month,
+        },
+        responseType: 'blob',
+    });
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = reportFilename(report, type, year, month);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
+};
+
+export const downloadScoreExport = async (year, month) => {
+    const response = await api.get(API_ENDPOINTS.EXPORT.SCORES, {
+        params: { year, month },
+        responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `scores_${year}_${String(month).padStart(2, '0')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+};

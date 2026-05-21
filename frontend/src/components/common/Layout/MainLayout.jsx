@@ -9,6 +9,10 @@ import { logout } from '../../../store/accounts/slice/authSlice';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 import LoadingScreen from '../Feedback/LoadingScreen';
+import { GlobalMaintenanceBanner } from '../../config/common/GlobalMaintenanceBanner';
+import { GlobalSecurityBanner } from '../../accounts/common/GlobalSecurityBanner';
+import { GlobalKpiBanner } from '../../kpi/common/GlobalKpiBanner';
+import { GlobalTenantQuotaBanner } from '../../tenant/common/GlobalTenantQuotaBanner';
 
 const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -77,6 +81,10 @@ const MainLayout = () => {
                     sidebarOpen={sidebarOpen}
                     sidebarCollapsed={sidebarCollapsed}
                 />
+                <GlobalMaintenanceBanner />
+                <GlobalSecurityBanner />
+                <GlobalKpiBanner />
+                <GlobalTenantQuotaBanner />
                 <main className="content-wrapper">
                     <Outlet />
                 </main>

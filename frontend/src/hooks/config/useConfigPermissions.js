@@ -26,7 +26,11 @@ export const useConfigPermissions = () => {
         canRotateKeys: false,
         canViewAuditLogs: false,
         canFullMaintenance: false,
-        canPartialMaintenance: false
+        canPartialMaintenance: false,
+        canManageRegistry: false,
+        canSyncRegistry: false,
+        canEditRegistryDeps: false,
+        canModifySystemSettings: false,
       };
     }
 
@@ -37,6 +41,10 @@ export const useConfigPermissions = () => {
       canAccessConfig: isSuperAdmin || isClientAdmin,
       isSuperAdmin,
       isClientAdmin,
+      canModifySystemSettings: isSuperAdmin,
+      canManageRegistry: isSuperAdmin,
+      canSyncRegistry: isSuperAdmin,
+      canEditRegistryDeps: isSuperAdmin,
       canTriggerBackup: isSuperAdmin || isClientAdmin,
       canCancelBackup: isSuperAdmin || isClientAdmin,
       canRestoreBackup: isSuperAdmin || isClientAdmin,

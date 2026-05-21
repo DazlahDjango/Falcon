@@ -7,7 +7,7 @@ import IndividualRecentActivity from './IndividualRecentActivity';
 import PeriodSelector from '../../common/PeriodSelector';
 import { ScoreGauge } from '../../common';
 import styles from './IndividualDashboard.module.css';
-import { useScoreUpdates } from '../../../../hooks/kpi';
+import { useKPIRealtime } from '../../../../contexts/kpi/KPIRealtimeContext';
 
 const IndividualDashboard = ({
     userId,
@@ -21,8 +21,7 @@ const IndividualDashboard = ({
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Real-time score updates
-    const { latestScore } = useScoreUpdates(userId);
+    const { latestScore } = useKPIRealtime() || {};
 
     useEffect(() => {
         if (latestScore && dashboardData) {
