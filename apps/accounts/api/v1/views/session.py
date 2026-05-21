@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,6 +9,8 @@ from apps.accounts.services import SessionService
 from apps.accounts.api.v1.serializers import UserSessionSerializer, UserSessionListSerializer, UserSessionDetailSerializer
 from apps.accounts.api.v1.filters import SessionFilter
 from apps.accounts.api.v1.permissions import IsSuperAdmin, IsClientAdmin
+from apps.accounts.constants import UserRoles
+from apps.accounts.services import AuditService
 from .base import BaseReadOnlyViewset
 
 class SessionViewSet(BaseReadOnlyViewset):
@@ -29,9 +32,59 @@ class SessionViewSet(BaseReadOnlyViewset):
     
     def get_queryset(self):
         qs = super().get_queryset()
-        if not self.request.user.is_superuser and self.request.user.role != 'client_admin':
-            qs = qs.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_superuser or user.role == UserRoles.CLIENT_ADMIN:
+            if self.action == 'tenant_active':
+                return qs.filter(
+                    tenant_id=user.tenant_id,
+                    status='active',
+                    expires_at__gt=timezone.now(),
+                )
+            if not user.is_superuser:
+                qs = qs.filter(tenant_id=user.tenant_id)
+        else:
+            qs = qs.filter(user=user)
         return qs
+
+    @action(detail=True, methods=['post'], url_path='terminate')
+    def terminate(self, request, pk=None):
+        session = self.get_object()
+        if (
+            session.user_id != request.user.id
+            and request.user.role not in (UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN)
+            and not request.user.is_superuser
+        ):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        session_service = SessionService()
+        ok = session_service.terminate_session(str(session.id))
+        if not ok:
+            return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
+        AuditService().log(
+            user=request.user,
+            action='session.terminated',
+            action_type='delete',
+            request=request,
+            severity='info',
+            metadata={'session_id': str(session.id), 'target_user_id': str(session.user_id)},
+        )
+        from apps.accounts.services.realtime import AccountsEventBroadcaster
+        AccountsEventBroadcaster.session_revoked(
+            user_id=str(session.user_id),
+            session_id=str(session.id),
+            tenant_id=str(session.tenant_id),
+            revoked_by_id=str(request.user.id),
+        )
+        return Response({'message': 'Session terminated'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='tenant-active')
+    def tenant_active(self, request):
+        """All active sessions in tenant (client/super admin)."""
+        if request.user.role not in (UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN) and not request.user.is_superuser:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        self.action = 'tenant_active'
+        sessions = self.filter_queryset(self.get_queryset())
+        serializer = UserSessionListSerializer(sessions, many=True, context={'request': request})
+        return Response({'count': len(sessions), 'sessions': serializer.data})
     
     @action(detail=False, methods=['post'], url_path='terminate-all')
     def terminate_all(self, request):

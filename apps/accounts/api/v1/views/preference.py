@@ -87,6 +87,8 @@ class TenantPreferenceViewSet(BaseModelViewset):
     def get_permissions(self):
         if self.action in ['update', 'partial_update']:
             self.permission_classes = [IsAuthenticated, IsClientAdmin]
+        elif self.action == 'update_my_tenant_preferences':
+            self.permission_classes = [IsAuthenticated, IsClientAdmin]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()

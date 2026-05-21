@@ -7,6 +7,7 @@ import {
     fetchFrameworks,
     fetchCategories
 } from '../../../../../store/kpi/slice/kpi/frameworkSlice';
+import { useKpiReferenceData } from '../../../../../hooks/kpi/useReferenceData';
 import styles from './KPICreate.module.css';
 
 const KPICreateStep1 = ({ data, onNext, onCancel }) => {
@@ -30,9 +31,10 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         : [];
     const categoriesLoading = frameworkState.categories?.loading || false;
     
+    const { users: refUsers, departments, isLoading: refLoading } = useKpiReferenceData();
     const usersState = useSelector(state => state.users || {});
-    const users = usersState.users || [];
-    const usersLoading = usersState.isLoading || false;
+    const users = refUsers.length ? refUsers : (usersState.users || []);
+    const usersLoading = refLoading || usersState.isLoading || false;
 
     const [formData, setFormData] = useState({
         name: data.name || '',
@@ -267,12 +269,18 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
 
                 <div className={styles.fieldGroup}>
                     <label>Department</label>
-                    <input
-                        type="text"
+                    <select
                         value={formData.departmentId}
                         onChange={(e) => handleChange('departmentId', e.target.value)}
-                        placeholder="Search department..."
-                    />
+                        disabled={refLoading}
+                    >
+                        <option value="">Select department (optional)</option>
+                        {departments.map((d) => (
+                            <option key={d.id} value={d.id}>
+                                {d.name}{d.code ? ` (${d.code})` : ''}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
 

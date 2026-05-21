@@ -10,6 +10,8 @@ import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 import LoadingScreen from '../Feedback/LoadingScreen';
 import { GlobalMaintenanceBanner } from '../../config/common/GlobalMaintenanceBanner';
+import { GlobalSecurityBanner } from '../../accounts/common/GlobalSecurityBanner';
+import { GlobalKpiBanner } from '../../kpi/common/GlobalKpiBanner';
 
 const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -79,6 +81,8 @@ const MainLayout = () => {
                     sidebarCollapsed={sidebarCollapsed}
                 />
                 <GlobalMaintenanceBanner />
+                <GlobalSecurityBanner />
+                <GlobalKpiBanner />
                 <main className="content-wrapper">
                     <Outlet />
                 </main>

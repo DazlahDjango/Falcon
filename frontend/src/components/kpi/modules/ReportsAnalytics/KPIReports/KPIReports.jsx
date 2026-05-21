@@ -55,7 +55,9 @@ const KPIReports = ({ year, month, onError }) => {
             );
         }
         if (filters.healthStatus) {
-            filtered = filtered.filter(k => k.health_status === filters.healthStatus);
+            filtered = filtered.filter(
+                (k) => (k.health_status || k.healthStatus) === filters.healthStatus,
+            );
         }
         setFilteredSummaries(filtered);
     };
@@ -66,8 +68,9 @@ const KPIReports = ({ year, month, onError }) => {
             FAIR: 0,
             POOR: 0
         };
-        filteredSummaries.forEach(k => {
-            statusCounts[k.healthStatus] = (statusCounts[k.healthStatus] || 0) + 1;
+        filteredSummaries.forEach((k) => {
+            const status = k.health_status || k.healthStatus;
+            statusCounts[status] = (statusCounts[status] || 0) + 1;
         });
         return {
             labels: ['Excellent', 'Good', 'Fair', 'Poor'],

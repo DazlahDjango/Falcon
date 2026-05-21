@@ -9,7 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.api.v1.serializers.registration import InvitationAcceptSerializer
 from apps.accounts.models import User
 from apps.accounts.managers import UserManager
-from apps.accounts.services import PasswordService, InvitationService, RBACService, AuthenticationService
+from apps.accounts.services import PasswordService, InvitationService, RBACService, AuthenticationService, SessionService, AuditService
 from apps.accounts.api.v1.throttles import AnonRateThrottle
 from apps.accounts.api.v1.serializers import (
     UserSerializer, UserCreationSerializer, UserUpdateSerializer, UserListSerializer, UserMinimalSerializer,
@@ -98,7 +98,32 @@ class UserViewSet(BaseModelViewset):
         user = self.get_object()
         user.is_active = False
         user.save(update_fields=['is_active'])
-        return Response({'message': 'User deactivated successfully'}, status=status.HTTP_200_OK)
+        session_service = SessionService()
+        terminated = session_service.terminate_all_sessions(user)
+        AuditService().log(
+            user=request.user,
+            action='user.deactivated',
+            action_type='update',
+            request=request,
+            severity='warning',
+            metadata={
+                'target_user_id': str(user.id),
+                'target_email': user.email,
+                'sessions_terminated': terminated,
+            },
+        )
+        from apps.accounts.services.realtime import AccountsEventBroadcaster
+        AccountsEventBroadcaster.user_deactivated(
+            user_id=str(user.id),
+            tenant_id=str(user.tenant_id),
+            email=user.email,
+            deactivated_by_id=str(request.user.id),
+            sessions_terminated=terminated,
+        )
+        return Response({
+            'message': 'User deactivated successfully',
+            'sessions_terminated': terminated,
+        }, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'], url_path='unlock')
     def unlock(self, request, pk=None):

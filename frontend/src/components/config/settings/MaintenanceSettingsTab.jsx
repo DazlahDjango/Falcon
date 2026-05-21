@@ -5,9 +5,9 @@ import { useConfigSettings } from '../../../hooks/config';
 const DEFAULT_MAINTENANCE = {
   auto_approve: false,
   health_check_interval_seconds: 300,
-  max_concurrent_maintenance: 3,
+    max_concurrent_maintenance: 3,
   default_maintenance_duration_minutes: 60,
-  notify_before_minutes: [15, 30, 60],
+    notify_before_minutes: [15, 30, 60],
   emergency_requires_super_admin: true,
   maintenance_overlap_blocked: true,
 };
@@ -104,7 +104,7 @@ export const MaintenanceSettingsTab = ({ sections, onSectionChange, canEdit }) =
           <button type="button" onClick={() => saveSection('maintenance', local)} disabled={isSaving} className="config-settings-btn-primary">
             Save Maintenance Settings
           </button>
-        </div>
+      </div>
       )}
     </div>
   );

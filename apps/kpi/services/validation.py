@@ -151,3 +151,27 @@ class BatchValidator:
             if variance <= 5:
                 return True
         return False
+
+
+def pending_validation_count_for_supervisor(supervisor) -> int:
+    if supervisor is None:
+        return 0
+    try:
+        direct_reports = supervisor.get_direct_reports().values_list('id', flat=True)
+    except Exception:
+        return 0
+    if not direct_reports:
+        return 0
+    return ValidationRecord.objects.filter(
+        actual__user_id__in=direct_reports,
+        status='PENDING',
+    ).count()
+
+
+def pending_validation_count_for_supervisor_id(supervisor_id: Optional[str]) -> int:
+    if not supervisor_id:
+        return 0
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    supervisor = User.objects.filter(id=supervisor_id).first()
+    return pending_validation_count_for_supervisor(supervisor)

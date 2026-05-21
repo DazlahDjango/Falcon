@@ -1,7 +1,11 @@
-Falcon PMS KPI System - Client Q&A Guide
-KPI System Presentation & Training Q&A
-________________________________________
-Part 1: KPI Definition & Management
+# Falcon PMS KPI System — Client Guide & Training Narrative
+
+> **Implementation status:** For engineering truth (built vs gaps, real-data wiring, realtime, settings), see **[implementation_status.md](./implementation_status.md)**.  
+> Users and departments in forms use live data from Accounts and Structure via `/api/v1/kpis/reference-data/`.
+
+---
+
+## Part 1: KPI Definition & Management
 Q1: What types of KPIs can we create in the system?
 A: The system supports six distinct KPI types to handle any metric your organization needs to track:
 Count / Number - For tracking quantities like "Number of customers acquired," "Units produced," or "Training sessions conducted." The system simply counts and compares actual versus target.

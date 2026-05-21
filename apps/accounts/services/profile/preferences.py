@@ -85,7 +85,8 @@ class PreferenceService:
                 'logo_url', 'favicon_url', 'primary_color', 'secondary_color',
                 'default_language', 'available_languages', 'default_timezone',
                 'audit_log_retention_days', 'session_retention_days',
-                'api_rate_limit', 'webhook_url', 'mfa_required_roles'
+                'api_rate_limit', 'webhook_url', 'mfa_required_roles',
+                'password_expiry_days', 'session_timeout_minutes', 'max_concurrent_sessions',
             ]
             for field in allowed_fields:
                 if field in data:
@@ -98,7 +99,16 @@ class PreferenceService:
                 current = preferences.review_cycles or {}
                 current.update(data['review_cycles'])
                 preferences.review_cycles = current
+            preferences.policy_version = (preferences.policy_version or 0) + 1
             preferences.save()
+            from apps.accounts.services.policy import AccountsPolicyService
+            AccountsPolicyService.invalidate_tenant_cache(client_id)
+            from apps.accounts.services.realtime import AccountsEventBroadcaster
+            AccountsEventBroadcaster.policy_updated(
+                tenant_id=client_id,
+                scope='tenant',
+                version=preferences.policy_version,
+            )
             if user:
                 self.audit_service.log(
                     user=user, action='tenant.preferences_updated', action_type='update',

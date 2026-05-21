@@ -1,30 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useKpiReferenceData } from '../../../../hooks/kpi/useReferenceData';
 import styles from './CascadeWizard.module.css';
 
 const CascadeWizard = ({ target, onSubmit, onCancel, isLoading }) => {
     const [step, setStep] = useState(1);
     const [ruleType, setRuleType] = useState('EQUAL_SPLIT');
-    const [departments, setDepartments] = useState([]);
+    const { departments, isLoading: departmentsLoading } = useKpiReferenceData('departments');
     const [selectedDepartments, setSelectedDepartments] = useState([]);
     const [weights, setWeights] = useState({});
-    useEffect(() => {
-        fetchDepartments();
-    }, []);
-    const fetchDepartments = async () => {
-        try {
-            const response = await fetch('/organisations/departments/');
-            const data = await response.json();
-            setDepartments(data.results || []);
-            const initialWeights = {};
-            (data.results || []).forEach(dept => {
-                initialWeights[dept.id] = 0;
-            });
-            setWeights(initialWeights);
-        } catch (error) {
-            console.error('Failed to fetch departments:', error);
-        }
-    };
     const handleDepartmentSelect = (deptId) => {
         setSelectedDepartments(prev => {
             if (prev.includes(deptId)) {
@@ -118,6 +102,10 @@ const CascadeWizard = ({ target, onSubmit, onCancel, isLoading }) => {
                 <div className={styles.stepContent}>
                     <h3>Select Departments</h3>
                     <div className={styles.departmentList}>
+                        {departmentsLoading && <p>Loading departments...</p>}
+                        {!departmentsLoading && departments.length === 0 && (
+                            <p>No departments found. Add departments in Organisation Structure first.</p>
+                        )}
                         {departments.map(dept => (
                             <label key={dept.id} className={styles.departmentItem}>
                                 <input

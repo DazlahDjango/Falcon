@@ -68,12 +68,13 @@ class ExecutiveDashboardView(APIView):
         else:
             year = int(year)
             month = int(month)
-        dashboard_service = ExecutiveDashboard()
-        dashboard_data = dashboard_service.get_dashboard(
-            str(request.user.id),
-            year,
-            month
+        tenant_id = str(
+            request.tenant.id
+            if getattr(request, 'tenant', None)
+            else request.user.tenant_id
         )
+        dashboard_service = ExecutiveDashboard()
+        dashboard_data = dashboard_service.get_dashboard(tenant_id, year, month)
         serializer = ExecutiveDashboardSerializer(dashboard_data)
         return Response(serializer.data)
 

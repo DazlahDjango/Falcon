@@ -1,3 +1,4 @@
+import csv
 import io
 from datetime import datetime
 from django.db.models import Q, Avg, Count, Sum, F
@@ -8,7 +9,8 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from ..models import KPI, Score, MonthlyActual, AnnualTarget, KPISummary, DepartmentRollup, OrganizationHealth
+from ..models import KPI, Score, MonthlyActual, AnnualTarget, KPISummary, DepartmentRollup, OrganizationHealth, TrafficLight
+from .analytics import get_department_rollups, get_organization_health
 
 class ReportGenerator:
     def generate_pdf_report(self, tenant_id, year=None, month=None):
@@ -84,18 +86,15 @@ class ReportGenerator:
         heading = Paragraph("Executive Summary", styles['Heading2'])
         story.append(heading)
 
-        # Get organization health data
-        health = OrganizationHealth.objects.filter(
-            tenant_id=tenant_id,
-            year=year or timezone.now().year,
-            month=month or timezone.now().month
-        ).first()
+        y = year or timezone.now().year
+        m = month or timezone.now().month
+        health = get_organization_health(str(tenant_id), y, m)
 
         if health:
             summary_text = f"""
-            Overall Health Score: {health.overall_health_score}%<br/>
-            KPI Completion Rate: {health.kpi_completion_rate}%<br/>
-            Validation Compliance: {health.validation_compliance_rate}%
+            Overall Health Score: {health['overall_health_score']}%<br/>
+            KPI Completion Rate: {health['kpi_completion_rate']}%<br/>
+            Validation Compliance: {health['validation_compliance_rate']}%
             """
             summary = Paragraph(summary_text, styles['Normal'])
             story.append(summary)
@@ -152,23 +151,20 @@ class ReportGenerator:
         heading = Paragraph("Department Performance Summary", styles['Heading2'])
         story.append(heading)
 
-        # Get department rollup data
-        rollups = DepartmentRollup.objects.filter(
-            tenant_id=tenant_id,
-            year=year or timezone.now().year,
-            month=month or timezone.now().month
-        )
+        y = year or timezone.now().year
+        m = month or timezone.now().month
+        rollups = get_department_rollups(str(tenant_id), y, m)
 
         if rollups:
             data = [['Department', 'Overall Score', 'Green %', 'Yellow %', 'Red %', 'Employees']]
             for rollup in rollups:
                 data.append([
-                    rollup.department_name,
-                    f"{rollup.overall_score}%",
-                    f"{rollup.green_percentage}%",
-                    f"{rollup.yellow_percentage}%",
-                    f"{rollup.red_percentage}%",
-                    rollup.employee_count
+                    rollup['department_name'],
+                    f"{rollup['overall_score']}%",
+                    f"{rollup['green_percentage']}%",
+                    f"{rollup['yellow_percentage']}%",
+                    f"{rollup['red_percentage']}%",
+                    rollup['employee_count'],
                 ])
 
             table = Table(data)
@@ -192,16 +188,14 @@ class ReportGenerator:
         ws['A4'] = "Executive Summary"
         ws['A4'].font = Font(size=14, bold=True)
 
-        health = OrganizationHealth.objects.filter(
-            tenant_id=tenant_id,
-            year=year or timezone.now().year,
-            month=month or timezone.now().month
-        ).first()
+        y = year or timezone.now().year
+        m = month or timezone.now().month
+        health = get_organization_health(str(tenant_id), y, m)
 
         if health:
-            ws['A5'] = f"Overall Health Score: {health.overall_health_score}%"
-            ws['A6'] = f"KPI Completion Rate: {health.kpi_completion_rate}%"
-            ws['A7'] = f"Validation Compliance: {health.validation_compliance_rate}%"
+            ws['A5'] = f"Overall Health Score: {health['overall_health_score']}%"
+            ws['A6'] = f"KPI Completion Rate: {health['kpi_completion_rate']}%"
+            ws['A7'] = f"Validation Compliance: {health['validation_compliance_rate']}%"
         else:
             ws['A5'] = "No health data available"
 
@@ -231,3 +225,54 @@ class ReportGenerator:
             ws.cell(row=row, column=4, value=summary.yellow_count)
             ws.cell(row=row, column=5, value=summary.red_count)
             ws.cell(row=row, column=6, value=summary.total_users)
+
+    def generate_csv_report(self, tenant_id, report_name: str, year=None, month=None):
+        """CSV exports aligned with training-doc report types."""
+        y = year or timezone.now().year
+        m = month or timezone.now().month
+        output = io.StringIO()
+        writer = csv.writer(output)
+        tid = str(tenant_id)
+
+        if report_name == 'validation_compliance':
+            writer.writerow(['User Email', 'KPI', 'Year', 'Month', 'Status', 'Actual', 'Target'])
+            actuals = MonthlyActual.objects.filter(
+                tenant_id=tid, year=y, month=m,
+            ).select_related('user', 'kpi')
+            for a in actuals:
+                writer.writerow([
+                    a.user.email, a.kpi.name, a.year, a.month, a.status,
+                    a.actual_value, getattr(a, 'target_value', ''),
+                ])
+        elif report_name == 'red_alerts':
+            writer.writerow(['KPI', 'User Email', 'Score', 'Status', 'Consecutive Red'])
+            reds = TrafficLight.objects.filter(
+                score__tenant_id=tid,
+                score__year=y,
+                score__month=m,
+                status='RED',
+            ).select_related('score__kpi', 'score__user')
+            for tl in reds:
+                writer.writerow([
+                    tl.score.kpi.name,
+                    tl.score.user.email,
+                    tl.score.score,
+                    tl.status,
+                    tl.consecutive_red_count,
+                ])
+        elif report_name == 'department_summary':
+            writer.writerow([
+                'Department', 'Overall Score', 'Green %', 'Yellow %', 'Red %', 'Employees',
+            ])
+            for row in get_department_rollups(tid, y, m):
+                writer.writerow([
+                    row['department_name'],
+                    row['overall_score'],
+                    row['green_percentage'],
+                    row['yellow_percentage'],
+                    row['red_percentage'],
+                    row['employee_count'],
+                ])
+        else:
+            writer.writerow(['error', f'Unknown report: {report_name}'])
+        return output.getvalue()

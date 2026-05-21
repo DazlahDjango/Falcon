@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styles from './KPIForm.module.css';
 
-const KPIFormFields = ({ formData, onChange, errors, frameworks, sectors, categories, users }) => {
+const KPIFormFields = ({ formData, onChange, errors, frameworks, sectors, categories, users, departments = [] }) => {
     const kpiTypes = [
         { value: 'COUNT', label: 'Count / Number' },
         { value: 'PERCENTAGE', label: 'Percentage (%)' },
@@ -195,13 +195,18 @@ const KPIFormFields = ({ formData, onChange, errors, frameworks, sectors, catego
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>Department</label>
-                <input
-                    type="text"
+                <select
                     value={formData.departmentId || ''}
                     onChange={(e) => onChange('departmentId', e.target.value)}
-                    placeholder="Department ID (optional)"
                     className={styles.input}
-                />
+                >
+                    <option value="">Select department (optional)</option>
+                    {departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                            {d.name}{d.code ? ` (${d.code})` : ''}
+                        </option>
+                    ))}
+                </select>
             </div>
         </div>
     );

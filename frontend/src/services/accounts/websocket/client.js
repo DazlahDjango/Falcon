@@ -117,7 +117,8 @@ class WebSocketClient {
         }
     }
     _startHeartbeat() {
-        this.heatbeatInterval = setInterval(() => {
+        this._stopHeartbeat();
+        this.heartbeatInterval = setInterval(() => {
             if (this.isConnected && this.ws?.readyState === WebSocket.OPEN) {
                 this.send({ type: 'ping' });
             }
@@ -128,9 +129,6 @@ class WebSocketClient {
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = null;
         }
-        this.on('pong', () => {
-            console.debug('Heartbeat recieved');
-        });
     }
     _flushMessageQueue() {
         while (this.messageQueue.length > 0) {
@@ -140,4 +138,6 @@ class WebSocketClient {
     }
 }
 const wsClient = new WebSocketClient();
+/** Dedicated client for /ws/auth/ security events (avoids clobbering notifications socket). */
+export const authWsClient = new WebSocketClient();
 export default wsClient;

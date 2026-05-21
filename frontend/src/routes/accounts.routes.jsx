@@ -15,7 +15,8 @@ const RoleEdit = React.lazy(() => import('../components/accounts/roles/RoleEdit'
 const SessionList = React.lazy(() => import('../components/accounts/sessions/SessionList'));
 const Settings = React.lazy(() => import('../components/accounts/settings/Settings'));
 const AuditLogs = React.lazy(() => import('../components/accounts/audit/AuditLogs'));
-const Security = React.lazy(() => import('../components/accounts/settings/SecuritySettings'));
+const Security = React.lazy(() => import('../components/accounts/security/SecurityConsole'));
+const PersonalSecurity = React.lazy(() => import('../components/accounts/settings/SecuritySettings'));
 const Notifications = React.lazy(() => import('../components/accounts/settings/NotificationSettings'));
 // Admin components (if implemented)
 const Dashboard = React.lazy(() => import('../components/accounts/dashboard/Dashboard'))
@@ -43,7 +44,8 @@ const accountsRoutes = [
     { path: ROUTES.SESSIONS, element: <SessionList /> },
     // Settings
     { path: ROUTES.SETTINGS, element: <Settings /> },
-    { path: ROUTES.SECURITY, element: <Security />},
+    { path: ROUTES.SECURITY, element: <Security /> },
+    { path: '/settings/security', element: <PersonalSecurity /> },
     { path: ROUTES.NOTIFICATIONS, element: <Notifications />},
     // Audit
     { path: ROUTES.AUDIT, element: <AuditLogs /> },

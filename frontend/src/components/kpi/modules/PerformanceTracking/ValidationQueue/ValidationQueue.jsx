@@ -5,13 +5,13 @@ import actualService from '../../../../../services/kpi/actual.service';
 import validationService from '../../../../../services/kpi/validation.service';
 import styles from './ValidationQueue.module.css';
 
-const ValidationQueue = ({ userId, refreshTrigger, onRefresh, onError }) => {
+const ValidationQueue = ({ userId, refreshTrigger, validationRefreshToken, onRefresh, onError }) => {
     const [pendingValidations, setPendingValidations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState(null);
     useEffect(() => {
         fetchPendingValidations();
-    }, [userId, refreshTrigger]);
+    }, [userId, refreshTrigger, validationRefreshToken]);
     const fetchPendingValidations = async () => {
         setLoading(true);
         try {
@@ -116,6 +116,7 @@ const ValidationQueue = ({ userId, refreshTrigger, onRefresh, onError }) => {
 ValidationQueue.propTypes = {
     userId: PropTypes.string.isRequired,
     refreshTrigger: PropTypes.number,
+    validationRefreshToken: PropTypes.number,
     onRefresh: PropTypes.func.isRequired,
     onError: PropTypes.func,
 };

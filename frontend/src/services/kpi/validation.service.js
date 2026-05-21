@@ -8,9 +8,16 @@ class ValidationService {
     }
     async getPendingValidations(supervisorId) {
         const response = await api.get(API_ENDPOINTS.VALIDATION.PENDING, {
-            params: { supervisor: supervisorId }
+            params: { supervisor: supervisorId },
         });
-        return response.data;
+        const data = response.data;
+        if (Array.isArray(data)) {
+            return { results: data, count: data.length };
+        }
+        return {
+            results: data.results || [],
+            count: data.count ?? (data.results || []).length,
+        };
     }
     async approveValidation(id, comment = '') {
         const response = await api.post(API_ENDPOINTS.ACTUAL.APPROVE(id), { comment });

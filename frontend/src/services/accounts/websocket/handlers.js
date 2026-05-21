@@ -63,3 +63,9 @@ export const handleReviewNotification = (review) => {
         detail: review
     }));
 };
+
+export const handleSecurityEvent = ({ event, data }) => {
+    window.dispatchEvent(new CustomEvent('accounts:security', {
+        detail: { event, data },
+    }));
+};

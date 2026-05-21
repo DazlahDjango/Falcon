@@ -9,6 +9,7 @@ from ....models import ValidationRecord, RejectionReason, Escalation
 from ..filters import ValidationRecordListFilter
 from ....services import ValidationEscalator
 from ....managers import MonthlyActualManager
+from ....services.validation import pending_validation_count_for_supervisor
 
 class ValidationRecordViewSet(BaseKpiViewset):
     queryset = ValidationRecord.objects.all()
@@ -21,15 +22,25 @@ class ValidationRecordViewSet(BaseKpiViewset):
 
     @action(detail=False, methods=['get'])
     def pending(self, request):
-        supervisor_id = request.user.id
-        pending_actuals = MonthlyActualManager().needs_validation_alert()
+        MonthlyActualManager().needs_validation_alert()
         direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
         validations = self.queryset.filter(
             actual__user_id__in=direct_reports,
-            status='PENDING'
+            status='PENDING',
         )
         serializer = self.get_serializer(validations, many=True)
-        return Response(serializer.data)
+        return Response({
+            'results': serializer.data,
+            'count': len(serializer.data),
+        })
+
+    @action(detail=False, methods=['get'], url_path='pending-summary')
+    def pending_summary(self, request):
+        count = pending_validation_count_for_supervisor(request.user)
+        return Response({
+            'pending_count': count,
+            'supervisor_id': str(request.user.id),
+        })
     
 class RejectionReasonViewSet(BaseKpiViewset):
     queryset = RejectionReason.objects.filter(is_active=True)

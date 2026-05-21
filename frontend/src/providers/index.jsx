@@ -1,6 +1,8 @@
 // frontend/src/providers/index.jsx
 import React from 'react';
 import { AuthProvider } from '../contexts/accounts/AuthContext';
+import { AccountsSecurityProvider } from '../contexts/accounts/AccountsSecurityContext';
+import { KPIRealtimeProvider } from '../contexts/kpi/KPIRealtimeContext';
 import { TenantProvider } from '../contexts/tenant/TenantContext';
 import { PermissionProvider } from '../contexts/accounts/PermissionContext';
 import { BillingProviders } from '../contexts/billing';
@@ -19,7 +21,9 @@ const Providers = ({ children }) => {
                     <ThemeProvider>
                         <ToastProvider>
                             <AuthProvider>
+                                <AccountsSecurityProvider>
                                 <PermissionProvider>
+                                <KPIRealtimeProvider>
                                     <TenantProvider>
                                         <ConfigProvider>
                                             <BackupProvider>
@@ -35,7 +39,9 @@ const Providers = ({ children }) => {
                                             </BackupProvider>
                                         </ConfigProvider>
                                     </TenantProvider>
+                                </KPIRealtimeProvider>
                                 </PermissionProvider>
+                                </AccountsSecurityProvider>
                             </AuthProvider>
                         </ToastProvider>
                     </ThemeProvider>

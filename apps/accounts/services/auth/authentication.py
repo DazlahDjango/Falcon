@@ -11,6 +11,7 @@ from .jwt import JWTServices
 from .mfa import MFAService
 from .session import SessionService
 from ..audit.logger import AuditService
+from ..policy import AccountsPolicyService
 logger = logging.getLogger(__name__)
 
 class AuthenticationService:
@@ -25,7 +26,8 @@ class AuthenticationService:
             return None, None, 'Email and password required'
         email = email.lower().strip()
         user = User.objects.filter(email=email).first()
-        if self._is_rate_limited(email, ip_address):
+        tenant_id = str(user.tenant_id) if user else None
+        if self._is_rate_limited(email, ip_address, tenant_id=tenant_id):
             LoginAttempt.record_attempt(
                 identifier=email, user=user, result='locked', failure_reason='rate_limit', request=request, ip_address=ip_address, user_agent=user_agent
             )
@@ -55,7 +57,17 @@ class AuthenticationService:
                     ip_address=ip_address, user_agent=user_agent
                 )
                 return None, None, 'Account is inactive. Please contact administrator.'
-            if user.mfa_enabled:
+            if AccountsPolicyService.tenant_requires_mfa(user) and not user.mfa_enabled:
+                LoginAttempt.record_attempt(
+                    identifier=email, user=user, result='failure',
+                    failure_reason='mfa_required', request=request,
+                    ip_address=ip_address, user_agent=user_agent
+                )
+                return None, None, (
+                    'Multi-factor authentication is required for your role. '
+                    'Please enroll MFA before signing in.'
+                )
+            if user.mfa_enabled or AccountsPolicyService.tenant_requires_mfa(user):
                 LoginAttempt.record_attempt(
                     identifier=email, user=user, result='success',
                     request=request, ip_address=ip_address, user_agent=user_agent
@@ -180,12 +192,14 @@ class AuthenticationService:
             logger.error(f"Token refresh error: {str(e)}")
             return None, 'Token refresh failed'
         
-    def _is_rate_limited(self, email: str, ip_address: str) -> bool:
-        email_failure = LoginAttempt.get_failure_count(email, minutes=15)
-        if email_failure >= 5:
+    def _is_rate_limited(self, email: str, ip_address: str, tenant_id: str = None) -> bool:
+        lockout = AccountsPolicyService.get_lockout_config(tenant_id)
+        window = lockout.get('lockout_minutes', 15)
+        email_limit = lockout.get('failure_limit', 5)
+        ip_limit = lockout.get('ip_failure_limit', 5)
+        if LoginAttempt.get_failure_count(email, minutes=window) >= email_limit:
             return True
-        ip_failure = LoginAttempt.get_failure_count(ip_address, minutes=15)
-        if ip_failure >= 5:
+        if LoginAttempt.get_failure_count(ip_address, minutes=window) >= ip_limit:
             return True
         return False
     

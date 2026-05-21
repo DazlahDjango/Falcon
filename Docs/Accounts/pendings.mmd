@@ -1,7 +1,11 @@
-Falcon PMS Accounts System - Client Q&A Guide
-Accounts Presentation & Training Q&A
-________________________________________
-Part 1: Security & Authentication
+# Falcon PMS Accounts System — Client Guide & Training Narrative
+
+> **Implementation status:** For engineering truth (what is built, gaps, CIA plan, settings reference), see **[implementation_status.md](./implementation_status.md)**.  
+> This file remains the **client-facing Q&A / training narrative**. Platform auth settings: `config/settings/base.py` (AUTH, JWT, Axes, MFA, throttles).
+
+---
+
+## Part 1: Security & Authentication
 Q1: How secure is the login system? What happens if someone tries to hack into an account?
 A: The Falcon PMS authentication system implements multiple layers of security to protect user accounts.
 First, we use JWT (JSON Web Tokens) with short lifespans - access tokens expire after just 30 minutes. This means even if a token were intercepted, it would become useless within half an hour. Refresh tokens are rotated every time they're used, so a stolen refresh token cannot be reused.

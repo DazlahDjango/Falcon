@@ -18,6 +18,7 @@ import executiveReducer from './accounts/slice/executiveSlice';
 import preferenceReducer from './accounts/slice/preferenceSlice';
 import accountsTeamReducer from './accounts/slice/teamSlice';
 import accountsUiReducer from './accounts/slice/uiSlice';
+import accountsSecurityReducer from './accounts/slice/securitySlice';
 
 // =============================================
 // Structure Reducers
@@ -47,6 +48,7 @@ import scoreReducer from './kpi/slice/kpi/scoreSlice';
 import validationReducer from './kpi/slice/kpi/validationSlice';
 import frameworkReducer from './kpi/slice/kpi/frameworkSlice';
 import kpiDashboardReducer from './kpi/slice/kpi/dashboardSlice';
+import kpiRealtimeReducer from './kpi/slice/kpiRealtimeSlice';
 import kpiUiReducer from './kpi/slice/ui';
 import kpiNotificationReducer from './kpi/notificationSlice';
 import kpiAnalyticsReducer from './kpi/analyticsSlice';
@@ -94,6 +96,7 @@ const rootReducer = combineReducers({
     preferences: preferenceReducer,
     accTeam: accountsTeamReducer,
     ui: accountsUiReducer,
+    accountsSecurity: accountsSecurityReducer,
 
     // Tenant Reducers
     appTenant: appTenantReducer,           // Main tenant CRUD
@@ -131,6 +134,7 @@ const rootReducer = combineReducers({
     validation: validationReducer,
     framework: frameworkReducer,
     kpiDashboard: kpiDashboardReducer,
+    kpiRealtime: kpiRealtimeReducer,
     kpiUi: kpiUiReducer,
     kpiNotifications: kpiNotificationReducer,
     kpiAnalytics: kpiAnalyticsReducer,

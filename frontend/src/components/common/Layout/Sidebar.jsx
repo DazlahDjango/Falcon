@@ -109,6 +109,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ROUTES.TARGETS, name: 'Targets', icon: FiCalendar, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
             { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
+            { path: ROUTES.KPI_SETTINGS, name: 'KPI Operations', icon: FiSettings, roles: ['super_admin'] },
         ];
         const reviewsItems = [
             { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },

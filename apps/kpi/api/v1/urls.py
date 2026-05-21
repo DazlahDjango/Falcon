@@ -21,6 +21,8 @@ from .views import (
 from .views.user_nested import UserKPIsViewSet, UserTargetsViewSet, UserScoresViewSet, UserActualsViewSet, UserViewSet
 from .views.export import KPIExportView, ScoreExportView, ReportExportView
 from .views.insight import AnalyticsInsightsView, RiskPredictionsView
+from .views.system_settings_views import KpiSystemSettingsView, KpiSystemSettingsResetView
+from .views.reference_data import KpiReferenceDataView
 
 # Main router configuration
 # =========================
@@ -133,6 +135,9 @@ urlpatterns = [
     # Anaytics endpoints
     path('analytics/insights/', AnalyticsInsightsView.as_view(), name='analytics-insights'),
     path('analytics/predictions/', RiskPredictionsView.as_view(), name='risk-predictions'),
+    path('reference-data/', KpiReferenceDataView.as_view(), name='kpi-reference-data'),
+    path('system-settings/', KpiSystemSettingsView.as_view(), name='kpi-system-settings'),
+    path('system-settings/reset/', KpiSystemSettingsResetView.as_view(), name='kpi-system-settings-reset'),
 ]
 
 # API Root View

@@ -13,17 +13,25 @@ from .user import UserMinimalSerializer
 class UserSessionListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
     user = UserMinimalSerializer(read_only=True)
     duration = serializers.SerializerMethodField()
+    is_current = serializers.SerializerMethodField()
+
     class Meta:
         model = UserSession
         fields = [
             'id', 'user', 'ip_address', 'device_type', 'browser', 'os',
             'login_time', 'last_activity', 'expires_at', 'status',
-            'mfa_verified', 'is_trusted_device', 'duration', 'created_at'
+            'mfa_verified', 'is_trusted_device', 'duration', 'is_current', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
-    
+
     def get_duration(self, obj):
         return obj.get_duration()
+
+    def get_is_current(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.session_key == getattr(request.user, 'current_session_key', None)
 
 
 class UserSessionDetailSerializer(UserSessionListSerializer):

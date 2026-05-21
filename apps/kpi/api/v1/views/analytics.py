@@ -9,6 +9,12 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from .base import ReadOnlyKPIViewset
 from ..serializers import KPISummarySerializer, DepartmentRollupSerializer, OrganizationHealthSerializer
 from ....models import KPISummary, DepartmentRollup, OrganizationHealth
+from ....services.analytics import (
+    get_department_rollups,
+    get_kpi_summaries,
+    get_organization_health,
+    get_organization_health_history,
+)
 from apps.accounts.api.v1.permissions import IsExecutive
 from ..permissions import IsAuthenticatedAndActive, IsManager
 
@@ -59,14 +65,33 @@ class KPISummaryViewSet(ReadOnlyKPIViewset):
             
             # Check if we have data
             if not queryset.exists():
+                tenant_id = str(request.tenant.id)
+                live_rows = get_kpi_summaries(
+                    tenant_id,
+                    int(year) if year else timezone.now().year,
+                    int(month) if month else timezone.now().month,
+                    prefer_mv=False,
+                )
+                if live_rows:
+                    if isinstance(live_rows[0], dict):
+                        return Response({
+                            'count': len(live_rows),
+                            'results': live_rows,
+                            'source': 'live',
+                        })
+                    serializer = self.get_serializer(live_rows, many=True)
+                    return Response({
+                        'count': len(live_rows),
+                        'results': serializer.data,
+                        'source': 'materialized_view',
+                    })
                 logger.warning(f"No KPI summaries found for year={year}, month={month}")
-                # Return empty but valid response
                 return Response({
                     'count': 0,
                     'next': None,
                     'previous': None,
                     'results': [],
-                    'message': 'No KPI summary data available for the selected period'
+                    'message': 'No KPI summary data available for the selected period',
                 }, status=status.HTTP_200_OK)
             
             # Paginate if needed
@@ -162,23 +187,39 @@ class DepartmentRollupViewSet(ReadOnlyKPIViewset):
             # Limit page size to prevent huge requests
             page_size = min(page_size, 500)
             
-            # Count total before pagination
+            tenant_id = str(request.tenant.id)
+            y = int(year) if year else timezone.now().year
+            m = int(month) if month else timezone.now().month
+
+            if not queryset.exists():
+                live_rows = get_department_rollups(tenant_id, y, m, prefer_mv=False)
+                total_count = len(live_rows)
+                start = (page - 1) * page_size
+                end = start + page_size
+                page_rows = live_rows[start:end]
+                return Response({
+                    'count': total_count,
+                    'page': page,
+                    'page_size': page_size,
+                    'results': page_rows,
+                    'source': 'live',
+                })
+
             total_count = queryset.count()
-            
-            # Apply ordering and pagination
             start = (page - 1) * page_size
             end = start + page_size
-            
             queryset = queryset.order_by('-year', '-month', '-overall_score')[start:end]
-            
-            serializer = self.get_serializer(queryset, many=True)
-            
-            # Return paginated response
+            results = []
+            for row in queryset:
+                data = self.get_serializer(row).data
+                from ....services.analytics import enrich_department_rollup_row
+                results.append(enrich_department_rollup_row(tenant_id, dict(data)))
             return Response({
                 'count': total_count,
                 'page': page,
                 'page_size': page_size,
-                'results': serializer.data
+                'results': results,
+                'source': 'materialized_view',
             })
         except Exception as e:
             logger.error(f"Error in DepartmentRollupViewSet.list: {str(e)}", exc_info=True)
@@ -208,9 +249,19 @@ class DepartmentRollupViewSet(ReadOnlyKPIViewset):
             if month:
                 queryset = queryset.filter(month=month)
                 
+            tenant_id = str(request.tenant.id)
+            y = int(year) if year else timezone.now().year
+            m = int(month) if month else timezone.now().month
+            if not queryset.exists():
+                live_rows = get_department_rollups(tenant_id, y, m, prefer_mv=False)[:limit]
+                return Response(live_rows)
             ranking = queryset.order_by('-overall_score')[:limit]
-            serializer = self.get_serializer(ranking, many=True)
-            return Response(serializer.data)
+            results = []
+            for row in ranking:
+                data = dict(self.get_serializer(row).data)
+                from ....services.analytics import enrich_department_rollup_row
+                results.append(enrich_department_rollup_row(tenant_id, data))
+            return Response(results)
         except Exception as e:
             logger.error(f"Error in ranking: {str(e)}")
             return Response([], status=status.HTTP_200_OK)
@@ -224,19 +275,33 @@ class OrganizationHealthViewSet(ReadOnlyKPIViewset):
     ordering = ['-year', '-month']
     permission_classes = [IsAuthenticatedAndActive, IsExecutive]
 
+    def list(self, request, *args, **kwargs):
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        now = timezone.now()
+        y = int(year) if year else now.year
+        m = int(month) if month else now.month
+        tenant_id = str(request.tenant.id)
+        health = get_organization_health(tenant_id, y, m)
+        return Response({
+            'count': 1,
+            'results': [health],
+            'source': health.get('source', 'live'),
+        })
+
+    @action(detail=False, methods=['get'])
+    def current(self, request):
+        """Primary executive health payload for the selected period."""
+        now = timezone.now()
+        year = int(request.query_params.get('year', now.year))
+        month = int(request.query_params.get('month', now.month))
+        tenant_id = str(request.tenant.id)
+        health = get_organization_health(tenant_id, year, month)
+        return Response(health)
+
     @action(detail=False, methods=['get'])
     def history(self, request):
         months_back = int(request.query_params.get('months', 12))
-        from ....utils import DateUtils
-        now = timezone.now()
-        periods = []
-        for i in range(months_back):
-            year, month = DateUtils.get_previous_period(now.year, now.month - i)
-            health = self.queryset.filter(
-                tenant_id=request.tenant.id,
-                year=year,
-                month=month
-            ).first()
-            if health:
-                periods.append(self.get_serializer(health).data)
+        tenant_id = str(request.tenant.id)
+        periods = get_organization_health_history(tenant_id, months_back=months_back)
         return Response(periods)

@@ -35,9 +35,11 @@ class TenantPreferenceSerializer(DynamicFieldsModelSerializer, AuditSerializer):
             'features', 'default_language', 'available_languages', 'default_timezone',
             'audit_log_retention_days', 'session_retention_days',
             'api_rate_limit', 'webhook_url', 'mfa_required_roles',
+            'password_expiry_days', 'session_timeout_minutes', 'max_concurrent_sessions',
+            'policy_version',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'tenant_id']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'tenant_id', 'policy_version']
 
 class TenantPreferenceUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,7 +48,8 @@ class TenantPreferenceUpdateSerializer(serializers.ModelSerializer):
             'logo_url', 'favicon_url', 'primary_color', 'secondary_color',
             'features', 'default_language', 'available_languages', 'default_timezone',
             'audit_log_retention_days', 'session_retention_days',
-            'api_rate_limit', 'webhook_url', 'mfa_required_roles'
+            'api_rate_limit', 'webhook_url', 'mfa_required_roles',
+            'password_expiry_days', 'session_timeout_minutes', 'max_concurrent_sessions',
         ]
     def validate_primary_color(self, value):
         if value and not value.startswith('#'):

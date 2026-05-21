@@ -101,74 +101,10 @@ class ExecutiveDashboard:
         cached = cache.get(cache_key)
         if cached:
             return cached
-        org_health = AggregatedScore.objects.filter(
-            level='ORGANIZATION',
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).first()
-        dept_scores = AggregatedScore.objects.filter(
-            level='DEPARTMENT',
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).order_by('-aggregated_score')[:10]
-        red_count = TrafficLight.objects.filter(
-            score__tenant_id=tenant_id,
-            score__year=year,
-            score__month=month,
-            status='RED'
-        ).count()
-        total_kpis = Score.objects.filter(
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).count()
-        red_percentage = (red_count / total_kpis * 100) if total_kpis > 0 else 0
-        total_expected = MonthlyActual.objects.filter(
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).count()
-        validated = MonthlyActual.objects.filter(
-            tenant_id=tenant_id,
-            year=year,
-            month=month,
-            status='APPROVED'
-        ).count()
-        compliance_rate = (validated / total_expected * 100) if total_expected > 0 else 0
-        dashboard = {
-            'tenant_id': tenant_id,
-            'period': f"{year}-{month:02d}",
-            'overall_health': float(org_health.aggregated_score) if org_health else 0,
-            'red_kpi_count': red_count,
-            'red_kpi_percentage': round(red_percentage, 2),
-            'validation_compliance': round(compliance_rate, 2),
-            'department_rankings': [
-                {
-                    'department': d.entity_name,
-                    'score': float(d.aggregated_score)
-                }
-                for d in dept_scores
-            ],
-            'trend': self._get_trend_data(tenant_id, year, month)
-        }
+        from .analytics import build_executive_dashboard
+        dashboard = build_executive_dashboard(str(tenant_id), year, month)
         cache.set(cache_key, dashboard, 300)
         return dashboard
-    def _get_trend_data(self, tenant_id: str, year: int, month: int) -> List[Dict]:
-        trends = []
-        for m in range(max(1, month-5), month+1):
-            org_score = AggregatedScore.objects.filter(
-                level='ORGANIZATION',
-                tenant_id=tenant_id,
-                year=year,
-                month=m
-            ).first()
-            trends.append({
-                'period': f"{year}-{m:02d}",
-                'score': float(org_score.aggregated_score) if org_score else 0
-            })
-        return trends
 
 class ChampionDashboard:
     def get_dashboard(self, champion_id: str, year: int, month: int) -> Dict:
@@ -243,45 +179,29 @@ class ChampionDashboard:
         ]
 
 class RealtimeDashboard:
-    def __init__(self):
-        self.channel_layer = None
-        self._init_channel_layer()
-    def _init_channel_layer(self):
-        try:
-            from channels.layers import get_channel_layer
-            self.channel_layer = get_channel_layer()
-        except:
-            pass
-    async def push_score_update(self, user_id: str, score_data: Dict):
-        if self.channel_layer:
-            from channels.layers import get_channel_layer
-            channel_layer = get_channel_layer()
-            await channel_layer.group_send(
-                f"user_{user_id}",
-                {
-                    'type': 'score_update',
-                    'data': score_data
-                }
-            )
-    async def push_team_update(self, manager_id: str, team_data: Dict):
-        if self.channel_layer:
-            from channels.layers import get_channel_layer
-            channel_layer = get_channel_layer()
-            await channel_layer.group_send(
-                f"manager_{manager_id}",
-                {
-                    'type': 'team_update',
-                    'data': team_data
-                }
-            )
-    async def push_validation_status(self, user_id: str, validation_data: Dict):
-        if self.channel_layer:
-            from channels.layers import get_channel_layer
-            channel_layer = get_channel_layer()
-            await channel_layer.group_send(
-                f"user_{user_id}",
-                {
-                    'type': 'validation_update',
-                    'data': validation_data
-                }
-            )
+    """Backward-compatible facade — delegates to KPIEventBroadcaster (sync)."""
+
+    def push_score_update(self, user_id: str, score_data: Dict):
+        from .realtime import KPIEventBroadcaster
+        KPIEventBroadcaster.score_updated(
+            user_id=user_id,
+            kpi_id=score_data.get('kpi_id', ''),
+            score=score_data.get('score', 0),
+            period=score_data.get('period', ''),
+            status=score_data.get('status', 'UNKNOWN'),
+            manager_id=score_data.get('manager_id'),
+        )
+
+    def push_team_update(self, manager_id: str, team_data: Dict):
+        from .realtime import KPIEventBroadcaster
+        KPIEventBroadcaster._group_send(f'manager_{manager_id}', 'team_update', team_data)
+
+    def push_validation_status(self, user_id: str, validation_data: Dict):
+        from .realtime import KPIEventBroadcaster
+        KPIEventBroadcaster.validation_updated(
+            user_id=user_id,
+            actual_id=validation_data.get('actual_id', ''),
+            status=validation_data.get('status', ''),
+            kpi_id=validation_data.get('kpi_id'),
+            supervisor_id=validation_data.get('supervisor_id'),
+        )

@@ -9,6 +9,8 @@ from .mfa import MFADeviceViewSet, MFAAuditLogViewSet
 from .preference import UserPreferenceViewSet, TenantPreferenceViewSet
 from .audit import AuditLogViewSet
 from .admin import AdminUserViewSet, AdminRoleViewSet, AdminTenantViewSet, AdminPermissionViewSet, AdminSystemView
+from .system_settings_views import AccountsSystemSettingsView, AccountsSystemSettingsResetView, AccountsSyncPolicyView
+from .security_views import LoginAttemptViewSet, TenantPolicyView, LockoutSummaryView
 
 __all__ = [
     # Base
@@ -32,4 +34,6 @@ __all__ = [
     # Admin
     'AdminUserViewSet', 'AdminRoleViewSet', 'AdminTenantViewSet',
     'AdminPermissionViewSet', 'AdminSystemView',
+    'AccountsSystemSettingsView', 'AccountsSystemSettingsResetView', 'AccountsSyncPolicyView',
+    'LoginAttemptViewSet', 'TenantPolicyView', 'LockoutSummaryView',
 ]

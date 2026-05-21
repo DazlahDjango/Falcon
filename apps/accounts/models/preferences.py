@@ -78,6 +78,10 @@ class TenantPreference(BaseModel):
     mfa_required_roles = models.JSONField(_('MFA required roles'), default=list, help_text='Roles that require MFA')
     password_expiry_days = models.PositiveSmallIntegerField(_('password expiry days'), default=90)
     session_timeout_minutes = models.PositiveSmallIntegerField(_('session timeout minutes'), default=480)
+    max_concurrent_sessions = models.PositiveSmallIntegerField(
+        _('max concurrent sessions'), default=5,
+    )
+    policy_version = models.PositiveIntegerField(_('policy version'), default=1)
     # Localization
     default_language = models.CharField(_('default language'), max_length=10, default='en')
     available_languages = models.JSONField(_('available languages'), default=list)
