@@ -4,6 +4,7 @@ export { disasterRecoveryService } from './disasterRecovery.service';
 export { healthService } from './health.service';
 export { scheduleService } from './schedule.service';
 export { registryService } from './registry.service';
+export { settingsService } from './settings.service';
 export { quotaService } from './quota.service';
 export { encryptionService } from './encryption.service';
 export { auditService } from './audit.service';

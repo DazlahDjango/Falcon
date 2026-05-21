@@ -1,0 +1,119 @@
+/* Config real-time — global maintenance banner & live indicators */
+
+.config-global-maintenance-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  margin: 0;
+  border-bottom: 1px solid;
+  z-index: 40;
+  animation: config-banner-slide 0.25s ease-out;
+}
+
+@keyframes config-banner-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.config-global-maintenance-banner--full {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.config-global-maintenance-banner--partial {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.config-global-maintenance-banner__icon-wrap {
+  padding: 0.5rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.config-global-maintenance-banner--full .config-global-maintenance-banner__icon-wrap {
+  background: #fee2e2;
+}
+
+.config-global-maintenance-banner--partial .config-global-maintenance-banner__icon-wrap {
+  background: #fef3c7;
+}
+
+.config-global-maintenance-banner__body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.config-global-maintenance-banner__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.config-global-maintenance-banner__message {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-top: 0.125rem;
+}
+
+.config-global-maintenance-banner__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.7rem;
+  opacity: 0.75;
+  margin-top: 0.25rem;
+}
+
+.config-global-maintenance-banner__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.config-global-maintenance-banner__live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: config-live-pulse 1.5s ease-in-out infinite;
+}
+
+.config-global-maintenance-banner__live--connected .config-global-maintenance-banner__live-dot {
+  background: #16a34a;
+}
+
+.config-global-maintenance-banner__live--disconnected .config-global-maintenance-banner__live-dot {
+  background: #9ca3af;
+  animation: none;
+}
+
+@keyframes config-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.config-ws-connected {
+  color: #16a34a;
+  font-size: 0.75rem;
+}
+
+.config-ws-disconnected {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}

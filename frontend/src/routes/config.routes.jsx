@@ -16,6 +16,7 @@ const QuotaPage = React.lazy(() => import('../pages/config/QuotaPage').then(modu
 const EncryptionPage = React.lazy(() => import('../pages/config/EncryptionPage').then(module => ({ default: module.EncryptionPage })));
 const AuditLogPage = React.lazy(() => import('../pages/config/AuditLogPage').then(module => ({ default: module.AuditLogPage })));
 const ConfigSettingsPage = React.lazy(() => import('../pages/config/ConfigSettingsPage').then(module => ({ default: module.ConfigSettingsPage })));
+const AppRegistryPage = React.lazy(() => import('../pages/config/AppRegistryPage').then(module => ({ default: module.AppRegistryPage })));
 
 // Loading component
 const LoadingFallback = () => (
@@ -50,6 +51,7 @@ export const CONFIG_ROUTES = {
     ENCRYPTION: '/config/encryption',
     AUDIT_LOGS: '/config/audit-logs',
     SETTINGS: '/config/settings',
+    REGISTRY: '/config/registry',
 };
 
 // Simple flat routes array - follows your pattern
@@ -57,6 +59,9 @@ const configRoutes = [
     // Dashboard
     { path: CONFIG_ROUTES.DASHBOARD, element: withSuspense(ConfigDashboardPage) },
     { path: '/config', element: <Navigate to={CONFIG_ROUTES.DASHBOARD} replace /> },
+
+    // App Registry
+    { path: CONFIG_ROUTES.REGISTRY, element: withSuspense(AppRegistryPage) },
     
     // Backup
     { path: CONFIG_ROUTES.BACKUPS, element: withSuspense(BackupPage) },

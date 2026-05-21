@@ -76,6 +76,10 @@ export const useDashboard = (dashboardType, options = {}) => {
         } else if (message.type === 'alert') {
           dispatch(showToast({ message: message.message, type: 'warning' }));
         }
+        
+        if (options.onWebsocketMessage) {
+          options.onWebsocketMessage(message);
+        }
       };
       dashboardWebSocket.connect(dashboardType, handleWebSocketMessage, handleError);
       ws = dashboardWebSocket;

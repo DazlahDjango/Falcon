@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.utils.deprecation import MiddlewareMixin
 from apps.configs.services.maintenance.maintenance_mode import MaintenanceMode
@@ -15,8 +15,8 @@ class MaintenanceBlockerMiddleware(MiddlewareMixin):
                     'estimated_completion': None
                 }, status=503)
             elif not request.path.startswith('/static/') and not request.path.startswith('/media/'):
-                return render_to_string('config/maintenance.html', {
+                return HttpResponse(render_to_string('config/maintenance.html', {
                     'message': mode.get_message(),
                     'maintenance_type': 'full'
-                }, status=503)
+                }), status=503)
         return None

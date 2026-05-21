@@ -9,6 +9,7 @@ import { logout } from '../../../store/accounts/slice/authSlice';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 import LoadingScreen from '../Feedback/LoadingScreen';
+import { GlobalMaintenanceBanner } from '../../config/common/GlobalMaintenanceBanner';
 
 const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -77,6 +78,7 @@ const MainLayout = () => {
                     sidebarOpen={sidebarOpen}
                     sidebarCollapsed={sidebarCollapsed}
                 />
+                <GlobalMaintenanceBanner />
                 <main className="content-wrapper">
                     <Outlet />
                 </main>

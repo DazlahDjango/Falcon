@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { clientAdminDashboardService } from '../../services/dashboard/clientAdmin.service';
 import { showToast } from '../../store/ui/slices/uiSlice';
@@ -16,12 +16,23 @@ export const useClientAdminDashboard = (options = {}) => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [approvalLoading, setApprovalLoading] = useState(false);
 
+  const refreshAllRef = useRef(null);
+
+  const onWebsocketMessage = useCallback((message) => {
+    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update') {
+      if (refreshAllRef.current) {
+        // Run refresh but don't await so we don't block
+        refreshAllRef.current().catch(console.error);
+      }
+    }
+  }, []);
+
   const {
     data: dashboardData,
     loading,
     error,
     refresh: refreshDashboard
-  } = useDashboard('client_admin', options);
+  } = useDashboard('client_admin', { ...options, onWebsocketMessage });
 
   const fetchCompliance = useCallback(async () => {
     try {
@@ -164,6 +175,10 @@ export const useClientAdminDashboard = (options = {}) => {
       fetchKpiBreakdown()
     ]);
   }, [refreshDashboard, fetchCompliance, fetchPendingApprovals, fetchMissingData, fetchUserActivity, fetchKpiBreakdown]);
+
+  useEffect(() => {
+    refreshAllRef.current = refreshAll;
+  }, [refreshAll]);
 
   return {
     dashboardData,

@@ -24,6 +24,7 @@ const ClientAdminRoles = React.lazy(() => import('../pages/dashboard/ClientAdmin
 const ClientAdminReports = React.lazy(() => import('../pages/dashboard/ClientAdminDashboard/ClientAdminReports'));
 const ClientAdminExports = React.lazy(() => import('../pages/dashboard/ClientAdminDashboard/ClientAdminExports'));
 const ClientAdminSettings = React.lazy(() => import('../pages/dashboard/ClientAdminDashboard/ClientAdminSettings'));
+const ClientAdminAuditLogs = React.lazy(() => import('../pages/dashboard/ClientAdminDashboard/ClientAdminAuditLogs'));
 
 const SuperAdminDashboard = React.lazy(() => import('../pages/dashboard/SuperAdminDashboard/SuperAdminDashboard'));
 const SuperAdminTenants = React.lazy(() => import('../pages/dashboard/SuperAdminDashboard/SuperAdminTenants'));
@@ -73,6 +74,7 @@ const dashboardRoutes = [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, element: withSuspense(ClientAdminRoles) },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, element: withSuspense(ClientAdminReports) },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.EXPORTS, element: withSuspense(ClientAdminExports) },
+    { path: DASHBOARD_ROUTES.CLIENT_ADMIN.AUDIT_LOGS, element: withSuspense(ClientAdminAuditLogs) },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.SETTINGS, element: withSuspense(ClientAdminSettings) },
     
     // Super Admin Dashboard Routes

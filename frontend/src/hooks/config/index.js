@@ -13,3 +13,4 @@ export { useEncryption } from './useEncryption';
 export { useAuditLog } from './useAuditLog';
 export { useConfigDashboard } from './useConfigDashboard';
 export { useConfigPermissions } from './useConfigPermissions';
+export { useConfigSettings } from './useConfigSettings';

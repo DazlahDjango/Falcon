@@ -4,7 +4,7 @@ import { AuthProvider } from '../contexts/accounts/AuthContext';
 import { TenantProvider } from '../contexts/tenant/TenantContext';
 import { PermissionProvider } from '../contexts/accounts/PermissionContext';
 import { BillingProviders } from '../contexts/billing';
-import { ConfigProvider, BackupProvider, MaintenanceProvider, DRProvider, WebSocketProvider, ConfigAlertProvider } from '../contexts/config';
+import { ConfigProvider, BackupProvider, MaintenanceProvider, DRProvider, ConfigAlertProvider } from '../contexts/config';
 import ThemeProvider from './ThemeProvider';
 import ToastProvider from './ToastProvider';
 import QueryProvider from './QueryProvider';
@@ -25,13 +25,11 @@ const Providers = ({ children }) => {
                                             <BackupProvider>
                                                 <MaintenanceProvider>
                                                     <DRProvider>
-                                                        <WebSocketProvider>
-                                                            <ConfigAlertProvider>
-                                                                <BillingProviders>
-                                                                    {children}
-                                                                </BillingProviders>
-                                                            </ConfigAlertProvider>
-                                                        </WebSocketProvider>
+                                                        <ConfigAlertProvider>
+                                                            <BillingProviders>
+                                                                {children}
+                                                            </BillingProviders>
+                                                        </ConfigAlertProvider>
                                                     </DRProvider>
                                                 </MaintenanceProvider>
                                             </BackupProvider>

@@ -8,3 +8,14 @@ class BillingConfig(AppConfig):
 
     def ready(self):
         import apps.billing.signals
+        self._register_with_config_app()
+
+    def _register_with_config_app(self):
+        try:
+            from apps.configs.services.registry.app_registry import AppRegistry
+            AppRegistry().register_from_definition('billing')
+        except ImportError:
+            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning('Failed to register billing with config app: %s', e)

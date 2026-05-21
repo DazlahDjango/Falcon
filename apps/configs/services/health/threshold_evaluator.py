@@ -17,17 +17,26 @@ class ThresholdEvaluator:
             alerts.append({'type': 'warning', 'message': f"App {app_name} response time {health.response_time_ms}ms exceeds threshold"})
         return {'healthy': health.status == HealthStatus.HEALTHY, 'alerts': alerts, 'health': health}
     def should_trigger_maintenance(self, app_name):
+        from apps.configs.services.settings import ConfigSettingsService
         evaluation = self.evaluate(app_name)
         if not evaluation['healthy']:
+            thresholds = ConfigSettingsService.get_alert_thresholds()
+            failure_limit = thresholds.get('health_check_consecutive_failures', 3)
             unhealthy_count = HealthCheck.objects.filter(
                 app__name=app_name,
                 status__in=[HealthStatus.UNHEALTHY, HealthStatus.DEGRADED],
                 created_at__gte=timezone.now() - timezone.timedelta(minutes=30)
             ).count()
-            return unhealthy_count >= 3
+            return unhealthy_count >= failure_limit
         return False
     def _get_thresholds(self, app_name):
+        from apps.configs.services.settings import ConfigSettingsService
+        platform = ConfigSettingsService.get_alert_thresholds()
         app = RegisteredApp.objects.filter(name=app_name).first()
-        if not app:
-            return {'consecutive_failures': 3, 'max_response_ms': 5000}
-        return app.metadata.get('thresholds', {'consecutive_failures': 3, 'max_response_ms': 5000})
+        app_thresholds = (app.metadata or {}).get('thresholds', {}) if app else {}
+        return {
+            'consecutive_failures': app_thresholds.get(
+                'consecutive_failures', platform.get('health_check_consecutive_failures', 3),
+            ),
+            'max_response_ms': app_thresholds.get('max_response_ms', platform.get('max_response_ms', 5000)),
+        }

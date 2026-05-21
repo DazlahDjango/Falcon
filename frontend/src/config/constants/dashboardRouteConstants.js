@@ -33,6 +33,7 @@ export const DASHBOARD_ROUTES = {
     REPORTS: '/dashboard/client-admin/reports',
     EXPORTS: '/dashboard/client-admin/exports',
     SETTINGS: '/dashboard/client-admin/settings',
+    AUDIT_LOGS: '/dashboard/client-admin/audit-logs',
     USER_DETAILS: (userId) => `/dashboard/client-admin/users/${userId}`,
     ROLE_DETAILS: (roleId) => `/dashboard/client-admin/roles/${roleId}`
   },
@@ -102,6 +103,7 @@ export const DASHBOARD_NAV_ITEMS = {
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.KPI_BREAKDOWN, label: 'KPI Breakdown', icon: 'KpiIcon' },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, label: 'Users', icon: 'UsersIcon' },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, label: 'Reports', icon: 'ReportIcon' },
+    { path: DASHBOARD_ROUTES.CLIENT_ADMIN.AUDIT_LOGS, label: 'Audit Logs', icon: 'AuditIcon' },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.SETTINGS, label: 'Settings', icon: 'SettingsIcon' }
   ],
   

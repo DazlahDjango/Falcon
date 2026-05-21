@@ -8,6 +8,7 @@ from apps.configs.services.disaster_recovery.failback import FailbackService
 from apps.configs.services.disaster_recovery.dr_metrics import DisasterRecoveryMetrics
 from apps.configs.models import DisasterRecoveryPlan, DisasterRecoveryExecution
 from apps.configs.constants import DisasterRecoveryType, DisasterRecoveryStatus
+from apps.configs.services.realtime import ConfigProgressBroadcaster
 
 class DisasterRecoveryOrchestrator:
     def __init__(self):
@@ -43,6 +44,12 @@ class DisasterRecoveryOrchestrator:
             execution.completed_at = timezone.now()
             execution.issues_encountered = [str(e)]
             execution.save()
+            ConfigProgressBroadcaster.broadcast_dr_progress(
+                str(execution.id),
+                status=DisasterRecoveryStatus.FAILED,
+                progress_percent=0,
+                current_step=str(e),
+            )
             self.audit_logger.log_failure('execute_dr', triggered_by, triggered_by_role, error_message=str(e), target_app=plan.app)
             raise e
     def run_dr_drill(self, plan_id, triggered_by, triggered_by_role):

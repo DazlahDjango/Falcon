@@ -108,7 +108,6 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
                 </div>
             )}
             
-            {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
                 {renderNavGroup('Performance', navigation.performance, 'performance')}

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useDRProgress } from '../../../hooks/config';
 import { FiCheckCircle, FiXCircle, FiLoader, FiTarget, FiClock } from 'react-icons/fi';
 

@@ -9,20 +9,14 @@ class StructureConfig(AppConfig):
 
     def ready(self):
         import apps.structure.signals
+        self._register_with_config_app()
+
+    def _register_with_config_app(self):
         try:
             from apps.configs.services.registry.app_registry import AppRegistry
-            registry = AppRegistry()
-            registry.register_app(
-                app_name='structure',
-                display_name='Organizations Structures',
-                is_critical=False,
-                recovery_priority=2,
-                rpo_minutes=240,
-                rto_minutes=480,
-                backup_retention_days=60
-            )
+            AppRegistry().register_from_definition('structure')
         except ImportError:
             pass
         except Exception as e:
             import logging
-            logging.getLogger(__name__).warning(f"Failed to register structure: {e}") 
+            logging.getLogger(__name__).warning('Failed to register structure with config app: %s', e)

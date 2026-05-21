@@ -1,37 +1,36 @@
 from django.core.management.base import BaseCommand
 from apps.configs.services.registry.app_registry import AppRegistry
+from apps.configs.services.registry.app_definitions import V1_APP_DEFINITIONS
+from apps.configs.services.registry.dependency_resolver import DependencyResolver
+
 
 class Command(BaseCommand):
-    help = 'Register all V1 Falcon apps with the Config system'
+    help = 'Sync all V1 Falcon apps with canonical registry definitions (CIA-aligned)'
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--apps',
+            nargs='*',
+            help='Optional app names to sync (default: all canonical definitions)',
+        )
 
     def handle(self, *args, **options):
         registry = AppRegistry()
-        
-        apps = [
-            ('accounts', 'Accounts & Authentication', True, 1, 15, 30, 90),
-            ('kpi', 'KPI Engine', True, 1, 60, 120, 90),
-            ('tenant', 'Tenant Management', True, 1, 15, 30, 90),
-            ('structure', 'Organization Structure', False, 2, 120, 240, 60),
-            ('billing', 'Billing & Subscription', False, 2, 240, 480, 60),
-            ('reviews', 'Performance Reviews', False, 3, 240, 480, 30),
-            ('dashboard', 'Dashboard & Analytics', False, 3, 480, 720, 30),
-        ]
-        
-        self.stdout.write('Registering apps with Config system...')
-        
-        for name, display, critical, priority, rpo, rto, retention in apps:
-            try:
-                registry.register_app(
-                    app_name=name,
-                    display_name=display,
-                    is_critical=critical,
-                    recovery_priority=priority,
-                    rpo_minutes=rpo,
-                    rto_minutes=rto,
-                    backup_retention_days=retention
-                )
-                self.stdout.write(self.style.SUCCESS(f'  ✓ Registered {name}'))
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  ✗ Failed to register {name}: {e}'))
-        
-        self.stdout.write(self.style.SUCCESS('\nAll apps registered successfully!'))
+        app_names = options.get('apps') or list(V1_APP_DEFINITIONS.keys())
+
+        self.stdout.write('Synchronizing apps with canonical registry definitions...')
+
+        synced = registry.sync_all_definitions(app_names=app_names)
+        for app in synced:
+            self.stdout.write(self.style.SUCCESS(
+                f'  ✓ {app.name}: critical={app.is_critical}, priority={app.recovery_priority}, '
+                f'rpo={app.rpo_minutes}m, rto={app.rto_minutes}m'
+            ))
+
+        try:
+            DependencyResolver().validate_dependencies()
+            self.stdout.write(self.style.SUCCESS('  ✓ Dependency graph validated (no cycles)'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'  ✗ Dependency validation failed: {e}'))
+
+        self.stdout.write(self.style.SUCCESS(f'\n{len(synced)} app(s) synchronized successfully.'))

@@ -94,3 +94,14 @@ PAYSTACK_WEBHOOK_BASE_URL = env("BASE_URL", default="https://politely-nebulizer-
 PAYSTACK_VERIFY_WEBHOOK_SIGNATURE = env.bool("PAYSTACK_VERIFY_WEBHOOK_SIGNATURE", default=False)
 # Log webhook payloads for debugging
 BILLING_LOG_WEBHOOK_PAYLOADS = True
+
+# CELERY DEV SETTINGS
+# Force asynchronous tasks to execute synchronously in-process for easier local testing/simulations
+CELERY_TASK_ALWAYS_EAGER = True
+
+# BACKUP & RESTORE DEV SETTINGS
+# Use local file storage instead of S3 to avoid AWS connection failures during local simulation
+BACKUP_STORAGE_TYPE = 'local'
+
+# CONFIG APP — internal health probe base (Availability monitoring)
+CONFIG_INTERNAL_HEALTH_BASE_URL = env('CONFIG_INTERNAL_HEALTH_BASE_URL', default='http://127.0.0.1:8000')

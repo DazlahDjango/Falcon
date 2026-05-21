@@ -14,6 +14,13 @@ class RegistryService extends BaseConfigService {
   async registerV1Apps() {
     return this.withRetry(() => this.apiClient.post(CONFIG_API.REGISTER_V1_APPS));
   }
+  async syncRegistry(appNames = null) {
+    const body = appNames ? { app_names: appNames } : {};
+    return this.withRetry(() => this.apiClient.post(CONFIG_API.SYNC_REGISTRY, body));
+  }
+  async getDefinitions() {
+    return this.withRetry(() => this.apiClient.get(CONFIG_API.REGISTRY_DEFINITIONS));
+  }
   async updateApp(appId, data) {
     return this.withRetry(() => this.apiClient.patch(`${CONFIG_API.REGISTERED_APPS}/${appId}/`, data));
   }

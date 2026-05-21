@@ -106,14 +106,31 @@ export const ConfigProvider = ({ children }) => {
     });
   }, [userRole]);
 
+  const [maintenanceWsConnected, setMaintenanceWsConnected] = React.useState(false);
+  const maintenanceConnectionIdRef = React.useRef(null);
+
+  const normalizeMaintenancePayload = (data) => ({
+    active: data.maintenance_active ?? data.active ?? false,
+    maintenanceType: data.maintenance_type ?? data.maintenanceType ?? 'none',
+    message: data.message ?? null,
+    affectedApps: data.affected_apps ?? data.affectedApps ?? [],
+    startedAt: data.started_at ?? data.startedAt ?? null,
+    expectedEnd: data.expected_end ?? data.expectedEnd ?? null,
+  });
+
   const connectWebSockets = useCallback(async () => {
-    if (!isAuthenticated) return;
-    const tenantId = await getTenantId();
-    if (!tenantId) return;
+    if (!isAuthenticated) return null;
+    const tenantId = (await getTenantId()) || 'system';
+    const connectionId = `maintenance_${tenantId}`;
+    maintenanceConnectionIdRef.current = connectionId;
 
     configWebSocketService.connectMaintenance(tenantId, (data) => {
-      dispatch({ type: 'SET_GLOBAL_MAINTENANCE', payload: data });
+      if (data.type === 'status_update' || data.type === 'maintenance_update') {
+        dispatch({ type: 'SET_GLOBAL_MAINTENANCE', payload: normalizeMaintenancePayload(data) });
+      }
     });
+
+    return connectionId;
   }, [isAuthenticated]);
 
   const disconnectWebSockets = useCallback(() => {
@@ -123,8 +140,11 @@ export const ConfigProvider = ({ children }) => {
   const addActiveBackup = useCallback((jobId, data) => {
     dispatch({ type: 'ADD_ACTIVE_BACKUP', payload: { jobId, ...data } });
     configWebSocketService.connectBackupProgress(jobId, (progress) => {
-      dispatch({ type: 'UPDATE_ACTIVE_BACKUP', payload: { jobId, ...progress } });
-      if (progress.status === 'completed' || progress.status === 'failed') {
+      const payload = progress.type === 'backup_progress' || progress.type === 'progress_update'
+        ? progress
+        : progress;
+      dispatch({ type: 'UPDATE_ACTIVE_BACKUP', payload: { jobId, ...payload } });
+      if (payload.status === 'completed' || payload.status === 'failed') {
         setTimeout(() => {
           dispatch({ type: 'REMOVE_ACTIVE_BACKUP', payload: jobId });
         }, 5000);
@@ -145,17 +165,26 @@ export const ConfigProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    let wsCheckInterval;
     if (isAuthenticated) {
       updatePermissions();
-      connectWebSockets();
+      connectWebSockets().then((connectionId) => {
+        if (!connectionId) return;
+        wsCheckInterval = setInterval(() => {
+          setMaintenanceWsConnected(configWebSocketService.isConnected(connectionId));
+        }, 1000);
+      });
     }
     return () => {
+      if (wsCheckInterval) clearInterval(wsCheckInterval);
       disconnectWebSockets();
+      setMaintenanceWsConnected(false);
     };
   }, [isAuthenticated, updatePermissions, connectWebSockets, disconnectWebSockets]);
 
   const value = {
     ...state,
+    maintenanceWsConnected,
     updatePermissions,
     connectWebSockets,
     disconnectWebSockets,

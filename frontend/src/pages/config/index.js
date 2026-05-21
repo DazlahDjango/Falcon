@@ -1,4 +1,5 @@
 export { ConfigDashboardPage } from './ConfigDashboardPage';
+export { AppRegistryPage } from './AppRegistryPage';
 export { BackupPage } from './BackupPage';
 export { BackupDetailsPage } from './BackupDetailsPage';
 export { MaintenancePage } from './MaintenancePage';

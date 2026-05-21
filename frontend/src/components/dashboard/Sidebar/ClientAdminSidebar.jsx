@@ -45,6 +45,7 @@ const ClientAdminSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant
         compliance: [
             { path: '/reports/compliance', name: 'Compliance Reports', icon: FiFileText },
             { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },
+            { path: DASHBOARD_ROUTES.CLIENT_ADMIN.AUDIT_LOGS, name: 'Audit Logs', icon: FiShield },
             { path: DASHBOARD_ROUTES.CLIENT_ADMIN.EXPORTS, name: 'Exports', icon: FiDownload },
         ],
         configuration: [

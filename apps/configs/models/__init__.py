@@ -13,6 +13,7 @@ from .schedule import Schedule
 from .quota import BackupQuota
 from .encryption_key import EncryptionKey
 from .audit_log import ConfigAuditLog
+from .system_settings import ConfigSystemSettings
 
 __all__ = [
     'BaseConfigModel',
@@ -33,4 +34,5 @@ __all__ = [
     'BackupQuota',
     'EncryptionKey',
     'ConfigAuditLog',
+    'ConfigSystemSettings',
 ]

@@ -18,7 +18,7 @@ const Settings = () => {
     if (isAdmin) {
         tabs.push({ key: 'tenant', label: 'Tenant Settings', icon: <FiDatabase size={16} /> });
     }
-    const [activeTab, setActiveTabs] = useState('profile');
+    const [activeTab, setActiveTab] = useState('profile');
     const renderContent = () => {
         switch (activeTab) {
             case 'profile':

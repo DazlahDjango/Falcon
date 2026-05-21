@@ -27,6 +27,12 @@ class SingleAppRestore:
             decrypted_data = self.encryptor.decrypt(encrypted_data, artifact.encrypted_key_id, artifact.iv_initialization_vector)
         else:
             decrypted_data = encrypted_data
+        
+        # Decompress data if compression was used
+        compression_algorithm = backup_job.metadata.get('compression_algorithm')
+        if compression_algorithm:
+            decrypted_data = self.compressor.decompress(decrypted_data, compression_algorithm)
+            
         with tempfile.NamedTemporaryFile(suffix='.json', mode='wb', delete=False) as tmp_file:
             tmp_file.write(decrypted_data)
             tmp_file_path = tmp_file.name

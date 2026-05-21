@@ -73,19 +73,9 @@ class DashboardConfig(AppConfig):
     def _register_with_config_app(self):
         try:
             from apps.configs.services.registry.app_registry import AppRegistry
-            registry = AppRegistry()
-            registry.register_app(
-                app_name='dashboard',
-                display_name='Dashboard & Analytics',
-                is_critical=True,
-                recovery_priority=2,
-                rpo_minutes=30,
-                rto_minutes=45,
-                backup_retention_days=60,
-                dependencies=['accounts', 'kpi', 'structure', 'tenant']
-            )
+            AppRegistry().register_from_definition('dashboard')
         except ImportError:
             pass
         except Exception as e:
             import logging
-            logging.getLogger(__name__).warning(f"Failed to register dashboard with config app: {e}")
+            logging.getLogger(__name__).warning('Failed to register dashboard with config app: %s', e)

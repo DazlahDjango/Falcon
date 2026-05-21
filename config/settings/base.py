@@ -936,6 +936,7 @@ BACKUP_STORAGE_TYPE = env.str('BACKUP_STORAGE_TYPE', default='s3')
 BACKUP_S3_BUCKET = env.str('BACKUP_S3_BUCKET', default='falcon-pms-backups')
 BACKUP_S3_REGION = env.str('BACKUP_S3_REGION', default='us-east-1')
 BACKUP_LOCAL_PATH = env.str('BACKUP_LOCAL_PATH', default='/var/backups/falcon-pms')
+CONFIG_INTERNAL_HEALTH_BASE_URL = env.str('CONFIG_INTERNAL_HEALTH_BASE_URL', default='http://127.0.0.1:8000')
 BACKUP_NFS_MOUNT = env.str('BACKUP_NFS_MOUNT', default='')
 BACKUP_NFS_SERVER = env.str('BACKUP_NFS_SERVER', default='')
 
