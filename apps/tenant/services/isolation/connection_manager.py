@@ -112,15 +112,19 @@ class ConnectionManager:
                 schema_to_use = None
                 from apps.tenant.constants import SchemaType
                 
-                if hasattr(tenant, 'schema_type') and tenant.schema_type == SchemaType.SHARED_SCHEMA:
+                schema_type = getattr(tenant, 'schema_type', None)
+                schema_name = getattr(tenant, 'schema_name', None)
+                database_name = getattr(tenant, 'database_name', None)
+
+                if schema_type == SchemaType.SHARED_SCHEMA:
                     schema_to_use = 'public'
-                elif hasattr(tenant, 'schema_name') and tenant.schema_name:
-                    schema_to_use = tenant.schema_name
-                elif hasattr(tenant, 'database_name') and tenant.database_name:
-                    schema_to_use = tenant.database_name
-                elif hasattr(tenant, 'schema_type') and hasattr(tenant, 'database_name') and tenant.database_name:
-                    schema_to_use = f"{tenant.schema_type}_{tenant.database_name}"
-            
+                elif schema_type == SchemaType.SEPARATE_SCHEMA:
+                    schema_to_use = schema_name
+                elif database_name:
+                    schema_to_use = database_name
+                elif schema_type and database_name:
+                    schema_to_use = f"{schema_type}_{database_name}"
+
                 if schema_to_use:
                     with conn.cursor() as cursor:
                         cursor.execute(f'SET search_path TO "{schema_to_use}", public')

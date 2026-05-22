@@ -69,8 +69,7 @@ env = environ.Env(
 # .env file
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = env('DJANGO_SECRET_KEY',
-                 default='django-insecure-dev-key-not-for-production')
+SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-dev-key-not-for-production')
 
 
 # Quick-start development settings - unsuitable for production
@@ -259,9 +258,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME', default='falcon_pms'),
-        'USER': env('DB_USER', default='Dazlah'),
-        'PASSWORD': env('DB_PASSWORD', default='Dazl2006'),
+        'NAME': env('DB_NAME', default='postgres'),
+        'USER': env('DB_USER', default='postgress'),
+        'PASSWORD': env('DB_PASSWORD', default='postgress'),
         'HOST': env('DB_HOST', default='localhost'),
         'PORT': env('DB_PORT', default='5433'),
         'OPTIONS': {

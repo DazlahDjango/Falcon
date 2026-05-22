@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import RegexValidator
 from apps.tenant.constants import SchemaType, TenantStatus
 from .base import BaseModel
@@ -126,6 +127,14 @@ class Client(BaseModel):
     def get_setting(self, setting_name, default=None):
         """Get a setting value."""
         return self.settings.get(setting_name, default)
+
+    @property
+    def schema_name(self):
+        """Return the tenant schema name for separate-schema isolation."""
+        try:
+            return self.schema.schema_name
+        except (ObjectDoesNotExist, AttributeError):
+            return None
 
     def get_branding(self):
         """Get branding information."""

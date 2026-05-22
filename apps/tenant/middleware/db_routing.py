@@ -47,9 +47,10 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
         try:
             tenant = Client.objects.filter(id=tenant_id).first()
             
-            if tenant and hasattr(tenant, 'schema_name') and tenant.schema_name:
+            schema_name = getattr(tenant, 'schema_name', None)
+            if tenant and schema_name:
                 with connection.cursor() as cursor:
-                    cursor.execute(f'SET search_path TO "{tenant.schema_name}", public')
-                    logger.debug(f"Set search path to {tenant.schema_name}")
+                    cursor.execute(f'SET search_path TO "{schema_name}", public')
+                    logger.debug(f"Set search path to {schema_name}")
         except Exception as e:
             logger.debug(f"Could not set schema path: {e}")

@@ -37,7 +37,7 @@ CORS_ALLOW_HEADERS = [
     'X-Request-ID',
     'X-Requested-With',
 ]
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
+CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173', "https://politely-nebulizer-veal.ngrok-free.dev"]
 # CSRF
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = True
