@@ -77,6 +77,8 @@ class SelfAssessment(ReviewBaseModel, ReviewStatusMixin):
         blank=True,
         help_text="Training or development support requested"
     )
+
+    integrity_checksum = models.CharField(max_length=64, blank=True, db_index=True)
     
     # ========== Goals ==========
     goals_achieved = models.TextField(

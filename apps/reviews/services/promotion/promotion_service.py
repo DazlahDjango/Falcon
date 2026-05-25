@@ -1,22 +1,12 @@
-# apps/reviews/services/promotion/promotion_service.py
-"""
-Promotion recommendation service
-Handles promotion tracking from final ratings
-"""
+from asyncio.log import logger
 
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
 from ...models import PromotionRecommendation, FinalRating
 from ..base_service import BaseReviewService
 from ..notification.notification_service import NotificationService
 
-
 class PromotionService(BaseReviewService):
-    """
-    Handles business logic for promotion recommendations
-    """
-    
     @staticmethod
     @BaseReviewService.atomic_operation
     def create_from_final_rating(final_rating_id, data=None):
@@ -234,16 +224,15 @@ class PromotionService(BaseReviewService):
     
     @staticmethod
     def _update_employee_position(employee, new_role):
-        """
-        Internal method to update employee's position.
-        Placeholder - implement when Structure app is ready.
-        """
         try:
-            from apps.structure.services.position_service import PositionService
-            PositionService.update_employee_position(employee, new_role)
-        except ImportError:
-            # Structure app not ready
-            pass
+            from apps.structure.services import PositionService
+            return PositionService.update_employee_position(employee, new_role)
+        except ImportError as e:
+            logger.warning(f"PositionService not available: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error updating employee position: {e}")
+            return False
     
     @staticmethod
     def get_promotion_statistics(tenant, year=None):

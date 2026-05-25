@@ -1,38 +1,23 @@
-# apps/reviews/api/v1/views/base_views.py
-"""
-Base view classes for Reviews API
-"""
-
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
-
 from ..permissions import IsTenantUser
-from ...v1.throttles import ReviewSubmissionThrottle
-
+from ..throttles.reviews_api_throttle import ReviewsAPIThrottle
+from ..throttles.review_throttles import ReviewSubmissionThrottle
 
 class BaseReviewViewSet(viewsets.ModelViewSet):
-    """
-    Base ViewSet for all review models with common functionality.
-    """
-    
     permission_classes = [IsAuthenticated, IsTenantUser]
-    throttle_classes = [ReviewSubmissionThrottle]
+    throttle_classes = [ReviewsAPIThrottle, ReviewSubmissionThrottle]
     
     def get_queryset(self):
-        """
-        Filter queryset by tenant automatically.
-        """
         queryset = super().get_queryset()
-        
         # Filter by tenant
         if hasattr(self.request.user, 'tenant'):
             if hasattr(queryset.model, 'tenant'):
                 queryset = queryset.filter(tenant=self.request.user.tenant)
             elif hasattr(queryset.model, 'employee') and hasattr(queryset.model.employee, 'tenant'):
                 queryset = queryset.filter(employee__tenant=self.request.user.tenant)
-        
         return queryset
     
     def get_serializer_context(self):
@@ -74,12 +59,13 @@ class BaseReviewViewSet(viewsets.ModelViewSet):
         return super().handle_exception(exc)
 
 
-class BaseReviewViewSet(viewsets.ReadOnlyModelViewSet):
+class BaseReadOnlyReviewViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Base ReadOnly ViewSet for models that only need GET access.
     """
     
     permission_classes = [IsAuthenticated, IsTenantUser]
+    throttle_classes = [ReviewsAPIThrottle]
     
     def get_queryset(self):
         """Filter queryset by tenant."""
@@ -98,6 +84,7 @@ class BaseActionViewSet(viewsets.GenericViewSet):
     """
     
     permission_classes = [IsAuthenticated, IsTenantUser]
+    throttle_classes = [ReviewsAPIThrottle]
     
     def get_queryset(self):
         """Filter queryset by tenant."""

@@ -1,50 +1,94 @@
-# apps/reviews/services/notification/notification_service.py
-"""
-Notification service for Reviews app
-Sends notifications via the Notifications app
-"""
-
-from django.core.mail import send_mail
+import logging
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from ..base_service import BaseReviewService
-
+logger = logging.getLogger(__name__)
 
 class NotificationService(BaseReviewService):
-    """
-    Handles all notifications for review events.
-    Uses the Notifications app for in-app notifications and email.
-    """
+    @staticmethod
+    def _send_email(user, subject, template_name, context, recipient_list=None):
+        try:
+            if recipient_list is None and user:
+                recipient_list = [user.email]
+            
+            if not recipient_list:
+                logger.warning(f"No recipient for email: {subject}")
+                return
+            
+            # Render HTML content
+            html_content = render_to_string(template_name, context)
+            text_content = strip_tags(html_content)
+            
+            # Send email
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=recipient_list,
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+            
+            logger.info(f"Email sent to {recipient_list}: {subject}")
+            
+        except Exception as e:
+            logger.error(f"Failed to send email: {e}")
     
     @staticmethod
     def _send_notification(user, notification_type, title, message, link=None, email_template=None, email_context=None):
         """
-        Internal method to send notification via Notifications app.
+        Internal method to send notification.
+        For version 1: Only sends email. For version 2: Will also send in-app notifications.
         
         Args:
             user: User to notify
-            notification_type: Type of notification
+            notification_type: Type of notification (for future use)
             title: Notification title
             message: Notification message
             link: Optional URL link
             email_template: Optional email template path
             email_context: Optional context for email template
         """
-        try:
-            from apps.notifications.services.dispatcher import NotificationDispatcher
+        # For version 1, just send email if template provided
+        if email_template and email_context and user and user.email:
+            # Ensure email_context has all needed data
+            if 'title' not in email_context:
+                email_context['title'] = title
+            if 'message' not in email_context:
+                email_context['message'] = message
+            if 'link' not in email_context:
+                email_context['link'] = link
             
-            NotificationDispatcher.send(
+            NotificationService._send_email(
                 user=user,
-                type=notification_type,
-                title=title,
-                message=message,
-                link=link,
-                email_template=email_template,
-                email_context=email_context
+                subject=title,
+                template_name=email_template,
+                context=email_context
             )
-        except ImportError:
-            # Notifications app not ready - fallback to print
-            print(f"NOTIFICATION to {user.email}: {title} - {message}")
+        elif user and user.email:
+            # Fallback to simple email if no template
+            try:
+                send_mail(
+                    subject=title,
+                    message=f"{message}\n\n{link if link else ''}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+                logger.info(f"Simple email sent to {user.email}: {title}")
+            except Exception as e:
+                logger.error(f"Failed to send simple email: {e}")
+        
+        # Log for debugging
+        if settings.DEBUG:
+            print(f"[NOTIFICATION] To: {user.email if user else 'Unknown'}")
+            print(f"  Type: {notification_type}")
+            print(f"  Title: {title}")
+            print(f"  Message: {message}")
+            print(f"  Link: {link}")
+            print("-" * 50)
     
     # ========== Cycle Notifications ==========
     
@@ -96,8 +140,9 @@ class NotificationService(BaseReviewService):
         Args:
             assessment: SelfAssessment instance
         """
-        supervisor = assessment.employee.manager
+        supervisor = NotificationService._get_manager(assessment.employee)
         if not supervisor:
+            logger.warning(f"No manager found for employee {assessment.employee.id}")
             return
         
         NotificationService._send_notification(
@@ -285,31 +330,6 @@ class NotificationService(BaseReviewService):
         )
     
     @staticmethod
-    def notify_pip_escalated(pip):
-        """
-        Notify HR that a PIP has been escalated.
-        
-        Args:
-            pip: PIP instance
-        """
-        # Find HR users (simplified - adjust based on your HR identification)
-        hr_users = []
-        
-        for user in pip.tenant.users.filter(role__in=['hr', 'admin']):
-            hr_users.append(user)
-        
-        for hr in hr_users:
-            NotificationService._send_notification(
-                user=hr,
-                notification_type='pip_escalated',
-                title="PIP Escalation Required",
-                message=f"PIP for {pip.employee.get_full_name()} has shown no progress for 30 days. Requires HR review.",
-                link=f"/reviews/pip/{pip.id}/",
-                email_template='reviews/email/pip_escalated.html',
-                email_context={'pip': pip}
-            )
-    
-    @staticmethod
     def notify_pip_completed(pip):
         """
         Notify employee and manager when PIP is completed.
@@ -341,80 +361,94 @@ class NotificationService(BaseReviewService):
             email_context={'pip': pip, 'outcome_text': outcome_text}
         )
     
-    # ========== Calibration Notifications ==========
+    # ========== Promotion Notifications ==========
     
     @staticmethod
-    def notify_calibration_invited(session, participant):
+    def notify_promotion_created(promotion):
         """
-        Notify manager that they are invited to a calibration session.
+        Notify HR that a promotion recommendation has been created.
         
         Args:
-            session: CalibrationSession instance
-            participant: User being invited
+            promotion: PromotionRecommendation instance
+        """
+        # Find HR users (simplified - adjust based on your User model)
+        hr_users = []
+        if hasattr(promotion.tenant, 'users'):
+            hr_users = promotion.tenant.users.filter(role__in=['hr', 'admin'])
+        
+        for hr in hr_users:
+            NotificationService._send_notification(
+                user=hr,
+                notification_type='promotion_created',
+                title="Promotion Recommendation Created",
+                message=f"{promotion.employee.get_full_name()} has been recommended for promotion to {promotion.recommended_role}.",
+                link=f"/reviews/promotions/{promotion.id}/",
+                email_template='reviews/email/promotion_created.html',
+                email_context={'promotion': promotion}
+            )
+    
+    @staticmethod
+    def notify_promotion_approved(promotion):
+        """
+        Notify employee that their promotion has been approved.
+        
+        Args:
+            promotion: PromotionRecommendation instance
         """
         NotificationService._send_notification(
-            user=participant,
-            notification_type='calibration_invited',
-            title="Calibration Session Invitation",
-            message=f"You have been invited to a calibration session for {session.review_cycle.name} on {session.scheduled_date}.",
-            link=f"/reviews/calibration/{session.id}/",
-            email_template='reviews/email/calibration_invited.html',
-            email_context={'session': session, 'participant': participant}
+            user=promotion.employee,
+            notification_type='promotion_approved',
+            title="Promotion Approved! 🎉",
+            message=f"Congratulations! Your promotion to {promotion.recommended_role} has been approved.",
+            link=f"/reviews/promotions/{promotion.id}/",
+            email_template='reviews/email/promotion_approved.html',
+            email_context={'promotion': promotion}
         )
     
     @staticmethod
-    def notify_calibration_completed(session, participant):
+    def notify_promotion_rejected(promotion, reason):
         """
-        Notify participant that calibration session is complete.
+        Notify employee that their promotion was rejected.
         
         Args:
-            session: CalibrationSession instance
-            participant: User being notified
+            promotion: PromotionRecommendation instance
+            reason: Rejection reason
         """
         NotificationService._send_notification(
-            user=participant,
-            notification_type='calibration_completed',
-            title="Calibration Session Completed",
-            message=f"The calibration session for {session.review_cycle.name} has been completed.",
-            link=f"/reviews/calibration/{session.id}/summary/",
-            email_template='reviews/email/calibration_completed.html',
-            email_context={'session': session}
+            user=promotion.employee,
+            notification_type='promotion_rejected',
+            title="Promotion Update",
+            message=f"Your promotion recommendation has been reviewed. Please contact HR for details.",
+            link=f"/reviews/promotions/{promotion.id}/",
+            email_template='reviews/email/promotion_rejected.html',
+            email_context={'promotion': promotion, 'reason': reason}
         )
     
-    # ========== Feedback Notifications ==========
-    
-    @staticmethod
-    def notify_feedback_requested(request):
-        """
-        Notify reviewer that feedback has been requested.
-        
-        Args:
-            request: FeedbackRequest instance
-        """
-        NotificationService._send_notification(
-            user=request.reviewer,
-            notification_type='feedback_requested',
-            title="Feedback Requested",
-            message=f"Please provide feedback for {request.subject.get_full_name()} for {request.review_cycle.name}.",
-            link=f"/reviews/feedback/{request.id}/",
-            email_template='reviews/email/feedback_requested.html',
-            email_context={'request': request}
-        )
+    # ========== Helper Methods ==========
     
     @staticmethod
-    def notify_feedback_reminder(request):
+    def _get_manager(employee):
         """
-        Remind reviewer about pending feedback request.
+        Get the manager for an employee.
+        Try to get from position hierarchy first, then from user's manager field.
         
         Args:
-            request: FeedbackRequest instance
+            employee: User instance
+        
+        Returns:
+            User or None if no manager found
         """
-        NotificationService._send_notification(
-            user=request.reviewer,
-            notification_type='feedback_reminder',
-            title="Feedback Reminder",
-            message=f"Reminder: Please provide feedback for {request.subject.get_full_name()} by {request.due_date}.",
-            link=f"/reviews/feedback/{request.id}/",
-            email_template='reviews/email/feedback_reminder.html',
-            email_context={'request': request}
-        )
+        # Try to get from position hierarchy
+        try:
+            from apps.structure.services import PositionService
+            manager = PositionService.get_manager_for_employee(employee)
+            if manager:
+                return manager
+        except ImportError:
+            pass
+        
+        # Fallback: check if user has manager attribute
+        if hasattr(employee, 'manager') and employee.manager:
+            return employee.manager
+        
+        return None

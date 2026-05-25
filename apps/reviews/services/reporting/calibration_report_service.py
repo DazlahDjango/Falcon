@@ -1,8 +1,3 @@
-# apps/reviews/services/reporting/calibration_report_service.py
-"""
-Calibration Report Service - Generates reports for calibration sessions
-"""
-
 from django.db.models import Avg, Count, Q
 from django.utils import timezone
 

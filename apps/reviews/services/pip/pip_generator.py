@@ -1,22 +1,10 @@
-# apps/reviews/services/pip/pip_generator.py
-"""
-Create PIP from low performance ratings
-"""
-
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
 from ...models import PIP, FinalRating
 from ..base_service import BaseReviewService
 from .pip_service import PIPService
 
-
 class PIPGenerator(BaseReviewService):
-    """
-    Automatically creates Performance Improvement Plans from low final ratings
-    """
-    
-    # Default PIP settings
     DEFAULT_PIP_DURATION_DAYS = 90
     LOW_RATING_THRESHOLD = 60  # Below 60% triggers PIP
     

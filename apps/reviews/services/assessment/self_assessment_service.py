@@ -1,22 +1,12 @@
-# apps/reviews/services/assessment/self_assessment_service.py
-"""
-Self Assessment business logic
-"""
-
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
+from django.contrib.contenttypes.models import ContentType
 from ...models import SelfAssessment, CompetencyRating
 from ..base_service import BaseReviewService
 from ..rating.score_calculator import ScoreCalculator
 from ..notification.notification_service import NotificationService
 
-
 class SelfAssessmentService(BaseReviewService):
-    """
-    Handles all business logic for Self Assessment model
-    """
-    
     @staticmethod
     @BaseReviewService.atomic_operation
     def create_or_update(employee, review_cycle, data, is_submit=False):

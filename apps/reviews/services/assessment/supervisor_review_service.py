@@ -1,24 +1,12 @@
-
-# apps/reviews/services/assessment/supervisor_review_service.py
-"""
-Supervisor Review business logic
-"""
-
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
-from ...models import SupervisorReview, CompetencyRating, FinalRating
+from django.contrib.contenttypes.models import ContentType
+from ...models import SupervisorReview, CompetencyRating, FinalRating, SelfAssessment
 from ..base_service import BaseReviewService
-from ..rating.score_calculator import ScoreCalculator
-from ..rating.coefficient_applicator import CoefficientApplicator
+from .final_rating_service import FinalRatingService
 from ..notification.notification_service import NotificationService
 
-
 class SupervisorReviewService(BaseReviewService):
-    """
-    Handles all business logic for Supervisor Review model
-    """
-    
     @staticmethod
     @BaseReviewService.atomic_operation
     def create_or_update(employee, supervisor, review_cycle, data, is_submit=False):

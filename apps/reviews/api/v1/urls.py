@@ -10,6 +10,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from .views.health_views import ReviewsHealthView, ReviewsDashboardMetricsView
+from .views.reference_data_views import ReviewsReferenceDataView
+from .views.system_settings_views import (
+    ReviewsSystemSettingsView,
+    ReviewsSystemSettingsResetView,
+)
 from .views import (
     RatingScaleViewSet,
     CompetencyCategoryViewSet,
@@ -217,7 +223,16 @@ def api_root(request, format=None):
         },
     })
 
-# Add API root to urlpatterns
+# Platform endpoints (health, settings, reference data)
 urlpatterns = [
+    path('health/', ReviewsHealthView.as_view(), name='reviews-health'),
+    path('dashboard/metrics/', ReviewsDashboardMetricsView.as_view(), name='reviews-dashboard-metrics'),
+    path('reference-data/', ReviewsReferenceDataView.as_view(), name='reviews-reference-data'),
+    path('system-settings/', ReviewsSystemSettingsView.as_view(), name='reviews-system-settings'),
+    path(
+        'system-settings/reset/',
+        ReviewsSystemSettingsResetView.as_view(),
+        name='reviews-system-settings-reset',
+    ),
     path('', api_root, name='api-root'),
 ] + urlpatterns

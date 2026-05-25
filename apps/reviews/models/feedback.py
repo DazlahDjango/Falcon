@@ -157,6 +157,8 @@ class FeedbackResponse(ReviewBaseModel):
         help_text="Structured ratings per competency: {'leadership': 4, 'communication': 5}"
     )
     
+    integrity_checksum = models.CharField(max_length=64, blank=True, db_index=True)
+
     # Tracking
     submitted_at = models.DateTimeField(auto_now_add=True)
     is_anonymous = models.BooleanField(default=True)

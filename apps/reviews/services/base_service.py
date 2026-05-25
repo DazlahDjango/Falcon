@@ -1,18 +1,7 @@
-# apps/reviews/services/base_service.py
-"""
-Base service class with common methods for all review services
-"""
-
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-
 class BaseReviewService:
-    """
-    Base service class that all review services inherit from.
-    Provides common error handling and transaction management.
-    """
-    
     @staticmethod
     def handle_errors(func):
         """Decorator for consistent error handling"""

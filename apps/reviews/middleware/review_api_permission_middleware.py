@@ -1,26 +1,9 @@
-# apps/reviews/middleware/review_api_permission_middleware.py
-"""
-Middleware for API permission checks on review endpoints
-Validates JWT tokens, tenant access, and role-based permissions
-"""
-
 from django.utils.deprecation import MiddlewareMixin
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser
 import re
 
-
 class ReviewAPIPermissionMiddleware(MiddlewareMixin):
-    """
-    Middleware to check API permissions for review endpoints.
-    
-    This middleware:
-    1. Validates authentication for review API endpoints
-    2. Checks tenant isolation (users can only access their tenant)
-    3. Enforces role-based access control
-    """
-    
-    # API paths that this middleware applies to
     API_PATHS = [
         '/api/reviews/',
         '/api/v1/reviews/',

@@ -104,6 +104,43 @@ class FinalRatingService(BaseReviewService):
         final_rating.save()
         
         return final_rating
+
+    @staticmethod
+    @BaseReviewService.atomic_operation
+    def recalculate_kpi_component(final_rating_id):
+        """Refresh KPI score on an open final rating when KPI data changes."""
+        final_rating = FinalRating.objects.select_related(
+            'review_cycle', 'employee', 'supervisor_review',
+        ).get(id=final_rating_id)
+        cycle = final_rating.review_cycle
+        review = final_rating.supervisor_review
+        if review and review.override_kpi_score is not None:
+            final_rating.kpi_score = review.override_kpi_score
+        else:
+            final_rating.kpi_score = KPIAggregator.get_kpi_score_for_period(
+                employee=final_rating.employee,
+                start_date=cycle.kpi_start_date or cycle.start_date,
+                end_date=cycle.kpi_end_date or cycle.end_date,
+            )
+        if review:
+            final_rating.raw_total_score = ScoreCalculator.calculate_weighted_score(
+                kpi_score=final_rating.kpi_score,
+                competency_score=final_rating.competency_score,
+                mission_score=None,
+                task_score=None,
+                weights={
+                    'kpi': cycle.kpi_weight,
+                    'competency': cycle.competency_weight,
+                    'mission': 0,
+                    'task': 0,
+                },
+            )
+            final_rating = CoefficientApplicator.apply_coefficient_to_rating(final_rating)
+            final_rating.final_score = (
+                final_rating.adjusted_score or final_rating.raw_total_score
+            )
+        final_rating.save()
+        return final_rating
     
     @staticmethod
     def get_for_employee(employee, review_cycle=None):
