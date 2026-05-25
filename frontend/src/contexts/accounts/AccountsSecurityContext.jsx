@@ -23,7 +23,7 @@ export const useAccountsSecurityContext = () => {
 export const AccountsSecurityProvider = ({ children }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { isAuthenticated } = useSelector((state) => state.auth);
+    const { isAuthenticated } = useSelector((state) => state.auth || {});
     const handlerRef = useRef(null);
 
     const processSecurityEvent = useCallback((payload) => {

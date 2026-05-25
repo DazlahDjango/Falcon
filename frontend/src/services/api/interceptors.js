@@ -1,151 +1,246 @@
-import axios from 'axios';
-import { getAccessToken, getRefreshToken, setTokens } from '../accounts/storage/secureStorage';
-import { logout, login } from '../accounts/api/auth';
+/**
+ * Shared axios interceptors — auth, tenant header, refresh, rate limits, envelopes.
+ */
+import { store } from '../../store';
+import { logout } from '../../store/accounts/slice/authSlice';
+import { showToast } from '../../store/ui/slices/uiSlice';
+import {
+  getAccessToken,
+  getTenantId,
+  clearTenantId,
+} from '../accounts/storage/secureStorage';
+import { retryRequestAfterRefresh } from './tokenRefresh';
+import { isAuthUrl } from './constants';
+import {
+  isCircuitOpen,
+  recordCircuitFailure,
+  recordCircuitSuccess,
+} from './circuitBreaker';
 
-export const setupInterceptors = (api) => {
-    // Request interceptor - add auth token
-    api.interceptors.request.use(
-        async (config) => {
-            const token = await getAccessToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        },
-        (error) => {
-            return Promise.reject(error);
+const generateRequestId = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+// Prevent rapid successive redirects
+let lastRedirectTime = 0;
+const MIN_REDIRECT_INTERVAL = 30000; // 30 seconds minimum between redirects
+
+async function resolveTenantId() {
+  let tenantId = await getTenantId();
+  if (!tenantId) {
+    const state = store.getState();
+    tenantId =
+      state?.auth?.user?.tenant_id ||
+      state?.tenant?.currentTenant?.id ||
+      state?.appTenant?.currentTenant?.id;
+  }
+  return tenantId;
+}
+
+/**
+ * @param {import('axios').AxiosInstance} client
+ * @param {object} options
+ * @param {string} options.module - Label for logs / circuit breaker
+ * @param {'raw'|'envelope'} options.responseStyle - raw axios vs { success, data }
+ * @param {boolean} options.circuitBreaker - Block mutating calls when open
+ * @param {boolean} options.attachTenantHeader - X-Tenant-ID
+ * @param {string} [options.forbiddenMessage] - Toast on 403
+ * @param {function} [options.beforeRequest] - async (config) => config
+ * @param {function} [options.onResponseSuccess] - async (response) => response
+ * @param {boolean} options.redirectOnSessionExpiry
+ */
+export function attachInterceptors(client, options = {}) {
+  const {
+    module = 'api',
+    responseStyle = 'raw',
+    circuitBreaker = false,
+    attachTenantHeader = true,
+    forbiddenMessage = null,
+    beforeRequest = null,
+    onResponseSuccess = null,
+    redirectOnSessionExpiry = true,
+  } = options;
+
+  client.interceptors.request.use(
+    async (config) => {
+      if (circuitBreaker && isCircuitOpen(module) && config.method !== 'get') {
+        throw new Error('Service temporarily unavailable. Please try again later.');
+      }
+
+      config.headers = config.headers || {};
+      config.headers['X-Request-ID'] = generateRequestId();
+
+      const url = config.url || '';
+      if (!isAuthUrl(url)) {
+        const token = await getAccessToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
-    );
-    // Response interceptor - handle errors
-    api.interceptors.response.use(
-        (response) => {
-            return response;
-        },
-        async (error) => {
-            const originalRequest = error.config;
-            
-            // Handle 401 Unauthorized
-            if (error.response?.status === 401 && !originalRequest._retry) {
-                originalRequest._retry = true;
-                
-                // Try to refresh token
-                try {
-                    const refreshToken = await getRefreshToken();
-                    if (refreshToken) {
-                        // Use a separate axios instance or skip interceptors for refresh call
-                        // to avoid recursion if refresh itself returns 401
-                        const response = await axios.post('/api/v1/auth/refresh/', {
-                            refresh: refreshToken
-                        });
-                        
-                        const newAccessToken = response.data.access;
-                        await setTokens(newAccessToken, refreshToken);
-                        
-                        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-                        return api(originalRequest);
-                    }
-                } catch (refreshError) {
-                    // Refresh failed, logout
-                    window.location.href = '/login';
-                    return Promise.reject(refreshError);
-                }
-            }
-            
-            // Handle 403 Forbidden
-            if (error.response?.status === 403) {
-                console.error('Permission denied:', error.response.data);
-            }
-            
-            // Handle 429 Too Many Requests
-            if (error.response?.status === 429) {
-                const retryAfter = error.response.headers['retry-after'] || 60;
-                console.warn(`Rate limited. Retry after ${retryAfter} seconds`);
-                
-                // Wait and retry
-                await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-                return api(originalRequest);
-            }
-            
-            // Handle 500 Server Error
-            if (error.response?.status >= 500) {
-                console.error('Server error:', error.response.data);
-                // Could show a toast notification here
-            }
-            
-            return Promise.reject(error);
+      }
+
+      if (attachTenantHeader && !isAuthUrl(url)) {
+        const tenantId = await resolveTenantId();
+        if (tenantId) {
+          config.headers['X-Tenant-ID'] = String(tenantId);
         }
-    );
-};
+      }
 
-/**
- * Add request ID for tracing
- * @param {Object} api - Axios instance
- */
-export const addRequestIdInterceptor = (api) => {
-    api.interceptors.request.use((config) => {
-        config.headers['X-Request-ID'] = generateRequestId();
-        return config;
-    });
-};
+      if (beforeRequest) {
+        config = await beforeRequest(config);
+      }
 
-/**
- * Generate unique request ID
- * @returns {string} Unique ID
- */
-const generateRequestId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
+      if (import.meta.env.DEV) {
+        console.log(`[${module}] ${(config.method || 'get').toUpperCase()} ${url}`);
+      }
 
-/**
- * Logging interceptor for development
- * @param {Object} api - Axios instance
- */
-export const addLoggingInterceptor = (api) => {
-    if (import.meta.env.MODE === 'development') {
-        api.interceptors.request.use((config) => {
-            console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data);
-            return config;
+      return config;
+    },
+    (error) => {
+      if (error?.message === 'RATE_LIMIT_EXCEEDED') {
+        return Promise.reject({
+          success: false,
+          status: 429,
+          message: 'Too many requests. Please try again later.',
+          code: 'RATE_LIMIT_EXCEEDED',
         });
-        
-        api.interceptors.response.use(
-            (response) => {
-                console.log(`[API Response] ${response.status} ${response.config.url}`, response.data);
-                return response;
-            },
-            (error) => {
-                console.error(`[API Error] ${error.response?.status} ${error.config?.url}`, error.response?.data);
-                return Promise.reject(error);
+      }
+      return Promise.reject(error);
+    },
+  );
+
+  client.interceptors.response.use(
+    async (response) => {
+      if (circuitBreaker) {
+        recordCircuitSuccess(module);
+      }
+
+      let res = response;
+      if (onResponseSuccess) {
+        res = await onResponseSuccess(res);
+      }
+
+      if (responseStyle === 'envelope') {
+        return {
+          success: true,
+          data: res.data,
+          status: res.status,
+          message: res.data?.message || 'Operation successful',
+          timestamp: new Date().toISOString(),
+        };
+      }
+
+      return res;
+    },
+    async (error) => {
+      const originalRequest = error.config;
+      const status = error.response?.status;
+
+      if (circuitBreaker) {
+        recordCircuitFailure(module, status);
+      }
+
+      if (status === 401 && originalRequest && !isAuthUrl(originalRequest.url || '')) {
+        try {
+          return await retryRequestAfterRefresh(originalRequest, (cfg) => client(cfg));
+        } catch (refreshError) {
+          store.dispatch(logout());
+          await clearTenantId();
+          if (redirectOnSessionExpiry) {
+            // Prevent rapid successive redirects
+            const now = Date.now();
+            if (now - lastRedirectTime > MIN_REDIRECT_INTERVAL) {
+              lastRedirectTime = now;
+              window.location.href = '/login';
             }
+          }
+          return Promise.reject(
+            refreshError?.message
+              ? refreshError
+              : new Error('Session expired. Please login again.'),
+          );
+        }
+      }
+
+      if (status === 403 && forbiddenMessage) {
+        store.dispatch(showToast({ message: forbiddenMessage, type: 'error' }));
+      } else if (status === 429 && originalRequest && !originalRequest._rateLimitRetry) {
+        originalRequest._rateLimitRetry = true;
+        const raw = parseInt(error.response?.headers?.['retry-after'], 10) || 2;
+        const waitSec = Math.min(raw, import.meta.env.DEV ? 5 : 30);
+        await new Promise((resolve) => setTimeout(resolve, waitSec * 1000));
+        return client(originalRequest);
+      } else if (status >= 500 && forbiddenMessage) {
+        store.dispatch(
+          showToast({ message: `${module} server error. Please try again.`, type: 'error' }),
         );
-    }
+      }
+
+      if (responseStyle === 'envelope') {
+        const message =
+          error.response?.data?.message ||
+          error.response?.data?.detail ||
+          error.message ||
+          'An error occurred';
+        return Promise.reject({
+          success: false,
+          status: status || 0,
+          message,
+          errors: error.response?.data?.errors || null,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      return Promise.reject(error);
+    },
+  );
+
+  return client;
+}
+
+/** @deprecated Use attachInterceptors via createApiClient */
+export const setupInterceptors = attachInterceptors;
+
+export const addRequestIdInterceptor = (api) => {
+  api.interceptors.request.use((config) => {
+    config.headers['X-Request-ID'] = generateRequestId();
+    return config;
+  });
 };
 
-/**
- * Retry interceptor for failed requests
- * @param {Object} api - Axios instance
- * @param {number} maxRetries - Maximum number of retries
- * @param {number} retryDelay - Delay between retries in ms
- */
+export const addLoggingInterceptor = (api) => {
+  if (!import.meta.env.DEV) return;
+  api.interceptors.request.use((config) => {
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data);
+    return config;
+  });
+  api.interceptors.response.use(
+    (response) => {
+      console.log(`[API Response] ${response.status} ${response.config?.url}`, response.data);
+      return response;
+    },
+    (error) => {
+      console.error(
+        `[API Error] ${error.response?.status} ${error.config?.url}`,
+        error.response?.data,
+      );
+      return Promise.reject(error);
+    },
+  );
+};
+
 export const addRetryInterceptor = (api, maxRetries = 3, retryDelay = 1000) => {
-    api.interceptors.response.use(
-        (response) => response,
-        async (error) => {
-            const { config } = error;
-            if (!config || !config.retry) {
-                config.retry = 0;
-            }
-            
-            // Only retry on network errors or 5xx server errors
-            const shouldRetry = !error.response || error.response.status >= 500;
-            
-            if (shouldRetry && config.retry < maxRetries) {
-                config.retry += 1;
-                console.log(`Retrying request (${config.retry}/${maxRetries})...`);
-                await new Promise(resolve => setTimeout(resolve, retryDelay * config.retry));
-                return api(config);
-            }
-            
-            return Promise.reject(error);
-        }
-    );
+  api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const { config } = error;
+      if (!config) return Promise.reject(error);
+      if (config.retry == null) config.retry = 0;
+      const shouldRetry = !error.response || error.response.status >= 500;
+      if (shouldRetry && config.retry < maxRetries) {
+        config.retry += 1;
+        await new Promise((resolve) => setTimeout(resolve, retryDelay * config.retry));
+        return api(config);
+      }
+      return Promise.reject(error);
+    },
+  );
 };

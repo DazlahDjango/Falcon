@@ -1,6 +1,7 @@
 import { API_ENDPOINTS as CONSTANTS_API_ENDPOINTS } from '../../config/constants';
+import { API_BASE_URL } from './constants';
 
-export const API_BASE_URL = '/api/v1';
+export { API_BASE_URL };
 
 export const KPI_ENDPOINTS = CONSTANTS_API_ENDPOINTS.KPI;
 export const FRAMEWORK_ENDPOINTS = CONSTANTS_API_ENDPOINTS.FRAMEWORK;

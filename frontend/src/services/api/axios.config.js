@@ -1,21 +1,17 @@
-import axios from 'axios';
+/**
+ * @deprecated Import from `services/api` instead.
+ */
+import { API_BASE_URL, DEFAULT_TIMEOUT_MS, rootApiClient, apiConfig } from './index';
 
-// Default config
 export const defaultConfig = {
-    baseURL: import.meta.env.VITE_API_URL || '/api/v1',
-    timeout: 60000, // Increased from 30s to 60s for analytics endpoints
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
-    withCredentials: true,
+  baseURL: API_BASE_URL,
+  timeout: DEFAULT_TIMEOUT_MS,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  withCredentials: true,
 };
-// Create axios instance with default config
-export const axiosInstance = axios.create(defaultConfig);
-// Export configuration for use in services
-export const apiConfig = {
-    baseURL: defaultConfig.baseURL,
-    timeout: defaultConfig.timeout,
-    maxRetries: 3,
-    retryDelay: 1000,
-};
+
+export const axiosInstance = rootApiClient;
+export { apiConfig, API_BASE_URL, DEFAULT_TIMEOUT_MS };

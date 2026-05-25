@@ -85,4 +85,7 @@ class ExportService {
     }
 }
 
-export default new ExportService();
+const exportService = new ExportService();
+export const downloadKpiReport = (params) => exportService.downloadKpiReport(params);
+export const downloadScoreExport = (year, month) => exportService.downloadScoreExport(year, month);
+export default exportService;

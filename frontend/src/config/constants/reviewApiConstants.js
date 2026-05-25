@@ -20,6 +20,30 @@ export const REVIEW_API_ENDPOINTS = {
   COMPETENCY_CATEGORIES: '/competency-categories/',
   COMPETENCY_CATEGORY_DETAIL: (id) => `/competency-categories/${id}/`,
   
+  // ⭐ NEW: Competency Ratings
+  COMPETENCY_RATINGS_BY_ASSESSMENT: (assessmentId) => `/competency-ratings/by-assessment/${assessmentId}/`,
+  COMPETENCY_RATINGS_BY_REVIEW: (reviewId) => `/competency-ratings/by-review/${reviewId}/`,
+  COMPETENCY_RATINGS_BULK: '/competency-ratings/bulk/',
+  
+  // ⭐ NEW: Coefficients
+  COEFFICIENTS: '/coefficients/',
+  COEFFICIENT_DETAIL: (id) => `/coefficients/${id}/`,
+  
+  // ⭐ NEW: Promotions
+  PROMOTIONS: '/promotions/',
+  PROMOTION_DETAIL: (id) => `/promotions/${id}/`,
+  
+  // ⭐ NEW: Review Templates
+  REVIEW_TEMPLATES: '/review-templates/',
+  REVIEW_TEMPLATE_DETAIL: (id) => `/review-templates/${id}/`,
+  REVIEW_TEMPLATES_SELF_ASSESSMENT: '/review-templates/self-assessment/',
+  REVIEW_TEMPLATES_SUPERVISOR_REVIEW: '/review-templates/supervisor-review/',
+  REVIEW_TEMPLATES_360_FEEDBACK: '/review-templates/360-feedback/',
+  
+  // ⭐ NEW: Review Comments (generic)
+  REVIEW_COMMENTS: '/review-comments/',
+  REVIEW_COMMENT_DETAIL: (id) => `/review-comments/${id}/`,
+  
   // Cycles
   CYCLES: '/cycles/',
   CYCLE_DETAIL: (id) => `/cycles/${id}/`,
@@ -79,13 +103,20 @@ export const REVIEW_API_ENDPOINTS = {
   PIP_ACTION_VERIFY: (id) => `/pip-actions/${id}/verify/`,
   PIP_ACTIONS_FOR_PIP: (pipId) => `/pip-actions/for-pip/${pipId}/`,
   
+  // PIP Reviews
+  PIP_REVIEWS: '/pip-reviews/',
+  PIP_REVIEW_DETAIL: (id) => `/pip-reviews/${id}/`,
+  PIP_REVIEWS_FOR_PIP: (pipId) => `/pip-reviews/for-pip/${pipId}/`,
+  
   // Feedback
   FEEDBACK_REQUESTS: '/feedback-requests/',
   FEEDBACK_REQUEST_DETAIL: (id) => `/feedback-requests/${id}/`,
   FEEDBACK_REQUEST_PENDING: '/feedback-requests/pending/',
   FEEDBACK_REQUEST_REMIND: (id) => `/feedback-requests/${id}/remind/`,
+  FEEDBACK_RESPONSE_FOR_REQUEST: (requestId) => `/feedback-responses/by-request/${requestId}/`,
   FEEDBACK_RESPONSE_SUBMIT: (requestId) => `/feedback-responses/submit/${requestId}/`,
   FEEDBACK_SUMMARIES: '/feedback-summaries/',
+  FEEDBACK_SUMMARY_DETAIL: (id) => `/feedback-summaries/${id}/`,
   FEEDBACK_SUMMARY_MY: '/feedback-summaries/my/',
   FEEDBACK_SUMMARY_SHARE: (id) => `/feedback-summaries/${id}/share/`,
   
@@ -99,6 +130,8 @@ export const REVIEW_API_ENDPOINTS = {
   CALIBRATION_SESSION_REPORT: (id) => `/calibration-sessions/${id}/report/`,
   CALIBRATION_SESSION_MY: '/calibration-sessions/my/',
   CALIBRATION_OUTLIER_REPORT: '/calibration-sessions/outlier-report/',
+  CALIBRATION_RATINGS_FOR_SESSION: (sessionId) => `/calibration-sessions/${sessionId}/ratings/`,
+  CALIBRATION_COMMENTS_FOR_SESSION: (sessionId) => `/calibration-sessions/${sessionId}/comments/`,
   
   // Reports
   REPORTS_EMPLOYEE_SUMMARY: '/reports/employee-summary/',
