@@ -57,4 +57,4 @@ class StaffDashboardDataSerializer(serializers.Serializer):
     yellow_count = serializers.IntegerField(default=0)
     red_count = serializers.IntegerField(default=0)
     pending_submissions = PendingSubmissionSerializer(many=True)
-    last_updated = serializers.DateTimeField()
+    last_updated = serializers.CharField()

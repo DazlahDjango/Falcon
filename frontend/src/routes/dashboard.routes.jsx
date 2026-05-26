@@ -1,4 +1,3 @@
-// PMS dashboard routes — mount from app router when ready; uses DashboardShell (not app root providers).
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { DASHBOARD_ROUTES, getDefaultRouteByRole } from '../config/constants/dashboardRouteConstants';

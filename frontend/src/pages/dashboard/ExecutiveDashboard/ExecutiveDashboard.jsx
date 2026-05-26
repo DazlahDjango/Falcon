@@ -11,8 +11,8 @@ import {
   fetchExecutiveDepartments,
   fetchExecutiveTrends,
   fetchExecutiveIssues,
-  setActiveDashboard
 } from '../../../store/dashboard/slices/dashboardSlice';
+import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const ExecutiveDashboard = () => {
   const dispatch = useDispatch();

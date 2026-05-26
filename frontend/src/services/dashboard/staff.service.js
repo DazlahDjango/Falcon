@@ -84,4 +84,6 @@ class StaffService extends BaseDashboardService {
   }
 }
 
-export default new StaffService();
+const staffService = new StaffService();
+export { staffService };
+export default staffService;

@@ -82,6 +82,12 @@ class DashboardWebSocketService {
       return false;
     }
 
+    // Validate dashboardType
+    if (!dashboardType || typeof dashboardType !== 'string') {
+      console.error('[WebSocket] Invalid dashboardType:', typeof dashboardType, dashboardType);
+      return false;
+    }
+
     this.currentDashboardType = dashboardType;
     const wsUrl = WEBSOCKET_PATHS.DASHBOARD(dashboardType);
     this.socket = new WebSocket(`${wsUrl}?token=${token}`);

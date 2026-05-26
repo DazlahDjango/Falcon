@@ -10,8 +10,8 @@ import {
   fetchPendingSubmissions,
   fetchMissionStatus,
   fetchPendingTasks,
-  setActiveDashboard
 } from '../../../store/dashboard/slices/staffDashboardSlice';
+import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const StaffDashboard = () => {
   const dispatch = useDispatch();

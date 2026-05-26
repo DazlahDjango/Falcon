@@ -9,8 +9,8 @@ import {
   fetchTeamMembers,
   fetchTeamSummary,
   fetchPendingApprovals,
-  setActiveDashboard
 } from '../../../store/dashboard/slices/managerDashboardSlice';
+import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const ManagerDashboard = () => {
   const dispatch = useDispatch();

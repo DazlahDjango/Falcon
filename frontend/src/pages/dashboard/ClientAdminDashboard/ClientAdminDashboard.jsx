@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
-import { TenantOverview, CompliancePanel, PendingApprovalsPanel, MissingDataPanel, KpiBreakdownPanel, UserActivityPanel } from './';
+import { TenantOverview, CompliancePanel, PendingApprovalsPanel, MissingDataPanel, KpiBreakdownPanel, UserActivityPanel } from '.';
 import { useClientAdminDashboard } from '../../../hooks/dashboard/useClientAdminDashboard';
 import { fetchClientAdminDashboard, setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 

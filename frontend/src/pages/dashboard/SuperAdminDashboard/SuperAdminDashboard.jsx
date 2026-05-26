@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
-import { PlatformOverview } from './PlatformMetrics'
+import { PlatformOverview } from './PlatformOverview';
 import { TenantsTable } from './TenantsTable';
 import { SystemHealthPanel } from './SystemHealthPanel';
 import { PlatformMetrics } from './PlatformMetrics';

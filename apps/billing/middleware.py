@@ -17,6 +17,7 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
     """
     Middleware to check subscription status for tenant requests.
     Blocks access to premium features if subscription is invalid.
+    SUPER_ADMIN users bypass all subscription checks.
     """
     
     # Paths that bypass subscription check
@@ -45,6 +46,14 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
         # Skip for bypass paths
         for path in self.BYPASS_PATHS:
             if request.path.startswith(path):
+                return None
+        
+        # Check if user is super admin (bypass all subscription checks)
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            if request.user.role == 'super_admin' or request.user.is_superuser:
+                logger.debug(f"Super admin {request.user.email} bypassing subscription check")
+                # Still attach billing context for super admin (with full access)
+                self._attach_super_admin_billing_context(request)
                 return None
         
         # Get tenant from request (set by tenant middleware)
@@ -101,6 +110,28 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
         
         return None
     
+    def _attach_super_admin_billing_context(self, request):
+        """
+        Attach full billing context for super admin users.
+        Super admins have access to all features regardless of tenant subscription.
+        """
+        tenant_id = getattr(request, 'tenant_id', None)
+        
+        if tenant_id:
+            # Try to get actual subscription if exists
+            subscription = Subscription.objects.get_current_for_tenant(tenant_id)
+            
+            if subscription:
+                request.subscription = subscription
+                request.is_trial = subscription.is_on_trial
+                request.trial_days_remaining = subscription.trial_days_remaining
+            else:
+                # Super admin can access even without subscription
+                request.is_super_admin_access = True
+        
+        # Set super admin flag on request
+        request.is_super_admin = True
+    
     def _check_feature_access(self, request, tenant_id):
         """Check if tenant has access to requested feature."""
         subscription = request.subscription
@@ -138,6 +169,7 @@ class BillingAuditMiddleware(MiddlewareMixin):
     """
     Middleware to audit billing-related requests.
     Logs all billing API calls for security.
+    Super admin actions are logged with higher priority.
     """
     
     BILLING_PATHS = ['/api/v1/billing/', '/api/v1/subscriptions/', '/api/v1/invoices/']
@@ -156,12 +188,19 @@ class BillingAuditMiddleware(MiddlewareMixin):
             # Get user info
             user_id = getattr(request.user, 'id', None) if hasattr(request, 'user') else None
             user_email = getattr(request.user, 'email', None) if hasattr(request, 'user') else None
+            user_role = getattr(request.user, 'role', None) if hasattr(request, 'user') else None
+            
+            # Check if super admin
+            is_super_admin = (user_role == 'super_admin' or 
+                            (hasattr(request.user, 'is_superuser') and request.user.is_superuser))
             
             # Log to cache/queue for batch processing
             audit_data = {
                 'timestamp': timezone.now().isoformat(),
                 'user_id': str(user_id) if user_id else None,
                 'user_email': user_email,
+                'user_role': user_role,
+                'is_super_admin': is_super_admin,
                 'tenant_id': str(getattr(request, 'tenant_id', '')),
                 'method': request.method,
                 'path': request.path,
@@ -174,7 +213,11 @@ class BillingAuditMiddleware(MiddlewareMixin):
             cache_key = f"billing_audit_{timezone.now().timestamp()}"
             cache.set(cache_key, audit_data, 3600)
             
-            logger.info(f"Billing audit: {audit_data}")
+            # Log with appropriate level
+            if is_super_admin:
+                logger.info(f"Billing audit (SUPER_ADMIN): {audit_data}")
+            else:
+                logger.info(f"Billing audit: {audit_data}")
         
         return response
     
@@ -197,7 +240,11 @@ class WebhookRateLimitMiddleware(MiddlewareMixin):
     """
     Rate limiting middleware specifically for webhook endpoints.
     Prevents webhook flooding attacks.
+    Super admin IPs have higher limits.
     """
+    
+    # Super admin IPs (can be configured in settings)
+    SUPER_ADMIN_IPS = getattr(settings, 'SUPER_ADMIN_IPS', [])
     
     def process_request(self, request):
         """Rate limit webhook requests."""
@@ -207,19 +254,33 @@ class WebhookRateLimitMiddleware(MiddlewareMixin):
         # Get client IP
         client_ip = self._get_client_ip(request)
         
+        # Check if super admin IP
+        is_super_admin_ip = client_ip in self.SUPER_ADMIN_IPS
+        
+        # Check if user is super admin (if authenticated)
+        is_super_admin_user = False
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            is_super_admin_user = (request.user.role == 'super_admin' or request.user.is_superuser)
+        
+        # Higher limit for super admins
+        if is_super_admin_ip or is_super_admin_user:
+            rate_limit = 500  # 500 per minute for super admins
+        else:
+            rate_limit = 100  # 100 per minute for normal
+        
         # Rate limit key
         rate_key = f"webhook_rate_limit_{client_ip}"
         
         # Get current count
         current_count = cache.get(rate_key, 0)
         
-        # Webhook limits: 100 per minute
-        if current_count >= 100:
+        if current_count >= rate_limit:
             logger.warning(f"Webhook rate limit exceeded for IP {client_ip}")
             return JsonResponse({
                 'error': 'rate_limit_exceeded',
                 'message': 'Too many webhook requests',
-                'retry_after': 60
+                'retry_after': 60,
+                'limit': rate_limit
             }, status=429)
         
         # Increment counter
@@ -239,13 +300,39 @@ class TenantBillingContextMiddleware(MiddlewareMixin):
     """
     Middleware to set billing context for tenant.
     Attaches billing information to request for easy access.
+    Super admins get full context with bypass flags.
     """
     
     def process_request(self, request):
         """Attach billing context to request."""
         tenant_id = getattr(request, 'tenant_id', None)
         
+        # Check if super admin
+        is_super_admin = False
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            is_super_admin = (request.user.role == 'super_admin' or request.user.is_superuser)
+        
         if not tenant_id:
+            # For super admin without tenant, attach empty context
+            if is_super_admin:
+                request.billing_context = {
+                    'has_active_subscription': True,
+                    'is_on_trial': False,
+                    'is_super_admin': True,
+                    'plan_type': 'super_admin',
+                    'plan_name': 'Super Admin Access',
+                    'trial_days_remaining': 0,
+                    'days_until_expiry': 0,
+                    'subscription_status': 'active',
+                    'features': {
+                        'custom_branding': True,
+                        'api_access': True,
+                        'advanced_analytics': True,
+                        'custom_reports': True,
+                        'sso_enabled': True
+                    },
+                    'bypass_all_limits': True
+                }
             return None
         
         # Get or create billing context
@@ -264,7 +351,9 @@ class TenantBillingContextMiddleware(MiddlewareMixin):
                     'trial_days_remaining': subscription.trial_days_remaining,
                     'days_until_expiry': subscription.days_until_expiry,
                     'subscription_status': subscription.status,
-                    'features': subscription.plan.feature_dict
+                    'features': subscription.plan.feature_dict,
+                    'is_super_admin': False,
+                    'bypass_all_limits': False
                 }
             else:
                 billing_context = {
@@ -275,11 +364,23 @@ class TenantBillingContextMiddleware(MiddlewareMixin):
                     'trial_days_remaining': 0,
                     'days_until_expiry': 0,
                     'subscription_status': None,
-                    'features': {}
+                    'features': {},
+                    'is_super_admin': False,
+                    'bypass_all_limits': False
                 }
             
             # Cache for 10 minutes
             cache.set(cache_key, billing_context, 600)
+        
+        # Override for super admin
+        if is_super_admin:
+            billing_context = billing_context.copy()
+            billing_context['is_super_admin'] = True
+            billing_context['bypass_all_limits'] = True
+            # Super admin can access even if subscription is inactive
+            if not billing_context['has_active_subscription']:
+                billing_context['has_active_subscription'] = True
+                billing_context['subscription_status'] = 'super_admin_bypass'
         
         request.billing_context = billing_context
         

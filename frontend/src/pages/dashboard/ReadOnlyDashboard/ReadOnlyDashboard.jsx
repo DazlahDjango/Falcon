@@ -4,10 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { useReadOnlyDashboard } from '../../../hooks/dashboard/useReadOnlyDashboard';
-import {
-  fetchReadOnlyDashboard,
-  setActiveDashboard
-} from '../../../store/dashboard/slices/readOnlyDashboardSlice';
+import { fetchReadOnlyDashboard } from '../../../store/dashboard/slices/readOnlyDashboardSlice';
+import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const ReadOnlyDashboard = () => {
   const dispatch = useDispatch();

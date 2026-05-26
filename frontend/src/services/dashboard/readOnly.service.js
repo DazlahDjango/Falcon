@@ -72,4 +72,5 @@ class ReadOnlyService extends BaseDashboardService {
   }
 }
 
-export default new ReadOnlyService();
+export const readOnlyService = new ReadOnlyService();
+export default readOnlyService;

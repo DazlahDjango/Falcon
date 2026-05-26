@@ -265,8 +265,13 @@ const authSlice = createSlice({
                     state.requiresMfa = false;
                     state.mfaToken = null;
                     // Save user to redux state - extract from response correctly
-                    state.user = action.payload.user || { email: 'dazlah@gmail.com', role: 'super_admin' };
-                    
+                    if (action.payload.user) {
+                        state.user = action.payload.user;
+                    } else {
+                        console.error('No user data in login response');
+                        state.error = 'Invalid login response';
+                        return;
+                    }
                     // Extract and save tokens using secureStorage
                     const accessToken = action.payload.access || action.payload.access_token;
                     const refreshToken = action.payload.refresh || action.payload.refresh_token;

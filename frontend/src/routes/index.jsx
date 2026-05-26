@@ -10,6 +10,7 @@ import kpiRoutes from "./kpi.routes";
 import billingRoutes from "./billing.routes";
 import reviewsRoutes from "./reviews.routes";  // ← LINE 1: ADD THIS IMPORT
 import configRoutes from "./config.routes"; 
+import dashboardRoutes from './dashboard.routes';
 
 // Layouts
 const MainLayout = React.lazy(() => import("../components/common/Layout/MainLayout"));
@@ -62,6 +63,8 @@ const AppRouter = () => {
                     {renderRoutes(kpiRoutes)}
                     {/* Billing routes */}
                     {renderRoutes(billingRoutes)}
+                    {/* Dashboard routes */}
+                    {renderRoutes(dashboardRoutes)}
                     {/* Reviews routes - ADD THIS LINE */}
                     {renderRoutes(reviewsRoutes)}  {/* ← LINE 2: ADD THIS LINE */}
                     {/* Config routes */}
