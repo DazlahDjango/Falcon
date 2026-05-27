@@ -1,0 +1,48 @@
+/* Sub-menu styling */
+.nav-subgroup {
+    margin-left: 0;
+}
+
+.nav-subgroup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    color: var(--sidebar-text, #6b7280);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.nav-subgroup-header:hover {
+    background: var(--sidebar-hover, #f3f4f6);
+    color: var(--sidebar-text-hover, #374151);
+}
+
+.sidebar.collapsed .nav-subgroup-header {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.nav-subgroup-items {
+    list-style: none;
+    padding-left: 44px;
+    margin: 0;
+}
+
+.sidebar.collapsed .nav-subgroup-items {
+    padding-left: 0;
+}
+
+.nav-subgroup-items .nav-link {
+    padding: 8px 16px;
+    font-size: 0.8125rem;
+}
+
+.nav-subgroup-items .nav-link svg {
+    width: 16px;
+    height: 16px;
+}

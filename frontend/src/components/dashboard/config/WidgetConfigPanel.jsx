@@ -4,12 +4,15 @@ import { FiX, FiSave, FiEdit2, FiTrash2, FiEye, FiEyeOff } from 'react-icons/fi'
 import { DashboardCard } from '../common/DashboardCard';
 
 export const WidgetConfigPanel = ({ 
+  isOpen,
   widget, 
   onSave, 
   onDelete, 
   onClose,
   loading = false
 }) => {
+  if (!isOpen) return null;
+
   const [formData, setFormData] = useState({
     title: widget?.title || '',
     widget_type: widget?.widget_type || 'kpi_list',
@@ -373,6 +376,7 @@ export const WidgetConfigPanel = ({
 };
 
 WidgetConfigPanel.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
   widget: PropTypes.object,
   onSave: PropTypes.func.isRequired,
   onDelete: PropTypes.func,
