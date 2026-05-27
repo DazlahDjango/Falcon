@@ -1,21 +1,12 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { ExecutiveOverview } from './ExecutiveOverview';
 import { ExecutiveDepartments } from './ExecutiveDepartments';
 import { ExecutiveTrends } from './ExecutiveTrends';
 import { ExecutiveAlerts } from './ExecutiveAlerts';
 import { useExecutiveDashboard } from '../../../hooks/dashboard/useExecutiveDashboard';
-import {
-  fetchExecutiveDashboard,
-  fetchExecutiveDepartments,
-  fetchExecutiveTrends,
-  fetchExecutiveIssues,
-  setActiveDashboard
-} from '../../../store/dashboard/slices/dashboardSlice';
 
 const ExecutiveDashboard = () => {
-  const dispatch = useDispatch();
   const {
     dashboardData,
     departments,
@@ -27,14 +18,7 @@ const ExecutiveDashboard = () => {
     fetchTrends,
     fetchIssues
   } = useExecutiveDashboard({ autoRefresh: true, refreshInterval: 60000 });
-
-  useEffect(() => {
-    dispatch(setActiveDashboard('executive'));
-    dispatch(fetchExecutiveDashboard());
-    dispatch(fetchExecutiveDepartments());
-    dispatch(fetchExecutiveTrends());
-    dispatch(fetchExecutiveIssues());
-  }, [dispatch]);
+  // Hook handles all data fetching with autoRefresh:true
 
   const widgets = [
     {

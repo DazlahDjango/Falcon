@@ -1,4 +1,5 @@
 import { BaseDashboardService } from './dashboard.service';
+import { DASHBOARD_API } from '../../config/constants/dashboardApiConstants';
 
 class ClientAdminDashboardService extends BaseDashboardService {
   constructor() {
@@ -63,6 +64,21 @@ class ClientAdminDashboardService extends BaseDashboardService {
 
   async refreshDashboard() {
     return this.withRetry(() => this.apiClient.post('/client-admin/refresh'));
+  }
+
+  async exportDashboard(params = {}) {
+    const { period = 'current', format = 'pdf' } = params;
+    try {
+      const response = await this.apiClient.post(
+        DASHBOARD_API.CLIENT_ADMIN.EXPORT,
+        { period, format },
+        { responseType: 'blob' }
+      );
+      return response.data || response;
+    } catch (error) {
+      console.error('Failed to export dashboard:', error);
+      throw error;
+    }
   }
 }
 

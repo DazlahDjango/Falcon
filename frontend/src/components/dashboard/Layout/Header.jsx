@@ -37,7 +37,7 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
 
     useEffect(() => {
         store.dispatch(fetchUnreadCount());
-    }, [dispatch]);
+    }, []);
 
     useEffect(() => {
         const path = location.pathname;

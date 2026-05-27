@@ -1,13 +1,6 @@
-# apps/reviews/services/reporting/review_summary_service.py
-"""
-Review Summary Service - Generates comprehensive review summaries for employees
-"""
-
 from django.utils import timezone
 from django.db.models import Avg, Count, Q
-
 from ...models import (
-    ReviewCycle, 
     SelfAssessment, 
     SupervisorReview, 
     FinalRating,

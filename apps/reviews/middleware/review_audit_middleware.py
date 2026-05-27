@@ -1,8 +1,3 @@
-# apps/reviews/middleware/review_audit_middleware.py
-"""
-Middleware for auditing review-related actions
-"""
-
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
 import json
@@ -12,14 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReviewAuditMiddleware(MiddlewareMixin):
-    """
-    Logs all review-related actions for audit purposes.
-    """
-    
-    # HTTP methods that modify data (should be audited)
     MODIFY_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
-    
-    # URL patterns that should be audited
     AUDIT_PATTERNS = [
         'self-assessment',
         'supervisor-review',
@@ -32,10 +20,6 @@ class ReviewAuditMiddleware(MiddlewareMixin):
     ]
     
     def process_request(self, request):
-        """
-        Start audit context for the request.
-        """
-        # Only audit requests that modify data
         if request.method not in self.MODIFY_METHODS:
             return None
         

@@ -1,8 +1,3 @@
-# apps/reviews/services/reporting/pip_report_service.py
-"""
-PIP Report Service - Generates reports for Performance Improvement Plans
-"""
-
 from django.utils import timezone
 from django.db.models import Count, Q, Avg
 

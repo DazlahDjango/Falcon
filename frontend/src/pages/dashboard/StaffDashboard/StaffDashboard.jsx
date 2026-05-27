@@ -1,20 +1,10 @@
 // frontend/src/pages/dashboard/StaffDashboard/StaffDashboard.jsx
 
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { useStaffDashboard } from '../../../hooks/dashboard/useStaffDashboard';
-import {
-  fetchStaffDashboard,
-  fetchMyKPIs,
-  fetchPendingSubmissions,
-  fetchMissionStatus,
-  fetchPendingTasks,
-  setActiveDashboard
-} from '../../../store/dashboard/slices/staffDashboardSlice';
 
 const StaffDashboard = () => {
-  const dispatch = useDispatch();
   const {
     dashboardData,
     myKPIs,
@@ -29,15 +19,7 @@ const StaffDashboard = () => {
     loadPendingTasks,
     setPeriod
   } = useStaffDashboard({ autoFetch: true });
-
-  useEffect(() => {
-    dispatch(setActiveDashboard('staff'));
-    dispatch(fetchStaffDashboard({ period }));
-    dispatch(fetchMyKPIs(period));
-    dispatch(fetchPendingSubmissions());
-    dispatch(fetchMissionStatus(period));
-    dispatch(fetchPendingTasks());
-  }, [dispatch, period]);
+  // Hook handles all data fetching with autoFetch:true
 
   const widgets = [
     {

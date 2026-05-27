@@ -43,6 +43,10 @@ from .calibration_session import (
 from .review_comment import ReviewComment
 from .promotion_recommendation import PromotionRecommendation
 
+# Platform models
+from .system_settings import ReviewsSystemSettings
+from .audit_log import ReviewAuditLog
+
 __all__ = [
     # Base
     'ReviewQuerySet',
@@ -84,4 +88,6 @@ __all__ = [
     # Utility
     'ReviewComment',
     'PromotionRecommendation',
+    'ReviewsSystemSettings',
+    'ReviewAuditLog',
 ]

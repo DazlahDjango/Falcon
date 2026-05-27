@@ -1,41 +1,11 @@
-# apps/reviews/services/rating/coefficient_applicator.py
-"""
-Coefficient Applicator Service - Applies department/role coefficients to scores
-"""
-
 from django.utils import timezone
-
+from django.db import models
 from ...models import Coefficient
 from ..base_service import BaseReviewService
 
-
 class CoefficientApplicator(BaseReviewService):
-    """
-    Applies coefficients to scores for fair comparison across departments.
-    
-    Coefficients are multipliers that adjust scores up or down based on:
-    - Department difficulty (e.g., R&D gets 1.05x)
-    - Position complexity (e.g., Senior roles get 0.95x)
-    - Individual circumstances
-    """
-    
     @staticmethod
     def get_applicable_coefficient(employee, target_date=None):
-        """
-        Get the applicable coefficient for an employee.
-        
-        Priority order:
-        1. Individual coefficient (highest priority)
-        2. Position coefficient
-        3. Department coefficient (lowest priority)
-        
-        Args:
-            employee: User object
-            target_date: Date when coefficient applies (defaults to today)
-        
-        Returns:
-            Coefficient object or None
-        """
         if target_date is None:
             target_date = timezone.now().date()
         

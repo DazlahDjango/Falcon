@@ -71,6 +71,7 @@ class ReviewComment(ReviewBaseModel):
     )
     
     comment = models.TextField()
+    integrity_checksum = models.CharField(max_length=64, blank=True, db_index=True)
     
     # Author
     author = models.ForeignKey(

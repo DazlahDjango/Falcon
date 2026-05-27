@@ -31,6 +31,10 @@ class ReviewsConfig(AppConfig):
         """
         # Import signals to register them with Django's signal dispatcher
         import apps.reviews.signals
+        import apps.reviews.signals_security
+        import apps.reviews.signals_realtime
+
+        self._warm_reviews_cache()
         
         try:
             from apps.configs.services.registry.app_registry import AppRegistry
@@ -45,6 +49,16 @@ class ReviewsConfig(AppConfig):
         # from .checks import register_checks
         # register_checks()
         
-        # Preload any needed services (optional - for warming up caches)
-        # from .services.cache_service import preload_service
-        # preload_service()
+    def _warm_reviews_cache(self):
+        """Warm settings cache on startup (dashboard metrics via Celery warm_dashboard_cache)."""
+        try:
+            from django.db import connection
+            if not connection.introspection.table_names():
+                return
+            from apps.reviews.services.settings import ReviewsSettingsService
+            if 'reviews_system_settings' not in connection.introspection.table_names():
+                return
+            ReviewsSettingsService.get_settings(use_cache=True)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).debug('Reviews settings cache warm skipped: %s', e)

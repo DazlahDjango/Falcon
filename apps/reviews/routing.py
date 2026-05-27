@@ -8,6 +8,7 @@ from .consumers import (
     ReviewStatusConsumer,
     CalibrationConsumer,
     NotificationConsumer,
+    ReviewsDashboardConsumer,
 )
 
 # Reviews app WebSocket URL patterns
@@ -34,5 +35,11 @@ websocket_urlpatterns = [
         'ws/reviews/notifications/',
         NotificationConsumer.as_asgi(),
         name='reviews_notifications'
+    ),
+    # Live dashboard metrics (departments, users, KPI, cycle stats)
+    re_path(
+        r'^ws/reviews/dashboard/$',
+        ReviewsDashboardConsumer.as_asgi(),
+        name='reviews_dashboard',
     ),
 ]

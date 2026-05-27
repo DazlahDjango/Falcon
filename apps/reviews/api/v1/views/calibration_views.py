@@ -9,7 +9,7 @@ from rest_framework import status
 from django.utils import timezone
 from django.db import models
 
-from apps.reviews.models import CalibrationSession, CalibrationRating, CalibrationComment
+from apps.reviews.models import CalibrationSession, CalibrationRating, CalibrationComment, ReviewCycle
 from apps.reviews.services.calibration.calibration_service import CalibrationService
 from apps.reviews.services.reporting.calibration_report_service import CalibrationReportService
 from ..serializers import (

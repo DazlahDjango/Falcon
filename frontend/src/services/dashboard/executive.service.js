@@ -33,6 +33,21 @@ class ExecutiveDashboardService extends BaseDashboardService {
     return this.withRetry(() => this.apiClient.post('/executive/refresh'));
   }
 
+  async exportDashboard(params = {}) {
+    const { period = 'current', format = 'pdf' } = params;
+    try {
+      const response = await this.apiClient.post(
+        DASHBOARD_API.EXECUTIVE.EXPORT,
+        { period, format },
+        { responseType: 'blob' }
+      );
+      return response.data || response;
+    } catch (error) {
+      console.error('Failed to export dashboard:', error);
+      throw error;
+    }
+  }
+
   async getKpiTrends(kpiId, period = 'monthly') {
     if (!kpiId) throw new Error('KPI ID is required');
     return this.withRetry(() => this.apiClient.get(`/executive/kpis/${kpiId}/trends`, { params: { period } }));

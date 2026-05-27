@@ -1,8 +1,3 @@
-# apps/reviews/api/v1/views/competency_views.py
-"""
-Views for Competency, CompetencyCategory, and CompetencyRating models
-"""
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status

@@ -1,8 +1,3 @@
-# apps/reviews/services/pip/pip_service.py
-"""
-PIP CRUD and business logic
-"""
-
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
@@ -12,35 +7,15 @@ from ..notification.notification_service import NotificationService
 
 
 class PIPService(BaseReviewService):
-    """
-    Handles CRUD and basic business logic for Performance Improvement Plans
-    """
-    
     @staticmethod
     @BaseReviewService.atomic_operation
     def create_pip(employee, owner, review_cycle, data):
-        """
-        Create a new Performance Improvement Plan.
-        
-        Args:
-            employee: User object (underperforming employee)
-            owner: User object (manager/HR responsible)
-            review_cycle: ReviewCycle object
-            data: Dictionary with PIP data
-        
-        Returns:
-            PIP object
-        """
-        # Check if employee already has an active PIP
         existing_active = PIP.objects.filter(
             employee=employee,
             status='active'
         ).exists()
-        
         if existing_active:
             raise ValidationError("Employee already has an active PIP")
-        
-        # Create PIP
         pip = PIP.objects.create(
             tenant=employee.tenant,
             employee=employee,

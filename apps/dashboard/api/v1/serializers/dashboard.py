@@ -38,7 +38,7 @@ class ExecutiveDashboardDataSerializer(serializers.Serializer):
     top_issues = serializers.ListField(child=serializers.DictField())
     kpi_trends = serializers.ListField(child=serializers.DictField())
     recent_alerts = serializers.ListField(child=serializers.DictField())
-    last_updated = serializers.DateTimeField()
+    last_updated = serializers.CharField()
 
 
 class ClientAdminDashboardDataSerializer(serializers.Serializer):
@@ -49,7 +49,7 @@ class ClientAdminDashboardDataSerializer(serializers.Serializer):
     missing_data_alerts = serializers.ListField(child=serializers.DictField())
     kpi_performance = serializers.DictField()
     user_activity = serializers.DictField()
-    last_updated = serializers.DateTimeField()
+    last_updated = serializers.CharField()
 
 class SuperAdminDashboardDataSerializer(serializers.Serializer):
     platform_overview = serializers.DictField()
@@ -57,4 +57,4 @@ class SuperAdminDashboardDataSerializer(serializers.Serializer):
     system_health = serializers.DictField()
     subscription_alerts = serializers.ListField(child=serializers.DictField())
     platform_metrics = serializers.DictField()
-    last_updated = serializers.DateTimeField()
+    last_updated = serializers.CharField()

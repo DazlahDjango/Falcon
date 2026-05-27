@@ -1,33 +1,11 @@
-# apps/reviews/services/rating/rating_converter.py
-"""
-Rating conversion service - Converts scores to rating labels and colors
-"""
-
 from decimal import Decimal
-
 from ...models import RatingScale
 from ..base_service import BaseReviewService
 
 
 class RatingConverter(BaseReviewService):
-    """
-    Converts numeric scores to rating labels, colors, and display values
-    """
-    
     @staticmethod
     def score_to_rating(score, rating_scale, use_percentage=True):
-        """
-        Convert a numeric score to a rating level.
-        
-        Args:
-            score: Numeric score (raw or percentage)
-            rating_scale: RatingScale instance
-            use_percentage: If True, score is percentage (0-100)
-                           If False, score is raw value
-        
-        Returns:
-            dict: Rating level with label, color, min, max
-        """
         if score is None or not rating_scale:
             return None
         
@@ -38,17 +16,6 @@ class RatingConverter(BaseReviewService):
     
     @staticmethod
     def score_to_label(score, rating_scale, use_percentage=True):
-        """
-        Convert score to rating label only.
-        
-        Args:
-            score: Numeric score
-            rating_scale: RatingScale instance
-            use_percentage: If True, score is percentage
-        
-        Returns:
-            str: Rating label or "Not Rated"
-        """
         if score is None or not rating_scale:
             return "Not Rated"
         
@@ -57,20 +24,8 @@ class RatingConverter(BaseReviewService):
     
     @staticmethod
     def score_to_color(score, rating_scale, use_percentage=True):
-        """
-        Convert score to rating color.
-        
-        Args:
-            score: Numeric score
-            rating_scale: RatingScale instance
-            use_percentage: If True, score is percentage
-        
-        Returns:
-            str: Hex color code or default gray
-        """
         if score is None or not rating_scale:
             return '#95a5a6'
-        
         level = RatingConverter.score_to_rating(score, rating_scale, use_percentage)
         return level.get('color', '#95a5a6') if level else '#95a5a6'
     

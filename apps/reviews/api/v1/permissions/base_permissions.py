@@ -51,7 +51,7 @@ class IsTenantUser(BasePermission):
     def has_object_permission(self, request, view, obj):
         # Check if object has tenant attribute
         if hasattr(obj, 'tenant'):
-            return obj.tenant == request.user.tenant
+            return obj.tenant == request.user.tenant_id
         
         # Check if object has user with tenant
         if hasattr(obj, 'user') and hasattr(obj.user, 'tenant_id'):

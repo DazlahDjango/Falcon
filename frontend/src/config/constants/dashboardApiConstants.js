@@ -14,6 +14,7 @@ export const DASHBOARD_API = {
     DEPARTMENTS: `${API_BASE}/dashboard/executive/departments`,
     TRENDS: `${API_BASE}/dashboard/executive/trends`,
     ISSUES: `${API_BASE}/dashboard/executive/issues`,
+    EXPORT: `${API_BASE}/dashboard/executive/export`,
     REFRESH: `${API_BASE}/dashboard/executive/refresh`,
     DRILL_DOWN: (userId) => `${API_BASE}/dashboard/executive/drill-down/${userId}`,
     DEPARTMENT_DETAILS: (deptId) => `${API_BASE}/dashboard/executive/departments/${deptId}`,
@@ -28,6 +29,7 @@ export const DASHBOARD_API = {
     PENDING_APPROVALS: `${API_BASE}/dashboard/client-admin/pending-approvals`,
     MISSING_DATA: `${API_BASE}/dashboard/client-admin/missing-data`,
     USER_ACTIVITY: `${API_BASE}/dashboard/client-admin/user-activity`,
+    EXPORT: `${API_BASE}/dashboard/client-admin/export`,
     REFRESH: `${API_BASE}/dashboard/client-admin/refresh`,
     KPI_BREAKDOWN: `${API_BASE}/dashboard/client-admin/kpi-breakdown`,
     TENANT_SETTINGS: `${API_BASE}/dashboard/client-admin/settings`,
@@ -47,6 +49,7 @@ export const DASHBOARD_API = {
     SUBSCRIPTION_ALERTS: `${API_BASE}/dashboard/super-admin/subscription-alerts`,
     PLATFORM_METRICS: `${API_BASE}/dashboard/super-admin/platform-metrics`,
     BILLING_OVERVIEW: `${API_BASE}/dashboard/super-admin/billing`,
+    EXPORT: `${API_BASE}/dashboard/super-admin/export`,
     REFRESH: `${API_BASE}/dashboard/super-admin/refresh`
   },
   
@@ -60,6 +63,7 @@ export const DASHBOARD_API = {
     REJECT: `${API_BASE}/dashboard/manager/reject`,
     PENDING_APPROVALS: `${API_BASE}/dashboard/manager/pending`,
     DRILL_DOWN: (userId) => `${API_BASE}/dashboard/manager/user/${userId}`,
+    EXPORT: `${API_BASE}/dashboard/manager/export`,
     REFRESH: `${API_BASE}/dashboard/manager/refresh`
   },
 
@@ -71,6 +75,7 @@ export const DASHBOARD_API = {
     PENDING_SUBMISSIONS: `${API_BASE}/dashboard/staff/pending`,
     MISSION_STATUS: `${API_BASE}/dashboard/staff/mission-status`,
     TASKS: `${API_BASE}/dashboard/staff/tasks`,
+    EXPORT: `${API_BASE}/dashboard/staff/export`,
     REFRESH: `${API_BASE}/dashboard/staff/refresh`
   },
 
@@ -84,6 +89,7 @@ export const DASHBOARD_API = {
     ASSIGNED_KPIS: (userId) => `${API_BASE}/dashboard/champion/user/${userId}/assigned-kpis`,
     TEMPLATES: `${API_BASE}/dashboard/champion/templates`,
     APPLY_TEMPLATE: (templateId) => `${API_BASE}/dashboard/champion/templates/${templateId}/apply`,
+    EXPORT: `${API_BASE}/dashboard/champion/export`,
     REFRESH: `${API_BASE}/dashboard/champion/refresh`
   },
 

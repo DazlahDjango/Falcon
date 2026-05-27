@@ -1,9 +1,3 @@
-# apps/reviews/middleware/review_context_middleware.py
-"""
-Middleware to inject current review cycle into request context
-Uses CycleService for business logic
-"""
-
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
 from apps.reviews.models import ReviewCycle

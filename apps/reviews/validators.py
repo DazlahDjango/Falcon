@@ -1,9 +1,3 @@
-# apps/reviews/validators.py
-"""
-Custom validators for Reviews app
-Reusable validation functions for fields
-"""
-
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from decimal import Decimal

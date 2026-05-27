@@ -60,4 +60,4 @@ class ManagerDashboardDataSerializer(serializers.Serializer):
     pending_approvals = serializers.IntegerField(default=0)
     team_members = TeamMemberCardSerializer(many=True, required=False)
     team_summary = TeamSummarySerializer(required=False)
-    last_updated = serializers.DateTimeField()
+    last_updated = serializers.CharField()

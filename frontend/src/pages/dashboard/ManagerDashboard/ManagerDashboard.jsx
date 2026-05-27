@@ -1,19 +1,10 @@
 // frontend/src/pages/dashboard/ManagerDashboard/ManagerDashboard.jsx
 
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { useManagerDashboard } from '../../../hooks/dashboard/useManagerDashboard';
-import {
-  fetchManagerDashboard,
-  fetchTeamMembers,
-  fetchTeamSummary,
-  fetchPendingApprovals,
-  setActiveDashboard
-} from '../../../store/dashboard/slices/managerDashboardSlice';
 
 const ManagerDashboard = () => {
-  const dispatch = useDispatch();
   const {
     dashboardData,
     teamMembers,
@@ -29,14 +20,7 @@ const ManagerDashboard = () => {
     setPeriod,
     setIncludeTeam
   } = useManagerDashboard({ autoFetch: true });
-
-  useEffect(() => {
-    dispatch(setActiveDashboard('manager'));
-    dispatch(fetchManagerDashboard({ period, includeTeam }));
-    dispatch(fetchTeamMembers());
-    dispatch(fetchTeamSummary());
-    dispatch(fetchPendingApprovals());
-  }, [dispatch, period, includeTeam]);
+  // Hook handles all data fetching with autoFetch:true
 
   const widgets = [
     {

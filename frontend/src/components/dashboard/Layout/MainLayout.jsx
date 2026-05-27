@@ -8,6 +8,10 @@ import { useAppAuth } from '../../../hooks/dashboard/useAppAuth';
 import { useDashboardProfileContext } from '../../../contexts/dashboard/DashboardProfileContext';
 import { useDashboardRealtime } from '../../../contexts/dashboard/DashboardRealtimeContext';
 import LoadingScreen from '../../common/Feedback/LoadingScreen';
+import { GlobalMaintenanceBanner } from '../../config/common/GlobalMaintenanceBanner';
+import { GlobalSecurityBanner } from '../../accounts/common/GlobalSecurityBanner';
+import { GlobalKpiBanner } from '../../kpi/common/GlobalKpiBanner';
+import { GlobalTenantQuotaBanner } from '../../tenant/common/GlobalTenantQuotaBanner';
 import { DASHBOARD_TYPES } from '../../../config/constants/dashboardConstants';
 import {
   ExecutiveSidebar,
@@ -111,12 +115,18 @@ const MainLayout = () => {
             wsConnected={wsConnected}
           />
         </Suspense>
+        <GlobalMaintenanceBanner />
+        <GlobalSecurityBanner />
+        <GlobalKpiBanner />
+        <GlobalTenantQuotaBanner />
         <main className="content-wrapper">
           <Suspense fallback={<LoadingScreen message="Loading..." />}>
             <Outlet />
           </Suspense>
         </main>
-        <Footer />
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
       </div>
     </div>
   );

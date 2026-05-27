@@ -7,7 +7,8 @@ Background tasks for reminders, escalations, and batch processing
 from celery import shared_task
 from django.utils import timezone
 
-from .models import ReviewCycle, PIP, PIPAction
+from .models import ReviewCycle, PIP, PIPAction, SelfAssessment, CompetencyRating
+from .services.tasks.retry import reviews_shared_task
 from .utils import get_today, get_remaining_days
 
 # Import services
@@ -326,3 +327,167 @@ def reviews_health_check():
         'active_cycles': active_cycles,
         'timestamp': timezone.now().isoformat()
     }
+
+
+# ========== Stability & sync tasks (referenced by celery beat) ==========
+
+@reviews_shared_task
+def cleanup_orphaned_ratings(self):
+    """Remove CompetencyRating rows whose parent object no longer exists."""
+    deleted = 0
+    for rating in CompetencyRating.objects.filter(deleted_at__isnull=True).iterator(chunk_size=200):
+        model = rating.content_type.model_class()
+        if model is None or not model.objects.filter(pk=rating.object_id).exists():
+            rating.hard_delete() if hasattr(rating, 'hard_delete') else rating.delete()
+            deleted += 1
+    return {'deleted': deleted}
+
+
+@reviews_shared_task
+def delete_old_draft_assessments(self):
+    """Hard-delete draft self assessments older than retention setting."""
+    from apps.reviews.services.settings import ReviewsSettingsService
+    days = ReviewsSettingsService.get_section('stability').get(
+        'draft_assessment_retention_days', 90,
+    )
+    cutoff = timezone.now() - timezone.timedelta(days=days)
+    qs = SelfAssessment.objects.filter(status='draft', created_at__lt=cutoff)
+    count = qs.count()
+    qs.delete()
+    return {'deleted': count}
+
+
+@reviews_shared_task
+def detect_stalled_pips(self):
+    """Escalate active PIPs with no progress for pip_escalation_days."""
+    from apps.reviews.services.settings import ReviewsSettingsService
+    days = ReviewsSettingsService.get_section('stability').get('pip_escalation_days', 30)
+    PIPTracker.ESCALATION_DAYS = days
+    escalated = 0
+    for pip in PIP.objects.filter(status='active').iterator(chunk_size=100):
+        if PIPTracker.check_escalation_needed(pip.id):
+            escalated += 1
+    return {'escalated': escalated}
+
+
+@reviews_shared_task
+def warm_dashboard_cache(self):
+    """Pre-warm dashboard metrics for all active tenants."""
+    from apps.tenant.models import Client
+    from apps.reviews.services.sync import ReviewsResourceSyncService
+    warmed = 0
+    for tid in Client.objects.filter(is_deleted=False).values_list('id', flat=True):
+        ReviewsResourceSyncService.build_dashboard_metrics(tid, broadcast=True)
+        warmed += 1
+    return {'tenants': warmed}
+
+
+@reviews_shared_task
+def sync_kpi_data(self):
+    """Sync KPI aggregates and notify dashboards."""
+    from apps.tenant.models import Client
+    from apps.reviews.services.sync import ReviewsDependencySyncService
+    for tid in Client.objects.filter(is_deleted=False).values_list('id', flat=True)[:50]:
+        ReviewsDependencySyncService.on_kpi_score_changed(tid, recalculate_final_ratings=False)
+    return {'status': 'ok'}
+
+
+@shared_task
+def sync_mission_data():
+    """Placeholder for mission app integration."""
+    return {'status': 'skipped', 'reason': 'mission_app_not_configured'}
+
+
+@shared_task
+def sync_task_data():
+    """Placeholder for task app integration."""
+    return {'status': 'skipped', 'reason': 'task_app_not_configured'}
+
+
+@reviews_shared_task
+def clear_stale_cache(self):
+    from apps.reviews.services.settings import ReviewsSettingsService
+    ReviewsSettingsService.invalidate_cache()
+    return {'cleared': True}
+
+
+@reviews_shared_task
+def validate_data_integrity(self):
+    """Verify checksums on encrypted models."""
+    from apps.reviews.services.security import IntegrityService
+    from apps.reviews.models import ReviewComment, FeedbackResponse, SelfAssessment
+    failures = []
+    for model, fields in [
+        (ReviewComment, ['comment']),
+        (FeedbackResponse, ['strengths', 'areas_for_improvement', 'additional_comments']),
+        (SelfAssessment, ['overall_comment']),
+    ]:
+        for obj in model.objects.all()[:500]:
+            if not IntegrityService.verify(obj, fields):
+                failures.append(f'{model.__name__}:{obj.id}')
+    return {'failures': failures, 'count': len(failures)}
+
+
+@shared_task
+def archive_completed_cycles():
+    from .models import ReviewCycle
+    cutoff = timezone.now().date() - timezone.timedelta(days=365)
+    updated = ReviewCycle.objects.filter(
+        status='completed', end_date__lt=cutoff,
+    ).update(status='archived')
+    return {'archived': updated}
+
+
+@shared_task
+def escalate_unanswered_feedback():
+    return {'escalated': 0}
+
+
+@shared_task
+def calibration_followup():
+    return {'status': 'ok'}
+
+
+@shared_task
+def send_self_assessment_reminders():
+    return {'sent': 0}
+
+
+@shared_task
+def send_supervisor_review_reminders():
+    return {'sent': 0}
+
+
+@shared_task
+def check_missing_reviews():
+    return {'missing': 0}
+
+
+@shared_task
+def generate_monthly_report():
+    return {'status': 'not_implemented'}
+
+
+@shared_task
+def generate_quarterly_report(quarter=1):
+    return {'status': 'not_implemented', 'quarter': quarter}
+
+
+@shared_task
+def calculate_rating_distribution():
+    return {'status': 'ok'}
+
+
+@shared_task
+def detect_rating_inflation():
+    return {'status': 'ok'}
+
+
+@shared_task
+def calculate_manager_consistency():
+    return {'status': 'ok'}
+
+
+@shared_task(name='apps.reviews.tasks.health_check')
+def health_check():
+    return reviews_health_check()

@@ -58,7 +58,7 @@ export const DashboardWidget = ({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [id, onResize];
+  };
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);

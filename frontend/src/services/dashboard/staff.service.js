@@ -82,6 +82,21 @@ class StaffService extends BaseDashboardService {
   async refreshDashboard() {
     return this.apiClient.post(DASHBOARD_API.STAFF.REFRESH);
   }
+
+  async exportDashboard(params = {}) {
+    const { period = 'current', format = 'pdf' } = params;
+    try {
+      const response = await this.apiClient.post(
+        DASHBOARD_API.STAFF.EXPORT,
+        { period, format },
+        { responseType: 'blob' }
+      );
+      return response.data || response;
+    } catch (error) {
+      console.error('Failed to export dashboard:', error);
+      throw error;
+    }
+  }
 }
 
 export default new StaffService();

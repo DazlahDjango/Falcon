@@ -1,13 +1,6 @@
-# apps/reviews/consumers/calibration_consumer.py
-"""
-WebSocket consumer for live calibration sessions
-Real-time chat and rating adjustments during calibration meetings
-"""
-
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-
 from apps.reviews.services.calibration.calibration_service import CalibrationService
 from apps.reviews.services.reporting.calibration_report_service import CalibrationReportService
 from apps.reviews.services.notification.notification_service import NotificationService

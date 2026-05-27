@@ -14,4 +14,4 @@ class ReadOnlyDashboardDataSerializer(serializers.Serializer):
     can_configure = serializers.BooleanField(default=False)
     can_export = serializers.BooleanField(default=True)
     data = serializers.DictField()
-    last_updated = serializers.DateTimeField()
+    last_updated = serializers.CharField()

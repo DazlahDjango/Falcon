@@ -92,6 +92,28 @@ class ManagerService extends BaseDashboardService {
   async refreshDashboard() {
     return this.apiClient.post(DASHBOARD_API.MANAGER.REFRESH);
   }
+
+  /**
+   * Export dashboard data
+   * @param {Object} params - Export parameters
+   * @param {string} params.period - Period to export
+   * @param {string} params.format - Export format (pdf, excel, csv)
+   * @returns {Promise<Blob>} - File blob for download
+   */
+  async exportDashboard(params = {}) {
+    const { period = 'current', format = 'pdf' } = params;
+    try {
+      const response = await this.apiClient.post(
+        DASHBOARD_API.MANAGER.EXPORT,
+        { period, format },
+        { responseType: 'blob' }
+      );
+      return response.data || response;
+    } catch (error) {
+      console.error('Failed to export dashboard:', error);
+      throw error;
+    }
+  }
 }
 
 export const managerService = new ManagerService();

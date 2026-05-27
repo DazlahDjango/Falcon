@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { FiSettings, FiGrid, FiSave, FiX } from 'react-icons/fi';
+import { FiSettings, FiGrid, FiSave, FiX, FiRefreshCw } from 'react-icons/fi';
 import { DashboardGrid } from './DashboardGrid';
 import { DashboardConfigModal } from '../config/DashboardConfigModal';
 import { WidgetConfigPanel } from '../config/WidgetConfigPanel';
@@ -69,12 +69,14 @@ export const DashboardLayout = ({
             {dashboardType?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Dashboard
           </h1>
           {onRefresh && (
-            <button 
+            <button
+              type="button"
               className="dashboard-refresh-btn"
               onClick={onRefresh}
               disabled={loading}
             >
-              🔄 Refresh
+              <FiRefreshCw size={14} />
+              Refresh
             </button>
           )}
         </div>

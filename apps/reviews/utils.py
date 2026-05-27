@@ -1,8 +1,3 @@
-# apps/reviews/utils.py
-"""
-Utility functions for Reviews app
-Reusable helpers for calculations, formatting, and common operations
-"""
 from decimal import Decimal
 from datetime import date, timedelta
 from django.utils import timezone

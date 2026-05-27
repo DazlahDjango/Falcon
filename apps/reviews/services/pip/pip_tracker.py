@@ -1,22 +1,10 @@
-# apps/reviews/services/pip/pip_tracker.py
-"""
-Track PIP progress, deadlines, and escalations
-"""
-
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
 from ...models import PIP, PIPAction
 from ..base_service import BaseReviewService
 from ..notification.notification_service import NotificationService
 
-
 class PIPTracker(BaseReviewService):
-    """
-    Tracks PIP progress, monitors deadlines, and handles escalations
-    """
-    
-    # Escalation settings
     ESCALATION_DAYS = 30  # Days with no progress before escalation
     REMINDER_DAYS = [14, 7, 3]  # Days before deadline to send reminders
     

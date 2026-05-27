@@ -48,4 +48,4 @@ class ChampionDashboardDataSerializer(serializers.Serializer):
     assigned_kpis = AssignedKPISerializer(many=True)
     available_kpis = AvailableKPISerializer(many=True)
     dashboard_config = ChampionDashboardConfigSerializer()
-    last_updated = serializers.DateTimeField()
+    last_updated = serializers.CharField()
