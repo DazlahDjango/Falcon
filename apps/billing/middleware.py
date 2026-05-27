@@ -31,6 +31,13 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
         '/admin/',
         '/health/',
         '/ws/',
+        # Dashboard and config endpoints
+        '/api/v1/dashboard/',
+        '/api/v1/config/',
+        '/api/v1/sessions/',
+        '/api/v1/accounts/me/',
+        '/api/v1/notifications/',
+        '/api/v1/tenant/settings/',
     ]
 
     # Feature to path mapping
