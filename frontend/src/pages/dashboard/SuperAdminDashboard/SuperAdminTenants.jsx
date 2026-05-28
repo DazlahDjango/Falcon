@@ -4,11 +4,7 @@ import { TenantsTable } from './TenantsTable';
 import { useSuperAdminDashboard } from '../../../hooks/dashboard/useSuperAdminDashboard';
 
 const SuperAdminTenants = () => {
-<<<<<<< HEAD
-  const { tenants, tenantsLoading, fetchTenants } = useSuperAdminDashboard({ autoRefresh: true });
-=======
   const { tenants, tenantsLoading, fetchTenants, refreshTenantSnapshot } = useSuperAdminDashboard({ autoRefresh: true });
->>>>>>> 5f1485efe72578f098c861e800fe246c25520289
 
   useEffect(() => {
     fetchTenants();
@@ -24,16 +20,12 @@ const SuperAdminTenants = () => {
       onRefresh={fetchTenants}
     >
       <div className="dashboard-page__panel">
-<<<<<<< HEAD
-        <TenantsTable data={tenants} loading={tenantsLoading} onRefresh={fetchTenants} />
-=======
         <TenantsTable 
           data={tenants} 
           loading={tenantsLoading} 
           onRefresh={fetchTenants} 
           onRefreshTenant={refreshTenantSnapshot}
         />
->>>>>>> 5f1485efe72578f098c861e800fe246c25520289
       </div>
     </DashboardPageShell>
   );

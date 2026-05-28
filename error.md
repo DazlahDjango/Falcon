@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Hello
 Look at those picture
 1. Help me to style that kpi page/file
@@ -6,6 +7,8 @@ Yesterday we bypassed viewing when you're super_admin, and it passed, I could se
 a. Any role with super_admin
 b. Any is_superuser=True
 those two they need to bypass all the limits, either in backend middleware or frontend both context, middleware and any file that is limiting this
+=======
+>>>>>>> 05b41ec (Super admin dashboard initials)
 Hello, hope you're doing great
 I have this dashboard app though I've been fixing it for quit a while its still not working as intended
 I'll share the image so that you see but here is what I see in the browser console
@@ -60,4 +63,8 @@ dashboard.routes.jsx:18 📦 [DEBUG] Available exports: (51) ['ApprovalsHistory
 
 Now help me mostly you can see that useDashboardProfile file, see the one in accounts though it exists as a page and not a hook, its at components/accounts/users/UserProfile, this one is working properly
 
+<<<<<<< HEAD
 I had all the routes in the dashboard.routes.jsx file, I then moved some of the dashboard pages to the dashboard.routes file so that I could test only super admin dashboard
+=======
+I had all the routes in the dashboard.routes.jsx file, I then moved some of the dashboard pages to the dashboard.routes file so that I could test only super admin dashboard
+>>>>>>> 05b41ec (Super admin dashboard initials)
