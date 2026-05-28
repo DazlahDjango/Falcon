@@ -95,6 +95,16 @@ class UserSession(BaseModel):
         self.security_alerts.append(alert)
         self.save(update_fields=['security_alerts'])
 
+    def get_duration(self):
+        """Get the duration of the session in seconds."""
+        if self.logout_time:
+            end_time = self.logout_time
+        else:
+            end_time = self.last_activity
+        
+        duration = end_time - self.login_time
+        return int(duration.total_seconds())
+
 class SessionBlacklist(BaseModel):
     """
     Blacklisted JWT tokens and session keys for immediate revocation.

@@ -64,6 +64,12 @@ class StructureRateLimitMiddleware(MiddlewareMixin):
         if not request.path.startswith('/api/v1/structure/'):
             return None
         from django.core.cache import cache
+        
+        # Bypass rate limiting for super_admin users
+        if hasattr(request, 'user') and request.user and request.user.is_authenticated:
+            if request.user.is_superuser or getattr(request.user, 'role', None) == 'super_admin':
+                return None
+        
         if not hasattr(request, 'user') or not request.user or not request.user.is_authenticated:
             identifier = request.META.get('REMOTE_ADDR', 'unknown')
         else:

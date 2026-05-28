@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from apps.accounts.api.v1.permissions import IsAuthenticated
 from ....models import PaymentMethod
 from ....services.audit.logger import audit_logger
 from ..serializers import (

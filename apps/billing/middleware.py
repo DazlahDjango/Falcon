@@ -60,6 +60,28 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
                 return None
 
         # ---------------------------------------------------------
+        # SUPER ADMIN / SUPERUSER BYPASS (CHECK FIRST!)
+        # ---------------------------------------------------------
+        user = getattr(request, 'user', None)
+        
+        logger.info(
+            f"SubscriptionGuard: Checking request {request.method} {request.path}. "
+            f"User: {user}, Authenticated: {user.is_authenticated if user else 'N/A'}, "
+            f"is_superuser: {getattr(user, 'is_superuser', 'N/A')}, "
+            f"role: {getattr(user, 'role', 'N/A')}"
+        )
+        
+        if user and user.is_authenticated:
+            # Super admin or superuser bypass ALL subscription checks
+            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+                log_msg = (
+                    f"SubscriptionGuard FULL BYPASS for admin user {user.email}. "
+                    f"is_superuser={user.is_superuser}, role={getattr(user, 'role', 'N/A')}"
+                )
+                logger.info(log_msg)
+                return None
+
+        # ---------------------------------------------------------
         # GET TENANT CONTEXT
         # ---------------------------------------------------------
         # Try both attribute names for backward compatibility
@@ -68,29 +90,6 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
         # No tenant context means public endpoint
         if not tenant_id:
             return None
-
-        # ---------------------------------------------------------
-        # SUPER ADMIN / SUPERUSER BYPASS
-        # ---------------------------------------------------------
-        user = getattr(request, 'user', None)
-
-        # Bypass for users with BOTH super_admin role AND superuser status,
-        # or for users who have EITHER condition for broader admin access
-        if user and user.is_authenticated:
-            is_super_admin_strict = (
-                user.is_superuser and getattr(user, 'role', None) == 'super_admin'
-            )
-            is_super_admin_lenient = (
-                user.is_superuser or getattr(user, 'role', None) == 'super_admin'
-            )
-            
-            if is_super_admin_strict or is_super_admin_lenient:
-                log_msg = (
-                    f"SubscriptionGuard bypassed for admin user {user.email}. "
-                    f"is_superuser={user.is_superuser}, role={getattr(user, 'role', 'N/A')}"
-                )
-                logger.info(log_msg)
-                return None
 
         # ---------------------------------------------------------
         # CHECK CACHE
@@ -340,6 +339,13 @@ class WebhookRateLimitMiddleware(MiddlewareMixin):
             '/api/v1/billing/webhook/'
         ):
             return None
+        
+        # Bypass rate limiting for super_admin users
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+                logger.info(f"Webhook rate limit bypassed for admin user {user.email}")
+                return None
 
         client_ip = self._get_client_ip(request)
 

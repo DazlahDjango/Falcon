@@ -45,6 +45,13 @@ class KPIThrottleMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if not request.user.is_authenticated:
             return None
+        
+        # Bypass rate limiting for super_admin users
+        user = request.user
+        if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+            logger.info(f"KPI rate limit bypassed for admin user {user.email}")
+            return None
+        
         throttle_key = self._get_throttle_key(request)
         if not throttle_key:
             return None

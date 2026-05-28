@@ -64,6 +64,11 @@ class DashboardRateLimitMiddleware(MiddlewareMixin):
             return None
         if not hasattr(request, 'user') or not request.user.is_authenticated:
             return None
+        
+        # Bypass rate limiting for super_admin users
+        if request.user.is_superuser or getattr(request.user, 'role', None) == 'super_admin':
+            return None
+        
         user_id = str(request.user.id)
         path = request.path
         if request.method == 'GET':
