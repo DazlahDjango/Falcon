@@ -99,4 +99,4 @@ class StaffService extends BaseDashboardService {
   }
 }
 
-export default new StaffService();
+export const staffService = new StaffService();

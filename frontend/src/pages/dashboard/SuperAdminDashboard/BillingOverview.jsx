@@ -44,3 +44,4 @@ BillingOverview.propTypes = {
   data: PropTypes.object,
   loading: PropTypes.bool
 };
+export default BillingOverview;

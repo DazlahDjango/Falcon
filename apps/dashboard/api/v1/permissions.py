@@ -10,11 +10,13 @@ class DashboardBasePermission(BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         tenant_id = getattr(request.user, 'tenant_id', None)
-        if not tenant_id:
+        if not tenant_id and request.user.role != 'super_admin':
             return False
         return True
     
     def has_object_permission(self, request, view, obj):
+        if request.user.role == 'super_admin':
+            return True
         tenant_id = getattr(request.user, 'tenant_id', None)
         if hasattr(obj, 'tenant_id') and str(obj.tenant_id) != str(tenant_id):
             return False

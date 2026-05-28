@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Pie } from 'react-chartjs-2';
-import { ArcElement } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
-ChartJS.register(ArcElement);
+// Register ChartJS components
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const RevenueBreakdown = ({ data, loading }) => {
     if (loading) {

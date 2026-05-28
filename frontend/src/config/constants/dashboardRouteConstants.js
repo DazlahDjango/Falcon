@@ -244,6 +244,7 @@ export const getDashboardRoutesByRole = (role) => {
     case 'super_admin':
       return DASHBOARD_ROUTES.SUPER_ADMIN
     case 'manager':
+    case 'supervisor':
       return DASHBOARD_ROUTES.MANAGER
     case 'staff':
       return DASHBOARD_ROUTES.STAFF
@@ -265,6 +266,7 @@ export const getNavItemsByRole = (role) => {
     case 'super_admin':
       return DASHBOARD_NAV_ITEMS.SUPER_ADMIN
     case 'manager':
+    case 'supervisor':
       return DASHBOARD_NAV_ITEMS.MANAGER
     case 'staff':
       return DASHBOARD_NAV_ITEMS.STAFF

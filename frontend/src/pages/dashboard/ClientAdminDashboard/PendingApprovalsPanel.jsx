@@ -45,14 +45,14 @@ export const PendingApprovalsPanel = ({ data, loading }) => {
               </div>
             </div>
             <div className="approval-actions">
-              <button 
+              <button
                 onClick={() => handleApprove(item)}
                 disabled={processingId === item.id}
                 className="approve-btn"
               >
                 Approve
               </button>
-              <button 
+              <button
                 onClick={() => handleReject(item)}
                 disabled={processingId === item.id}
                 className="reject-btn"
@@ -76,3 +76,4 @@ PendingApprovalsPanel.propTypes = {
   data: PropTypes.array,
   loading: PropTypes.bool
 };
+export default PendingApprovalsPanel;

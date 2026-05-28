@@ -2,13 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { DateRangePicker, RefreshButton, ExportButton } from '../../../components/dashboard/common';
 
-export const ExecutiveDashboardHeader = ({ 
+export const ExecutiveDashboardHeader = ({
   title = 'Executive Dashboard',
-  onRefresh, 
-  onExport, 
+  onRefresh,
+  onExport,
   onDateRangeChange,
   lastUpdated,
-  isLoading 
+  isLoading
 }) => {
   return (
     <div className="executive-dashboard-header">
@@ -18,18 +18,18 @@ export const ExecutiveDashboardHeader = ({
           Organization-wide performance overview
         </div>
       </div>
-      
+
       <div className="header-right">
-        <DateRangePicker 
+        <DateRangePicker
           onChange={onDateRangeChange}
           presets={true}
         />
-        <RefreshButton 
+        <RefreshButton
           onRefresh={onRefresh}
           isLoading={isLoading}
           lastUpdated={lastUpdated}
         />
-        <ExportButton 
+        <ExportButton
           onExport={onExport}
           formats={['pdf', 'excel', 'csv']}
         />
@@ -46,3 +46,5 @@ ExecutiveDashboardHeader.propTypes = {
   lastUpdated: PropTypes.string,
   isLoading: PropTypes.bool
 };
+
+export default ExecutiveDashboardHeader;

@@ -7,6 +7,6 @@ export const ConfigGuard = () => {
   const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!canAccessConfig) return <Navigate to="/kpi/dashboard" replace />;
+  if (!canAccessConfig) return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 };

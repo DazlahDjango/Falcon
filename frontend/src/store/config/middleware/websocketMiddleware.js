@@ -8,7 +8,7 @@ export const websocketMiddleware = (store) => (next) => (action) => {
   const tenantId = state.auth?.user?.tenant_id;
   if (action.type === 'config/initializeWebSockets' && tenantId) {
     if (wsMaintenance) wsMaintenance.close();
-    wsMaintenance = new WebSocket(`${import.meta.env.VITE_WS_URL}/config/maintenance/${tenantId}`);
+    wsMaintenance = new WebSocket(`${import.meta.env.VITE_WS_URL}/config/maintenance/${tenantId}/`);
     wsMaintenance.onmessage = (event) => {
       const data = JSON.parse(event.data);
       store.dispatch({ type: 'maintenance/setGlobalMaintenanceStatus', payload: data });
@@ -22,7 +22,7 @@ export const websocketMiddleware = (store) => (next) => (action) => {
   }
   if (action.type === 'backup/setActiveBackupProgress' && action.payload?.jobId) {
     if (wsBackup) wsBackup.close();
-    wsBackup = new WebSocket(`${import.meta.env.VITE_WS_URL}/config/backup/${action.payload.jobId}`);
+    wsBackup = new WebSocket(`${import.meta.env.VITE_WS_URL}/config/backup/${action.payload.jobId}/`);
     wsBackup.onmessage = (event) => {
       const data = JSON.parse(event.data);
       store.dispatch({ type: 'backup/updateBackupJob', payload: data });
@@ -31,7 +31,7 @@ export const websocketMiddleware = (store) => (next) => (action) => {
   }
   if (action.type === 'dr/setActiveDRProgress' && action.payload?.executionId) {
     if (wsDR) wsDR.close();
-    wsDR = new WebSocket(`${import.meta.env.VITE_WS_URL}/config/dr/${action.payload.executionId}`);
+    wsDR = new WebSocket(`${import.meta.env.VITE_WS_URL}/config/dr/${action.payload.executionId}/`);
     wsDR.onmessage = (event) => {
       const data = JSON.parse(event.data);
       store.dispatch({ type: 'dr/updateDRExecution', payload: data });

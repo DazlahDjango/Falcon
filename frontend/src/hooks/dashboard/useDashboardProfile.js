@@ -4,16 +4,19 @@ import { resolveDashboardRole } from '../../utils/dashboard/resolveDashboardRole
 
 const normalizeProfile = (raw) => {
   if (!raw) return null;
-  const data = raw.data ?? raw;
+
+  const data = raw;
+
   return {
     ...data,
     id: data.id,
     email: data.email,
     firstName: data.first_name ?? data.firstName,
     lastName: data.last_name ?? data.lastName,
-    fullName: data.full_name
-      || [data.first_name, data.last_name].filter(Boolean).join(' ')
-      || data.email,
+    fullName:
+      data.full_name ||
+      [data.first_name, data.last_name].filter(Boolean).join(' ') ||
+      data.email,
     avatarUrl: data.avatar_url ?? data.avatar ?? data.profile_image,
     role: data.role,
     tenantId: data.tenant_id ?? data.tenantId,
@@ -37,7 +40,7 @@ export const useDashboardProfile = (options = {}) => {
     setError(null);
     try {
       const response = await getCurrentUser();
-      const normalized = normalizeProfile(response);
+      const normalized = normalizeProfile(response.data);
       setProfile(normalized);
       return normalized;
     } catch (err) {

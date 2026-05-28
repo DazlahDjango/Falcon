@@ -373,3 +373,4 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
 };
 
 export { Header };
+export default Header;

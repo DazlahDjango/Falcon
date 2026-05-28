@@ -29,21 +29,21 @@ export const SystemHealthPanel = ({ data, loading }) => {
           <div className="uptime-value">{data.uptime_percentage || 99.95}%</div>
           <div className="uptime-label">Uptime (30 days)</div>
         </div>
-        
+
         <div className="services-list">
           {services.map((service, index) => (
             <div key={index} className="service-item">
               <span className="service-icon">{service.icon}</span>
               <span className="service-name">{service.name}</span>
-              <StatusBadge 
-                status={service.status === 'operational' ? 'active' : 'inactive'} 
+              <StatusBadge
+                status={service.status === 'operational' ? 'active' : 'inactive'}
                 text={service.status}
                 size="small"
               />
             </div>
           ))}
         </div>
-        
+
         {data.last_incident && (
           <div className="last-incident">
             <span>⚠️ Last incident: {data.last_incident}</span>
@@ -58,3 +58,4 @@ SystemHealthPanel.propTypes = {
   data: PropTypes.object,
   loading: PropTypes.bool
 };
+export default SystemHealthPanel;

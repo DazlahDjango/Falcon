@@ -19,6 +19,7 @@
 @import './styles/pages.css';
 @import './components/auth.css';
 @import './components/dashboard.css';
+@import './styles/dashboard/dashboard.css';
 @import './components/users.css';
 @import './components/team.css';
 @import './components/roles.css';

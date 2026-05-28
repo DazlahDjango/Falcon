@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FiRefreshCw, FiShield, FiRadio } from 'react-icons/fi';
-import { useDashboardPage } from '../../../hooks/dashboard/useDashboardPage';
+import { useDashboardPage } from '../../../hooks/dashboard';
 import { RefreshButton } from '../common/RefreshButton';
 import { LoadingSkeleton } from '../common/LoadingSkeleton';
 

@@ -15,7 +15,7 @@ const Login = () => {
     // Redirect if already authenticated
     React.useEffect(() => {
         if (isAuthenticated) {
-            navigate('/kpi/dashboard', { replace: true });
+            navigate('/dashboard', { replace: true });
         }
     }, [isAuthenticated, navigate]);
     
