@@ -116,6 +116,10 @@ export const useExecutiveDashboard = (options = {}) => {
     fetchKpiTrends,
     setSelectedDepartment,
     refreshDashboard,
-    refreshAll
+    refreshAll,
+    // Aliases for backward compatibility
+    fetchDepartmentsData: fetchDepartments,
+    fetchTrendsData: fetchTrends,
+    fetchIssuesData: fetchIssues,
   };
 };

@@ -40,3 +40,4 @@ SubscriptionAlerts.propTypes = {
   data: PropTypes.array,
   loading: PropTypes.bool
 };
+export default SubscriptionAlerts;

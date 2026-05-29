@@ -37,7 +37,7 @@ export const ExecutiveOverview = () => {
           </div>
         ))}
       </div>
-      
+
       <div className="kpi-status-summary">
         <h4>KPI Health Status</h4>
         <div className="status-bars">
@@ -55,3 +55,5 @@ export const ExecutiveOverview = () => {
     </DashboardCard>
   );
 };
+
+export default ExecutiveOverview;

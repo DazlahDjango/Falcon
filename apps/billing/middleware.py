@@ -1,14 +1,11 @@
-import json
 import logging
+
 from django.utils.deprecation import MiddlewareMixin
 from django.http import JsonResponse
 from django.core.cache import cache
-from django.conf import settings
 from django.utils import timezone
-
 from .models import Subscription
 from .constants import SubscriptionStatus
-from .exceptions import TenantInactiveError, TenantSubscriptionRequiredError
 
 logger = logging.getLogger(__name__)
 
@@ -16,22 +13,34 @@ logger = logging.getLogger(__name__)
 class SubscriptionGuardMiddleware(MiddlewareMixin):
     """
     Middleware to check subscription status for tenant requests.
-    Blocks access to premium features if subscription is invalid.
-    SUPER_ADMIN users bypass all subscription checks.
+
+    Features:
+    - Bypasses platform admins (superuser + super_admin role)
+    - Blocks invalid subscriptions
+    - Enforces premium feature access
+    - Uses caching for performance
     """
-    
+
     # Paths that bypass subscription check
     BYPASS_PATHS = [
         '/api/v1/billing/webhook/',
         '/api/v1/auth/',
         '/api/v1/plans/',
         '/api/v1/billing/checkout/',
+        '/api/v1/admin/',
         '/admin/',
         '/health/',
         '/ws/',
+        # Dashboard and config endpoints
+        '/api/v1/dashboard/',
+        '/api/v1/config/',
+        '/api/v1/sessions/',
+        '/api/v1/accounts/me/',
+        '/api/v1/notifications/',
+        '/api/v1/tenant/settings/',
     ]
-    
-    # Feature to path mapping (requires active subscription)
+
+    # Feature to path mapping
     PREMIUM_FEATURES = {
         'custom_branding': ['/api/v1/tenant/branding/'],
         'api_access': ['/api/v1/external/'],
@@ -39,323 +48,399 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
         'custom_reports': ['/api/v1/reports/custom/'],
         'sso_enabled': ['/api/v1/sso/'],
     }
-    
+
     def process_request(self, request):
-        """Check subscription before processing request."""
-        
-        # Skip for bypass paths
+        """Validate tenant subscription before request processing."""
+
+        # ---------------------------------------------------------
+        # BYPASS PUBLIC / SYSTEM PATHS
+        # ---------------------------------------------------------
         for path in self.BYPASS_PATHS:
             if request.path.startswith(path):
                 return None
+
+        # ---------------------------------------------------------
+        # SUPER ADMIN / SUPERUSER BYPASS (CHECK FIRST!)
+        # ---------------------------------------------------------
+        user = getattr(request, 'user', None)
         
-        # Check if user is super admin (bypass all subscription checks)
-        if hasattr(request, 'user') and request.user.is_authenticated:
-            if request.user.role == 'super_admin' or request.user.is_superuser:
-                logger.debug(f"Super admin {request.user.email} bypassing subscription check")
-                # Still attach billing context for super admin (with full access)
-                self._attach_super_admin_billing_context(request)
+        logger.info(
+            f"SubscriptionGuard: Checking request {request.method} {request.path}. "
+            f"User: {user}, Authenticated: {user.is_authenticated if user else 'N/A'}, "
+            f"is_superuser: {getattr(user, 'is_superuser', 'N/A')}, "
+            f"role: {getattr(user, 'role', 'N/A')}"
+        )
+        
+        if user and user.is_authenticated:
+            # Super admin or superuser bypass ALL subscription checks
+            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+                log_msg = (
+                    f"SubscriptionGuard FULL BYPASS for admin user {user.email}. "
+                    f"is_superuser={user.is_superuser}, role={getattr(user, 'role', 'N/A')}"
+                )
+                logger.info(log_msg)
                 return None
-        
-        # Get tenant from request (set by tenant middleware)
-        tenant_id = getattr(request, 'tenant_id', None)
-        
+
+        # ---------------------------------------------------------
+        # GET TENANT CONTEXT
+        # ---------------------------------------------------------
+        # Try both attribute names for backward compatibility
+        tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
+
+        # No tenant context means public endpoint
         if not tenant_id:
-            # No tenant context - likely public endpoint
             return None
-        
-        # Check cache first
+
+        # ---------------------------------------------------------
+        # CHECK CACHE
+        # ---------------------------------------------------------
         cache_key = f"subscription_valid_{tenant_id}"
-        is_valid = cache.get(cache_key)
-        
-        if is_valid is None:
-            # Check subscription status
-            subscription = Subscription.objects.get_current_for_tenant(tenant_id)
-            
+        cached_data = cache.get(cache_key)
+
+        error_msg = None
+        subscription = None
+
+        if cached_data is None:
+
+            # ---------------------------------------------------------
+            # FETCH SUBSCRIPTION
+            # ---------------------------------------------------------
+            subscription = Subscription.objects.get_current_for_tenant(
+                tenant_id
+            )
+
+            # ---------------------------------------------------------
+            # VALIDATE SUBSCRIPTION
+            # ---------------------------------------------------------
             if not subscription:
                 is_valid = False
                 error_msg = "No active subscription found"
+
             elif subscription.status == SubscriptionStatus.EXPIRED:
                 is_valid = False
                 error_msg = "Subscription has expired"
+
             elif subscription.status == SubscriptionStatus.CANCELLED:
                 is_valid = False
                 error_msg = "Subscription has been cancelled"
+
             elif subscription.status == SubscriptionStatus.PAST_DUE:
                 is_valid = False
                 error_msg = "Subscription payment is past due"
+
             elif subscription.status == SubscriptionStatus.TRIALING:
-                # Trial has limited access
                 is_valid = True
                 error_msg = None
+
                 request.is_trial = True
-                request.trial_days_remaining = subscription.trial_days_remaining
+                request.trial_days_remaining = (
+                    subscription.trial_days_remaining
+                )
+
+                request.subscription = subscription
+
             else:
                 is_valid = True
                 error_msg = None
+
                 request.subscription = subscription
-            
-            # Cache for 5 minutes
-            cache.set(cache_key, is_valid, 300)
-        
+
+            # ---------------------------------------------------------
+            # CACHE RESULT
+            # ---------------------------------------------------------
+            cache.set(
+                cache_key,
+                (is_valid, error_msg),
+                300
+            )
+
+        else:
+            # ---------------------------------------------------------
+            # LOAD FROM CACHE
+            # ---------------------------------------------------------
+            if isinstance(cached_data, tuple):
+                is_valid, error_msg = cached_data
+            else:
+                is_valid = cached_data
+                error_msg = None
+
+            # Re-fetch subscription for downstream feature checks
+            if is_valid:
+                subscription = Subscription.objects.get_current_for_tenant(
+                    tenant_id
+                )
+
+                if subscription:
+                    request.subscription = subscription
+
+        # ---------------------------------------------------------
+        # BLOCK INVALID SUBSCRIPTIONS
+        # ---------------------------------------------------------
         if not is_valid:
             return JsonResponse({
                 'error': 'subscription_required',
                 'message': error_msg or 'Active subscription required',
                 'code': 'SUBSCRIPTION_REQUIRED'
             }, status=402)
-        
-        # Check feature access for premium features
+
+        # ---------------------------------------------------------
+        # FEATURE ACCESS CHECKS
+        # ---------------------------------------------------------
         if hasattr(request, 'subscription') and request.subscription:
-            self._check_feature_access(request, tenant_id)
-        
+
+            feature_response = self._check_feature_access(
+                request,
+                tenant_id
+            )
+
+            if feature_response:
+                return feature_response
+
         return None
-    
-    def _attach_super_admin_billing_context(self, request):
-        """
-        Attach full billing context for super admin users.
-        Super admins have access to all features regardless of tenant subscription.
-        """
-        tenant_id = getattr(request, 'tenant_id', None)
-        
-        if tenant_id:
-            # Try to get actual subscription if exists
-            subscription = Subscription.objects.get_current_for_tenant(tenant_id)
-            
-            if subscription:
-                request.subscription = subscription
-                request.is_trial = subscription.is_on_trial
-                request.trial_days_remaining = subscription.trial_days_remaining
-            else:
-                # Super admin can access even without subscription
-                request.is_super_admin_access = True
-        
-        # Set super admin flag on request
-        request.is_super_admin = True
-    
+
     def _check_feature_access(self, request, tenant_id):
-        """Check if tenant has access to requested feature."""
+        """
+        Check if tenant plan includes requested premium feature.
+        """
+
         subscription = request.subscription
         plan = subscription.plan
-        
+
         for feature, paths in self.PREMIUM_FEATURES.items():
+
             for path in paths:
+
                 if request.path.startswith(path):
+
                     feature_enabled = getattr(plan, feature, False)
-                    
+
                     if not feature_enabled:
+
                         return JsonResponse({
                             'error': 'feature_not_available',
-                            'message': f"{feature.replace('_', ' ').title()} requires an upgrade",
+                            'message': (
+                                f"{feature.replace('_', ' ').title()} "
+                                f"requires an upgrade"
+                            ),
                             'feature': feature,
                             'current_plan': plan.plan_type,
-                            'required_plan': self._get_required_plan_for_feature(feature)
+                            'required_plan':
+                                self._get_required_plan_for_feature(feature)
                         }, status=403)
-        
+
         return None
-    
+
     def _get_required_plan_for_feature(self, feature):
-        """Determine required plan for a feature."""
+        """Determine required plan for feature."""
+
         feature_plan_map = {
             'custom_branding': 'professional',
             'api_access': 'professional',
             'advanced_analytics': 'professional',
             'custom_reports': 'professional',
-            'sso_enabled': 'enterprise'
+            'sso_enabled': 'enterprise',
         }
+
         return feature_plan_map.get(feature, 'professional')
 
 
 class BillingAuditMiddleware(MiddlewareMixin):
     """
     Middleware to audit billing-related requests.
-    Logs all billing API calls for security.
-    Super admin actions are logged with higher priority.
     """
-    
-    BILLING_PATHS = ['/api/v1/billing/', '/api/v1/subscriptions/', '/api/v1/invoices/']
-    
+
+    BILLING_PATHS = [
+        '/api/v1/billing/',
+        '/api/v1/subscriptions/',
+        '/api/v1/invoices/',
+    ]
+
     def process_request(self, request):
-        """Start audit timer."""
+
         if self._is_billing_request(request):
             request._billing_audit_start = timezone.now()
+
         return None
-    
+
     def process_response(self, request, response):
-        """Log audit for billing request."""
-        if self._is_billing_request(request) and hasattr(request, '_billing_audit_start'):
-            duration = (timezone.now() - request._billing_audit_start).total_seconds()
-            
-            # Get user info
-            user_id = getattr(request.user, 'id', None) if hasattr(request, 'user') else None
-            user_email = getattr(request.user, 'email', None) if hasattr(request, 'user') else None
-            user_role = getattr(request.user, 'role', None) if hasattr(request, 'user') else None
-            
-            # Check if super admin
-            is_super_admin = (user_role == 'super_admin' or 
-                            (hasattr(request.user, 'is_superuser') and request.user.is_superuser))
-            
-            # Log to cache/queue for batch processing
+
+        if (
+            self._is_billing_request(request)
+            and hasattr(request, '_billing_audit_start')
+        ):
+
+            duration = (
+                timezone.now() - request._billing_audit_start
+            ).total_seconds()
+
+            user_id = (
+                getattr(request.user, 'id', None)
+                if hasattr(request, 'user')
+                else None
+            )
+
+            user_email = (
+                getattr(request.user, 'email', None)
+                if hasattr(request, 'user')
+                else None
+            )
+
             audit_data = {
                 'timestamp': timezone.now().isoformat(),
                 'user_id': str(user_id) if user_id else None,
                 'user_email': user_email,
-                'user_role': user_role,
-                'is_super_admin': is_super_admin,
-                'tenant_id': str(getattr(request, 'tenant_id', '')),
+                'tenant_id': str(
+                    getattr(request, 'tenant_id', None) or getattr(request, 'current_tenant_id', '')
+                ),
                 'method': request.method,
                 'path': request.path,
                 'status_code': response.status_code,
                 'duration_ms': int(duration * 1000),
-                'ip_address': self._get_client_ip(request)
+                'ip_address': self._get_client_ip(request),
             }
-            
-            # Store in cache for async processing
-            cache_key = f"billing_audit_{timezone.now().timestamp()}"
+
+            cache_key = (
+                f"billing_audit_{timezone.now().timestamp()}"
+            )
+
             cache.set(cache_key, audit_data, 3600)
-            
-            # Log with appropriate level
-            if is_super_admin:
-                logger.info(f"Billing audit (SUPER_ADMIN): {audit_data}")
-            else:
-                logger.info(f"Billing audit: {audit_data}")
-        
+
+            logger.info(f"Billing audit: {audit_data}")
+
         return response
-    
+
     def _is_billing_request(self, request):
-        """Check if request is a billing request."""
-        for path in self.BILLING_PATHS:
-            if request.path.startswith(path):
-                return True
-        return False
-    
+
+        return any(
+            request.path.startswith(path)
+            for path in self.BILLING_PATHS
+        )
+
     def _get_client_ip(self, request):
-        """Get client IP address."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+
+        x_forwarded_for = request.META.get(
+            'HTTP_X_FORWARDED_FOR'
+        )
+
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
+
         return request.META.get('REMOTE_ADDR')
 
 
 class WebhookRateLimitMiddleware(MiddlewareMixin):
     """
-    Rate limiting middleware specifically for webhook endpoints.
-    Prevents webhook flooding attacks.
-    Super admin IPs have higher limits.
+    Rate limiting for webhook endpoints.
     """
-    
-    # Super admin IPs (can be configured in settings)
-    SUPER_ADMIN_IPS = getattr(settings, 'SUPER_ADMIN_IPS', [])
-    
+
     def process_request(self, request):
-        """Rate limit webhook requests."""
-        if not request.path.startswith('/api/v1/billing/webhook/'):
+
+        if not request.path.startswith(
+            '/api/v1/billing/webhook/'
+        ):
             return None
         
-        # Get client IP
+        # Bypass rate limiting for super_admin users
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+                logger.info(f"Webhook rate limit bypassed for admin user {user.email}")
+                return None
+
         client_ip = self._get_client_ip(request)
-        
-        # Check if super admin IP
-        is_super_admin_ip = client_ip in self.SUPER_ADMIN_IPS
-        
-        # Check if user is super admin (if authenticated)
-        is_super_admin_user = False
-        if hasattr(request, 'user') and request.user.is_authenticated:
-            is_super_admin_user = (request.user.role == 'super_admin' or request.user.is_superuser)
-        
-        # Higher limit for super admins
-        if is_super_admin_ip or is_super_admin_user:
-            rate_limit = 500  # 500 per minute for super admins
-        else:
-            rate_limit = 100  # 100 per minute for normal
-        
-        # Rate limit key
+
         rate_key = f"webhook_rate_limit_{client_ip}"
-        
-        # Get current count
+
         current_count = cache.get(rate_key, 0)
-        
-        if current_count >= rate_limit:
-            logger.warning(f"Webhook rate limit exceeded for IP {client_ip}")
+
+        if current_count >= 100:
+
+            logger.warning(
+                f"Webhook rate limit exceeded for IP {client_ip}"
+            )
+
             return JsonResponse({
                 'error': 'rate_limit_exceeded',
-                'message': 'Too many webhook requests',
-                'retry_after': 60,
-                'limit': rate_limit
+                'message': (
+                    'Too many webhook requests. '
+                    'Please try again later.'
+                )
             }, status=429)
-        
-        # Increment counter
+
         cache.set(rate_key, current_count + 1, 60)
-        
+
         return None
-    
+
     def _get_client_ip(self, request):
-        """Get client IP address."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+
+        x_forwarded_for = request.META.get(
+            'HTTP_X_FORWARDED_FOR'
+        )
+
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
+
         return request.META.get('REMOTE_ADDR')
 
 
 class TenantBillingContextMiddleware(MiddlewareMixin):
     """
-    Middleware to set billing context for tenant.
-    Attaches billing information to request for easy access.
-    Super admins get full context with bypass flags.
+    Attach billing/subscription context to request.
     """
-    
+
     def process_request(self, request):
-        """Attach billing context to request."""
-        tenant_id = getattr(request, 'tenant_id', None)
-        
-        # Check if super admin
-        is_super_admin = False
-        if hasattr(request, 'user') and request.user.is_authenticated:
-            is_super_admin = (request.user.role == 'super_admin' or request.user.is_superuser)
-        
+
+        tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
+
         if not tenant_id:
-            # For super admin without tenant, attach empty context
-            if is_super_admin:
-                request.billing_context = {
-                    'has_active_subscription': True,
-                    'is_on_trial': False,
-                    'is_super_admin': True,
-                    'plan_type': 'super_admin',
-                    'plan_name': 'Super Admin Access',
-                    'trial_days_remaining': 0,
-                    'days_until_expiry': 0,
-                    'subscription_status': 'active',
-                    'features': {
-                        'custom_branding': True,
-                        'api_access': True,
-                        'advanced_analytics': True,
-                        'custom_reports': True,
-                        'sso_enabled': True
-                    },
-                    'bypass_all_limits': True
-                }
             return None
-        
-        # Get or create billing context
+
         cache_key = f"tenant_billing_context_{tenant_id}"
+
         billing_context = cache.get(cache_key)
-        
+
+        subscription = getattr(request, 'subscription', None)
+
         if not billing_context:
-            subscription = Subscription.objects.get_current_for_tenant(tenant_id)
-            
+
+            # fallback DB lookup
+            if subscription is None:
+                subscription = (
+                    Subscription.objects.get_current_for_tenant(
+                        tenant_id
+                    )
+                )
+
             if subscription:
+
                 billing_context = {
-                    'has_active_subscription': subscription.is_active,
-                    'is_on_trial': subscription.is_on_trial,
-                    'plan_type': subscription.plan.plan_type,
-                    'plan_name': subscription.plan.name,
-                    'trial_days_remaining': subscription.trial_days_remaining,
-                    'days_until_expiry': subscription.days_until_expiry,
-                    'subscription_status': subscription.status,
-                    'features': subscription.plan.feature_dict,
-                    'is_super_admin': False,
-                    'bypass_all_limits': False
+                    'has_active_subscription':
+                        subscription.is_active,
+
+                    'is_on_trial':
+                        subscription.is_on_trial,
+
+                    'plan_type':
+                        subscription.plan.plan_type,
+
+                    'plan_name':
+                        subscription.plan.name,
+
+                    'trial_days_remaining':
+                        subscription.trial_days_remaining,
+
+                    'days_until_expiry':
+                        subscription.days_until_expiry,
+
+                    'subscription_status':
+                        subscription.status,
+
+                    'features':
+                        subscription.plan.feature_dict,
                 }
+
             else:
+
                 billing_context = {
                     'has_active_subscription': False,
                     'is_on_trial': False,
@@ -365,23 +450,11 @@ class TenantBillingContextMiddleware(MiddlewareMixin):
                     'days_until_expiry': 0,
                     'subscription_status': None,
                     'features': {},
-                    'is_super_admin': False,
-                    'bypass_all_limits': False
                 }
-            
-            # Cache for 10 minutes
+
             cache.set(cache_key, billing_context, 600)
-        
-        # Override for super admin
-        if is_super_admin:
-            billing_context = billing_context.copy()
-            billing_context['is_super_admin'] = True
-            billing_context['bypass_all_limits'] = True
-            # Super admin can access even if subscription is inactive
-            if not billing_context['has_active_subscription']:
-                billing_context['has_active_subscription'] = True
-                billing_context['subscription_status'] = 'super_admin_bypass'
-        
+
         request.billing_context = billing_context
-        
+        request.tenant_subscription = subscription
+
         return None

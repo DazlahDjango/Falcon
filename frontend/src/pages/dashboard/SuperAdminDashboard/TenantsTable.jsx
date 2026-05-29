@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { DashboardCard, StatusBadge, LoadingSkeleton } from '../../../components/dashboard/common';
 import { TenantDetailModal } from './TenantDetailModal';
 
-export const TenantsTable = ({ data, loading, onRefresh, onTenantClick }) => {
+export const TenantsTable = ({ data, loading, onRefresh, onTenantClick, onRefreshTenant }) => {
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -52,8 +52,8 @@ export const TenantsTable = ({ data, loading, onRefresh, onTenantClick }) => {
                 <tr key={tenant.client_id}>
                   <td className="tenant-name">{tenant.client_name}</td>
                   <td>
-                    <StatusBadge 
-                      status={tenant.subscription_status === 'active' ? 'active' : 'inactive'} 
+                    <StatusBadge
+                      status={tenant.subscription_status === 'active' ? 'active' : 'inactive'}
                       text={tenant.subscription_status}
                     />
                   </td>
@@ -61,11 +61,11 @@ export const TenantsTable = ({ data, loading, onRefresh, onTenantClick }) => {
                   <td>{tenant.total_kpis || 0}</td>
                   <td>
                     <div className="health-score">
-                      <div 
+                      <div
                         className="health-bar"
-                        style={{ 
-                          width: `${tenant.health_score || 0}%`, 
-                          background: getHealthColor(tenant.health_score || 0) 
+                        style={{
+                          width: `${tenant.health_score || 0}%`,
+                          background: getHealthColor(tenant.health_score || 0)
                         }}
                       />
                       <span>{Math.round(tenant.health_score || 0)}%</span>
@@ -75,7 +75,7 @@ export const TenantsTable = ({ data, loading, onRefresh, onTenantClick }) => {
                     {tenant.days_until_expiry ? `${tenant.days_until_expiry} days` : '—'}
                   </td>
                   <td>
-                    <button 
+                    <button
                       onClick={() => handleTenantClick(tenant)}
                       className="view-details-btn"
                     >
@@ -88,11 +88,12 @@ export const TenantsTable = ({ data, loading, onRefresh, onTenantClick }) => {
           </table>
         </div>
       </DashboardCard>
-      
+
       <TenantDetailModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         tenant={selectedTenant}
+        onRefreshTenant={onRefreshTenant}
       />
     </>
   );
@@ -102,5 +103,7 @@ TenantsTable.propTypes = {
   data: PropTypes.array,
   loading: PropTypes.bool,
   onRefresh: PropTypes.func,
-  onTenantClick: PropTypes.func
+  onTenantClick: PropTypes.func,
+  onRefreshTenant: PropTypes.func
 };
+export default TenantsTable;

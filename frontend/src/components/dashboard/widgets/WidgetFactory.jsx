@@ -9,6 +9,10 @@ import { RedAlertWidget } from './RedAlertWidget';
 import { PendingApprovalsWidget } from './PendingApprovalsWidget';
 import { MissingDataWidget } from './MissingDataWidget';
 import { TenantSummaryWidget } from './TenantSummaryWidget';
+import { SubscriptionStatusWidget } from './SubscriptionStatusWidget';
+import { OrgTreeWidget } from './OrgTreeWidget';
+import { ExecutiveScorecardWidget } from './ExecutiveScorecardWidget';
+import { TeamPerformanceWidget } from './TeamPerformanceWidget';
 
 const widgetComponents = {
   [WIDGET_TYPES.KPI_LIST]: KPITableWidget,
@@ -19,9 +23,18 @@ const widgetComponents = {
   [WIDGET_TYPES.PENDING_APPROVALS]: PendingApprovalsWidget,
   [WIDGET_TYPES.MISSING_DATA]: MissingDataWidget,
   [WIDGET_TYPES.TENANT_SUMMARY]: TenantSummaryWidget,
+  [WIDGET_TYPES.SUBSCRIPTION_STATUS]: SubscriptionStatusWidget,
+  [WIDGET_TYPES.ORG_TREE]: OrgTreeWidget,
+  [WIDGET_TYPES.EXECUTIVE_SCORECARD]: ExecutiveScorecardWidget,
+  [WIDGET_TYPES.TEAM_PERFORMANCE]: TeamPerformanceWidget,
 };
 
 export const WidgetFactory = ({ type, props }) => {
+  if (type === 'custom' && props?.component) {
+    const CustomComponent = props.component;
+    return <CustomComponent {...props} />;
+  }
+
   const WidgetComponent = widgetComponents[type];
   
   if (!WidgetComponent) {

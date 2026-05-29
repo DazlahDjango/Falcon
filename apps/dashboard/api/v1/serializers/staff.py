@@ -25,7 +25,7 @@ class PendingSubmissionSerializer(serializers.Serializer):
     kpi_id = serializers.UUIDField()
     kpi_name = serializers.CharField()
     actual_value = serializers.FloatField()
-    submitted_at = serializers.DateTimeField(required=False, allow_null=True)
+    submitted_at = serializers.CharField(required=False, allow_null=True)
 
 
 class StaffSupervisorInfoSerializer(serializers.Serializer):

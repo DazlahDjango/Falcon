@@ -207,5 +207,9 @@ export const useStaffDashboard = (options = {}) => {
     updateMissionStatus,
     exportDashboard,
     refreshAll,
+    refreshDashboard: refreshAll,
+    loadMyKPIs: fetchMyKPIs,
+    loadMissionStatus: fetchMissionStatus,
+    loadPendingTasks: fetchPendingTasks,
   };
 };

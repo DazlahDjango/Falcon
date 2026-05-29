@@ -222,5 +222,9 @@ export const useManagerDashboard = (options = {}) => {
     resetDrillDown,
     exportDashboard,
     refreshAll,
+    refreshDashboard: refreshAll,
+    loadTeamMembers: fetchTeamMembers,
+    loadTeamSummary: fetchTeamSummary,
+    loadPendingApprovals: fetchPendingApprovals,
   };
 };

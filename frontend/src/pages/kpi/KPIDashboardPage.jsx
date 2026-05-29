@@ -19,7 +19,10 @@ const KPIDashboardPage = () => {
     const [dashboardType, setDashboardType] = useState('individual');
     const { latestScore, validationRefreshToken } = useKPIRealtime() || {};
     
+<<<<<<< HEAD
     // Extract userId to avoid infinite loops from function dependencies
+=======
+>>>>>>> 5f1485efe72578f098c861e800fe246c25520289
     const userId = user?.id;
 
     useEffect(() => {
@@ -29,20 +32,26 @@ const KPIDashboardPage = () => {
     }, [latestScore, validationRefreshToken, dashboardType, dispatch]);
 
     useEffect(() => {
+<<<<<<< HEAD
         // Determine dashboard type based on user roles
         // Use correct role names from your backend
+=======
+>>>>>>> 5f1485efe72578f098c861e800fe246c25520289
         if (hasAnyRole(['executive', 'super_admin', 'client_admin'])) {
             setDashboardType('executive');
         } else if (hasRole('dashboard_champion')) {
             setDashboardType('champion');
+<<<<<<< HEAD
         } else if (hasRole('supervisor')) {  // ✅ FIXED: 'supervisor' not 'manager'
+=======
+        } else if (hasRole('supervisor')) {  
+>>>>>>> 5f1485efe72578f098c861e800fe246c25520289
             setDashboardType('manager');
         } else {
             setDashboardType('individual');
         }
     }, [userId, hasRole, hasAnyRole]);
     
-    // Rest of your component remains the same...
     const individualDashboard = useIndividualDashboard(period.year, period.month);
     const managerDashboard = useManagerDashboard(period.year, period.month);
     const executiveDashboard = useExecutiveDashboard(period.year, period.month);

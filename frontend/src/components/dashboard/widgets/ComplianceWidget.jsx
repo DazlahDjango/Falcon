@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { DashboardCard } from '../common/DashboardCard';
 import { LoadingSkeleton } from '../common/LoadingSkeleton';
 import { EmptyState } from '../common/EmptyState';
+import { FiAlertTriangle } from 'react-icons/fi';
 
 export const ComplianceWidget = ({ 
   data, 
@@ -87,8 +88,9 @@ export const ComplianceWidget = ({
       </div>
       
       {submissionRate < 100 && (
-        <div style={{ marginTop: '12px', padding: '8px', background: '#fef3c7', borderRadius: '8px', fontSize: '12px', color: '#92400e' }}>
-          ⚠️ {data.users_missing_data || 0} users have not submitted data for this period
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '12px', padding: '8px', background: '#fef3c7', borderRadius: '8px', fontSize: '12px', color: '#92400e' }}>
+          <FiAlertTriangle size={14} style={{ flexShrink: 0 }} />
+          <span>{data.users_missing_data || 0} users have not submitted data for this period</span>
         </div>
       )}
     </DashboardCard>

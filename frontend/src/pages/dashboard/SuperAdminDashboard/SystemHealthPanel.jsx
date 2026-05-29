@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { DashboardCard, StatusBadge, LoadingSkeleton } from '../../../components/dashboard/common';
+import { FiPower, FiDatabase, FiZap, FiWifi, FiAlertTriangle } from 'react-icons/fi';
 
 export const SystemHealthPanel = ({ data, loading }) => {
   if (loading) {
@@ -16,10 +17,10 @@ export const SystemHealthPanel = ({ data, loading }) => {
   }
 
   const services = [
-    { name: 'API Service', status: data.api_status, icon: '🔌' },
-    { name: 'Database', status: data.database_status, icon: '🗄️' },
-    { name: 'Cache Service', status: data.cache_status, icon: '⚡' },
-    { name: 'WebSocket', status: data.websocket_status || 'operational', icon: '📡' }
+    { name: 'API Service', status: data.api_status, icon: <FiPower size={14} /> },
+    { name: 'Database', status: data.database_status, icon: <FiDatabase size={14} /> },
+    { name: 'Cache Service', status: data.cache_status, icon: <FiZap size={14} /> },
+    { name: 'WebSocket', status: data.websocket_status || 'operational', icon: <FiWifi size={14} /> }
   ];
 
   return (
@@ -29,24 +30,25 @@ export const SystemHealthPanel = ({ data, loading }) => {
           <div className="uptime-value">{data.uptime_percentage || 99.95}%</div>
           <div className="uptime-label">Uptime (30 days)</div>
         </div>
-        
+
         <div className="services-list">
           {services.map((service, index) => (
             <div key={index} className="service-item">
-              <span className="service-icon">{service.icon}</span>
+              <span className="service-icon" style={{ display: 'inline-flex', alignItems: 'center', color: '#64748b' }}>{service.icon}</span>
               <span className="service-name">{service.name}</span>
-              <StatusBadge 
-                status={service.status === 'operational' ? 'active' : 'inactive'} 
+              <StatusBadge
+                status={service.status === 'operational' ? 'active' : 'inactive'}
                 text={service.status}
                 size="small"
               />
             </div>
           ))}
         </div>
-        
+
         {data.last_incident && (
-          <div className="last-incident">
-            <span>⚠️ Last incident: {data.last_incident}</span>
+          <div className="last-incident" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <FiAlertTriangle size={14} style={{ flexShrink: 0 }} />
+            <span>Last incident: {data.last_incident}</span>
           </div>
         )}
       </div>
@@ -58,3 +60,4 @@ SystemHealthPanel.propTypes = {
   data: PropTypes.object,
   loading: PropTypes.bool
 };
+export default SystemHealthPanel;

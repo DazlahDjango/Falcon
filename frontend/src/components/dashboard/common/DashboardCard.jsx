@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { FiAlertTriangle, FiRefreshCw, FiDownload } from 'react-icons/fi';
 
 export const DashboardCard = ({ 
   title, 
@@ -29,7 +30,7 @@ export const DashboardCard = ({
     return (
       <div className={`dashboard-card dashboard-card--error ${className}`}>
         <div className="dashboard-card__error">
-          <span className="error-icon">⚠️</span>
+          <span className="error-icon"><FiAlertTriangle size={32} /></span>
           <p className="error-message">{error}</p>
           {onRefresh && (
             <button onClick={onRefresh} className="btn-retry">Retry</button>
@@ -47,12 +48,12 @@ export const DashboardCard = ({
           <div className="dashboard-card__actions">
             {onRefresh && (
               <button onClick={onRefresh} className="icon-btn" title="Refresh">
-                🔄
+                <FiRefreshCw size={14} />
               </button>
             )}
             {onExport && (
               <button onClick={onExport} className="icon-btn" title="Export">
-                📥
+                <FiDownload size={14} />
               </button>
             )}
             {actions}

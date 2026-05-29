@@ -162,4 +162,3 @@ class ChampionService extends BaseDashboardService {
 }
 
 export const championService = new ChampionService();
-export default championService;

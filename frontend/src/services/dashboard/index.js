@@ -13,7 +13,7 @@ export { favoriteService } from './favorite.service';
 export { dashboardAlertService } from './alert.service';
 export { exportService } from './export.service';
 export { comparisonService } from './comparison.service';
-export { viewPresetService } from './viewPreset.service';
+export { viewPresetService } from './viewpreset.service';
 export { dashboardWebSocket } from './websocket.service';
 
 export const getDashboardService = (dashboardType) => {

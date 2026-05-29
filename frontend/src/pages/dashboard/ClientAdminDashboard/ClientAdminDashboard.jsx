@@ -1,12 +1,9 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { TenantOverview, CompliancePanel, PendingApprovalsPanel, MissingDataPanel, KpiBreakdownPanel, UserActivityPanel } from '.';
 import { useClientAdminDashboard } from '../../../hooks/dashboard/useClientAdminDashboard';
-import { fetchClientAdminDashboard, setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const ClientAdminDashboard = () => {
-  const dispatch = useDispatch();
   const {
     dashboardData,
     compliance,
@@ -17,11 +14,7 @@ const ClientAdminDashboard = () => {
     loading,
     refreshDashboard
   } = useClientAdminDashboard({ autoRefresh: true, refreshInterval: 60000 });
-
-  useEffect(() => {
-    dispatch(setActiveDashboard('client_admin'));
-    dispatch(fetchClientAdminDashboard());
-  }, [dispatch]);
+  // Hook handles all data fetching with autoRefresh:true
 
   const widgets = [
     {

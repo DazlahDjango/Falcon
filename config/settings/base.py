@@ -217,10 +217,10 @@ MIDDLEWARE = [
     # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
     # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     # Billing
-    # 'apps.billing.middleware.SubscriptionGuardMiddleware',
-    # 'apps.billing.middleware.BillingAuditMiddleware',
-    # 'apps.billing.middleware.WebhookRateLimitMiddleware',
-    # 'apps.billing.middleware.TenantBillingContextMiddleware',
+    'apps.billing.middleware.SubscriptionGuardMiddleware',
+    'apps.billing.middleware.BillingAuditMiddleware',
+    'apps.billing.middleware.WebhookRateLimitMiddleware',
+    'apps.billing.middleware.TenantBillingContextMiddleware',
     # Config App Middleware - MAINTENANCE & ACCESS CONTROL
     'apps.configs.middleware.maintenance_blocker.MaintenanceBlockerMiddleware',
     'apps.configs.middleware.partial_maintenance_blocker.PartialMaintenanceBlockerMiddleware',

@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { PlatformOverview } from './PlatformOverview';
 import { TenantsTable } from './TenantsTable';
@@ -8,10 +7,8 @@ import { PlatformMetrics } from './PlatformMetrics';
 import { BillingOverview } from './BillingOverview';
 import { SubscriptionAlerts } from './SubscriptionAlerts'
 import { useSuperAdminDashboard } from '../../../hooks/dashboard/useSuperAdminDashboard';
-import { fetchSuperAdminDashboard, setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const SuperAdminDashboard = () => {
-  const dispatch = useDispatch();
   const {
     dashboardData,
     tenants,
@@ -22,11 +19,7 @@ const SuperAdminDashboard = () => {
     loading,
     refreshDashboard
   } = useSuperAdminDashboard({ autoRefresh: true, refreshInterval: 60000 });
-
-  useEffect(() => {
-    dispatch(setActiveDashboard('super_admin'));
-    dispatch(fetchSuperAdminDashboard());
-  }, [dispatch]);
+  // Hook handles all data fetching with autoRefresh:true
 
   const widgets = [
     {
