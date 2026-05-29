@@ -8,6 +8,9 @@ from .calculation import Score, AggregatedScore, TrafficLight, Trend, Calculatio
 from .cascade import CascadeMap, CascadeRule, CascadeHistory
 from .analytics import KPISummary, DepartmentRollup, OrganizationHealth, RefreshTracker
 from .system_settings import KpiSystemSettings
+from .report import ReportTask
+from .backup import BackupRecord
+from .notification import NotificationPreference
 
 __all__ = [
     # Base
@@ -29,4 +32,8 @@ __all__ = [
     # Analytics
     'KPISummary', 'DepartmentRollup', 'OrganizationHealth', 'RefreshTracker',
     'KpiSystemSettings',
+    # Backup & Reports
+    'ReportTask', 'BackupRecord',
+    # Notifications
+    'NotificationPreference'
 ]

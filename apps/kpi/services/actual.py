@@ -206,3 +206,82 @@ class ActualAdjustmentService:
                 reason=adjustment.reason
             )
             return new_actual
+
+class ActualTeamService:
+    def get_team_actuals(self, manager_id: str, year: int, month: int) -> List[Dict]:
+        from apps.structure.models import ReportingLine
+        team_members = ReportingLine.objects.filter(
+            manager_id=manager_id
+        ).values_list('employee_id', flat=True)
+        
+        actuals = MonthlyActual.objects.filter(
+            user_id__in=team_members,
+            year=year,
+            month=month
+        ).select_related('kpi', 'user')
+        
+        return [
+            {
+                'id': str(a.id),
+                'kpi_name': a.kpi.name,
+                'user_name': a.user.get_full_name(),
+                'user_email': a.user.email,
+                'actual_value': a.actual_value,
+                'status': a.status,
+                'submitted_at': a.submitted_at
+            }
+            for a in actuals
+        ]
+    
+    def get_department_actuals(self, department_id: str, year: int, month: int) -> List[Dict]:
+        from apps.accounts.models import User
+        department_members = User.objects.filter(
+            department_id=department_id,
+            is_active=True
+        ).values_list('id', flat=True)
+        
+        actuals = MonthlyActual.objects.filter(
+            user_id__in=department_members,
+            year=year,
+            month=month
+        ).select_related('kpi', 'user')
+        
+        return [
+            {
+                'id': str(a.id),
+                'kpi_name': a.kpi.name,
+                'user_name': a.user.get_full_name(),
+                'user_email': a.user.email,
+                'actual_value': a.actual_value,
+                'status': a.status,
+                'submitted_at': a.submitted_at
+            }
+            for a in actuals
+        ]
+    
+    def get_team_submission_status(self, manager_id: str, year: int, month: int) -> Dict:
+        from apps.structure.models import ReportingLine
+        from apps.accounts.models import User
+        
+        team_members = ReportingLine.objects.filter(
+            manager_id=manager_id
+        ).values_list('employee_id', flat=True)
+        
+        users = User.objects.filter(id__in=team_members)
+        submitted = MonthlyActual.objects.filter(
+            user_id__in=team_members,
+            year=year,
+            month=month
+        ).values_list('user_id', flat=True).distinct()
+        
+        missing = users.exclude(id__in=submitted)
+        
+        return {
+            'total_members': users.count(),
+            'submitted': submitted.count(),
+            'missing': missing.count(),
+            'missing_users': [
+                {'id': str(u.id), 'name': u.get_full_name(), 'email': u.email}
+                for u in missing
+            ]
+        }

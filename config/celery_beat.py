@@ -90,6 +90,37 @@ beat_schedule = {
         'schedule': crontab(hour=10, minute=0),
         'options': {'expires': 3600},
     },
+    'daily-database-backup': {
+        'task': 'apps.kpi.tasks.daily_backup_task',
+        'schedule': crontab(hour=1, minute=0),
+        'args': [{'type': 'database'}],
+    },
+
+    # Daily media backup at 2 AM
+    'daily-media-backup': {
+        'task': 'apps.kpi.tasks.daily_backup_task',
+        'schedule': crontab(hour=2, minute=0),
+        'args': [{'type': 'media'}],
+    },
+
+    # Weekly full backup on Sunday at 3 AM
+    'weekly-full-backup': {
+        'task': 'apps.kpi.tasks.full_backup_task',
+        'schedule': crontab(day_of_week=0, hour=3, minute=0),
+    },
+
+    # Monthly archive on 1st at 4 AM
+    'monthly-archive': {
+        'task': 'apps.kpi.tasks.archive_backup_task',
+        'schedule': crontab(day_of_month=1, hour=4, minute=0),
+    },
+
+    # Backup cleanup (keep 30 days)
+    'cleanup-old-backups': {
+        'task': 'apps.kpi.tasks.cleanup_old_backups_task',
+        'schedule': crontab(day_of_month=1, hour=5, minute=0),
+        'args': [30],  # Keep 30 days
+    },
 
     # ======== Structure =======
     'warm-structure-cache-daily': {

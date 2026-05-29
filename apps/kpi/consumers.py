@@ -407,3 +407,269 @@ class KPIValidationConsumer(AsyncWebsocketConsumer):
             'type': 'validation_update',
             'data': event.get('data', {})
         }))
+
+class KPIReportConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.report_id = self.scope['url_route']['kwargs']['report_id']
+        self.user = self.scope.get('user')
+        if not await self.can_access_report():
+            await self.close()
+            return
+        self.report_group = f"report_{self.report_id}"
+        await self.accept()
+        await self.channel_layer.group_add(self.report_group, self.channel_name) 
+        logger.info(f"Report WebSocket connected: report {self.report_id}")
+        await self.send_report_status()
+    
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.report_group, self.channel_name)
+        logger.info(f"Report WebSocket disconnected: report {self.report_id}")
+    
+    async def report_update(self, event):
+        """Handle report status update"""
+        await self.send(text_data=json.dumps({
+            'type': 'report_update',
+            'data': event.get('data', {})
+        }))
+    
+    async def report_complete(self, event):
+        """Handle report completion"""
+        await self.send(text_data=json.dumps({
+            'type': 'report_complete',
+            'data': event.get('data', {})
+        }))
+    
+    async def send_report_status(self):
+        """Send initial report status"""
+        from .models import ReportTask
+        
+        try:
+            report = await database_sync_to_async(ReportTask.objects.get)(id=self.report_id)
+            await self.send(text_data=json.dumps({
+                'type': 'initial',
+                'data': {
+                    'status': report.status,
+                    'progress': report.progress,
+                    'result_url': report.result_url if report.status == 'COMPLETED' else None
+                }
+            }))
+        except ReportTask.DoesNotExist:
+            pass
+    
+    @database_sync_to_async
+    def can_access_report(self):
+        """Check if user can access the report"""
+        from .models import ReportTask
+        
+        try:
+            report = ReportTask.objects.get(id=self.report_id)
+            return (self.user.is_superuser or 
+                    report.user_id == self.user.id or
+                    report.tenant_id == self.user.tenant_id)
+        except ReportTask.DoesNotExist:
+            return False
+
+
+class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for real-time analytics updates
+    """
+    
+    async def connect(self):
+        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
+        self.user = self.scope.get('user')
+        
+        # Verify user has executive access
+        if not await self.has_executive_access():
+            await self.close()
+            return
+        
+        self.analytics_group = f"analytics_{self.tenant_id}"
+        
+        await self.accept()
+        await self.channel_layer.group_add(self.analytics_group, self.channel_name)
+        
+        logger.info(f"Analytics WebSocket connected: tenant {self.tenant_id}")
+        
+        # Start streaming analytics updates
+        await self.start_analytics_stream()
+    
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.analytics_group, self.channel_name)
+        logger.info(f"Analytics WebSocket disconnected: tenant {self.tenant_id}")
+    
+    async def analytics_update(self, event):
+        """Handle analytics update"""
+        await self.send(text_data=json.dumps({
+            'type': 'analytics_update',
+            'data': event.get('data', {})
+        }))
+    
+    async def kpi_update(self, event):
+        """Handle KPI update in analytics"""
+        await self.send(text_data=json.dumps({
+            'type': 'kpi_update',
+            'data': event.get('data', {})
+        }))
+    
+    async def score_update(self, event):
+        """Handle score update in analytics"""
+        await self.send(text_data=json.dumps({
+            'type': 'score_update',
+            'data': event.get('data', {})
+        }))
+    
+    async def start_analytics_stream(self):
+        """Start streaming analytics updates"""
+        import asyncio
+        
+        while True:
+            try:
+                # Fetch latest analytics data
+                analytics_data = await self.get_analytics_data()
+                await self.send(text_data=json.dumps({
+                    'type': 'analytics_data',
+                    'data': analytics_data
+                }))
+                await asyncio.sleep(30)  # Update every 30 seconds
+            except Exception as e:
+                logger.error(f"Error streaming analytics: {e}")
+                break
+    
+    @database_sync_to_async
+    def has_executive_access(self):
+        """Check if user has executive access"""
+        return (self.user.is_superuser or 
+                self.user.has_role('EXECUTIVE') or 
+                self.user.has_role('CEO') or 
+                self.user.has_role('DIRECTOR'))
+    
+    @database_sync_to_async
+    def get_analytics_data(self):
+        """Get current analytics data"""
+        from django.utils import timezone
+        from .models import AggregatedScore, OrganizationHealth
+        
+        now = timezone.now()
+        
+        org_health = OrganizationHealth.objects.filter(
+            tenant_id=self.tenant_id,
+            year=now.year,
+            month=now.month
+        ).first()
+        
+        dept_scores = AggregatedScore.objects.filter(
+            level='DEPARTMENT',
+            tenant_id=self.tenant_id,
+            year=now.year,
+            month=now.month
+        ).values('entity_name', 'aggregated_score')[:10]
+        
+        return {
+            'overall_health': org_health.overall_health_score if org_health else 0,
+            'red_kpi_count': org_health.red_kpi_count if org_health else 0,
+            'top_departments': list(dept_scores),
+            'timestamp': now.isoformat()
+        }
+
+
+class KPIAlertsConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for system alerts
+    """
+    
+    async def connect(self):
+        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
+        self.user = self.scope.get('user')
+        
+        # Verify user has manager access or higher
+        if not await self.has_alert_access():
+            await self.close()
+            return
+        
+        self.alerts_group = f"alerts_{self.tenant_id}"
+        
+        await self.accept()
+        await self.channel_layer.group_add(self.alerts_group, self.channel_name)
+        
+        logger.info(f"Alerts WebSocket connected: tenant {self.tenant_id}")
+        
+        # Send initial alerts
+        await self.send_alerts()
+    
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.alerts_group, self.channel_name)
+        logger.info(f"Alerts WebSocket disconnected: tenant {self.tenant_id}")
+    
+    async def alert(self, event):
+        """Handle new alert"""
+        await self.send(text_data=json.dumps({
+            'type': 'alert',
+            'data': event.get('data', {})
+        }))
+    
+    async def red_alert(self, event):
+        """Handle red alert"""
+        await self.send(text_data=json.dumps({
+            'type': 'red_alert',
+            'data': event.get('data', {})
+        }))
+    
+    async def send_alerts(self):
+        """Send initial alerts"""
+        alerts = await self.get_alerts()
+        await self.send(text_data=json.dumps({
+            'type': 'initial',
+            'data': alerts
+        }))
+    
+    @database_sync_to_async
+    def has_alert_access(self):
+        """Check if user can receive alerts"""
+        return (self.user.is_superuser or 
+                self.user.has_role('MANAGER') or 
+                self.user.has_role('EXECUTIVE') or 
+                self.user.has_role('DASHBOARD_CHAMPION'))
+    
+    @database_sync_to_async
+    def get_alerts(self):
+        """Get current alerts"""
+        from django.utils import timezone
+        from .models import TrafficLight, Escalation
+        
+        now = timezone.now()
+        
+        # Get red alerts (2+ consecutive red months)
+        red_alerts = TrafficLight.objects.filter(
+            score__tenant_id=self.tenant_id,
+            status='RED',
+            consecutive_red_count__gte=2
+        ).select_related('score__kpi', 'score__user')[:10]
+        
+        # Get pending escalations
+        pending_escalations = Escalation.objects.filter(
+            tenant_id=self.tenant_id,
+            status='PENDING'
+        ).select_related('actual__kpi', 'escalated_to')[:10]
+        
+        return {
+            'red_alerts': [
+                {
+                    'kpi': alert.score.kpi.name,
+                    'user': alert.score.user.email,
+                    'consecutive_months': alert.consecutive_red_count,
+                    'score': alert.score_value
+                }
+                for alert in red_alerts
+            ],
+            'pending_escalations': [
+                {
+                    'id': str(e.id),
+                    'kpi': e.actual.kpi.name,
+                    'reason': e.reason,
+                    'escalated_to': e.escalated_to.email
+                }
+                for e in pending_escalations
+            ],
+            'timestamp': now.isoformat()
+        }

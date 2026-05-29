@@ -172,3 +172,69 @@ class TargetValidator:
                 'errors': errors
             })
         return validation_results
+
+class TargetImporter:
+    def import_from_csv(self, csv_content: str, tenant_id: str, user) -> Dict:
+        """Import targets from CSV"""
+        import csv
+        import io
+        reader = csv.DictReader(io.StringIO(csv_content))
+        created = []
+        errors = []
+        for row_num, row in enumerate(reader, start=2):
+            try:
+                target = AnnualTarget.objects.create(
+                    tenant_id=tenant_id,
+                    kpi_id=row['kpi_id'],
+                    user_id=row['user_id'],
+                    year=int(row['year']),
+                    target_value=Decimal(row['target_value']),
+                    notes=row.get('notes', ''),
+                    created_by=user,
+                    updated_by=user
+                )
+                created.append(target.id)
+            except Exception as e:
+                errors.append({'row': row_num, 'error': str(e)})
+        return {'created': len(created), 'errors': errors, 'total': len(created) + len(errors)}
+    
+    def export_to_csv(self, tenant_id: str, year: int = None) -> str:
+        import csv
+        import io
+        targets = AnnualTarget.objects.filter(tenant_id=tenant_id)
+        if year:
+            targets = targets.filter(year=year)
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['kpi_id', 'kpi_code', 'kpi_name', 'user_id', 'user_email', 'year', 'target_value', 'notes'])
+        for target in targets.select_related('kpi', 'user'):
+            writer.writerow([
+                str(target.kpi_id),
+                target.kpi.code,
+                target.kpi.name,
+                str(target.user_id),
+                target.user.email,
+                target.year,
+                target.target_value,
+                target.notes or ''
+            ])
+        
+        return output.getvalue()
+
+class TargetBatchPhaser:
+    def phase_all_targets(self, year: int, tenant_id: str = None, strategy: str = 'equal_split', user=None) -> Dict:
+        targets = AnnualTarget.objects.filter(year=year)
+        if tenant_id:
+            targets = targets.filter(tenant_id=tenant_id)
+        
+        phaser = TargetPhaser()
+        results = {'success': [], 'failed': []}
+        
+        for target in targets:
+            try:
+                phaser.phase_target(str(target.id), strategy, {}, user)
+                results['success'].append(str(target.id))
+            except Exception as e:
+                results['failed'].append({'id': str(target.id), 'error': str(e)})
+        
+        return results

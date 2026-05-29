@@ -9,7 +9,7 @@ from .live_analytics import (
     get_organization_health,
     get_organization_health_history,
     resolve_department_name,
-)
+)  
 
 __all__ = [
     'build_executive_dashboard',

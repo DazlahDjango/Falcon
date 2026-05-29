@@ -1,7 +1,8 @@
 import time
 import logging
 from decimal import Decimal
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional
+from django.db.models import Q
 from django.db import transaction
 from django.core.cache import cache
 from django.utils import timezone
@@ -24,6 +25,62 @@ class ScoreCalculator:
         if score_id:
             return Score.objects.filter(id=score_id).first()
         return None
+    def calculate_weighted_scores(self, user_id: str, year: int, month: int) -> Dict:
+        from ..models import KPIWeight
+        weights = KPIWeight.objects.filter(
+            user_id=user_id,
+            is_active=True,
+            effective_from__lte=f"{year}-{month:02d}-01"
+        ).filter(
+            Q(effective_to__isnull=True) | Q(effective_to__gte=f"{year}-{month:02d}-01")
+        ).select_related('kpi')
+        scores_data = []
+        total_weighted_score = Decimal('0')
+        total_weight = Decimal('0')
+        for weight in weights:
+            score = Score.objects.filter(
+                kpi=weight.kpi,
+                user_id=user_id,
+                year=year,
+                month=month
+            ).first()
+            if score:
+                weighted_score = score.score * weight.weight / 100
+                total_weighted_score += weighted_score
+                total_weight += weight.weight
+                scores_data.append({
+                    'kpi_id': str(weight.kpi.id),
+                    'kpi_name': weight.kpi.name,
+                    'score': score.score,
+                    'weight': weight.weight,
+                    'weighted_score': weighted_score
+                })
+        final_score = total_weighted_score / total_weight * 100 if total_weight > 0 else Decimal('0')
+        return {
+            'user_id': user_id,
+            'period': f"{year}-{month:02d}",
+            'weighted_score': final_score,
+            'total_weight': total_weight,
+            'scores': scores_data
+        }
+    
+    def get_score_trend(self, user_id: str, kpi_id: str = None, months: int = 6) -> List[Dict]:
+        scores = Score.objects.filter(user_id=user_id)
+        if kpi_id:
+            scores = scores.filter(kpi_id=kpi_id)
+        from django.utils import timezone
+        from datetime import timedelta
+        cutoff = timezone.now() - timedelta(days=30 * months)
+        scores = scores.filter(calculated_at__gte=cutoff).order_by('year', 'month')
+        trend = []
+        for score in scores:
+            trend.append({
+                'period': f"{score.year}-{score.month:02d}",
+                'score': score.score,
+                'kpi_id': str(score.kpi_id),
+                'kpi_name': score.kpi.name
+            })
+        return trend
     
 class ScoreAggregator:
     def __init__(self):

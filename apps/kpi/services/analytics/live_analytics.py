@@ -1,17 +1,10 @@
-"""
-Live KPI analytics from operational tables (Scores, Actuals, structure.Department).
-
-Used when materialized views are empty or stale, and to resolve department display names.
-"""
 from __future__ import annotations
-
 import uuid
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
-
+from django.core.cache import cache
 from django.db.models import Avg
 from django.utils import timezone
-
 from apps.kpi.models import (
     DepartmentRollup,
     KPISummary,
@@ -19,9 +12,9 @@ from apps.kpi.models import (
     OrganizationHealth,
     Score,
     TrafficLight,
+    AggregatedScore
 )
 from apps.structure.models import Department
-
 
 def _looks_like_uuid(value: str) -> bool:
     try:
@@ -29,7 +22,6 @@ def _looks_like_uuid(value: str) -> bool:
         return True
     except (ValueError, TypeError):
         return False
-
 
 def department_name_map(tenant_id, department_ids: List) -> Dict[str, str]:
     ids = [d for d in department_ids if d]
@@ -39,7 +31,6 @@ def department_name_map(tenant_id, department_ids: List) -> Dict[str, str]:
         str(d.id): d.name
         for d in Department.objects.filter(tenant_id=tenant_id, id__in=ids, is_active=True)
     }
-
 
 def resolve_department_name(tenant_id, department_id, fallback: str = '') -> str:
     if not department_id:
@@ -114,31 +105,48 @@ def compute_department_rollups_live(
     return rollups
 
 
-def get_department_rollups(
-    tenant_id: str, year: int, month: int, *, prefer_mv: bool = True,
-) -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
-    if prefer_mv:
-        mv_rows = DepartmentRollup.objects.filter(
-            tenant_id=tenant_id, year=year, month=month,
-        ).order_by('-overall_score')
-        if mv_rows.exists():
-            for r in mv_rows:
-                rows.append(enrich_department_rollup_row(tenant_id, {
-                    'department_id': str(r.department_id),
-                    'department_name': r.department_name,
-                    'tenant_id': str(r.tenant_id),
-                    'year': r.year,
-                    'month': r.month,
-                    'overall_score': float(r.overall_score),
-                    'employee_count': r.employee_count,
-                    'green_percentage': float(r.green_percentage),
-                    'yellow_percentage': float(r.yellow_percentage),
-                    'red_percentage': float(r.red_percentage),
-                }))
-            return rows
+def get_department_rollups(tenant_id: str, year: int, month: int, prefer_mv: bool = True) -> List[Dict]:
+    """Get department rollups for a period"""
+    cache_key = f"dept_rollups_{tenant_id}_{year}_{month}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
 
-    return compute_department_rollups_live(tenant_id, year, month)
+    if prefer_mv:
+        mv_data = DepartmentRollup.objects.filter(
+            tenant_id=tenant_id,
+            year=year,
+            month=month
+        ).values()
+        if mv_data.exists():
+            result = list(mv_data)
+            cache.set(cache_key, result, 3600)
+            return result
+
+    # Live calculation from aggregated scores
+    dept_scores = AggregatedScore.objects.filter(
+        level='DEPARTMENT',
+        tenant_id=tenant_id,
+        year=year,
+        month=month
+    ).values('entity_id', 'entity_name', 'aggregated_score', 'member_count')
+
+    result = []
+    for dept in dept_scores:
+        result.append({
+            'department_id': dept['entity_id'],
+            'department_name': dept['entity_name'],
+            'overall_score': dept['aggregated_score'],
+            'member_count': dept['member_count'],
+            'green_percentage': 0,  # Would need additional calculation
+            'yellow_percentage': 0,
+            'red_percentage': 0,
+            'employee_count': dept['member_count']
+        })
+
+    cache.set(cache_key, result, 3600)
+    return result
+
 
 
 def compute_organization_health_live(
@@ -178,33 +186,71 @@ def compute_organization_health_live(
     }
 
 
-def get_organization_health(
-    tenant_id: str, year: int, month: int, *, prefer_mv: bool = True,
-) -> Dict[str, Any]:
-    if prefer_mv:
-        record = OrganizationHealth.objects.filter(
-            tenant_id=tenant_id, year=year, month=month,
-        ).first()
-        if not record:
-            record = OrganizationHealth.objects.filter(tenant_id=tenant_id).order_by(
-                '-year', '-month',
-            ).first()
-        if record:
-            return {
-                'tenant_id': str(record.tenant_id),
-                'year': record.year,
-                'month': record.month,
-                'overall_health_score': float(record.overall_health_score),
-                'kpi_completion_rate': float(record.kpi_completion_rate),
-                'validation_compliance_rate': float(record.validation_compliance_rate),
-                'red_kpi_count': record.red_kpi_count,
-                'total_kpi_count': record.total_kpi_count,
-                'active_employees': record.active_employees,
-                'risk_level': _risk_from_score(record.overall_health_score),
-                'source': 'materialized_view',
-            }
+def get_organization_health(tenant_id: str, year: int, month: int) -> Dict:
+    """Get organization health for a period"""
+    cache_key = f"org_health_{tenant_id}_{year}_{month}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
 
-    return compute_organization_health_live(tenant_id, year, month)
+    # Try materialized view first
+    health = OrganizationHealth.objects.filter(
+        tenant_id=tenant_id,
+        year=year,
+        month=month
+    ).first()
+
+    if health:
+        result = {
+            'tenant_id': str(health.tenant_id),
+            'year': health.year,
+            'month': health.month,
+            'overall_health_score': health.overall_health_score,
+            'kpi_completion_rate': health.kpi_completion_rate,
+            'validation_compliance_rate': health.validation_compliance_rate,
+            'red_kpi_count': health.red_kpi_count,
+            'total_kpi_count': health.total_kpi_count,
+            'active_employees': health.active_employees,
+            'source': 'materialized_view'
+        }
+        cache.set(cache_key, result, 3600)
+        return result
+
+    # Live calculation
+    scores = Score.objects.filter(
+        tenant_id=tenant_id,
+        year=year,
+        month=month
+    )
+    total_kpis = scores.count()
+    red_kpis = scores.filter(score__lt=50).count()
+
+    actuals = MonthlyActual.objects.filter(
+        tenant_id=tenant_id,
+        year=year,
+        month=month
+    )
+    total_expected = actuals.count()
+    validated = actuals.filter(status='APPROVED').count()
+    validation_rate = (validated / total_expected * 100) if total_expected > 0 else 0
+
+    avg_score = scores.aggregate(avg=Avg('score'))['avg'] or 0
+
+    result = {
+        'tenant_id': tenant_id,
+        'year': year,
+        'month': month,
+        'overall_health_score': round(avg_score, 2),
+        'kpi_completion_rate': round(avg_score, 2),
+        'validation_compliance_rate': round(validation_rate, 2),
+        'red_kpi_count': red_kpis,
+        'total_kpi_count': total_kpis,
+        'active_employees': 0,
+        'source': 'live'
+    }
+    cache.set(cache_key, result, 3600)
+    return result
+
 
 
 def _risk_from_score(score) -> str:
@@ -270,28 +316,91 @@ def compute_kpi_summaries_live(
     return summaries
 
 
-def get_kpi_summaries(
-    tenant_id: str, year: int, month: int, *, prefer_mv: bool = True,
-) -> List[Dict[str, Any]]:
+def get_kpi_summaries(tenant_id: str, year: int, month: int, prefer_mv: bool = True) -> List[Dict]:
+    """Get KPI summaries for a period"""
+    cache_key = f"kpi_summaries_{tenant_id}_{year}_{month}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
     if prefer_mv:
-        qs = KPISummary.objects.filter(tenant_id=tenant_id, year=year, month=month)
-        if qs.exists():
-            return list(qs.select_related('kpi'))
-    return compute_kpi_summaries_live(tenant_id, year, month)
+        mv_data = KPISummary.objects.filter(
+            tenant_id=tenant_id,
+            year=year,
+            month=month
+        ).values(
+            'kpi__id', 'kpi__name', 'kpi__code',
+            'average_score', 'green_count', 'yellow_count',
+            'red_count', 'total_users'
+        )
+        if mv_data.exists():
+            result = list(mv_data)
+            cache.set(cache_key, result, 3600)
+            return result
+
+    # Live calculation
+    scores = Score.objects.filter(
+        tenant_id=tenant_id,
+        year=year,
+        month=month
+    ).select_related('kpi')
+
+    kpi_data = {}
+    for score in scores:
+        kpi_id = str(score.kpi_id)
+        if kpi_id not in kpi_data:
+            kpi_data[kpi_id] = {
+                'kpi__id': kpi_id,
+                'kpi__name': score.kpi.name,
+                'kpi__code': score.kpi.code,
+                'scores': [],
+                'green_count': 0,
+                'yellow_count': 0,
+                'red_count': 0,
+            }
+        kpi_data[kpi_id]['scores'].append(score.score)
+        if score.score >= 90:
+            kpi_data[kpi_id]['green_count'] += 1
+        elif score.score >= 50:
+            kpi_data[kpi_id]['yellow_count'] += 1
+        else:
+            kpi_data[kpi_id]['red_count'] += 1
+
+    result = []
+    for data in kpi_data.values():
+        avg_score = sum(data['scores']) / len(data['scores']) if data['scores'] else 0
+        result.append({
+            'kpi__id': data['kpi__id'],
+            'kpi__name': data['kpi__name'],
+            'kpi__code': data['kpi__code'],
+            'average_score': round(avg_score, 2),
+            'green_count': data['green_count'],
+            'yellow_count': data['yellow_count'],
+            'red_count': data['red_count'],
+            'total_users': len(data['scores'])
+        })
+
+    cache.set(cache_key, result, 3600)
+    return result
 
 
-def get_organization_health_history(
-    tenant_id: str, months_back: int = 12,
-) -> List[Dict[str, Any]]:
-    from apps.kpi.utils.date_utils import get_previous_period
-
+def get_organization_health_history(tenant_id: str, months_back: int = 12) -> List[Dict]:
+    """Get organization health history for trend analysis"""
+    history = []
     now = timezone.now()
-    periods = []
-    y, m = now.year, now.month
-    for _ in range(months_back):
-        y, m = get_previous_period(y, m)
-        periods.append(get_organization_health(tenant_id, y, m))
-    return periods
+
+    for i in range(months_back):
+        year = now.year
+        month = now.month - i
+        if month < 1:
+            month += 12
+            year -= 1
+
+        health = get_organization_health(tenant_id, year, month)
+        health['period'] = f"{year}-{month:02d}"
+        history.append(health)
+
+    return history
 
 
 def build_executive_dashboard(

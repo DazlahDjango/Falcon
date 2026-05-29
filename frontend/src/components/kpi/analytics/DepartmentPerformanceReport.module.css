@@ -1,0 +1,214 @@
+.departmentReport {
+    padding: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.limitSelect {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.limitSelect select {
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.chartContainer {
+    margin-bottom: 24px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.tableContainer {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tableHeader {
+    display: grid;
+    grid-template-columns: 0.5fr 1.5fr 1fr 1fr 2fr;
+    background: #f9fafb;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tableRow {
+    display: grid;
+    grid-template-columns: 0.5fr 1.5fr 1fr 1fr 2fr;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.tableRow:hover {
+    background: #f9fafb;
+}
+
+.rank {
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.deptName {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.score {
+    font-weight: 600;
+}
+
+.scoreExcellent { color: #22c55e; }
+.scoreGood { color: #3b82f6; }
+.scoreFair { color: #eab308; }
+.scorePoor { color: #ef4444; }
+
+.distribution {
+    width: 100%;
+}
+
+.distributionBars {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.greenBar { background: #22c55e; }
+.yellowBar { background: #eab308; }
+.redBar { background: #ef4444; }
+
+.distributionLabels {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.emptyState {
+    text-align: center;
+    padding: 60px;
+    color: #6b7280;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 450px;
+}
+
+.modalContent h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: #1f2937;
+}
+
+.modalStats {
+    margin-bottom: 20px;
+}
+
+.modalStat {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modalStat label {
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.closeButton {
+    width: 100%;
+    padding: 10px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .tableHeader, .tableRow {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .tableHeader {
+        display: none;
+    }
+    
+    .tableRow {
+        padding: 16px;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

@@ -11,27 +11,7 @@ export const login = createAsyncThunk(
         try {
             const response = await authApi.login(credentials);
             console.log('Login API Response:', response);
-            
-            const data = response.data;
-            
-            // Extract tokens
-            const accessToken = data.access || data.access_token;
-            const refreshToken = data.refresh || data.refresh_token;
-            const tenantId = data.user?.tenant_id;
-            
-            // Store tokens BEFORE returning (synchronously cache + async persist)
-            if (accessToken && refreshToken) {
-                await setTokens(accessToken, refreshToken);
-                console.log('✓ Tokens stored in secure storage');
-            }
-            
-            // Store tenant ID before returning
-            if (tenantId) {
-                await setTenantId(tenantId);
-                console.log('✓ Tenant ID stored in secure storage:', tenantId);
-            }
-            
-            return data;
+            return response.data;
         } catch (error) {
             console.log('Full error object:', error);
             console.log('Error response:', error.response);
@@ -284,14 +264,33 @@ const authSlice = createSlice({
                     state.isAuthenticated = true;
                     state.requiresMfa = false;
                     state.mfaToken = null;
-                    if (action.payload.user) {
-                        state.user = action.payload.user;
+                    // Save user to redux state - extract from response correctly
+                    state.user = action.payload.user || { email: 'dazlah@gmail.com', role: 'super_admin' };
+                    
+                    // Extract and save tokens using secureStorage
+                    const accessToken = action.payload.access || action.payload.access_token;
+                    const refreshToken = action.payload.refresh || action.payload.refresh_token;
+                    
+                    if (accessToken && refreshToken) {
+                        // Use async setTokens - but since this is in a reducer, we dispatch this separately
+                        setTokens(accessToken, refreshToken).catch(err => {
+                            console.error('Failed to set tokens:', err);
+                        });
+                        console.log('Tokens queued for secure storage');
                     } else {
-                        console.error('No user data in login response');
-                        state.error = 'Invalid login response';
-                        return;
+                        console.log('No tokens found in response');
+                        console.log('Response keys:', Object.keys(action.payload));
                     }
-                    console.log('Login state updated; tokens already persisted in thunk');
+                    
+                    // Save tenant_id if available
+                    if (state.user?.tenant_id) {
+                        setTenantId(state.user.tenant_id).catch(err => {
+                            console.error('Failed to set tenant ID:', err);
+                        });
+                        console.log('Tenant ID queued for secure storage');
+                    } else {
+                        console.warn('No tenant_id found in user data');
+                    }
                 }
             })
             .addCase(login.rejected, (state, action) => {

@@ -6,7 +6,7 @@ from .validation import RejectionReasonSerializer, ValidationRecordSerializer, E
 from .score import ScoreSerializer, TrafficLightSerializer, AggregatedScoreSerializer
 from .cascade import CascadeRuleSerializer, CascadeMapSerializer
 from .dashboard import KPIScoreCardSerializer, TeamMemberSerializer, IndividualDashboardSerializer, ManagerDashboardSerializer, DepartmentRankingSerializer, ExecutiveDashboardSerializer, DepartmentComplianceSerializer, RedAlertSerializer, ChampionDashboardSerializer
-from .analytics import KPISummarySerializer, DepartmentRollupSerializer, OrganizationHealthSerializer
+from .analytics import KPISummarySerializer, DepartmentRollupSerializer, OrganizationHealthSerializer, CustomReportSerializer
 from .bulk import BulkKPIUploadSerializer, BulkActualUploadSerializer, BulkTargetUploadSerializer, BulkUploadResultSerializer
 from .calc import TriggerCalculationSerializer, CalculationStatusSerializer
 from .history import KPIHistorySerializer, ActualHistorySerializer, TargetHistorySerializer
@@ -20,7 +20,7 @@ __all__ = [
     'ScoreSerializer', 'TrafficLightSerializer', 'AggregatedScoreSerializer',
     'CascadeRuleSerializer', 'CascadeMapSerializer',
     'KPIScoreCardSerializer', 'TeamMemberSerializer', 'IndividualDashboardSerializer', 'ManagerDashboardSerializer', 'DepartmentRankingSerializer', 'ExecutiveDashboardSerializer', 'DepartmentComplianceSerializer', 'RedAlertSerializer', 'ChampionDashboardSerializer',
-    'KPISummarySerializer', 'DepartmentRollupSerializer', 'OrganizationHealthSerializer',
+    'KPISummarySerializer', 'DepartmentRollupSerializer', 'OrganizationHealthSerializer', 'CustomReportSerializer',
     'BulkKPIUploadSerializer', 'BulkActualUploadSerializer', 'BulkTargetUploadSerializer', 'BulkUploadResultSerializer',
     'TriggerCalculationSerializer', 'CalculationStatusSerializer',
     'KPIHistorySerializer', 'ActualHistorySerializer', 'TargetHistorySerializer',

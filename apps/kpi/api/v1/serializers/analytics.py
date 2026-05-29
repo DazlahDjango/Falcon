@@ -54,3 +54,27 @@ class OrganizationHealthSerializer(serializers.ModelSerializer):
         elif obj.overall_health_score >= 60:
             return 'MEDIUM'
         return 'HIGH'
+
+class CustomReportSerializer(serializers.Serializer):
+    report_type = serializers.ChoiceField(choices=[
+        'kpi_performance', 'department_comparison', 'trend_analysis'
+    ])
+    format = serializers.ChoiceField(choices=['pdf', 'excel', 'csv'], default='pdf')
+    filters = serializers.DictField(required=False, default=dict)
+    def validate_filters(self, value):
+        if value.get('kpi_ids') and not isinstance(value['kpi_ids'], list):
+            raise serializers.ValidationError("kpi_ids must be a list")
+        if value.get('year'):
+            try:
+                value['year'] = int(value['year'])
+            except (ValueError, TypeError):
+                raise serializers.ValidationError("year must be an integer")
+        if value.get('month'):
+            try:
+                month = int(value['month'])
+                if month < 1 or month > 12:
+                    raise serializers.ValidationError("month must be between 1 and 12")
+                value['month'] = month
+            except (ValueError, TypeError):
+                raise serializers.ValidationError("month must be an integer")
+        return value

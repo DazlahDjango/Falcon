@@ -12,6 +12,8 @@ const KPIDetailPage = React.lazy(() => import('../pages/kpi/KPIDetailPage'));
 const KPICreatePage = React.lazy(() => import('../pages/kpi/KPICreatePage'));
 const KPIEditPage = React.lazy(() => import('../pages/kpi/KPIEditPage'));
 const KpiSettingsPage = React.lazy(() => import('../pages/kpi/KpiSettingsPage'));
+const MyKPIsPage = React.lazy(() => import('../pages/kpi/MyKPIsPage'));
+const KPIAnalyticsPage = React.lazy(() => import('../pages/kpi/KPIAnalyticsPage'))
 
 const kpiRoutes = [
     // Dashboard
@@ -37,6 +39,10 @@ const kpiRoutes = [
 
     // Platform KPI operations (super admin)
     { path: ROUTES.KPI_SETTINGS, element: <KpiSettingsPage /> },
+    // My KPIsPage
+    { path: ROUTES.KPI_MY_KPIS, element: <MyKPIsPage /> },
+    // Analytics
+    { path: ROUTES.KPI_ANALYTICS, element: <KPIAnalyticsPage /> },
 ];
 
 export default kpiRoutes;

@@ -9,3 +9,4 @@ export { default as KPIAdjustmentsPage } from './KPIAdjustmentsPage';
 export { default as KPIDetailPage } from './KPIDetailPage';
 export { default as KPICreatePage } from './KPICreatePage';
 export { default as KPIEditPage } from './KPIEditPage';
+export { default as KPIAnalyticsPage } from './KPIAnalyticsPage';

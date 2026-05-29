@@ -8,7 +8,6 @@ from ..models import MonthlyActual, ValidationRecord, ValidationComment, Rejecti
 from ..exceptions import ValidationNotAllowedError, ApprovalError, EscalationError
 from ..validators import validate_supervisor_access
 
-
 class ValidationApprover:
     def approve(self, actual_id: str, supervisor, comment: str = "") -> MonthlyActual:
         actual = MonthlyActual.objects.get(id=actual_id)
@@ -175,3 +174,66 @@ def pending_validation_count_for_supervisor_id(supervisor_id: Optional[str]) -> 
     User = get_user_model()
     supervisor = User.objects.filter(id=supervisor_id).first()
     return pending_validation_count_for_supervisor(supervisor)
+
+class AutoApprovalService:
+    def __init__(self):
+        self.approver = ValidationApprover()
+    
+    def auto_approve_if_eligible(self, actual_id: str, supervisor) -> Dict:
+        actual = MonthlyActual.objects.get(id=actual_id)
+        if self._meets_auto_approve_criteria(actual):
+            self.approver.approve(actual_id, supervisor, "Auto-approved by system")
+            return {'status': 'APPROVED', 'method': 'auto'}
+        return {'status': 'PENDING', 'method': 'manual'}
+    
+    def _meets_auto_approve_criteria(self, actual: MonthlyActual) -> bool:
+        from ..models import MonthlyPhasing
+        target = MonthlyPhasing.objects.filter(
+            annual_target__kpi=actual.kpi,
+            annual_target__user=actual.user,
+            annual_target__year=actual.year,
+            month=actual.month
+        ).first()
+        if not target:
+            return False
+        variance = abs(actual.actual_value - target.target_value) / target.target_value * 100
+        if variance <= 5:
+            return True
+        previous = MonthlyActual.objects.filter(
+            kpi=actual.kpi,
+            user=actual.user,
+            year=actual.year,
+            month__lt=actual.month,
+            status='APPROVED'
+        ).count()
+        if previous == actual.month - 1:
+            return True
+        
+        return False
+    
+    def batch_auto_approve(self, supervisor_id: str, year: int, month: int) -> Dict:
+        """Auto-approve all eligible entries for a period"""
+        from apps.structure.models import ReportingHierarchy
+        
+        supervisor = User.objects.get(id=supervisor_id)
+        direct_reports = ReportingHierarchy.objects.filter(
+            manager_id=supervisor_id
+        ).values_list('employee_id', flat=True)
+        
+        pending = MonthlyActual.objects.filter(
+            user_id__in=direct_reports,
+            year=year,
+            month=month,
+            status='PENDING'
+        )
+        
+        results = {'approved': [], 'pending': []}
+        
+        for actual in pending:
+            result = self.auto_approve_if_eligible(str(actual.id), supervisor)
+            if result['status'] == 'APPROVED':
+                results['approved'].append(str(actual.id))
+            else:
+                results['pending'].append(str(actual.id))
+        
+        return results

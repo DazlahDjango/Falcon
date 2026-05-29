@@ -37,4 +37,23 @@ websocket_urlpatterns = [
         consumers.KPIValidationConsumer.as_asgi(),
         name='kpi-validation'
     ),
+    re_path(
+        r'ws/kpi/reports/(?P<report_id>[0-9a-f-]+)/$',
+        consumers.KPIReportConsumer.as_asgi(),
+        name='kpi-report'
+    ),
+    
+    # Analytics WebSocket
+    re_path(
+        r'ws/kpi/analytics/(?P<tenant_id>[0-9a-f-]+)/$',
+        consumers.KPIAnalyticsConsumer.as_asgi(),
+        name='kpi-analytics'
+    ),
+    
+    # System Alerts WebSocket
+    re_path(
+        r'ws/kpi/alerts/(?P<tenant_id>[0-9a-f-]+)/$',
+        consumers.KPIAlertsConsumer.as_asgi(),
+        name='kpi-alerts'
+    ),
 ]

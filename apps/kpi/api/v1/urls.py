@@ -16,7 +16,8 @@ from .views import (
     KPISummaryViewSet, DepartmentRollupViewSet, OrganizationHealthViewSet,
     BulkKPIUploadView, BulkActualUploadView, BulkTargetUploadView,
     TriggerCalculationView, CalculationStatusView,
-    KPIHistoryViewSet, ActualHistoryViewSet, TargetHistoryViewSet
+    KPIHistoryViewSet, ActualHistoryViewSet, TargetHistoryViewSet, PerformanceHeatmapView, 
+    AnalyticsExportView, CustomReportView, NotificationPreferencesView
 )
 from .views.user_nested import UserKPIsViewSet, UserTargetsViewSet, UserScoresViewSet, UserActualsViewSet, UserViewSet
 from .views.export import KPIExportView, ScoreExportView, ReportExportView
@@ -138,6 +139,10 @@ urlpatterns = [
     path('reference-data/', KpiReferenceDataView.as_view(), name='kpi-reference-data'),
     path('system-settings/', KpiSystemSettingsView.as_view(), name='kpi-system-settings'),
     path('system-settings/reset/', KpiSystemSettingsResetView.as_view(), name='kpi-system-settings-reset'),
+    path('analytics/export/', AnalyticsExportView.as_view(), name='analytics-export'),
+    path('analytics/heatmap/', PerformanceHeatmapView.as_view(), name='analytics-heatmap'),
+    path('reports/custom/', CustomReportView.as_view(), name='custom-report'),
+    path('notifications/preferences/', NotificationPreferencesView.as_view(), name='notification-preferences'),
 ]
 
 # API Root View

@@ -1,0 +1,386 @@
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--kpi-z-modal-backdrop);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.2s ease-out;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+}
+
+.headerInfo h2 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.kpiMeta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.kpiCode {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: monospace;
+}
+
+.kpiType {
+    font-size: 12px;
+    padding: 2px 8px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    color: #4b5563;
+}
+
+.kpiWeight {
+    font-size: 12px;
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    line-height: 1;
+}
+
+.closeButton:hover {
+    color: #1f2937;
+}
+
+.scoreSummary {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 24px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.scoreGauge {
+    flex-shrink: 0;
+}
+
+.scoreDetails {
+    flex: 1;
+    display: flex;
+    gap: 24px;
+}
+
+.currentScore, .currentActual {
+    text-align: center;
+}
+
+.scoreLabel, .actualLabel {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.scoreValue, .actualValue {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 20px 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: white;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    color: #3b82f6;
+}
+
+.activeTab {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+
+.tabIcon {
+    font-size: 14px;
+}
+
+.tabContent {
+    padding: 20px 24px;
+    min-height: 300px;
+}
+
+/* Overview Tab */
+.infoSection {
+    margin-bottom: 20px;
+}
+
+.infoSection h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.infoSection p {
+    margin: 0;
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.formula {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #1f2937;
+}
+
+/* Scores & Targets Tables */
+.scoresTable, .targetsTable {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tableHeader {
+    display: grid;
+    background: #f9fafb;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tableRow {
+    display: grid;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+}
+
+.tableRow:last-child {
+    border-bottom: none;
+}
+
+.scoresTable .tableHeader,
+.scoresTable .tableRow {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.targetsTable .tableHeader,
+.targetsTable .tableRow {
+    grid-template-columns: 1fr 1fr 1fr 1.2fr 0.8fr;
+}
+
+.scoreCell {
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+.achievementCell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.achievementBar {
+    flex: 1;
+    background: #e5e7eb;
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.achievementFill {
+    height: 100%;
+    background: #22c55e;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Details Tab */
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.detailItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.detailItem label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.detailItem span {
+    font-size: 13px;
+    color: #1f2937;
+}
+
+.activeStatus {
+    color: #22c55e;
+    font-weight: 500;
+}
+
+.inactiveStatus {
+    color: #ef4444;
+    font-weight: 500;
+}
+
+/* Loading & Empty States */
+.loadingSmall {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+.noData {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Footer */
+.modalFooter {
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.closeModalButton {
+    padding: 8px 20px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.closeModalButton:hover {
+    background: #e5e7eb;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .modalContent {
+        width: 95%;
+    }
+    
+    .scoreSummary {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .scoreDetails {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .targetsTable .tableHeader,
+    .targetsTable .tableRow {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .tableHeader {
+        display: none;
+    }
+    
+    .tableRow {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .detailsGrid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tabs {
+        overflow-x: auto;
+    }
+    
+    .tab {
+        white-space: nowrap;
+    }
+}

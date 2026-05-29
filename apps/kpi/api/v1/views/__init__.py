@@ -7,7 +7,7 @@ from .validation import ValidationRecordViewSet, RejectionReasonViewSet, Escalat
 from .score import ScoreViewSet, AggregatedScoreViewSet, TrafficLightViewSet
 from .cascade import CascadeRuleViewSet, CascadeMapViewSet
 from .dashboard import IndividualDashboardView, ManagerDashboardView, ExecutiveDashboardView, ChampionDashboardView
-from .analytics import KPISummaryViewSet, DepartmentRollupViewSet, OrganizationHealthViewSet
+from .analytics import KPISummaryViewSet, DepartmentRollupViewSet, OrganizationHealthViewSet, PerformanceHeatmapView, AnalyticsExportView, CustomReportView, NotificationPreferencesView
 from .bulk import BulkKPIUploadView, BulkActualUploadView, BulkTargetUploadView
 from .calculation import TriggerCalculationView, CalculationStatusView
 from .history import KPIHistoryViewSet, ActualHistoryViewSet, TargetHistoryViewSet

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.views import APIView
 import logging
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,8 +8,8 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .base import ReadOnlyKPIViewset
-from ..serializers import KPISummarySerializer, DepartmentRollupSerializer, OrganizationHealthSerializer
-from ....models import KPISummary, DepartmentRollup, OrganizationHealth
+from ..serializers import KPISummarySerializer, DepartmentRollupSerializer, OrganizationHealthSerializer, CustomReportSerializer
+from ....models import KPISummary, DepartmentRollup, OrganizationHealth, AggregatedScore
 from ....services.analytics import (
     get_department_rollups,
     get_kpi_summaries,
@@ -17,6 +18,7 @@ from ....services.analytics import (
 )
 from apps.accounts.api.v1.permissions import IsExecutive
 from ..permissions import IsAuthenticatedAndActive, IsManager
+from ..throttles import ExportThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -305,3 +307,213 @@ class OrganizationHealthViewSet(ReadOnlyKPIViewset):
         tenant_id = str(request.tenant.id)
         periods = get_organization_health_history(tenant_id, months_back=months_back)
         return Response(periods)
+    
+class PerformanceHeatmapView(APIView):
+    permission_classes = [IsAuthenticatedAndActive, IsExecutive]
+    def get(self, request):
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        if not year or not month:
+            now = timezone.now()
+            year = year or now.year
+            month = month or now.month
+        else:
+            year = int(year)
+            month = int(month)
+        dept_scores = AggregatedScore.objects.filter(
+            level='DEPARTMENT',
+            tenant_id=request.tenant.id,
+            year=year,
+            month=month
+        ).values('entity_id', 'entity_name', 'aggregated_score')
+        from apps.kpi.models import Score, KPI
+        kpis = KPI.objects.filter(tenant_id=request.tenant.id, is_active=True)
+        heatmap_data = []
+        for dept in dept_scores:
+            from apps.accounts.models import User
+            users = User.objects.filter(department_id=dept['entity_id'], is_active=True)
+            dept_data = {
+                'department_id': dept['entity_id'],
+                'department_name': dept['entity_name'],
+                'overall_score': dept['aggregated_score'],
+                'kpis': []
+            }
+            for kpi in kpis:
+                scores = Score.objects.filter(
+                    kpi=kpi,
+                    user_id__in=users.values_list('id', flat=True),
+                    year=year,
+                    month=month
+                )   
+                avg_score = scores.aggregate(avg=Avg('score'))['avg'] or 0
+                dept_data['kpis'].append({
+                    'kpi_id': str(kpi.id),
+                    'kpi_name': kpi.name,
+                    'average_score': avg_score
+                })
+            heatmap_data.append(dept_data)
+        return Response({
+            'year': year,
+            'month': month,
+            'data': heatmap_data
+        })
+
+class AnalyticsExportView(APIView):  
+    permission_classes = [IsAuthenticatedAndActive, IsExecutive]
+    throttle_classes = [ExportThrottle]
+    
+    def get(self, request):
+        export_type = request.query_params.get('type', 'csv')
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        
+        if not year or not month:
+            now = timezone.now()
+            year = year or now.year
+            month = month or now.month
+        else:
+            year = int(year)
+            month = int(month)
+        
+        # Get data
+        dept_scores = AggregatedScore.objects.filter(
+            level='DEPARTMENT',
+            tenant_id=request.tenant.id,
+            year=year,
+            month=month
+        ).values('entity_name', 'aggregated_score', 'member_count')
+        
+        kpi_summaries = KPISummary.objects.filter(
+            tenant_id=request.tenant.id,
+            year=year,
+            month=month
+        ).values('kpi__name', 'average_score', 'green_count', 'yellow_count', 'red_count')
+        
+        # Generate CSV
+        import csv
+        import io
+        
+        output = io.StringIO()
+        
+        if export_type == 'csv':
+            writer = csv.writer(output)
+            writer.writerow(['Department', 'Score', 'Member Count'])
+            for dept in dept_scores:
+                writer.writerow([dept['entity_name'], dept['aggregated_score'], dept['member_count']])
+            
+            writer.writerow([])
+            writer.writerow(['KPI', 'Average Score', 'Green', 'Yellow', 'Red'])
+            for kpi in kpi_summaries:
+                writer.writerow([
+                    kpi['kpi__name'],
+                    kpi['average_score'],
+                    kpi['green_count'],
+                    kpi['yellow_count'],
+                    kpi['red_count']
+                ])
+            
+            response = Response(output.getvalue(), content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="analytics_{year}_{month:02d}.csv"'
+            return response
+        
+        return Response({'error': 'Unsupported export type'}, status=400)
+
+
+class CustomReportView(APIView):
+    permission_classes = [IsAuthenticatedAndActive, IsExecutive]
+    throttle_classes = [ExportThrottle]
+    
+    def post(self, request):
+        serializer = CustomReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        report_type = data['report_type']
+        format_type = data.get('format', 'pdf')
+        filters = data.get('filters', {})
+        from apps.kpi.services import ReportGenerator
+        
+        generator = ReportGenerator()
+        
+        
+        if report_type == 'kpi_performance':
+            report = generator.generate_kpi_performance_report(
+                request.tenant.id,
+                filters.get('kpi_ids', []),
+                filters.get('year'),
+                filters.get('month'),
+                format_type
+            )
+        elif report_type == 'department_comparison':
+            report = generator.generate_department_comparison_report(
+                request.tenant.id,
+                filters.get('year'),
+                filters.get('month'),
+                format_type
+            )
+        elif report_type == 'trend_analysis':
+            report = generator.generate_trend_analysis_report(
+                request.tenant.id,
+                filters.get('kpi_ids', []),
+                filters.get('months', 12),
+                format_type
+            )
+        else:
+            return Response({'error': f'Unknown report type: {report_type}'}, status=400)
+        from ....tasks import generate_custom_report_task
+        
+        task = generate_custom_report_task.delay(
+            tenant_id=str(request.tenant.id),
+            report_data=data,
+            user_id=str(request.user.id)
+        )
+        
+        return Response({
+            'task_id': task.id,
+            'status': 'PENDING',
+            'message': 'Report generation started'
+        }, status=202)
+
+
+class NotificationPreferencesView(APIView):
+    permission_classes = [IsAuthenticatedAndActive]
+    
+    def get(self, request):
+        """Get user notification preferences"""
+        from ....models import NotificationPreference
+        
+        preferences, created = NotificationPreference.objects.get_or_create(
+            tenant_id=request.tenant.id,
+            user_id=request.user.id
+        )
+        
+        return Response({
+            'push_enabled': preferences.push_enabled,
+            'email_enabled': preferences.email_enabled,
+            'in_app_enabled': preferences.in_app_enabled,
+            'types': preferences.types
+        })
+    
+    def put(self, request):
+        """Update user notification preferences"""
+        from ....models import NotificationPreference
+        
+        preferences, created = NotificationPreference.objects.get_or_create(
+            tenant_id=request.tenant.id,
+            user_id=request.user.id
+        )
+        
+        preferences.push_enabled = request.data.get('push_enabled', preferences.push_enabled)
+        preferences.email_enabled = request.data.get('email_enabled', preferences.email_enabled)
+        preferences.in_app_enabled = request.data.get('in_app_enabled', preferences.in_app_enabled)
+        
+        if 'types' in request.data:
+            preferences.types = {**preferences.types, **request.data['types']}
+        
+        preferences.save()
+        
+        return Response({
+            'push_enabled': preferences.push_enabled,
+            'email_enabled': preferences.email_enabled,
+            'in_app_enabled': preferences.in_app_enabled,
+            'types': preferences.types
+        })

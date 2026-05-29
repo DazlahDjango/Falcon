@@ -1,0 +1,98 @@
+.myKPIsPage {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #f9fafb;
+    min-height: 100vh;
+}
+
+.header {
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.weightSummary {
+    margin-bottom: 24px;
+}
+
+.weightCard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+}
+
+.weightLabel {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.weightValue {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.weightWarning {
+    display: inline-block;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 20px;
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+.weightProgress {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    height: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.weightBar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.weightBar.valid {
+    background: #22c55e;
+}
+
+.weightBar.invalid {
+    background: #f59e0b;
+}
+
+.weightHint {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .myKPIsPage {
+        padding: 16px;
+    }
+    
+    .header h1 {
+        font-size: 22px;
+    }
+    
+    .weightValue {
+        font-size: 22px;
+    }
+}
