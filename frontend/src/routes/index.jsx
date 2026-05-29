@@ -14,7 +14,7 @@ import dashboardRoutes from "./dashboard.routes";
 import { getDefaultRouteByRole } from "../config/constants/dashboardRouteConstants";
 
 // Layouts
-const AuthLayout = React.lazy(() => import("../components/common/Layout/AuthLayout"));
+const AuthLayout = React.lazy(() => import("../components/dashboard/Layout/AuthLayout"));
 // Auth pages
 const Login = React.lazy(() => import('../components/accounts/auth/Login'));
 const Register = React.lazy(() => import('../components/accounts/auth/Register'));

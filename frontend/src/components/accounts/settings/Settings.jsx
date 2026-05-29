@@ -11,7 +11,7 @@ import TenantSettings from './TenantSettings';
 
 const Settings = () => {
     const navigate = useNavigate();
-    const { user } = useSelector((state) => state.auth);
+    const { user } = useSelector((state) => state.auth || { user: null });
     const isAdmin = user?.role === 'client_admin' || user?.role === 'super_admin';
     const tabs = [
         { key: 'profile', label: 'Profile', icon: <FiUser size={16} /> },

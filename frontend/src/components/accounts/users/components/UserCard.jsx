@@ -5,7 +5,7 @@ import UserRoleBadge from './UserRoleBadge';
 import UserStatusBadge from './UserStatusBadge';
 import { use } from "react";
 
-const UserCard = ({ user, onEdit, onDelete, showActions = false, onClick, showKpiSumary = false }) => {
+const UserCard = ({ user, onEdit, onDelete, showActions = false, onClick, showKpiSummary = false }) => {
     const navigate = useNavigate();
     const [showMenu, setShowMenu] = React.useState(false);
     const handleClick = () => {
