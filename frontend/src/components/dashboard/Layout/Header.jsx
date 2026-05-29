@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSyncExternalStore } from 'react';
-import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio } from "react-icons/fi";
+import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio, FiInfo, FiCheckCircle, FiAlertTriangle, FiXCircle, FiAlertOctagon } from "react-icons/fi";
 import { markAllAsRead, fetchUnreadCount } from '../../../store/accounts/slice/notificationSlice';
 import { formatDate } from '../../../utils/accounts/formatters';
 import { getDefaultRouteByRole } from '../../../config/constants/dashboardRouteConstants';
@@ -177,14 +177,20 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
     };
 
     const getNotificationIcon = (level) => {
-        const icons = {
-            info: 'ℹ️',
-            success: '✓',
-            warning: '⚠️',
-            error: '✗',
-            critical: '🔥'
-        };
-        return icons[level] || 'ℹ️';
+        switch (level) {
+            case 'info':
+                return <FiInfo size={16} />;
+            case 'success':
+                return <FiCheckCircle size={16} />;
+            case 'warning':
+                return <FiAlertTriangle size={16} />;
+            case 'error':
+                return <FiXCircle size={16} />;
+            case 'critical':
+                return <FiAlertOctagon size={16} />;
+            default:
+                return <FiInfo size={16} />;
+        }
     };
 
     return (

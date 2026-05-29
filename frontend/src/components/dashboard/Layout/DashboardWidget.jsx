@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { FiMoreVertical, FiRefreshCw, FiDownload, FiX, FiMaximize2, FiMinimize2 } from 'react-icons/fi';
+import { FiMoreVertical, FiRefreshCw, FiDownload, FiX, FiMaximize2, FiMinimize2, FiAlertTriangle } from 'react-icons/fi';
 
 export const DashboardWidget = ({ 
   id,
@@ -77,7 +77,7 @@ export const DashboardWidget = ({
     if (error) {
       return (
         <div className="widget-error">
-          <span className="error-icon">⚠️</span>
+          <span className="error-icon"><FiAlertTriangle size={32} /></span>
           <p>{error}</p>
           {onRefresh && (
             <button onClick={onRefresh} className="retry-btn">
