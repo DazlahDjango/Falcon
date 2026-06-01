@@ -47,6 +47,11 @@ const SuperAdminDashboard = debugLazy(
   'SuperAdminDashboard'
 );
 
+const SuperAdminDashboardCustom = debugLazy(
+  () => import('../pages/dashboard'),
+  'SuperAdminDashboardCustom'
+);
+
 const SuperAdminTenants = debugLazy(
   () => import('../pages/dashboard'),
   'SuperAdminTenants'
@@ -117,6 +122,7 @@ const dashboardRoutes = [
     children: [
       { index: true, element: <DashboardIndexRedirect /> },
       { path: DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW, element: withSuspense(SuperAdminDashboard) },
+      { path: DASHBOARD_ROUTES.SUPER_ADMIN.CUSTOM_OVERVIEW, element: withSuspense(SuperAdminDashboardCustom) },
       { path: DASHBOARD_ROUTES.SUPER_ADMIN.TENANTS, element: withSuspense(SuperAdminTenants) },
       { path: DASHBOARD_ROUTES.SUPER_ADMIN.SYSTEM_HEALTH, element: withSuspense(SuperAdminSystemHealth) },
       { path: DASHBOARD_ROUTES.SUPER_ADMIN.SUBSCRIPTIONS, element: withSuspense(SuperAdminSubscriptions) },

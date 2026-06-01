@@ -1,4 +1,5 @@
 import websocketService from './websocket.service';
+import { KPI_WS } from '../../config/constants/websocketApiConstants';
 
 class KPIWebSocket {
     constructor() {
@@ -17,7 +18,7 @@ class KPIWebSocket {
     }
     connectDashboard(userId, onMessage, onOpen = null) {
         const key = `dashboard_${userId}`;
-        const endpoint = `/ws/kpi/dashboard/${userId}/`;
+        const endpoint = KPI_WS.DASHBOARD(userId);
         this.connections.dashboard = this.service.connect(
             key, endpoint, onMessage, onOpen
         );
@@ -30,7 +31,7 @@ class KPIWebSocket {
     }
     connectTeamDashboard(managerId, onMessage, onOpen = null) {
         const key = `team_${managerId}`;
-        const endpoint = `/ws/kpi/team/${managerId}/`;
+        const endpoint = KPI_WS.TEAM(managerId);
         this.connections.team = this.service.connect(
             key, endpoint, onMessage, onOpen
         );
@@ -43,7 +44,7 @@ class KPIWebSocket {
     }
     connectExecutiveDashboard(tenantId, onMessage, onOpen = null) {
         const key = `executive_${tenantId}`;
-        const endpoint = `/ws/kpi/executive/${tenantId}/`;
+        const endpoint = KPI_WS.EXECUTIVE(tenantId);
         
         this.connections.executive = this.service.connect(
             key, endpoint, onMessage, onOpen
@@ -57,7 +58,7 @@ class KPIWebSocket {
     }
     connectNotifications(userId, onMessage, onOpen = null) {
         const key = `notifications_${userId}`;
-        const endpoint = `/ws/kpi/notifications/${userId}/`;
+        const endpoint = KPI_WS.NOTIFICATIONS(userId);
         this.connections.notifications = this.service.connect(
             key, endpoint, onMessage, onOpen
         );
@@ -70,7 +71,7 @@ class KPIWebSocket {
     }
     connectScores(userId, onMessage, onOpen = null) {
         const key = `scores_${userId}`;
-        const endpoint = `/ws/kpi/scores/${userId}/`;
+        const endpoint = KPI_WS.SCORES(userId);
         
         this.connections.scores = this.service.connect(
             key, endpoint, onMessage, onOpen
@@ -84,7 +85,7 @@ class KPIWebSocket {
     }
     connectValidation(userId, onMessage, onOpen = null) {
         const key = `validation_${userId}`;
-        const endpoint = `/ws/kpi/validation/${userId}/`;
+        const endpoint = KPI_WS.VALIDATION(userId);
         
         this.connections.validation = this.service.connect(
             key, endpoint, onMessage, onOpen

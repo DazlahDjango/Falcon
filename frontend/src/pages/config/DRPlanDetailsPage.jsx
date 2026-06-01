@@ -22,3 +22,4 @@ export const DRPlanDetailsPage = () => {
     </div>
   );
 };
+export default DRPlanDetailsPage;

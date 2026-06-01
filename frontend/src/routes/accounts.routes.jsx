@@ -21,6 +21,7 @@ const Notifications = React.lazy(() => import('../components/accounts/settings/N
 // Admin components (if implemented)
 const Dashboard = React.lazy(() => import('../components/accounts/dashboard/Dashboard'))
 const AdminDashboard = React.lazy(() => import('../components/accounts/admin/AdminDashboard'));
+const SuperAdminDashboardCustom = React.lazy(() => import('../pages/dashboard/SuperAdminDashboard/SuperAdminDashboardCustom'));
 const AdminUsers = React.lazy(() => import('../components/accounts/admin/AdminUsers'));
 const AdminTenants = React.lazy(() => import('../components/accounts/admin/AdminTenants'));
 const AdminSystem = React.lazy(() => import('../components/accounts/admin/AdminSystem'));
@@ -51,6 +52,7 @@ const accountsRoutes = [
     { path: ROUTES.AUDIT, element: <AuditLogs /> },
     // Admin (if implemented)
     { path: ROUTES.ADMIN, element: <AdminDashboard /> },
+    { path: '/admin/custom', element: <SuperAdminDashboardCustom /> },
     { path: ROUTES.ADMIN_USERS, element: <AdminUsers /> },
     { path: ROUTES.ADMIN_USER_CREATE, element: <UserCreate /> },
     { path: ROUTES.ADMIN_USER_EDIT, element: <UserEdit /> },

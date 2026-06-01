@@ -149,6 +149,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: BILLING_ROUTES.ADMIN_BASE, name: 'Billing Admin', icon: FiPieChart, roles: ['super_admin'] },
         ];
         const adminItems = [
+            { path: '/admin/custom', name: 'Custom Overview', icon: FiGrid, roles: ['super_admin'] },
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
             { path: '/tenants', name: 'Tenants', icon: FiLayers, roles: ['super_admin'] },
             { path: '/admin/system', name: 'System', icon: FiServer, roles: ['super_admin'] },

@@ -1,6 +1,8 @@
 import { store } from '../../store';
 import { addNotification } from '../../store/structure/notificationSlice';
 import { updateDepartment, updateTeam, updateEmployment } from '../../store/structure';
+import { websocketBase, STRUCTURE_WS } from '../../config/constants/websocketApiConstants';
+import { websocketService } from '../websocket';
 
 class StructureWebSocketService {
   constructor() {
@@ -12,9 +14,10 @@ class StructureWebSocketService {
     this.listeners = new Map();
     this.isConnecting = false;
     this.heartbeatInterval = null;
+    this.connectionKey = null;
   }
 
-  connect(tenantId) {
+  async connect(tenantId) {
     if (!tenantId) {
       console.error('[WebSocket] Tenant ID is required');
       return;
@@ -29,16 +32,19 @@ class StructureWebSocketService {
     }
     this.tenantId = tenantId;
     this.isConnecting = true;
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.host}`;
     const token = store.getState().auth?.accessToken;
-    const wsUrl = `${wsHost}/ws/structure/${tenantId}/events/?token=${token}`;
+    const wsUrl = `${websocketBase}${STRUCTURE_WS.EVENTS(tenantId)}${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+    this.connectionKey = `structure_${tenantId}`;
     try {
-      this.socket = new WebSocket(wsUrl);
-      this.socket.onopen = this._handleOpen.bind(this);
-      this.socket.onmessage = this._handleMessage.bind(this);
-      this.socket.onclose = this._handleClose.bind(this);
-      this.socket.onerror = this._handleError.bind(this);
+      await websocketService.connect(
+        this.connectionKey,
+        wsUrl,
+        (data) => this._handleIncomingData(data),
+        () => this._handleOpen(),
+        (err) => this._handleError(err),
+        (event) => this._handleClose(event),
+        { shouldReconnect: true }
+      );
     } catch (error) {
       console.error('[WebSocket] Connection error:', error);
       this.isConnecting = false;
@@ -55,21 +61,11 @@ class StructureWebSocketService {
   }
 
   _startHeartbeat() {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-    }
-    this.heartbeatInterval = setInterval(() => {
-      if (this.socket?.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
-      }
-    }, 30000);
+    // websocketService handles heartbeat/reconnect. Keep method for compatibility.
   }
  
   _stopHeartbeat() {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
+    // noop - heartbeat managed by websocketService
   }
 
   _subscribeToEvents() {
@@ -79,26 +75,22 @@ class StructureWebSocketService {
   }
 
   subscribeToDepartment(departmentId) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        type: 'subscribe_department',
-        department_id: departmentId,
-      }));
-    }
+    websocketService.send(this.connectionKey, {
+      type: 'subscribe_department',
+      department_id: departmentId,
+    });
   }
 
   subscribeToTeam(teamId) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        type: 'subscribe_team',
-        team_id: teamId,
-      }));
-    }
+    websocketService.send(this.connectionKey, {
+      type: 'subscribe_team',
+      team_id: teamId,
+    });
   }
 
-  _handleMessage(event) {
+  _handleIncomingData(data) {
     try {
-      const data = JSON.parse(event.data);
+      // data is already parsed by websocketService
       switch (data.type) {
         case 'pong':
           break;
@@ -133,7 +125,7 @@ class StructureWebSocketService {
         this.listeners.get(data.type).forEach(callback => callback(data));
       }
     } catch (error) {
-      console.error('[WebSocket] Error parsing message:', error);
+      console.error('[WebSocket] Error handling incoming data:', error);
     }
   }
   
@@ -236,13 +228,11 @@ class StructureWebSocketService {
   }
 
   _handleClose(event) {
-    console.log(`[WebSocket] Disconnected: ${event.code} - ${event.reason}`);
+    console.log(`[WebSocket] Disconnected: ${event?.code} - ${event?.reason}`);
     this._stopHeartbeat();
     this.socket = null;
     this.isConnecting = false;
-    if (event.code !== 1000) {
-      this._scheduleReconnect();
-    }
+    // websocketService handles reconnection; leave scheduling to it
   }
 
   _handleError(event) {
@@ -250,37 +240,23 @@ class StructureWebSocketService {
   }
 
   _scheduleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('[WebSocket] Max reconnection attempts reached');
-      return;
-    }
-    const delay = this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts);
-    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
-    setTimeout(() => {
-      this.reconnectAttempts++;
-      if (this.tenantId) {
-        this.connect(this.tenantId);
-      }
-    }, delay);
+    // Deprecated: websocketService handles reconnect behavior
   }
 
   disconnect() {
     this._stopHeartbeat();
-    if (this.socket) {
-      this.socket.close(1000, 'User disconnected');
-      this.socket = null;
+    if (this.connectionKey) {
+      websocketService.disconnect(this.connectionKey);
+      this.connectionKey = null;
     }
+    this.socket = null;
     this.isConnecting = false;
     this.reconnectAttempts = 0;
     console.log('[WebSocket] Disconnected');
   }
 
   send(data) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(data));
-    } else {
-      console.warn('[WebSocket] Cannot send message: not connected');
-    }
+    websocketService.send(this.connectionKey, data);
   }
 
   addEventListener(eventType, callback) {

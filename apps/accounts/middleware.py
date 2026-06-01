@@ -192,7 +192,7 @@ class TenantAccessMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if self._should_skip(request.path) or not hasattr(request, 'user'):
             return None
-        if request.user.is_authenticated and not request.user.is_superuser:
+        if request.user.is_authenticated and not request.user.is_superuser and getattr(request.user, 'role', None) != 'super_admin':
             requested_tenant = self._extract_tenant_from_path(request.path)
             if requested_tenant and requested_tenant != str(request.user.tenant_id):
                 return JsonResponse(

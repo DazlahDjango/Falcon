@@ -110,7 +110,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             new_count = await database_sync_to_async(
                 lambda: Notification.objects.filter(
                     recipient=self.user,
-                    unreat=True
+                    unread=True
                 ).count()
             )()
             from channels.layers import get_channel_layer
@@ -129,7 +129,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         from notifications.models import Notification
         updated = await database_sync_to_async(
             lambda: Notification.objects.filter(
-                recepient=self.user,
+                recipient=self.user,
                 unread=True
             ).update(unread=False)
         )()

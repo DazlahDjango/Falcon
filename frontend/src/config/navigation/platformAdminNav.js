@@ -49,6 +49,7 @@ export const CONFIG_NAV_ITEMS = [
 export const SUPER_ADMIN_NAV_GROUPS = {
   main: [
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW, name: 'Platform Overview', icon: FiHome, end: true },
+    { path: DASHBOARD_ROUTES.SUPER_ADMIN.CUSTOM_OVERVIEW, name: 'Custom Overview', icon: FiHome },
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.PLATFORM_METRICS, name: 'Metrics', icon: FiBarChart2 },
   ],
   platform: [
