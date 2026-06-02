@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import ExecutiveDashboardHeader from './ExecutiveDashboardHeader';
 import OrganizationHealthCard from './OrganizationHealthCard';
@@ -6,40 +6,27 @@ import DepartmentRanking from './DepartmentRanking';
 import KPIOverview from './KPIOverview';
 import TrendAnalysis from './TrendAnalysis';
 import RiskIndicators from './RiskIndicators';
-import PeriodSelector from '../../common/PeriodSelector';
 import styles from './ExecutiveDashboard.module.css';
 
-const ExecutiveDashboard = ({ 
-    tenantId, 
-    initialData, 
-    isLoading, 
+const ExecutiveDashboard = ({
+    tenantId,
+    initialData,
+    isLoading,
     onPeriodChange,
-    onRefresh 
+    onRefresh,
+    period
 }) => {
-    const [dashboardData, setDashboardData] = useState(initialData || null);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [refreshing, setRefreshing] = useState(false);
-    useEffect(() => {
-        if (initialData) {
-            setDashboardData(initialData);
-        }
-    }, [initialData]);
-    const handlePeriodChange = (year, month) => {
-        setSelectedYear(year);
-        setSelectedMonth(month);
-        if (onPeriodChange) {
-            onPeriodChange(year, month);
-        }
-    };
+
     const handleRefresh = async () => {
         setRefreshing(true);
         if (onRefresh) {
-            await onRefresh(selectedYear, selectedMonth);
+            await onRefresh();
         }
         setRefreshing(false);
     };
-    if (isLoading && !dashboardData) {
+
+    if (isLoading && !initialData) {
         return (
             <div className={styles.loadingContainer}>
                 <div className={styles.spinner} />
@@ -47,7 +34,8 @@ const ExecutiveDashboard = ({
             </div>
         );
     }
-    if (!dashboardData) {
+
+    if (!initialData) {
         return (
             <div className={styles.emptyContainer}>
                 <p>No organizational data available for the selected period.</p>
@@ -57,26 +45,25 @@ const ExecutiveDashboard = ({
             </div>
         );
     }
+
+    // Format period for display
+    const periodDisplay = period
+        ? `${period.year}-${String(period.month).padStart(2, '0')}`
+        : 'Current Period';
+
+    // Use mapped data directly - no transformation needed!
+    const dashboardData = initialData;
+
     return (
         <div className={styles.dashboard}>
-            <ExecutiveDashboardHeader 
-                period={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+            <ExecutiveDashboardHeader
+                period={periodDisplay}
                 onRefresh={handleRefresh}
-                refreshing={refreshing}
+                refreshing={refreshing || isLoading}
             />
 
-            <div className={styles.periodSelector}>
-                <PeriodSelector
-                    year={selectedYear}
-                    month={selectedMonth}
-                    onChange={handlePeriodChange}
-                    minYear={2020}
-                    maxYear={new Date().getFullYear() + 2}
-                />
-            </div>
-
             <div className={styles.healthSection}>
-                <OrganizationHealthCard 
+                <OrganizationHealthCard
                     overallHealth={dashboardData.overallHealth}
                     redKPICount={dashboardData.redKPICount}
                     redKPIPercentage={dashboardData.redKPIPercentage}
@@ -86,12 +73,12 @@ const ExecutiveDashboard = ({
 
             <div className={styles.dashboardGrid}>
                 <div className={styles.rankingColumn}>
-                    <DepartmentRanking 
+                    <DepartmentRanking
                         departments={dashboardData.departmentRankings}
                     />
                 </div>
                 <div className={styles.kpiColumn}>
-                    <KPIOverview 
+                    <KPIOverview
                         redKPICount={dashboardData.redKPICount}
                         totalKPIs={dashboardData.totalKPIs}
                         greenCount={dashboardData.greenCount}
@@ -113,8 +100,9 @@ const ExecutiveDashboard = ({
         </div>
     );
 };
+
 ExecutiveDashboard.propTypes = {
-    tenantId: PropTypes.string.isRequired,
+    tenantId: PropTypes.string,
     initialData: PropTypes.shape({
         overallHealth: PropTypes.number,
         redKPICount: PropTypes.number,
@@ -131,8 +119,15 @@ ExecutiveDashboard.propTypes = {
     isLoading: PropTypes.bool,
     onPeriodChange: PropTypes.func,
     onRefresh: PropTypes.func,
+    period: PropTypes.shape({
+        year: PropTypes.number,
+        month: PropTypes.number
+    })
 };
+
 ExecutiveDashboard.defaultProps = {
     isLoading: false,
+    initialData: null
 };
+
 export default ExecutiveDashboard;

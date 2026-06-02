@@ -6,14 +6,24 @@ import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants'
 import {
     FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiShield, FiFileText, FiBell, FiLayers, FiChevronLeft,
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
-    FiCloud, FiHeart, FiFlag, FiSliders, FiHardDrive, FiRefreshCw, FiGrid, FiCreditCard, FiFileText as FiReceipt, 
+    FiCloud, FiHeart, FiFlag, FiSliders, FiHardDrive, FiRefreshCw, FiGrid, FiCreditCard, FiFileText as FiReceipt,
     FiShoppingCart, FiDollarSign as FiCurrency, FiList, FiAlertCircle,
-    FiPieChart, FiKey,
-    FiBarChart
+    FiPieChart, FiKey, FiBarChart, FiBriefcase, FiPackage, FiFolder, FiFileText as FiFileTextIcon, FiCheckCircle
 } from 'react-icons/fi';
 import { MdDomain, MdBusiness, MdStorage, MdBackup, MdSchema } from 'react-icons/md';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
 import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
+
+// ============================================
+// KPI ADMIN ROUTES
+// ============================================
+export const KPI_ADMIN_ROUTES = {
+    OVERVIEW: '/kpi/admin/overview',
+    SECTORS: '/kpi/admin/sectors',
+    FRAMEWORKS: '/kpi/admin/frameworks',
+    CATEGORIES: '/kpi/admin/categories',
+    TEMPLATES: '/kpi/admin/templates',
+};
 
 const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
     const [expandedMenus, setExpandedMenus] = useState({
@@ -22,7 +32,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         reporting: true,
         settings: true,
         admin: true,
-        structure: true,     
+        structure: true,
         hierarchy: true,
         tenant: true,
         connections: true,
@@ -30,6 +40,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         billing: true,
         reviews: true,
         config: true,
+        kpi: true,           // ← KPI user section
+        kpiAdmin: false,     // ← KPI Admin section (NEW)
     });
     const { tenantId: paramTenantId } = useParams();
     const location = useLocation();
@@ -47,7 +59,6 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         const baseItems = [
             { path: '/dashboard', name: 'Dashboard', icon: FiHome, roles: ['all'] },
             { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2, roles: ['all'] },
-            // ✅ REMOVED old reviews entry from baseItems - now has its own section
         ];
         const teamItems = [
             { path: '/team', name: 'Team', icon: FiUsers, roles: ['super_admin', 'client_admin', 'executive', 'supervisor'] },
@@ -83,7 +94,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/tenants/dashboard', name: 'Tenant Dashboard', icon: FiGrid, roles: ['super_admin'] },
             { path: '/tenants/create', name: 'Create Tenant', icon: MdBusiness, roles: ['super_admin'] },
         ];
-        
+
         const tenantSpecificItems = [
             { path: '/tenants/:tenantId', name: 'Tenant Overview', icon: MdBusiness, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/edit', name: 'Edit Tenant', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
@@ -98,22 +109,38 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/tenants/:tenantId/audit', name: 'Audit Logs', icon: FiActivity, roles: ['super_admin', 'client_admin'] },
             { path: '/tenants/:tenantId/settings', name: 'Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
         ];
-        
+
         const connectionItems = [
             { path: '/tenants/connections', name: 'Connection Dashboard', icon: FiActivity, roles: ['super_admin'] },
             { path: '/tenants/connections/metrics', name: 'Connection Metrics', icon: FiBarChart2, roles: ['super_admin'] },
             { path: '/tenants/connections/health', name: 'Health Check', icon: FiHeart, roles: ['super_admin'] },
         ];
-        const kpiItems = [
-            { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2, roles: ['super_admin','executive', 'supervisor', 'dashboard_champion']},
+
+        // ============================================
+        // KPI ADMIN ITEMS (NEW)
+        // ============================================
+        const kpiAdminItems = [
+            { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart, roles: ['super_admin', 'client_admin'] },
+            { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase, roles: ['super_admin', 'client_admin'] },
+            { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage, roles: ['super_admin', 'client_admin'] },
+            { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder, roles: ['super_admin', 'client_admin'] },
+            { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileTextIcon, roles: ['super_admin', 'client_admin'] },
+        ];
+
+        // ============================================
+        // KPI USER ITEMS (Existing)
+        // ============================================
+        const kpiUserItems = [
+            { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2, roles: ['super_admin', 'executive', 'supervisor', 'dashboard_champion', 'staff'] },
             { path: ROUTES.KPI_MANAGEMENT, name: 'KPI Management', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
-            { path: ROUTES.TARGETS, name: 'Targets', icon: FiCalendar, roles: ['super_admin', 'client_admin', 'dashboard_champion'] },
+            { path: ROUTES.TARGETS, name: 'Targets', icon: FiCalendar, roles: ['super_admin', 'client_admin', 'dashboard_champion', 'executive', 'supervisor'] },
             { path: ROUTES.ACTUALS, name: 'Performance', icon: FiActivity, roles: ['all'] },
             { path: ROUTES.KPI_REPORTS, name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
             { path: ROUTES.KPI_SETTINGS, name: 'KPI Operations', icon: FiSettings, roles: ['super_admin'] },
-            { path: ROUTES.KPI_ANALYTICS, name: 'Analytics', icon: FiBarChart, roles: ['super_admin'] },
+            { path: ROUTES.KPI_ANALYTICS, name: 'Analytics', icon: FiBarChart, roles: ['super_admin', 'executive'] },
             { path: ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiActivity, roles: ['all'] },
         ];
+
         const reviewsItems = [
             { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
             { path: '/reviews/cycles', name: 'Review Cycles', icon: FiCalendar, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
@@ -126,6 +153,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText, roles: ['supervisor', 'client_admin', 'client_admin', 'executive'] },
             { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings, roles: ['super_admin'] },
         ];
+
         const configItems = [
             { path: '/config/dashboard', name: 'Config Dashboard', icon: FiServer, roles: ['super_admin', 'client_admin'] },
             { path: '/config/backups', name: 'Backups', icon: MdBackup, roles: ['super_admin', 'client_admin'] },
@@ -138,6 +166,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/config/audit-logs', name: 'Audit Logs', icon: FiList, roles: ['super_admin'] },
             { path: '/config/settings', name: 'Config Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
         ];
+
         const billingItems = [
             { path: BILLING_ROUTES.PORTAL, name: 'Billing Overview', icon: FiCreditCard, roles: ['super_admin', 'client_admin', 'executive'] },
             { path: BILLING_ROUTES.PLANS, name: 'Plans', icon: FiDollarSign, roles: ['all'] },
@@ -148,6 +177,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: BILLING_ROUTES.SETTINGS, name: 'Billing Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },
             { path: BILLING_ROUTES.ADMIN_BASE, name: 'Billing Admin', icon: FiPieChart, roles: ['super_admin'] },
         ];
+
         const adminItems = [
             { path: '/admin/custom', name: 'Custom Overview', icon: FiGrid, roles: ['super_admin'] },
             { path: '/admin/users', name: 'Admin Users', icon: FiUsers, roles: ['super_admin'] },
@@ -155,10 +185,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/admin/system', name: 'System', icon: FiServer, roles: ['super_admin'] },
             { path: '/admin/cache', name: 'Cache', icon: FiDatabase, roles: ['super_admin'] },
         ];
-        
-        
-        
-        // ✅ UPDATED return statement - added reviews
+
         return {
             main: baseItems,
             team: teamItems,
@@ -169,33 +196,34 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             tenant: tenantItems,
             tenantSpecific: tenantSpecificItems,
             connections: connectionItems,
-            kpi: kpiItems,
+            kpiAdmin: kpiAdminItems,    // ← NEW KPI Admin section
+            kpiUser: kpiUserItems,      // ← Renamed from 'kpi' to 'kpiUser' for clarity
             reviews: reviewsItems,
             config: configItems,
             billing: billingItems,
             admin: adminItems
         };
     };
-    
+
     const navigation = getNavigationItem();
-    
+
     const hasAccess = (roles) => {
         if (roles.includes('all')) return true;
         if (user?.role && roles.includes(user.role)) return true;
         return false;
     };
-    
+
     const resolvePath = (path) => {
         return path.replace(':tenantId', paramTenantId || currentTenant?.id || '');
     };
-    
+
     const renderNavGroup = (title, items, groupKey) => {
         const filteredItems = items.filter(item => hasAccess(item.roles));
         if (filteredItems.length === 0) return null;
-        
+
         const isExpanded = expandedMenus[groupKey];
         const Icon = isExpanded ? FiChevronUp : FiChevronDown;
-        
+
         return (
             <div className="nav-group" key={groupKey}>
                 <button className="nav-group-header" onClick={() => toggleMenu(groupKey)} disabled={isCollapsed}>
@@ -206,7 +234,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                     <ul className="nav-group-items">
                         {filteredItems.map((item) => (
                             <li key={item.path}>
-                                <NavLink 
+                                <NavLink
                                     to={resolvePath(item.path)}
                                     className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                                     end={item.path === BILLING_ROUTES.PORTAL || item.path === BILLING_ROUTES.ADMIN_BASE}
@@ -221,7 +249,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             </div>
         );
     };
-    
+
     return (
         <aside className={`sidebar ${isOpen ? 'open' : 'closed'} ${isCollapsed ? 'collapsed' : ''}`}>
             {/* Logo Area */}
@@ -229,9 +257,9 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 <NavLink to="/dashboard" className="logo-link">
                     <div className="logo-icon">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </div>
                     {!isCollapsed && <span className="logo-text">Falcon PMS</span>}
@@ -240,7 +268,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                     {isCollapsed ? <FiChevronRight size={18} /> : <FiChevronLeft size={18} />}
                 </button>
             </div>
-            
+
             {/* Tenant Info */}
             {!isCollapsed && currentTenant && (
                 <div className="sidebar-tenant">
@@ -248,7 +276,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                     <div className="tenant-plan">{currentTenant.subscription_plan}</div>
                 </div>
             )}
-            
+
             {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
@@ -259,28 +287,47 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 {renderNavGroup('Hierarchy & Charts', navigation.hierarchy, 'hierarchy')}
                 {renderNavGroup('Configuration', navigation.config, 'config')}
                 {renderNavGroup('Billing', navigation.billing, 'billing')}
+
+                {/* ============================================ */}
+                {/* KPI ADMIN SECTION (NEW) - Only for Admins */}
+                {/* ============================================ */}
+                {(user?.role === 'super_admin' || user?.role === 'client_admin') &&
+                    renderNavGroup('⚙️ KPI System Admin', navigation.kpiAdmin, 'kpiAdmin')
+                }
+
+                {/* ============================================ */}
+                {/* KPI USER SECTION - For all users */}
+                {/* ============================================ */}
+                {renderNavGroup('📊 KPI', navigation.kpiUser, 'kpiUser')}
+
+                {/* ============================================ */}
+                {/* Reviews Section */}
+                {/* ============================================ */}
+                {renderNavGroup('⭐ Reviews', navigation.reviews, 'reviews')}
+
+                {/* ============================================ */}
+                {/* Admin Sections */}
+                {/* ============================================ */}
                 {user?.role === 'super_admin' && renderNavGroup('Tenant Management', navigation.tenant, 'tenant')}
-                
-                {hasTenantContext && (user?.role === 'super_admin' || user?.role === 'client_admin') && 
+
+                {hasTenantContext && (user?.role === 'super_admin' || user?.role === 'client_admin') &&
                     renderNavGroup(
-                        `Tenant: ${currentTenant?.name || 'Current Tenant'}`, 
-                        navigation.tenantSpecific, 
+                        `Tenant: ${currentTenant?.name || 'Current Tenant'}`,
+                        navigation.tenantSpecific,
                         'tenantSpecific'
                     )
                 }
                 {user?.role === 'super_admin' && renderNavGroup('Connection Management', navigation.connections, 'connections')}
-                {renderNavGroup('KPI', navigation.kpi, 'kpi')}
-                {renderNavGroup('Reviews', navigation.reviews, 'reviews')}
                 {user?.role === 'super_admin' && renderNavGroup('Admin', navigation.admin, 'admin')}
             </nav>
-            
+
             {/* User Info at Bottom */}
             {!isCollapsed && user && (
                 <div className="sidebar-user">
                     <div className="user-avatar-small">
                         {user.avatar_url ? (
-                            <img 
-                                src={user.avatar_url} 
+                            <img
+                                src={user.avatar_url}
                                 alt={user.username}
                             />
                         ) : (

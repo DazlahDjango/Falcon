@@ -10,3 +10,8 @@ export { default as KPIDetailPage } from './KPIDetailPage';
 export { default as KPICreatePage } from './KPICreatePage';
 export { default as KPIEditPage } from './KPIEditPage';
 export { default as KPIAnalyticsPage } from './KPIAnalyticsPage';
+export { default as AdminOverviewPage } from './AdminOverviewPage';
+export { default as SectorsPage } from './SectorsPage';
+export { default as FrameworksPage } from './FrameworksPage';
+export { default as CategoriesPage } from './CategoriesPage';
+export { default as TemplatesPage } from './TemplatesPage';

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-    login as loginAction, 
+import {
+    login as loginAction,
     logout as logoutAction,
     register as registerAction,
     verifyMfa as verifyMfaAction,
@@ -16,6 +16,16 @@ import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../../s
 export const useAuth = () => {
     const dispatch = useDispatch();
     const auth = useSelector(selectAuth);
+
+    // Provide default values if auth is undefined
+    const safeAuth = auth || {
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+        requiresMfa: false,
+        mfaToken: null,
+    };
 
     const login = useCallback(async (credentials) => {
         try {
@@ -33,7 +43,7 @@ export const useAuth = () => {
             await clearTokens();
             return { success: true };
         } catch (error) {
-            return { success: false, error: error.message || 'Logout failed'};
+            return { success: false, error: error.message || 'Logout failed' };
         }
     }, [dispatch]);
 
@@ -88,12 +98,12 @@ export const useAuth = () => {
     }, [dispatch]);
 
     return {
-        user: auth.user,
-        isAuthenticated: auth.isAuthenticated,
-        isLoading: auth.isLoading,
-        error: auth.error,
-        requiresMfa: auth.requiresMfa,
-        mfaToken: auth.mfaToken,
+        user: safeAuth.user,
+        isAuthenticated: safeAuth.isAuthenticated,
+        isLoading: safeAuth.isLoading,
+        error: safeAuth.error,
+        requiresMfa: safeAuth.requiresMfa,
+        mfaToken: safeAuth.mfaToken,
         // Actions
         login,
         logout,

@@ -6,7 +6,7 @@ from .actual import MonthlyActualViewSet, EvidenceViewSet, ActualAdjustmentViewS
 from .validation import ValidationRecordViewSet, RejectionReasonViewSet, EscalationViewSet
 from .score import ScoreViewSet, AggregatedScoreViewSet, TrafficLightViewSet
 from .cascade import CascadeRuleViewSet, CascadeMapViewSet
-from .dashboard import IndividualDashboardView, ManagerDashboardView, ExecutiveDashboardView, ChampionDashboardView
+from .dashboard import IndividualDashboardView, ManagerDashboardView, ExecutiveDashboardView, ChampionDashboardView, KPIOverviewDashboardView
 from .analytics import KPISummaryViewSet, DepartmentRollupViewSet, OrganizationHealthViewSet, PerformanceHeatmapView, AnalyticsExportView, CustomReportView, NotificationPreferencesView
 from .bulk import BulkKPIUploadView, BulkActualUploadView, BulkTargetUploadView
 from .calculation import TriggerCalculationView, CalculationStatusView
@@ -21,7 +21,7 @@ __all__ = [
     'ValidationRecordViewSet', 'RejectionReasonViewSet', 'EscalationViewSet',
     'ScoreViewSet', 'AggregatedScoreViewSet', 'TrafficLightViewSet',
     'CascadeRuleViewSet', 'CascadeMapViewSet',
-    'IndividualDashboardView', 'ManagerDashboardView', 'ExecutiveDashboardView', 'ChampionDashboardView',
+    'IndividualDashboardView', 'ManagerDashboardView', 'ExecutiveDashboardView', 'ChampionDashboardView','KPIOverviewDashboardView',
     'KPISummaryViewSet', 'DepartmentRollupViewSet', 'OrganizationHealthViewSet',
     'BulkKPIUploadView', 'BulkActualUploadView', 'BulkTargetUploadView',
     'TriggerCalculationView', 'CalculationStatusView',

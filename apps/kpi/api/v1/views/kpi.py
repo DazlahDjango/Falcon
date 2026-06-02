@@ -25,10 +25,79 @@ class KPIViewSet(BaseKpiViewset):
         if self.action == 'list':
             return KPIListSerializer
         return KPIDetailSerializer
+
+    def _clean_kpi_data(self, data, request):
+        if hasattr(data, 'copy'):
+            cleaned = data.copy()
+        else:
+            cleaned = dict(data)
+            
+        # Map camelCase keys to snake_case
+        mappings = {
+            'frameworkId': 'framework_id',
+            'tenantId': 'tenant_id',
+            'categoryId': 'category_id',
+            'sectorId': 'sector_id',
+            'kpiType': 'kpi_type',
+            'calculationLogic': 'calculation_logic',
+            'measureType': 'measure_type',
+            'decimalPlaces': 'decimal_places',
+            'targetMin': 'target_min',
+            'targetMax': 'target_max',
+            'ownerId': 'owner_id',
+            'departmentId': 'department_id',
+            'strategicObjective': 'strategic_objective',
+            'isActive': 'is_active',
+        }
+        for camel, snake in mappings.items():
+            if camel in cleaned and snake not in cleaned:
+                cleaned[snake] = cleaned[camel]
+                
+        # Resolve tenant_id
+        if not cleaned.get('tenant_id'):
+            if hasattr(request, 'tenant') and request.tenant and getattr(request.tenant, 'id', None):
+                cleaned['tenant_id'] = request.tenant.id
+            elif hasattr(request.user, 'tenant_id') and request.user.tenant_id:
+                cleaned['tenant_id'] = request.user.tenant_id
+                
+        # Convert empty strings to None for nullable/numeric/relation fields
+        nullable_fields = [
+            'tenant_id',
+            'framework_id',
+            'category_id',
+            'sector_id',
+            'target_min',
+            'target_max',
+            'owner_id',
+            'department_id',
+            'decimal_places',
+        ]
+        for field in nullable_fields:
+            if field in cleaned and cleaned[field] == '':
+                cleaned[field] = None
+                
+        # Parse decimal places to int
+        if cleaned.get('decimal_places') is not None and cleaned['decimal_places'] != '':
+            try:
+                cleaned['decimal_places'] = int(cleaned['decimal_places'])
+            except (ValueError, TypeError):
+                pass
+                
+        # Parse target decimals to avoid type mismatch and validation crash
+        for field in ['target_min', 'target_max']:
+            if cleaned.get(field) is not None and cleaned[field] != '':
+                try:
+                    cleaned[field] = Decimal(str(cleaned[field]))
+                except Exception:
+                    pass
+                    
+        return cleaned
+
     def create(self, request, *args, **kwargs):
         creator = KPICreator()
         try:
-            kpi = creator.create(request.data, request.user)
+            cleaned_data = self._clean_kpi_data(request.data, request)
+            kpi = creator.create(cleaned_data, request.user)
             serializer = KPIDetailSerializer(kpi)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except (DuplicateKPICodeError, InvalidFrameworkError) as e:
@@ -36,11 +105,13 @@ class KPIViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     def update(self, request, *args, **kwargs):
         updater = KPIUpdater()
         kpi = self.get_object()
         try:
-            updated_kpi = updater.update(str(kpi.id), request.data, request.user)
+            cleaned_data = self._clean_kpi_data(request.data, request)
+            updated_kpi = updater.update(str(kpi.id), cleaned_data, request.user)
             serializer = KPIDetailSerializer(updated_kpi)
             return Response(serializer.data)
         except Exception as e:

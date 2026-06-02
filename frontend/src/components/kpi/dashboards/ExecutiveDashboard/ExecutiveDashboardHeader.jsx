@@ -12,8 +12,8 @@ const ExecutiveDashboardHeader = ({ period, onRefresh, refreshing }) => {
                 </p>
             </div>
             <div className={styles.headerRight}>
-                <button 
-                    onClick={onRefresh} 
+                <button
+                    onClick={onRefresh}
                     className={`${styles.refreshButton} ${refreshing ? styles.refreshing : ''}`}
                     disabled={refreshing}
                 >

@@ -67,3 +67,4 @@ export const useMyKPIWeights = (userId) => {
         staleTime: 5 * 60 * 1000,
     });
 };
+export default { useMyKPIs, useMyKPITargets, useMyKPIScores, useMyKPIActuals, useMyKPIWeights }

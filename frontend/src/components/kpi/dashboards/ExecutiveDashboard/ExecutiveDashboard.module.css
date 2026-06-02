@@ -25,7 +25,9 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .emptyContainer {
@@ -51,14 +53,16 @@
     margin-bottom: 24px;
 }
 
-.rankingColumn, .kpiColumn {
+.rankingColumn,
+.kpiColumn {
     background: #fff;
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.trendSection, .riskSection {
+.trendSection,
+.riskSection {
     background: #fff;
     border-radius: 16px;
     padding: 20px;
@@ -77,9 +81,174 @@
     .dashboard {
         padding: 16px;
     }
-    
+
     .periodSelector {
         justify-content: center;
         margin-bottom: 20px;
     }
+}
+
+/* Add to ExecutiveDashboard.module.css */
+
+.scoreExcellent {
+    color: #22c55e;
+    font-weight: bold;
+}
+
+.scoreGood {
+    color: #84cc16;
+    font-weight: bold;
+}
+
+.scoreWarning {
+    color: #eab308;
+    font-weight: bold;
+}
+
+.scoreCritical {
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.departmentStats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.kpiCount {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.gold {
+    background: linear-gradient(135deg, #ffd700, #ffb700);
+    color: #7c5c00;
+}
+
+.silver {
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+    color: #4b5563;
+}
+
+.bronze {
+    background: linear-gradient(135deg, #cd7f32, #b8702a);
+    color: #fff;
+}
+
+.rankingList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.rankingItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.rankingItem:hover {
+    background: #f3f4f6;
+    transform: translateX(4px);
+}
+
+.rankInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rankNumber {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 40px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.departmentName {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.departmentScore {
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: right;
+}
+
+.refreshButton {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.refreshButton:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.refreshButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.refreshing {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.refreshIcon {
+    font-size: 16px;
+}
+
+.noData {
+    text-align: center;
+    color: #9ca3af;
+    padding: 32px;
+}
+
+.kpiNote {
+    margin-top: 16px;
+    padding: 12px;
+    background: #fef3c7;
+    border-radius: 8px;
+}
+
+.alertNote {
+    color: #d97706;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }

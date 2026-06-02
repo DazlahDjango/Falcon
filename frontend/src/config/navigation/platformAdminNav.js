@@ -1,7 +1,3 @@
-/**
- * Platform admin sidebar navigation — single source for Super Admin & Client Admin.
- * Config paths align with ConfigSidebar / config.routes (CONFIG_ROUTES).
- */
 import {
   FiHome,
   FiBarChart2,
@@ -24,12 +20,37 @@ import {
   FiRefreshCw,
   FiKey,
   FiList,
+  FiGitBranch,
+  FiLayers,
+  FiCalendar,
+  FiFlag,
+  FiSliders,
+  FiCheckCircle,
+  FiMapPin,
+  FiBriefcase,
+  FiPackage,
+  FiFolder,
+  FiPieChart,
 } from 'react-icons/fi';
-import { MdBackup, MdOutlineDashboard } from 'react-icons/md';
+import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
+import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
+import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
+
 import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { BILLING_ROUTES } from '../constants/billingRouteConstants';
 import { ROUTES } from '../constants';
+
+// ============================================
+// KPI ADMIN ROUTES (NEW)
+// ============================================
+export const KPI_ADMIN_ROUTES = {
+  OVERVIEW: '/kpi/admin/overview',
+  SECTORS: '/kpi/admin/sectors',
+  FRAMEWORKS: '/kpi/admin/frameworks',
+  CATEGORIES: '/kpi/admin/categories',
+  TEMPLATES: '/kpi/admin/templates',
+};
 
 /** Full Config Manager menu (mirrors ConfigSidebar). */
 export const CONFIG_NAV_ITEMS = [
@@ -46,21 +67,23 @@ export const CONFIG_NAV_ITEMS = [
   { path: '/config/settings', name: 'Config Settings', icon: FiSettings },
 ];
 
+// ============================================
+// SUPER ADMIN NAVIGATION (UPDATED)
+// ============================================
 export const SUPER_ADMIN_NAV_GROUPS = {
   main: [
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW, name: 'Platform Overview', icon: FiHome, end: true },
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.CUSTOM_OVERVIEW, name: 'Custom Overview', icon: FiHome },
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.PLATFORM_METRICS, name: 'Metrics', icon: FiBarChart2 },
-  ],
-  platform: [
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.TENANTS, name: 'Tenants (PMS)', icon: FiServer },
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.SUBSCRIPTIONS, name: 'Subscriptions', icon: FiDollarSign },
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.BILLING, name: 'Billing Overview', icon: FiGrid },
+    { path: DASHBOARD_ROUTES.SUPER_ADMIN.PLATFORM_METRICS, name: 'Platform Metrics', icon: FiBarChart2 },
+    { path: DASHBOARD_ROUTES.SUPER_ADMIN.SYSTEM_HEALTH, name: 'PMS System Health', icon: FiActivity },
   ],
   tenants: [
-    { path: '/tenants', name: 'Tenant Management', icon: FiDatabase },
+    { path: '/tenants', name: 'All Tenants', icon: MdBusiness },
     { path: '/tenants/dashboard', name: 'Tenant Dashboard', icon: FiGrid },
-    { path: '/tenants/connections', name: 'Connections', icon: FiActivity },
+    { path: '/tenants/platform-settings', name: 'Platform Settings', icon: FiSettings },
+    { path: '/tenants/connections', name: 'Connection Dashboard', icon: FiActivity },
+    { path: '/tenants/connections/metrics', name: 'Connection Metrics', icon: FiBarChart2 },
+    { path: '/tenants/connections/health', name: 'Connection Health', icon: FiShield },
   ],
   billing: [
     { path: BILLING_ROUTES.ADMIN_BASE, name: 'Billing Admin', icon: FiDollarSign },
@@ -71,24 +94,78 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhooks', icon: FiBell },
     { path: BILLING_ROUTES.ADMIN_ANALYTICS, name: 'Analytics', icon: FiTrendingUp },
   ],
-  applications: [
+
+  // ============================================
+  // KPI ADMIN SECTION (NEW - FOR SUPER ADMIN)
+  // ============================================
+  kpiAdmin: [
+    { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
+    { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
+    { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
+    { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
+    { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
+  ],
+
+  // ============================================
+  // EXISTING KPI SECTION (User-facing KPIs)
+  // ============================================
+  kpi: [
     { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2 },
     { path: ROUTES.KPI_MANAGEMENT, name: 'KPI Management', icon: FiBarChart2 },
+    { path: ROUTES.KPI_ANALYTICS, name: 'KPI Analytics', icon: FiTrendingUp },
     { path: ROUTES.KPI_SETTINGS, name: 'KPI Operations', icon: FiSettings },
-    { path: '/app/structure/dashboard/', name: 'Structure', icon: FiServer },
-    { path: ROUTES.SECURITY, name: 'Accounts Security', icon: FiLock },
-    { path: ROUTES.USERS, name: 'All Users', icon: FiUsers },
+  ],
+
+  structure: [
+    { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
+    { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
+    { path: '/app/structure/teams', name: 'Teams', icon: HiOutlineUserGroup },
+    { path: '/app/structure/positions', name: 'Positions', icon: BsBriefcase },
+    { path: '/app/structure/employments', name: 'Employments', icon: BsPersonBadge },
+    { path: '/app/structure/reporting-lines', name: 'Reporting Lines', icon: BsDiagram3 },
+    { path: '/app/structure/cost-centers', name: 'Cost Centers', icon: FiDollarSign },
+    { path: '/app/structure/locations', name: 'Locations', icon: FiMapPin },
+    { path: '/app/structure/org-chart', name: 'Organization Chart', icon: FiGitBranch },
+    { path: '/app/structure/department-trees', name: 'Department Tree', icon: FiGitBranch },
+    { path: '/app/structure/team-hierarchies', name: 'Team Hierarchy', icon: FiGitBranch },
+    { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase },
+  ],
+  reviews: [
+    { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2 },
+    { path: '/reviews/cycles', name: 'Review Cycles', icon: FiCalendar },
+    { path: '/reviews/self-assessment', name: 'Self Assessment', icon: FiCheckCircle },
+    { path: '/reviews/review-queue', name: 'Review Queue', icon: FiActivity },
+    { path: '/reviews/final-ratings', name: 'Final Ratings', icon: FiBarChart2 },
+    { path: '/reviews/pips', name: 'Performance Plans', icon: FiFlag },
+    { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers },
+    { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders },
+    { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText },
+  ],
+  accounts: [
+    { path: '/users', name: 'All Users', icon: FiUsers },
+    { path: '/roles', name: 'All Roles', icon: FiShield },
+    { path: '/sessions', name: 'Platform Sessions', icon: FiClock },
+    { path: DASHBOARD_ROUTES.SUPER_ADMIN.AUDIT_LOGS, name: 'Platform Audit Logs', icon: FiFileText },
+    { path: '/audit', name: 'Accounts Audit Logs', icon: FiActivity },
+    { path: '/admin/users', name: 'Admin Users', icon: FiUsers },
+    { path: '/admin/tenants', name: 'Admin Tenants', icon: FiLayers },
   ],
   config: CONFIG_NAV_ITEMS,
-  system: [
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.SYSTEM_HEALTH, name: 'PMS System Health', icon: FiActivity },
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.AUDIT_LOGS, name: 'Platform Audit Logs', icon: FiFileText },
+  settings: [
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SETTINGS, name: 'PMS Settings', icon: FiSettings },
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.REPORTS, name: 'Reports', icon: FiFileText },
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.EXPORTS, name: 'Exports', icon: FiDownload },
+    { path: '/config/settings', name: 'Config Settings', icon: FiSettings },
+    { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings },
+    { path: '/app/structure/settings', name: 'Structure Settings', icon: FiSettings },
+    { path: '/security', name: 'Accounts Security', icon: FiLock },
+    { path: '/admin/system', name: 'Admin System Settings', icon: FiServer },
+    { path: '/settings', name: 'System Settings', icon: FiSettings },
+    { path: '/notifications', name: 'Notification Settings', icon: FiBell },
   ],
 };
 
+// ============================================
+// CLIENT ADMIN NAVIGATION (UPDATED)
+// ============================================
 export const CLIENT_ADMIN_NAV_GROUPS = {
   main: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
@@ -101,6 +178,18 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.MISSING_DATA, name: 'Missing Data', icon: FiAlertCircle },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USER_ACTIVITY, name: 'User Activity', icon: FiActivity },
   ],
+
+  // ============================================
+  // KPI ADMIN SECTION (NEW - FOR CLIENT ADMIN)
+  // ============================================
+  kpiAdmin: [
+    { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
+    { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
+    { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
+    { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
+    { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
+  ],
+
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, name: 'Roles & Permissions', icon: FiShield },
@@ -121,38 +210,51 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
   ],
 };
 
-/** Default expanded state per group key. */
+// ============================================
+// EXPANDED STATES (UPDATED)
+// ============================================
 export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   main: true,
-  platform: true,
   tenants: false,
   billing: false,
-  applications: false,
+  kpiAdmin: false,      // ← NEW
+  kpi: false,
+  structure: false,
+  reviews: false,
+  accounts: false,
   config: false,
-  system: true,
+  settings: false,
 };
 
 export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   main: true,
   oversight: true,
+  kpiAdmin: false,      // ← NEW
   management: true,
   compliance: false,
   config: false,
 };
 
+// ============================================
+// GROUP LABELS (UPDATED)
+// ============================================
 export const SUPER_ADMIN_GROUP_LABELS = {
   main: 'Main',
-  platform: 'Platform',
-  tenants: 'Tenant Ops',
-  billing: 'Billing',
-  applications: 'Applications',
-  config: 'Config Manager',
-  system: 'System',
+  tenants: 'Tenant Ops & Connections',
+  billing: 'Billing Admin',
+  kpiAdmin: 'KPI System Admin',        // ← NEW
+  kpi: 'KPI Management (User)',
+  structure: 'Organization Structure',
+  reviews: 'Performance Reviews',
+  accounts: 'Users & Platform Access',
+  config: 'Configuration Manager',
+  settings: 'System & Unified Settings',
 };
 
 export const CLIENT_ADMIN_GROUP_LABELS = {
   main: 'Main',
   oversight: 'Oversight',
+  kpiAdmin: 'KPI System Admin',        // ← NEW
   management: 'Management',
   compliance: 'Reports & Compliance',
   config: 'Configuration',

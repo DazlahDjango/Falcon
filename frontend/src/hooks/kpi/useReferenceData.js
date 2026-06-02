@@ -29,3 +29,4 @@ export const useKpiReferenceData = (include = 'users,departments') => {
 
     return { users, departments, isLoading, error, reload: load };
 };
+export default useKpiReferenceData;

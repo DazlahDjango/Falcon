@@ -29,6 +29,12 @@ export const ROUTES = {
     ACTUAL_SUBMIT: '/actuals/submit',
     // Scores
     SCORES: '/scores',
+    // Admin KPI modules
+    KPI_ADMIN_OVERVIEW: '/kpi/admin/overview',
+    KPI_ADMIN_SECTORS: '/kpi/admin/sectors',
+    KPI_ADMIN_FRAMEWORKS: '/kpi/admin/frameworks',
+    KPI_ADMIN_CATEGORIES: '/kpi/admin/categories',
+    KPI_ADMIN_TEMPLATES: '/kpi/admin/templates',
     // User Management
     USERS: '/users',
     USER_DETAIL: '/users/:id',
@@ -81,7 +87,7 @@ export const API_ENDPOINTS = {
         INVITATIONS: '/auth/invitations/',
         ACCEPT_INVITATION: '/auth/invitations/accept/',
     },
-    
+
     // Users (from accounts)
     USERS: {
         LIST: '/users/',
@@ -91,7 +97,7 @@ export const API_ENDPOINTS = {
         TEAM: '/users/me/team/',
         REPORTING_CHAIN: '/users/me/reporting-chain/',
     },
-    
+
     // Roles & Permissions
     ROLES: {
         LIST: '/roles/',
@@ -100,9 +106,9 @@ export const API_ENDPOINTS = {
         ASSIGNABLE: '/roles/assignable/',
         PERMISSIONS: '/permissions/',
     },
-    
+
     // ============ KPI MODULE ============
-    
+
     // KPI CRUD
     KPI: {
         LIST: '/kpis/kpis/',
@@ -120,27 +126,27 @@ export const API_ENDPOINTS = {
         STRATEGIC_LINKAGES: (id) => `/kpis/kpis/${id}/strategic-linkages/`,
         DEPENDENCIES: (id) => `/kpis/kpis/${id}/dependencies/`,
     },
-    
+
     // KPI Weights
     KPI_WEIGHT: {
         LIST: '/kpis/kpi-weights/',
         DETAIL: (id) => `/kpis/kpi-weights/${id}/`,
         VALIDATE_SUM: '/kpis/kpi-weights/validate_sum/',
     },
-    
+
     // Strategic Linkages
     STRATEGIC_LINKAGE: {
         LIST: '/kpis/strategic-linkages/',
         DETAIL: (id) => `/kpis/strategic-linkages/${id}/`,
     },
-    
+
     // KPI Dependencies
     KPI_DEPENDENCY: {
         LIST: '/kpis/kpi-dependencies/',
         DETAIL: (id) => `/kpis/kpi-dependencies/${id}/`,
         IMPACT_CHAIN: (id) => `/kpis/kpi-dependencies/${id}/impact_chain/`,
     },
-    
+
     // User Nested Resources (My KPIs)
     USER_NESTED: {
         KPI: (userId) => `/kpis/users/${userId}/kpis/`,
@@ -148,7 +154,7 @@ export const API_ENDPOINTS = {
         SCORES: (userId) => `/kpis/users/${userId}/scores/`,
         ACTUALS: (userId) => `/kpis/users/${userId}/actuals/`,
     },
-    
+
     // Framework
     FRAMEWORK: {
         SECTORS: '/kpis/sectors/',
@@ -160,8 +166,9 @@ export const API_ENDPOINTS = {
         TEMPLATES: '/kpis/templates/',
         TEMPLATE_DETAIL: (id) => `/kpis/templates/${id}/`,
         USE_TEMPLATE: (id) => `/kpis/templates/${id}/use_template/`,
+        ADMIN_OVERVIEW: '/kpis/admin/overview/',
     },
-    
+
     // Target Management
     TARGET: {
         LIST: '/kpis/targets/',
@@ -175,7 +182,7 @@ export const API_ENDPOINTS = {
         MONTHLY_PHASING: '/kpis/monthly-phasing/',
         LOCK_CYCLE: '/kpis/monthly-phasing/lock_cycle/',
     },
-    
+
     // Target Cascade
     CASCADE: {
         RULES: '/kpis/cascade-rules/',
@@ -188,7 +195,7 @@ export const API_ENDPOINTS = {
         ROLLBACK: (id) => `/kpis/cascade-maps/${id}/rollback/`,
         SET_DEFAULT_RULE: (id) => `/kpis/cascade-rules/${id}/set_default/`,
     },
-    
+
     // Actual Data
     ACTUAL: {
         LIST: '/kpis/actuals/',
@@ -204,7 +211,7 @@ export const API_ENDPOINTS = {
         VALIDATIONS: (id) => `/kpis/actuals/${id}/validations/`,
         EVIDENCE_UPLOAD: '/kpis/evidence/',
     },
-    
+
     // Actual Adjustments
     ACTUAL_ADJUSTMENT: {
         LIST: '/kpis/actual-adjustments/',
@@ -212,7 +219,7 @@ export const API_ENDPOINTS = {
         CREATE: '/kpis/actual-adjustments/',
         APPROVE: (id) => `/kpis/actual-adjustments/${id}/approve/`,
     },
-    
+
     // Validation
     VALIDATION: {
         LIST: '/kpis/validations/',
@@ -224,7 +231,7 @@ export const API_ENDPOINTS = {
         MY_ESCALATIONS: '/kpis/escalations/my_escalations/',
         RESOLVE: (id) => `/kpis/escalations/${id}/resolve/`,
     },
-    
+
     // Scores
     SCORE: {
         LIST: '/kpis/Scores/',
@@ -233,7 +240,7 @@ export const API_ENDPOINTS = {
         TEAM_SCORES: '/kpis/Scores/team_scores/',
         STATISTICS: '/kpis/Scores/statistics/',
     },
-    
+
     // Aggregated Scores
     AGGREGATED_SCORE: {
         LIST: '/kpis/aggregated-scores/',
@@ -242,14 +249,14 @@ export const API_ENDPOINTS = {
         DEPARTMENTS: '/kpis/aggregated-scores/departments/',
         RANKING: '/kpis/aggregated-scores/ranking/',
     },
-    
+
     // Traffic Lights
     TRAFFIC_LIGHT: {
         LIST: '/kpis/traffic-lights/',
         RED_ALERTS: '/kpis/traffic-lights/red_alerts/',
         MY_RED_ALERTS: '/kpis/traffic-lights/my_red_alerts/',
     },
-    
+
     // Dashboards
     DASHBOARD: {
         INDIVIDUAL: '/kpis/dashboard/individual/',
@@ -257,7 +264,7 @@ export const API_ENDPOINTS = {
         EXECUTIVE: '/kpis/dashboard/executive/',
         CHAMPION: '/kpis/dashboard/champion/',
     },
-    
+
     // Analytics & Reports
     ANALYTICS: {
         KPI_SUMMARIES: '/kpis/kpi-summaries/',
@@ -272,20 +279,20 @@ export const API_ENDPOINTS = {
         HEATMAP: '/kpis/analytics/heatmap/',
         EXPORT: '/kpis/analytics/export/',
     },
-    
+
     // Custom Reports
     CUSTOM_REPORT: {
         CREATE: '/kpis/reports/custom/',
         STATUS: (taskId) => `/kpis/reports/custom/status/${taskId}/`,
         DOWNLOAD: (reportId) => `/kpis/reports/custom/${reportId}/download/`,
     },
-    
+
     // Notifications
     NOTIFICATION: {
         PREFERENCES: '/kpis/notifications/preferences/',
         PREFERENCES_UPDATE: '/kpis/notifications/preferences/',
     },
-    
+
     // History/Audit
     HISTORY: {
         KPI: '/kpis/kpi-history/',
@@ -295,7 +302,7 @@ export const API_ENDPOINTS = {
         FOR_ACTUAL: (actualId) => `/kpis/actual-history/for_actual/?actual_id=${actualId}`,
         FOR_TARGET: (targetId) => `/kpis/target-history/for_target/?target_id=${targetId}`,
     },
-    
+
     // Bulk Operations
     BULK: {
         KPI_UPLOAD: '/kpis/bulk/kpi-upload/',
@@ -304,14 +311,14 @@ export const API_ENDPOINTS = {
         TEMPLATE: (type) => `/kpis/bulk/templates/${type}/`,
         VALIDATE: '/kpis/bulk/validate/',
     },
-    
+
     // Calculations
     CALCULATION: {
         TRIGGER: '/kpis/calculations/trigger/',
         STATUS: (taskId) => `/kpis/calculations/status/${taskId}/`,
         SCHEDULE: '/kpis/calculations/schedule/',
     },
-    
+
     // Exports
     EXPORT: {
         KPIS: '/kpis/export/kpis/',
@@ -320,14 +327,14 @@ export const API_ENDPOINTS = {
         DEPARTMENT_REPORT: '/kpis/export/department-report/',
         KPI_DETAIL: '/kpis/export/kpi-detail/',
     },
-    
+
     // System Settings
     SYSTEM_SETTINGS: {
         KPI: '/kpis/system-settings/',
         KPI_RESET: '/kpis/system-settings/reset/',
         REFERENCE_DATA: '/kpis/reference-data/',
     },
-    
+
     // Organisation (from accounts)
     ORGANISATION: {
         BASE: '/organisations/',
@@ -340,7 +347,7 @@ export const API_ENDPOINTS = {
         POSITIONS: '/organisations/positions/',
         SUBSCRIPTION: '/organisations/subscription/',
     },
-    
+
     // Admin
     ADMIN: {
         USERS: '/admin/users/',
@@ -432,18 +439,18 @@ export const KPI_API = {
     activateKPI: (id) => API_ENDPOINTS.KPI.ACTIVATE(id),
     deactivateKPI: (id) => API_ENDPOINTS.KPI.DEACTIVATE(id),
     validateKPI: (id) => API_ENDPOINTS.KPI.VALIDATE(id),
-    
+
     // User Nested (My KPIs)
     getMyKPIs: (userId, params) => `${API_ENDPOINTS.USER_NESTED.KPI(userId)}?${new URLSearchParams(params)}`,
     getMyTargets: (userId, params) => `${API_ENDPOINTS.USER_NESTED.TARGETS(userId)}?${new URLSearchParams(params)}`,
     getMyScores: (userId, params) => `${API_ENDPOINTS.USER_NESTED.SCORES(userId)}?${new URLSearchParams(params)}`,
     getMyActuals: (userId, params) => `${API_ENDPOINTS.USER_NESTED.ACTUALS(userId)}?${new URLSearchParams(params)}`,
-    
+
     // Weights
     getWeights: (kpiId) => API_ENDPOINTS.KPI.WEIGHTS(kpiId),
     updateWeights: (kpiId) => API_ENDPOINTS.KPI.WEIGHTS(kpiId),
     validateWeightSum: () => API_ENDPOINTS.KPI_WEIGHT.VALIDATE_SUM,
-    
+
     // Targets
     getTargets: () => API_ENDPOINTS.TARGET.LIST,
     getTarget: (id) => API_ENDPOINTS.TARGET.DETAIL(id),
@@ -452,7 +459,7 @@ export const KPI_API = {
     deleteTarget: (id) => API_ENDPOINTS.TARGET.DELETE(id),
     phaseTarget: (id) => API_ENDPOINTS.TARGET.PHASE(id),
     getPhasing: (id) => API_ENDPOINTS.TARGET.PHASING(id),
-    
+
     // Actuals
     getActuals: () => API_ENDPOINTS.ACTUAL.LIST,
     getActual: (id) => API_ENDPOINTS.ACTUAL.DETAIL(id),
@@ -460,18 +467,18 @@ export const KPI_API = {
     submitActual: (id) => API_ENDPOINTS.ACTUAL.SUBMIT(id),
     approveActual: (id) => API_ENDPOINTS.ACTUAL.APPROVE(id),
     rejectActual: (id) => API_ENDPOINTS.ACTUAL.REJECT(id),
-    
+
     // Scores
     getScores: () => API_ENDPOINTS.SCORE.LIST,
     getMyScores: () => API_ENDPOINTS.SCORE.MY_SCORES,
     getTeamScores: () => API_ENDPOINTS.SCORE.TEAM_SCORES,
-    
+
     // Dashboards
     getIndividualDashboard: (params) => `${API_ENDPOINTS.DASHBOARD.INDIVIDUAL}?${new URLSearchParams(params)}`,
     getManagerDashboard: (params) => `${API_ENDPOINTS.DASHBOARD.MANAGER}?${new URLSearchParams(params)}`,
     getExecutiveDashboard: (params) => `${API_ENDPOINTS.DASHBOARD.EXECUTIVE}?${new URLSearchParams(params)}`,
     getChampionDashboard: (params) => `${API_ENDPOINTS.DASHBOARD.CHAMPION}?${new URLSearchParams(params)}`,
-    
+
     // Analytics
     getKPISummaries: (params) => `${API_ENDPOINTS.ANALYTICS.KPI_SUMMARIES}?${new URLSearchParams(params)}`,
     getDepartmentRollups: (params) => `${API_ENDPOINTS.ANALYTICS.DEPARTMENT_ROLLUPS}?${new URLSearchParams(params)}`,
@@ -479,31 +486,31 @@ export const KPI_API = {
     getHeatmap: (params) => `${API_ENDPOINTS.ANALYTICS.HEATMAP}?${new URLSearchParams(params)}`,
     getInsights: (params) => `${API_ENDPOINTS.ANALYTICS.INSIGHTS}?${new URLSearchParams(params)}`,
     getPredictions: () => API_ENDPOINTS.ANALYTICS.PREDICTIONS,
-    
+
     // Custom Reports
     createCustomReport: () => API_ENDPOINTS.CUSTOM_REPORT.CREATE,
     getReportStatus: (taskId) => API_ENDPOINTS.CUSTOM_REPORT.STATUS(taskId),
     downloadReport: (reportId) => API_ENDPOINTS.CUSTOM_REPORT.DOWNLOAD(reportId),
-    
+
     // Notifications
     getNotificationPreferences: () => API_ENDPOINTS.NOTIFICATION.PREFERENCES,
     updateNotificationPreferences: () => API_ENDPOINTS.NOTIFICATION.PREFERENCES_UPDATE,
-    
+
     // Bulk Operations
     bulkUploadKPIs: () => API_ENDPOINTS.BULK.KPI_UPLOAD,
     bulkUploadActuals: () => API_ENDPOINTS.BULK.ACTUAL_UPLOAD,
     bulkUploadTargets: () => API_ENDPOINTS.BULK.TARGET_UPLOAD,
     downloadTemplate: (type) => API_ENDPOINTS.BULK.TEMPLATE(type),
-    
+
     // Calculations
     triggerCalculation: () => API_ENDPOINTS.CALCULATION.TRIGGER,
     getCalculationStatus: (taskId) => API_ENDPOINTS.CALCULATION.STATUS(taskId),
-    
+
     // Exports
     exportKPIs: (params) => `${API_ENDPOINTS.EXPORT.KPIS}?${new URLSearchParams(params)}`,
     exportScores: (params) => `${API_ENDPOINTS.EXPORT.SCORES}?${new URLSearchParams(params)}`,
     exportReport: (params) => `${API_ENDPOINTS.EXPORT.REPORTS}?${new URLSearchParams(params)}`,
-    
+
     // System Settings
     getSystemSettings: () => API_ENDPOINTS.SYSTEM_SETTINGS.KPI,
     updateSystemSettings: () => API_ENDPOINTS.SYSTEM_SETTINGS.KPI,

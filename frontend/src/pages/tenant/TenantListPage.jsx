@@ -21,11 +21,10 @@ import {
     selectTenantFilters,
     openModal,
     closeModal,
-    selectModalState,
 } from '../../store/tenant/slice';
 import '../../components/tenant/tenant/tenant.css';
 
-// Simple table component (create this)
+// Simple table component
 const TenantTable = ({ tenants, onView, onEdit, onDelete, onSuspend, onActivate }) => {
     return (
         <table className="tenant-table">
@@ -105,9 +104,10 @@ export const TenantListPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTenant, setSelectedTenant] = useState(null);
 
-    const deleteModalOpen = useSelector((state) => selectModalState(state, 'deleteTenant'));
-    const suspendModalOpen = useSelector((state) => selectModalState(state, 'suspendTenant'));
-    const activateModalOpen = useSelector((state) => selectModalState(state, 'activateTenant'));
+    // FIXED: Safe selectors with optional chaining
+    const deleteModalOpen = useSelector(state => state?.tenantUI?.modals?.deleteTenant || false);
+    const suspendModalOpen = useSelector(state => state?.tenantUI?.modals?.suspendTenant || false);
+    const activateModalOpen = useSelector(state => state?.tenantUI?.modals?.activateTenant || false);
 
     useEffect(() => {
         dispatch(fetchTenants({ page, page_size: pageSize, ...filters }));
@@ -274,11 +274,11 @@ export const TenantListPage = () => {
                         </div>
                         <div className="tenant-modal-footer">
                             <button onClick={() => dispatch(closeModal('suspendTenant'))} className="tenant-btn-secondary">Cancel</button>
-                            <button 
+                            <button
                                 onClick={() => {
                                     const reason = document.getElementById('suspend-reason').value;
                                     handleConfirmSuspend(reason);
-                                }} 
+                                }}
                                 className="tenant-btn-warning"
                             >
                                 Suspend

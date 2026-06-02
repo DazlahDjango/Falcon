@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from django.db import transaction
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 import logging
 from apps.accounts.api.v1.permissions import IsTenantMember, CanViewKPIDashboard
 from ....exceptions import KPIException, PermissionDeniedError
@@ -28,6 +28,12 @@ class BaseKpiViewset(viewsets.ModelViewSet):
         with transaction.atomic():
             serializer.save(updated_by=self.request.user)
     def handle_exception(self, exc):
+        if isinstance(exc, DjangoValidationError):
+            details = exc.message_dict if hasattr(exc, 'message_dict') else exc.messages
+            return Response(
+                {'error': 'Validation Error', 'details': details},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if isinstance(exc, ValidationError):
             return Response(
                 {'error': 'Validation Error', 'details': exc.detail},

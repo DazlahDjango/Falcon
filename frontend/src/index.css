@@ -103,6 +103,13 @@
 @import './styles/billing/subcheck.css';
 @import './styles/billing/waa.css';
 
+/* KPI Modules */
+@import './components/kpi/modules/Overview/admin.css';
+@import './components/kpi/modules/FrameworkManagement/framework.css';
+@import './components/kpi/modules/Categories/framework.css';
+@import './components/kpi/modules/Sectors/sectors.css';
+@import './components/kpi/modules/Templates/template.css';
+
 /* Utility Classes */
 .container-center {
   display: flex;
@@ -164,4 +171,3 @@
   opacity: 0;
   transition: opacity 200ms ease-out;
 }
-

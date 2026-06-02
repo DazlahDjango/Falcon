@@ -1,13 +1,15 @@
-// KPI Hooks
-export { 
-    useKPI, 
-    useKPIs, 
-    useKPIWeights, 
-    useKPITargets, 
-    useKPIScores 
+// frontend/src/hooks/kpi/index.js
+
+// ============ KPI Hooks ============
+export {
+    useKPI,
+    useKPIs,
+    useKPIWeights,
+    useKPITargets,
+    useKPIScores
 } from './useKPI';
 
-// Target Hooks
+// ============ Target Hooks ============
 export {
     useTarget,
     useTargets,
@@ -15,7 +17,7 @@ export {
     useTargetCascade
 } from './useTarget';
 
-// Actual Hooks
+// ============ Actual Hooks ============
 export {
     useActual,
     useActuals,
@@ -23,7 +25,7 @@ export {
     useActualValidation
 } from './useActual';
 
-// Score Hooks
+// ============ Score Hooks ============
 export {
     useScore,
     useScores,
@@ -31,7 +33,7 @@ export {
     useTrafficLight
 } from './useScore';
 
-// Dashboard Hooks
+// ============ Dashboard Hooks ============
 export {
     useIndividualDashboard,
     useManagerDashboard,
@@ -39,7 +41,17 @@ export {
     useChampionDashboard
 } from './useDashboard';
 
-// WebSocket Hooks
+// ============ Framework Admin Hooks (NEW) ============
+export {
+    useSectors,
+    useFrameworks,
+    useCategories,
+    useTemplates,
+    useAdminOverview,
+    useFrameworkAdmin,
+} from './useFramework';
+
+// ============ WebSocket Hooks ============
 export {
     useWebSocket,
     useKPINotifications,
@@ -47,13 +59,20 @@ export {
     useValidationUpdates
 } from './useWebSocket';
 
-// Query Hooks
+// ============ Query Hooks ============
 export { useQuery, useMutation } from './useQuery';
 
-// Form Hooks
+// ============ Form Hooks ============
 export { useForm, useValidation } from './useForm';
 
-// Utilities
+// ============ System Settings Hooks ============
+export { default as useKpiSystemSettings } from './useKpiSystemSettings';
+export { default as useReferenceData } from './useReferenceData';
+
+// ============ My KPIs Hooks ============
+export { useMyKPIs, useMyKPITargets, useMyKPIScores, useMyKPIActuals, useMyKPIWeights } from './useMyKPIs';
+
+// ============ Utilities ============
 export { default as useToast } from './useToast';
 export { default as useDebounce } from './useDebounce';
 export { default as useLocalStorage } from './useLocalStorage';

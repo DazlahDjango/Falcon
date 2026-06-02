@@ -222,3 +222,106 @@ class CanViewAuditLogs(BasePermission):
                 (request.user.is_superuser or
                  request.user.role == UserRoles.SUPER_ADMIN or
                  request.user.role == UserRoles.CLIENT_ADMIN))
+
+# backend/apps/kpi/permissions.py - Add these classes
+
+class IsFrameworkAdmin(BasePermission):
+    """
+    Permission for Framework/Category management.
+    Only Super Admin and Client Admin can manage frameworks and categories.
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Super admin always has access
+        if request.user.is_superuser:
+            return True
+        
+        # Check role-based access
+        role = getattr(request.user, 'role', '')
+        return role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+    
+    def has_object_permission(self, request, view, obj):
+        # Check tenant isolation
+        if hasattr(obj, 'tenant_id') and str(obj.tenant_id) != str(request.user.tenant_id):
+            return False
+        
+        # Same role check for object-level
+        if request.method in SAFE_METHODS:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+
+
+class CanManageFramework(IsFrameworkAdmin):
+    """Alias for framework management"""
+    pass
+
+
+class CanManageCategory(IsFrameworkAdmin):
+    """Alias for category management"""
+    pass
+
+
+class CanPublishFramework(BasePermission):
+    """
+    Permission to publish frameworks (only Super Admin and Client Admin).
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.user.is_superuser:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+    
+    def has_object_permission(self, request, view, obj):
+        # Only allow publishing DRAFT frameworks
+        if hasattr(obj, 'status') and obj.status != 'DRAFT':
+            return False
+        
+        return self.has_permission(request, view)
+
+
+class CanArchiveFramework(BasePermission):
+    """
+    Permission to archive frameworks (only Super Admin and Client Admin).
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.user.is_superuser:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+
+
+class CanUseTemplate(BasePermission):
+    """
+    Permission to use templates to create KPIs.
+    Any authenticated user can use templates.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.is_active
+
+
+class CanViewKPIAdminOverview(BasePermission):
+    """
+    Permission to view KPI admin overview dashboard.
+    Only Super Admin and Client Admin.
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.user.is_superuser:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]

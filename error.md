@@ -1,59 +1,17 @@
-Hello, hope you're doing great
-I have this dashboard app though I've been fixing it for quit a while its still not working as intended
-I'll share the image so that you see but here is what I see in the browser console
+Hello there, we proceede well the other day and everything is working perfectly as expected in the base directory file development.md
+Today we're proceeding to phase 2 still on the super_admin dashboard cleaning nand finalizations
 
-Uncaught TypeError: Cannot convert object to primitive value
-    at String (<anonymous>)
-    at chunk-ZMLY2J2T.js?v=6b2932e3:133:22
-    at Array.map (<anonymous>)
-    at printWarning (chunk-ZMLY2J2T.js?v=6b2932e3:132:39)
-    at error (chunk-ZMLY2J2T.js?v=6b2932e3:120:15)
-    at lazyInitializer (chunk-ZMLY2J2T.js?v=6b2932e3:898:17)
-    at mountLazyComponent (chunk-276SZO74.js?v=6b2932e3:14822:27)
-    at beginWork (chunk-276SZO74.js?v=6b2932e3:15918:22)
-    at HTMLUnknownElement.callCallback2 (chunk-276SZO74.js?v=6b2932e3:3674:22)
-    at Object.invokeGuardedCallbackDev (chunk-276SZO74.js?v=6b2932e3:3699:24)
-
-
-{type: 'client', message: 'Cannot convert object to primitive value', details: 'TypeError: Cannot convert object to primitive valu….vite/deps/chunk-276SZO74.js?v=6b2932e3:19198:20)', originalError: TypeError: Cannot convert object to primitive value
-    at String (<anonymous>)
-    at http://local…, context: {…}, …}
-context
-: 
-component
-: 
-"Unknown"
-errorInfo
-: 
-{componentStack: '\n    at Lazy\n    at Suspense\n    at div\n    at div…s/.vite/deps/chunk-VO62A76K.js?v=6b2932e3:923:11)'}
-[[Prototype]]
-: 
-Object
-details
-: 
-"TypeError: Cannot convert object to primitive value\n    at String (<anonymous>)\n    at http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:133:22\n    at Array.map (<anonymous>)\n    at printWarning (http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:132:39)\n    at error (http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:120:15)\n    at lazyInitializer (http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:898:17)\n    at mountLazyComponent (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:14822:27)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:15918:22)\n    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:19753:22)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:19198:20)"
-message
-: 
-"Cannot convert object to primitive value"
-originalError
-: 
-TypeError: Cannot convert object to primitive value at String (<anonymous>) at http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:133:22 at Array.map (<anonymous>) at printWarning (http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:132:39) at error (http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:120:15) at lazyInitializer (http://localhost:5173/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=6b2932e3:898:17) at mountLazyComponent (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:14822:27) at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:15918:22) at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:19753:22) at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-276SZO74.js?v=6b2932e3:19198:20)
-timestamp
-: 
-"2026-05-28T17:26:45.542Z"
-type
-: 
-"client"
-
-I integrated the debuger in the routes and as you can see elements are successfully being imported
-
-✅ [DEBUG] Module loaded for: SuperAdminDashboard
-dashboard.routes.jsx:18 📦 [DEBUG] Available exports: (51) ['ApprovalsHistory', 'BillingOverview', 'BulkAssignPanel', 'ChampionDashboard', 'ChampionDashboardHeader', 'ClientAdminDashboard', 'CompliancePanel', 'DashboardConfigPanel', 'ExecutiveAlerts', 'ExecutiveDashboard', 'ExecutiveDashboardHeader', 'ExecutiveDepartments', 'ExecutiveOverview', 'ExecutiveReports', 'ExecutiveTrends', 'ExecutiveViewPanel', 'ExportPanel', 'KPIAssignmentPanel', 'KpiBreakdownPanel', 'ManagerDashboard', 'ManagerDashboardHeader', 'ManagerPendingApprovalsPanel', 'ManagerViewPanel', 'MissingDataPanel', 'MissionStatusPanel', 'MyKPIsPanel', 'PendingApprovalsPanel', 'PendingTasksPanel', 'PerformanceTrends', 'PlatformMetrics', 'PlatformOverview', 'ReadOnlyDashboard', 'ReadOnlyDashboardHeader', 'SettingsPanel', 'StaffDashboard', 'StaffDashboardHeader', 'StaffViewPanel', 'SubmissionHistory', 'SubscriptionAlerts', 'SuperAdminDashboard', 'SystemHealthPanel', 'TargetSettingsPanel', 'TeamMembersTable', 'TeamOverview', 'TeamPerformanceChart', 'TemplateLibrary', 'TenantDetailModal', 'TenantOverview', 'TenantsTable', 'UserActivityPanel', 'ViewSelector']
-
-Now help me mostly you can see that useDashboardProfile file, see the one in accounts though it exists as a page and not a hook, its at components/accounts/users/UserProfile, this one is working properly
-
-<<<<<<< HEAD
-I had all the routes in the dashboard.routes.jsx file, I then moved some of the dashboard pages to the dashboard.routes file so that I could test only super admin dashboard
-=======
-I had all the routes in the dashboard.routes.jsx file, I then moved some of the dashboard pages to the dashboard.routes file so that I could test only super admin dashboard
->>>>>>> 05b41ec (Super admin dashboard initials)
+# Phase 2
+Lets work on the missing elements in the super admin dashboard, but now we'll be calling them from the other apps files/routes files, like now we follow this path
+- To-Do tasks
+1. In every routes file apps, there exists some paths and filesa called settings, system in other apps like accounts has a system sidebar item.
+I want to have a single settings items in the super-admin's sidebar elements
+2. The overal dashboard of each app like the kpi dashboard, we redirect to the executive dashboard, we have the organizational dashboard in structure app/routes, we have the tenant dashboard in tenants dashboard, we have the connection items, all of them in the super_admin dashboard
+    - We have the billing items, the admin billing items in the billing routes
+    - Don't mind about the ones for config app cause all are in the super-admin sidebar, I integrated them
+    - Also in kpi include the Aanalytics file, the KPIAnalytics page
+    - we have the reviews app dashboard, settings and any path/routes that looks like admin-ish there
+    - We have the structure routes, settings and dashboard files too
+    - Just as the config app, include everuything in the tenants app and the accountes apps routes in the super_admin sidebar
+    - I have the react icons(fi, lucid, md, etc) installed already, you can use them
+    - Also I was using this sidebar during testing components/common/layout/sidebar.jsx just read it you see how things we're there 

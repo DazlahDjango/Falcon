@@ -84,3 +84,5 @@ export const useKpiSystemSettings = (enabled = true) => {
         setForm,
     };
 };
+
+export default useKpiSystemSettings;
