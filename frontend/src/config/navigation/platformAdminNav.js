@@ -31,8 +31,10 @@ import {
   FiPackage,
   FiFolder,
   FiPieChart,
+  FiSmartphone,        // ← NEW for MFA devices
+  FiCode,              // ← NEW for backup codes
 } from 'react-icons/fi';
-import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema } from 'react-icons/md';
+import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
 import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
@@ -40,6 +42,17 @@ import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
 import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { BILLING_ROUTES } from '../constants/billingRouteConstants';
 import { ROUTES } from '../constants';
+
+// ============================================
+// MFA ROUTES (NEW)
+// ============================================
+export const MFA_ROUTES = {
+  DEVICES: '/security/mfa',
+  BACKUP_CODES: '/security/backup-codes',
+  ACTIVITY: '/security/mfa-activity',
+  SETUP: '/mfa/setup',
+  VERIFY: '/mfa/verify',
+};
 
 // ============================================
 // KPI ADMIN ROUTES (NEW)
@@ -65,6 +78,15 @@ export const CONFIG_NAV_ITEMS = [
   { path: '/config/encryption', name: 'Encryption', icon: FiKey },
   { path: '/config/audit-logs', name: 'Config Audit Logs', icon: FiList },
   { path: '/config/settings', name: 'Config Settings', icon: FiSettings },
+];
+
+// ============================================
+// MFA NAVIGATION ITEMS (NEW)
+// ============================================
+export const MFA_NAV_ITEMS = [
+  { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
+  { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
+  { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
 ];
 
 // ============================================
@@ -150,6 +172,16 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/admin/users', name: 'Admin Users', icon: FiUsers },
     { path: '/admin/tenants', name: 'Admin Tenants', icon: FiLayers },
   ],
+
+  // ============================================
+  // MFA SECTION (NEW - FOR ALL AUTHENTICATED USERS)
+  // ============================================
+  mfa: [
+    { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
+    { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
+    { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
+  ],
+
   config: CONFIG_NAV_ITEMS,
   settings: [
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SETTINGS, name: 'PMS Settings', icon: FiSettings },
@@ -196,6 +228,16 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: ROUTES.USERS, name: 'User Directory', icon: FiUsers },
     { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
+
+  // ============================================
+  // MFA SECTION (NEW - FOR CLIENT ADMIN)
+  // ============================================
+  mfa: [
+    { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
+    { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
+    { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
+  ],
+
   compliance: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },
@@ -217,11 +259,12 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   main: true,
   tenants: false,
   billing: false,
-  kpiAdmin: false,      // ← NEW
+  kpiAdmin: false,
   kpi: false,
   structure: false,
   reviews: false,
   accounts: false,
+  mfa: false,        // ← NEW
   config: false,
   settings: false,
 };
@@ -229,8 +272,9 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
 export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   main: true,
   oversight: true,
-  kpiAdmin: false,      // ← NEW
+  kpiAdmin: false,
   management: true,
+  mfa: false,        // ← NEW
   compliance: false,
   config: false,
 };
@@ -242,11 +286,12 @@ export const SUPER_ADMIN_GROUP_LABELS = {
   main: 'Main',
   tenants: 'Tenant Ops & Connections',
   billing: 'Billing Admin',
-  kpiAdmin: 'KPI System Admin',        // ← NEW
+  kpiAdmin: 'KPI System Admin',
   kpi: 'KPI Management (User)',
   structure: 'Organization Structure',
   reviews: 'Performance Reviews',
   accounts: 'Users & Platform Access',
+  mfa: 'Multi-Factor Authentication',     // ← NEW
   config: 'Configuration Manager',
   settings: 'System & Unified Settings',
 };
@@ -254,8 +299,9 @@ export const SUPER_ADMIN_GROUP_LABELS = {
 export const CLIENT_ADMIN_GROUP_LABELS = {
   main: 'Main',
   oversight: 'Oversight',
-  kpiAdmin: 'KPI System Admin',        // ← NEW
+  kpiAdmin: 'KPI System Admin',
   management: 'Management',
+  mfa: 'Multi-Factor Authentication',     // ← NEW
   compliance: 'Reports & Compliance',
   config: 'Configuration',
 };

@@ -40,6 +40,7 @@
 @import './assets/styles/kpi/traffic-light.css';
 @import './assets/styles/kpi/forms.css';
 @import './styles/sidebar.css';
+@import './components/accounts/mfa/mfa.css';
 
 /* ============================================
    TENANT APP CSS IMPORTS

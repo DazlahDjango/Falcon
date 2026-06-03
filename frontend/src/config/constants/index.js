@@ -87,6 +87,33 @@ export const API_ENDPOINTS = {
         INVITATIONS: '/auth/invitations/',
         ACCEPT_INVITATION: '/auth/invitations/accept/',
     },
+    MFA: {
+        // Devices
+        DEVICES: '/mfa/devices/',
+        DEVICE_DETAIL: (id) => `/mfa/devices/${id}/`,
+        SETUP_TOTP: '/mfa/devices/setup-totp/',
+        VERIFY_TOTP_SETUP: '/mfa/devices/verify-totp-setup/',
+        VERIFY_DEVICE: (id) => `/mfa/devices/${id}/verify/`,
+        VERIFY_BACKUP: '/mfa/devices/verify-backup/',
+        SET_PRIMARY: (id) => `/mfa/devices/${id}/set-primary/`,
+        GENERATE_BACKUP_CODES: '/mfa/devices/generate-backup-codes/',
+        BACKUP_CODES_STATUS: '/mfa/devices/backup-codes-status/',
+        STATUS: '/mfa/devices/status/',
+        ACTIVITY: '/mfa/devices/activity/',
+        FAILURE_RATE: '/mfa/devices/failure-rate/',
+        DISABLE: '/mfa/devices/disable/',
+
+        // Audit Logs
+        AUDIT_LOGS: '/mfa/audit-logs/',
+        AUDIT_LOG_DETAIL: (id) => `/mfa/audit-logs/${id}/`,
+        AUDIT_LOG_SUMMARY: '/mfa/audit-logs/summary/',
+
+        // Admin (user nested)
+        USER_DEVICES: (userId) => `/users/${userId}/mfa-devices/`,
+        USER_SETUP_TOTP: (userId) => `/users/${userId}/mfa-devices/setup-totp/`,
+        USER_VERIFY_TOTP: (userId) => `/users/${userId}/mfa-devices/verify-totp-setup/`,
+        USER_DISABLE: (userId) => `/users/${userId}/mfa-devices/disable/`,
+    },
 
     // Users (from accounts)
     USERS: {
