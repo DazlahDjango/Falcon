@@ -1,30 +1,11 @@
+// frontend/src/store/accounts/slice/teamSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as usersApi from '../../../services/accounts/api/users';
 
+// ============================================================
 // Async Thunks
-// ==============
-export const fetchTeamHierarchy = createAsyncThunk(
-    'team/fetchHierarchy',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await usersApi.getTeamHierarchy();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch team hierarchy');
-        }
-    }
-);
-export const fetchTeamStats = createAsyncThunk(
-    'team/fetchStats',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await usersApi.getTeamStats();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch team stats');
-        }
-    }
-);
+// ============================================================
+
 export const fetchTeamMembers = createAsyncThunk(
     'team/fetchMembers',
     async (_, { rejectWithValue }) => {
@@ -36,17 +17,19 @@ export const fetchTeamMembers = createAsyncThunk(
         }
     }
 );
-export const fetchTeamActivities = createAsyncThunk(
-    'team/fetchActivities',
-    async (_, { rejectWithValue }) => {
+
+export const fetchTeamMemberById = createAsyncThunk(
+    'team/fetchMemberById',
+    async (userId, { rejectWithValue }) => {
         try {
-            const response = await usersApi.getTeamActivities();
+            const response = await usersApi.getTeam(userId);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch team activities');
+            return rejectWithValue(error.response?.data?.error || 'Failed to fetch team member');
         }
     }
 );
+
 export const fetchReportingChain = createAsyncThunk(
     'team/fetchReportingChain',
     async (userId, { rejectWithValue }) => {
@@ -59,77 +42,114 @@ export const fetchReportingChain = createAsyncThunk(
     }
 );
 
+export const fetchMyReportingChain = createAsyncThunk(
+    'team/fetchMyReportingChain',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await usersApi.getMyReportingChain();
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to fetch reporting chain');
+        }
+    }
+);
+
+// ============================================================
 // Initial State
-// ==============
+// ============================================================
+
 const initialState = {
-    hierarchy: null,
-    stats: {
-        total_members: 0,
-        active_members: 0,
-        active_percentage: 0,
-        avg_score: 0,
-        score_trend: 0,
-        at_risk_members: 0,
-        at_risk_percentage: 0,
-        pending_approvals: 0,
-        member_trend: 0
-    },
     teamMembers: [],
-    activities: [],
+    selectedMember: null,
     reportingChain: [],
     isLoading: false,
     error: null
 };
 
+// ============================================================
 // Slice
-// =========
+// ============================================================
+
 const teamSlice = createSlice({
     name: 'team',
     initialState,
     reducers: {
+        clearSelectedMember: (state) => {
+            state.selectedMember = null;
+        },
         clearError: (state) => {
             state.error = null;
-        }
+        },
+        resetTeam: () => initialState
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetchTeamHierarchy.fulfilled, (state, action) => {
-                state.hierarchy = action.payload;
-            })
-            .addCase(fetchTeamStats.fulfilled, (state, action) => {
-                state.stats = action.payload;
+            // Fetch Team Members
+            .addCase(fetchTeamMembers.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
             })
             .addCase(fetchTeamMembers.fulfilled, (state, action) => {
-                state.teamMembers = action.payload.results;
+                state.isLoading = false;
+                state.teamMembers = action.payload.results || action.payload || [];
             })
-            .addCase(fetchTeamActivities.fulfilled, (state, action) => {
-                state.activities = action.payload.results;
+            .addCase(fetchTeamMembers.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Fetch Team Member By ID
+            .addCase(fetchTeamMemberById.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchTeamMemberById.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.selectedMember = action.payload;
+            })
+            .addCase(fetchTeamMemberById.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Fetch Reporting Chain
+            .addCase(fetchReportingChain.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
             })
             .addCase(fetchReportingChain.fulfilled, (state, action) => {
-                state.reportingChain = action.payload;
+                state.isLoading = false;
+                state.reportingChain = action.payload.reporting_chain || action.payload || [];
             })
-            .addMatcher(
-                (action) => action.type.endsWith('/pending'),
-                (state) => {
-                    state.isLoading = true;
-                    state.error = null;
-                }
-            )
-            .addMatcher(
-                (action) => action.type.endsWith('/rejected'),
-                (state, action) => {
-                    state.isLoading = false;
-                    state.error = action.payload;
-                }
-            )
-            .addMatcher(
-                (action) => action.type.endsWith('/fulfilled'),
-                (state) => {
-                    state.isLoading = false;
-                }
-            );
+            .addCase(fetchReportingChain.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Fetch My Reporting Chain
+            .addCase(fetchMyReportingChain.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchMyReportingChain.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.reportingChain = action.payload.reporting_chain || action.payload || [];
+            })
+            .addCase(fetchMyReportingChain.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
     }
 });
-export const { clearError } = teamSlice.actions;
+
+// ============================================================
+// Actions & Selectors
+// ============================================================
+
+export const { clearSelectedMember, clearError, resetTeam } = teamSlice.actions;
+
+export const selectTeam = (state) => state.team;
+export const selectTeamMembers = (state) => state.team.teamMembers;
+export const selectSelectedMember = (state) => state.team.selectedMember;
+export const selectReportingChain = (state) => state.team.reportingChain;
+export const selectTeamLoading = (state) => state.team.isLoading;
+export const selectTeamError = (state) => state.team.error;
 
 export default teamSlice.reducer;

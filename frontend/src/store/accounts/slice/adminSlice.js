@@ -1,23 +1,26 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as adminApi from '../../../services/accounts/api/admin';
 
-// Async Thunks
-// =============
-// System Stats
 export const fetchSystemStats = createAsyncThunk(
     'admin/fetchSystemStats',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await adminApi.getUserStats();
-            const tenantStats = await adminApi.getTenantStats();
-            const systemInfo = await adminApi.getSystemInfo();
-            return { users: response.data, tenants: tenantStats.data, system: systemInfo.data };
+            const [userStats, tenantStats, systemInfo] = await Promise.all([
+                adminApi.getUserStats(),
+                adminApi.getTenantStats(),
+                adminApi.getSystemInfo()
+            ]);
+            return {
+                users: userStats.data,
+                tenants: tenantStats.data,
+                system: systemInfo.data
+            };
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to fetch system stats');
         }
     }
 );
-// User Management
+
 export const fetchAllUsers = createAsyncThunk(
     'admin/fetchAllUsers',
     async (params = {}, { rejectWithValue }) => {
@@ -29,8 +32,9 @@ export const fetchAllUsers = createAsyncThunk(
         }
     }
 );
+
 export const deleteUserAdmin = createAsyncThunk(
-    'admin/deleteUser',
+    'admin/deleteUserAdmin',
     async (userId, { rejectWithValue }) => {
         try {
             await adminApi.deleteUserAdmin(userId);
@@ -40,6 +44,7 @@ export const deleteUserAdmin = createAsyncThunk(
         }
     }
 );
+
 export const suspendUser = createAsyncThunk(
     'admin/suspendUser',
     async (userId, { rejectWithValue }) => {
@@ -51,8 +56,9 @@ export const suspendUser = createAsyncThunk(
         }
     }
 );
+
 export const activateUserAdmin = createAsyncThunk(
-    'admin/activateUser',
+    'admin/activateUserAdmin',
     async (userId, { rejectWithValue }) => {
         try {
             await adminApi.updateUserAdmin(userId, { is_active: true });
@@ -62,7 +68,31 @@ export const activateUserAdmin = createAsyncThunk(
         }
     }
 );
-// Tenant Management
+
+export const impersonateUser = createAsyncThunk(
+    'admin/impersonateUser',
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await adminApi.impersonateUser(userId);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to impersonate user');
+        }
+    }
+);
+
+export const forcePasswordReset = createAsyncThunk(
+    'admin/forcePasswordReset',
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await adminApi.forcePasswordReset(userId);
+            return { userId, data: response.data };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to force password reset');
+        }
+    }
+);
+
 export const fetchTenants = createAsyncThunk(
     'admin/fetchTenants',
     async (params = {}, { rejectWithValue }) => {
@@ -74,6 +104,7 @@ export const fetchTenants = createAsyncThunk(
         }
     }
 );
+
 export const createTenant = createAsyncThunk(
     'admin/createTenant',
     async (tenantData, { rejectWithValue }) => {
@@ -85,6 +116,7 @@ export const createTenant = createAsyncThunk(
         }
     }
 );
+
 export const updateTenant = createAsyncThunk(
     'admin/updateTenant',
     async ({ id, ...data }, { rejectWithValue }) => {
@@ -96,6 +128,7 @@ export const updateTenant = createAsyncThunk(
         }
     }
 );
+
 export const deleteTenant = createAsyncThunk(
     'admin/deleteTenant',
     async (tenantId, { rejectWithValue }) => {
@@ -107,6 +140,7 @@ export const deleteTenant = createAsyncThunk(
         }
     }
 );
+
 export const suspendTenant = createAsyncThunk(
     'admin/suspendTenant',
     async (tenantId, { rejectWithValue }) => {
@@ -118,6 +152,7 @@ export const suspendTenant = createAsyncThunk(
         }
     }
 );
+
 export const activateTenant = createAsyncThunk(
     'admin/activateTenant',
     async (tenantId, { rejectWithValue }) => {
@@ -129,7 +164,19 @@ export const activateTenant = createAsyncThunk(
         }
     }
 );
-// System Management
+
+export const createTenantWithAdmin = createAsyncThunk(
+    'admin/createTenantWithAdmin',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await adminApi.createTenantWithAdmin(data);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to create tenant with admin');
+        }
+    }
+);
+
 export const fetchSystemHealth = createAsyncThunk(
     'admin/fetchSystemHealth',
     async (_, { rejectWithValue }) => {
@@ -141,6 +188,7 @@ export const fetchSystemHealth = createAsyncThunk(
         }
     }
 );
+
 export const fetchSystemConfig = createAsyncThunk(
     'admin/fetchSystemConfig',
     async (_, { rejectWithValue }) => {
@@ -152,6 +200,7 @@ export const fetchSystemConfig = createAsyncThunk(
         }
     }
 );
+
 export const updateSystemConfig = createAsyncThunk(
     'admin/updateSystemConfig',
     async (config, { rejectWithValue }) => {
@@ -163,6 +212,7 @@ export const updateSystemConfig = createAsyncThunk(
         }
     }
 );
+
 export const clearCache = createAsyncThunk(
     'admin/clearCache',
     async (_, { rejectWithValue }) => {
@@ -174,6 +224,7 @@ export const clearCache = createAsyncThunk(
         }
     }
 );
+
 export const clearUserCache = createAsyncThunk(
     'admin/clearUserCache',
     async (userId, { rejectWithValue }) => {
@@ -198,8 +249,30 @@ export const clearTenantCache = createAsyncThunk(
     }
 );
 
-// Initial State
-// ===============
+export const initSystemRoles = createAsyncThunk(
+    'admin/initSystemRoles',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await adminApi.initSystemRoles();
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to init system roles');
+        }
+    }
+);
+
+export const initPermissions = createAsyncThunk(
+    'admin/initPermissions',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await adminApi.initPermissions();
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to init permissions');
+        }
+    }
+);
+
 const initialState = {
     stats: {
         total_users: 0,
@@ -224,15 +297,14 @@ const initialState = {
     error: null
 };
 
-// Slice
-// =========
 const adminSlice = createSlice({
     name: 'admin',
     initialState,
     reducers: {
         clearError: (state) => {
             state.error = null;
-        }
+        },
+        resetAdmin: () => initialState
     },
     extraReducers: (builder) => {
         builder
@@ -240,44 +312,40 @@ const adminSlice = createSlice({
             .addCase(fetchSystemStats.fulfilled, (state, action) => {
                 state.stats = {
                     ...state.stats,
-                    total_users: action.payload.users.total_users,
-                    active_users: action.payload.users.active_users,
-                    total_tenants: action.payload.tenants.total_tenants,
-                    active_tenants: action.payload.tenants.active_tenants,
-                    uptime: action.payload.system.uptime,
-                    api_requests: action.payload.system.api_requests,
-                    request_trend: action.payload.system.request_trend
+                    total_users: action.payload.users?.total_users || 0,
+                    active_users: action.payload.users?.active_users || 0,
+                    total_tenants: action.payload.tenants?.total_tenants || 0,
+                    active_tenants: action.payload.tenants?.active_tenants || 0,
+                    uptime: action.payload.system?.uptime || '0d',
+                    api_requests: action.payload.system?.api_requests || 0,
+                    request_trend: action.payload.system?.request_trend || null
                 };
             })
+            // Fetch All Users
             .addCase(fetchAllUsers.pending, (state) => {
                 state.isLoading = true;
                 state.error = null;
             })
             .addCase(fetchAllUsers.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.error = null;
-                const payload = action.payload ?? {};
-                const list = payload.results ?? (Array.isArray(payload) ? payload : []);
+                const payload = action.payload || {};
+                const list = payload.results || (Array.isArray(payload) ? payload : []);
                 state.users = Array.isArray(list) ? list : [];
-                const count = typeof payload.count === 'number' ? payload.count : state.users.length;
-                const pageSize = 100;
                 state.pagination = {
-                    current_page: payload.current_page ?? 1,
-                    total_pages: payload.total_pages ?? Math.max(1, Math.ceil(count / pageSize)),
-                    total_items: count,
-                    page_size: payload.page_size ?? pageSize,
+                    current_page: payload.current_page || 1,
+                    total_pages: payload.total_pages || 1,
+                    total_items: payload.count || state.users.length,
+                    page_size: payload.page_size || 20
                 };
             })
             .addCase(fetchAllUsers.rejected, (state, action) => {
                 state.isLoading = false;
-                state.error =
-                    typeof action.payload === 'string'
-                        ? action.payload
-                        : action.error?.message || 'Failed to fetch users';
+                state.error = action.payload;
             })
             // Delete User
             .addCase(deleteUserAdmin.fulfilled, (state, action) => {
                 state.users = state.users.filter(u => u.id !== action.payload);
+                state.pagination.total_items -= 1;
             })
             // Suspend/Activate User
             .addCase(suspendUser.fulfilled, (state, action) => {
@@ -288,13 +356,22 @@ const adminSlice = createSlice({
                 const user = state.users.find(u => u.id === action.payload.userId);
                 if (user) user.is_active = action.payload.is_active;
             })
+            // Impersonate User
+            .addCase(impersonateUser.fulfilled, (state, action) => {
+                // Handle impersonation token - stored separately
+            })
+            // Force Password Reset
+            .addCase(forcePasswordReset.fulfilled, (state) => {
+                // Password reset initiated - no state update needed
+            })
             // Fetch Tenants
             .addCase(fetchTenants.fulfilled, (state, action) => {
-                state.tenants = action.payload.results;
+                state.tenants = action.payload.results || action.payload || [];
             })
             // Create/Update/Delete Tenant
             .addCase(createTenant.fulfilled, (state, action) => {
                 state.tenants.unshift(action.payload);
+                state.stats.total_tenants += 1;
             })
             .addCase(updateTenant.fulfilled, (state, action) => {
                 const index = state.tenants.findIndex(t => t.id === action.payload.id);
@@ -302,6 +379,7 @@ const adminSlice = createSlice({
             })
             .addCase(deleteTenant.fulfilled, (state, action) => {
                 state.tenants = state.tenants.filter(t => t.id !== action.payload);
+                state.stats.total_tenants -= 1;
             })
             .addCase(suspendTenant.fulfilled, (state, action) => {
                 const tenant = state.tenants.find(t => t.id === action.payload.tenantId);
@@ -310,6 +388,10 @@ const adminSlice = createSlice({
             .addCase(activateTenant.fulfilled, (state, action) => {
                 const tenant = state.tenants.find(t => t.id === action.payload.tenantId);
                 if (tenant) tenant.is_active = action.payload.is_active;
+            })
+            .addCase(createTenantWithAdmin.fulfilled, (state, action) => {
+                state.tenants.unshift(action.payload.tenant);
+                state.stats.total_tenants += 1;
             })
             // System Health
             .addCase(fetchSystemHealth.fulfilled, (state, action) => {
@@ -321,9 +403,25 @@ const adminSlice = createSlice({
             })
             .addCase(updateSystemConfig.fulfilled, (state, action) => {
                 state.systemConfig = { ...state.systemConfig, ...action.payload };
+            })
+            // Init System Roles & Permissions
+            .addCase(initSystemRoles.fulfilled, (state) => {
+                // Roles initialized
+            })
+            .addCase(initPermissions.fulfilled, (state) => {
+                // Permissions initialized
             });
     }
 });
-export const { clearError } = adminSlice.actions;
+export const { clearError, resetAdmin } = adminSlice.actions;
+export const selectAdmin = (state) => state.admin;
+export const selectAdminStats = (state) => state.admin.stats;
+export const selectAdminUsers = (state) => state.admin.users;
+export const selectAdminTenants = (state) => state.admin.tenants;
+export const selectAdminHealth = (state) => state.admin.health;
+export const selectAdminSystemConfig = (state) => state.admin.systemConfig;
+export const selectAdminPagination = (state) => state.admin.pagination;
+export const selectAdminLoading = (state) => state.admin.isLoading;
+export const selectAdminError = (state) => state.admin.error;
 
 export default adminSlice.reducer;

@@ -117,12 +117,33 @@ export const API_ENDPOINTS = {
 
     // Users (from accounts)
     USERS: {
+        // List & Detail
         LIST: '/users/',
         DETAIL: (id) => `/users/${id}/`,
+        CREATE: '/users/',
+        UPDATE: (id) => `/users/${id}/`,
+        DELETE: (id) => `/users/${id}/`,
+
+        // Current User
         ME: '/users/me/',
+        UPDATE_ME: '/users/me/',
         AVATAR: '/users/me/avatar/',
         TEAM: '/users/me/team/',
         REPORTING_CHAIN: '/users/me/reporting-chain/',
+
+        // User Actions (Admin)
+        ACTIVATE: (id) => `/users/${id}/activate/`,
+        DEACTIVATE: (id) => `/users/${id}/deactivate/`,
+        UNLOCK: (id) => `/users/${id}/unlock/`,
+        ASSIGN_ROLE: (id) => `/users/${id}/assign-role/`,
+        CHANGE_PASSWORD: (id) => `/users/${id}/change-password/`,
+
+        // Team & Hierarchy (by ID)
+        TEAM_BY_ID: (id) => `/users/${id}/team/`,
+        REPORTING_CHAIN_BY_ID: (id) => `/users/${id}/reporting-chain/`,
+
+        // Invitations
+        INVITE: '/users/invite/',
     },
 
     // Roles & Permissions

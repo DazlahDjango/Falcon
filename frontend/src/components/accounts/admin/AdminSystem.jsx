@@ -1,213 +1,209 @@
+// frontend/src/components/accounts/admin/AdminSystem.jsx
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiSave, FiRefreshCw, FiAlertTriangle } from 'react-icons/fi';
-import { fetchSystemConfig, updateSystemConfig, clearCache } from '../../../store/accounts/slice/adminSlice';
-import { showAlert } from '../../../store/accounts/slice/uiSlice';
-import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
+import {
+    FiServer, FiActivity, FiDatabase, FiRefreshCw,
+    FiCheckCircle, FiXCircle, FiAlertCircle, FiClock,
+    FiBarChart2, FiUsers, FiShield, FiTrash2
+} from 'react-icons/fi';
+import { useAdmin } from '../../../store/accounts/hooks/useAdmin';
+import Spinner from '../../common/UI/Spinner';
 import ConfirmationDialog from '../../common/Feedback/ConfirmationDialog';
 
 const AdminSystem = () => {
-    const dispatch = useDispatch();
-    const { systemConfig, isLoading } = useSelector((state) => state.admin);
-    const [formData, setFormData] = useState({});
-    const [saving, setSaving] = useState(false);
+    const {
+        stats,
+        health,
+        systemConfig,
+        isLoading,
+        loadSystemStats,
+        loadSystemHealth,
+        loadSystemConfig,
+        clearSystemCache,
+        clearAdminError,
+    } = useAdmin();
+
     const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
+    const [isClearingCache, setIsClearingCache] = useState(false);
+
     useEffect(() => {
-        dispatch(fetchSystemConfig());
-    }, [dispatch]);
-    useEffect(() => {
-        if (systemConfig) {
-            setFormData(systemConfig);
-        }
-    }, [systemConfig]);
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checked' ? checked : value
-        }));
-    };
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSaving(true);
+        loadSystemStats();
+        loadSystemHealth();
+        loadSystemConfig();
+    }, [loadSystemStats, loadSystemHealth, loadSystemConfig]);
+
+    const handleClearCache = async () => {
+        setIsClearingCache(true);
         try {
-            await dispatch(updateSystemConfig(formData)).unwrap();
-            dispatch(showAlert({ type: 'success', message: 'System configuration updated' }));
-        } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error.message || 'Failed to update configuration' }));
-        } finally{
-            setSaving(false);
+            await clearSystemCache();
+            setShowClearCacheConfirm(false);
+        } finally {
+            setIsClearingCache(false);
         }
     };
-    const handleClearCache = async (e) => {
-        try {
-            await dispatch(clearCache()).unwrap();
-            dispatch(showAlert({ type: 'success', message: 'Cache cleared successfully' }));
-        } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error.message || 'Failed to clear cache' }));
-        }
-        setShowClearCacheConfirm(false);
+
+    const getHealthStatus = () => {
+        if (!health) return { status: 'unknown', color: '#6b7280', icon: <FiAlertCircle /> };
+        if (health.status === 'healthy') return { status: 'Healthy', color: '#10b981', icon: <FiCheckCircle /> };
+        if (health.status === 'degraded') return { status: 'Degraded', color: '#f59e0b', icon: <FiAlertCircle /> };
+        return { status: 'Unhealthy', color: '#dc2626', icon: <FiXCircle /> };
     };
-    if (isLoading && !systemConfig) {
-        return <SkeletonLoader type='form' />;
-    }
-    return (
-        <div className="admin-system">
-            <div className="page-header">
-                <h1>System Configuration</h1>
-                <p>Manage global system settings</p>
+
+    const healthStatus = getHealthStatus();
+
+    if (isLoading && !stats.total_users) {
+        return (
+            <div className="admin-loading">
+                <Spinner size="lg" />
+                <p>Loading system information...</p>
             </div>
-            
-            <form onSubmit={handleSubmit} className="system-form">
-                <div className="form-section">
-                    <h2>General Settings</h2>
-                    <div className="form-group">
-                        <label>System Name</label>
-                        <input
-                            type="text"
-                            name="system_name"
-                            value={formData.system_name || ''}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Support Email</label>
-                        <input
-                            type="email"
-                            name="support_email"
-                            value={formData.support_email || ''}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
+        );
+    }
+
+    return (
+        <div className="admin-system-page">
+            {/* Header */}
+            <div className="page-header">
+                <div>
+                    <h1>System Dashboard</h1>
+                    <p>Monitor system health and performance</p>
+                </div>
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowClearCacheConfirm(true)}
+                    disabled={isClearingCache}
+                >
+                    <FiTrash2 size={16} />
+                    {isClearingCache ? 'Clearing...' : 'Clear Cache'}
+                </button>
+            </div>
+
+            {/* System Stats */}
+            <div className="admin-stats-grid">
+                <div className="stat-card">
+                    <div className="stat-icon"><FiUsers size={24} /></div>
+                    <div className="stat-info">
+                        <div className="stat-value">{stats.total_users?.toLocaleString() || 0}</div>
+                        <div className="stat-label">Total Users</div>
                     </div>
                 </div>
-                
-                <div className="form-section">
-                    <h2>Security Settings</h2>
-                    <div className="form-group">
-                        <label>Password Minimum Length</label>
-                        <input
-                            type="number"
-                            name="password_min_length"
-                            value={formData.password_min_length || 8}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Password Expiry (days)</label>
-                        <input
-                            type="number"
-                            name="password_expiry_days"
-                            value={formData.password_expiry_days || 90}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group checkbox">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="require_mfa_admins"
-                                checked={formData.require_mfa_admins || false}
-                                onChange={handleChange}
-                            />
-                            <span>Require MFA for Admin Users</span>
-                        </label>
-                    </div>
-                    <div className="form-group checkbox">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="session_timeout_enabled"
-                                checked={formData.session_timeout_enabled || true}
-                                onChange={handleChange}
-                            />
-                            <span>Enable Session Timeout</span>
-                        </label>
+                <div className="stat-card success">
+                    <div className="stat-icon"><FiActivity size={24} /></div>
+                    <div className="stat-info">
+                        <div className="stat-value">{stats.active_users?.toLocaleString() || 0}</div>
+                        <div className="stat-label">Active Users</div>
                     </div>
                 </div>
-                
-                <div className="form-section">
-                    <h2>Rate Limiting</h2>
-                    <div className="form-group">
-                        <label>API Requests per Minute (Default)</label>
-                        <input
-                            type="number"
-                            name="rate_limit_default"
-                            value={formData.rate_limit_default || 60}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Login Attempts per IP (15 min)</label>
-                        <input
-                            type="number"
-                            name="login_attempts_limit"
-                            value={formData.login_attempts_limit || 5}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
+                <div className="stat-card">
+                    <div className="stat-icon"><FiDatabase size={24} /></div>
+                    <div className="stat-info">
+                        <div className="stat-value">{stats.total_tenants?.toLocaleString() || 0}</div>
+                        <div className="stat-label">Total Tenants</div>
                     </div>
                 </div>
-                
-                <div className="form-section">
-                    <h2>Data Retention</h2>
-                    <div className="form-group">
-                        <label>Audit Log Retention (days)</label>
-                        <input
-                            type="number"
-                            name="audit_retention_days"
-                            value={formData.audit_retention_days || 365}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Session Log Retention (days)</label>
-                        <input
-                            type="number"
-                            name="session_retention_days"
-                            value={formData.session_retention_days || 90}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
+                <div className="stat-card">
+                    <div className="stat-icon"><FiBarChart2 size={24} /></div>
+                    <div className="stat-info">
+                        <div className="stat-value">{stats.api_requests?.toLocaleString() || 0}</div>
+                        <div className="stat-label">API Requests</div>
                     </div>
                 </div>
-                
-                <div className="form-section warning">
-                    <div className="section-header">
-                        <FiAlertTriangle size={20} />
-                        <h2>Danger Zone</h2>
+            </div>
+
+            {/* Health Status */}
+            <div className="system-section">
+                <h2>System Health</h2>
+                <div className="health-status" style={{ borderLeftColor: healthStatus.color }}>
+                    <div className="health-icon" style={{ color: healthStatus.color }}>
+                        {healthStatus.icon}
                     </div>
-                    <div className="danger-actions">
-                        <button type="button" className="btn btn-danger" onClick={() => setShowClearCacheConfirm(true)}>
-                            <FiRefreshCw size={16} />
-                            Clear All Cache
-                        </button>
+                    <div className="health-info">
+                        <div className="health-status-label">Status</div>
+                        <div className="health-status-value">{healthStatus.status}</div>
+                    </div>
+                    <div className="health-info">
+                        <div className="health-status-label">Uptime</div>
+                        <div className="health-status-value">{stats.uptime || '—'}</div>
+                    </div>
+                    <div className="health-info">
+                        <div className="health-status-label">Last Check</div>
+                        <div className="health-status-value">
+                            {health?.last_check ? new Date(health.last_check).toLocaleString() : '—'}
+                        </div>
                     </div>
                 </div>
-                
-                <div className="form-actions">
-                    <button type="submit" className="btn btn-primary" disabled={saving}>
-                        <FiSave size={16} />
-                        {saving ? 'Saving...' : 'Save Configuration'}
-                    </button>
+            </div>
+
+            {/* Service Status */}
+            <div className="system-section">
+                <h2>Service Status</h2>
+                <div className="services-grid">
+                    <div className="service-card">
+                        <div className="service-icon"><FiServer size={24} /></div>
+                        <div className="service-info">
+                            <div className="service-name">Database</div>
+                            <div className={`service-status ${health?.database === 'healthy' ? 'healthy' : 'unhealthy'}`}>
+                                {health?.database === 'healthy' ? 'Operational' : 'Issues Detected'}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="service-card">
+                        <div className="service-icon"><FiRefreshCw size={24} /></div>
+                        <div className="service-info">
+                            <div className="service-name">Redis Cache</div>
+                            <div className={`service-status ${health?.redis === 'healthy' ? 'healthy' : 'unhealthy'}`}>
+                                {health?.redis === 'healthy' ? 'Operational' : 'Issues Detected'}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="service-card">
+                        <div className="service-icon"><FiShield size={24} /></div>
+                        <div className="service-info">
+                            <div className="service-name">Authentication</div>
+                            <div className={`service-status ${health?.auth === 'healthy' ? 'healthy' : 'unhealthy'}`}>
+                                {health?.auth === 'healthy' ? 'Operational' : 'Issues Detected'}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </form>
-            
+            </div>
+
+            {/* System Configuration */}
+            {systemConfig && (
+                <div className="system-section">
+                    <h2>System Configuration</h2>
+                    <div className="config-grid">
+                        <div className="config-item">
+                            <span className="config-label">Version</span>
+                            <span className="config-value">{systemConfig.version || '1.0.0'}</span>
+                        </div>
+                        <div className="config-item">
+                            <span className="config-label">Environment</span>
+                            <span className="config-value">{systemConfig.environment || 'production'}</span>
+                        </div>
+                        <div className="config-item">
+                            <span className="config-label">Debug Mode</span>
+                            <span className="config-value">{systemConfig.debug ? 'Enabled' : 'Disabled'}</span>
+                        </div>
+                        <div className="config-item">
+                            <span className="config-label">API Rate Limit</span>
+                            <span className="config-value">{systemConfig.api_rate_limit || 100}/min</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Clear Cache Confirmation */}
             <ConfirmationDialog
                 isOpen={showClearCacheConfirm}
                 onClose={() => setShowClearCacheConfirm(false)}
                 onConfirm={handleClearCache}
                 type="warning"
                 title="Clear System Cache"
-                message="This will clear all cached data including sessions, API responses, and configuration. This action cannot be undone."
+                message="Clearing the cache will temporarily affect performance while it rebuilds. Are you sure you want to proceed?"
                 confirmText="Clear Cache"
             />
         </div>
     );
 };
+
 export default AdminSystem;
