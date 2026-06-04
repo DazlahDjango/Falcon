@@ -1,7 +1,6 @@
-// frontend/src/components/accounts/users/components/AvatarUpload.jsx
 import React, { useRef, useState } from 'react';
 import { FiCamera, FiX } from 'react-icons/fi';
-import { useProfile } from '../../../../store/accounts/hooks/useProfile';
+import { useProfile } from '../../../../hooks/accounts/useProfile';
 
 const AvatarUpload = () => {
     const fileInputRef = useRef(null);

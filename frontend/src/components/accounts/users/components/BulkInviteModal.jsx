@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/users/components/BulkInviteModal.jsx
 import React, { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {
@@ -6,7 +5,7 @@ import {
     FiAlertCircle, FiUserPlus, FiSend, FiTrash2,
     FiRefreshCw, FiEye, FiEyeOff
 } from 'react-icons/fi';
-import { useUsers } from '../../../../store/accounts/hooks/useUsers';
+import { useUsers } from '../../../../hooks/accounts/useUsers';
 import { showAlert } from '../../../../store/accounts/slice/uiSlice';
 import Modal from '../../../common/UI/Modal';
 import Spinner from '../../../common/UI/Spinner';

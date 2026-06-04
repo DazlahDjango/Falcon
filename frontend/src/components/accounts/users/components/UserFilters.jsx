@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/users/components/UserFilters.jsx
 import React, { useState } from 'react';
 import { FiX, FiFilter } from 'react-icons/fi';
 

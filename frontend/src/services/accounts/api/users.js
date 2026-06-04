@@ -69,6 +69,13 @@ export const changeUserPassword = (userId, oldPassword, newPassword) => {
     });
 };
 
+export const changePassword = (oldPassword, newPassword) => {
+    return request.post('/auth/change-password/', {
+        old_password: oldPassword,
+        new_password: newPassword
+    });
+};
+
 // Team Management
 export const getTeam = (userId) => {
     return request.get(`/users/${userId}/team/`);
@@ -118,6 +125,7 @@ export const usersApi = {
     unlockUser,
     assignRole,
     changeUserPassword,
+    changePassword,
 
     // Team
     getTeam,

@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/reports/ReportGenerator.jsx
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
@@ -6,11 +5,11 @@ import {
     FiPieChart, FiBarChart2, FiTrendingUp, FiUsers,
     FiShield, FiActivity, FiCheckCircle, FiXCircle
 } from 'react-icons/fi';
-import { useAudit } from '../../../store/accounts/hooks/useAudit';
-import { useUsers } from '../../../store/accounts/hooks/useUsers';
-import { showAlert } from '../../../store/accounts/slice/uiSlice';
-import Spinner from '../../common/UI/Spinner';
-import Modal from '../../common/UI/Modal';
+import { useAudit } from '../../hooks/accounts/useAudit';
+import { useUsers } from '../../hooks/accounts/useUsers';
+import { showAlert } from '../../store/accounts/slice/uiSlice';
+import Spinner from '../common/UI/Spinner';
+import Modal from '../common/UI/Modal';
 
 const ReportGenerator = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();

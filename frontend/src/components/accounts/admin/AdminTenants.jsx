@@ -1,11 +1,10 @@
-// frontend/src/components/accounts/admin/AdminTenants.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     FiPlus, FiSearch, FiEdit, FiTrash2, FiLock, FiUnlock,
     FiUsers, FiDatabase, FiRefreshCw, FiFilter, FiGlobe
 } from 'react-icons/fi';
-import { useAdmin } from '../../../store/accounts/hooks/useAdmin';
+import { useAdmin } from '../../../hooks/accounts/useAdmin';
 import ConfirmationDialog from '../../common/Feedback/ConfirmationDialog';
 import Spinner from '../../common/UI/Spinner';
 

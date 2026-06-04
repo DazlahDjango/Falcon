@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/profile/ProfileView.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,12 +6,12 @@ import {
     FiLock, FiCheckCircle, FiAlertCircle, FiClock,
     FiActivity, FiSmartphone, FiCode, FiShieldOff
 } from 'react-icons/fi';
-import { useProfile } from '../../../store/accounts/hooks/useProfile';
-import { useAuth } from '../../../store/accounts/hooks/useAuth';
-import { useMFA } from '../../../store/accounts/hooks/useMFA';
+import { useProfile } from '../../../hooks/accounts/useProfile';
+import { useAuth } from '../../../hooks/accounts/useAuth';
+import { useMFA } from '../../../hooks/accounts/useMFA';
 import AvatarUpload from '../users/components/AvatarUpload';
-import PasswordChangeForm from './components/PasswordChangeForm';
-import ActivityTimeline from '../../dashboard/components/ActivityTimeline';
+import PasswordChangeForm from './PasswordChangeForm';
+import ActivityTimeline from './ActivityTimeline';
 import Spinner from '../../common/UI/Spinner';
 import './profile.css';
 

@@ -1,6 +1,5 @@
-// frontend/src/components/accounts/users/UserSelector.jsx
 import React, { useEffect } from 'react';
-import { useUsers } from '../../../store/accounts/hooks/useUsers';
+import { useUsers } from '../../../hooks/accounts/useUsers';
 
 const UserSelector = ({ value, onChange, placeholder = 'Select user...', disabled = false, className = '' }) => {
   const { users, isLoading, loadUsers, getFullName } = useUsers();

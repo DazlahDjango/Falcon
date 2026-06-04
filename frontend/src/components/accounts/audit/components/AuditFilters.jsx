@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/audit/components/AuditFilters.jsx
 import React, { useState, useEffect } from 'react';
 import { FiX, FiSearch, FiCalendar, FiUser, FiShield, FiMapPin } from 'react-icons/fi';
 

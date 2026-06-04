@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/admin/AdminUsers.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -6,7 +5,7 @@ import {
     FiShield, FiMail, FiPhone, FiCalendar, FiRefreshCw,
     FiFilter, FiDownload, FiUserCheck, FiUserX
 } from 'react-icons/fi';
-import { useAdmin } from '../../../store/accounts/hooks/useAdmin';
+import { useAdmin } from '../../../hooks/accounts/useAdmin';
 import { ROUTES } from '../../../config/constants';
 import ConfirmationDialog from '../../common/Feedback/ConfirmationDialog';
 import Spinner from '../../common/UI/Spinner';

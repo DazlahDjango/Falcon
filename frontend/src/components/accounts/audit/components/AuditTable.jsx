@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/audit/components/AuditTable.jsx
 import React, { useState } from 'react';
 import { formatDistanceToNow, format } from 'date-fns';
 import {

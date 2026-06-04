@@ -1,69 +1,30 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import { PlanCard } from './PlanCard';
-import { BillingCycleSelector } from '../subscription/BillingCycleSelector';
+import './plans.css';
 
-export const PlanSelector = ({ 
-    plans, 
-    onSelect, 
-    initialPlanId = null,
-    title = "Select a Plan",
-    subtitle = "Choose the plan that works best for you"
-}) => {
-    const [billingCycle, setBillingCycle] = useState('monthly');
-    const [selectedPlan, setSelectedPlan] = useState(
-        plans.find(p => p.id === initialPlanId) || null
-    );
-
-    const handleSelectPlan = (plan) => {
-        setSelectedPlan(plan);
-        onSelect(plan, billingCycle);
-    };
-
-    const handleBillingCycleChange = (cycle) => {
-        setBillingCycle(cycle);
-        if (selectedPlan) {
-            onSelect(selectedPlan, cycle);
-        }
-    };
-
-    // Filter plans (exclude trial for selector)
-    const paidPlans = plans.filter(p => p.plan_type !== 'trial');
+export const PlanSelector = ({ plans, selectedPlanId, onSelectPlan, title = "Select a Plan", subtitle = "Choose the plan that best fits your needs" }) => {
+    const sortedPlans = [...plans].sort((a, b) => a.display_order - b.display_order);
 
     return (
         <div className="plan-selector">
             <div className="plan-selector-header">
-                <h3 className="plan-selector-title">{title}</h3>
-                <p className="plan-selector-subtitle">{subtitle}</p>
+                <h3>{title}</h3>
+                <p>{subtitle}</p>
             </div>
-
-            <BillingCycleSelector 
-                value={billingCycle}
-                onChange={handleBillingCycleChange}
-            />
-
             <div className="plan-selector-grid">
-                {paidPlans.map((plan) => (
-                    <PlanCard
-                        key={plan.id}
-                        plan={plan}
-                        isSelected={selectedPlan?.id === plan.id}
-                        onSelect={handleSelectPlan}
-                        billingCycle={billingCycle}
-                        isPopular={plan.plan_type === 'professional'}
-                    />
+                {sortedPlans.map(plan => (
+                    <div key={plan.id} className={`plan-selector-item ${selectedPlanId === plan.id ? 'selected' : ''}`} onClick={() => onSelectPlan(plan.id)}>
+                        <PlanCard plan={plan} showCta={false} />
+                        <div className="plan-selector-radio">
+                            <div className={`radio-circle ${selectedPlanId === plan.id ? 'checked' : ''}`}>
+                                {selectedPlanId === plan.id && <div className="radio-dot"></div>}
+                            </div>
+                        </div>
+                    </div>
                 ))}
             </div>
         </div>
     );
-};
-
-PlanSelector.propTypes = {
-    plans: PropTypes.array.isRequired,
-    onSelect: PropTypes.func.isRequired,
-    initialPlanId: PropTypes.string,
-    title: PropTypes.string,
-    subtitle: PropTypes.string,
 };
 
 export default PlanSelector;

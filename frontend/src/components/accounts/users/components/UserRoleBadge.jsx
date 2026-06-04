@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/users/components/UserRoleBadge.jsx
 import React from 'react';
 
 const UserRoleBadge = ({ role }) => {

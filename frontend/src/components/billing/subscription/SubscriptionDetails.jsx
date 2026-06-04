@@ -1,162 +1,112 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
-import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiArrowLeft, FiRefreshCw, FiCalendar, FiDollarSign, FiUsers, FiActivity, FiCheckCircle, FiXCircle, FiClock, FiAlertCircle, FiCreditCard } from 'react-icons/fi';
+import { BillingShell } from '../common/BillingShell';
+import { BillingCard } from '../shared/BillingCard';
 import { StatusBadge } from '../shared/StatusBadge';
-import { PriceDisplay } from '../shared/PriceDisplay';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import { LoadingSkeleton } from '../shared/LoadingSkeleton';
+import { EmptyState } from '../shared/EmptyState';
+import { useSubscription } from '../../../hooks/billing/useSubscription';
+import { useBillingPermissions } from '../../../hooks/billing/useBillingPermissions';
+import { SubscriptionStatus } from './SubscriptionStatus';
+import { BillingCycleSelector } from './BillingCycleSelector';
+import { RenewSubscriptionButton } from './RenewSubscriptionButton';
 import { CancelSubscriptionModal } from './CancelSubscriptionModal';
 import { UpgradeDowngradeModal } from './UpgradeDowngradeModal';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import { TrialBanner } from './TrialBanner';
+import './subscription.css';
 
-export const SubscriptionDetails = ({ subscription, onRefresh }) => {
+export const SubscriptionDetails = () => {
+    const navigate = useNavigate();
+    const { permissions } = useBillingPermissions();
+    const { subscription, usage, loading, fetchCurrent, fetchUsage, isActive, isOnTrial, trialDaysRemaining, daysUntilExpiry, planType, autoRenew, cancelAtPeriodEnd } = useSubscription({ autoFetch: true });
+    const [refreshing, setRefreshing] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
-    const [showChangeModal, setShowChangeModal] = useState(false);
-    const [changeType, setChangeType] = useState(null);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeDirection, setUpgradeDirection] = useState('upgrade');
 
-    if (!subscription) {
-        return (
-            <div className="subscription-details-empty">
-                <p>No subscription found</p>
-                <Link to={BILLING_ROUTES.PLANS} className="subscription-details-link">Get Started</Link>
-            </div>
-        );
-    }
+    useEffect(() => { if (subscription?.id) fetchUsage(subscription.id); }, [subscription?.id, fetchUsage]);
 
-    const isActive = subscription.is_active_status?.is_active;
-    const canUpgrade = subscription.plan?.plan_type !== 'enterprise';
-    const canDowngrade = subscription.plan?.plan_type !== 'basic';
+    const handleRefresh = async () => { setRefreshing(true); await fetchCurrent(); if (subscription?.id) await fetchUsage(subscription.id); setRefreshing(false); };
 
-    const handleUpgrade = () => {
-        setChangeType('upgrade');
-        setShowChangeModal(true);
-    };
+    if (loading && !subscription) return <LoadingSkeleton type="card" count={2} />;
+    if (!subscription) return <EmptyState type="subscriptions" title="No Active Subscription" message="You don't have an active subscription. Browse our plans to get started." actionText="View Plans" onAction={() => navigate('/billing/plans')} />;
 
-    const handleDowngrade = () => {
-        setChangeType('downgrade');
-        setShowChangeModal(true);
-    };
-
-    const handleCancel = () => {
-        setShowCancelModal(true);
-    };
-
-    const handleModalClose = () => {
-        setShowCancelModal(false);
-        setShowChangeModal(false);
-        setChangeType(null);
-        onRefresh?.();
-    };
+    const canManage = permissions.canManageSubscriptions;
+    const canUpgrade = canManage && (planType === 'basic' || planType === 'professional');
+    const canDowngrade = canManage && (planType === 'professional' || planType === 'enterprise');
+    const canCancel = canManage && isActive && !cancelAtPeriodEnd;
 
     return (
-        <>
-            <div className="subscription-details">
-                <div className="subscription-details-header">
-                    <h2 className="subscription-details-title">Subscription Details</h2>
-                    <StatusBadge status={subscription.status} />
+        <BillingShell title="Subscription Details" subtitle="Manage your current subscription plan and billing settings" breadcrumb={true}>
+            <div className="subscription-detail-container">
+                <div className="subscription-detail-actions">
+                    <button className="subscription-back-btn" onClick={() => navigate('/billing/subscriptions')}><FiArrowLeft /> Back</button>
+                    <button className="subscription-refresh-btn" onClick={handleRefresh} disabled={refreshing}><FiRefreshCw className={refreshing ? 'spin' : ''} /> Refresh</button>
                 </div>
 
-                <div className="subscription-details-card">
-                    <div className="subscription-details-plan">
-                        <div className="subscription-details-plan-info">
-                            <span className="subscription-details-plan-name">{subscription.plan?.name}</span>
-                            <span className="subscription-details-plan-billing">
-                                {subscription.billing_interval} billing
-                            </span>
-                        </div>
-                        <PriceDisplay 
-                            amount={subscription.amount} 
-                            period={subscription.billing_interval}
-                            size="large"
-                        />
-                    </div>
+                {isOnTrial && <TrialBanner daysRemaining={trialDaysRemaining} onUpgrade={() => setUpgradeModal(true)} />}
 
-                    <div className="subscription-details-dates">
-                        <div className="subscription-details-date">
-                            <span className="subscription-details-date-label">Started</span>
-                            <span>{new Date(subscription.start_date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="subscription-details-date">
-                            <span className="subscription-details-date-label">Current Period</span>
-                            <span>
-                                {new Date(subscription.current_period_start).toLocaleDateString()} - 
-                                {new Date(subscription.current_period_end).toLocaleDateString()}
-                            </span>
-                        </div>
-                        {subscription.trial_end_date && (
-                            <div className="subscription-details-date">
-                                <span className="subscription-details-date-label">Trial Ends</span>
-                                <span>{new Date(subscription.trial_end_date).toLocaleDateString()}</span>
+                <div className="subscription-grid">
+                    <div className="subscription-main-card">
+                        <BillingCard title="Current Plan" icon={<FiActivity />}>
+                            <div className="plan-details">
+                                <div className="plan-header">
+                                    <h2 className="plan-name">{subscription.plan?.name}</h2>
+                                    <StatusBadge type="subscription" status={subscription.status} size="lg" />
+                                </div>
+                                <div className="plan-pricing">
+                                    <CurrencyFormatter amount={subscription.amount} currency={subscription.currency} />
+                                    <span className="plan-interval">/{subscription.billing_interval}</span>
+                                </div>
+                                <div className="plan-features-preview">
+                                    <strong>Key Features:</strong>
+                                    <ul>{subscription.plan?.features_list_display?.slice(0, 5).map((f, i) => (<li key={i}>{f}</li>))}</ul>
+                                </div>
                             </div>
-                        )}
-                        {subscription.cancel_at_period_end && (
-                            <div className="subscription-details-cancel-note">
-                                {renderBillingIcon('warning', { size: 16 })} Subscription will end on {new Date(subscription.current_period_end).toLocaleDateString()}
+                        </BillingCard>
+
+                        <BillingCard title="Billing Information" icon={<FiCalendar />}>
+                            <div className="billing-info">
+                                <div className="info-row"><span className="label">Current Period</span><span className="value">{new Date(subscription.current_period_start).toLocaleDateString()} - {new Date(subscription.current_period_end).toLocaleDateString()}</span></div>
+                                <div className="info-row"><span className="label">Days Remaining</span><span className={`value ${daysUntilExpiry <= 7 ? 'warning' : ''}`}>{daysUntilExpiry} days</span></div>
+                                <div className="info-row"><span className="label">Auto-Renewal</span><span className="value">{autoRenew ? <FiCheckCircle className="success" /> : <FiXCircle className="danger" />} {autoRenew ? 'Enabled' : 'Disabled'}</span></div>
+                                {cancelAtPeriodEnd && <div className="info-row"><span className="label">Status</span><span className="value warning">Cancels at period end</span></div>}
                             </div>
-                        )}
+                            <div className="billing-actions">
+                                {canManage && <BillingCycleSelector subscriptionId={subscription.id} currentInterval={subscription.billing_interval} onUpdate={handleRefresh} />}
+                                {autoRenew && canManage && <RenewSubscriptionButton subscriptionId={subscription.id} onSuccess={handleRefresh} />}
+                            </div>
+                        </BillingCard>
                     </div>
 
-                    <div className="subscription-details-settings">
-                        <h4>Billing Settings</h4>
-                        <div className="subscription-details-setting">
-                            <span>Auto-renewal</span>
-                            <span className={subscription.auto_renew ? 'text-success' : 'text-error'}>
-                                {subscription.auto_renew ? 'Enabled' : 'Disabled'}
-                            </span>
-                        </div>
-                    </div>
+                    <div className="subscription-sidebar">
+                        <BillingCard title="Usage Summary" icon={<FiUsers />}>
+                            <div className="usage-stats">
+                                <div className="usage-item"><span className="usage-label">Users</span><span className="usage-value">{usage?.users?.current || 0} / {usage?.users?.limit === -1 ? '∞' : usage?.users?.limit}</span><div className="usage-bar"><div className="usage-bar-fill" style={{ width: `${Math.min(usage?.users?.percentage || 0, 100)}%` }}></div></div></div>
+                                <div className="usage-item"><span className="usage-label">KPIs</span><span className="usage-value">{usage?.kpis?.current || 0} / {usage?.kpis?.limit === -1 ? '∞' : usage?.kpis?.limit}</span><div className="usage-bar"><div className="usage-bar-fill" style={{ width: `${Math.min(usage?.kpis?.percentage || 0, 100)}%` }}></div></div></div>
+                                <div className="usage-item"><span className="usage-label">API Calls</span><span className="usage-value">{usage?.api_calls?.current || 0} / {usage?.api_calls?.limit === -1 ? '∞' : usage?.api_calls?.limit}</span><div className="usage-bar"><div className="usage-bar-fill" style={{ width: `${Math.min(usage?.api_calls?.percentage || 0, 100)}%` }}></div></div></div>
+                            </div>
+                        </BillingCard>
 
-                    {isActive && (
-                        <div className="subscription-details-actions">
-                            {canUpgrade && (
-                                <button 
-                                    className="subscription-details-btn-upgrade"
-                                    onClick={handleUpgrade}
-                                >
-                                    Upgrade Plan
-                                </button>
-                            )}
-                            {canDowngrade && (
-                                <button 
-                                    className="subscription-details-btn-downgrade"
-                                    onClick={handleDowngrade}
-                                >
-                                    Downgrade Plan
-                                </button>
-                            )}
-                            {!subscription.cancel_at_period_end && (
-                                <button 
-                                    className="subscription-details-btn-cancel"
-                                    onClick={handleCancel}
-                                >
-                                    Cancel Subscription
-                                </button>
-                            )}
-                        </div>
-                    )}
+                        <BillingCard title="Quick Actions" icon={<FiCreditCard />}>
+                            <div className="quick-actions">
+                                {canUpgrade && <button className="quick-action-btn primary" onClick={() => { setUpgradeDirection('upgrade'); setShowUpgradeModal(true); }}>Upgrade Plan</button>}
+                                {canDowngrade && <button className="quick-action-btn secondary" onClick={() => { setUpgradeDirection('downgrade'); setShowUpgradeModal(true); }}>Downgrade Plan</button>}
+                                {canCancel && <button className="quick-action-btn danger" onClick={() => setShowCancelModal(true)}>Cancel Subscription</button>}
+                                <button className="quick-action-btn outline" onClick={() => navigate('/billing/invoices')}>View Invoices</button>
+                                <button className="quick-action-btn outline" onClick={() => navigate('/billing/transactions')}>View Transactions</button>
+                            </div>
+                        </BillingCard>
+                    </div>
                 </div>
+
+                {showCancelModal && <CancelSubscriptionModal subscription={subscription} onClose={() => setShowCancelModal(false)} onSuccess={handleRefresh} />}
+                {showUpgradeModal && <UpgradeDowngradeModal subscription={subscription} direction={upgradeDirection} onClose={() => setShowUpgradeModal(false)} onSuccess={handleRefresh} />}
             </div>
-
-            <CancelSubscriptionModal
-                isOpen={showCancelModal}
-                onClose={handleModalClose}
-                subscription={subscription}
-                onSuccess={handleModalClose}
-            />
-
-            <UpgradeDowngradeModal
-                isOpen={showChangeModal}
-                onClose={handleModalClose}
-                subscription={subscription}
-                changeType={changeType}
-                onSuccess={handleModalClose}
-            />
-        </>
+        </BillingShell>
     );
-};
-
-SubscriptionDetails.propTypes = {
-    subscription: PropTypes.object,
-    onRefresh: PropTypes.func,
 };
 
 export default SubscriptionDetails;

@@ -1,7 +1,6 @@
-// frontend/src/components/accounts/users/components/InviteUserModal.jsx
 import React, { useState } from 'react';
 import { FiMail, FiUser, FiSend, FiAlertCircle } from 'react-icons/fi';
-import { useUsers } from '../../../../store/accounts/hooks/useUsers';
+import { useUsers } from '../../../../hooks/accounts/useUsers';
 import Modal from '../../../common/UI/Modal';
 import Spinner from '../../../common/UI/Spinner';
 

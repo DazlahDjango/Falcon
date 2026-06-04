@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiUser, FiMail, FiPhone, FiBriefcase, FiLock, FiUsers } from 'react-icons/fi';
 import PasswordStrength from '../../../common/Forms/PasswordStrength';
-import { useUsers } from '../../../../store/accounts/hooks/useUsers';
+import { useUsers } from '../../../../hooks/accounts/useUsers';
 
 const UserForm = ({ initialData = {}, onSubmit, onCancel, isEdit = false }) => {
     const { users, getFullName } = useUsers();

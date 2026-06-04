@@ -1,30 +1,35 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { renderBillingIcon } from './BillingIcons';
+import { FiInbox, FiCreditCard, FiFileText, FiCalendar, FiDatabase, FiPlus } from 'react-icons/fi';
+import './shared.css';
 
-export const EmptyState = ({ 
-    title, 
-    message, 
-    icon = renderBillingIcon('info', { size: 32 }),
-    action = null,
-    variant = 'default'
-}) => {
-    return (
-        <div className={`empty-state empty-state-${variant}`}>
-            <div className="empty-state-icon">{icon}</div>
-            <h3 className="empty-state-title">{title}</h3>
-            <p className="empty-state-message">{message}</p>
-            {action && <div className="empty-state-action">{action}</div>}
-        </div>
-    );
+const ICON_MAP = {
+    invoices: FiFileText,
+    transactions: FiCreditCard,
+    subscriptions: FiCalendar,
+    payment_methods: FiCreditCard,
+    plans: FiDatabase,
+    default: FiInbox,
 };
 
-EmptyState.propTypes = {
-    title: PropTypes.string.isRequired,
-    message: PropTypes.string.isRequired,
-    icon: PropTypes.node,
-    action: PropTypes.node,
-    variant: PropTypes.oneOf(['default', 'compact']),
+export const EmptyState = ({ type = 'default', title, message, actionText, onAction, icon, className = '' }) => {
+    const IconComponent = icon || ICON_MAP[type] || ICON_MAP.default;
+
+    return (
+        <div className={`empty-state ${className}`}>
+            <div className="empty-state-icon">
+                <IconComponent />
+            </div>
+            <h3 className="empty-state-title">{title || `No ${type.replace('_', ' ')} found`}</h3>
+            <p className="empty-state-message">
+                {message || `You don't have any ${type.replace('_', ' ')} yet. ${actionText ? 'Get started by creating one.' : ''}`}
+            </p>
+            {actionText && onAction && (
+                <button className="empty-state-action" onClick={onAction}>
+                    <FiPlus /> {actionText}
+                </button>
+            )}
+        </div>
+    );
 };
 
 export default EmptyState;

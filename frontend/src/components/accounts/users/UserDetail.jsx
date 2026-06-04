@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/users/UserDetail.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -6,9 +5,9 @@ import {
     FiEdit, FiArrowLeft, FiActivity, FiShield, FiCheckCircle,
     FiXCircle, FiLock, FiUnlock, FiRefreshCw
 } from 'react-icons/fi';
-import { useUsers } from '../../../store/accounts/hooks/useUsers';
-import { useAuth } from '../../../store/accounts/hooks/useAuth';
-import { useTeam } from '../../../store/accounts/hooks/useTeam';
+import { useUsers } from '../../../hooks/accounts/useUsers';
+import { useAuth } from '../../../hooks/accounts/useAuth';
+import { useTeam } from '../../../hooks/accounts/useTeam';
 import UserRoleBadge from './components/UserRoleBadge';
 import UserStatusBadge from './components/UserStatusBadge';
 import Spinner from '../../common/UI/Spinner';

@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/users/components/UserCard.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiEdit, FiTrash2, FiMoreVertical, FiShield, FiLock, FiCheckCircle } from 'react-icons/fi';

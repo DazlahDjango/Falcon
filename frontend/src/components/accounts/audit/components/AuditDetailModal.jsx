@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/audit/components/AuditDetailModal.jsx
 import React from 'react';
 import { format } from 'date-fns';
 import {

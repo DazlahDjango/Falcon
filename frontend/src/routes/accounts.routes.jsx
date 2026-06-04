@@ -8,7 +8,7 @@ const UserDetail = React.lazy(() => import('../components/accounts/users/UserDet
 const UserCreate = React.lazy(() => import('../components/accounts/users/UserCreate'));
 const UserEdit = React.lazy(() => import('../components/accounts/users/UserEdit'));
 const UserProfile = React.lazy(() => import('../components/accounts/users/UserProfile'));
-const TeamView = React.lazy(() => import('../components/accounts/team/TeamView'));
+// const TeamView = React.lazy(() => import('../components/accounts/team/TeamView'));
 const RoleList = React.lazy(() => import('../components/accounts/roles/RoleList'));
 const RoleDetail = React.lazy(() => import('../components/accounts/roles/RoleDetail'));
 const RoleCreate = React.lazy(() => import('../components/accounts/roles/RoleCreate'));
@@ -19,6 +19,15 @@ const AuditLogs = React.lazy(() => import('../components/accounts/audit/AuditLog
 const Security = React.lazy(() => import('../components/accounts/security/SecurityConsole'));
 const PersonalSecurity = React.lazy(() => import('../components/accounts/settings/SecuritySettings'));
 const Notifications = React.lazy(() => import('../components/accounts/settings/NotificationSettings'));
+
+// ============ Profile Components ============
+const ProfileView = React.lazy(() => import('../components/accounts/profile/ProfileView'));
+
+// ============ Invitation Components ============
+const InvitationTracker = React.lazy(() => import('../components/accounts/users/components/InvitationTracker'));
+
+// ============ Report Components ============
+const ReportGenerator = React.lazy(() => import('../components/accounts/ReportGenerator'));
 
 // ============ MFA Components ============
 // User MFA Components
@@ -43,7 +52,7 @@ const AdminMfaDeviceClearView = React.lazy(() => import('../components/accounts/
 const AdminMFAStatusView = React.lazy(() => import('../components/accounts/mfa-admin/AdminMFAStatus'));
 const StepUpVerifyView = React.lazy(() => import('../components/accounts/mfa-admin/StepUpVerifyView'));
 
-// Admin components (if implemented)
+// Admin components
 const Dashboard = React.lazy(() => import('../components/accounts/dashboard/Dashboard'));
 const AdminDashboard = React.lazy(() => import('../components/accounts/admin/AdminDashboard'));
 const SuperAdminDashboardCustom = React.lazy(() => import('../pages/dashboard/SuperAdminDashboard/SuperAdminDashboardCustom'));
@@ -62,8 +71,13 @@ const accountsRoutes = [
     { path: ROUTES.USER_EDIT, element: <UserEdit /> },
     { path: ROUTES.USER_PROFILE, element: <UserProfile /> },
 
+    // ============ Profile ============
+    { path: '/profile', element: <ProfileView /> },
+    { path: '/settings/profile', element: <ProfileView /> },
+    { path: '/me', element: <ProfileView /> },
+
     // ============ Team ============
-    { path: ROUTES.TEAM, element: <TeamView /> },
+    // { path: ROUTES.TEAM, element: <TeamView /> },
 
     // ============ Roles & Permissions ============
     { path: ROUTES.ROLES, element: <RoleList /> },
@@ -79,6 +93,17 @@ const accountsRoutes = [
     { path: ROUTES.SECURITY, element: <Security /> },
     { path: '/settings/security', element: <PersonalSecurity /> },
     { path: ROUTES.NOTIFICATIONS, element: <Notifications /> },
+
+    // ============ Invitation Routes ============
+    { path: '/invitations', element: <InvitationTracker /> },
+    { path: '/invitations/tracker', element: <InvitationTracker /> },
+    { path: '/admin/invitations', element: <InvitationTracker /> },
+
+    // ============ Report Routes ============
+    { path: '/reports', element: <ReportGenerator /> },
+    { path: '/reports/generate', element: <ReportGenerator /> },
+    { path: '/admin/reports', element: <ReportGenerator /> },
+    { path: '/security/reports', element: <ReportGenerator /> },
 
     // ============ MFA Routes ============
     // Main MFA Dashboard
@@ -105,20 +130,21 @@ const accountsRoutes = [
     { path: '/security/mfa-activity', element: <MFAActivityLog /> },
     { path: '/mfa/activity', element: <MFAActivityLog /> },
 
-    // MFA Status Badge (embedded component, no direct route)
-
     // ============ System Settings ============
     { path: '/admin/system/settings', element: <SystemSettings /> },
     { path: '/system-settings', element: <SystemSettings /> },
+    { path: '/settings/system', element: <SystemSettings /> },
 
     // ============ MFA Policy Routes (Admin) ============
     // Tenant Policy
     { path: '/security/mfa/policy', element: <TenantMFAPolicy /> },
     { path: '/admin/mfa/policy', element: <TenantMFAPolicy /> },
+    { path: '/settings/mfa/policy', element: <TenantMFAPolicy /> },
 
     // User Policy Management
     { path: '/security/mfa/users', element: <UserMFAPolicy /> },
     { path: '/admin/mfa/users', element: <UserMFAPolicy /> },
+    { path: '/settings/mfa/users', element: <UserMFAPolicy /> },
     { path: '/security/mfa/users/:userId/status', element: <UserMFAStatus /> },
     { path: '/admin/mfa/users/:userId/status', element: <UserMFAStatus /> },
 
@@ -126,6 +152,7 @@ const accountsRoutes = [
     // Admin MFA Reset
     { path: '/admin/mfa/reset', element: <AdminMfaResetView /> },
     { path: '/admin/mfa/users', element: <AdminMfaResetView /> },
+    { path: '/security/admin/mfa', element: <AdminMfaResetView /> },
 
     // Admin Device Management
     { path: '/admin/mfa/devices/:userId', element: <AdminMfaDeviceClearView /> },
@@ -133,12 +160,13 @@ const accountsRoutes = [
 
     // Admin MFA Status
     { path: '/admin/mfa/status/:userId', element: <AdminMFAStatusView /> },
+    { path: '/security/admin/mfa/status/:userId', element: <AdminMFAStatusView /> },
 
-    // Step-Up Authentication (modal component, may not need direct route)
-    // Step-up is triggered programmatically, not via direct route
-
-    // ============ Audit ============
+    // ============ Audit Routes ============
     { path: ROUTES.AUDIT, element: <AuditLogs /> },
+    { path: '/audit/logs', element: <AuditLogs /> },
+    { path: '/security/audit', element: <AuditLogs /> },
+    { path: '/admin/audit', element: <AuditLogs /> },
 
     // ============ Admin Routes ============
     { path: ROUTES.ADMIN, element: <AdminDashboard /> },
@@ -148,6 +176,10 @@ const accountsRoutes = [
     { path: ROUTES.ADMIN_USER_EDIT, element: <UserEdit /> },
     { path: ROUTES.ADMIN_TENANTS, element: <AdminTenants /> },
     { path: ROUTES.ADMIN_SYSTEM, element: <AdminSystem /> },
+
+    // Additional Admin Routes
+    { path: '/admin/dashboard', element: <AdminDashboard /> },
+    { path: '/admin/overview', element: <AdminDashboard /> },
 ];
 
 export default accountsRoutes;

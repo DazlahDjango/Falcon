@@ -1,4 +1,3 @@
-// frontend/src/components/accounts/users/InvitationTracker.jsx
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
@@ -6,10 +5,10 @@ import {
     FiRefreshCw, FiFilter, FiSearch, FiSend,
     FiTrash2, FiRepeat
 } from 'react-icons/fi';
-import { useUsers } from '../../../store/accounts/hooks/useUsers';
-import { showAlert } from '../../../store/accounts/slice/uiSlice';
-import Spinner from '../../common/UI/Spinner';
-import ConfirmationDialog from '../../common/Feedback/ConfirmationDialog';
+import { useUsers } from '../../../../hooks/accounts/useUsers';
+import { showAlert } from '../../../../store/accounts/slice/uiSlice';
+import Spinner from '../../../common/UI/Spinner';
+import ConfirmationDialog from '../../../common/Feedback/ConfirmationDialog';
 
 const InvitationTracker = () => {
     const dispatch = useDispatch();

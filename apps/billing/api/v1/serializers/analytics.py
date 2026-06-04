@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.utils.translation import gettext_lazy as _
 
 class BillingSummarySerializer(serializers.Serializer):
     tenant_id = serializers.UUIDField()
@@ -12,18 +11,8 @@ class BillingSummarySerializer(serializers.Serializer):
     invoice_summary = serializers.DictField()
     total_spent = serializers.IntegerField()
     total_spent_display = serializers.CharField()
-    
-    def get_total_spent_display(self, obj):
-        if isinstance(obj, dict):
-            currency = obj.get('billing_info', {}).get('currency', 'KES')
-            amount = obj.get('total_spent', 0)
-            return f"{currency} {amount / 100:.2f}"
-        return None
-
 
 class RevenueReportSerializer(serializers.Serializer):
-    """Serializer for revenue reports."""
-    
     period = serializers.CharField()
     start_date = serializers.DateField()
     end_date = serializers.DateField()
@@ -34,18 +23,8 @@ class RevenueReportSerializer(serializers.Serializer):
     failed_transactions = serializers.IntegerField()
     success_rate = serializers.FloatField()
     breakdown = serializers.ListField()
-    
-    def get_total_revenue_display(self, obj):
-        if isinstance(obj, dict):
-            currency = obj.get('currency', 'KES')
-            amount = obj.get('total_revenue', 0)
-            return f"{currency} {amount / 100:.2f}"
-        return None
-
 
 class SubscriptionAnalyticsSerializer(serializers.Serializer):
-    """Serializer for subscription analytics."""
-    
     total_active = serializers.IntegerField()
     total_trialing = serializers.IntegerField()
     total_expired = serializers.IntegerField()
@@ -59,24 +38,3 @@ class SubscriptionAnalyticsSerializer(serializers.Serializer):
     total_mrr = serializers.IntegerField()
     total_mrr_display = serializers.CharField()
     recent_activity = serializers.ListField()
-    
-    def get_monthly_recurring_revenue_display(self, obj):
-        if isinstance(obj, dict):
-            currency = obj.get('currency', 'KES')
-            amount = obj.get('monthly_recurring_revenue', 0)
-            return f"{currency} {amount / 100:.2f}"
-        return None
-    
-    def get_yearly_recurring_revenue_display(self, obj):
-        if isinstance(obj, dict):
-            currency = obj.get('currency', 'KES')
-            amount = obj.get('yearly_recurring_revenue', 0)
-            return f"{currency} {amount / 100:.2f}"
-        return None
-    
-    def get_total_mrr_display(self, obj):
-        if isinstance(obj, dict):
-            currency = obj.get('currency', 'KES')
-            amount = obj.get('total_mrr', 0)
-            return f"{currency} {amount / 100:.2f}"
-        return None

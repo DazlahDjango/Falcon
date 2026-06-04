@@ -1,53 +1,31 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import { FiTrendingDown, FiTrendingUp, FiAlertTriangle } from 'react-icons/fi';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './analytics.css';
 
-export const ChurnRate = ({ churnRate, newCustomers, lostCustomers, loading }) => {
-    if (loading) {
-        return <div className="churn-rate-skeleton">Loading...</div>;
-    }
+export const ChurnRate = ({ churnRate = 0, previousChurn = 0, revenueChurn = 0, loading = false }) => {
+    const change = previousChurn ? churnRate - previousChurn : 0;
+    const isImproving = change < 0;
+    const isHighRisk = churnRate > 10;
 
-    const getChurnLevel = () => {
-        if (churnRate <= 2) return 'good';
-        if (churnRate <= 5) return 'warning';
-        return 'critical';
-    };
-
-    const level = getChurnLevel();
+    if (loading) return <div className="churn-skeleton"><div className="skeleton skeleton-title"></div><div className="skeleton skeleton-line"></div></div>;
 
     return (
-        <div className="churn-rate">
-            <div className="churn-rate-header">
-                <span className="churn-rate-title">Churn Rate</span>
-                <span className="churn-rate-icon">{renderBillingIcon('analytics', { size: 22 })}</span>
+        <div className="churn-card">
+            <div className="churn-header">
+                <div className="churn-title">Customer Churn Rate</div>
+                {isHighRisk && <div className="churn-warning"><FiAlertTriangle /> High Churn Risk</div>}
             </div>
-            <div className={`churn-rate-value churn-rate-${level}`}>
-                {churnRate}%
+            <div className="churn-value">{churnRate.toFixed(1)}%<span className={`churn-change ${isImproving ? 'improving' : 'worsening'}`}>{isImproving ? <FiTrendingDown /> : <FiTrendingUp />} {Math.abs(change).toFixed(1)}% vs last month</span></div>
+            <div className="churn-details">
+                <div className="detail"><span>Revenue Churn</span><span>{revenueChurn.toFixed(1)}%</span></div>
+                <div className="detail"><span>Industry Avg</span><span>5-7%</span></div>
+                <div className="detail"><span>Target</span><span>&lt;5%</span></div>
             </div>
-            <div className="churn-rate-stats">
-                <div className="churn-stat">
-                    <span className="churn-stat-label">New This Month</span>
-                    <span className="churn-stat-value positive">+{newCustomers || 0}</span>
-                </div>
-                <div className="churn-stat">
-                    <span className="churn-stat-label">Lost This Month</span>
-                    <span className="churn-stat-value negative">-{lostCustomers || 0}</span>
-                </div>
-            </div>
-            <div className="churn-rate-footer">
-                {level === 'good' && <span>{renderBillingIcon('success', { size: 16 })} Healthy retention rate</span>}
-                {level === 'warning' && <span>{renderBillingIcon('warning', { size: 16 })} Monitor churn closely</span>}
-                {level === 'critical' && <span>{renderBillingIcon('failed', { size: 16 })} High churn rate - action needed</span>}
-            </div>
+            <div className="churn-progress"><div className="progress-bar" style={{ width: `${Math.min(churnRate * 10, 100)}%`, background: isHighRisk ? '#dc2626' : isImproving ? '#22c55e' : '#f59e0b' }}></div></div>
+            <div className="churn-note">{isHighRisk ? 'High churn rate detected. Consider retention campaigns.' : churnRate > 5 ? 'Churn rate above target. Monitor closely.' : 'Healthy churn rate. Good retention.'}</div>
         </div>
     );
-};
-
-ChurnRate.propTypes = {
-    churnRate: PropTypes.number.isRequired,
-    newCustomers: PropTypes.number,
-    lostCustomers: PropTypes.number,
-    loading: PropTypes.bool,
 };
 
 export default ChurnRate;

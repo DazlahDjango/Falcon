@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiLock, FiEye, FiEyeOff, FiCheckCircle, FiXCircle } from 'react-icons/fi';
-import { useProfile } from '../../../../store/accounts/hooks/useProfile';
-import Spinner from '../../../common/UI/Spinner';
+import { useProfile } from '../../../hooks/accounts/useProfile';
+import Spinner from '../../common/UI/Spinner';
 
 const PasswordChangeForm = ({ onClose }) => {
     const { changeUserPassword, isLoading } = useProfile();

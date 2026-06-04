@@ -1,9 +1,8 @@
-// frontend/src/components/accounts/users/UserList.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiSearch, FiFilter, FiDownload, FiRefreshCw, FiUpload } from 'react-icons/fi';
-import { useUsers } from '../../../store/accounts/hooks/useUsers';
-import { useAuth } from '../../../store/accounts/hooks/useAuth';
+import { useUsers } from '../../../hooks/accounts/useUsers';
+import { useAuth } from '../../../hooks/accounts/useAuth';
 import UserCard from './components/UserCard';
 import UserFilters from './components/UserFilters';
 import InviteUserModal from './components/InviteUserModal';

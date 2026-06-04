@@ -1,11 +1,10 @@
-// frontend/src/components/accounts/admin/AdminSystem.jsx
 import React, { useState, useEffect } from 'react';
 import {
     FiServer, FiActivity, FiDatabase, FiRefreshCw,
     FiCheckCircle, FiXCircle, FiAlertCircle, FiClock,
     FiBarChart2, FiUsers, FiShield, FiTrash2
 } from 'react-icons/fi';
-import { useAdmin } from '../../../store/accounts/hooks/useAdmin';
+import { useAdmin } from '../../../hooks/accounts/useAdmin';
 import Spinner from '../../common/UI/Spinner';
 import ConfirmationDialog from '../../common/Feedback/ConfirmationDialog';
 

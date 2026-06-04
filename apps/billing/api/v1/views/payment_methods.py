@@ -1,176 +1,60 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from apps.accounts.api.v1.permissions import IsAuthenticated
 from ....models import PaymentMethod
-from ....services.audit.logger import audit_logger
-from ..serializers import (
-    PaymentMethodSerializer,
-    PaymentMethodListSerializer,
-    PaymentMethodCreateSerializer,
-    PaymentMethodDeleteSerializer,
-)
-from ..permissions import CanManagePaymentMethods, IsSameTenant
-from ..throttles import PaymentMethodThrottle
-
+from ..serializers import PaymentMethodSerializer, PaymentMethodListSerializer, PaymentMethodCreateSerializer, PaymentMethodDeleteSerializer
+from ....services.decorators import tenant_isolation
+from ..permissions import IsClientAdmin, IsAuthenticated
 
 class PaymentMethodViewSet(viewsets.ModelViewSet):
-    """
-    Payment Method ViewSet for saved payment methods.
+    queryset = PaymentMethod.objects.filter(is_deleted=False)
+    serializer_class = PaymentMethodSerializer
+    permission_classes = [IsAuthenticated]
     
-    Actions:
-    - list: List tenant payment methods
-    - retrieve: Get payment method details
-    - create: Add new payment method
-    - destroy: Remove payment method
-    - set_default: Set as default payment method
-    """
-    
-    permission_classes = [IsAuthenticated, CanManagePaymentMethods]
-    throttle_classes = []
-    
-    def get_throttles(self):
-        """Set throttles based on action."""
+    def get_permissions(self):
         if self.action in ['create', 'destroy', 'set_default']:
-            from ..throttles import PaymentMethodThrottle
-            return [PaymentMethodThrottle()]
-        from ..throttles import TieredBillingThrottle
-        return [TieredBillingThrottle()]
-    
-    def get_queryset(self):
-        """Filter payment methods by tenant."""
-        tenant_id = self.request.tenant_id
-        
-        queryset = PaymentMethod.objects.for_tenant(tenant_id)
-        
-        # Filter by status
-        status_filter = self.request.query_params.get('status')
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-        
-        # Filter by type
-        payment_type = self.request.query_params.get('payment_type')
-        if payment_type:
-            queryset = queryset.filter(payment_type=payment_type)
-        
-        # Active only
-        active_only = self.request.query_params.get('active_only', 'true').lower() == 'true'
-        if active_only:
-            queryset = queryset.filter(status__in=['active', 'default'])
-        
-        return queryset.order_by('-is_default', '-created_at')
+            self.permission_classes = [IsClientAdmin]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
     
     def get_serializer_class(self):
-        """Return appropriate serializer based on action."""
         if self.action == 'list':
             return PaymentMethodListSerializer
-        elif self.action == 'create':
+        if self.action == 'create':
             return PaymentMethodCreateSerializer
-        elif self.action == 'destroy':
+        if self.action == 'destroy':
             return PaymentMethodDeleteSerializer
         return PaymentMethodSerializer
     
-    def create(self, request, *args, **kwargs):
-        """Add a new payment method."""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        tenant_id = request.tenant_id
-        data = serializer.validated_data
-        
-        # Create payment method from PayStack authorization
-        payment_method = PaymentMethod.objects.create(
-            tenant_id=tenant_id,
-            authorization_code=data['authorization_code'],
-            email=data['email'],
-            status='active'
-        )
-        
-        # If this is the first payment method, make it default
-        if PaymentMethod.objects.for_tenant(tenant_id).active().count() == 1:
-            payment_method.set_as_default()
-        
-        # Log audit
-        audit_logger.log(
-            user=request.user,
-            tenant_id=tenant_id,
-            action='create',
-            resource_type='payment_method',
-            resource_id=payment_method.id,
-            metadata={'payment_type': payment_method.payment_type},
-            request=request
-        )
-        
-        return Response(
-            PaymentMethodSerializer(payment_method, context={'request': request}).data,
-            status=status.HTTP_201_CREATED
-        )
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.role == 'super_admin':
+            return super().get_queryset()
+        tenant_id = self.request.tenant_id if hasattr(self.request, 'tenant_id') else user.tenant_id
+        return super().get_queryset().filter(tenant_id=tenant_id, status__in=['active', 'default'])
     
-    @action(detail=True, methods=['post'])
-    def set_default(self, request, pk=None):
-        """Set this payment method as default."""
-        payment_method = self.get_object()
-        
-        # Check tenant access
-        if str(payment_method.tenant_id) != str(request.tenant_id):
-            return Response(
-                {'error': 'You do not have access to this payment method'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        payment_method.set_as_default()
-        
-        # Log audit
-        audit_logger.log(
-            user=request.user,
-            tenant_id=request.tenant_id,
-            action='update',
-            resource_type='payment_method',
-            resource_id=payment_method.id,
-            after={'is_default': True},
-            request=request
-        )
-        
-        return Response({
-            'status': 'default_set',
-            'payment_method_id': str(payment_method.id),
-            'message': 'Default payment method updated'
-        })
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'tenant_id': request.tenant_id if hasattr(request, 'tenant_id') else request.user.tenant_id})
+        serializer.is_valid(raise_exception=True)
+        tenant_id = request.tenant_id if hasattr(request, 'tenant_id') else request.user.tenant_id
+        payment_method = PaymentMethod.objects.create(tenant_id=tenant_id, authorization_code=serializer.validated_data['authorization_code'], email=serializer.validated_data['email'], payment_type='card')
+        if not PaymentMethod.objects.filter(tenant_id=tenant_id, is_default=True).exists():
+            payment_method.set_as_default()
+        return Response(PaymentMethodSerializer(payment_method).data, status=status.HTTP_201_CREATED)
     
     def destroy(self, request, *args, **kwargs):
-        """Delete a payment method."""
         payment_method = self.get_object()
-        
-        serializer = PaymentMethodDeleteSerializer(
-            data=request.data,
-            context={
-                'payment_method': payment_method,
-                'tenant_id': request.tenant_id
-            }
-        )
+        serializer = PaymentMethodDeleteSerializer(data=request.data, context={'payment_method': payment_method, 'tenant_id': request.tenant_id if hasattr(request, 'tenant_id') else request.user.tenant_id})
         serializer.is_valid(raise_exception=True)
-        
-        # Log audit before deletion
-        audit_logger.log(
-            user=request.user,
-            tenant_id=request.tenant_id,
-            action='delete',
-            resource_type='payment_method',
-            resource_id=payment_method.id,
-            before={'card_last4': payment_method.card_last4, 'is_default': payment_method.is_default},
-            request=request
-        )
-        
-        # Remove or mark as deleted
+        is_last = serializer.validated_data.get('is_last_method', False)
+        if is_last:
+            return Response({'warning': 'This is your last payment method. Add a new one before deleting.'}, status=status.HTTP_400_BAD_REQUEST)
         payment_method.remove()
-        
-        # If this was default and there are other methods, set new default
-        if payment_method.is_default:
-            other_method = PaymentMethod.objects.for_tenant(request.tenant_id).active().first()
-            if other_method:
-                other_method.set_as_default()
-        
-        return Response(
-            {'status': 'deleted', 'message': 'Payment method removed'},
-            status=status.HTTP_200_OK
-        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @action(detail=True, methods=['post'], url_path='set-default')
+    def set_default(self, request, pk=None):
+        payment_method = self.get_object()
+        payment_method.set_as_default()
+        return Response(PaymentMethodSerializer(payment_method).data)

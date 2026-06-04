@@ -1,102 +1,72 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { FiTrash2, FiStar, FiCreditCard, FiBank, FiSmartphone, FiCalendar } from 'react-icons/fi';
+import { FaCcVisa, FaCcMastercard, FaCcAmex, FaCcDiscover } from 'react-icons/fa';
+import { StatusBadge } from '../shared/StatusBadge';
+import { CardBrandIcon } from '../shared/CardBrandIcon';
 import { DefaultPaymentMethodBadge } from './DefaultPaymentMethodBadge';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import './payment-methods.css';
 
-export const PaymentMethodCard = ({ 
-    method, 
-    isDefault, 
-    onSetDefault, 
-    onDelete,
-    deleting = false,
-    settingDefault = false 
-}) => {
-    const getCardIcon = () => renderBillingIcon('card', { size: 18 });
-
-    const getCardColor = () => {
-        const colors = {
-            visa: '#1A1F71',
-            mastercard: '#EB001B',
-            'american express': '#2E77BC',
-            discover: '#FF6000',
-        };
-        return colors[method.card_brand?.toLowerCase()] || '#6B7280';
+export const PaymentMethodCard = ({ method, isDefault, onSetDefault, onDelete, canManage = true }) => {
+    const getMethodIcon = () => {
+        if (method.payment_type === 'card') return <CardBrandIcon brand={method.card_brand} size={32} />;
+        if (method.payment_type === 'bank') return <FiBank className="method-icon-bank" />;
+        if (method.payment_type === 'mobile_money') return <FiSmartphone className="method-icon-mobile" />;
+        return <FiCreditCard className="method-icon-default" />;
     };
 
-    const isExpired = () => {
-        if (!method.card_expiry_year || !method.card_expiry_month) return false;
-        const expiryDate = new Date(
-            parseInt(method.card_expiry_year),
-            parseInt(method.card_expiry_month) - 1,
-            1
+    const getMethodDetails = () => {
+        if (method.payment_type === 'card') {
+            return (
+                <>
+                    <div className="method-detail"><span className="detail-label">Card Number</span><span className="detail-value">•••• {method.card_last4}</span></div>
+                    <div className="method-detail"><span className="detail-label">Expires</span><span className="detail-value">{method.card_expiry_month}/{method.card_expiry_year}</span></div>
+                    {method.card_brand && <div className="method-detail"><span className="detail-label">Brand</span><span className="detail-value capitalize">{method.card_brand}</span></div>}
+                </>
+            );
+        }
+        if (method.payment_type === 'bank') {
+            return (
+                <>
+                    <div className="method-detail"><span className="detail-label">Bank Name</span><span className="detail-value">{method.bank_name || 'N/A'}</span></div>
+                    <div className="method-detail"><span className="detail-label">Account Name</span><span className="detail-value">{method.account_name || 'N/A'}</span></div>
+                </>
+            );
+        }
+        return (
+            <>
+                <div className="method-detail"><span className="detail-label">Provider</span><span className="detail-value">{method.provider || 'Mobile Money'}</span></div>
+                <div className="method-detail"><span className="detail-label">Account</span><span className="detail-value">{method.account_name || method.email}</span></div>
+            </>
         );
-        return expiryDate < new Date();
     };
 
-    const formatExpiry = () => {
-        if (!method.card_expiry_month || !method.card_expiry_year) return '';
-        return `${method.card_expiry_month}/${method.card_expiry_year.slice(-2)}`;
-    };
-
-    const getMaskedNumber = () => {
-        if (!method.card_last4) return '•••• •••• •••• ••••';
-        return `•••• •••• •••• ${method.card_last4}`;
-    };
+    const isExpired = method.is_expired_status?.is_expired;
 
     return (
-        <div className={`payment-method-card ${isDefault ? 'payment-method-card-default' : ''}`}>
-            <div className="payment-method-card-left">
-                <div 
-                    className="payment-method-card-icon"
-                    style={{ backgroundColor: getCardColor() }}
-                >
-                    <span>{getCardIcon()}</span>
-                </div>
-                <div className="payment-method-card-info">
-                    <div className="payment-method-card-brand">
-                        {method.card_brand || 'Card'}
-                        {isDefault && <DefaultPaymentMethodBadge />}
-                        {isExpired() && (
-                            <span className="payment-method-expired-badge">Expired</span>
-                        )}
-                    </div>
-                    <div className="payment-method-card-number">
-                        {getMaskedNumber()}
-                    </div>
-                    <div className="payment-method-card-expiry">
-                        Expires {formatExpiry()}
-                    </div>
+        <div className={`payment-method-card ${isExpired ? 'expired' : ''} ${isDefault ? 'default' : ''}`}>
+            <div className="method-card-header">
+                <div className="method-icon">{getMethodIcon()}</div>
+                <div className="method-badges">
+                    {isDefault && <DefaultPaymentMethodBadge />}
+                    {isExpired && <StatusBadge type="payment_method" status="expired" size="sm" />}
+                    {method.status === 'active' && !isDefault && !isExpired && <StatusBadge type="payment_method" status="active" size="sm" />}
                 </div>
             </div>
-            <div className="payment-method-card-actions">
-                {!isDefault && !isExpired() && (
-                    <button
-                        className="payment-method-set-default-btn"
-                        onClick={onSetDefault}
-                        disabled={settingDefault}
-                    >
-                        {settingDefault ? '...' : 'Set as Default'}
-                    </button>
-                )}
-                <button
-                    className="payment-method-delete-btn"
-                    onClick={onDelete}
-                    disabled={deleting}
-                >
-                    {deleting ? '...' : 'Remove'}
-                </button>
+
+            <div className="method-card-body">
+                <div className="method-display-name">{method.display_name || `${method.payment_type} ending in ${method.card_last4 || '****'}`}</div>
+                <div className="method-details">{getMethodDetails()}</div>
+                {method.email && <div className="method-email"><span className="detail-label">Email</span><span className="detail-value">{method.email}</span></div>}
             </div>
+
+            {canManage && (
+                <div className="method-card-footer">
+                    {!isDefault && !isExpired && <button className="method-action set-default" onClick={onSetDefault}><FiStar /> Set as Default</button>}
+                    <button className="method-action delete" onClick={onDelete}><FiTrash2 /> Remove</button>
+                </div>
+            )}
         </div>
     );
-};
-
-PaymentMethodCard.propTypes = {
-    method: PropTypes.object.isRequired,
-    isDefault: PropTypes.bool,
-    onSetDefault: PropTypes.func,
-    onDelete: PropTypes.func,
-    deleting: PropTypes.bool,
-    settingDefault: PropTypes.bool,
 };
 
 export default PaymentMethodCard;

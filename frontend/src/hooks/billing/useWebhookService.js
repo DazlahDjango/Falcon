@@ -1,34 +1,23 @@
 import { useCallback } from 'react';
-import { WebhookService } from '../../services/billing';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchWebhookLogs, retryWebhook, setSelectedLog, clearError } from '../../store/billing/slices/webhookSlice';
+import { selectWebhookLogs, selectSelectedWebhookLog, selectWebhookPagination, selectWebhookLoading, selectWebhookError, selectWebhookStats } from '../../store/billing/selectors';
 
-export const useWebhookService = () => {
-    const getWebhookLogs = useCallback(async (params = {}) => {
-        return WebhookService.getWebhookLogs(params);
-    }, []);
+export const useWebhookService = (options = { autoFetch: false }) => {
+    const dispatch = useDispatch();
+    const logs = useSelector(selectWebhookLogs);
+    const selectedLog = useSelector(selectSelectedWebhookLog);
+    const pagination = useSelector(selectWebhookPagination);
+    const loading = useSelector(selectWebhookLoading);
+    const error = useSelector(selectWebhookError);
+    const stats = useSelector(selectWebhookStats);
 
-    const getWebhookStats = useCallback(async () => {
-        return WebhookService.getWebhookStats();
-    }, []);
+    const fetchLogs = useCallback((params) => dispatch(fetchWebhookLogs(params)), [dispatch]);
+    const retry = useCallback((id) => dispatch(retryWebhook(id)), [dispatch]);
+    const selectLog = useCallback((log) => dispatch(setSelectedLog(log)), [dispatch]);
+    const clearWebhookError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    const retryWebhook = useCallback(async (id) => {
-        return WebhookService.retryWebhook(id);
-    }, []);
-
-    const getRecentFailedWebhooks = useCallback(async (limit = 20) => {
-        return WebhookService.getRecentFailedWebhooks(limit);
-    }, []);
-
-    const getWebhookByEventId = useCallback(async (eventId) => {
-        return WebhookService.getWebhookByEventId(eventId);
-    }, []);
-
-    return {
-        getWebhookLogs,
-        getWebhookStats,
-        retryWebhook,
-        getRecentFailedWebhooks,
-        getWebhookByEventId,
-    };
+    return { logs, selectedLog, pagination, loading, error, stats, fetchLogs, retry, selectLog, clearWebhookError };
 };
 
 export default useWebhookService;
