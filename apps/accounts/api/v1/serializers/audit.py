@@ -19,7 +19,7 @@ class AuditLogListSerializer(DynamicFieldsModelSerializer):
         read_only_fields = ['id', 'timestamp', 'created_at']
 
     def get_severity_display(self, obj):
-        return dict(AuditSeverity.CHOICES).get(obj.severity. obj.severity)
+        return dict(AuditSeverity.CHOICES).get(obj.severity, obj.severity)
     def get_action_type_display(self, obj):
         return dict(AuditActionTypes.CHOICES).get(obj.action_type, obj.action_type)
     

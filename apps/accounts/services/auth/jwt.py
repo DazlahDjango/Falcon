@@ -20,12 +20,15 @@ class JWTServices:
         refresh['email'] = user.email
         refresh['role'] = user.role
         refresh['tenant_id'] = str(user.tenant_id)
+        
         access = refresh.access_token
         access['email'] = user.email
         access['role'] = user.role
         access['tenant_id'] = str(user.tenant_id)
+        
         access_jti = access.get('jti')
         refresh_jti = refresh.get('jti')
+        
         tokens = {
             'access': str(access),
             'refresh': str(refresh),
@@ -35,8 +38,10 @@ class JWTServices:
             'jti': str(access_jti) if access_jti else None,
             'refresh_jti': str(refresh_jti) if refresh_jti else None,
         }
+        
         if refresh_token_jti:
             self.blacklist_token_by_jti(refresh_token_jti, user, reason='refreshed')
+        
         return tokens
     
     def create_mfa_token(self, user: User) -> str:
@@ -49,27 +54,58 @@ class JWTServices:
         return str(refresh)
     
     def verify_token(self, token: str, token_type: str = 'access') -> Optional[Dict]:
+        """Verify and decode JWT token - FIXED for KeyError: 0 issue"""
+        if not token:
+            logger.debug("Empty token provided")
+            return None
+        
         try:
             if token_type == 'access':
                 access = AccessToken(token)
-                if self.is_blacklisted(access.get('jti')):
+                jti = access.get('jti')
+                
+                if jti and self.is_blacklisted(jti):
+                    logger.debug(f"Token {jti} is blacklisted")
                     return None
+                
+                # Convert to dict safely
                 return dict(access)
-            else:
+            
+            else:  # refresh token
                 refresh = RefreshToken(token)
-                if self.is_blacklisted(refresh.get('jti')):
+                jti = refresh.get('jti')
+                
+                if jti and self.is_blacklisted(jti):
+                    logger.debug(f"Refresh token {jti} is blacklisted")
                     return None
+                
                 if refresh.get('mfa_pending'):
                     return dict(refresh)
+                
                 return dict(refresh)
+                
         except TokenError as e:
             logger.debug(f"Token verification failed: {str(e)}")
             return None
-        except Exception as e:
-            import traceback
-            logger.error(f"Token verification error: {str(e)}\n{traceback.format_exc()}")
+        except KeyError as e:
+            # This catches the KeyError: 0 issue
+            logger.error(f"Token missing expected key: {str(e)}")
             return None
-        
+        except Exception as e:
+            logger.error(f"Token verification error: {str(e)}", exc_info=True)
+            return None
+    
+    def get_token_payload_safe(self, token: str) -> Optional[Dict]:
+        """Safely extract payload without verification (for debugging)"""
+        try:
+            import jwt
+            # Try to decode without verification
+            payload = jwt.decode(token, options={"verify_signature": False})
+            return payload
+        except Exception as e:
+            logger.error(f"Failed to decode token payload: {str(e)}")
+            return None
+    
     def blacklist_token(self, token: str, user: User = None, reason: str = 'logout') -> bool:
         try:
             refresh = RefreshToken(token)
@@ -88,7 +124,7 @@ class JWTServices:
         except Exception as e:
             logger.error(f"Token blacklist error: {str(e)}")
             return False
-        
+    
     def blacklist_token_by_jti(self, jti: str, user: User = None, reason: str = 'revoked') -> bool:
         try:
             expires_at = timezone.now() + timedelta(days=7)
@@ -104,7 +140,7 @@ class JWTServices:
         except Exception as e:
             logger.error(f"Token blacklist by jti error: {str(e)}")
             return False
-        
+    
     def is_blacklisted(self, jti: str) -> bool:
         try:
             if not jti:
@@ -115,13 +151,15 @@ class JWTServices:
             return False
     
     def get_token_payload(self, token: str) -> Optional[Dict]:
-        try: 
-            from jose import jwt
-            payload = jwt.get_unverified_claims(token)
+        """Get token payload - FIXED: removed jose dependency"""
+        try:
+            # Use PyJWT (already installed with Django)
+            import jwt
+            payload = jwt.decode(token, options={"verify_signature": False})
             return payload
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to get token payload: {str(e)}")
             return None
-        
+    
     def cleanup_expired_blacklist(self) -> int:
         return SessionBlacklist.objects.cleanup_expired()
-    

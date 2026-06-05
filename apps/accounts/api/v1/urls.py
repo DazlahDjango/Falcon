@@ -78,6 +78,7 @@ auth_urls = [
 admin_urls = [
     path('admin/system/', AdminSystemView.as_view({'get': 'list'}), name='admin-system'),
     path('admin/system/clear-cache/', AdminSystemView.as_view({'post': 'clear_cache'}), name='admin-clear-cache'),
+    path('admin/system/health/', AdminSystemView.as_view({'get': 'health'}), name='admin-system-health'),
 ]
 
 security_urls = [

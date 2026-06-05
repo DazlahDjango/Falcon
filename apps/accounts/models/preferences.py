@@ -75,7 +75,7 @@ class TenantPreference(BaseModel):
     supervisor_approval_required = models.BooleanField(_('supervisor approval required'), default=True)
     review_cycles = models.JSONField(_('review cycles'), default=dict, help_text='Mid-year, end-year schedule')
     # Security settings
-    mfa_required_roles = models.JSONField(_('MFA required roles'), default=list, help_text='Roles that require MFA')
+    mfa_required_roles = models.JSONField(_('MFA required roles'), default=list, blank=True, help_text='Roles that require MFA')
     password_expiry_days = models.PositiveSmallIntegerField(_('password expiry days'), default=90)
     session_timeout_minutes = models.PositiveSmallIntegerField(_('session timeout minutes'), default=480)
     max_concurrent_sessions = models.PositiveSmallIntegerField(

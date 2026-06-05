@@ -239,6 +239,7 @@ class MFAService:
             'verified_devices_count': verified_devices.count(),
             'primary_device': self.get_device(user, str(primary_device.id)) if primary_device else None,
             'backup_codes_remaining': self.get_backup_codes_remaining(user),
+            'requires_mfa': self.is_mfa_enabled(user) or user.mfa_required is True,
         }
     
     def get_recent_activity(self, user: User, hours: int = 24) -> List[Dict]:

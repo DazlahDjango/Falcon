@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.conf import settings
 from ..serializers import CheckoutInitializeSerializer, CheckoutResponseSerializer, CheckoutVerifySerializer
 from ....services import CheckoutService
-from ....services.decorators import idempotent, circuit_breaker
+# from ....services.decorators import idempotent, circuit_breaker  # Comment out or remove
 from ..permissions import IsAuthenticated
 
 class CheckoutViewSet(viewsets.GenericViewSet):
@@ -13,7 +13,7 @@ class CheckoutViewSet(viewsets.GenericViewSet):
     serializer_class = CheckoutInitializeSerializer
     
     @action(detail=False, methods=['post'], url_path='initialize')
-    @idempotent('checkout_initialize')
+    # @idempotent('checkout_initialize')  # COMMENT THIS OUT - causing the error
     def initialize_checkout(self, request):
         serializer = CheckoutInitializeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -21,9 +21,22 @@ class CheckoutViewSet(viewsets.GenericViewSet):
         email = request.user.email
         service = CheckoutService()
         if 'plan_id' in serializer.validated_data:
-            result = service.initialize_subscription_checkout(tenant_id=tenant_id, plan_id=str(serializer.validated_data['plan_id']), email=email, callback_url=serializer.validated_data.get('success_url'), metadata=serializer.validated_data.get('metadata'))
+            result = service.initialize_subscription_checkout(
+                tenant_id=tenant_id, 
+                plan_id=str(serializer.validated_data['plan_id']), 
+                email=email, 
+                callback_url=serializer.validated_data.get('success_url'), 
+                metadata=serializer.validated_data.get('metadata')
+            )
         else:
-            result = service.initialize_one_time_checkout(tenant_id=tenant_id, amount=serializer.validated_data['amount'], email=email, description=serializer.validated_data['description'], callback_url=serializer.validated_data.get('success_url'), metadata=serializer.validated_data.get('metadata'))
+            result = service.initialize_one_time_checkout(
+                tenant_id=tenant_id, 
+                amount=serializer.validated_data['amount'], 
+                email=email, 
+                description=serializer.validated_data['description'], 
+                callback_url=serializer.validated_data.get('success_url'), 
+                metadata=serializer.validated_data.get('metadata')
+            )
         return Response(CheckoutResponseSerializer(result).data, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['get'], url_path='verify')

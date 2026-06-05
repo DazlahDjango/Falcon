@@ -262,6 +262,27 @@ class UserViewSet(BaseModelViewset):
             {'message': 'User deleted successfully'},
             status=status.HTTP_200_OK
         )
+    
+    @action(detail=False, methods=['get'], url_path='me/team')
+    def my_team(self, request):
+        """Get current user's team members"""
+        user = request.user
+        team = user.get_team_members()
+        serializer = UserListSerializer(team, many=True, context={'request': request})
+        return Response({
+            'manager': UserMinimalSerializer(user).data,
+            'team_count': len(team),
+            'team': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path='me/reporting-chain')
+    def my_reporting_chain(self, request):
+        """Get current user's reporting chain"""
+        user = request.user
+        chain = UserManager().get_reporting_chain(user.id)
+        return Response({
+            'reporting_chain': chain
+        }, status=status.HTTP_200_OK)
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]

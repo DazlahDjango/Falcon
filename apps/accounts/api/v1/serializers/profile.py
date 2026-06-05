@@ -6,7 +6,7 @@ from .user import UserMinimalSerializer
 
 class SkillSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
-    level = serializers.ChoiceField(choices=['beginner', 'intermediate', 'advance', 'expert'])
+    level = serializers.ChoiceField(choices=['beginner', 'intermediate', 'advanced', 'expert'])
     years_experience = serializers.IntegerField(min_value=0, default=0)
     added_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
@@ -66,8 +66,8 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     
 class SkillUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
-    level = serializers.ChoiceField(choices=['beginer', 'intermidiate', 'advanced', 'expert'])
-    years_expirience = serializers.IntegerField(min_value=0, default=0)
+    level = serializers.ChoiceField(choices=['beginner', 'intermediate', 'advanced', 'expert'])
+    years_experience = serializers.IntegerField(min_value=0, default=0)
 
 class CertificationUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)

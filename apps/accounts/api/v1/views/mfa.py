@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from django.db.models import Count
 from apps.accounts.models import MFADevice, MFAAuditLog
 from apps.accounts.services import MFAService
 from ..serializers.mfa import (
@@ -153,7 +154,7 @@ class MFADeviceViewSet(BaseModelViewset):
                 'error': message
             }, status=status.HTTP_400_BAD_REQUEST)
         try:
-            from .....services.realtime import AccountsEventBroadcaster
+            from ....services.realtime import AccountsEventBroadcaster
             AccountsEventBroadcaster.mfa_enabled(
                 user_id=str(request.user.id),
                 tenant_id=str(request.user.tenant_id),
@@ -224,6 +225,7 @@ class MFADeviceViewSet(BaseModelViewset):
     
     @action(detail=False, methods=['get'], url_path='backup-codes-status')
     def backup_codes_status(self, request):
+        from apps.accounts.models.mfa import MFABackupCode
         remaining = self.mfa_service.get_backup_codes_remaining(request.user)
         return Response({
             'remaining': remaining,
@@ -280,6 +282,7 @@ class MFADeviceViewSet(BaseModelViewset):
     @action(detail=False, methods=['get'], url_path='status')
     def mfa_status(self, request):
         status_data = self.mfa_service.get_mfa_status(request.user)
+        status_data.setdefault('requires_mfa', False)
         status_data['totp'] = {
             'enabled': any(d['device_type'] == 'totp' and d['is_verified'] for d in status_data.get('devices', [])),
             'configured': any(d['device_type'] == 'totp' for d in status_data.get('devices', [])),

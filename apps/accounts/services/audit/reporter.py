@@ -59,12 +59,38 @@ class AuditReporterService:
         }
 
     def get_security_events(self, tenant_id: str = None, days: int = 30, limit: int = 100) -> List[Dict]:
-        cutoff = timezone.now() - timedelta(days=days)
-        qs = AuditLog.objects.filter(Q(severity__in=['warning', 'error', 'critical']) | Q(action_type='security'), timestamp__gte=cutoff).order_by('-timestamp')
-        if tenant_id:
-            qs = qs.filter(tenant_id=tenant_id)
-        return self._serialize_logs(qs[:limit])
-
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            
+            cutoff = timezone.now() - timedelta(days=days)
+            
+            qs = AuditLog.objects.filter(timestamp__gte=cutoff)
+            qs = qs.filter(
+                Q(severity__in=['warning', 'error', 'critical']) | Q(action_type='security')
+            ).order_by('-timestamp')
+            
+            if tenant_id:
+                qs = qs.filter(tenant_id=tenant_id)
+            
+            # Convert to list of dicts safely
+            logs = []
+            for log in qs[:limit]:
+                logs.append({
+                    'id': str(log.id),
+                    'user_email': log.user.email if log.user else None,
+                    'action': log.action,
+                    'action_type': log.action_type,
+                    'severity': log.severity,
+                    'ip_address': log.ip_address,
+                    'timestamp': log.timestamp.isoformat(),
+                })
+            return logs
+        except Exception as e:
+            logger.error(f"Error in get_security_events: {str(e)}", exc_info=True)
+            return []
+        
     def get_object_history(self, content_type: str, object_id: str) -> List[Dict]:
         logs = AuditLog.objects.filter(content_type=content_type, object_id=object_id).order_by('timestamp')
         return self._serialize_logs(logs)

@@ -525,7 +525,7 @@ class MFAMFAStatusSerializer(serializers.Serializer):
     active_devices_count = serializers.IntegerField()
     verified_devices_count = serializers.IntegerField()
     backup_codes_remaining = serializers.IntegerField()
-    requires_mfa = serializers.BooleanField()
+    requires_mfa = serializers.BooleanField(default=False, required=False)
     primary_device = MFADeviceStatusSerializer(allow_null=True)
     
     # Method-specific status
