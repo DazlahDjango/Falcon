@@ -13,29 +13,38 @@ class DashboardThrottle(UserRateThrottle):
     rate = '100/minute'
     scope = 'dashboard'
 
+
 class RecalculationThrottle(UserRateThrottle):
     rate = '20/hour'
     scope = 'recalculation'
+
 
 class KPIListThrottle(UserRateThrottle):
     rate = '60/minute'
     scope = 'kpi_list'
 
+
 class AnonKPIThrottle(AnonRateThrottle):
     rate = '20/hour'
     scope = 'anon_kpi'
 
+
 class TenantCalculationThrottle(SimpleRateThrottle):
     scope = 'tenant_calculations'
+    rate = '50/hour'
+    
     def get_cache_key(self, request, view):
-        tenant_id = getattr(request, 'tenant_id', 'unknown')
+        tenant_id = getattr(request, 'tenant_id', None) or getattr(request.user, 'tenant_id', 'unknown')
         return self.cache_format % {
             'scope': self.scope,
-            'ident': tenant_id
+            'ident': str(tenant_id)
         }
+
 
 class IPBasedThrottle(SimpleRateThrottle):
     scope = 'ip_based'
+    rate = '200/hour'
+    
     def get_cache_key(self, request, view):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
@@ -47,17 +56,21 @@ class IPBasedThrottle(SimpleRateThrottle):
             'ident': ip
         }
 
+
 class BurstThrottle(UserRateThrottle):
     rate = '30/minute'
     scope = 'burst'
+
 
 class SustainedThrottle(UserRateThrottle):
     rate = '500/day'
     scope = 'sustained'
 
+
 class ComplexCalculationThrottle(UserRateThrottle):
     rate = '5/hour'
     scope = 'complex_calc'
+
 
 class ExportThrottle(UserRateThrottle):
     rate = '10/hour'

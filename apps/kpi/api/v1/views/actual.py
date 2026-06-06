@@ -1,14 +1,22 @@
+# actual.py
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .base import BaseKpiViewset
-from ..serializers import MonthlyActualSerializer, EvidenceSerializer, ActualAdjustmentSerializer, ValidationRecordSerializer
+from ..serializers import (
+    MonthlyActualSerializer, EvidenceSerializer, 
+    ActualAdjustmentSerializer, ValidationRecordSerializer
+)
 from ....models import MonthlyActual, Evidence, ActualAdjustment
 from ..filters import MonthlyActualListFilter
-from ....services import ActualEntry, ActualSubmitter, ActualEvidence, ActualAdjustmentService, ValidationApprover, ValidationRejecter, ValidationResubmission
+from ....services import (
+    ActualEntry, ActualSubmitter, ActualEvidence, ActualAdjustmentService,
+    ValidationApprover, ValidationRejecter, ValidationResubmission
+)
 from ....exceptions import HistoricalDataError, EvidenceUploadError
+
 
 class MonthlyActualViewSet(BaseKpiViewset):
     queryset = MonthlyActual.objects.all()
@@ -29,7 +37,8 @@ class MonthlyActualViewSet(BaseKpiViewset):
                 month=request.data.get('month'),
                 actual_value=request.data.get('actual_value'),
                 notes=request.data.get('notes', ''),
-                evidence_file=request.FILES.get('evidence')
+                evidence_file=request.FILES.get('evidence'),
+                user=request.user
             )
             serializer = self.get_serializer(actual)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -38,6 +47,7 @@ class MonthlyActualViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         actual = self.get_object()
@@ -51,11 +61,12 @@ class MonthlyActualViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         actual = self.get_object()
         approver = ValidationApprover()
-        try: 
+        try:
             approved = approver.approve(
                 str(actual.id),
                 request.user,
@@ -68,6 +79,7 @@ class MonthlyActualViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_403_FORBIDDEN
             )
+
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         actual = self.get_object()
@@ -86,6 +98,7 @@ class MonthlyActualViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_403_FORBIDDEN
             )
+
     @action(detail=True, methods=['post'])
     def resubmit(self, request, pk=None):
         actual = self.get_object()
@@ -104,12 +117,14 @@ class MonthlyActualViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['get'])
     def evidence(self, request, pk=None):
         actual = self.get_object()
         evidence = actual.evidence.all()
         serializer = EvidenceSerializer(evidence, many=True)
         return Response(serializer.data)
+
     @action(detail=True, methods=['get'])
     def validations(self, request, pk=None):
         actual = self.get_object()
@@ -117,16 +132,19 @@ class MonthlyActualViewSet(BaseKpiViewset):
         serializer = ValidationRecordSerializer(validations, many=True)
         return Response(serializer.data)
 
+
 class EvidenceViewSet(BaseKpiViewset):
     queryset = Evidence.objects.all()
     serializer_class = EvidenceSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['actual', 'evidence_type']
+
     def perform_create(self, serializer):
         serializer.save(
             tenant_id=self.request.tenant.id,
             uploaded_by=self.request.user
         )
+
 
 class ActualAdjustmentViewSet(BaseKpiViewset):
     queryset = ActualAdjustment.objects.all()
@@ -134,6 +152,7 @@ class ActualAdjustmentViewSet(BaseKpiViewset):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status', 'requested_by', 'original_actual']
     ordering = ['-requested_at']
+
     def create(self, request, *args, **kwargs):
         adjustment_service = ActualAdjustmentService()
         try:
@@ -149,6 +168,7 @@ class ActualAdjustmentViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         adjustment = self.get_object()

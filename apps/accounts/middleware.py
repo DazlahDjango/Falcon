@@ -21,10 +21,12 @@ class TenantMiddleware(MiddlewareMixin):
         if tenant_id:
             cache.set(CacheKeys.CURRENT_TENANT, tenant_id, timeout=3600)
             request.current_tenant_id = tenant_id
+            print(f"[TenantMiddleware] Set current_tenant_id from token: {tenant_id}")
         else:
             if hasattr(request, 'user') and request.user.is_authenticated:
                 request.current_tenant_id = str(request.user.tenant_id)
                 cache.set(CacheKeys.CURRENT_TENANT, request.current_tenant_id, timeout=3600)
+                print(f"[TenantMiddleware] Set current_tenant_id from user: {request.current_tenant_id}")
         return None
     
     def process_response(self, request, response):

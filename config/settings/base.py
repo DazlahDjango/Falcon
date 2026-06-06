@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import environ
 from django.utils import timezone
+from django.core.exceptions import ImproperlyConfigured
 from datetime import datetime, timedelta
 import logging
 import json
@@ -195,6 +196,11 @@ MIDDLEWARE = [
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
+    # KPI
+    'apps.kpi.middleware.KPIContextMiddleware',
+    'apps.kpi.middleware.KPIRequestAuditMiddleware',
+    'apps.kpi.middleware.KPIThrottleMiddleware',
+    'apps.kpi.middleware.CalculationCacheMiddleware',
     # Tenant
     'apps.tenant.middleware.connection.ConnectionManagementMiddleware',
     'apps.tenant.middleware.connection.TenantConnectionHealthCheckMiddleware',
@@ -203,11 +209,7 @@ MIDDLEWARE = [
     'apps.structure.middleware.StructureCacheMiddleware',
     'apps.structure.middleware.StructureAccessEnforcerMiddleware',
     'apps.structure.middleware.StructureRateLimitMiddleware',
-    # KPI
-    'apps.kpi.middleware.ContextMiddleware',
-    'apps.kpi.middleware.AuditMiddleware',
-    'apps.kpi.middleware.ThrottleMiddleware',
-    'apps.kpi.middleware.CacheMiddleware',
+    
     # # Reviews app middleware (order matters!)
     # 'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
     # 'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header

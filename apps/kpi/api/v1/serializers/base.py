@@ -8,5 +8,5 @@ class TenantAwareSerializer(serializers.ModelSerializer):
     updated_at = serializers.DateTimeField(read_only=True)
 
 class AuditTrailSerializer(serializers.ModelSerializer):
-    created_by_email = serializers.EmailField(source='created_by.email', read_only=True)
-    updated_by_email = serializers.EmailField(source='updated_by.email', read_only=True)
+    created_by_email = serializers.EmailField(source='created_by.email', read_only=True, default=None)
+    updated_by_email = serializers.EmailField(source='updated_by.email', read_only=True, default=None)

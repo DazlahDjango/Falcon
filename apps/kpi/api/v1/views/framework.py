@@ -1,8 +1,8 @@
-# backend/apps/kpi/views/framework.py
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Count
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from ..permissions import (
@@ -13,12 +13,14 @@ from ..permissions import (
     IsTenantMember
 )
 from apps.kpi.models import Sector, KPIFramework, KPICategory, KPITemplate
-from ..serializers import SectorSerializer, KPIFrameworkSerializer, KPICategorySerializer, KPITemplateSerializer
+from ..serializers import (
+    SectorSerializer, KPIFrameworkSerializer, KPICategorySerializer,
+    KPITemplateSerializer, KPIListSerializer, KPIDetailSerializer
+)
+from ....services import KPICreator
 from .base import BaseKpiViewset
 
-
 class SectorViewSet(BaseKpiViewset):
-    """Sector management - viewable by all, editable by admins only"""
     queryset = Sector.objects.all()
     serializer_class = SectorSerializer
     permission_classes = [IsAuthenticatedAndActive, IsTenantMember]
@@ -30,21 +32,34 @@ class SectorViewSet(BaseKpiViewset):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(tenant_id=self.request.tenant.id)
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            return queryset.filter(tenant_id=tenant_id)
+        return queryset
 
     def get_permissions(self):
-        """Write operations require admin access"""
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
 
+    def perform_create(self, serializer):
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
+            tenant_id = str(self.request.user.tenant_id)
+        print(f"[DEBUG] SectorViewSet.perform_create - tenant_id: {tenant_id}")
+        print(f"[DEBUG] request.current_tenant_id: {getattr(self.request, 'current_tenant_id', 'NOT SET')}")
+        serializer.save(
+            tenant_id=tenant_id,
+            created_by=self.request.user,
+            updated_by=self.request.user
+        )
+
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticatedAndActive])
     def frameworks(self, request, pk=None):
-        """Get all frameworks for this sector (published only for non-admins)"""
         sector = self.get_object()
-        frameworks = KPIFramework.objects.filter(sector=sector, tenant_id=request.tenant.id)
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        frameworks = KPIFramework.objects.filter(sector=sector, tenant_id=tenant_id)
         
-        # Non-admins only see published frameworks
         role = getattr(request.user, 'role', '')
         if role not in ['super_admin', 'client_admin']:
             frameworks = frameworks.filter(status='PUBLISHED')
@@ -54,7 +69,6 @@ class SectorViewSet(BaseKpiViewset):
 
 
 class KPIFrameworkViewSet(BaseKpiViewset):
-    """Framework management - full CRUD for admins, read-only for others"""
     queryset = KPIFramework.objects.all()
     serializer_class = KPIFrameworkSerializer
     permission_classes = [IsAuthenticatedAndActive, IsTenantMember]
@@ -66,9 +80,12 @@ class KPIFrameworkViewSet(BaseKpiViewset):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.filter(tenant_id=self.request.tenant.id)
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        else:
+            queryset = queryset.none()
         
-        # Non-admins only see published frameworks
         role = getattr(self.request.user, 'role', '')
         if role not in ['super_admin', 'client_admin']:
             queryset = queryset.filter(status='PUBLISHED')
@@ -76,35 +93,36 @@ class KPIFrameworkViewSet(BaseKpiViewset):
         return queryset.annotate(kpi_count=Count('kpis'))
 
     def get_permissions(self):
-        """Write operations require admin access"""
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        """Create framework - always starts as DRAFT"""
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
+            tenant_id = str(self.request.user.tenant_id)
+        print(f"[DEBUG] KPICategoryViewSet.perform_create - tenant_id: {tenant_id}")
+        print(f"[DEBUG] request.current_tenant_id: {getattr(self.request, 'current_tenant_id', 'NOT SET')}")
         serializer.save(
-            tenant_id=self.request.tenant.id,
+            tenant_id=tenant_id,
             created_by=self.request.user,
-            updated_by=self.request.user,
-            status='DRAFT'
+            updated_by=self.request.user
         )
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticatedAndActive])
     def categories(self, request, pk=None):
-        """Get all categories for this framework"""
         framework = self.get_object()
+        tenant_id = getattr(request, 'current_tenant_id', None)
         categories = KPICategory.objects.filter(
             framework=framework, 
             is_active=True,
-            tenant_id=request.tenant.id
+            tenant_id=tenant_id
         )
         serializer = KPICategorySerializer(categories, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticatedAndActive])
     def kpis(self, request, pk=None):
-        """Get all KPIs for this framework"""
         framework = self.get_object()
         kpis = framework.kpis.filter(is_active=True)
         serializer = KPIListSerializer(kpis, many=True)
@@ -112,7 +130,6 @@ class KPIFrameworkViewSet(BaseKpiViewset):
 
     @action(detail=True, methods=['post'], permission_classes=[CanPublishFramework])
     def publish(self, request, pk=None):
-        """Publish framework - admin only"""
         framework = self.get_object()
         
         if framework.status != 'DRAFT':
@@ -127,7 +144,6 @@ class KPIFrameworkViewSet(BaseKpiViewset):
 
     @action(detail=True, methods=['post'], permission_classes=[CanArchiveFramework])
     def archive(self, request, pk=None):
-        """Archive framework - admin only"""
         framework = self.get_object()
         
         if framework.status != 'PUBLISHED':
@@ -142,10 +158,8 @@ class KPIFrameworkViewSet(BaseKpiViewset):
 
     @action(detail=True, methods=['post'], permission_classes=[IsFrameworkAdmin])
     def duplicate(self, request, pk=None):
-        """Duplicate framework - admin only"""
         original = self.get_object()
         
-        # Create copy
         new_framework = KPIFramework.objects.create(
             tenant_id=original.tenant_id,
             name=f"{original.name} (Copy)",
@@ -158,7 +172,6 @@ class KPIFrameworkViewSet(BaseKpiViewset):
             updated_by=request.user
         )
         
-        # Copy categories
         for cat in original.categories.filter(is_active=True):
             KPICategory.objects.create(
                 tenant_id=original.tenant_id,
@@ -166,7 +179,7 @@ class KPIFrameworkViewSet(BaseKpiViewset):
                 code=f"{cat.code}_COPY",
                 category_type=cat.category_type,
                 framework=new_framework,
-                parent=None,  # Reset parent hierarchy
+                parent=None,
                 description=cat.description,
                 color=cat.color,
                 icon=cat.icon,
@@ -180,7 +193,6 @@ class KPIFrameworkViewSet(BaseKpiViewset):
 
 
 class KPICategoryViewSet(BaseKpiViewset):
-    """Category management - full CRUD for admins, read-only for others"""
     queryset = KPICategory.objects.all()
     serializer_class = KPICategorySerializer
     permission_classes = [IsAuthenticatedAndActive, IsTenantMember]
@@ -192,38 +204,42 @@ class KPICategoryViewSet(BaseKpiViewset):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(
-            tenant_id=self.request.tenant.id,
-            framework__tenant_id=self.request.tenant.id
-        )
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            return queryset.filter(
+                tenant_id=tenant_id,
+                framework__tenant_id=tenant_id
+            )
+        return queryset.none()
 
     def get_permissions(self):
-        """Write operations require admin access"""
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        """Create category - admin only"""
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
+            tenant_id = str(self.request.user.tenant_id)
+        print(f"[DEBUG] KPICategoryViewSet.perform_create - tenant_id: {tenant_id}")
         serializer.save(
-            tenant_id=self.request.tenant.id,
+            tenant_id=tenant_id,
             created_by=self.request.user,
             updated_by=self.request.user
         )
 
     @action(detail=True, methods=['post'], permission_classes=[IsFrameworkAdmin])
     def move(self, request, pk=None):
-        """Move category to different parent - admin only"""
         category = self.get_object()
         new_parent_id = request.data.get('parent_id')
+        tenant_id = getattr(request, 'current_tenant_id', None)
         
-        # Validate new parent belongs to same framework
         if new_parent_id:
             try:
                 new_parent = KPICategory.objects.get(
                     id=new_parent_id, 
                     framework=category.framework,
-                    tenant_id=request.tenant.id
+                    tenant_id=tenant_id
                 )
                 category.parent = new_parent
             except KPICategory.DoesNotExist:
@@ -240,24 +256,23 @@ class KPICategoryViewSet(BaseKpiViewset):
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticatedAndActive])
     def children(self, request, pk=None):
-        """Get child categories"""
         category = self.get_object()
-        children = category.children.filter(is_active=True, tenant_id=request.tenant.id)
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        children = category.children.filter(is_active=True, tenant_id=tenant_id)
         serializer = self.get_serializer(children, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticatedAndActive])
     def kpis(self, request, pk=None):
-        """Get KPIs in this category"""
         category = self.get_object()
         kpis = category.kpis.filter(is_active=True)
         serializer = KPIListSerializer(kpis, many=True)
         return Response(serializer.data)
-        
+
     @action(detail=False, methods=['post'], permission_classes=[IsFrameworkAdmin])
     def reorder(self, request):
-        """Batch update category display order"""
         category_orders = request.data.get('categories', [])
+        tenant_id = getattr(request, 'current_tenant_id', None)
         
         if not category_orders:
             return Response(
@@ -272,8 +287,7 @@ class KPICategoryViewSet(BaseKpiViewset):
             try:
                 category = KPICategory.objects.get(
                     id=item['id'],
-                    tenant_id=request.tenant.id,
-                    framework_id=item.get('framework_id')
+                    tenant_id=tenant_id
                 )
                 category.display_order = item.get('display_order', 0)
                 category.save(update_fields=['display_order'])
@@ -289,7 +303,6 @@ class KPICategoryViewSet(BaseKpiViewset):
 
 
 class KPITemplateViewSet(BaseKpiViewset):
-    """Template management - viewable by all, admin for write operations"""
     queryset = KPITemplate.objects.all()
     serializer_class = KPITemplateSerializer
     permission_classes = [IsAuthenticatedAndActive, IsTenantMember]
@@ -301,9 +314,12 @@ class KPITemplateViewSet(BaseKpiViewset):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.filter(tenant_id=self.request.tenant.id)
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        else:
+            queryset = queryset.none()
         
-        # Non-admins only see published templates
         role = getattr(self.request.user, 'role', '')
         if role not in ['super_admin', 'client_admin']:
             queryset = queryset.filter(is_published=True)
@@ -311,14 +327,20 @@ class KPITemplateViewSet(BaseKpiViewset):
         return queryset
 
     def get_permissions(self):
-        """Write operations require admin access"""
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
 
+    def perform_create(self, serializer):
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        serializer.save(
+            tenant_id=tenant_id,
+            created_by=self.request.user,
+            updated_by=self.request.user
+        )
+
     @action(detail=True, methods=['post'], permission_classes=[IsFrameworkAdmin])
     def publish(self, request, pk=None):
-        """Publish template - admin only"""
         template = self.get_object()
         template.is_published = True
         template.save()
@@ -327,7 +349,6 @@ class KPITemplateViewSet(BaseKpiViewset):
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticatedAndActive])
     def use_template(self, request, pk=None):
-        """Use template to create KPI - any authenticated user"""
         template = self.get_object()
         
         if not template.is_published:
@@ -343,7 +364,6 @@ class KPITemplateViewSet(BaseKpiViewset):
             'framework_id': request.data.get('framework_id'),
             'sector_id': template.sector_id,
             'owner_id': request.user.id,
-            'tenant_id': self.request.tenant.id
         })
         
         creator = KPICreator()

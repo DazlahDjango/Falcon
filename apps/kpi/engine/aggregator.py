@@ -344,14 +344,21 @@ class HierarchyAggregator:
     def aggregate_for_user(self, user_id: str, year: int, month: int, force: bool = False) -> Decimal:
         return self.individual.aggregate_for_user(user_id, year, month, force)
     def aggregate_for_teams(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
+        teams = Team.objects.filter(tenant_id=tenant_id, is_active=True).prefetch_related('members')
+        all_member_ids = [member.id for team in teams for member in team.members.all()]
+        member_scores = AggregatedScore.objects.filter(
+            level='INDIVIDUAL',
+            entity_id__in=all_member_ids,
+            year=year,
+            month=month
+        ).values_list('entity_id', 'aggregated_score')
+        score_map = dict(member_scores)
         results = {}
-        teams = Team.objects.filter(tenant_id=tenant_id, is_active=True)
         for team in teams:
-            member_ids = team.get_member_ids()
-            score = self.team.aggregate_for_team(
-                str(team.id), team.name, tenant_id, member_ids, year, month, force
-            )
-            results[str(team.id)] = score
+            member_ids = [str(m.id) for m in team.members.all()]
+            scores = [score_map.get(mid, Decimal('0')) for mid in member_ids]
+            team_score = sum(scores) / len(scores) if scores else Decimal('0')
+            results[str(team.id)] = team_score
         return results
     def aggregate_for_departments(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
         results = {}

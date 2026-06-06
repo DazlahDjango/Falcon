@@ -1,48 +1,57 @@
 from decimal import Decimal
 from typing import List, Dict, Optional, Any
-from django.db.models import Q, Sum, F, Avg, Count
+from django.db.models import Q, Avg, Count, Sum
 from django.core.cache import cache
-from apps.kpi.models import KPI, Score, TrafficLight, MonthlyActual, AggregatedScore
+from django.utils import timezone
+import logging
+from apps.kpi.models import KPI, Score, MonthlyActual, AggregatedScore, TrafficLight
 from apps.kpi.engine import HierarchyAggregator
-from ..constants import TrafficLightStatus
+from .analytics import get_department_rollups, get_organization_health, get_kpi_summaries
+
+logger = logging.getLogger(__name__)
+
+CACHE_TTL = 300
+CACHE_PREFIX = "kpi_dashboard"
+
 
 class IndividualDashboard:
     def __init__(self):
         self.aggregator = HierarchyAggregator()
-    
+
     def get_dashboard(self, user_id: str, year: int, month: int) -> Dict:
-        cache_key = f"dashboard_individual_{user_id}_{year}_{month}"
+        cache_key = f"{CACHE_PREFIX}:individual_{user_id}_{year}_{month}"
         cached = cache.get(cache_key)
         if cached:
             return cached
+
         scores = Score.objects.filter(
-            user_id=user_id, 
-            year=year, 
+            user_id=user_id,
+            year=year,
             month=month
-        ).select_related('kpi')  # Only select_related 'kpi', not 'traffic_light'
-        
+        ).select_related('kpi', 'user')
+
         kpi_data = []
         for score in scores:
-            # Calculate status based on score percentage instead of traffic_light
-            status = self._calculate_status(score.score, score.target_value)
-            
+            traffic_light = score.traffic_lights.first()
+            status = traffic_light.status if traffic_light else self._calculate_status(score.score)
+
             kpi_data.append({
                 'kpi_id': str(score.kpi.id),
                 'kpi_name': score.kpi.name,
                 'score': float(score.score),
                 'status': status,
-                'actual_value': float(score.actual_value) if hasattr(score, 'actual_value') else float(score.score),
-                'target_value': float(score.target_value) if hasattr(score, 'target_value') else 100
+                'actual_value': float(score.actual_value),
+                'target_value': float(score.target_value)
             })
-        
+
         aggregated = self.aggregator.aggregate_for_user(user_id, year, month)
-        
+
         recent_actuals = MonthlyActual.objects.filter(
             user_id=user_id,
             year=year,
             month__lte=month
         ).order_by('-year', '-month')[:5]
-        
+
         dashboard = {
             'user_id': user_id,
             'period': f"{year}-{month:02d}",
@@ -51,70 +60,60 @@ class IndividualDashboard:
             'kpis': kpi_data,
             'recent_activity': [
                 {
-                    'kpi': a.kpi.name if hasattr(a, 'kpi') else 'Unknown',
-                    'actual': float(a.actual_value) if hasattr(a, 'actual_value') else 0,
+                    'kpi': a.kpi.name,
+                    'actual': float(a.actual_value),
                     'month': a.month,
-                    'status': getattr(a, 'status', 'COMPLETED')
+                    'status': a.status
                 }
                 for a in recent_actuals
             ]
         }
-        
-        cache.set(cache_key, dashboard, 300)
+
+        cache.set(cache_key, dashboard, CACHE_TTL)
         return dashboard
-    
-    def _calculate_status(self, score: float, target_value: float = 100) -> str:
-        """Calculate status based on score percentage"""
-        if target_value and target_value > 0:
-            percentage = (score / target_value) * 100
-            if percentage >= 90:
-                return 'GREEN'
-            elif percentage >= 70:
-                return 'YELLOW'
-            else:
-                return 'RED'
-        return 'YELLOW'
+
+    def _calculate_status(self, score: float) -> str:
+        if score >= 90:
+            return 'GREEN'
+        elif score >= 70:
+            return 'YELLOW'
+        return 'RED'
+
 
 class ManagerDashboard:
     def __init__(self):
         self.aggregator = HierarchyAggregator()
-    
+
     def get_dashboard(self, manager_id: str, year: int, month: int) -> Dict:
-        cache_key = f"dashboard_manager_{manager_id}_{year}_{month}"
+        cache_key = f"{CACHE_PREFIX}:manager_{manager_id}_{year}_{month}"
         cached = cache.get(cache_key)
         if cached:
             return cached
-        
+
         hierarchy = self.aggregator.get_hierarchy_dashboard(manager_id, year, month)
         team_members = hierarchy.get('direct_reports', [])
-        
-        # Calculate status distribution from scores instead of traffic_light
+
         status_count = {'GREEN': 0, 'YELLOW': 0, 'RED': 0}
-        
         for member in team_members:
-            # Get member's overall score and calculate status
             member_score = member.get('score', 0)
-            status = self._calculate_status_from_score(member_score)
+            status = self._calculate_status(member_score)
             status_count[status] = status_count.get(status, 0) + 1
-        
-        # Get pending submissions
-        member_ids = [m['user_id'] for m in team_members if m.get('user_id')]
-        
+
+        member_ids = [m.get('user_id') for m in team_members if m.get('user_id')]
         pending = MonthlyActual.objects.filter(
             user_id__in=member_ids,
             year=year,
             month=month,
             status='PENDING'
         ).count()
-        
-        from ..managers import MonthlyActualManager
-        missing = MonthlyActualManager().missing_for_period(member_ids, year, month) if member_ids else []
-        
+
+        missing = self._get_missing_submissions(member_ids, year, month)
+
         dashboard = {
             'manager_id': manager_id,
             'period': f"{year}-{month:02d}",
             'manager_score': float(hierarchy.get('user_score', 0)),
-            'manager_status': self._calculate_status_from_score(hierarchy.get('user_score', 0)),
+            'manager_status': self._calculate_status(hierarchy.get('user_score', 0)),
             'team_size': hierarchy.get('team_count', 0),
             'team_avg_score': float(hierarchy.get('avg_team_score', 0)),
             'status_distribution': status_count,
@@ -125,213 +124,140 @@ class ManagerDashboard:
                     'user_id': m.get('user_id', ''),
                     'name': m.get('name', 'Unknown'),
                     'score': float(m.get('score', 0)),
-                    'status': self._calculate_status_from_score(m.get('score', 0))
+                    'status': self._calculate_status(m.get('score', 0))
                 }
                 for m in team_members
             ]
         }
-        
-        cache.set(cache_key, dashboard, 300)
+
+        cache.set(cache_key, dashboard, CACHE_TTL)
         return dashboard
-    
-    def _calculate_status_from_score(self, score: float) -> str:
-        """Calculate status based on score percentage"""
+
+    def _calculate_status(self, score: float) -> str:
         if score >= 90:
             return 'GREEN'
         elif score >= 70:
             return 'YELLOW'
-        else:
-            return 'RED'
-    
+        return 'RED'
+
+    def _get_missing_submissions(self, user_ids: List[str], year: int, month: int) -> List[str]:
+        if not user_ids:
+            return []
+        submitted = MonthlyActual.objects.filter(
+            user_id__in=user_ids,
+            year=year,
+            month=month
+        ).values_list('user_id', flat=True).distinct()
+        return list(set(user_ids) - set(submitted))
+
+
 class ExecutiveDashboard:
     def get_dashboard(self, tenant_id: str, year: int, month: int) -> Dict:
-        cache_key = f"dashboard_executive_{tenant_id}_{year}_{month}"
+        cache_key = f"{CACHE_PREFIX}:executive_{tenant_id}_{year}_{month}"
         cached = cache.get(cache_key)
         if cached:
             return cached
-        
-        # Build dashboard without traffic_light dependency
-        dashboard = self._build_executive_dashboard(tenant_id, year, month)
-        cache.set(cache_key, dashboard, 300)
-        return dashboard
-    
-    def _build_executive_dashboard(self, tenant_id: str, year: int, month: int) -> Dict:
-        """Build executive dashboard without traffic_light model"""
-        
-        # Get all scores for the tenant
-        scores = Score.objects.filter(
-            kpi__tenant_id=tenant_id,
+
+        health = get_organization_health(tenant_id, year, month)
+        rollups = get_department_rollups(tenant_id, year, month)
+
+        department_rankings = []
+        for idx, r in enumerate(rollups[:15]):
+            department_rankings.append({
+                'department_id': r.get('department_id'),
+                'department': r.get('department_name', 'Unknown'),
+                'score': r.get('overall_score', 0),
+                'rank': idx + 1
+            })
+
+        tl_qs = TrafficLight.objects.filter(
+            score__tenant_id=tenant_id,
+            score__year=year,
+            score__month=month
+        )
+        green_count = tl_qs.filter(status='GREEN').count()
+        yellow_count = tl_qs.filter(status='YELLOW').count()
+        red_count = tl_qs.filter(status='RED').count()
+        total_tl = green_count + yellow_count + red_count
+        red_pct = (red_count / total_tl * 100) if total_tl > 0 else 0
+
+        total_kpis = Score.objects.filter(
+            tenant_id=tenant_id,
             year=year,
             month=month
-        ).select_related('kpi', 'user')
-        
-        total_kpis = scores.count()
-        avg_score = scores.aggregate(Avg('score'))['score__avg'] or 0
-        
-        # Calculate status distribution
-        green_count = 0
-        yellow_count = 0
-        red_count = 0
-        
-        for score in scores:
-            if score.score >= 90:
-                green_count += 1
-            elif score.score >= 70:
-                yellow_count += 1
-            else:
-                red_count += 1
-        
-        # Department performance
-        from apps.accounts.models import User
-        department_performance = {}
-        
-        for score in scores:
-            user = score.user
-            dept = getattr(user, 'department_name', 'Unassigned')
-            if dept not in department_performance:
-                department_performance[dept] = {
-                    'total_scores': 0,
-                    'total_score': 0,
-                    'green_count': 0,
-                    'yellow_count': 0,
-                    'red_count': 0
-                }
-            
-            department_performance[dept]['total_scores'] += 1
-            department_performance[dept]['total_score'] += score.score
-            
-            if score.score >= 90:
-                department_performance[dept]['green_count'] += 1
-            elif score.score >= 70:
-                department_performance[dept]['yellow_count'] += 1
-            else:
-                department_performance[dept]['red_count'] += 1
-        
-        # Calculate averages
-        for dept in department_performance:
-            total = department_performance[dept]['total_scores']
-            department_performance[dept]['avg_score'] = department_performance[dept]['total_score'] / total if total > 0 else 0
-        
-        # Top and bottom KPIs
-        kpi_performance = {}
-        for score in scores:
-            kpi_name = score.kpi.name
-            if kpi_name not in kpi_performance:
-                kpi_performance[kpi_name] = {
-                    'scores': [],
-                    'avg_score': 0,
-                    'status': 'YELLOW'
-                }
-            kpi_performance[kpi_name]['scores'].append(score.score)
-        
-        for kpi_name in kpi_performance:
-            scores_list = kpi_performance[kpi_name]['scores']
-            avg = sum(scores_list) / len(scores_list) if scores_list else 0
-            kpi_performance[kpi_name]['avg_score'] = avg
-            
-            if avg >= 90:
-                kpi_performance[kpi_name]['status'] = 'GREEN'
-            elif avg >= 70:
-                kpi_performance[kpi_name]['status'] = 'YELLOW'
-            else:
-                kpi_performance[kpi_name]['status'] = 'RED'
-        
-        # Sort by performance
-        top_kpis = sorted(kpi_performance.items(), key=lambda x: x[1]['avg_score'], reverse=True)[:10]
-        bottom_kpis = sorted(kpi_performance.items(), key=lambda x: x[1]['avg_score'])[:5]
-        
-        return {
+        ).count()
+
+        history = self._get_health_history(tenant_id, year, month, months_back=6)
+
+        dashboard = {
             'tenant_id': tenant_id,
             'period': f"{year}-{month:02d}",
-            'summary': {
-                'total_kpis': total_kpis,
-                'average_score': round(avg_score, 2),
-                'green_count': green_count,
-                'yellow_count': yellow_count,
-                'red_count': red_count,
-                'completion_rate': round((green_count + yellow_count) / total_kpis * 100, 2) if total_kpis > 0 else 0
-            },
-            'department_performance': department_performance,
-            'top_performing_kpis': [{'name': name, 'avg_score': round(data['avg_score'], 2), 'status': data['status']} for name, data in top_kpis],
-            'bottom_performing_kpis': [{'name': name, 'avg_score': round(data['avg_score'], 2), 'status': data['status']} for name, data in bottom_kpis],
-            'trend': self._calculate_trend(tenant_id, year, month)
+            'overall_health': health.get('overall_health_score', 0),
+            'red_kpi_count': health.get('red_kpi_count', 0),
+            'red_kpi_percentage': round(red_pct, 2),
+            'validation_compliance': health.get('validation_compliance_rate', 0),
+            'kpi_completion_rate': health.get('kpi_completion_rate', 0),
+            'department_rankings': department_rankings,
+            'trend_data': history,
+            'total_kpis': total_kpis or health.get('total_kpi_count', 0),
+            'green_count': green_count,
+            'yellow_count': yellow_count,
+            'red_count': red_count,
+            'active_employees': health.get('active_employees', 0),
+            'risk_indicators': {
+                'risk_level': health.get('risk_level', 'MEDIUM'),
+                'data_source': health.get('source', 'live')
+            }
         }
-    
-    def _calculate_trend(self, tenant_id: str, current_year: int, current_month: int) -> Dict:
-        """Calculate performance trend over last 3 months"""
-        trend_data = []
-        
-        for i in range(3):
-            year = current_year
-            month = current_month - i
-            if month <= 0:
-                month += 12
-                year -= 1
-            
-            avg_score = Score.objects.filter(
-                kpi__tenant_id=tenant_id,
-                year=year,
-                month=month
-            ).aggregate(Avg('score'))['score__avg']
-            
-            trend_data.append({
-                'period': f"{year}-{month:02d}",
-                'avg_score': round(avg_score, 2) if avg_score else 0
+
+        cache.set(cache_key, dashboard, CACHE_TTL // 2)
+        return dashboard
+
+    def _get_health_history(self, tenant_id: str, year: int, month: int, months_back: int = 6) -> List[Dict]:
+        history = []
+        for i in range(months_back):
+            y = year
+            m = month - i
+            if m < 1:
+                m += 12
+                y -= 1
+            health = get_organization_health(tenant_id, y, m)
+            history.append({
+                'period': f"{y}-{m:02d}",
+                'score': health.get('overall_health_score', 0)
             })
-        
-        return {
-            'trend': trend_data,
-            'direction': 'up' if len(trend_data) >= 2 and trend_data[0]['avg_score'] > trend_data[1]['avg_score'] else 'down'
-        }
+        return list(reversed(history))
+
 
 class ChampionDashboard:
     def get_dashboard(self, champion_id: str, year: int, month: int) -> Dict:
-        cache_key = f"dashboard_champion_{champion_id}_{year}_{month}"
+        from apps.accounts.models import User
+        
+        cache_key = f"{CACHE_PREFIX}:champion_{champion_id}_{year}_{month}"
         cached = cache.get(cache_key)
         if cached:
             return cached
-            
-        from apps.structure.models import Department
-        from apps.accounts.models import User
-        
-        champion = User.objects.get(id=champion_id)
-        tenant_id = champion.tenant_id
-        
-        departments = Department.objects.filter(tenant_id=tenant_id)
-        dept_compliance = []
-        
-        for dept in departments:
-            members = User.objects.filter(department=dept, is_active=True)
-            total_members = members.count()
-            
-            submitted = MonthlyActual.objects.filter(
-                user_id__in=members.values_list('id', flat=True),
-                year=year,
-                month=month
-            ).values('user_id').distinct().count()
-            
-            compliance = (submitted / total_members * 100) if total_members > 0 else 0
-            
-            dept_compliance.append({
-                'department': dept.name,
-                'total_members': total_members,
-                'submitted': submitted,
-                'compliance_rate': round(compliance, 2)
-            })
-        
-        # Get red KPIs (scores below 70%)
-        red_kpis = Score.objects.filter(
+
+        try:
+            champion = User.objects.get(id=champion_id)
+        except User.DoesNotExist:
+            return {'error': 'Champion not found'}
+
+        tenant_id = str(champion.tenant_id)
+        rollups = get_department_rollups(tenant_id, year, month)
+
+        red_scores = Score.objects.filter(
             kpi__tenant_id=tenant_id,
             year=year,
             month=month,
             score__lt=70
         ).select_related('kpi', 'user')[:10]
-        
+
         dashboard = {
             'champion_id': champion_id,
             'period': f"{year}-{month:02d}",
-            'department_compliance': dept_compliance,
-            'organization_submission_rate': self._get_org_submission_rate(tenant_id, year, month),
+            'department_compliance': self._get_department_compliance(tenant_id, year, month, rollups),
+            'organization_submission_rate': self._get_submission_rate(tenant_id, year, month),
             'pending_escalations': 0,
             'unvalidated_entries': MonthlyActual.objects.filter(
                 tenant_id=tenant_id,
@@ -343,42 +269,77 @@ class ChampionDashboard:
                 {
                     'kpi': score.kpi.name,
                     'user': score.user.email,
-                    'consecutive_months': self._get_consecutive_red_months(score.user_id, score.kpi_id, year, month),
+                    'consecutive_months': self._get_consecutive_red_months(
+                        str(score.user_id), str(score.kpi_id), year, month
+                    ),
                     'score': float(score.score)
                 }
-                for score in red_kpis
+                for score in red_scores
             ]
         }
-        
-        cache.set(cache_key, dashboard, 300)
+
+        cache.set(cache_key, dashboard, CACHE_TTL)
         return dashboard
-    
-    def _get_org_submission_rate(self, tenant_id: str, year: int, month: int) -> float:
+
+    def _get_department_compliance(self, tenant_id: str, year: int, month: int, rollups: List[Dict]) -> List[Dict]:
         from apps.accounts.models import User
+
+        compliance = []
+        for dept in rollups[:20]:
+            dept_id = dept.get('department_id')
+            if not dept_id:
+                continue
+
+            members = User.objects.filter(department_id=dept_id, tenant_id=tenant_id, is_active=True)
+            total = members.count()
+
+            if total == 0:
+                continue
+
+            submitted = MonthlyActual.objects.filter(
+                user_id__in=list(members.values_list('id', flat=True)),
+                year=year,
+                month=month
+            ).values('user_id').distinct().count()
+
+            compliance.append({
+                'department': dept.get('department_name', 'Unknown'),
+                'total_members': total,
+                'submitted': submitted,
+                'compliance_rate': round((submitted / total) * 100, 2) if total > 0 else 0
+            })
+
+        return compliance
+
+    def _get_submission_rate(self, tenant_id: str, year: int, month: int) -> float:
+        from apps.accounts.models import User
+
         total_users = User.objects.filter(tenant_id=tenant_id, is_active=True).count()
+        if total_users == 0:
+            return 0
+
         submitted = MonthlyActual.objects.filter(
             tenant_id=tenant_id,
             year=year,
             month=month
         ).values('user_id').distinct().count()
-        return (submitted / total_users * 100) if total_users > 0 else 0
-    
+
+        return round((submitted / total_users) * 100, 2)
+
     def _get_consecutive_red_months(self, user_id: str, kpi_id: str, current_year: int, current_month: int) -> int:
-        """Calculate consecutive months with RED status"""
         consecutive = 0
         year = current_year
         month = current_month
-        
-        for i in range(6):  # Check up to 6 months back
+
+        for _ in range(6):
             score = Score.objects.filter(
                 user_id=user_id,
                 kpi_id=kpi_id,
                 year=year,
-                month=month,
-                score__lt=70
+                month=month
             ).first()
-            
-            if score:
+
+            if score and score.score < 70:
                 consecutive += 1
                 month -= 1
                 if month <= 0:
@@ -386,33 +347,35 @@ class ChampionDashboard:
                     year -= 1
             else:
                 break
-        
-        return consecutive
-        
-class RealtimeDashboard:
-    """Backward-compatible facade — delegates to KPIEventBroadcaster (sync)."""
 
+        return consecutive
+
+
+class RealtimeDashboard:
     def push_score_update(self, user_id: str, score_data: Dict):
         from .realtime import KPIEventBroadcaster
+        
         KPIEventBroadcaster.score_updated(
             user_id=user_id,
             kpi_id=score_data.get('kpi_id', ''),
             score=score_data.get('score', 0),
             period=score_data.get('period', ''),
             status=score_data.get('status', 'UNKNOWN'),
-            manager_id=score_data.get('manager_id'),
+            manager_id=score_data.get('manager_id')
         )
 
     def push_team_update(self, manager_id: str, team_data: Dict):
         from .realtime import KPIEventBroadcaster
+        
         KPIEventBroadcaster._group_send(f'manager_{manager_id}', 'team_update', team_data)
 
     def push_validation_status(self, user_id: str, validation_data: Dict):
         from .realtime import KPIEventBroadcaster
+        
         KPIEventBroadcaster.validation_updated(
             user_id=user_id,
             actual_id=validation_data.get('actual_id', ''),
             status=validation_data.get('status', ''),
             kpi_id=validation_data.get('kpi_id'),
-            supervisor_id=validation_data.get('supervisor_id'),
+            supervisor_id=validation_data.get('supervisor_id')
         )

@@ -8,7 +8,6 @@ from ..serializers import ValidationRecordSerializer, RejectionReasonSerializer,
 from ....models import ValidationRecord, RejectionReason, Escalation
 from ..filters import ValidationRecordListFilter
 from ....services import ValidationEscalator
-from ....managers import MonthlyActualManager
 from ....services.validation import pending_validation_count_for_supervisor
 
 class ValidationRecordViewSet(BaseKpiViewset):
@@ -20,13 +19,16 @@ class ValidationRecordViewSet(BaseKpiViewset):
     ordering_fields = ['validated_at']
     ordering = ['-validated_at']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related('actual', 'actual__kpi', 'actual__user', 'validated_by')
+
     @action(detail=False, methods=['get'])
     def pending(self, request):
-        MonthlyActualManager().needs_validation_alert()
         direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
-        validations = self.queryset.filter(
+        validations = self.get_queryset().filter(
             actual__user_id__in=direct_reports,
-            status='PENDING',
+            status='PENDING'
         )
         serializer = self.get_serializer(validations, many=True)
         return Response({
@@ -41,7 +43,8 @@ class ValidationRecordViewSet(BaseKpiViewset):
             'pending_count': count,
             'supervisor_id': str(request.user.id),
         })
-    
+
+
 class RejectionReasonViewSet(BaseKpiViewset):
     queryset = RejectionReason.objects.filter(is_active=True)
     serializer_class = RejectionReasonSerializer
@@ -51,6 +54,14 @@ class RejectionReasonViewSet(BaseKpiViewset):
     ordering_fields = ['display_order']
     ordering = ['display_order']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            return queryset.filter(tenant_id=tenant_id)
+        return queryset
+
+
 class EscalationViewSet(BaseKpiViewset):
     queryset = Escalation.objects.all()
     serializer_class = EscalationSerializer
@@ -59,7 +70,14 @@ class EscalationViewSet(BaseKpiViewset):
     search_fields = ['reason', 'resolution']
     ordering_fields = ['escalated_at']
     ordering = ['-escalated_at']
-    
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related(
+            'actual', 'actual__kpi', 'actual__user',
+            'escalated_by', 'escalated_to', 'resolved_by'
+        )
+
     def create(self, request, *args, **kwargs):
         escalator = ValidationEscalator()
         try:
@@ -76,6 +94,7 @@ class EscalationViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['post'])
     def resolve(self, request, pk=None):
         escalation = self.get_object()
@@ -93,10 +112,11 @@ class EscalationViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=False, methods=['get'])
     def my_escalations(self, request):
         user_id = request.user.id
-        escalations = self.queryset.filter(
+        escalations = self.get_queryset().filter(
             escalated_to_id=user_id,
             status__in=['PENDING', 'REVIEWING']
         )

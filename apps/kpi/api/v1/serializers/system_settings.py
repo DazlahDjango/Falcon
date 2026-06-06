@@ -2,10 +2,8 @@ from rest_framework import serializers
 from apps.kpi.models.system_settings import KpiSystemSettings
 from apps.kpi.services.settings import KpiSettingsService
 
-
 class KpiSystemSettingsSerializer(serializers.ModelSerializer):
     effective_settings = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = KpiSystemSettings
         fields = [
@@ -22,7 +20,7 @@ class KpiSystemSettingsSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         patch = validated_data.get('settings', {})
-        user = self.context['request'].user
+        user = self.context['request'].user if 'request' in self.context else None
         return KpiSettingsService.update_settings(
-            patch, user_id=str(user.id) if user else None,
+            patch, user_id=str(user.id) if user and user.is_authenticated else None,
         )

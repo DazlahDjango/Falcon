@@ -11,34 +11,45 @@ from django.core.cache import cache
 from apps.kpi.models import KPI, KPIHistory, KPIFramework, KPICategory, Sector, KPIWeight, KPIDependency
 from ..constants import KPIStatus, KPIType, CalculationLogic, MeasureType
 from ..validators import validate_kpi_code, validate_kpi_name, validate_positive_value, validate_target_range, validate_decimal_precision
-from ..exceptions import DuplicateKPICodeError, InvalidFrameworkError, WeightSumError, KPIValidationError, HistoricalDataError
+from ..exceptions import DuplicateKPICodeError, InvalidFrameworkError, WeightSumError, KPIValidationError, HistoricalDataError, PermissionDenied
+
+CACHE_TTL = 300
+CACHE_PREFIX = "kpi_service"
+
 
 class KPICreator:
     def create(self, data: Dict, user) -> KPI:
+        if not user.tenant_id:
+            raise PermissionDenied("User has no tenant association")
+
         framework = KPIFramework.objects.filter(
             id=data.get('framework_id'),
-            tenant_id=data['tenant_id'],
+            tenant_id=user.tenant_id,
             status='PUBLISHED'
         ).first()
+
         if not framework:
             raise InvalidFrameworkError("Invalid or unpublished framework.")
+
         if KPI.objects.filter(
-            tenant_id=data['tenant_id'],
+            tenant_id=user.tenant_id,
             framework_id=data['framework_id'],
             code=data['code']
         ).exists():
             raise DuplicateKPICodeError("KPI code must be unique within the framework.")
+
         validate_kpi_name(data['name'])
         validate_kpi_code(data['code'])
         validate_target_range(data.get('target_min'), data.get('target_max'))
+
         if data.get('target_min'):
             validate_decimal_precision(data['target_min'])
         if data.get('target_max'):
             validate_decimal_precision(data['target_max'])
-        # Create KPI
+
         with transaction.atomic():
             kpi = KPI.objects.create(
-                tenant_id=data['tenant_id'],
+                tenant_id=user.tenant_id,
                 name=data['name'],
                 code=data['code'],
                 description=data.get('description', ''),
@@ -62,6 +73,7 @@ class KPICreator:
                 created_by=user,
                 updated_by=user
             )
+
             KPIHistory.objects.create(
                 tenant_id=kpi.tenant_id,
                 kpi=kpi,
@@ -70,8 +82,10 @@ class KPICreator:
                 performed_by=user,
                 reason="KPI created"
             )
-            cache.delete(f"kpi_framework_{framework.id}")
+
+            self._invalidate_caches(framework.id, kpi.id)
             return kpi
+
     def _serialize_kpi(self, kpi: KPI) -> Dict:
         return {
             'id': str(kpi.id),
@@ -84,22 +98,40 @@ class KPICreator:
             'target_min': str(kpi.target_min) if kpi.target_min else None,
             'target_max': str(kpi.target_max) if kpi.target_max else None,
         }
-    
+
+    def _invalidate_caches(self, framework_id: str = None, kpi_id: str = None) -> None:
+        if framework_id:
+            cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
+        if kpi_id:
+            cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
+        cache.delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+
 class KPIUpdater:
     def update(self, kpi_id: str, data: Dict, user) -> KPI:
-        kpi = KPI.objects.get(id=kpi_id)
-        old_snapshot = self._serialize_kpi(kpi)
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=user.tenant_id).first()
+        if not kpi:
+            raise ValidationError("KPI not found or access denied")
+
         changes = {}
+
         with transaction.atomic():
             for field, new_value in data.items():
+                if field == 'reason':
+                    continue
                 if hasattr(kpi, field):
                     old_value = getattr(kpi, field)
                     if old_value != new_value:
-                        changes[field] = {'old': str(old_value) if old_value else None, 'new': str(new_value) if new_value else None}
+                        changes[field] = {
+                            'old': str(old_value) if old_value else None,
+                            'new': str(new_value) if new_value else None
+                        }
                         setattr(kpi, field, new_value)
+
             if changes:
                 kpi.updated_by = user
                 kpi.save()
+
                 KPIHistory.objects.create(
                     tenant_id=kpi.tenant_id,
                     kpi=kpi,
@@ -109,9 +141,11 @@ class KPIUpdater:
                     performed_by=user,
                     reason=data.get('reason', 'KPI updated')
                 )
-                cache.delete(f"kpi_{kpi.id}")
-                cache.delete(f"kpi_framework_{kpi.framework_id}")
+
+                self._invalidate_caches(kpi.framework_id, kpi.id)
+
         return kpi
+
     def _serialize_kpi(self, kpi: KPI) -> Dict:
         return {
             'id': str(kpi.id),
@@ -121,14 +155,25 @@ class KPIUpdater:
             'is_active': kpi.is_active,
             'updated_at': kpi.updated_at.isoformat() if kpi.updated_at else None,
         }
-    
+
+    def _invalidate_caches(self, framework_id: str, kpi_id: str) -> None:
+        cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
+        cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
+        cache.delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+
 class KPIActivator:
     def activate(self, kpi_id: str, user) -> KPI:
-        kpi = KPI.objects.get(id=kpi_id)
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=user.tenant_id).first()
+        if not kpi:
+            raise ValidationError("KPI not found or access denied")
+
         if kpi.is_active:
             return kpi
+
         with transaction.atomic():
             kpi.activate(user)
+
             KPIHistory.objects.create(
                 tenant_id=kpi.tenant_id,
                 kpi=kpi,
@@ -137,15 +182,22 @@ class KPIActivator:
                 performed_by=user,
                 reason="KPI activated"
             )
-            cache.delete(f"kpi_{kpi.id}")
-            cache.delete(f"kpi_framework_{kpi.framework_id}")
+
+            self._invalidate_caches(kpi.framework_id, kpi.id)
+
         return kpi
+
     def deactivate(self, kpi_id: str, user, reason: str = "") -> KPI:
-        kpi = KPI.objects.get(id=kpi_id)
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=user.tenant_id).first()
+        if not kpi:
+            raise ValidationError("KPI not found or access denied")
+
         if not kpi.is_active:
             return kpi
+
         with transaction.atomic():
             kpi.deactivate(user)
+
             KPIHistory.objects.create(
                 tenant_id=kpi.tenant_id,
                 kpi=kpi,
@@ -154,9 +206,11 @@ class KPIActivator:
                 performed_by=user,
                 reason=reason or "KPI deactivated"
             )
-            cache.delete(f"kpi_{kpi.id}")
-            cache.delete(f"kpi_framework_{kpi.framework_id}")
+
+            self._invalidate_caches(kpi.framework_id, kpi.id)
+
         return kpi
+
     def _serialize_kpi(self, kpi: KPI) -> Dict:
         return {
             'id': str(kpi.id),
@@ -165,7 +219,12 @@ class KPIActivator:
             'activation_date': kpi.activation_date.isoformat() if kpi.activation_date else None,
             'deactivation_date': kpi.deactivation_date.isoformat() if kpi.deactivation_date else None,
         }
-    
+
+    def _invalidate_caches(self, framework_id: str, kpi_id: str) -> None:
+        cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
+        cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
+
+
 class KPIValidator:
     def validate_kpi_completeness(self, kpi: KPI) -> List[str]:
         errors = []
@@ -180,19 +239,36 @@ class KPIValidator:
         if not kpi.owner:
             errors.append("KPI owner is required.")
         return errors
+
     def validate_weight_sum(self, kpi_id: str, user_id: str = None) -> Tuple[bool, str]:
+        cache_key = f"{CACHE_PREFIX}:weight_validation_{kpi_id}_{user_id or 'all'}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
         weights = KPIWeight.objects.filter(kpi_id=kpi_id)
         if user_id:
             weights = weights.filter(user_id=user_id)
+
         if not weights.exists():
-            return False, "No weights defined for this KPI."
+            result = (False, "No weights defined for this KPI.")
+            cache.set(cache_key, result, CACHE_TTL)
+            return result
+
         total = sum(w.weight for w in weights)
         if abs(total - 100) > 0.01:
-            return False, f"Total weight must sum to 100%. Current total: {total:.2f}%."
-        return True, "Weights are valid."
+            result = (False, f"Total weight must sum to 100%. Current total: {total:.2f}%.")
+            cache.set(cache_key, result, CACHE_TTL)
+            return result
+
+        result = (True, "Weights are valid.")
+        cache.set(cache_key, result, CACHE_TTL)
+        return result
+
     def validate_circular_dependency(self, kpi_id: str) -> Tuple[bool, List[str]]:
         visited = set()
         path = []
+
         def dfs(current_id):
             if current_id in visited:
                 return False
@@ -206,19 +282,22 @@ class KPIValidator:
             path.pop()
             visited.add(current_id)
             return False
+
         has_cycle = dfs(kpi_id)
-        return not has_cycle, path if has_cycle else []
+        return (not has_cycle, path if has_cycle else [])
+
     def validate_measurement_period(self, kpi: KPI, year: int, month: int) -> Tuple[bool, str]:
         now = timezone.now()
         if kpi.activation_date and (year < kpi.activation_date.year or (year == kpi.activation_date.year and month < kpi.activation_date.month)):
             return False, f'KPI was activated on {kpi.activation_date}'
-        if kpi.deactivation_date and (year > kpi.deactivation_date.year or (year == kpi.deactivation_date.year and month > kpi.deactivation_date.month)): 
+        if kpi.deactivation_date and (year > kpi.deactivation_date.year or (year == kpi.deactivation_date.year and month > kpi.deactivation_date.month)):
             return False, f'KPI was deactivated on {kpi.deactivation_date}'
         return True, "Measurement period is valid."
-    
+
+
 class KPIImportExport:
-    def export_to_csv(self, framework_id: str) -> str:
-        kpis = KPI.objects.filter(framework_id=framework_id).select_related('category', 'sector', 'owner')
+    def export_to_csv(self, framework_id: str, tenant_id: str) -> str:
+        kpis = KPI.objects.filter(framework_id=framework_id, tenant_id=tenant_id).select_related('category', 'sector', 'owner')
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow([
@@ -226,6 +305,7 @@ class KPIImportExport:
             'Measure Type', 'Unit', 'Decimal Places', 'Target Min', 'Target Max',
             'Category', 'Sector', 'Owner Email', 'Department', 'Strategic Objective'
         ])
+
         for kpi in kpis:
             writer.writerow([
                 kpi.code, kpi.name, kpi.description, kpi.kpi_type, kpi.calculation_logic,
@@ -233,16 +313,29 @@ class KPIImportExport:
                 kpi.category.name if kpi.category else '', kpi.sector.name,
                 kpi.owner.email, kpi.department_id, kpi.strategic_objective
             ])
+
         return output.getvalue()
-    
+
     def import_from_csv(self, csv_content: str, framework_id: str, tenant_id: str, user, dry_run: bool = False) -> Dict:
-        reader = csv.DictReader(io.StringIO(csv_content))
+        try:
+            reader = csv.DictReader(io.StringIO(csv_content))
+            if not reader.fieldnames:
+                raise ValidationError("CSV has no headers")
+
+            required_headers = ['Code', 'Name', 'Type']
+            missing = [h for h in required_headers if h not in reader.fieldnames]
+            if missing:
+                raise ValidationError(f"Missing required columns: {', '.join(missing)}")
+        except csv.Error as e:
+            raise ValidationError(f"Invalid CSV format: {str(e)}")
+
+        framework = KPIFramework.objects.filter(id=framework_id, tenant_id=tenant_id).first()
+        if not framework:
+            raise InvalidFrameworkError(f"Framework {framework_id} not found")
+
         created = []
         errors = []
-        try:
-            framework = KPIFramework.objects.get(id=framework_id, tenant_id=tenant_id)
-        except KPIFramework.DoesNotExist:
-            raise InvalidFrameworkError(f"Framework {framework_id} not found")
+
         for row_num, row in enumerate(reader, start=2):
             try:
                 with transaction.atomic():
@@ -270,4 +363,5 @@ class KPIImportExport:
                         transaction.set_rollback(True)
             except Exception as e:
                 errors.append({'row': row_num, 'code': row.get('Code'), 'error': str(e)})
+
         return {'created': created, 'errors': errors, 'total': len(created) + len(errors)}

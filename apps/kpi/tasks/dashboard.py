@@ -2,49 +2,67 @@ import logging
 from celery import shared_task
 from django.utils import timezone
 from django.db import connection
-from typing import Dict, List
-from apps.accounts.models import User
-from apps.kpi.models import RefreshTracker
-from apps.kpi.services import IndividualDashboard, ManagerDashboard, ExecutiveDashboard
+from typing import Dict
 logger = logging.getLogger(__name__)
 
-@shared_task(bind=True)
-def refresh_materialized_views_task(self, tenant_id: str) -> None:
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def refresh_materialized_views_task(self, tenant_id: str) -> Dict:
+    from apps.kpi.models import RefreshTracker
+
     logger.info(f"Refreshing materialized views for tenant {tenant_id}")
+    views = ['kpi_summary_mv', 'department_rollup_mv', 'organization_health_mv']
+    results = {}
+
     try:
         with connection.cursor() as cursor:
-            cursor.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY kpi_summary_mv")
-            cursor.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY department_rollup_mv")
-            cursor.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY organization_health_mv")
+            for view in views:
+                try:
+                    cursor.execute(f"REFRESH MATERIALIZED VIEW CONCURRENTLY {view};")
+                    results[view] = 'SUCCESS'
+                    logger.info(f"Refreshed {view} for tenant {tenant_id}")
+                except Exception as e:
+                    results[view] = f"FAILED: {str(e)}"
+                    logger.warning(f"Failed to refresh {view}: {e}")
+
             RefreshTracker.objects.update_or_create(
                 tenant_id=tenant_id,
                 view_name='kpi_summary',
                 defaults={'last_refresh': timezone.now(), 'status': 'SUCCESS'}
             )
-            logger.info(f"Materialized views refreshed for tenant {tenant_id}")
+        return {'status': 'SUCCESS', 'results': results}
     except Exception as e:
         logger.exception(f"Materialized view refresh failed: {e}")
-        raise
+        raise self.retry(exc=e)
+
 
 @shared_task(bind=True)
 def precompute_dashboard_cache_task(self, tenant_id: str, year: int, month: int) -> Dict:
+    from apps.accounts.models import User
+    from apps.kpi.services import IndividualDashboard, ManagerDashboard, ExecutiveDashboard
+
     logger.info(f"Precomputing dashboard cache for tenant {tenant_id}, period {year}-{month:02d}")
-    users = User.objects.filter(tenant_id=tenant_id, is_active=True)
-    individual_dashboard = IndividualDashboard()
-    manager_dashboard = ManagerDashboard()
-    executive_dashboard = ExecutiveDashboard()
-    processed = {
-        'individual': 0,
-        'manager': 0,
-        'executive': 0
-    }
-    for user in users:
-        individual_dashboard.get_dashboard(str(user.id), year, month)
-        processed['individual'] += 1
-        if user.get_direct_reports().exists():
-            manager_dashboard.get_dashboard(str(user.id), year, month)
-            processed['manager'] += 1
-    executive_dashboard.get_dashboard(tenant_id, year, month)
-    processed['executive'] = 1
-    logger.info(f"Dashboard cache precomputed: {processed}")
-    return processed
+
+    try:
+        users = User.objects.filter(tenant_id=tenant_id, is_active=True)
+        individual_dashboard = IndividualDashboard()
+        manager_dashboard = ManagerDashboard()
+        executive_dashboard = ExecutiveDashboard()
+
+        processed = {'individual': 0, 'manager': 0, 'executive': 0}
+
+        for user in users:
+            individual_dashboard.get_dashboard(str(user.id), year, month)
+            processed['individual'] += 1
+
+            if user.get_direct_reports().exists():
+                manager_dashboard.get_dashboard(str(user.id), year, month)
+                processed['manager'] += 1
+
+        executive_dashboard.get_dashboard(tenant_id, year, month)
+        processed['executive'] = 1
+
+        logger.info(f"Dashboard cache precomputed: {processed}")
+        return processed
+    except Exception as e:
+        logger.exception(f"Precompute failed: {e}")
+        return {'status': 'FAILED', 'error': str(e), 'processed': processed}

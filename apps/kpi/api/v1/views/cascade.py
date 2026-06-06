@@ -1,8 +1,10 @@
+# cascade.py
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.utils import timezone
 
 from .base import BaseKpiViewset
 from ..serializers import CascadeMapSerializer, CascadeRuleSerializer
@@ -19,15 +21,23 @@ class CascadeRuleViewSet(BaseKpiViewset):
     search_fields = ['name', 'description']
     ordering_fields = ['name']
     ordering = ['name']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            return queryset.filter(tenant_id=tenant_id)
+        return queryset
+
     @action(detail=True, methods=['post'])
     def set_default(self, request, pk=None):
-        """Set this rule as default"""
         rule = self.get_object()
-        CascadeRule.objects.filter(is_default=True).update(is_default=False)
+        CascadeRule.objects.filter(tenant_id=getattr(request, 'current_tenant_id', None), is_default=True).update(is_default=False)
         rule.is_default = True
-        rule.save()
+        rule.save(update_fields=['is_default', 'updated_at'])
         serializer = self.get_serializer(rule)
         return Response(serializer.data)
+
 
 class CascadeMapViewSet(BaseKpiViewset):
     queryset = CascadeMap.objects.all()
@@ -37,12 +47,23 @@ class CascadeMapViewSet(BaseKpiViewset):
     ordering_fields = ['contribution_percentage', 'created_at']
     ordering = ['-created_at']
     permission_classes = [CanCascadeTargets] + BaseKpiViewset.permission_classes
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(tenant_id=getattr(self.request, 'current_tenant_id', None))
+
     def create(self, request, *args, **kwargs):
-        """Cascade targets from organization to departments/individuals"""
         cascader = TargetCascader()
         org_target_id = request.data.get('organization_target')
         rule_id = request.data.get('cascade_rule')
         targets = request.data.get('targets', [])
+        
+        if not org_target_id or not rule_id:
+            return Response(
+                {'error': 'organization_target and cascade_rule are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         try:
             cascade_maps = cascader.cascade_from_organization(
                 org_target_id=org_target_id,
@@ -57,9 +78,9 @@ class CascadeMapViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['delete'])
     def rollback(self, request, pk=None):
-        """Rollback a cascade operation"""
         cascade_map = self.get_object()
         rollback_service = CascadeRollback()
         try:
@@ -75,14 +96,21 @@ class CascadeMapViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=False, methods=['post'])
     def cascade_department(self, request):
-        """Cascade department target to individuals"""
-        cascader = TargetCascader()  
+        cascader = TargetCascader()
         dept_target_id = request.data.get('department_target')
         rule_id = request.data.get('cascade_rule')
         user_ids = request.data.get('user_ids', [])
         weights = request.data.get('weights', {})
+        
+        if not dept_target_id or not rule_id:
+            return Response(
+                {'error': 'department_target and cascade_rule are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         try:
             cascade_maps = cascader.cascade_from_department(
                 dept_target_id=dept_target_id,
@@ -98,9 +126,9 @@ class CascadeMapViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=False, methods=['get'])
     def tree(self, request):
-        """Get cascade tree for an organization target"""
         org_target_id = request.query_params.get('organization_target')
         if not org_target_id:
             return Response(
@@ -108,5 +136,5 @@ class CascadeMapViewSet(BaseKpiViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         cascader = TargetCascader()
-        tree = cascader.get_cascade_tree(org_target_id)
+        tree = cascader.get_cascade_tree(org_target_id, str(getattr(request, 'current_tenant_id', None)))
         return Response(tree)
