@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOverrides, createOverride, updateOverride, deleteOverride, fetchActiveOverride, expireOverrides, createDynamicPlan, updateDynamicPlan, fetchDynamicPlans, clearError, clearActiveOverride } from '../../store/billing/slices/enterpriseSlice';
 import { selectOverrides, selectDynamicPlans, selectActiveOverride, selectEnterprisePagination, selectEnterpriseLoading, selectEnterpriseError } from '../../store/billing/selectors';
@@ -7,6 +7,9 @@ import { useBillingPermissions } from './useBillingPermissions';
 export const useEnterprise = (options = { autoFetch: false }) => {
     const dispatch = useDispatch();
     const { permissions } = useBillingPermissions();
+    const hasFetchedOverrides = useRef(false);
+    const hasFetchedDynamicPlans = useRef(false);
+    
     const overrides = useSelector(selectOverrides);
     const dynamicPlans = useSelector(selectDynamicPlans);
     const activeOverride = useSelector(selectActiveOverride);
@@ -27,9 +30,18 @@ export const useEnterprise = (options = { autoFetch: false }) => {
     const clearEnterpriseError = useCallback(() => dispatch(clearError()), [dispatch]);
     const resetActiveOverride = useCallback(() => dispatch(clearActiveOverride()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch && canManage) { fetchAllOverrides({}); fetchAllDynamicPlans(); } }, [options.autoFetch, canManage, fetchAllOverrides, fetchAllDynamicPlans]);
+    useEffect(() => { 
+        if (options.autoFetch && canManage && !hasFetchedOverrides.current) { 
+            hasFetchedOverrides.current = true;
+            fetchAllOverrides({}); 
+        }
+        if (options.autoFetch && canManage && !hasFetchedDynamicPlans.current) {
+            hasFetchedDynamicPlans.current = true;
+            fetchAllDynamicPlans(); 
+        }
+    }, [options.autoFetch, canManage]);
 
-    const getOverrideForTenant = useCallback((tenantId) => overrides.find(o => o.tenant_id === tenantId), [overrides]);
+    const getOverrideForTenant = useCallback((tenantId) => overrides?.find(o => o.tenant_id === tenantId), [overrides]);
     const getDiscountForTenant = useCallback((tenantId) => { const override = getOverrideForTenant(tenantId); return override?.discount_percentage || 0; }, [getOverrideForTenant]);
 
     return {

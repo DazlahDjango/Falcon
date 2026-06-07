@@ -4,12 +4,3 @@ export { CheckoutForm } from './CheckoutForm';
 export { BillingAddressForm } from './BillingAddressForm';
 export { PaymentMethodSelector } from './PaymentMethodSelector';
 export { CheckoutSuccess } from './CheckoutSuccess';
-
-export default {
-    CheckoutButton,
-    CheckoutModal,
-    CheckoutForm,
-    BillingAddressForm,
-    PaymentMethodSelector,
-    CheckoutSuccess,
-};

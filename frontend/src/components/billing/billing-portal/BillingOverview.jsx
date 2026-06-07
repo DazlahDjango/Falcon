@@ -4,7 +4,7 @@ import { useSubscription, useInvoices, usePaymentMethods, useBillingAnalytics } 
 import { SubscriptionStatus } from '../subscription/SubscriptionStatus';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { TrialBanner } from '../subscription/TrialBanner';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import renderBillingIcon from '../shared/BillingIcons';
 
 export const BillingOverview = ({ onRefresh }) => {
     const { subscription, loading: subLoading, isOnTrial, trialDaysRemaining } = useSubscription();

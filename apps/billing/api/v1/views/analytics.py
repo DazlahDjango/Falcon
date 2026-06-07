@@ -5,7 +5,7 @@ from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import timedelta
 from ....models import Subscription, Transaction, Invoice
-from ..permissions import IsSuperAdmin, IsClientAdmin, IsAuthenticated
+from ..permissions import IsAuthenticated, IsSuperAdmin, IsClientAdmin
 
 class BillingAnalyticsViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]

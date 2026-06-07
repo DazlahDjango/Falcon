@@ -1,11 +1,11 @@
 import React from 'react';
-import { FiCheckCircle, FiAlertTriangle, FiXCircle, FiClock, FiMinusCircle, FiRocket, FiRefreshCw } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertTriangle, FiXCircle, FiClock, FiMinusCircle, FiGift, FiRefreshCw } from 'react-icons/fi';
 import './shared.css';
 
 const STATUS_CONFIG = {
     subscription: {
         active: { icon: FiCheckCircle, color: 'success', text: 'Active' },
-        trialing: { icon: FiRocket, color: 'info', text: 'Trial' },
+        trialing: { icon: FiGift, color: 'info', text: 'Trial' },
         past_due: { icon: FiAlertTriangle, color: 'warning', text: 'Past Due' },
         cancelled: { icon: FiXCircle, color: 'secondary', text: 'Cancelled' },
         expired: { icon: FiClock, color: 'error', text: 'Expired' },

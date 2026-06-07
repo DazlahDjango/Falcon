@@ -23,6 +23,11 @@ websocket_urlpatterns = [
         name='kpi-admin'
     ),
     re_path(
+        r'ws/kpi/admin/?$',
+        consumers.KPIAdminConsumer.as_asgi(),
+        name='kpi-admin-alias'
+    ),
+    re_path(
         r'ws/kpi/notifications/(?P<user_id>[0-9a-f-]+)/$',
         consumers.KPINotificationConsumer.as_asgi(),
         name='kpi-notifications'

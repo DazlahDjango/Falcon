@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.core.cache import cache
 from ..services import JWTServices, SessionService
 from ..models import UserSession, AuditLog
+from .ws_utils import get_scope_user, extract_token_from_scope
 User = get_user_model()
 logger = logging.getLogger(__name__)
 jwt_service = JWTServices()
@@ -14,10 +15,10 @@ session_service = SessionService()
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        token = self.scope['query_string'].decode()
-        if token.startswith('token='):
-            token = token.split('=')[1]
-        user = await self.authenticate_token(token)
+        user = get_scope_user(self.scope)
+        if user is None:
+            token = extract_token_from_scope(self.scope)
+            user = await self.authenticate_token(token)
         if user:
             self.user = user
             self.user_id = str(user.id)

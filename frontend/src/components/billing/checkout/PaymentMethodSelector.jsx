@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FiCreditCard, FiSmartphone, FiBank, FiQrCode, FiCheck, FiPlus } from 'react-icons/fi';
+import { FiCreditCard, FiSmartphone, FiCheck, FiPlus } from 'react-icons/fi';
+import { FaBuilding } from 'react-icons/fa';
 import { FaCcVisa, FaCcMastercard, FaCcAmex } from 'react-icons/fa';
 import { usePaymentMethods } from '../../../hooks/billing/usePaymentMethods';
 import { CurrencyFormatter } from '../shared/CurrencyFormatter';
@@ -25,7 +26,7 @@ export const PaymentMethodSelector = ({ selectedMethod, onSelect, showAddNew = t
     const getMethodIcon = (method) => {
         if (method.payment_type === 'card') return <CardBrandIcon brand={method.card_brand} size={24} />;
         if (method.payment_type === 'mobile_money') return <FiSmartphone />;
-        if (method.payment_type === 'bank') return <FiBank />;
+        if (method.payment_type === 'bank') return <FaBuilding />;
         return <FiCreditCard />;
     };
 

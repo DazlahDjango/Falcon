@@ -31,8 +31,11 @@ import {
   FiPackage,
   FiFolder,
   FiPieChart,
-  FiSmartphone,        // ← NEW for MFA devices
-  FiCode,              // ← NEW for backup codes
+  FiSmartphone,
+  FiCode,
+  FiCreditCard,
+  FiEye,
+  FiRotateCcw,
 } from 'react-icons/fi';
 import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
@@ -43,9 +46,6 @@ import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { BILLING_ROUTES } from '../constants/billingRouteConstants';
 import { ROUTES } from '../constants';
 
-// ============================================
-// MFA ROUTES (NEW)
-// ============================================
 export const MFA_ROUTES = {
   DEVICES: '/security/mfa',
   BACKUP_CODES: '/security/backup-codes',
@@ -54,9 +54,6 @@ export const MFA_ROUTES = {
   VERIFY: '/mfa/verify',
 };
 
-// ============================================
-// KPI ADMIN ROUTES (NEW)
-// ============================================
 export const KPI_ADMIN_ROUTES = {
   OVERVIEW: '/kpi/admin/overview',
   SECTORS: '/kpi/admin/sectors',
@@ -65,7 +62,6 @@ export const KPI_ADMIN_ROUTES = {
   TEMPLATES: '/kpi/admin/templates',
 };
 
-/** Full Config Manager menu (mirrors ConfigSidebar). */
 export const CONFIG_NAV_ITEMS = [
   { path: '/config/dashboard', name: 'Config Dashboard', icon: MdOutlineDashboard },
   { path: '/config/registry', name: 'App Registry', icon: FiGrid },
@@ -80,13 +76,41 @@ export const CONFIG_NAV_ITEMS = [
   { path: '/config/settings', name: 'Config Settings', icon: FiSettings },
 ];
 
-// ============================================
-// MFA NAVIGATION ITEMS (NEW)
-// ============================================
 export const MFA_NAV_ITEMS = [
   { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
   { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
   { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
+];
+
+// ============================================
+// CUSTOMER BILLING NAVIGATION (For all authenticated users)
+// ============================================
+export const BILLING_NAV_ITEMS = [
+  { path: BILLING_ROUTES.PORTAL, name: 'Billing Portal', icon: FiCreditCard },
+  { path: BILLING_ROUTES.PLANS, name: 'Subscription Plans', icon: FiGrid },
+  { path: BILLING_ROUTES.SUBSCRIPTIONS, name: 'My Subscription', icon: FiClock },
+  { path: BILLING_ROUTES.INVOICES, name: 'Invoices', icon: FiFileText },
+  { path: BILLING_ROUTES.TRANSACTIONS, name: 'Transactions', icon: FiActivity },
+  { path: BILLING_ROUTES.PAYMENT_METHODS, name: 'Payment Methods', icon: FiCreditCard },
+  { path: BILLING_ROUTES.USAGE, name: 'Usage Tracking', icon: FiBarChart2 },
+  { path: BILLING_ROUTES.ANALYTICS, name: 'Billing Analytics', icon: FiTrendingUp },
+  { path: BILLING_ROUTES.SETTINGS, name: 'Billing Settings', icon: FiSettings },
+];
+
+// ============================================
+// ADMIN BILLING NAVIGATION (Super Admin only)
+// ============================================
+export const ADMIN_BILLING_NAV_ITEMS = [
+  { path: BILLING_ROUTES.ADMIN_BASE, name: 'Billing Dashboard', icon: FiDollarSign },
+  { path: BILLING_ROUTES.ADMIN_PLANS, name: 'Manage Plans', icon: FiGrid },
+  { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, name: 'Tenant Subscriptions', icon: FiUsers },
+  { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, name: 'All Transactions', icon: FiFileText },
+  { path: BILLING_ROUTES.ADMIN_REFUNDS, name: 'Refunds', icon: FiRotateCcw },
+  { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhook Logs', icon: FiBell },  // Keep this one
+  { path: BILLING_ROUTES.ADMIN_ANALYTICS, name: 'Revenue Analytics', icon: FiTrendingUp },
+  { path: BILLING_ROUTES.ADMIN_ENTERPRISE, name: 'Enterprise Overrides', icon: FiShield },
+  { path: BILLING_ROUTES.AUDIT_LOGS, name: 'Billing Audit Logs', icon: FiList },
+  { path: BILLING_ROUTES.SYSTEM_SETTINGS, name: 'Billing Settings', icon: FiSettings },
 ];
 
 // ============================================
@@ -107,19 +131,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/tenants/connections/metrics', name: 'Connection Metrics', icon: FiBarChart2 },
     { path: '/tenants/connections/health', name: 'Connection Health', icon: FiShield },
   ],
-  billing: [
-    { path: BILLING_ROUTES.ADMIN_BASE, name: 'Billing Admin', icon: FiDollarSign },
-    { path: BILLING_ROUTES.ADMIN_PLANS, name: 'Plans', icon: FiGrid },
-    { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, name: 'Subscriptions', icon: FiClock },
-    { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, name: 'Transactions', icon: FiFileText },
-    { path: BILLING_ROUTES.ADMIN_REFUNDS, name: 'Refunds', icon: FiRefreshCw },
-    { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhooks', icon: FiBell },
-    { path: BILLING_ROUTES.ADMIN_ANALYTICS, name: 'Analytics', icon: FiTrendingUp },
-  ],
-
-  // ============================================
-  // KPI ADMIN SECTION (NEW - FOR SUPER ADMIN)
-  // ============================================
+  billing: ADMIN_BILLING_NAV_ITEMS,  // ← Admin billing for super admin
   kpiAdmin: [
     { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
     { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
@@ -127,17 +139,12 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
     { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
   ],
-
-  // ============================================
-  // EXISTING KPI SECTION (User-facing KPIs)
-  // ============================================
   kpi: [
     { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2 },
     { path: ROUTES.KPI_MANAGEMENT, name: 'KPI Management', icon: FiBarChart2 },
     { path: ROUTES.KPI_ANALYTICS, name: 'KPI Analytics', icon: FiTrendingUp },
     { path: ROUTES.KPI_SETTINGS, name: 'KPI Operations', icon: FiSettings },
   ],
-
   structure: [
     { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
     { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
@@ -172,16 +179,11 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/admin/users', name: 'Admin Users', icon: FiUsers },
     { path: '/admin/tenants', name: 'Admin Tenants', icon: FiLayers },
   ],
-
-  // ============================================
-  // MFA SECTION (NEW - FOR ALL AUTHENTICATED USERS)
-  // ============================================
   mfa: [
     { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
     { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
     { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
   ],
-
   config: CONFIG_NAV_ITEMS,
   settings: [
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SETTINGS, name: 'PMS Settings', icon: FiSettings },
@@ -204,16 +206,13 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.TENANT, name: 'Tenant Overview', icon: FiServer },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.KPI_BREAKDOWN, name: 'KPI Breakdown', icon: FiBarChart2 },
   ],
+  billing: BILLING_NAV_ITEMS,  // ← Customer billing for client admin
   oversight: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.COMPLIANCE, name: 'Compliance', icon: FiShield },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.APPROVALS, name: 'Pending Approvals', icon: FiClock },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.MISSING_DATA, name: 'Missing Data', icon: FiAlertCircle },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USER_ACTIVITY, name: 'User Activity', icon: FiActivity },
   ],
-
-  // ============================================
-  // KPI ADMIN SECTION (NEW - FOR CLIENT ADMIN)
-  // ============================================
   kpiAdmin: [
     { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
     { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
@@ -221,23 +220,17 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
     { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
   ],
-
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, name: 'Roles & Permissions', icon: FiShield },
     { path: ROUTES.USERS, name: 'User Directory', icon: FiUsers },
     { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
-
-  // ============================================
-  // MFA SECTION (NEW - FOR CLIENT ADMIN)
-  // ============================================
   mfa: [
     { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
     { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
     { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
   ],
-
   compliance: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },
@@ -264,17 +257,18 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   structure: false,
   reviews: false,
   accounts: false,
-  mfa: false,        // ← NEW
+  mfa: false,
   config: false,
   settings: false,
 };
 
 export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   main: true,
+  billing: false,      // ← Billing group for client admin
   oversight: true,
   kpiAdmin: false,
   management: true,
-  mfa: false,        // ← NEW
+  mfa: false,
   compliance: false,
   config: false,
 };
@@ -285,23 +279,24 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
 export const SUPER_ADMIN_GROUP_LABELS = {
   main: 'Main',
   tenants: 'Tenant Ops & Connections',
-  billing: 'Billing Admin',
+  billing: 'Billing Administration',     // ← Admin billing label
   kpiAdmin: 'KPI System Admin',
   kpi: 'KPI Management (User)',
   structure: 'Organization Structure',
   reviews: 'Performance Reviews',
   accounts: 'Users & Platform Access',
-  mfa: 'Multi-Factor Authentication',     // ← NEW
+  mfa: 'Multi-Factor Authentication',
   config: 'Configuration Manager',
   settings: 'System & Unified Settings',
 };
 
 export const CLIENT_ADMIN_GROUP_LABELS = {
   main: 'Main',
+  billing: 'Billing & Payments',         // ← Customer billing label
   oversight: 'Oversight',
   kpiAdmin: 'KPI System Admin',
   management: 'Management',
-  mfa: 'Multi-Factor Authentication',     // ← NEW
+  mfa: 'Multi-Factor Authentication',
   compliance: 'Reports & Compliance',
   config: 'Configuration',
 };

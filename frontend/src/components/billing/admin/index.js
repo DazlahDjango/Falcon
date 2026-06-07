@@ -5,13 +5,3 @@ export { RevenueChart } from './RevenueChart';
 export { FailedTransactionsMonitor } from './FailedTransactionsMonitor';
 export { PlanManager } from './PlanManager';
 export { PlanFormModal } from './PlanFormModal';
-
-export default {
-    AdminBillingDashboard,
-    TenantsList,
-    TenantSubscriptionManager,
-    RevenueChart,
-    FailedTransactionsMonitor,
-    PlanManager,
-    PlanFormModal,
-};

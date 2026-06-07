@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchSubscriptions, fetchSubscriptionById, cancelSubscription, renewSubscription,
@@ -13,10 +13,11 @@ import {
 
 export const useSubscriptions = (options = { autoFetch: false }) => {
     const dispatch = useDispatch();
+    const hasFetched = useRef(false);
     const subscriptions = useSelector(selectAllSubscriptions);
     const selectedSubscription = useSelector(selectSelectedSubscription);
     const filters = useSelector(selectSubscriptionFilters);
-    const pagination = useSelector(selectSubscriptionPagination);
+    const pagination = useSelector(selectSubscriptionPagination) || { page: 1, pageSize: 20, total: 0 };
     const stats = useSelector(selectSubscriptionStats);
     const loading = useSelector(selectSubscriptionsLoading);
     const error = useSelector(selectSubscriptionsError);
@@ -35,7 +36,12 @@ export const useSubscriptions = (options = { autoFetch: false }) => {
     const clearSelected = useCallback(() => dispatch(clearSelectedSubscription()), [dispatch]);
     const clearSubscriptionsError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch) fetchAll({ page: pagination.page, pageSize: pagination.pageSize, filters }); }, [options.autoFetch, pagination.page, pagination.pageSize, filters, fetchAll]);
+    useEffect(() => { 
+        if (options.autoFetch && !hasFetched.current) {
+            hasFetched.current = true;
+            fetchAll({ page: pagination.page, pageSize: pagination.pageSize, filters });
+        }
+    }, [options.autoFetch]);
 
     return {
         subscriptions, selectedSubscription, filters, pagination, stats, loading, error,

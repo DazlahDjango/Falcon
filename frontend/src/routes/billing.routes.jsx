@@ -41,6 +41,15 @@ const BillingOperationsPage = React.lazy(() => import('../pages/billing/BillingO
 const AdminDashboardPage = React.lazy(() => import('../pages/billing/AdminDashboardPage'));
 const WebhookLogsPage = React.lazy(() => import('../pages/billing/WebhookLogsPage'));
 const EnterprisePage = React.lazy(() => import('../pages/billing/EnterprisePage'));
+const BillingPlatformSettingsPage = React.lazy(() => import('../pages/billing/BillingPlatformSettingsPage'));
+const BillingSettingsPage = React.lazy(() => import('../pages/billing/BillingSettingsPage'));
+const AdminPlansPage = React.lazy(() => import('../pages/billing/AdminPlansPage'));
+const AdminSubscriptionsPage = React.lazy(() => import('../pages/billing/AdminSubscriptionsPage'));
+const AdminTransactionsPage = React.lazy(() => import('../pages/billing/AdminTransactionsPage'));
+const AdminRefundsPage = React.lazy(() => import('../pages/billing/AdminRefundsPage'));
+const AdminWebhooksPage = React.lazy(() => import('../pages/billing/AdminWebhooksPage'));
+const AdminAnalyticsPage = React.lazy(() => import('../pages/billing/AdminAnalyticsPage'));
+const AdminEnterprisePage = React.lazy(() => import('../pages/billing/AdminEnterprisePage'));
 
 // Legacy redirects
 const legacyRedirects = LEGACY_BILLING_REDIRECTS.map(([from, to]) => ({
@@ -112,13 +121,13 @@ const billingRoutes = [
             // Admin Routes (Super Admin only - middleware handles access)
             { path: 'admin', element: withSuspense(AdminDashboardPage) },
             { path: 'admin/dashboard', element: <Navigate to={BILLING_ROUTES.ADMIN_BASE} replace /> },
-            { path: 'admin/plans', element: withSuspense(AdminDashboardPage) },
-            { path: 'admin/subscriptions', element: withSuspense(AdminDashboardPage) },
-            { path: 'admin/transactions', element: withSuspense(AdminDashboardPage) },
-            { path: 'admin/refunds', element: withSuspense(AdminDashboardPage) },
-            { path: 'admin/webhooks', element: withSuspense(WebhookLogsPage) },
-            { path: 'admin/analytics', element: withSuspense(AnalyticsPage) },
-            { path: 'admin/enterprise', element: withSuspense(EnterprisePage) },
+            { path: 'admin/plans', element: withSuspense(AdminPlansPage) },
+            { path: 'admin/subscriptions', element: withSuspense(AdminSubscriptionsPage) },
+            { path: 'admin/transactions', element: withSuspense(AdminTransactionsPage) },
+            { path: 'admin/refunds', element: withSuspense(AdminRefundsPage) },
+            { path: 'admin/webhooks', element: withSuspense(AdminWebhooksPage) },
+            { path: 'admin/analytics', element: withSuspense(AdminAnalyticsPage) },
+            { path: 'admin/enterprise', element: withSuspense(AdminEnterprisePage) },
 
             // Webhook Logs
             { path: 'webhooks', element: withSuspense(WebhookLogsPage) },
@@ -127,8 +136,8 @@ const billingRoutes = [
             { path: 'enterprise', element: withSuspense(EnterprisePage) },
 
             // Platform Settings (Super Admin)
-            { path: 'platform-settings', element: withSuspense(AdminDashboardPage) },
-            { path: 'system-settings', element: withSuspense(AdminDashboardPage) },
+            { path: 'platform-settings', element: withSuspense(BillingPlatformSettingsPage) },
+            { path: 'system-settings', element: withSuspense(BillingSettingsPage) },
         ],
     },
 ];

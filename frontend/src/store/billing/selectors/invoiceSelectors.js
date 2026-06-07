@@ -1,6 +1,9 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { INVOICE_STATUS } from '../../../config/constants/billingConstants';
 
+const EMPTY_ARRAY = [];
+const EMPTY_OBJECT = {};
+
 const selectInvoiceState = (state) => state.billing?.invoices || {};
 
 export const selectAllInvoices = createSelector([selectInvoiceState], (invState) => invState.items || []);

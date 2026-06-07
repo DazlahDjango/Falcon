@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiSearch, FiFilter, FiDownload, FiRefreshCw, FiChevronLeft, FiChevronRight, FiEye, FiUser, FiClock, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiDownload, FiRefreshCw, FiChevronLeft, FiChevronRight, FiEye, FiUser, FiClock, FiAlertCircle, FiCheckCircle, FiActivity } from 'react-icons/fi';
 import { BillingShell } from '../common/BillingShell';
 import { BillingCard } from '../shared/BillingCard';
 import { StatusBadge } from '../shared/StatusBadge';

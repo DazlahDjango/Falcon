@@ -8,14 +8,3 @@ export { CancelSubscriptionModal } from './CancelSubscriptionModal';
 export { UpgradeDowngradeModal } from './UpgradeDowngradeModal';
 export { TrialBanner } from './TrialBanner';
 
-export default {
-    SubscriptionDetails,
-    SubscriptionCard,
-    SubscriptionsList,
-    SubscriptionStatus,
-    BillingCycleSelector,
-    RenewSubscriptionButton,
-    CancelSubscriptionModal,
-    UpgradeDowngradeModal,
-    TrialBanner,
-};

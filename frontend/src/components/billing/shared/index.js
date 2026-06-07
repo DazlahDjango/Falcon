@@ -8,18 +8,3 @@ export { BillingIcons } from './BillingIcons';
 export { CardBrandIcon } from './CardBrandIcon';
 export { BillingLayout } from './BillingLayout';
 
-export default {
-    StatusBadge,
-    CurrencyFormatter,
-    formatCurrency,
-    PriceDisplay,
-    LoadingSkeleton,
-    SkeletonText,
-    SkeletonCircle,
-    SkeletonButton,
-    EmptyState,
-    BillingCard,
-    BillingIcons,
-    CardBrandIcon,
-    BillingLayout,
-};

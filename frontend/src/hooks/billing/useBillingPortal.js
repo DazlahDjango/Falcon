@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPortalAccess, fetchPortalOverview } from '../../store/billing/slices/billingPortalSlice';
 import { selectPortalAccess, selectPortalOverview, selectPortalLoading, selectPortalError } from '../../store/billing/selectors';
@@ -10,9 +10,15 @@ export const useBillingPortal = () => {
     const portalOverview = useSelector(selectPortalOverview);
     const loading = useSelector(selectPortalLoading);
     const error = useSelector(selectPortalError);
+    const hasFetchedOverview = useRef(false);
 
     const getAccess = useCallback((returnUrl = null) => dispatch(fetchPortalAccess(returnUrl)), [dispatch]);
-    const getOverview = useCallback(() => dispatch(fetchPortalOverview()), [dispatch]);
+    const getOverview = useCallback(() => {
+        if (!hasFetchedOverview.current) {
+            hasFetchedOverview.current = true;
+            return dispatch(fetchPortalOverview());
+        }
+    }, [dispatch]);
     const redirectToPortal = useCallback(async (returnUrl = null) => {
         setRedirecting(true);
         try {

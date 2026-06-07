@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchInvoices, fetchInvoiceById, fetchInvoiceSummary,
@@ -13,6 +13,7 @@ import {
 
 export const useInvoices = (options = { autoFetch: false }) => {
     const dispatch = useDispatch();
+    const hasFetched = useRef(false);
     const invoices = useSelector(selectAllInvoices);
     const selectedInvoice = useSelector(selectSelectedInvoice);
     const summary = useSelector(selectInvoiceSummary);
@@ -34,7 +35,12 @@ export const useInvoices = (options = { autoFetch: false }) => {
     const clearSelected = useCallback(() => dispatch(clearSelectedInvoice()), [dispatch]);
     const clearInvoicesError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch) fetchAll({ page: pagination.page, pageSize: pagination.pageSize, filters }); }, [options.autoFetch, pagination.page, pagination.pageSize, filters, fetchAll]);
+    useEffect(() => { 
+        if (options.autoFetch && !hasFetched.current) {
+            hasFetched.current = true;
+            fetchAll({ page: pagination?.page || 1, pageSize: pagination?.pageSize || 20, filters });
+        }
+    }, [options.autoFetch]);
 
     return {
         invoices, selectedInvoice, summary, filters, pagination, loading, error,

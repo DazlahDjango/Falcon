@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import renderBillingIcon from '../shared/BillingIcons';
 
 export const RefundModal = ({ isOpen, onClose, transaction, onRefund }) => {
     const [amount, setAmount] = useState('');

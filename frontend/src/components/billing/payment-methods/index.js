@@ -4,12 +4,3 @@ export { AddPaymentMethodForm } from './AddPaymentMethodForm';
 export { DeletePaymentMethodModal } from './DeletePaymentMethodModal';
 export { DefaultPaymentMethodBadge } from './DefaultPaymentMethodBadge';
 export { PaymentMethodForm } from './PaymentMethodForm';
-
-export default {
-    PaymentMethodsList,
-    PaymentMethodCard,
-    AddPaymentMethodForm,
-    DeletePaymentMethodModal,
-    DefaultPaymentMethodBadge,
-    PaymentMethodForm,
-};

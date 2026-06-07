@@ -10,11 +10,8 @@ import { loggerMiddleware } from './accounts/middlewares/loggerMiddleware';
 // Tenant Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
 // Billing
-import { 
-    billingMiddlewareFn, 
-    webhookMiddlewareFn, 
-    analyticsMiddlewareFn 
-} from './billing/middleware';
+import { billingMiddlewares } from './billing/middleware';
+
 import { backupMiddleware, maintenanceMiddleware } from './config';
 const persistConfig = {
     key: 'root',
@@ -89,9 +86,7 @@ export const store = configureStore({
             ...tenantMiddlewares,
             backupMiddleware,
             maintenanceMiddleware,
-            billingMiddlewareFn,
-            webhookMiddlewareFn,
-            analyticsMiddlewareFn
+            ...billingMiddlewares
         ),
     devTools: import.meta.env.MODE !== 'production'
 });

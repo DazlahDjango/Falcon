@@ -1,10 +1,11 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInvoiceById, downloadInvoice, payInvoice, sendInvoiceEmail, clearSelectedInvoice, clearError } from '../../store/billing/slices/invoiceSlice';
 import { selectSelectedInvoice, selectInvoicesLoading, selectInvoicesError } from '../../store/billing/selectors';
 
 export const useInvoice = (id = null, options = { autoFetch: true }) => {
     const dispatch = useDispatch();
+    const hasFetched = useRef(false);
     const invoice = useSelector(selectSelectedInvoice);
     const loading = useSelector(selectInvoicesLoading);
     const error = useSelector(selectInvoicesError);
@@ -16,7 +17,12 @@ export const useInvoice = (id = null, options = { autoFetch: true }) => {
     const clear = useCallback(() => dispatch(clearSelectedInvoice()), [dispatch]);
     const clearInvoiceError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch && id) fetchById(id); }, [options.autoFetch, id, fetchById]);
+    useEffect(() => { 
+        if (options.autoFetch && id && !hasFetched.current) {
+            hasFetched.current = true;
+            fetchById(id); 
+        }
+    }, [options.autoFetch, id]);
 
     return { invoice, loading, error, fetchById, download, pay, sendEmail, clear, clearInvoiceError };
 };

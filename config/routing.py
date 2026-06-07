@@ -20,6 +20,7 @@ from apps.billing.routing import websocket_urlpatterns as billing_websocket
 from apps.configs.routing import websocket_urlpatterns as config_websocket
 from apps.dashboard.routing import websocket_urlpatterns as dashboard_websocket
 from apps.tenant.routing import websocket_urlpatterns as tenant_websocket
+from apps.accounts.routing.middleware import WebSocketAuthMiddleware
 
 # Combined WebSocket URL Patterns
 websocket_urlpatterns = []
@@ -36,6 +37,8 @@ websocket_urlpatterns.extend(tenant_websocket)
 application = ProtocolTypeRouter({
     'http': django_asgi_app,
     'websocket': AuthMiddlewareStack(
-        URLRouter(websocket_urlpatterns)
+        WebSocketAuthMiddleware(
+            URLRouter(websocket_urlpatterns)
+        )
     ),
 })

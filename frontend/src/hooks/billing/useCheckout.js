@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     initializeSubscriptionCheckout, initializeOneTimeCheckout, verifyCheckout,

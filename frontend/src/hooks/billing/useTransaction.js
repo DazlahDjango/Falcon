@@ -1,10 +1,11 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTransactionById, verifyTransaction, refundTransaction, clearSelectedTransaction, clearError } from '../../store/billing/slices/transactionSlice';
 import { selectSelectedTransaction, selectTransactionsLoading, selectTransactionsError } from '../../store/billing/selectors';
 
 export const useTransaction = (id = null, options = { autoFetch: true }) => {
     const dispatch = useDispatch();
+    const hasFetched = useRef(false);
     const transaction = useSelector(selectSelectedTransaction);
     const loading = useSelector(selectTransactionsLoading);
     const error = useSelector(selectTransactionsError);
@@ -15,7 +16,12 @@ export const useTransaction = (id = null, options = { autoFetch: true }) => {
     const clear = useCallback(() => dispatch(clearSelectedTransaction()), [dispatch]);
     const clearTransactionError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch && id) fetchById(id); }, [options.autoFetch, id, fetchById]);
+    useEffect(() => { 
+        if (options.autoFetch && id && !hasFetched.current) {
+            hasFetched.current = true;
+            fetchById(id); 
+        }
+    }, [options.autoFetch, id]);
 
     return { transaction, loading, error, fetchById, verify, refund, clear, clearTransactionError };
 };

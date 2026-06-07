@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FiCreditCard, FiPlus, FiStar, FiTrash2, FiSmartphone, FiBank } from 'react-icons/fi';
+import { FiCreditCard, FiPlus, FiStar, FiTrash2, FiSmartphone } from 'react-icons/fi';
+import { FaBuilding } from 'react-icons/fa';
 import { BillingCard } from '../shared/BillingCard';
 import { CardBrandIcon } from '../shared/CardBrandIcon';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
@@ -19,7 +20,7 @@ export const PortalPaymentMethods = ({ paymentMethods, loading, onUpdate }) => {
 
     const getMethodIcon = (method) => {
         if (method.payment_type === 'card') return <CardBrandIcon brand={method.card_brand} size={24} />;
-        if (method.payment_type === 'bank') return <FiBank />;
+        if (method.payment_type === 'bank') return <FaBuilding />;
         if (method.payment_type === 'mobile_money') return <FiSmartphone />;
         return <FiCreditCard />;
     };

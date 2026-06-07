@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchPaymentMethods, addPaymentMethod, deletePaymentMethod, setDefaultPaymentMethod,
@@ -12,6 +12,7 @@ import {
 
 export const usePaymentMethods = (options = { autoFetch: true }) => {
     const dispatch = useDispatch();
+    const hasFetched = useRef(false);
     const paymentMethods = useSelector(selectAllPaymentMethods);
     const defaultMethod = useSelector(selectDefaultPaymentMethod);
     const loading = useSelector(selectPaymentMethodsLoading);
@@ -29,7 +30,12 @@ export const usePaymentMethods = (options = { autoFetch: true }) => {
     const clearSelected = useCallback(() => dispatch(clearSelectedMethod()), [dispatch]);
     const clearPaymentError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch) fetchAll(); }, [options.autoFetch, fetchAll]);
+    useEffect(() => { 
+        if (options.autoFetch && !hasFetched.current) {
+            hasFetched.current = true;
+            fetchAll(); 
+        }
+    }, [options.autoFetch]);
 
     return {
         paymentMethods, defaultMethod, loading, error, activeMethods, cardMethods,

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { FiPlus, FiCreditCard, FiBank, FiSmartphone, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import { FiPlus, FiCreditCard, FiDollarSign, FiSmartphone, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
 import { BillingShell } from '../common/BillingShell';
 import { BillingCard } from '../shared/BillingCard';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
@@ -39,7 +39,7 @@ export const PaymentMethodsList = () => {
                 <div className="payment-methods-header">
                     <div className="payment-methods-stats">
                         <div className="stat-badge"><FiCreditCard /> {cardMethods.length} Cards</div>
-                        <div className="stat-badge"><FiBank /> {bankMethods.length} Banks</div>
+                        <div className="stat-badge"><FiDollarSign /> {bankMethods.length} Banks</div>
                         <div className="stat-badge"><FiSmartphone /> {mobileMethods.length} Mobile</div>
                     </div>
                     <div className="payment-methods-actions">

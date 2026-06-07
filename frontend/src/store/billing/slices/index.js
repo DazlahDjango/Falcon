@@ -11,6 +11,8 @@ import auditReducer from './auditSlice';
 import enterpriseReducer from './enterpriseSlice';
 import webhookReducer from './webhookSlice';
 import adminBillingReducer from './adminBillingSlice';
+import systemSettingsReducer from './systemSettingsSlice';
+import billingPortalReducer from './billingPortalSlice';
 
 const billingReducer = combineReducers({
     plans: planReducer,
@@ -25,6 +27,8 @@ const billingReducer = combineReducers({
     enterprise: enterpriseReducer,
     webhook: webhookReducer,
     admin: adminBillingReducer,
+    systemSettings: systemSettingsReducer,
+    portal: billingPortalReducer,
 });
 
 export default billingReducer;
@@ -41,16 +45,5 @@ export { default as auditSlice } from './auditSlice';
 export { default as enterpriseSlice } from './enterpriseSlice';
 export { default as webhookSlice } from './webhookSlice';
 export { default as adminBillingSlice } from './adminBillingSlice';
-
-export * from './subscriptionSlice';
-export * from './transactionSlice';
-export * from './invoiceSlice';
-export * from './checkoutSlice';
-export * from './paymentMethodSlice';
-export * from './planSlice';
-export * from './analyticsSlice';
-export * from './usageSlice';
-export * from './auditSlice';
-export * from './enterpriseSlice';
-export * from './webhookSlice';
-export * from './adminBillingSlice';
+export { default as systemSettingsSlice } from './systemSettingsSlice';
+export { default as billingPortalSlice } from './billingPortalSlice';

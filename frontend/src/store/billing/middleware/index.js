@@ -2,7 +2,16 @@ import billingMiddleware from './billingMiddleware';
 import webhookMiddleware from './webhookMiddleware';
 import analyticsMiddleware from './analyticsMiddleware';
 
-export const billingMiddlewares = [billingMiddleware, webhookMiddleware, analyticsMiddleware];
+// Export as an array for easy concatenation
+export const billingMiddlewares = [
+    billingMiddleware,
+    webhookMiddleware,
+    analyticsMiddleware
+];
 
-export { billingMiddleware, webhookMiddleware, analyticsMiddleware };
-export default billingMiddlewares;
+// Also export individually
+export {
+    billingMiddleware,
+    webhookMiddleware,
+    analyticsMiddleware
+};

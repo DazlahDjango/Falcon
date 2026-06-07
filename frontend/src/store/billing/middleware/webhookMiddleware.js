@@ -7,7 +7,7 @@ const webhookMiddleware = createListenerMiddleware();
 
 webhookMiddleware.startListening({
     actionCreator: fetchWebhookLogs.fulfilled,
-    effect: async (action, { dispatch, getState }) => {
+    effect: async (action, { dispatch }) => {
         const failedCount = action.payload?.items?.filter(l => l.processing_status === 'failed').length;
         if (failedCount > 5) {
             console.warn(`[Webhook] High failure rate: ${failedCount} failed webhooks`);

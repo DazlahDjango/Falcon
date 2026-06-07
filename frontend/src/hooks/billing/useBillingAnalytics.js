@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchBillingSummary, fetchRevenueReport, fetchSubscriptionAnalytics,
@@ -14,6 +14,9 @@ import {
 
 export const useBillingAnalytics = (options = { autoFetch: true }) => {
     const dispatch = useDispatch();
+    const hasFetched = useRef(false);
+    const hasFetchedSubscriptions = useRef(false);
+    
     const summary = useSelector(selectBillingSummary);
     const revenue = useSelector(selectRevenueReport);
     const subscriptions = useSelector(selectSubscriptionAnalytics);
@@ -30,7 +33,7 @@ export const useBillingAnalytics = (options = { autoFetch: true }) => {
     const successRate = useSelector(selectRevenueSuccessRate);
 
     const fetchSummary = useCallback(() => dispatch(fetchBillingSummary()), [dispatch]);
-    const fetchRevenue = useCallback((params) => dispatch(fetchRevenueReport(params)), [dispatch]);
+    const fetchRevenue = useCallback((params) => dispatch(fetchRevenueReport(params)), [dispatch]);  // ← This is the correct name
     const fetchSubscriptions = useCallback(() => dispatch(fetchSubscriptionAnalytics()), [dispatch]);
     const fetchForecast = useCallback(() => dispatch(fetchRevenueForecast()), [dispatch]);
     const fetchTax = useCallback((year) => dispatch(fetchTaxReport(year)), [dispatch]);
@@ -38,12 +41,18 @@ export const useBillingAnalytics = (options = { autoFetch: true }) => {
     const clear = useCallback(() => dispatch(clearAnalytics()), [dispatch]);
     const clearAnalyticsError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch) { fetchSummary(); fetchSubscriptions(); } }, [options.autoFetch, fetchSummary, fetchSubscriptions]);
+    useEffect(() => { 
+        if (options.autoFetch && !hasFetched.current) {
+            hasFetched.current = true;
+            fetchSummary(); 
+            fetchSubscriptions(); 
+        }
+    }, [options.autoFetch]);
 
     return {
         summary, revenue, subscriptions, forecast, taxReport, loading, error,
         mrr, mrrDisplay, totalRevenue, totalRevenueDisplay, activeSubscriptions, churnRate, successRate,
-        fetchSummary, fetchRevenue, fetchSubscriptions, fetchForecast, fetchTax,
+        fetchSummary, fetchRevenue, fetchSubscriptions, fetchForecast, fetchTax,  // ← fetchRevenue is correct
         updateDateRange, clear, clearAnalyticsError,
     };
 };

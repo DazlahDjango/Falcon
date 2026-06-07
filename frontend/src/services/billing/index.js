@@ -12,19 +12,3 @@ export { AuditService } from './AuditService';
 export { EnterpriseService } from './EnterpriseService';
 export { WebhookService } from './WebhookService';
 export { AdminBillingService } from './AdminBillingService';
-
-export default {
-    PlanService,
-    SubscriptionService,
-    TransactionService,
-    InvoiceService,
-    CheckoutService,
-    PaymentMethodService,
-    BillingPortalService,
-    BillingAnalyticsService,
-    UsageService,
-    AuditService,
-    EnterpriseService,
-    WebhookService,
-    AdminBillingService,
-};

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchPlans, fetchPublicPlans, fetchPlanComparison, fetchPlanById,
@@ -12,6 +12,7 @@ import {
 
 export const usePlans = (options = { autoFetch: false }) => {
     const dispatch = useDispatch();
+    const hasFetched = useRef(false);
     const plans = useSelector(selectAllPlans);
     const publicPlans = useSelector(selectPublicPlans);
     const comparison = useSelector(selectPlanComparison);
@@ -34,7 +35,12 @@ export const usePlans = (options = { autoFetch: false }) => {
     const clearSelected = useCallback(() => dispatch(clearSelectedPlan()), [dispatch]);
     const clearPlanError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    useEffect(() => { if (options.autoFetch) fetchPublic(); }, [options.autoFetch, fetchPublic]);
+    useEffect(() => { 
+        if (options.autoFetch && !hasFetched.current) {
+            hasFetched.current = true;
+            fetchPublic(); 
+        }
+    }, [options.autoFetch]);
 
     return {
         plans, publicPlans, comparison, selectedPlan, loading, error, filters,

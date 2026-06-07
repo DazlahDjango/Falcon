@@ -145,11 +145,27 @@ export const WEBHOOK_EVENTS = {
     INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
 };
 
+export const ADMIN_BILLING_ENDPOINTS = {
+    // Tenant management
+    TENANT_SUBSCRIPTIONS: (tenantId) => `/admin/tenants/${tenantId}/subscriptions/`,
+    TENANT_INVOICES: (tenantId) => `/admin/tenants/${tenantId}/invoices/`,
+    TENANT_TRANSACTIONS: (tenantId) => `/admin/tenants/${tenantId}/transactions/`,
+    
+    // Bulk operations
+    BULK_UPDATE_SUBSCRIPTIONS: `/admin/subscriptions/bulk-update/`,
+    
+    // Reports
+    REVENUE_REPORT: `/admin/reports/revenue/`,
+    SUBSCRIPTION_REPORT: `/admin/reports/subscriptions/`,
+    TAX_REPORT: `/admin/reports/tax/`,
+};
+
+
 export const PAYMENT_CHANNELS = { CARD: 'card', BANK: 'bank', USSD: 'ussd', QR: 'qr', MOBILE_MONEY: 'mobile_money' };
 
 export default {
     PLAN_ENDPOINTS, SUBSCRIPTION_ENDPOINTS, TRANSACTION_ENDPOINTS, INVOICE_ENDPOINTS,
     CHECKOUT_ENDPOINTS, PAYMENT_METHOD_ENDPOINTS, USAGE_ENDPOINTS, AUDIT_ENDPOINTS,
     ENTERPRISE_ENDPOINTS, ANALYTICS_ENDPOINTS, PORTAL_ENDPOINTS, WEBHOOK_ENDPOINTS,
-    SYSTEM_ENDPOINTS, API_STATUS, HTTP_STATUS, BILLING_ERROR_CODES, WEBHOOK_EVENTS, PAYMENT_CHANNELS,
+    SYSTEM_ENDPOINTS, API_STATUS, HTTP_STATUS, BILLING_ERROR_CODES, WEBHOOK_EVENTS, PAYMENT_CHANNELS, ADMIN_BILLING_ENDPOINTS,
 };

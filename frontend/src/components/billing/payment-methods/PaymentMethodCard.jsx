@@ -1,6 +1,8 @@
 import React from 'react';
-import { FiTrash2, FiStar, FiCreditCard, FiBank, FiSmartphone, FiCalendar } from 'react-icons/fi';
+import { FiTrash2, FiStar, FiCreditCard, FiDollarSign, FiSmartphone, FiCalendar } from 'react-icons/fi';
 import { FaCcVisa, FaCcMastercard, FaCcAmex, FaCcDiscover } from 'react-icons/fa';
+import { Building } from 'lucide-react';
+import { MdAccountBalanceWallet } from 'react-icons/md';
 import { StatusBadge } from '../shared/StatusBadge';
 import { CardBrandIcon } from '../shared/CardBrandIcon';
 import { DefaultPaymentMethodBadge } from './DefaultPaymentMethodBadge';
@@ -9,7 +11,7 @@ import './payment-methods.css';
 export const PaymentMethodCard = ({ method, isDefault, onSetDefault, onDelete, canManage = true }) => {
     const getMethodIcon = () => {
         if (method.payment_type === 'card') return <CardBrandIcon brand={method.card_brand} size={32} />;
-        if (method.payment_type === 'bank') return <FiBank className="method-icon-bank" />;
+        if (method.payment_type === 'bank') return <MdAccountBalanceWallet className="method-icon-bank" />;
         if (method.payment_type === 'mobile_money') return <FiSmartphone className="method-icon-mobile" />;
         return <FiCreditCard className="method-icon-default" />;
     };

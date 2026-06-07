@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiRocket, FiClock } from 'react-icons/fi';
+import { FiGift, FiClock } from 'react-icons/fi';
 import './subscription.css';
 
 export const TrialBanner = ({ daysRemaining, onUpgrade }) => {
@@ -7,7 +7,7 @@ export const TrialBanner = ({ daysRemaining, onUpgrade }) => {
 
     return (
         <div className={`trial-banner ${isUrgent ? 'urgent' : ''}`}>
-            <div className="trial-banner-icon"><FiRocket /></div>
+            <div className="trial-banner-icon"><FiGift /></div>
             <div className="trial-banner-content">
                 <h4>{isUrgent ? 'Your Trial is Ending Soon!' : 'You\'re on a Free Trial'}</h4>
                 <p>{daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining in your trial period.</p>

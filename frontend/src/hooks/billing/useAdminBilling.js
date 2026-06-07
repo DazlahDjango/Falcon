@@ -9,9 +9,9 @@ import {
     selectTenantSubscriptions as selectTenantSubs,
     selectTenantInvoices as selectTenantInvs,
     selectTenantTransactions as selectTenantTxns,
-    selectRevenueReport as selectRevReport,
+    selectAdminRevenueReport as selectRevReport,
     selectSubscriptionReport as selectSubReport,
-    selectTaxReport as selectTaxRep,
+    selectAdminTaxReport as selectTaxRep,
     selectAdminLoading, selectAdminError, selectBulkUpdateStatus,
 } from '../../store/billing/selectors';
 
