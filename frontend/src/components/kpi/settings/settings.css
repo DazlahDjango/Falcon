@@ -1,0 +1,283 @@
+/* Settings Styles */
+.kpi-settings-container {
+    padding: var(--kpi-space-6);
+}
+
+.settings-header {
+    margin-bottom: var(--kpi-space-6);
+}
+
+.settings-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--kpi-space-1);
+}
+
+.settings-header p {
+    color: var(--kpi-gray-500);
+}
+
+.settings-content {
+    max-width: 800px;
+}
+
+.settings-section {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-6);
+    margin-bottom: var(--kpi-space-6);
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+.settings-section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--kpi-space-4);
+    padding-bottom: var(--kpi-space-2);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+/* Danger Zone */
+.settings-danger-zone {
+    background: var(--kpi-danger-bg);
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-6);
+    border: 1px solid var(--kpi-danger-light);
+}
+
+.danger-zone-header {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    margin-bottom: var(--kpi-space-2);
+}
+
+.danger-zone-header h3 {
+    margin: 0;
+    color: var(--kpi-danger-dark);
+}
+
+.danger-zone-btn {
+    margin-top: var(--kpi-space-4);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-danger);
+    color: white;
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+}
+
+/* Reset Modal */
+.settings-reset-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+
+.settings-reset-container {
+    background: white;
+    border-radius: var(--kpi-radius-xl);
+    width: 90%;
+    max-width: 450px;
+}
+
+.settings-reset-header {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-5);
+    border-bottom: 1px solid var(--kpi-gray-200);
+    position: relative;
+}
+
+.settings-reset-header .close-btn {
+    position: absolute;
+    right: var(--kpi-space-4);
+    top: var(--kpi-space-4);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.warning {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-3);
+    background: var(--kpi-warning-bg);
+    border-radius: var(--kpi-radius-md);
+    margin: var(--kpi-space-4) 0;
+    color: var(--kpi-warning-dark);
+}
+
+.confirm-group {
+    margin-top: var(--kpi-space-4);
+}
+
+.confirm-group input {
+    width: 100%;
+    padding: var(--kpi-space-3);
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-md);
+    margin-top: var(--kpi-space-2);
+}
+
+/* Reference Data */
+.reference-tabs {
+    display: flex;
+    gap: var(--kpi-space-1);
+    margin-bottom: var(--kpi-space-4);
+}
+
+.reference-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: transparent;
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+    color: var(--kpi-gray-600);
+}
+
+.reference-tab.active {
+    background: var(--kpi-primary);
+    color: white;
+}
+
+.refresh-ref-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    margin-left: auto;
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-gray-100);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+}
+
+.reference-table-container {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+.reference-search {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-4);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.reference-search input {
+    flex: 1;
+    padding: var(--kpi-space-2);
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-md);
+}
+
+.record-count {
+    font-size: 0.75rem;
+    color: var(--kpi-gray-500);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.reference-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.reference-table th,
+.reference-table td {
+    padding: var(--kpi-space-3) var(--kpi-space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--kpi-gray-100);
+}
+
+.reference-table th {
+    background: var(--kpi-gray-50);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.no-data {
+    text-align: center;
+    color: var(--kpi-gray-500);
+    padding: var(--kpi-space-8);
+}
+
+.reference-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--kpi-space-4);
+    padding: var(--kpi-space-4);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+/* Notification Channels */
+.channels-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--kpi-space-4);
+}
+
+.channel-card {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-4);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-lg);
+}
+
+.notification-types {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-6);
+}
+
+.notification-category h4 {
+    font-size: 0.875rem;
+    margin-bottom: var(--kpi-space-3);
+    color: var(--kpi-gray-700);
+}
+
+.notification-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--kpi-space-2);
+}
+
+/* Settings Actions */
+.settings-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--kpi-space-4);
+}
+
+.save-settings-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-2) var(--kpi-space-5);
+    background: var(--kpi-primary);
+    color: white;
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+}

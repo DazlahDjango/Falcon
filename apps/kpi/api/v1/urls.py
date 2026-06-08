@@ -66,6 +66,11 @@ router.register(r'kpi-history', KPIHistoryViewSet, basename='kpi-history')
 router.register(r'actual-history', ActualHistoryViewSet, basename='actual-history')
 router.register(r'target-history', TargetHistoryViewSet, basename='target-history')
 
+users_router = routers.NestedDefaultRouter(router, r'users', lookup='user')
+users_router.register(r'kpis', UserKPIsViewSet, basename='user-kpis')
+users_router.register(r'targets', UserTargetsViewSet, basename='user-targets')
+users_router.register(r'scores', UserScoresViewSet, basename='user-scores')
+users_router.register(r'actuals', UserActualsViewSet, basename='user-actuals')
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -108,7 +113,7 @@ def api_root(request, format=None):
 urlpatterns = [
     path('', api_root, name='api-root'),
     path('', include(router.urls)),
-    
+    path('', include(users_router.urls)),
     path('dashboard/individual/', IndividualDashboardView.as_view(), name='dashboard-individual'),
     path('dashboard/manager/', ManagerDashboardView.as_view(), name='dashboard-manager'),
     path('dashboard/executive/', ExecutiveDashboardView.as_view(), name='dashboard-executive'),

@@ -106,18 +106,28 @@ class MonthlyPhasingViewSet(BaseKpiViewset):
     @action(detail=False, methods=['post'])
     def lock_cycle(self, request):
         locker = TargetLocker()
-        tenant_id = request.tenant.id
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+        if not tenant_id:
+            return Response(
+                {'error': 'Unable to determine tenant'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         performance_cycle = request.data.get('performance_cycle')
         if not performance_cycle:
             return Response(
                 {'error': 'performance_cycle is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         updated = locker.lock_phasing_for_cycle(
             str(tenant_id),
             performance_cycle,
             request.user
         )
+        
         return Response({
             'message': f'Locked {updated} phasing records',
             'updated_count': updated

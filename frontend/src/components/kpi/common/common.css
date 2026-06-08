@@ -1,0 +1,718 @@
+/* ============================================
+   KPI Common Components Styles
+   Professional, Clean, Modern Dashboard Design
+   ============================================ */
+
+/* CSS Variables */
+:root {
+    /* Primary Colors */
+    --kpi-primary: #4f46e5;
+    --kpi-primary-dark: #4338ca;
+    --kpi-primary-light: #818cf8;
+    
+    /* Success/Green */
+    --kpi-success: #10b981;
+    --kpi-success-dark: #059669;
+    --kpi-success-light: #34d399;
+    --kpi-success-bg: #ecfdf5;
+    
+    /* Warning/Yellow */
+    --kpi-warning: #f59e0b;
+    --kpi-warning-dark: #d97706;
+    --kpi-warning-light: #fbbf24;
+    --kpi-warning-bg: #fffbeb;
+    
+    /* Danger/Red */
+    --kpi-danger: #ef4444;
+    --kpi-danger-dark: #dc2626;
+    --kpi-danger-light: #f87171;
+    --kpi-danger-bg: #fef2f2;
+    
+    /* Info/Blue */
+    --kpi-info: #3b82f6;
+    --kpi-info-dark: #2563eb;
+    --kpi-info-light: #60a5fa;
+    --kpi-info-bg: #eff6ff;
+    
+    /* Neutral Colors */
+    --kpi-gray-50: #f9fafb;
+    --kpi-gray-100: #f3f4f6;
+    --kpi-gray-200: #e5e7eb;
+    --kpi-gray-300: #d1d5db;
+    --kpi-gray-400: #9ca3af;
+    --kpi-gray-500: #6b7280;
+    --kpi-gray-600: #4b5563;
+    --kpi-gray-700: #374151;
+    --kpi-gray-800: #1f2937;
+    --kpi-gray-900: #111827;
+    
+    /* Gradients */
+    --kpi-gradient-primary: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --kpi-gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --kpi-gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    --kpi-gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    --kpi-gradient-info: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    
+    /* Shadows */
+    --kpi-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --kpi-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --kpi-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --kpi-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --kpi-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    
+    /* Border Radius */
+    --kpi-radius-sm: 0.375rem;
+    --kpi-radius-md: 0.5rem;
+    --kpi-radius-lg: 0.75rem;
+    --kpi-radius-xl: 1rem;
+    --kpi-radius-2xl: 1.5rem;
+    
+    /* Spacing */
+    --kpi-space-1: 0.25rem;
+    --kpi-space-2: 0.5rem;
+    --kpi-space-3: 0.75rem;
+    --kpi-space-4: 1rem;
+    --kpi-space-5: 1.25rem;
+    --kpi-space-6: 1.5rem;
+    --kpi-space-8: 2rem;
+    --kpi-space-10: 2.5rem;
+    --kpi-space-12: 3rem;
+    
+    /* Transitions */
+    --kpi-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --kpi-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --kpi-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   KPI Loading Component
+   ============================================ */
+
+.kpi-loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: var(--kpi-space-4);
+}
+
+.kpi-loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--kpi-gray-200);
+    border-top-color: var(--kpi-primary);
+    border-radius: 50%;
+    animation: kpi-spin 0.8s linear infinite;
+}
+
+.kpi-loading-spinner-sm {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+}
+
+.kpi-loading-spinner-lg {
+    width: 64px;
+    height: 64px;
+    border-width: 4px;
+}
+
+.kpi-loading-text {
+    font-size: 0.875rem;
+    color: var(--kpi-gray-500);
+    font-weight: 500;
+}
+
+.kpi-loading-skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--kpi-gray-100) 25%,
+        var(--kpi-gray-200) 50%,
+        var(--kpi-gray-100) 75%
+    );
+    background-size: 200% 100%;
+    animation: kpi-skeleton 1.5s ease-in-out infinite;
+    border-radius: var(--kpi-radius-md);
+}
+
+@keyframes kpi-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes kpi-skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   KPI Error Component
+   ============================================ */
+
+.kpi-error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 400px;
+    padding: var(--kpi-space-8);
+    background: var(--kpi-danger-bg);
+    border-radius: var(--kpi-radius-xl);
+    gap: var(--kpi-space-4);
+}
+
+.kpi-error-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--kpi-danger);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+}
+
+.kpi-error-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--kpi-gray-900);
+}
+
+.kpi-error-message {
+    color: var(--kpi-gray-600);
+    max-width: 400px;
+    margin-bottom: var(--kpi-space-4);
+}
+
+.kpi-error-retry-btn {
+    background: var(--kpi-danger);
+    color: white;
+    border: none;
+    padding: var(--kpi-space-2) var(--kpi-space-6);
+    border-radius: var(--kpi-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-error-retry-btn:hover {
+    background: var(--kpi-danger-dark);
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   KPI Empty State Component
+   ============================================ */
+
+.kpi-empty-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 400px;
+    padding: var(--kpi-space-8);
+    background: white;
+    border-radius: var(--kpi-radius-xl);
+    border: 1px dashed var(--kpi-gray-300);
+    gap: var(--kpi-space-4);
+}
+
+.kpi-empty-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--kpi-gray-100);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+}
+
+.kpi-empty-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--kpi-gray-900);
+}
+
+.kpi-empty-description {
+    color: var(--kpi-gray-500);
+    max-width: 350px;
+    font-size: 0.875rem;
+}
+
+.kpi-empty-action {
+    margin-top: var(--kpi-space-2);
+}
+
+/* ============================================
+   KPI Success Component
+   ============================================ */
+
+.kpi-success-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--kpi-space-8);
+    background: var(--kpi-success-bg);
+    border-radius: var(--kpi-radius-xl);
+    gap: var(--kpi-space-4);
+}
+
+.kpi-success-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--kpi-success);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+}
+
+.kpi-success-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--kpi-gray-900);
+}
+
+.kpi-success-message {
+    color: var(--kpi-gray-600);
+}
+
+/* ============================================
+   KPI Confirm Dialog Component
+   ============================================ */
+
+.kpi-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: kpi-fade-in 0.2s ease;
+}
+
+.kpi-confirm-dialog {
+    background: white;
+    border-radius: var(--kpi-radius-xl);
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+    animation: kpi-slide-up 0.2s ease;
+}
+
+.kpi-confirm-header {
+    padding: var(--kpi-space-6);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.kpi-confirm-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--kpi-gray-900);
+    margin: 0;
+}
+
+.kpi-confirm-content {
+    padding: var(--kpi-space-6);
+}
+
+.kpi-confirm-content p {
+    color: var(--kpi-gray-600);
+    margin: 0;
+}
+
+.kpi-confirm-footer {
+    padding: var(--kpi-space-4) var(--kpi-space-6);
+    background: var(--kpi-gray-50);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--kpi-space-3);
+}
+
+.kpi-confirm-cancel {
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-gray-100);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-confirm-cancel:hover {
+    background: var(--kpi-gray-200);
+}
+
+.kpi-confirm-confirm {
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-danger);
+    color: white;
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-confirm-confirm:hover {
+    background: var(--kpi-danger-dark);
+}
+
+@keyframes kpi-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes kpi-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   KPI Filter Bar Component
+   ============================================ */
+
+.kpi-filter-bar {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-4);
+    margin-bottom: var(--kpi-space-6);
+    box-shadow: var(--kpi-shadow-sm);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--kpi-space-4);
+}
+
+.kpi-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--kpi-space-3);
+}
+
+.kpi-filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    background: var(--kpi-gray-50);
+    padding: var(--kpi-space-2) var(--kpi-space-3);
+    border-radius: var(--kpi-radius-md);
+    border: 1px solid var(--kpi-gray-200);
+}
+
+.kpi-filter-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--kpi-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.kpi-filter-select {
+    border: none;
+    background: transparent;
+    font-size: 0.875rem;
+    color: var(--kpi-gray-700);
+    padding: var(--kpi-space-1);
+    cursor: pointer;
+    outline: none;
+}
+
+.kpi-filter-clear {
+    background: var(--kpi-gray-100);
+    border: none;
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.75rem;
+    color: var(--kpi-gray-600);
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-filter-clear:hover {
+    background: var(--kpi-gray-200);
+}
+
+/* ============================================
+   KPI Pagination Component
+   ============================================ */
+
+.kpi-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--kpi-space-2);
+    margin-top: var(--kpi-space-8);
+    margin-bottom: var(--kpi-space-6);
+}
+
+.kpi-pagination-btn {
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--kpi-space-2);
+    background: white;
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--kpi-gray-700);
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-pagination-btn:hover:not(:disabled) {
+    background: var(--kpi-gray-100);
+    border-color: var(--kpi-gray-400);
+}
+
+.kpi-pagination-btn.active {
+    background: var(--kpi-primary);
+    border-color: var(--kpi-primary);
+    color: white;
+}
+
+.kpi-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.kpi-pagination-ellipsis {
+    color: var(--kpi-gray-400);
+    padding: 0 var(--kpi-space-2);
+}
+
+/* ============================================
+   KPI Search Bar Component
+   ============================================ */
+
+.kpi-search-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    background: white;
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-search-bar:focus-within {
+    border-color: var(--kpi-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.kpi-search-icon {
+    color: var(--kpi-gray-400);
+    font-size: 1rem;
+}
+
+.kpi-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.875rem;
+    color: var(--kpi-gray-700);
+    background: transparent;
+}
+
+.kpi-search-input::placeholder {
+    color: var(--kpi-gray-400);
+}
+
+.kpi-search-clear {
+    background: transparent;
+    border: none;
+    color: var(--kpi-gray-400);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kpi-search-clear:hover {
+    color: var(--kpi-gray-600);
+}
+
+/* ============================================
+   KPI Date Range Picker Component
+   ============================================ */
+
+.kpi-date-range {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    background: white;
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-date-range:hover {
+    border-color: var(--kpi-gray-400);
+}
+
+.kpi-date-range-icon {
+    color: var(--kpi-gray-400);
+}
+
+.kpi-date-range-text {
+    font-size: 0.875rem;
+    color: var(--kpi-gray-700);
+}
+
+/* ============================================
+   KPI Status Badge Component
+   ============================================ */
+
+.kpi-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-1) var(--kpi-space-3);
+    border-radius: var(--kpi-radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+}
+
+.kpi-status-badge-green {
+    background: var(--kpi-success-bg);
+    color: var(--kpi-success-dark);
+}
+
+.kpi-status-badge-yellow {
+    background: var(--kpi-warning-bg);
+    color: var(--kpi-warning-dark);
+}
+
+.kpi-status-badge-red {
+    background: var(--kpi-danger-bg);
+    color: var(--kpi-danger-dark);
+}
+
+.kpi-status-badge-blue {
+    background: var(--kpi-info-bg);
+    color: var(--kpi-info-dark);
+}
+
+.kpi-status-badge-gray {
+    background: var(--kpi-gray-100);
+    color: var(--kpi-gray-600);
+}
+
+.kpi-status-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.kpi-status-badge-dot-green { background: var(--kpi-success); }
+.kpi-status-badge-dot-yellow { background: var(--kpi-warning); }
+.kpi-status-badge-dot-red { background: var(--kpi-danger); }
+.kpi-status-badge-dot-blue { background: var(--kpi-info); }
+.kpi-status-badge-dot-gray { background: var(--kpi-gray-400); }
+
+/* ============================================
+   KPI Score Gauge Component
+   ============================================ */
+
+.kpi-score-gauge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kpi-score-gauge-svg {
+    transform: rotate(-90deg);
+}
+
+.kpi-score-gauge-circle-bg {
+    stroke: var(--kpi-gray-200);
+    fill: none;
+}
+
+.kpi-score-gauge-circle-fill {
+    fill: none;
+    stroke-linecap: round;
+    transition: stroke-dashoffset var(--kpi-transition-base);
+}
+
+.kpi-score-gauge-circle-fill-green { stroke: var(--kpi-success); }
+.kpi-score-gauge-circle-fill-yellow { stroke: var(--kpi-warning); }
+.kpi-score-gauge-circle-fill-red { stroke: var(--kpi-danger); }
+.kpi-score-gauge-circle-fill-blue { stroke: var(--kpi-primary); }
+
+.kpi-score-gauge-value {
+    position: absolute;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--kpi-gray-900);
+}
+
+.kpi-score-gauge-label {
+    position: absolute;
+    bottom: -24px;
+    font-size: 0.625rem;
+    color: var(--kpi-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================
+   KPI Card Grid
+   ============================================ */
+
+.kpi-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--kpi-space-6);
+    margin-bottom: var(--kpi-space-6);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .kpi-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .kpi-filters {
+        flex-wrap: wrap;
+    }
+    
+    .kpi-card-grid {
+        grid-template-columns: 1fr;
+        gap: var(--kpi-space-4);
+    }
+    
+    .kpi-pagination {
+        flex-wrap: wrap;
+    }
+}

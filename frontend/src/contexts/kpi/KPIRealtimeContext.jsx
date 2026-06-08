@@ -6,7 +6,7 @@ import { useLocation } from 'react-router-dom';
 import environment from '../../config/environment';
 import { kpiWebSocket } from '../../services/websocket';
 import { getAccessToken } from '../../services/accounts/storage/secureStorage';
-import { getPendingValidationSummary } from '../../services/kpi/settings.service';
+import { validationService } from '../../services/kpi';
 import { usePermissionContext } from '../accounts/PermissionContext';
 import {
     setKpiWsConnected,
@@ -27,17 +27,44 @@ function wsBaseUrl() {
     return raw.replace(/\/ws\/?$/, '');
 }
 
-const SUPERVISOR_ROLES = ['supervisor', 'dashboard_champion', 'client_admin', 'executive', 'super_admin'];
+const SUPERVISOR_ROLES = ['supervisor', 'dashboard_champion', 'client_admin', 'executive', 'super_admin', 'manager'];
+
+// Default state for when Redux state is undefined
+const DEFAULT_REALTIME_STATE = {
+    wsConnected: { 
+        dashboard: false, 
+        validation: false, 
+        notifications: false,
+        team: false,
+        scores: false 
+    },
+    banner: null,
+    pendingValidationCount: 0,
+    latestScore: null,
+    latestValidation: null,
+    validationRefreshToken: 0,
+    lastRedAlert: null
+};
 
 export const KPIRealtimeProvider = ({ children }) => {
     const dispatch = useDispatch();
     const location = useLocation();
     const { user, hasAnyRole } = usePermissionContext();
     const { isAuthenticated } = useSelector((state) => state.auth);
-    const realtime = useSelector((state) => state.kpiRealtime);
+    
+    // SAFE SELECTOR with fallback
+    const realtime = useSelector((state) => {
+        // Try multiple possible paths
+        const realtimeState = state.kpi?.realtime || state.kpiRealtime;
+        return realtimeState || DEFAULT_REALTIME_STATE;
+    });
+    
     const handlersRef = useRef({});
 
-    const isKpiRoute = location.pathname.startsWith('/kpi');
+    const isKpiRoute = location.pathname.startsWith('/kpi') || 
+                       location.pathname.startsWith('/dashboard') ||
+                       location.pathname.startsWith('/validations') ||
+                       location.pathname.startsWith('/scores');
     const isSupervisor = hasAnyRole(SUPERVISOR_ROLES);
     const userId = user?.id;
     const tenantId = user?.tenantId || user?.tenant_id;
@@ -45,8 +72,8 @@ export const KPIRealtimeProvider = ({ children }) => {
     const loadPendingSummary = useCallback(async () => {
         if (!isSupervisor || !userId) return;
         try {
-            const res = await getPendingValidationSummary();
-            const count = res.data?.pending_count ?? 0;
+            const result = await validationService.getPendingSummary();
+            const count = result?.pending_count ?? result?.data?.pending_count ?? 0;
             dispatch(setPendingValidationCount(count));
             if (count > 0) {
                 dispatch(setKpiBanner({
@@ -54,11 +81,11 @@ export const KPIRealtimeProvider = ({ children }) => {
                     title: 'Pending validations',
                     message: `${count} submission(s) await your review.`,
                     dismissible: true,
-                    link: '/kpi/validation',
+                    link: '/validations',
                 }));
             }
-        } catch {
-            /* non-fatal */
+        } catch (error) {
+            console.error('Failed to load pending summary:', error);
         }
     }, [dispatch, isSupervisor, userId]);
 
@@ -82,7 +109,13 @@ export const KPIRealtimeProvider = ({ children }) => {
                 title: 'KPI red alert',
                 message: data.data.message || 'One or more KPIs are in sustained red status.',
                 dismissible: true,
+                link: '/scores/red-alerts',
             }));
+        }
+        if (data.type === 'initial' && data.data) {
+            if (data.data.pending_validations !== undefined) {
+                dispatch(setPendingValidationCount(data.data.pending_validations));
+            }
         }
     }, [dispatch]);
 
@@ -97,7 +130,7 @@ export const KPIRealtimeProvider = ({ children }) => {
                     title: 'Validation queue updated',
                     message: `${data.data.pending_count} pending submission(s).`,
                     dismissible: true,
-                    link: '/kpi/validation',
+                    link: '/validations',
                 }));
             }
         } else {
@@ -113,6 +146,7 @@ export const KPIRealtimeProvider = ({ children }) => {
                 title: 'KPI red alert',
                 message: data.data.message || 'Organization KPI health alert.',
                 dismissible: true,
+                link: '/scores/red-alerts',
             }));
         }
         if (data.type === 'notification' && data.data?.event === 'kpi_changed') {
@@ -121,14 +155,43 @@ export const KPIRealtimeProvider = ({ children }) => {
                 title: 'KPI definition updated',
                 message: `KPI ${data.data.kpi_id || ''} was ${data.data.action || 'updated'}.`,
                 dismissible: true,
+                link: `/kpis/${data.data.kpi_id}`,
             }));
+        }
+        if (data.type === 'organization_health_update' && data.data) {
+            if (data.data.red_kpi_count > 0) {
+                dispatch(setKpiBanner({
+                    type: 'error',
+                    title: 'Health Alert',
+                    message: `${data.data.red_kpi_count} KPIs are in red status.`,
+                    dismissible: true,
+                }));
+            }
+        }
+    }, [dispatch]);
+
+    const handleTeamMessage = useCallback((data) => {
+        if (data.type === 'team_update' && data.data) {
+            dispatch(bumpValidationRefresh());
+            if (data.data.pending_validations !== undefined) {
+                dispatch(setPendingValidationCount(data.data.pending_validations));
+            }
+        }
+        if (data.type === 'member_score_update' && data.data) {
+            dispatch(setLatestScore(data.data));
         }
     }, [dispatch]);
 
     useEffect(() => {
         if (!isAuthenticated || !userId || !isKpiRoute) {
             kpiWebSocket.disconnectAll();
-            dispatch(setKpiWsConnected({ dashboard: false, validation: false, notifications: false }));
+            dispatch(setKpiWsConnected({ 
+                dashboard: false, 
+                validation: false, 
+                notifications: false,
+                team: false,
+                scores: false 
+            }));
             return undefined;
         }
 
@@ -139,10 +202,21 @@ export const KPIRealtimeProvider = ({ children }) => {
             if (!token || cancelled) return;
             kpiWebSocket.init(wsBaseUrl(), token);
 
+            // Dashboard connection
             kpiWebSocket.connectDashboard(userId, handleDashboardMessage, () => {
                 if (!cancelled) dispatch(setKpiWsConnected({ dashboard: true }));
             });
 
+            // Scores connection
+            kpiWebSocket.connectScores(userId, (data) => {
+                if (data.type === 'score_update' && data.data) {
+                    dispatch(setLatestScore(data.data));
+                }
+            }, () => {
+                if (!cancelled) dispatch(setKpiWsConnected({ scores: true }));
+            });
+
+            // Validation connection for supervisors
             if (isSupervisor) {
                 kpiWebSocket.connectValidation(userId, handleValidationMessage, () => {
                     if (!cancelled) dispatch(setKpiWsConnected({ validation: true }));
@@ -150,6 +224,14 @@ export const KPIRealtimeProvider = ({ children }) => {
                 loadPendingSummary();
             }
 
+            // Team connection for managers
+            if (hasAnyRole(['manager', 'supervisor'])) {
+                kpiWebSocket.connectTeamDashboard(userId, handleTeamMessage, () => {
+                    if (!cancelled) dispatch(setKpiWsConnected({ team: true }));
+                });
+            }
+
+            // Executive/Notification connection
             if (hasAnyRole(['executive', 'super_admin', 'client_admin']) && tenantId) {
                 kpiWebSocket.connectExecutiveDashboard(tenantId, handleNotificationMessage, () => {
                     if (!cancelled) dispatch(setKpiWsConnected({ notifications: true }));
@@ -168,8 +250,16 @@ export const KPIRealtimeProvider = ({ children }) => {
             kpiWebSocket.disconnectDashboard(userId);
             kpiWebSocket.disconnectValidation(userId);
             kpiWebSocket.disconnectNotifications(userId);
+            kpiWebSocket.disconnectScores(userId);
+            kpiWebSocket.disconnectTeamDashboard(userId);
             if (tenantId) kpiWebSocket.disconnectExecutiveDashboard(tenantId);
-            dispatch(setKpiWsConnected({ dashboard: false, validation: false, notifications: false }));
+            dispatch(setKpiWsConnected({ 
+                dashboard: false, 
+                validation: false, 
+                notifications: false,
+                team: false,
+                scores: false 
+            }));
         };
     }, [
         isAuthenticated,
@@ -182,14 +272,25 @@ export const KPIRealtimeProvider = ({ children }) => {
         handleDashboardMessage,
         handleValidationMessage,
         handleNotificationMessage,
+        handleTeamMessage,
         loadPendingSummary,
     ]);
 
+    // SAFELY compute value with fallback for wsConnected
+    const wsConnected = realtime?.wsConnected || DEFAULT_REALTIME_STATE.wsConnected;
+    
     const value = useMemo(() => ({
         ...realtime,
-        isConnected: Object.values(realtime.wsConnected).some(Boolean),
+        wsConnected,
+        isConnected: Object.values(wsConnected).some(Boolean),
         refreshPendingSummary: loadPendingSummary,
-    }), [realtime, loadPendingSummary]);
+        sendRefresh: (dashboardType) => {
+            kpiWebSocket.refreshDashboard(userId, dashboardType);
+        },
+        subscribeTo: (subscription) => {
+            kpiWebSocket.subscribe(userId, 'dashboard', subscription);
+        },
+    }), [realtime, wsConnected, loadPendingSummary, userId]);
 
     return (
         <KPIRealtimeContext.Provider value={value}>
@@ -197,3 +298,5 @@ export const KPIRealtimeProvider = ({ children }) => {
         </KPIRealtimeContext.Provider>
     );
 };
+
+export default KPIRealtimeProvider;

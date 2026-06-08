@@ -52,10 +52,14 @@ export const REVIEWS_WS = {
 };
 
 export const KPI_WS = {
-  DASHBOARD: (userId) => buildPath(`kpi/dashboard/${userId}/`),
-  TEAM: (managerId) => buildPath(`kpi/team/${managerId}/`),
-  EXECUTIVE: (tenantId) => buildPath(`kpi/executive/${tenantId}/`),
-  NOTIFICATIONS: (userId) => buildPath(`kpi/notifications/${userId}/`),
-  SCORES: (userId) => buildPath(`kpi/scores/${userId}/`),
-  VALIDATION: (userId) => buildPath(`kpi/validation/${userId}/`),
+  DASHBOARD: (userId) => `kpi/dashboard/${userId}/`,
+  TEAM: (managerId) => `kpi/team/${managerId}/`,
+  EXECUTIVE: (tenantId) => `kpi/executive/${tenantId}/`,
+  NOTIFICATIONS: (userId) => `kpi/notifications/${userId}/`,
+  SCORES: (userId) => `kpi/scores/${userId}/`,
+  VALIDATION: (userId) => `kpi/validation/${userId}/`,
+  REPORTS: (reportId) => `kpi/reports/${reportId}/`,
+  ANALYTICS: (tenantId) => `kpi/analytics/${tenantId}/`,
+  ALERTS: (tenantId) => `kpi/alerts/${tenantId}/`,
+  ADMIN: `kpi/admin/`,
 };

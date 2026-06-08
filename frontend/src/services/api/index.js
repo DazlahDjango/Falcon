@@ -27,6 +27,7 @@ export {
   structureApiClient,
   reviewsApiClient,
   tenantApiClient,
+  kpiApiClient,
   resetConfigCircuitBreaker,
   resetDashboardCircuitBreaker,
   resetBillingCircuitBreaker,

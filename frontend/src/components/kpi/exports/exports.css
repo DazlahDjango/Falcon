@@ -1,0 +1,220 @@
+/* Exports Styles */
+.export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--kpi-transition-base);
+}
+
+.export-btn-primary {
+    background: var(--kpi-primary);
+    color: white;
+    border: none;
+}
+
+.export-btn-primary:hover {
+    background: var(--kpi-primary-dark);
+}
+
+.export-btn-secondary {
+    background: var(--kpi-gray-100);
+    color: var(--kpi-gray-700);
+    border: none;
+}
+
+.export-btn-outline {
+    background: transparent;
+    border: 1px solid var(--kpi-gray-300);
+    color: var(--kpi-gray-700);
+}
+
+/* Modal */
+.export-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+
+.export-modal {
+    background: white;
+    border-radius: var(--kpi-radius-xl);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.export-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--kpi-space-5);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.export-modal-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--kpi-gray-400);
+}
+
+.export-modal-body {
+    padding: var(--kpi-space-5);
+}
+
+.export-format-section {
+    margin-bottom: var(--kpi-space-6);
+}
+
+.export-format-section h4 {
+    font-size: 0.875rem;
+    margin-bottom: var(--kpi-space-3);
+}
+
+.export-formats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-3);
+}
+
+.export-format-option {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-3);
+    border: 1px solid var(--kpi-gray-200);
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.export-format-option:hover {
+    border-color: var(--kpi-primary);
+    background: var(--kpi-info-bg);
+}
+
+.export-format-option.selected {
+    border-color: var(--kpi-primary);
+    background: var(--kpi-info-bg);
+}
+
+.format-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--kpi-gray-100);
+    border-radius: var(--kpi-radius-md);
+    color: var(--kpi-primary);
+}
+
+.format-info {
+    flex: 1;
+}
+
+.format-label {
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.format-desc {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.export-options-section {
+    margin-top: var(--kpi-space-6);
+    padding-top: var(--kpi-space-4);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+.export-options-section h4 {
+    font-size: 0.875rem;
+    margin-bottom: var(--kpi-space-3);
+}
+
+.export-summary {
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-md);
+    padding: var(--kpi-space-4);
+    font-size: 0.875rem;
+}
+
+.export-filters {
+    margin-top: var(--kpi-space-3);
+    padding-top: var(--kpi-space-3);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+.export-filters ul {
+    margin: var(--kpi-space-2) 0 0 var(--kpi-space-4);
+    font-size: 0.75rem;
+    color: var(--kpi-gray-600);
+}
+
+.export-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-4) var(--kpi-space-5);
+    background: var(--kpi-gray-50);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+.cancel-btn {
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-gray-100);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+}
+
+.export-modal-footer .export-btn {
+    background: var(--kpi-primary);
+    color: white;
+    border: none;
+}
+
+/* Progress */
+.export-progress-section {
+    text-align: center;
+    padding: var(--kpi-space-6);
+}
+
+.progress-icon {
+    font-size: 3rem;
+    margin-bottom: var(--kpi-space-4);
+}
+
+.export-progress-section h4 {
+    margin-bottom: var(--kpi-space-2);
+}
+
+.export-progress-section p {
+    color: var(--kpi-gray-500);
+    margin-bottom: var(--kpi-space-6);
+}
+
+.progress-percentage {
+    margin-top: var(--kpi-space-2);
+    font-weight: 600;
+    color: var(--kpi-primary);
+}

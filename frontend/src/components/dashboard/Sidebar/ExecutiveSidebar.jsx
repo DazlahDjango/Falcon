@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
 import {
     FiHome, FiBarChart2, FiUsers, FiTrendingUp, FiAlertCircle, 
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
-    FiDownload, FiSettings, FiHelpCircle, FiLogOut, FiBell,
-    FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar
+    FiDownload, FiSettings, FiBell, FiGrid, FiPieChart, FiFileText,
+    FiTarget, FiActivity, FiAward
 } from 'react-icons/fi';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
     const [expandedMenus, setExpandedMenus] = useState({
         main: true,
         performance: true,
-        team: true,
+        organization: true,
         reports: true,
         settings: false
     });
@@ -36,13 +36,23 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
             { path: DASHBOARD_ROUTES.EXECUTIVE.TRENDS, name: 'KPIs & Trends', icon: FiTrendingUp },
             { path: DASHBOARD_ROUTES.EXECUTIVE.COMPARISONS, name: 'Comparisons', icon: FiPieChart },
             { path: DASHBOARD_ROUTES.EXECUTIVE.ALERTS, name: 'Alerts', icon: FiAlertCircle },
+            { path: KPI_ROUTES.KPI_ANALYTICS, name: 'Analytics Insights', icon: FiActivity },
+            { path: '/organization-health', name: 'Organization Health', icon: FiAward },
+        ],
+        organization: [
+            { path: KPI_ROUTES.TARGETS, name: 'Targets Overview', icon: FiTarget },
+            { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiBarChart2 },
+            { path: KPI_ROUTES.AGGREGATED_SCORES_DEPARTMENTS, name: 'Department Scores', icon: FiGrid },
+            { path: KPI_ROUTES.AGGREGATED_SCORES_RANKING, name: 'Department Ranking', icon: FiAward },
         ],
         reports: [
             { path: DASHBOARD_ROUTES.EXECUTIVE.REPORTS, name: 'Reports', icon: FiFileText },
             { path: DASHBOARD_ROUTES.EXECUTIVE.EXPORTS, name: 'Exports', icon: FiDownload },
+            { path: KPI_ROUTES.KPI_REPORTS, name: 'Custom Reports', icon: FiFileText },
         ],
         settings: [
             { path: DASHBOARD_ROUTES.EXECUTIVE.SETTINGS, name: 'Settings', icon: FiSettings },
+            { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, name: 'Notifications', icon: FiBell },
         ]
     };
 
@@ -111,7 +121,8 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
             
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
-                {renderNavGroup('Performance', navigation.performance, 'performance')}
+                {renderNavGroup('Performance Analytics', navigation.performance, 'performance')}
+                {renderNavGroup('Organization Performance', navigation.organization, 'organization')}
                 {renderNavGroup('Reports & Exports', navigation.reports, 'reports')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>

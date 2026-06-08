@@ -43,17 +43,7 @@ import {
 // ==========================================
 // KPI Reducers
 // ==========================================
-import kpiReducer from './kpi/slice/kpi';
-import targetReducer from './kpi/slice/kpi/targetSlice';
-import actualReducer from './kpi/slice/kpi/actualSlice';
-import scoreReducer from './kpi/slice/kpi/scoreSlice';
-import validationReducer from './kpi/slice/kpi/validationSlice';
-import frameworkReducer from './kpi/slice/kpi/frameworkSlice';
-import kpiDashboardReducer from './kpi/slice/kpi/dashboardSlice';
-import kpiRealtimeReducer from './kpi/slice/kpiRealtimeSlice';
-import kpiUiReducer from './kpi/slice/ui';
-import kpiNotificationReducer from './kpi/notificationSlice';
-import kpiAnalyticsReducer from './kpi/analyticsSlice';
+import kpiModuleReducer from './kpi';
 
 // ==========================================
 // TENANT APP REDUCERS (ADD THIS)
@@ -132,17 +122,7 @@ const rootReducer = combineReducers({
     }),
 
     // KPI State
-    kpi: kpiReducer,
-    target: targetReducer,
-    actual: actualReducer,
-    score: scoreReducer,
-    validation: validationReducer,
-    framework: frameworkReducer,
-    kpiDashboard: kpiDashboardReducer,
-    kpiRealtime: kpiRealtimeReducer,
-    kpiUi: kpiUiReducer,
-    kpiNotifications: kpiNotificationReducer,
-    kpiAnalytics: kpiAnalyticsReducer,
+    kpi: kpiModuleReducer,
 
     // Billing State
     billing: billingReducer,

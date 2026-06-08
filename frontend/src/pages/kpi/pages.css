@@ -1,0 +1,112 @@
+/* KPI Pages Styles */
+.kpi-page-container {
+    padding: var(--kpi-space-6);
+    min-height: calc(100vh - 64px);
+    background: var(--kpi-gray-50);
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--kpi-space-6);
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--kpi-gray-600);
+    font-size: 0.875rem;
+    margin-bottom: var(--kpi-space-4);
+}
+
+.submit-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-primary);
+    color: white;
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+}
+
+/* KPI Edit Page */
+.kpi-edit-header {
+    margin-bottom: var(--kpi-space-6);
+}
+
+.kpi-edit-header h1 {
+    font-size: 1.25rem;
+    margin-top: var(--kpi-space-2);
+}
+
+.kpi-edit-tabs {
+    display: flex;
+    gap: var(--kpi-space-1);
+    border-bottom: 1px solid var(--kpi-gray-200);
+    margin-bottom: var(--kpi-space-6);
+}
+
+.edit-tab {
+    padding: var(--kpi-space-3) var(--kpi-space-5);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--kpi-gray-600);
+    transition: var(--kpi-transition-base);
+}
+
+.edit-tab.active {
+    color: var(--kpi-primary);
+    border-bottom: 2px solid var(--kpi-primary);
+}
+
+.kpi-edit-content {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-6);
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+/* Unauthorized Message */
+.unauthorized-message {
+    text-align: center;
+    padding: var(--kpi-space-12);
+    background: white;
+    border-radius: var(--kpi-radius-xl);
+    color: var(--kpi-gray-500);
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .kpi-page-container {
+        padding: var(--kpi-space-4);
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: var(--kpi-space-4);
+        align-items: stretch;
+    }
+    
+    .kpi-edit-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .edit-tab {
+        flex: 1;
+        text-align: center;
+    }
+}

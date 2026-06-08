@@ -1,0 +1,306 @@
+/* Monthly Phasing Styles */
+.kpi-monthly-phasing {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-5);
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+.kpi-monthly-phasing-header {
+    margin-bottom: var(--kpi-space-5);
+}
+
+.kpi-monthly-phasing-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--kpi-space-2);
+}
+
+.kpi-monthly-phasing-stats {
+    display: flex;
+    gap: var(--kpi-space-4);
+    font-size: 0.875rem;
+    color: var(--kpi-gray-600);
+}
+
+.kpi-monthly-phasing-stats .valid {
+    color: var(--kpi-success);
+}
+
+.kpi-monthly-phasing-stats .invalid {
+    color: var(--kpi-danger);
+}
+
+.kpi-monthly-phasing-toolbar {
+    display: flex;
+    gap: var(--kpi-space-3);
+    margin-bottom: var(--kpi-space-5);
+}
+
+.kpi-phasing-generate-btn,
+.kpi-phasing-save-btn,
+.kpi-phasing-lock-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.kpi-phasing-generate-btn {
+    background: var(--kpi-primary);
+    color: white;
+}
+
+.kpi-phasing-save-btn {
+    background: var(--kpi-success);
+    color: white;
+}
+
+.kpi-phasing-lock-btn {
+    background: var(--kpi-warning);
+    color: white;
+}
+
+/* Phasing Table */
+.kpi-phasing-table-container {
+    overflow-x: auto;
+    margin-top: var(--kpi-space-5);
+}
+
+.kpi-phasing-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.kpi-phasing-table th,
+.kpi-phasing-table td {
+    padding: var(--kpi-space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.kpi-phasing-table th {
+    background: var(--kpi-gray-50);
+    font-weight: 600;
+}
+
+.kpi-phasing-input {
+    width: 100px;
+    padding: var(--kpi-space-2);
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-sm);
+}
+
+.locked {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--kpi-space-1);
+    color: var(--kpi-gray-500);
+}
+
+.lock-icon {
+    margin-left: var(--kpi-space-1);
+}
+
+.edit-icon {
+    cursor: pointer;
+    color: var(--kpi-primary);
+}
+
+/* Phasing Chart */
+.kpi-phasing-chart {
+    padding: var(--kpi-space-4);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-lg);
+}
+
+.kpi-phasing-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--kpi-space-2);
+    height: 200px;
+}
+
+.kpi-phasing-chart-bar-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--kpi-space-2);
+}
+
+.kpi-phasing-chart-bar {
+    width: 100%;
+    background: var(--kpi-primary);
+    border-radius: var(--kpi-radius-sm) var(--kpi-radius-sm) 0 0;
+    position: relative;
+    transition: height 0.3s ease;
+    min-height: 4px;
+}
+
+.kpi-phasing-chart-value {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: var(--kpi-gray-600);
+}
+
+.kpi-phasing-chart-label {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+/* Strategy Modal */
+.kpi-phasing-strategy-modal,
+.kpi-phasing-lock-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.kpi-phasing-strategy-container,
+.kpi-phasing-lock-container {
+    background: white;
+    border-radius: var(--kpi-radius-xl);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.kpi-phasing-strategy-header,
+.kpi-phasing-lock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--kpi-space-5);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.kpi-phasing-lock-header {
+    gap: var(--kpi-space-3);
+}
+
+.kpi-phasing-strategies {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-2);
+    margin: var(--kpi-space-4) 0;
+}
+
+.kpi-phasing-strategy-item {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-3);
+    border: 1px solid var(--kpi-gray-200);
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-phasing-strategy-item:hover {
+    border-color: var(--kpi-primary);
+    background: var(--kpi-info-bg);
+}
+
+.kpi-phasing-strategy-item.selected {
+    border-color: var(--kpi-primary);
+    background: var(--kpi-info-bg);
+}
+
+.kpi-phasing-strategy-name {
+    font-weight: 500;
+}
+
+.kpi-phasing-strategy-description {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.kpi-phasing-strategy-params {
+    margin-top: var(--kpi-space-4);
+    padding: var(--kpi-space-4);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-md);
+}
+
+.kpi-phasing-lock-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-4);
+    background: var(--kpi-warning-bg);
+    border-radius: var(--kpi-radius-md);
+    margin-bottom: var(--kpi-space-4);
+}
+
+.kpi-phasing-lock-form-group {
+    margin-bottom: var(--kpi-space-4);
+}
+
+.kpi-phasing-lock-input {
+    width: 100%;
+    padding: var(--kpi-space-3);
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-md);
+    margin-top: var(--kpi-space-2);
+}
+
+.hint {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.error {
+    font-size: 0.7rem;
+    color: var(--kpi-danger);
+}
+
+.kpi-phasing-strategy-footer,
+.kpi-phasing-lock-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-4) var(--kpi-space-5);
+    background: var(--kpi-gray-50);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+.cancel {
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-gray-100);
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+}
+
+.generate,
+.lock {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    background: var(--kpi-primary);
+    color: white;
+    border: none;
+    border-radius: var(--kpi-radius-md);
+    cursor: pointer;
+}
+
+.lock {
+    background: var(--kpi-warning);
+}

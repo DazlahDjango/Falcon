@@ -1,183 +1,272 @@
-// frontend/src/services/kpi/framework.service.js
-import api from '../api';
-import { API_ENDPOINTS } from '../api/endpoints';
+import { BaseKPIService, withRetry } from './kpiBase.service';
+import {
+  SECTOR_ENDPOINTS,
+  FRAMEWORK_ENDPOINTS,
+  CATEGORY_ENDPOINTS,
+  TEMPLATE_ENDPOINTS,
+} from '../api/endpoints';
 
-class FrameworkService {
-    // ============ SECTORS ============
+class FrameworkService extends BaseKPIService {
+  constructor() {
+    super('frameworks');
+  }
 
-    async getSectors(params = {}) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.SECTORS, { params });
-        return response.data;
-    }
+  // ============ SECTORS ============
+  async getSectors(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(SECTOR_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
 
-    async getSector(id) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.SECTOR_DETAIL(id));
-        return response.data;
-    }
+  async getSector(id) {
+    if (!id) throw new Error('Sector ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(SECTOR_ENDPOINTS.DETAIL(id));
+      return response;
+    });
+  }
 
-    async createSector(data) {
-        const response = await api.post(API_ENDPOINTS.FRAMEWORK.SECTORS, data);
-        return response.data;
-    }
+  async createSector(data) {
+    if (!data) throw new Error('Sector data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(SECTOR_ENDPOINTS.CREATE, data);
+      return response;
+    });
+  }
 
-    async updateSector(id, data) {
-        const response = await api.put(API_ENDPOINTS.FRAMEWORK.SECTOR_DETAIL(id), data);
-        return response.data;
-    }
+  async updateSector(id, data) {
+    if (!id) throw new Error('Sector ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(SECTOR_ENDPOINTS.UPDATE(id), data);
+      return response;
+    });
+  }
 
-    async deleteSector(id) {
-        await api.delete(API_ENDPOINTS.FRAMEWORK.SECTOR_DETAIL(id));
-    }
+  async deleteSector(id) {
+    if (!id) throw new Error('Sector ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(SECTOR_ENDPOINTS.DELETE(id));
+      return response;
+    });
+  }
 
-    async getSectorFrameworks(id, params = {}) {
-        const response = await api.get(`${API_ENDPOINTS.FRAMEWORK.SECTOR_DETAIL(id)}/frameworks/`, { params });
-        return response.data;
-    }
+  async getSectorFrameworks(id, params = {}) {
+    if (!id) throw new Error('Sector ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(SECTOR_ENDPOINTS.FRAMEWORKS(id), { params });
+      return response;
+    });
+  }
 
-    async getSectorTemplates(id, params = {}) {
-        const response = await api.get(`${API_ENDPOINTS.FRAMEWORK.SECTOR_DETAIL(id)}/templates/`, { params });
-        return response.data;
-    }
+  // ============ FRAMEWORKS ============
+  async getFrameworks(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(FRAMEWORK_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
 
-    // ============ FRAMEWORKS ============
+  async getFramework(id) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(FRAMEWORK_ENDPOINTS.DETAIL(id));
+      return response;
+    });
+  }
 
-    async getFrameworks(params = {}) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.FRAMEWORKS, { params });
-        return response.data;
-    }
+  async createFramework(data) {
+    if (!data) throw new Error('Framework data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(FRAMEWORK_ENDPOINTS.CREATE, data);
+      return response;
+    });
+  }
 
-    async getFramework(id) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id));
-        return response.data;
-    }
+  async updateFramework(id, data) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(FRAMEWORK_ENDPOINTS.UPDATE(id), data);
+      return response;
+    });
+  }
 
-    async createFramework(data) {
-        const response = await api.post(API_ENDPOINTS.FRAMEWORK.FRAMEWORKS, data);
-        return response.data;
-    }
+  async deleteFramework(id) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(FRAMEWORK_ENDPOINTS.DELETE(id));
+      return response;
+    });
+  }
 
-    async updateFramework(id, data) {
-        const response = await api.put(API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id), data);
-        return response.data;
-    }
+  async publishFramework(id) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(FRAMEWORK_ENDPOINTS.PUBLISH(id));
+      return response;
+    });
+  }
 
-    async deleteFramework(id) {
-        await api.delete(API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id));
-    }
+  async archiveFramework(id) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(FRAMEWORK_ENDPOINTS.ARCHIVE(id));
+      return response;
+    });
+  }
 
-    async publishFramework(id) {
-        const response = await api.post(`${API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id)}/publish/`);
-        return response.data;
-    }
+  async duplicateFramework(id) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(FRAMEWORK_ENDPOINTS.DUPLICATE(id));
+      return response;
+    });
+  }
 
-    async archiveFramework(id) {
-        const response = await api.post(`${API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id)}/archive/`);
-        return response.data;
-    }
+  async getFrameworkCategories(id, params = {}) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(FRAMEWORK_ENDPOINTS.CATEGORIES(id), { params });
+      return response;
+    });
+  }
 
-    async duplicateFramework(id) {
-        const response = await api.post(`${API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id)}/duplicate/`);
-        return response.data;
-    }
+  async getFrameworkKPIs(id, params = {}) {
+    if (!id) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(FRAMEWORK_ENDPOINTS.KPIS(id), { params });
+      return response;
+    });
+  }
 
-    async getFrameworkCategories(id, params = {}) {
-        const response = await api.get(`${API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id)}/categories/`, { params });
-        return response.data;
-    }
+  // ============ CATEGORIES ============
+  async getCategories(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CATEGORY_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
 
-    async getFrameworkKPIs(id, params = {}) {
-        const response = await api.get(`${API_ENDPOINTS.FRAMEWORK.FRAMEWORK_DETAIL(id)}/kpis/`, { params });
-        return response.data;
-    }
+  async getCategory(id) {
+    if (!id) throw new Error('Category ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CATEGORY_ENDPOINTS.DETAIL(id));
+      return response;
+    });
+  }
 
-    // ============ CATEGORIES ============
+  async createCategory(data) {
+    if (!data) throw new Error('Category data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CATEGORY_ENDPOINTS.CREATE, data);
+      return response;
+    });
+  }
 
-    async getCategories(params = {}) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.CATEGORIES, { params });
-        return response.data;
-    }
+  async updateCategory(id, data) {
+    if (!id) throw new Error('Category ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(CATEGORY_ENDPOINTS.UPDATE(id), data);
+      return response;
+    });
+  }
 
-    async getCategory(id) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.CATEGORY_DETAIL(id));
-        return response.data;
-    }
+  async deleteCategory(id) {
+    if (!id) throw new Error('Category ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(CATEGORY_ENDPOINTS.DELETE(id));
+      return response;
+    });
+  }
 
-    async createCategory(data) {
-        const response = await api.post(API_ENDPOINTS.FRAMEWORK.CATEGORIES, data);
-        return response.data;
-    }
+  async getCategoryChildren(id) {
+    if (!id) throw new Error('Category ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CATEGORY_ENDPOINTS.CHILDREN(id));
+      return response;
+    });
+  }
 
-    async updateCategory(id, data) {
-        const response = await api.put(API_ENDPOINTS.FRAMEWORK.CATEGORY_DETAIL(id), data);
-        return response.data;
-    }
+  async getCategoryKPIs(id, params = {}) {
+    if (!id) throw new Error('Category ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CATEGORY_ENDPOINTS.KPIS(id), { params });
+      return response;
+    });
+  }
 
-    async deleteCategory(id) {
-        await api.delete(API_ENDPOINTS.FRAMEWORK.CATEGORY_DETAIL(id));
-    }
+  async moveCategory(id, parentId) {
+    if (!id) throw new Error('Category ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CATEGORY_ENDPOINTS.MOVE(id), { parent_id: parentId });
+      return response;
+    });
+  }
 
-    async moveCategory(id, parentId) {
-        const response = await api.post(`${API_ENDPOINTS.FRAMEWORK.CATEGORY_DETAIL(id)}/move/`, { parent_id: parentId });
-        return response.data;
-    }
+  async reorderCategories(categories) {
+    if (!categories || !categories.length) throw new Error('Categories array is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CATEGORY_ENDPOINTS.REORDER, { categories });
+      return response;
+    });
+  }
 
-    async reorderCategories(categories) {
-        const response = await api.post(`${API_ENDPOINTS.FRAMEWORK.CATEGORIES}reorder/`, { categories });
-        return response.data;
-    }
+  // ============ TEMPLATES ============
+  async getTemplates(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(TEMPLATE_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
 
-    async getCategoryChildren(id, params = {}) {
-        const response = await api.get(`${API_ENDPOINTS.FRAMEWORK.CATEGORY_DETAIL(id)}/children/`, { params });
-        return response.data;
-    }
+  async getTemplate(id) {
+    if (!id) throw new Error('Template ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(TEMPLATE_ENDPOINTS.DETAIL(id));
+      return response;
+    });
+  }
 
-    async getCategoryKPIs(id, params = {}) {
-        const response = await api.get(`${API_ENDPOINTS.FRAMEWORK.CATEGORY_DETAIL(id)}/kpis/`, { params });
-        return response.data;
-    }
+  async createTemplate(data) {
+    if (!data) throw new Error('Template data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(TEMPLATE_ENDPOINTS.CREATE, data);
+      return response;
+    });
+  }
 
-    // ============ TEMPLATES ============
+  async updateTemplate(id, data) {
+    if (!id) throw new Error('Template ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(TEMPLATE_ENDPOINTS.UPDATE(id), data);
+      return response;
+    });
+  }
 
-    async getTemplates(params = {}) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.TEMPLATES, { params });
-        return response.data;
-    }
+  async deleteTemplate(id) {
+    if (!id) throw new Error('Template ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(TEMPLATE_ENDPOINTS.DELETE(id));
+      return response;
+    });
+  }
 
-    async getTemplate(id) {
-        const response = await api.get(API_ENDPOINTS.FRAMEWORK.TEMPLATE_DETAIL(id));
-        return response.data;
-    }
+  async publishTemplate(id) {
+    if (!id) throw new Error('Template ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(TEMPLATE_ENDPOINTS.PUBLISH(id));
+      return response;
+    });
+  }
 
-    async createTemplate(data) {
-        const response = await api.post(API_ENDPOINTS.FRAMEWORK.TEMPLATES, data);
-        return response.data;
-    }
-
-    async updateTemplate(id, data) {
-        const response = await api.put(API_ENDPOINTS.FRAMEWORK.TEMPLATE_DETAIL(id), data);
-        return response.data;
-    }
-
-    async deleteTemplate(id) {
-        await api.delete(API_ENDPOINTS.FRAMEWORK.TEMPLATE_DETAIL(id));
-    }
-
-    async publishTemplate(id) {
-        const response = await api.post(`${API_ENDPOINTS.FRAMEWORK.TEMPLATE_DETAIL(id)}/publish/`);
-        return response.data;
-    }
-
-    async useTemplate(id, frameworkId) {
-        const response = await api.post(`${API_ENDPOINTS.FRAMEWORK.TEMPLATE_DETAIL(id)}/use_template/`, { framework_id: frameworkId });
-        return response.data;
-    }
-
-    // ============ ADMIN OVERVIEW ============
-
-    async getAdminOverview() {
-        const response = await api.get('/kpis/admin/overview/');
-        return response.data;
-    }
+  async useTemplate(id, frameworkId) {
+    if (!id) throw new Error('Template ID is required');
+    if (!frameworkId) throw new Error('Framework ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(TEMPLATE_ENDPOINTS.USE_TEMPLATE(id), { framework_id: frameworkId });
+      return response;
+    });
+  }
 }
 
-export default new FrameworkService();
+export const frameworkService = new FrameworkService();

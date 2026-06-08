@@ -17,7 +17,7 @@ import './admin.css';
 export const AdminBillingDashboard = () => {
     const { permissions } = useBillingPermissions();
     const { getRevenueReport, getSubscriptionReport, loading, clearAllReports } = useAdminBilling();
-    const { revenue: revenueAnalytics, fetchRevenueReport, fetchSubscriptionAnalytics, subscriptions: subscriptionAnalytics } = useBillingAnalytics({ autoFetch: false });
+    const { revenue: revenueAnalytics, fetchRevenue, fetchSubscriptionAnalytics, subscriptions: subscriptionAnalytics } = useBillingAnalytics({ autoFetch: false });
     const [dateRange, setDateRange] = useState({ startDate: null, endDate: null });
     const [refreshing, setRefreshing] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState('month');
@@ -40,13 +40,13 @@ export const AdminBillingDashboard = () => {
             default: startDate.setMonth(endDate.getMonth() - 1);
         }
         await Promise.all([
-            fetchRevenueReport({ start_date: startDate.toISOString().split('T')[0], end_date: endDate.toISOString().split('T')[0] }),
+            fetchRevenue({ start_date: startDate.toISOString().split('T')[0], end_date: endDate.toISOString().split('T')[0] }),
             fetchSubscriptionAnalytics(),
             getRevenueReport(startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]),
             getSubscriptionReport(startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0])
         ]);
         setRefreshing(false);
-    }, [selectedPeriod, dateRange, fetchRevenueReport, fetchSubscriptionAnalytics, getRevenueReport, getSubscriptionReport]);
+    }, [selectedPeriod, dateRange, fetchRevenue, fetchSubscriptionAnalytics, getRevenueReport, getSubscriptionReport]);
 
     if (!permissions.canAccessAdminPanel) {
         return <EmptyState type="default" title="Access Denied" message="You don't have permission to access the admin billing dashboard." />;

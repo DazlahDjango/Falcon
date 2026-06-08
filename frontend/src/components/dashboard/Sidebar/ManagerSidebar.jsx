@@ -1,15 +1,13 @@
-// frontend/src/components/dashboard/Sidebar/ManagerSidebar.jsx
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
 import {
     FiHome, FiBarChart2, FiUsers, FiTrendingUp, FiAlertCircle, 
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
-    FiDownload, FiSettings, FiHelpCircle, FiLogOut, FiBell,
-    FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar, FiCheckCircle, FiClock
+    FiDownload, FiSettings, FiBell, FiGrid, FiFileText, FiTarget,
+    FiCheckCircle, FiClock, FiUserCheck
 } from 'react-icons/fi';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const ManagerSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
@@ -31,21 +29,28 @@ const ManagerSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, cu
     const navigation = {
         main: [
             { path: DASHBOARD_ROUTES.MANAGER.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
+            { path: DASHBOARD_ROUTES.MANAGER.TEAM, name: 'Team Dashboard', icon: FiUsers },
         ],
         team: [
-            { path: DASHBOARD_ROUTES.MANAGER.TEAM, name: 'My Team', icon: FiUsers },
-            { path: DASHBOARD_ROUTES.MANAGER.TEAM, name: 'Team Performance', icon: FiBarChart2 },
+            { path: DASHBOARD_ROUTES.MANAGER.TEAM, name: 'My Team', icon: FiUserCheck },
+            { path: DASHBOARD_ROUTES.MANAGER.TEAM_PERFORMANCE, name: 'Team Performance', icon: FiBarChart2 },
+            { path: KPI_ROUTES.SCORE_TEAM_SCORES, name: 'Team Scores', icon: FiTrendingUp },
+            { path: KPI_ROUTES.USER_TARGETS(':userId'), name: 'Team Targets', icon: FiTarget },
         ],
         approvals: [
             { path: DASHBOARD_ROUTES.MANAGER.APPROVALS, name: 'Pending Approvals', icon: FiClock },
-            { path: DASHBOARD_ROUTES.MANAGER.APPROVALS, name: 'Approval History', icon: FiCheckCircle },
+            { path: KPI_ROUTES.VALIDATIONS_PENDING, name: 'Pending Validations', icon: FiCheckCircle },
+            { path: KPI_ROUTES.VALIDATIONS_HISTORY, name: 'Validation History', icon: FiFileText },
+            { path: KPI_ROUTES.ESCALATIONS, name: 'Escalations', icon: FiAlertCircle },
         ],
         reports: [
             { path: DASHBOARD_ROUTES.MANAGER.REPORTS, name: 'Team Reports', icon: FiFileText },
             { path: DASHBOARD_ROUTES.MANAGER.EXPORTS, name: 'Exports', icon: FiDownload },
+            { path: KPI_ROUTES.KPI_REPORTS, name: 'Performance Reports', icon: FiBarChart2 },
         ],
         settings: [
             { path: DASHBOARD_ROUTES.MANAGER.SETTINGS, name: 'Settings', icon: FiSettings },
+            { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, name: 'Notifications', icon: FiBell },
         ]
     };
 
@@ -118,7 +123,7 @@ const ManagerSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, cu
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
                 {renderNavGroup('Team Management', navigation.team, 'team')}
-                {renderNavGroup('Approvals', navigation.approvals, 'approvals')}
+                {renderNavGroup('Approvals & Validations', navigation.approvals, 'approvals')}
                 {renderNavGroup('Reports & Exports', navigation.reports, 'reports')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>

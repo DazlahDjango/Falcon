@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 from django.utils import timezone
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from .services import ManagerDashboard, IndividualDashboard, ExecutiveDashboard
 
 logger = logging.getLogger(__name__)
 
@@ -341,7 +342,7 @@ class KPITeamConsumer(AsyncWebsocketConsumer):
         User = get_user_model()
         try:
             manager = User.objects.get(id=self.manager_id)
-            return self.user.is_manager_of(manager)
+            return manager.get_direct_reports().filter(id=self.user.id).exists()
         except User.DoesNotExist:
             return False
 
@@ -450,8 +451,8 @@ class KPINotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_pending_notifications(self):
-        from .models import Notification
-        return list(Notification.objects.filter(
+        from .models.notification import NotificationPreference
+        return list(NotificationPreference.objects.filter(
             user_id=self.user_id,
             is_read=False
         ).values('id', 'title', 'message', 'created_at')[:20])

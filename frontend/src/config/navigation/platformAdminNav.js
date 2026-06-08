@@ -45,6 +45,8 @@ import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
 import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { BILLING_ROUTES } from '../constants/billingRouteConstants';
 import { ROUTES } from '../constants';
+import { SUPER_ADMIN_KPI_GROUPS } from './kpiAdminNav';
+import { CLIENT_ADMIN_KPI_GROUPS } from './kpiAdminNav';
 
 export const MFA_ROUTES = {
   DEVICES: '/security/mfa',
@@ -132,7 +134,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/tenants/connections/health', name: 'Connection Health', icon: FiShield },
   ],
   billing: ADMIN_BILLING_NAV_ITEMS,  // ← Admin billing for super admin
-  kpiAdmin: [
+  kpiAdmins: [
     { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
     { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
     { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
@@ -145,6 +147,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: ROUTES.KPI_ANALYTICS, name: 'KPI Analytics', icon: FiTrendingUp },
     { path: ROUTES.KPI_SETTINGS, name: 'KPI Operations', icon: FiSettings },
   ],
+  ...KPI_ADMIN_ROUTES,
   structure: [
     { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
     { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
@@ -213,13 +216,14 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.MISSING_DATA, name: 'Missing Data', icon: FiAlertCircle },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USER_ACTIVITY, name: 'User Activity', icon: FiActivity },
   ],
-  kpiAdmin: [
+  kpiAdmins: [
     { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
     { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
     { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
     { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
     { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
   ],
+  ...CLIENT_ADMIN_KPI_GROUPS,
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, name: 'Roles & Permissions', icon: FiShield },
@@ -252,8 +256,12 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   main: true,
   tenants: false,
   billing: false,
-  kpiAdmin: false,
+  kpiAdmins: false,
   kpi: false,
+  kpiAdmin: false,
+  kpiManagement: true,
+  kpiAnalytics: false,
+  kpiOperations: false,
   structure: false,
   reviews: false,
   accounts: false,
@@ -266,7 +274,11 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   main: true,
   billing: false,      // ← Billing group for client admin
   oversight: true,
+  kpiAdmins: false,
   kpiAdmin: false,
+  kpiManagement: true,
+  kpiAnalytics: false,
+  kpiOperations: false,
   management: true,
   mfa: false,
   compliance: false,
@@ -280,8 +292,12 @@ export const SUPER_ADMIN_GROUP_LABELS = {
   main: 'Main',
   tenants: 'Tenant Ops & Connections',
   billing: 'Billing Administration',     // ← Admin billing label
-  kpiAdmin: 'KPI System Admin',
+  kpiAdmins: 'KPI System Admin',
   kpi: 'KPI Management (User)',
+  kpiAdmin: 'KPI System Admin',
+  kpiManagement: 'KPI Management',
+  kpiAnalytics: 'Analytics & Reports',
+  kpiOperations: 'Operations',
   structure: 'Organization Structure',
   reviews: 'Performance Reviews',
   accounts: 'Users & Platform Access',
@@ -294,7 +310,11 @@ export const CLIENT_ADMIN_GROUP_LABELS = {
   main: 'Main',
   billing: 'Billing & Payments',         // ← Customer billing label
   oversight: 'Oversight',
+  kpiAdmins: 'KPI System Admin',
   kpiAdmin: 'KPI System Admin',
+  kpiManagement: 'KPI Management',
+  kpiAnalytics: 'Analytics & Reports',
+  kpiOperations: 'Operations',
   management: 'Management',
   mfa: 'Multi-Factor Authentication',
   compliance: 'Reports & Compliance',

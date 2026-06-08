@@ -1,9 +1,9 @@
 (falc) PS C:\Users\Dazlah Administrator\Desktop\Falcon_pms> python manage.py show_urls | Select-String "kpi"
-{"time": "2026-06-06 16:51:25,837", "level": "INFO", "module": "apps", "message": "AXES: BEGIN version 8.3.1, blocking by combination of username and ip_address and user_agent"}
+{"time": "2026-06-08 14:21:05,450", "level": "INFO", "module": "apps", "message": "AXES: BEGIN version 8.3.1, blocking by combination of username and ip_address and user_agent"}
 C:\Users\Dazlah Administrator\Desktop\Falcon_pms\falc\Lib\site-packages\django\db\backends\utils.py:98: RuntimeWarning: Accessing the database during app initialization is discouraged. To fix this warning, avoid executing queries in AppConfig.ready() or when your app modules are imported.
   warnings.warn(self.APPS_NOT_READY_WARNING_MSG, category=RuntimeWarning)
-{"time": "2026-06-06 16:51:27,396", "level": "INFO", "module": "connection_cleanup", "message": "Connection cleanup scheduler started"}
-{"time": "2026-06-06 16:51:27,686", "level": "INFO", "module": "apps", "message": "Dashboard critical caches warmed"}
+{"time": "2026-06-08 14:21:07,522", "level": "INFO", "module": "connection_cleanup", "message": "Connection cleanup scheduler started"}
+{"time": "2026-06-08 14:21:07,992", "level": "INFO", "module": "apps", "message": "Dashboard critical caches warmed"}
 
 /admin/dashboard/favoritekpi/   django.contrib.admin.options.changelist_view    admin:dashboard_favoritekpi_changelist
 /admin/dashboard/favoritekpi/<path:object_id>/  django.views.generic.base.RedirectView
@@ -155,6 +155,8 @@ favorite-kpi-reorder
 /api/v1/dashboard/favorites\.<format>/  apps.dashboard.api.v1.views.fevorite.FavoriteKPIViewSet favorite-kpi-list
 /api/v1/kpis/   apps.kpi.api.v1.urls.api_root   kpi:api-root
 /api/v1/kpis/   rest_framework.routers.APIRootView      kpi:api-root
+/api/v1/kpis/   rest_framework.routers.APIRootView      kpi:api-root
+/api/v1/kpis/<drf_format_suffix:format> rest_framework.routers.APIRootView      kpi:api-root
 /api/v1/kpis/<drf_format_suffix:format> rest_framework.routers.APIRootView      kpi:api-root
 /api/v1/kpis/actual-adjustments/        apps.kpi.api.v1.views.actual.ActualAdjustmentViewSet    kpi:actual-adjustment-list
 /api/v1/kpis/actual-adjustments/<pk>/   apps.kpi.api.v1.views.actual.ActualAdjustmentViewSet    kpi:actual-adjustment-detail
@@ -454,6 +456,29 @@ kpi:traffic-light-red-alerts
 /api/v1/kpis/users/     apps.kpi.api.v1.views.user_nested.UserViewSet   kpi:user-list
 /api/v1/kpis/users/<pk>/        apps.kpi.api.v1.views.user_nested.UserViewSet   kpi:user-detail
 /api/v1/kpis/users/<pk>/\.<format>/     apps.kpi.api.v1.views.user_nested.UserViewSet   kpi:user-detail
+/api/v1/kpis/users/<user_pk>/actuals/   apps.kpi.api.v1.views.user_nested.UserActualsViewSet    kpi:user-actuals-list
+/api/v1/kpis/users/<user_pk>/actuals/<pk>/      apps.kpi.api.v1.views.user_nested.UserActualsViewSet    kpi:user-actuals-detail
+/api/v1/kpis/users/<user_pk>/actuals/<pk>/\.<format>/   apps.kpi.api.v1.views.user_nested.UserActualsViewSet
+kpi:user-actuals-detail
+/api/v1/kpis/users/<user_pk>/actuals/\.<format>/        apps.kpi.api.v1.views.user_nested.UserActualsViewSet
+kpi:user-actuals-list
+/api/v1/kpis/users/<user_pk>/kpis/      apps.kpi.api.v1.views.user_nested.UserKPIsViewSet       kpi:user-kpis-list
+/api/v1/kpis/users/<user_pk>/kpis/<pk>/ apps.kpi.api.v1.views.user_nested.UserKPIsViewSet       kpi:user-kpis-detail
+/api/v1/kpis/users/<user_pk>/kpis/<pk>/\.<format>/      apps.kpi.api.v1.views.user_nested.UserKPIsViewSet
+kpi:user-kpis-detail
+/api/v1/kpis/users/<user_pk>/kpis/\.<format>/   apps.kpi.api.v1.views.user_nested.UserKPIsViewSet       kpi:user-kpis-list
+/api/v1/kpis/users/<user_pk>/scores/    apps.kpi.api.v1.views.user_nested.UserScoresViewSet     kpi:user-scores-list
+/api/v1/kpis/users/<user_pk>/scores/<pk>/       apps.kpi.api.v1.views.user_nested.UserScoresViewSet     kpi:user-scores-detail
+/api/v1/kpis/users/<user_pk>/scores/<pk>/\.<format>/    apps.kpi.api.v1.views.user_nested.UserScoresViewSet
+kpi:user-scores-detail
+/api/v1/kpis/users/<user_pk>/scores/\.<format>/ apps.kpi.api.v1.views.user_nested.UserScoresViewSet
+kpi:user-scores-list
+/api/v1/kpis/users/<user_pk>/targets/   apps.kpi.api.v1.views.user_nested.UserTargetsViewSet    kpi:user-targets-list
+/api/v1/kpis/users/<user_pk>/targets/<pk>/      apps.kpi.api.v1.views.user_nested.UserTargetsViewSet    kpi:user-targets-detail
+/api/v1/kpis/users/<user_pk>/targets/<pk>/\.<format>/   apps.kpi.api.v1.views.user_nested.UserTargetsViewSet
+kpi:user-targets-detail
+/api/v1/kpis/users/<user_pk>/targets/\.<format>/        apps.kpi.api.v1.views.user_nested.UserTargetsViewSet
+kpi:user-targets-list
 /api/v1/kpis/users/\.<format>/  apps.kpi.api.v1.views.user_nested.UserViewSet   kpi:user-list
 /api/v1/kpis/validations/       apps.kpi.api.v1.views.validation.ValidationRecordViewSet        kpi:validation-list
 /api/v1/kpis/validations/<pk>/  apps.kpi.api.v1.views.validation.ValidationRecordViewSet        kpi:validation-detail

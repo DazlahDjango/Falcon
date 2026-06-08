@@ -1,0 +1,254 @@
+/* Manager Dashboard Styles */
+.kpi-manager-dashboard {
+    padding: var(--kpi-space-6);
+    background: var(--kpi-gray-50);
+    min-height: 100vh;
+}
+
+.team-performance-content {
+    text-align: center;
+    padding: var(--kpi-space-4);
+}
+
+.performance-score {
+    margin-bottom: var(--kpi-space-4);
+}
+
+.score-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--kpi-primary);
+}
+
+.score-change {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--kpi-space-1);
+    font-size: 0.75rem;
+}
+
+.performance-stats {
+    display: flex;
+    justify-content: space-around;
+    padding-top: var(--kpi-space-4);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+.performance-stats .stat {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+    display: block;
+}
+
+.stat-value.green { color: var(--kpi-success); font-weight: 600; }
+.stat-value.yellow { color: var(--kpi-warning); font-weight: 600; }
+.stat-value.red { color: var(--kpi-danger); font-weight: 600; }
+
+/* Team Members Table */
+.team-members-table {
+    overflow-x: auto;
+}
+
+.team-members-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.team-members-table th,
+.team-members-table td {
+    padding: var(--kpi-space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--kpi-gray-100);
+}
+
+.team-members-table th {
+    background: var(--kpi-gray-50);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.member-info {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+}
+
+.member-avatar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--kpi-gray-100);
+    border-radius: var(--kpi-radius-md);
+}
+
+.member-name {
+    font-weight: 500;
+}
+
+.member-email {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.member-score {
+    font-weight: 600;
+    color: var(--kpi-primary);
+}
+
+/* Status Distribution */
+.status-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-4);
+}
+
+.status-item {
+    width: 100%;
+}
+
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    margin-bottom: var(--kpi-space-2);
+    font-size: 0.875rem;
+}
+
+.status-icon {
+    width: 24px;
+}
+
+.status-label {
+    flex: 1;
+}
+
+.status-value {
+    font-weight: 600;
+}
+
+.status-percentage {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.status-bar {
+    height: 8px;
+    background: var(--kpi-gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.status-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Pending & Missing Lists */
+.pending-list,
+.missing-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-3);
+}
+
+.pending-item,
+.missing-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--kpi-space-2) var(--kpi-space-3);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-md);
+}
+
+.pending-title,
+.missing-title {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: var(--kpi-space-1);
+}
+
+.pending-user,
+.missing-user {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-1);
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.pending-time {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-1);
+    font-size: 0.7rem;
+    color: var(--kpi-warning);
+}
+
+.missing-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-1);
+    font-size: 0.7rem;
+    color: var(--kpi-danger);
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: var(--kpi-radius-full);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.badge.success {
+    background: var(--kpi-success-bg);
+    color: var(--kpi-success-dark);
+}
+
+.badge.warning {
+    background: var(--kpi-warning-bg);
+    color: var(--kpi-warning-dark);
+}
+
+.badge.danger {
+    background: var(--kpi-danger-bg);
+    color: var(--kpi-danger-dark);
+}
+
+.view-more {
+    text-align: center;
+    padding: var(--kpi-space-2);
+    font-size: 0.75rem;
+    color: var(--kpi-primary);
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .dashboard-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .team-members-table {
+        overflow-x: auto;
+    }
+}

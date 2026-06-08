@@ -35,6 +35,15 @@ export const reviewsApiClient = createApiClient({
   },
 });
 
+export const kpiApiClient = createApiClient({
+  module: 'kpi',
+  basePath: '',
+  responseStyle: 'raw',
+  circuitBreaker: true,
+  forbiddenMessage: 'You do not have permission to access this KPI resource',
+  attachTenantHeader: true,
+});
+
 const TENANT_RATE = { MAX: 100, WINDOW_MS: 60000, count: 0, windowStart: Date.now() };
 function checkTenantRateLimit() {
   const now = Date.now();
@@ -67,3 +76,4 @@ export const resetConfigCircuitBreaker = () => resetCircuitBreaker('config');
 export const resetDashboardCircuitBreaker = () => resetCircuitBreaker('dashboard');
 export const resetBillingCircuitBreaker = () => resetCircuitBreaker('billing');
 export const resetStructureCircuitBreaker = () => resetCircuitBreaker('structure');
+export const resetKPICircuitBreaker = () => resetCircuitBreaker('kpi');

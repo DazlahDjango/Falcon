@@ -55,10 +55,10 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
     def get_weights_count(self, obj):
-        return obj.weights.count()
+        return obj.weights.count() if hasattr(obj, 'weights') else 0
 
     def get_actuals_count(self, obj):
-        return obj.actuals.count()
+        return obj.actuals.count() if hasattr(obj, 'actuals') else 0
 
     def get_scores_count(self, obj):
         return obj.scores.count()

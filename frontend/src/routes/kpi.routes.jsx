@@ -1,84 +1,214 @@
 import React from "react";
-import { ROUTES } from "../config/constants";
-
-// Lazy load KPI pages
-const KPIDashboardPage = React.lazy(() => import('../pages/kpi/KPIDashboardPage'));
-const KPIManagementPage = React.lazy(() => import('../pages/kpi/KPIManagementPage'));
-const TargetManagementPage = React.lazy(() => import('../pages/kpi/TargetManagementPage'));
-const PerformanceTrackingPage = React.lazy(() => import('../pages/kpi/PerformanceTrackingPage'));
-const ReportsAnalyticsPage = React.lazy(() => import('../pages/kpi/ReportsAnalyticsPage'));
-const KPIValidationQueuePage = React.lazy(() => import('../pages/kpi/KPIValidationQueuePage'));
-const KPIAdjustmentsPage = React.lazy(() => import('../pages/kpi/KPIAdjustmentsPage'));
-const KPIDetailPage = React.lazy(() => import('../pages/kpi/KPIDetailPage'));
-const KPICreatePage = React.lazy(() => import('../pages/kpi/KPICreatePage'));
-const KPIEditPage = React.lazy(() => import('../pages/kpi/KPIEditPage'));
-const KpiSettingsPage = React.lazy(() => import('../pages/kpi/KpiSettingsPage'));
-const MyKPIsPage = React.lazy(() => import('../pages/kpi/MyKPIsPage'));
-const KPIAnalyticsPage = React.lazy(() => import('../pages/kpi/KPIAnalyticsPage'));
+import { KPI_ROUTES } from "../config/constants/kpiRouteConstants";
 
 // ============================================
-// ADMIN PAGES (NEW)
+// LAZY LOAD KPI PAGES
 // ============================================
-const AdminOverviewPage = React.lazy(() => import('../pages/kpi/AdminOverviewPage'));
-const SectorsPage = React.lazy(() => import('../pages/kpi/SectorsPage'));
-const FrameworksPage = React.lazy(() => import('../pages/kpi/FrameworksPage'));
-const CategoriesPage = React.lazy(() => import('../pages/kpi/CategoriesPage'));
-const TemplatesPage = React.lazy(() => import('../pages/kpi/TemplatesPage'));
+
+// Dashboard Pages
+const IndividualDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/IndividualDashboardPage'));
+const ManagerDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/ManagerDashboardPage'));
+const ExecutiveDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/ExecutiveDashboardPage'));
+const ChampionDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/ChampionDashboardPage'));
+const AdminDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/AdminDashboardPage'));
+
+// KPI Management Pages
+const KPIsPage = React.lazy(() => import('../pages/kpi/kpis/KPIsPage'));
+const KPIDetailPage = React.lazy(() => import('../pages/kpi/kpis/KPIDetailPage'));
+const KPIEditPage = React.lazy(() => import('../pages/kpi/kpis/KPIEditPage'));
+
+// Target Pages
+const TargetsPage = React.lazy(() => import('../pages/kpi/targets/TargetsPage'));
+const TargetPhasingPage = React.lazy(() => import('../pages/kpi/targets/TargetPhasingPage'));
+
+// Actual Pages
+const ActualsPage = React.lazy(() => import('../pages/kpi/actuals/ActualsPage'));
+
+// Validation Pages
+const ValidationsPage = React.lazy(() => import('../pages/kpi/validations/ValidationsPage'));
+
+// Analytics Pages
+const AnalyticsPage = React.lazy(() => import('../pages/kpi/analytics/AnalyticsPage'));
+const ReportsPage = React.lazy(() => import('../pages/kpi/analytics/ReportsPage'));
+const OrganizationHealthPage = React.lazy(() => import('../pages/kpi/analytics/OrganizationHealthPage'));
+
+// Settings Pages
+const SystemSettingsPage = React.lazy(() => import('../pages/kpi/settings/SystemSettingsPage'));
+const ReferenceDataPage = React.lazy(() => import('../pages/kpi/settings/ReferenceDataPage'));
+const NotificationPreferencesPage = React.lazy(() => import('../pages/kpi/settings/NotificationPreferencesPage'));
+
+// Audit Pages
+const AuditLogsPage = React.lazy(() => import('../pages/kpi/audit/AuditLogsPage'));
+
+// Bulk Pages
+const BulkUploadPage = React.lazy(() => import('../pages/kpi/bulk/BulkUploadPage'));
+
+// User Pages
+const UserKPIPage = React.lazy(() => import('../pages/kpi/users/UserKPIPage'));
+
+// ============================================
+// KPI ROUTES - WITHOUT 'name' PROPERTY (matching working pattern)
+// ============================================
 
 const kpiRoutes = [
-    // ============================================
     // Dashboards
-    // ============================================
-    { path: ROUTES.KPI_DASHBOARD, element: <KPIDashboardPage /> },
-
-    // ============================================
+    { path: KPI_ROUTES.DASHBOARD, element: <IndividualDashboardPage /> },
+    { path: KPI_ROUTES.MANAGER_DASHBOARD, element: <ManagerDashboardPage /> },
+    { path: KPI_ROUTES.EXECUTIVE_DASHBOARD, element: <ExecutiveDashboardPage /> },
+    { path: KPI_ROUTES.CHAMPION_DASHBOARD, element: <ChampionDashboardPage /> },
+    { path: KPI_ROUTES.ADMIN_OVERVIEW, element: <AdminDashboardPage /> },
+    
     // KPI Management
-    // ============================================
-    { path: ROUTES.KPI_MANAGEMENT, element: <KPIManagementPage /> },
-    { path: ROUTES.KPI_CREATE, element: <KPICreatePage /> },
-    { path: ROUTES.KPI_DETAIL, element: <KPIDetailPage /> },
-    { path: ROUTES.KPI_EDIT, element: <KPIEditPage /> },
-    { path: ROUTES.KPI_MY_KPIS, element: <MyKPIsPage /> },
-
-    // ============================================
-    // Targets
-    // ============================================
-    { path: ROUTES.TARGETS, element: <TargetManagementPage /> },
-    { path: ROUTES.TARGET_PHASING, element: <TargetManagementPage /> },
-    { path: ROUTES.TARGET_CASCADE, element: <TargetManagementPage /> },
-
-    // ============================================
-    // Performance Tracking (Actuals)
-    // ============================================
-    { path: ROUTES.ACTUALS, element: <PerformanceTrackingPage /> },
-    { path: ROUTES.ACTUAL_SUBMIT, element: <PerformanceTrackingPage /> },
-
-    // ============================================
-    // Validation & Adjustments
-    // ============================================
-    { path: ROUTES.KPI_VALIDATION, element: <KPIValidationQueuePage /> },
-    { path: ROUTES.KPI_ADJUSTMENTS, element: <KPIAdjustmentsPage /> },
-
-    // ============================================
+    { path: KPI_ROUTES.KPI_MANAGEMENT, element: <KPIsPage /> },
+    { path: KPI_ROUTES.KPI_CREATE, element: <KPIsPage /> },
+    { path: KPI_ROUTES.KPI_DETAIL(':id'), element: <KPIDetailPage /> },
+    { path: KPI_ROUTES.KPI_EDIT(':id'), element: <KPIEditPage /> },
+    { path: KPI_ROUTES.KPI_MY_KPIS, element: <KPIsPage /> },
+    
+    // KPI Weights & Dependencies
+    { path: KPI_ROUTES.KPI_WEIGHTS(':kpiId'), element: <KPIDetailPage /> },
+    { path: KPI_ROUTES.KPI_DEPENDENCIES(':kpiId'), element: <KPIDetailPage /> },
+    { path: KPI_ROUTES.KPI_STRATEGIC_LINKAGES(':kpiId'), element: <KPIDetailPage /> },
+    
+    // Target Management
+    { path: KPI_ROUTES.TARGETS, element: <TargetsPage /> },
+    { path: KPI_ROUTES.TARGET_PHASING(':targetId'), element: <TargetPhasingPage /> },
+    { path: KPI_ROUTES.TARGET_CASCADE, element: <TargetsPage /> },
+    { path: KPI_ROUTES.TARGET_CASCADE_RULES, element: <TargetsPage /> },
+    { path: KPI_ROUTES.TARGET_CASCADE_MAP, element: <TargetsPage /> },
+    
+    // Actual Data
+    { path: KPI_ROUTES.ACTUALS, element: <ActualsPage /> },
+    { path: KPI_ROUTES.ACTUAL_SUBMIT, element: <ActualsPage /> },
+    { path: KPI_ROUTES.ACTUAL_HISTORY, element: <ActualsPage /> },
+    { path: KPI_ROUTES.ACTUAL_ADJUSTMENTS, element: <ActualsPage /> },
+    { path: KPI_ROUTES.ACTUAL_EVIDENCE(':actualId'), element: <ActualsPage /> },
+    
+    // Scores
+    { path: KPI_ROUTES.SCORES, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.SCORE_MY_SCORES, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.SCORE_TEAM_SCORES, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.SCORE_STATISTICS, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.SCORE_TRAFFIC_LIGHTS, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.SCORE_RED_ALERTS, element: <AnalyticsPage /> },
+    
+    // Aggregated Scores
+    { path: KPI_ROUTES.AGGREGATED_SCORES, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.AGGREGATED_SCORES_ORGANIZATION, element: <OrganizationHealthPage /> },
+    { path: KPI_ROUTES.AGGREGATED_SCORES_DEPARTMENTS, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.AGGREGATED_SCORES_RANKING, element: <AnalyticsPage /> },
+    
+    // Validations
+    { path: KPI_ROUTES.VALIDATIONS, element: <ValidationsPage /> },
+    { path: KPI_ROUTES.VALIDATIONS_PENDING, element: <ValidationsPage /> },
+    { path: KPI_ROUTES.VALIDATIONS_HISTORY, element: <ValidationsPage /> },
+    
+    // Escalations
+    { path: KPI_ROUTES.ESCALATIONS, element: <ValidationsPage /> },
+    { path: KPI_ROUTES.ESCALATIONS_MY, element: <ValidationsPage /> },
+    
     // Reports & Analytics
-    // ============================================
-    { path: ROUTES.KPI_REPORTS, element: <ReportsAnalyticsPage /> },
-    { path: ROUTES.KPI_ANALYTICS, element: <KPIAnalyticsPage /> },
-    { path: ROUTES.KPI_HEATMAP, element: <KPIAnalyticsPage /> },
-
-    // ============================================
-    // System Settings (Super Admin / Client Admin)
-    // ============================================
-    { path: ROUTES.KPI_SETTINGS, element: <KpiSettingsPage /> },
-
-    // ============================================
-    // KPI ADMIN MODULES (Super Admin / Client Admin only)
-    // ============================================
-    { path: '/kpi/admin/overview', element: <AdminOverviewPage /> },
-    { path: '/kpi/admin/sectors', element: <SectorsPage /> },
-    { path: '/kpi/admin/frameworks', element: <FrameworksPage /> },
-    { path: '/kpi/admin/categories', element: <CategoriesPage /> },
-    { path: '/kpi/admin/templates', element: <TemplatesPage /> },
+    { path: KPI_ROUTES.REPORTS, element: <ReportsPage /> },
+    { path: KPI_ROUTES.REPORTS_CUSTOM, element: <ReportsPage /> },
+    { path: KPI_ROUTES.REPORTS_EXPORT, element: <ReportsPage /> },
+    { path: KPI_ROUTES.ANALYTICS_INSIGHTS, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.ANALYTICS_PREDICTIONS, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.KPI_ANALYTICS, element: <AnalyticsPage /> },
+    { path: KPI_ROUTES.KPI_HEATMAP, element: <AnalyticsPage /> },
+    
+    // Organization Health
+    { path: KPI_ROUTES.ORGANIZATION_HEALTH, element: <OrganizationHealthPage /> },
+    
+    // Bulk Operations
+    { path: KPI_ROUTES.BULK_UPLOAD, element: <BulkUploadPage /> },
+    { path: KPI_ROUTES.BULK_KPI_UPLOAD, element: <BulkUploadPage /> },
+    { path: KPI_ROUTES.BULK_ACTUAL_UPLOAD, element: <BulkUploadPage /> },
+    { path: KPI_ROUTES.BULK_TARGET_UPLOAD, element: <BulkUploadPage /> },
+    
+    // Calculations
+    { path: KPI_ROUTES.CALCULATIONS, element: <BulkUploadPage /> },
+    { path: KPI_ROUTES.CALCULATIONS_TRIGGER, element: <BulkUploadPage /> },
+    { path: KPI_ROUTES.CALCULATIONS_STATUS(':taskId'), element: <BulkUploadPage /> },
+    
+    // System Settings
+    { path: KPI_ROUTES.SYSTEM_SETTINGS, element: <SystemSettingsPage /> },
+    { path: KPI_ROUTES.REFERENCE_DATA, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, element: <NotificationPreferencesPage /> },
+    { path: KPI_ROUTES.KPI_SETTINGS, element: <SystemSettingsPage /> },
+    
+    // Audit Logs
+    { path: KPI_ROUTES.AUDIT_LOGS, element: <AuditLogsPage /> },
+    
+    // Admin KPI Modules
+    { path: KPI_ROUTES.ADMIN_SECTORS, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_SECTOR_CREATE, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_SECTOR_EDIT(':id'), element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_FRAMEWORKS, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_FRAMEWORK_CREATE, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_FRAMEWORK_EDIT(':id'), element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_FRAMEWORK_WIZARD(':id'), element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_CATEGORIES, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_CATEGORY_CREATE, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_CATEGORY_EDIT(':id'), element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_TEMPLATES, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_TEMPLATE_CREATE, element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_TEMPLATE_EDIT(':id'), element: <ReferenceDataPage /> },
+    { path: KPI_ROUTES.ADMIN_TEMPLATE_STUDIO(':id'), element: <ReferenceDataPage /> },
+    
+    // User Nested Routes
+    { path: KPI_ROUTES.USER_KPIS(':userId'), element: <UserKPIPage /> },
+    { path: KPI_ROUTES.USER_TARGETS(':userId'), element: <UserKPIPage /> },
+    { path: KPI_ROUTES.USER_SCORES(':userId'), element: <UserKPIPage /> },
+    { path: KPI_ROUTES.USER_ACTUALS(':userId'), element: <UserKPIPage /> },
 ];
 
+// ============================================
+// HELPER FUNCTION TO BUILD PATHS WITH PARAMS
+// ============================================
+export const buildKpiPath = (path, params = {}) => {
+    let result = path;
+    Object.entries(params).forEach(([key, value]) => {
+        result = result.replace(`:${key}`, String(value));
+    });
+    return result;
+};
+
+// ============================================
+// EXPORT ROUTES
+// ============================================
 export default kpiRoutes;
+
+// ============================================
+// NAMED EXPORTS FOR COMMON PATHS
+// ============================================
+export const KpiPaths = {
+    Dashboard: KPI_ROUTES.DASHBOARD,
+    ManagerDashboard: KPI_ROUTES.MANAGER_DASHBOARD,
+    ExecutiveDashboard: KPI_ROUTES.EXECUTIVE_DASHBOARD,
+    ChampionDashboard: KPI_ROUTES.CHAMPION_DASHBOARD,
+    AdminDashboard: KPI_ROUTES.ADMIN_OVERVIEW,
+    KPIs: KPI_ROUTES.KPI_MANAGEMENT,
+    KPIDetail: (id) => buildKpiPath(KPI_ROUTES.KPI_DETAIL(':id'), { id }),
+    KPIEdit: (id) => buildKpiPath(KPI_ROUTES.KPI_EDIT(':id'), { id }),
+    KPICreate: KPI_ROUTES.KPI_CREATE,
+    MyKPIs: KPI_ROUTES.KPI_MY_KPIS,
+    Targets: KPI_ROUTES.TARGETS,
+    TargetPhasing: (id) => buildKpiPath(KPI_ROUTES.TARGET_PHASING(':targetId'), { targetId: id }),
+    Actuals: KPI_ROUTES.ACTUALS,
+    SubmitActual: KPI_ROUTES.ACTUAL_SUBMIT,
+    Validations: KPI_ROUTES.VALIDATIONS,
+    PendingValidations: KPI_ROUTES.VALIDATIONS_PENDING,
+    Analytics: KPI_ROUTES.ANALYTICS_INSIGHTS,
+    Reports: KPI_ROUTES.REPORTS,
+    OrganizationHealth: KPI_ROUTES.ORGANIZATION_HEALTH,
+    SystemSettings: KPI_ROUTES.SYSTEM_SETTINGS,
+    ReferenceData: KPI_ROUTES.REFERENCE_DATA,
+    NotificationPreferences: KPI_ROUTES.NOTIFICATION_PREFERENCES,
+    AdminSectors: KPI_ROUTES.ADMIN_SECTORS,
+    AdminFrameworks: KPI_ROUTES.ADMIN_FRAMEWORKS,
+    AdminCategories: KPI_ROUTES.ADMIN_CATEGORIES,
+    AdminTemplates: KPI_ROUTES.ADMIN_TEMPLATES,
+    BulkUpload: KPI_ROUTES.BULK_UPLOAD,
+    AuditLogs: KPI_ROUTES.AUDIT_LOGS,
+    UserKPIs: (userId) => buildKpiPath(KPI_ROUTES.USER_KPIS(':userId'), { userId }),
+};

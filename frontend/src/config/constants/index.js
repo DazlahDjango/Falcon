@@ -21,14 +21,14 @@ export const ROUTES = {
     KPI_ANALYTICS: '/kpi/analytics',
     KPI_HEATMAP: '/kpi/analytics/heatmap',
     // Targets
-    TARGETS: '/targets',
-    TARGET_PHASING: '/targets/phasing',
-    TARGET_CASCADE: '/targets/cascade',
+    TARGETS: '/kpi/targets',
+    TARGET_PHASING: '/kpi/targets/phasing',
+    TARGET_CASCADE: '/kpi/targets/cascade',
     // Actuals
-    ACTUALS: '/actuals',
-    ACTUAL_SUBMIT: '/actuals/submit',
+    ACTUALS: '/kpi/actuals',
+    ACTUAL_SUBMIT: '/kpi/actuals/submit',
     // Scores
-    SCORES: '/scores',
+    SCORES: '/kpi/scores',
     // Admin KPI modules
     KPI_ADMIN_OVERVIEW: '/kpi/admin/overview',
     KPI_ADMIN_SECTORS: '/kpi/admin/sectors',
@@ -577,18 +577,32 @@ export * from './billingApiConstants';
 export * from './billingConstants';
 export * from './billingValidationConstants';
 
+// KPI
+export * from './kpiApiConstants';
+export * from './kpiRouteConstants';
+export * from './kpiConstants';
+
 import billingConstants from './billingConstants';
 import billingApiConstants from './billingApiConstants';
 import billingValidationConstants from './billingValidationConstants';
+import kpiConstants from './kpiConstants';
+import kpiApiConstants from './kpiApiConstants';
+import kpiRouteConstants from './kpiRouteConstants';
 
 export {
     billingConstants,
     billingApiConstants,
     billingValidationConstants,
+    kpiConstants,
+    kpiApiConstants,
+    kpiRouteConstants,
 };
 
 export default {
     ...billingConstants,
     ...billingApiConstants,
     ...billingValidationConstants,
+    ...kpiConstants,
+    ...kpiApiConstants,
+    ...kpiRouteConstants,
 };

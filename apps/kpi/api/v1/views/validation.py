@@ -38,11 +38,68 @@ class ValidationRecordViewSet(BaseKpiViewset):
 
     @action(detail=False, methods=['get'], url_path='pending-summary')
     def pending_summary(self, request):
-        count = pending_validation_count_for_supervisor(request.user)
-        return Response({
-            'pending_count': count,
+        """Enhanced pending summary with more metadata."""
+        direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
+        
+        pending_validations = self.get_queryset().filter(
+            actual__user_id__in=direct_reports,
+            status='PENDING'
+        ).select_related('actual__kpi', 'actual__user')
+        
+        # Calculate additional metrics
+        from django.db.models import Count, Min, Max
+        from django.utils import timezone
+        
+        now = timezone.now()
+        
+        summary = {
+            'pending_count': pending_validations.count(),
             'supervisor_id': str(request.user.id),
-        })
+            'by_kpi': {},
+            'by_user': {},
+            'by_period': {},
+            'oldest_pending': None,
+            'oldest_days': None,
+        }
+        
+        # Group by KPI
+        for validation in pending_validations:
+            kpi_name = validation.actual.kpi.name
+            if kpi_name not in summary['by_kpi']:
+                summary['by_kpi'][kpi_name] = 0
+            summary['by_kpi'][kpi_name] += 1
+            
+            # Group by user
+            user_email = validation.actual.user.email
+            if user_email not in summary['by_user']:
+                summary['by_user'][user_email] = 0
+            summary['by_user'][user_email] += 1
+            
+            # Group by period
+            period = f"{validation.actual.year}-{validation.actual.month:02d}"
+            if period not in summary['by_period']:
+                summary['by_period'][period] = 0
+            summary['by_period'][period] += 1
+            
+            # Find oldest
+            if validation.validated_at:
+                days_old = (now - validation.validated_at).days
+                if summary['oldest_days'] is None or days_old > summary['oldest_days']:
+                    summary['oldest_days'] = days_old
+                    summary['oldest_pending'] = {
+                        'kpi': kpi_name,
+                        'user': user_email,
+                        'period': period,
+                        'days_old': days_old,
+                        'validation_id': str(validation.id)
+                    }
+        
+        # Convert to lists for easier frontend consumption
+        summary['by_kpi'] = [{'kpi': k, 'count': v} for k, v in summary['by_kpi'].items()]
+        summary['by_user'] = [{'user': u, 'count': v} for u, v in summary['by_user'].items()]
+        summary['by_period'] = [{'period': p, 'count': v} for p, v in summary['by_period'].items()]
+        
+        return Response(summary)
 
 
 class RejectionReasonViewSet(BaseKpiViewset):

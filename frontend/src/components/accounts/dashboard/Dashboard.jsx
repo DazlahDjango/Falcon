@@ -5,7 +5,6 @@ import UserDashboard from './UserDashboard';
 // import TeamDashboard from './TeamDashboard';
 import ExecutiveDashboard from './ExecutiveDashboard';
 import AdminDashboard from '../admin/AdminDashboard';
-import KPIDashboardPage from '../../../pages/kpi/KPIDashboardPage';
 
 const Dashboard = () => {
     const { user, isLoading } = useAuthContext();
@@ -19,10 +18,7 @@ const Dashboard = () => {
     if (user?.role === 'super_admin') {
         return <AdminDashboard />;
     }
-    // Option 2: Show KPI Dashboard for all non-admin users
-    if (hasAnyRole(['executive', 'client_admin', 'supervisor', 'dashboard_champion', 'staff'])) {
-        return <KPIDashboardPage />;
-    }
+    
     if (user?.role === 'executive' || user?.role === 'client_admin') {
         return <ExecutiveDashboard />;
     }
