@@ -86,6 +86,7 @@ const useKPIPermissions = () => {
         canValidateWeights: isManager || isExecutive || isClientAdmin || isSuperAdmin,
     };
     
+    // ADD DIRECT PROPERTIES FOR EASY ACCESS
     return {
         user,
         role,
@@ -97,6 +98,22 @@ const useKPIPermissions = () => {
         isManager,
         isStaff,
         permissions,
+        
+        // Direct permission access (ADD THESE!)
+        canManageKPIs: permissions.canCreateKPI,
+        canManageFrameworks: permissions.canCreateFramework,
+        canManageSectors: permissions.canCreateSector,
+        canManageCategories: permissions.canCreateCategory,
+        canManageTemplates: permissions.canCreateTemplate,
+        canValidateActuals: permissions.canValidateActuals,
+        canCascadeTargets: permissions.canCascadeTargets,
+        canViewAnalytics: permissions.canViewAnalytics,
+        canViewExecutiveDashboard: permissions.canViewExecutiveDashboard,
+        canViewManagerDashboard: permissions.canViewManagerDashboard,
+        canViewChampionDashboard: permissions.canViewChampionDashboard,
+        canBulkUpload: permissions.canBulkUpload,
+        canTriggerCalculations: permissions.canTriggerCalculations,
+        canViewAuditLogs: permissions.canViewAuditLogs,
         
         // Convenience methods
         hasAnyRole: (roles) => roles.some(r => r === role),

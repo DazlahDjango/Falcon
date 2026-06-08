@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KPIList, KPICreate } from '../../../components/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
 
 const KPIsPage = () => {
     const navigate = useNavigate();
-    const { canManageKPIs } = useKPIPermissions();
+    const { canManageKPIs, role, isSuperAdmin } = useKPIPermissions();
     const [showCreateModal, setShowCreateModal] = useState(false);
+    
+    // Debug logs
+    useEffect(() => {
+        console.log('=== KPIsPage Debug ===');
+        console.log('canManageKPIs:', canManageKPIs);
+        console.log('role:', role);
+        console.log('isSuperAdmin:', isSuperAdmin);
+        console.log('=====================');
+    }, [canManageKPIs, role, isSuperAdmin]);
     
     const handleViewKPI = (id) => {
         navigate(`/kpis/${id}`);
@@ -17,6 +26,7 @@ const KPIsPage = () => {
     };
     
     const handleCreateKPI = () => {
+        console.log('handleCreateKPI called - opening modal');
         setShowCreateModal(true);
     };
     

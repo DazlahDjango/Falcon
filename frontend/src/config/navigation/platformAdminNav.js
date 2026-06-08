@@ -36,6 +36,7 @@ import {
   FiCreditCard,
   FiEye,
   FiRotateCcw,
+  FiTarget,
 } from 'react-icons/fi';
 import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
@@ -45,9 +46,11 @@ import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
 import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { BILLING_ROUTES } from '../constants/billingRouteConstants';
 import { ROUTES } from '../constants';
-import { SUPER_ADMIN_KPI_GROUPS } from './kpiAdminNav';
-import { CLIENT_ADMIN_KPI_GROUPS } from './kpiAdminNav';
+import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../constants/kpiRouteConstants';
 
+// ============================================
+// MFA ROUTES
+// ============================================
 export const MFA_ROUTES = {
   DEVICES: '/security/mfa',
   BACKUP_CODES: '/security/backup-codes',
@@ -56,14 +59,9 @@ export const MFA_ROUTES = {
   VERIFY: '/mfa/verify',
 };
 
-export const KPI_ADMIN_ROUTES = {
-  OVERVIEW: '/kpi/admin/overview',
-  SECTORS: '/kpi/admin/sectors',
-  FRAMEWORKS: '/kpi/admin/frameworks',
-  CATEGORIES: '/kpi/admin/categories',
-  TEMPLATES: '/kpi/admin/templates',
-};
-
+// ============================================
+// CONFIG NAVIGATION
+// ============================================
 export const CONFIG_NAV_ITEMS = [
   { path: '/config/dashboard', name: 'Config Dashboard', icon: MdOutlineDashboard },
   { path: '/config/registry', name: 'App Registry', icon: FiGrid },
@@ -78,6 +76,9 @@ export const CONFIG_NAV_ITEMS = [
   { path: '/config/settings', name: 'Config Settings', icon: FiSettings },
 ];
 
+// ============================================
+// MFA NAVIGATION
+// ============================================
 export const MFA_NAV_ITEMS = [
   { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
   { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
@@ -85,7 +86,7 @@ export const MFA_NAV_ITEMS = [
 ];
 
 // ============================================
-// CUSTOMER BILLING NAVIGATION (For all authenticated users)
+// CUSTOMER BILLING NAVIGATION
 // ============================================
 export const BILLING_NAV_ITEMS = [
   { path: BILLING_ROUTES.PORTAL, name: 'Billing Portal', icon: FiCreditCard },
@@ -108,7 +109,7 @@ export const ADMIN_BILLING_NAV_ITEMS = [
   { path: BILLING_ROUTES.ADMIN_SUBSCRIPTIONS, name: 'Tenant Subscriptions', icon: FiUsers },
   { path: BILLING_ROUTES.ADMIN_TRANSACTIONS, name: 'All Transactions', icon: FiFileText },
   { path: BILLING_ROUTES.ADMIN_REFUNDS, name: 'Refunds', icon: FiRotateCcw },
-  { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhook Logs', icon: FiBell },  // Keep this one
+  { path: BILLING_ROUTES.ADMIN_WEBHOOKS, name: 'Webhook Logs', icon: FiBell },
   { path: BILLING_ROUTES.ADMIN_ANALYTICS, name: 'Revenue Analytics', icon: FiTrendingUp },
   { path: BILLING_ROUTES.ADMIN_ENTERPRISE, name: 'Enterprise Overrides', icon: FiShield },
   { path: BILLING_ROUTES.AUDIT_LOGS, name: 'Billing Audit Logs', icon: FiList },
@@ -116,7 +117,68 @@ export const ADMIN_BILLING_NAV_ITEMS = [
 ];
 
 // ============================================
-// SUPER ADMIN NAVIGATION (UPDATED)
+// KPI ADMIN ROUTES (using constants)
+// ============================================
+export const KPI_ADMIN_NAV_ITEMS = [
+  { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
+  { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
+  { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
+  { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
+  { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
+];
+
+// ============================================
+// KPI MANAGEMENT NAVIGATION (using constants)
+// ============================================
+export const KPI_MANAGEMENT_NAV_ITEMS = [
+  { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'All KPIs', icon: FiTarget },
+  { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiUsers },
+  { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiCalendar },
+  { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiActivity },
+  { path: KPI_ROUTES.KPI_VALIDATION, name: 'Validations', icon: FiCheckCircle },
+  { path: KPI_ROUTES.ESCALATIONS, name: 'Escalations', icon: FiAlertCircle },
+  { path: KPI_ROUTES.ACTUAL_ADJUSTMENTS, name: 'Adjustments', icon: FiRotateCcw },
+];
+
+// ============================================
+// KPI ANALYTICS NAVIGATION (using constants)
+// ============================================
+export const KPI_ANALYTICS_NAV_ITEMS = [
+  { path: KPI_ROUTES.ANALYTICS_INSIGHTS, name: 'Analytics Insights', icon: FiTrendingUp },
+  { path: KPI_ROUTES.SCORES, name: 'Score Dashboard', icon: FiBarChart2 },
+  { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'My Scores', icon: FiEye },
+  { path: KPI_ROUTES.SCORE_TEAM_SCORES, name: 'Team Scores', icon: FiUsers },
+  { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alerts', icon: FiAlertCircle },
+  { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiPieChart },
+  { path: KPI_ROUTES.ORGANIZATION_HEALTH, name: 'Organization Health', icon: FiActivity },
+  { path: KPI_ROUTES.KPI_REPORTS, name: 'Reports', icon: FiDownload },
+  { path: KPI_ROUTES.KPI_HEATMAP, name: 'Heatmap', icon: FiGrid },
+];
+
+// ============================================
+// KPI OPERATIONS NAVIGATION (using constants)
+// ============================================
+export const KPI_OPERATIONS_NAV_ITEMS = [
+  { path: KPI_ROUTES.BULK_UPLOAD, name: 'Bulk Upload', icon: FiDatabase },
+  { path: KPI_ROUTES.CALCULATIONS, name: 'Calculations', icon: FiServer },
+  { path: KPI_ROUTES.AUDIT_LOGS, name: 'Audit Logs', icon: FiList },
+  { path: KPI_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+  { path: KPI_ROUTES.REFERENCE_DATA, name: 'Reference Data', icon: FiDatabase },
+  { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, name: 'Notifications', icon: FiBell },
+];
+
+// ============================================
+// KPI DASHBOARDS NAVIGATION (using constants)
+// ============================================
+export const KPI_DASHBOARDS_NAV_ITEMS = [
+  { path: KPI_ROUTES.DASHBOARD, name: 'Individual Dashboard', icon: FiHome },
+  { path: KPI_ROUTES.MANAGER_DASHBOARD, name: 'Manager Dashboard', icon: FiUsers },
+  { path: KPI_ROUTES.EXECUTIVE_DASHBOARD, name: 'Executive Dashboard', icon: FiTrendingUp },
+  { path: KPI_ROUTES.CHAMPION_DASHBOARD, name: 'Champion Dashboard', icon: FiShield },
+];
+
+// ============================================
+// SUPER ADMIN NAVIGATION GROUPS
 // ============================================
 export const SUPER_ADMIN_NAV_GROUPS = {
   main: [
@@ -133,21 +195,15 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/tenants/connections/metrics', name: 'Connection Metrics', icon: FiBarChart2 },
     { path: '/tenants/connections/health', name: 'Connection Health', icon: FiShield },
   ],
-  billing: ADMIN_BILLING_NAV_ITEMS,  // ← Admin billing for super admin
-  kpiAdmins: [
-    { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
-    { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
-    { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
-    { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
-    { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
-  ],
-  kpi: [
-    { path: ROUTES.KPI_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2 },
-    { path: ROUTES.KPI_MANAGEMENT, name: 'KPI Management', icon: FiBarChart2 },
-    { path: ROUTES.KPI_ANALYTICS, name: 'KPI Analytics', icon: FiTrendingUp },
-    { path: ROUTES.KPI_SETTINGS, name: 'KPI Operations', icon: FiSettings },
-  ],
-  ...KPI_ADMIN_ROUTES,
+  billing: ADMIN_BILLING_NAV_ITEMS,
+  
+  // KPI Groups
+  kpiAdmin: KPI_ADMIN_NAV_ITEMS,
+  kpiManagement: KPI_MANAGEMENT_NAV_ITEMS,
+  kpiAnalytics: KPI_ANALYTICS_NAV_ITEMS,
+  kpiOperations: KPI_OPERATIONS_NAV_ITEMS,
+  kpiDashboards: KPI_DASHBOARDS_NAV_ITEMS,
+  
   structure: [
     { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
     { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
@@ -182,11 +238,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/admin/users', name: 'Admin Users', icon: FiUsers },
     { path: '/admin/tenants', name: 'Admin Tenants', icon: FiLayers },
   ],
-  mfa: [
-    { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
-    { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
-    { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
-  ],
+  mfa: MFA_NAV_ITEMS,
   config: CONFIG_NAV_ITEMS,
   settings: [
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SETTINGS, name: 'PMS Settings', icon: FiSettings },
@@ -201,7 +253,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
 };
 
 // ============================================
-// CLIENT ADMIN NAVIGATION (UPDATED)
+// CLIENT ADMIN NAVIGATION GROUPS
 // ============================================
 export const CLIENT_ADMIN_NAV_GROUPS = {
   main: [
@@ -209,32 +261,24 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.TENANT, name: 'Tenant Overview', icon: FiServer },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.KPI_BREAKDOWN, name: 'KPI Breakdown', icon: FiBarChart2 },
   ],
-  billing: BILLING_NAV_ITEMS,  // ← Customer billing for client admin
+  billing: BILLING_NAV_ITEMS,
   oversight: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.COMPLIANCE, name: 'Compliance', icon: FiShield },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.APPROVALS, name: 'Pending Approvals', icon: FiClock },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.MISSING_DATA, name: 'Missing Data', icon: FiAlertCircle },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USER_ACTIVITY, name: 'User Activity', icon: FiActivity },
   ],
-  kpiAdmins: [
-    { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
-    { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
-    { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
-    { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
-    { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
-  ],
-  ...CLIENT_ADMIN_KPI_GROUPS,
+  kpiAdmin: KPI_ADMIN_NAV_ITEMS,
+  kpiManagement: KPI_MANAGEMENT_NAV_ITEMS,
+  kpiAnalytics: KPI_ANALYTICS_NAV_ITEMS,
+  kpiOperations: KPI_OPERATIONS_NAV_ITEMS,
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, name: 'Roles & Permissions', icon: FiShield },
     { path: ROUTES.USERS, name: 'User Directory', icon: FiUsers },
     { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
-  mfa: [
-    { path: MFA_ROUTES.DEVICES, name: 'MFA Devices', icon: FiSmartphone },
-    { path: MFA_ROUTES.BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
-    { path: MFA_ROUTES.ACTIVITY, name: 'MFA Activity', icon: FiActivity },
-  ],
+  mfa: MFA_NAV_ITEMS,
   compliance: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },
@@ -250,18 +294,17 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
 };
 
 // ============================================
-// EXPANDED STATES (UPDATED)
+// EXPANDED STATES
 // ============================================
 export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   main: true,
   tenants: false,
   billing: false,
-  kpiAdmins: false,
-  kpi: false,
-  kpiAdmin: false,
-  kpiManagement: true,
+  kpiAdmin: true,        // Expand KPI System Admin
+  kpiManagement: true,   // Expand KPI Management
   kpiAnalytics: false,
   kpiOperations: false,
+  kpiDashboards: false,
   structure: false,
   reviews: false,
   accounts: false,
@@ -272,9 +315,8 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
 
 export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   main: true,
-  billing: false,      // ← Billing group for client admin
+  billing: false,
   oversight: true,
-  kpiAdmins: false,
   kpiAdmin: false,
   kpiManagement: true,
   kpiAnalytics: false,
@@ -286,18 +328,17 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
 };
 
 // ============================================
-// GROUP LABELS (UPDATED)
+// GROUP LABELS
 // ============================================
 export const SUPER_ADMIN_GROUP_LABELS = {
   main: 'Main',
   tenants: 'Tenant Ops & Connections',
-  billing: 'Billing Administration',     // ← Admin billing label
-  kpiAdmins: 'KPI System Admin',
-  kpi: 'KPI Management (User)',
-  kpiAdmin: 'KPI System Admin',
-  kpiManagement: 'KPI Management',
-  kpiAnalytics: 'Analytics & Reports',
-  kpiOperations: 'Operations',
+  billing: 'Billing Administration',
+  kpiAdmin: '🏗️ KPI System Admin',
+  kpiManagement: '📊 KPI Management',
+  kpiAnalytics: '📈 Analytics & Reports',
+  kpiOperations: '⚙️ Operations',
+  kpiDashboards: '📺 Dashboards',
   structure: 'Organization Structure',
   reviews: 'Performance Reviews',
   accounts: 'Users & Platform Access',
@@ -308,15 +349,37 @@ export const SUPER_ADMIN_GROUP_LABELS = {
 
 export const CLIENT_ADMIN_GROUP_LABELS = {
   main: 'Main',
-  billing: 'Billing & Payments',         // ← Customer billing label
+  billing: 'Billing & Payments',
   oversight: 'Oversight',
-  kpiAdmins: 'KPI System Admin',
-  kpiAdmin: 'KPI System Admin',
-  kpiManagement: 'KPI Management',
-  kpiAnalytics: 'Analytics & Reports',
-  kpiOperations: 'Operations',
+  kpiAdmin: '🏗️ KPI System Admin',
+  kpiManagement: '📊 KPI Management',
+  kpiAnalytics: '📈 Analytics & Reports',
+  kpiOperations: '⚙️ Operations',
   management: 'Management',
   mfa: 'Multi-Factor Authentication',
   compliance: 'Reports & Compliance',
   config: 'Configuration',
+};
+
+// ============================================
+// HELPER FUNCTION TO CHECK IF ROUTE IS ACTIVE
+// ============================================
+export const isKpiRouteActive = (path, currentPath) => {
+  if (path === currentPath) return true;
+  
+  const patterns = [
+    /^\/kpi\/kpis\/[\w-]+$/,
+    /^\/kpi\/kpis\/[\w-]+\/edit$/,
+    /^\/kpi\/targets\/[\w-]+\/phasing$/,
+    /^\/kpi\/users\/[\w-]+\/kpis$/,
+    /^\/kpi\/users\/[\w-]+\/targets$/,
+    /^\/kpi\/users\/[\w-]+\/scores$/,
+    /^\/kpi\/users\/[\w-]+\/actuals$/,
+    /^\/kpi\/admin\/sectors\/[\w-]+\/edit$/,
+    /^\/kpi\/admin\/frameworks\/[\w-]+\/edit$/,
+    /^\/kpi\/admin\/categories\/[\w-]+\/edit$/,
+    /^\/kpi\/admin\/templates\/[\w-]+\/edit$/,
+  ];
+  
+  return patterns.some(pattern => pattern.test(currentPath));
 };

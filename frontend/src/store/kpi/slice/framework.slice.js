@@ -283,6 +283,19 @@ export const useTemplate = createAsyncThunk(
   }
 );
 
+export const archiveFramework = createAsyncThunk(
+  'framework/archiveFramework',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await frameworkService.archiveFramework(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
 // ============ Initial State ============
 const initialState = {
   sectors: [],
@@ -367,6 +380,14 @@ const frameworkSlice = createSlice({
       })
       .addCase(deleteFramework.fulfilled, (state, action) => {
         state.frameworks = state.frameworks.filter(f => f.id !== action.payload);
+      })
+      .addCase(archiveFramework.fulfilled, (state, action) => {
+        const index = state.frameworks.findIndex(f => f.id === action.payload.id);
+        if (index !== -1) state.frameworks[index] = action.payload;
+        if (state.currentFramework?.id === action.payload.id) state.currentFramework = action.payload;
+      })
+      .addCase(duplicateFramework.fulfilled, (state, action) => {
+        state.frameworks.unshift(action.payload);
       })
       
       // Categories

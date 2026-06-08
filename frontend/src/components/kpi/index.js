@@ -24,6 +24,7 @@ export {
     ValidationModal,
     ValidationCard,
     ValidationList,
+    ValidationDetail,
     RejectionReasonSelect,
     EscalationPanel,
     EscalationForm,

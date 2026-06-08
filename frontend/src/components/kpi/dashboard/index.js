@@ -22,6 +22,7 @@ export { default as RedAlertKPIs } from './executive/RedAlertKPIs';
 export { default as TrendAnalysis } from './executive/TrendAnalysis';
 export { default as RiskIndicators } from './executive/RiskIndicators';
 
+// Admin
 export { default as AdminDashboard } from './admin/AdminDashboard';
 export { default as AdminOverview } from './admin/AdminOverview';
 export { default as SystemHealth } from './admin/SystemHealth';

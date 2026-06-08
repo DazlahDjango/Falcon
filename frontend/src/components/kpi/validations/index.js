@@ -9,3 +9,4 @@ export { default as EscalationForm } from './EscalationForm';
 export { default as EscalationList } from './EscalationList';
 export { default as EscalationDetail } from './EscalationDetail';
 export { default as PendingSummaryCard } from './PendingSummaryCard';
+export { default as ValidationDetail } from './ValidationDetail';
