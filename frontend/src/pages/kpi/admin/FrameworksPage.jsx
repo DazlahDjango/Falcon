@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FrameworkList } from '../../../components/kpi';
-import { fetchFrameworks, createFramework, updateFramework, deleteFramework, publishFramework, archiveFramework, duplicateFramework, selectFrameworks, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
+import { fetchFrameworks, createFramework, updateFramework, deleteFramework, publishFramework, archiveFramework, duplicateFramework, fetchSectors, selectFrameworks, selectSectors, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
 import { Navigate } from 'react-router-dom';
 
@@ -10,12 +10,14 @@ const FrameworksPage = () => {
     const { canManageFrameworks, isAuthenticated } = useKPIPermissions();
     
     const frameworks = useSelector(selectFrameworks);
+    const sectors = useSelector(selectSectors);
     const loading = useSelector(selectFrameworkLoading);
     const error = useSelector(selectFrameworkError);
 
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchFrameworks({ is_active: true }));
+            dispatch(fetchSectors({ is_active: true }));
         }
     }, [dispatch, isAuthenticated]);
     
@@ -57,6 +59,7 @@ const FrameworksPage = () => {
         <div className="kpi-page-container">
             <FrameworkList 
                 frameworks={frameworks}
+                sectors={sectors}
                 loading={loading}
                 error={error}
                 onCreate={canManageFrameworks ? handleCreate : null}

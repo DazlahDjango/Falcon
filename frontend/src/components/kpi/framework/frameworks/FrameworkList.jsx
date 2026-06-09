@@ -8,6 +8,7 @@ import KPISearchBar from '../../common/KPISearchBar';
 
 const FrameworkList = ({ 
     frameworks, 
+    sectors,
     loading, 
     onCreate, 
     onUpdate, 
@@ -92,6 +93,7 @@ const FrameworkList = ({
             
             {showForm && (
                 <FrameworkForm 
+                    sectors={sectors}
                     onSubmit={async (data) => {
                         await onCreate(data);
                         setShowForm(false);
@@ -103,6 +105,7 @@ const FrameworkList = ({
             {editingFramework && (
                 <FrameworkForm 
                     framework={editingFramework}
+                    sectors={sectors}
                     onSubmit={async (data) => {
                         await onUpdate(editingFramework.id, data);
                         setEditingFramework(null);

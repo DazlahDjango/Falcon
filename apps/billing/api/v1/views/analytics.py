@@ -40,11 +40,40 @@ class BillingAnalyticsViewSet(viewsets.GenericViewSet):
             start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
         else:
             start_date = now - timedelta(days=30)
+        
+        # Check for tenant_id filtering
+        tenant_id = getattr(request, 'tenant_id', None) or (request.user.tenant_id if request.user.is_authenticated else None)
         transactions = Transaction.objects.filter(status='success', payment_date__gte=start_date)
+        
+        if tenant_id and not (request.user.is_superuser or getattr(request.user, 'role', '') == 'super_admin'):
+            transactions = transactions.filter(tenant_id=tenant_id)
+            
         total_revenue = transactions.aggregate(total=Sum('total_amount'))['total'] or 0
         total_count = transactions.count()
-        daily_breakdown = transactions.extra({'date': "date(payment_date)"}).values('date').annotate(total=Sum('total_amount'), count=Count('id')).order_by('-date')
-        return Response({'period': period, 'start_date': start_date.date(), 'end_date': now.date(), 'total_revenue': total_revenue, 'total_revenue_display': f"KES {total_revenue/100:.2f}", 'total_transactions': total_count, 'successful_transactions': total_count, 'failed_transactions': 0, 'success_rate': 100.0, 'breakdown': list(daily_breakdown)})
+        
+        # Fixed the breakdown logic for different databases
+        from django.db import connection
+        from django.db.models.functions import TruncDay
+        
+        daily_breakdown = transactions.annotate(
+            date=TruncDay('payment_date')
+        ).values('date').annotate(
+            total=Sum('total_amount'), 
+            count=Count('id')
+        ).order_by('-date')
+            
+        return Response({
+            'period': period, 
+            'start_date': start_date.date(), 
+            'end_date': now.date(), 
+            'total_revenue': total_revenue, 
+            'total_revenue_display': f"KES {total_revenue/100:.2f}", 
+            'total_transactions': total_count, 
+            'successful_transactions': total_count, 
+            'failed_transactions': 0, 
+            'success_rate': 100.0, 
+            'breakdown': list(daily_breakdown)
+        })
     
     @action(detail=False, methods=['get'], url_path='subscriptions')
     def subscription_analytics(self, request):

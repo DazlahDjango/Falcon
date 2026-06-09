@@ -7,6 +7,7 @@ import KPIEmptyState from '../../common/KPIEmptyState';
 
 const CategoryList = ({ 
     categories, 
+    frameworks,
     loading, 
     onCreate, 
     onUpdate, 
@@ -67,6 +68,8 @@ const CategoryList = ({
             {showForm && (
                 <CategoryForm 
                     parentCategory={parentCategory}
+                    frameworks={frameworks}
+                    categories={categories}
                     onSubmit={async (data) => {
                         await onCreate(data);
                         setShowForm(false);
@@ -82,6 +85,8 @@ const CategoryList = ({
             {editingCategory && (
                 <CategoryForm 
                     category={editingCategory}
+                    frameworks={frameworks}
+                    categories={categories}
                     onSubmit={async (data) => {
                         await onUpdate(editingCategory.id, data);
                         setEditingCategory(null);

@@ -76,5 +76,22 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
     def admin_stats(self, request):
         from django.db.models.functions import TruncMonth
         year = request.query_params.get('year', timezone.now().year)
-        monthly = Transaction.objects.filter(status='success', payment_date__year=year).annotate(month=TruncMonth('payment_date')).values('month').annotate(total=Sum('total_amount'), count=Sum('id')).order_by('month')
-        return Response({'year': year, 'monthly_breakdown': list(monthly)})
+        try:
+            year = int(year)
+        except (ValueError, TypeError):
+            year = timezone.now().year
+            
+        monthly = Transaction.objects.filter(
+            status='success', 
+            payment_date__year=year
+        ).annotate(
+            month=TruncMonth('payment_date')
+        ).values('month').annotate(
+            total=Sum('total_amount'), 
+            count=Count('id')
+        ).order_by('month')
+        
+        return Response({
+            'year': year, 
+            'monthly_breakdown': list(monthly)
+        })

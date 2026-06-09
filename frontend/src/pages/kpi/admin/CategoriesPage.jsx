@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CategoryList } from '../../../components/kpi';
-import { fetchCategories, createCategory, updateCategory, deleteCategory, moveCategory, selectCategories, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
+import { fetchCategories, createCategory, updateCategory, deleteCategory, moveCategory, fetchFrameworks, selectCategories, selectFrameworks, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
 import { Navigate } from 'react-router-dom';
 
@@ -10,12 +10,14 @@ const CategoriesPage = () => {
     const { canManageCategories, isAuthenticated } = useKPIPermissions();
     
     const categories = useSelector(selectCategories);
+    const frameworks = useSelector(selectFrameworks);
     const loading = useSelector(selectFrameworkLoading);
     const error = useSelector(selectFrameworkError);
 
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchCategories({ is_active: true }));
+            dispatch(fetchFrameworks({ is_active: true }));
         }
     }, [dispatch, isAuthenticated]);
     
@@ -47,6 +49,7 @@ const CategoriesPage = () => {
         <div className="kpi-page-container">
             <CategoryList 
                 categories={categories}
+                frameworks={frameworks}
                 loading={loading}
                 error={error}
                 onCreate={canManageCategories ? handleCreate : null}

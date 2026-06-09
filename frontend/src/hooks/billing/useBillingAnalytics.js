@@ -44,8 +44,19 @@ export const useBillingAnalytics = (options = { autoFetch: true }) => {
     useEffect(() => { 
         if (options.autoFetch && !hasFetched.current) {
             hasFetched.current = true;
-            fetchSummary(); 
-            fetchSubscriptions(); 
+            
+            // Sequential fetching with delays to prevent burst 429 errors from the server
+            const loadData = async () => {
+                await fetchSummary(); 
+                
+                await new Promise(resolve => setTimeout(resolve, 800));
+                await fetchSubscriptions();
+                
+                await new Promise(resolve => setTimeout(resolve, 800));
+                await fetchRevenue();
+            };
+            
+            loadData();
         }
     }, [options.autoFetch]);
 

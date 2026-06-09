@@ -48,6 +48,11 @@ class BaseKpiViewset(viewsets.ModelViewSet):
             serializer.save(updated_by=self.request.user)
 
     def handle_exception(self, exc):
+        # Log the full traceback for debugging
+        import traceback
+        logger.error(f"[KPI CRITICAL ERROR] {str(exc)}")
+        logger.error(traceback.format_exc())
+
         if isinstance(exc, DjangoValidationError):
             details = exc.message_dict if hasattr(exc, 'message_dict') else exc.messages
             return Response(

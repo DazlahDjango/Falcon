@@ -19,14 +19,20 @@ export const TenantsList = () => {
 
     const fetchTenants = useCallback(async () => {
         try {
-            const response = await fetch('/api/v1/admin/tenants?page=' + pagination.page + '&page_size=' + pagination.pageSize);
+            // Updated to use the correct 'tenant' app API for fetching real tenant/client data
+            const response = await fetch('/api/v1/tenant/tenants/?page=' + pagination.page + '&page_size=' + pagination.pageSize);
             const data = await response.json();
-            if (data?.data) {
-                setTenants(data.data);
+            
+            // The tenant app returns a paginated response with 'results'
+            if (data?.results) {
+                setTenants(data.results);
                 setPagination(prev => ({ ...prev, total: data.count || 0 }));
+            } else if (Array.isArray(data)) {
+                setTenants(data);
+                setPagination(prev => ({ ...prev, total: data.length }));
             }
         } catch (error) {
-            console.error('Failed to fetch tenants:', error);
+            console.error('Failed to fetch tenants from tenant app:', error);
         }
     }, [pagination.page, pagination.pageSize]);
 

@@ -16,7 +16,7 @@ export const dashboardApiClient = createApiClient({
 
 export const billingApiClient = createApiClient({
   module: 'billing', basePath: '/billing', responseStyle: 'envelope',
-  circuitBreaker: true, forbiddenMessage: 'You do not have permission to access this billing resource',
+  circuitBreaker: false, forbiddenMessage: 'You do not have permission to access this billing resource',
   attachTenantHeader: true,
 });
 

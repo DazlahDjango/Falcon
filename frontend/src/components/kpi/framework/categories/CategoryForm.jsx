@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { FiSave, FiX } from 'react-icons/fi';
 
-const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel }) => {
+const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubmit, onCancel }) => {
     const [formData, setFormData] = useState({
         name: category?.name || '',
         code: category?.code || '',
         category_type: category?.category_type || 'OPERATIONAL',
+        framework: category?.framework || '',
         parent: category?.parent || parentCategory?.id || null,
         description: category?.description || '',
         color: category?.color || '#3b82f6',
@@ -29,6 +30,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Category name is required';
         if (!formData.code.trim()) newErrors.code = 'Category code is required';
+        if (!formData.framework) newErrors.framework = 'Please select a framework';
         
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -92,6 +94,21 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                             placeholder="e.g., REV_GROWTH"
                         />
                         {errors.code && <span className="error">{errors.code}</span>}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Framework <span className="required">*</span></label>
+                        <select 
+                            className={errors.framework ? 'error' : ''}
+                            value={formData.framework}
+                            onChange={(e) => setFormData({ ...formData, framework: e.target.value })}
+                        >
+                            <option value="">Select a framework...</option>
+                            {frameworks?.map(fw => (
+                                <option key={fw.id} value={fw.id}>{fw.name}</option>
+                            ))}
+                        </select>
+                        {errors.framework && <span className="error">{errors.framework}</span>}
                     </div>
                     
                     <div className="form-group">

@@ -5,7 +5,7 @@ const FrameworkForm = ({ framework, sectors, onSubmit, onCancel }) => {
     const [formData, setFormData] = useState({
         name: framework?.name || '',
         code: framework?.code || '',
-        sector_id: framework?.sector || '',
+        sector: framework?.sector || '',
         description: framework?.description || '',
         version: framework?.version || '1.0.0',
         status: framework?.status || 'DRAFT'
@@ -18,7 +18,7 @@ const FrameworkForm = ({ framework, sectors, onSubmit, onCancel }) => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Framework name is required';
         if (!formData.code.trim()) newErrors.code = 'Framework code is required';
-        if (!formData.sector_id) newErrors.sector_id = 'Please select a sector';
+        if (!formData.sector) newErrors.sector = 'Please select a sector';
         
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -87,16 +87,16 @@ const FrameworkForm = ({ framework, sectors, onSubmit, onCancel }) => {
                     <div className="form-group">
                         <label>Sector <span className="required">*</span></label>
                         <select 
-                            className={errors.sector_id ? 'error' : ''}
-                            value={formData.sector_id}
-                            onChange={(e) => setFormData({ ...formData, sector_id: e.target.value })}
+                            className={errors.sector ? 'error' : ''}
+                            value={formData.sector}
+                            onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
                         >
                             <option value="">Select a sector...</option>
                             {sectors?.map(sector => (
                                 <option key={sector.id} value={sector.id}>{sector.name}</option>
                             ))}
                         </select>
-                        {errors.sector_id && <span className="error">{errors.sector_id}</span>}
+                        {errors.sector && <span className="error">{errors.sector}</span>}
                     </div>
                     
                     <div className="form-row">
