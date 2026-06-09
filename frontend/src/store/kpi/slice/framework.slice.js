@@ -340,11 +340,21 @@ const frameworkSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Sectors
+      .addCase(fetchSectors.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchSectors.fulfilled, (state, action) => {
-        state.sectors = action.payload.results || action.payload;
+        state.loading = false;
+        // Handle DRF pagination object or direct array
+        const payload = action.payload;
+        state.sectors = Array.isArray(payload) ? payload : (payload?.results || []);
+      })
+      .addCase(fetchSectors.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
       .addCase(createSector.fulfilled, (state, action) => {
-        state.sectors.push(action.payload);
+        state.sectors.unshift(action.payload);
       })
       .addCase(updateSector.fulfilled, (state, action) => {
         const index = state.sectors.findIndex(s => s.id === action.payload.id);
@@ -360,15 +370,24 @@ const frameworkSlice = createSlice({
       })
       .addCase(fetchFrameworks.fulfilled, (state, action) => {
         state.loading = false;
-        state.frameworks = action.payload.results || action.payload;
-        if (action.payload.count) state.pagination.total = action.payload.count;
+        const payload = action.payload;
+        state.frameworks = Array.isArray(payload) ? payload : (payload?.results || []);
+        if (payload?.count) state.pagination.total = payload.count;
       })
       .addCase(fetchFrameworks.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchFramework.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchFramework.fulfilled, (state, action) => {
+        state.loading = false;
         state.currentFramework = action.payload;
+      })
+      .addCase(fetchFramework.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
       .addCase(createFramework.fulfilled, (state, action) => {
         state.frameworks.unshift(action.payload);
@@ -391,8 +410,17 @@ const frameworkSlice = createSlice({
       })
       
       // Categories
+      .addCase(fetchCategories.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchCategories.fulfilled, (state, action) => {
-        state.categories = action.payload.results || action.payload;
+        state.loading = false;
+        const payload = action.payload;
+        state.categories = Array.isArray(payload) ? payload : (payload?.results || []);
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
       .addCase(createCategory.fulfilled, (state, action) => {
         state.categories.push(action.payload);
@@ -406,8 +434,17 @@ const frameworkSlice = createSlice({
       })
       
       // Templates
+      .addCase(fetchTemplates.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchTemplates.fulfilled, (state, action) => {
-        state.templates = action.payload.results || action.payload;
+        state.loading = false;
+        const payload = action.payload;
+        state.templates = Array.isArray(payload) ? payload : (payload?.results || []);
+      })
+      .addCase(fetchTemplates.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
       .addCase(createTemplate.fulfilled, (state, action) => {
         state.templates.unshift(action.payload);

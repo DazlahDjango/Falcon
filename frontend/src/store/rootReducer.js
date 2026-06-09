@@ -43,7 +43,7 @@ import {
 // ==========================================
 // KPI Reducers
 // ==========================================
-import kpiModuleReducer from './kpi';
+import kpiModuleReducer from './kpi/index';
 
 // ==========================================
 // TENANT APP REDUCERS (ADD THIS)
@@ -123,6 +123,7 @@ const rootReducer = combineReducers({
 
     // KPI State
     kpi: kpiModuleReducer,
+    kpis: kpiModuleReducer, // Add alias for redundancy
 
     // Billing State
     billing: billingReducer,

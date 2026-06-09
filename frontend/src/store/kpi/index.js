@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux';
+import { combineReducers } from '@reduxjs/toolkit';
 import kpiReducer from './slice/kpi.slice';
 import frameworkReducer from './slice/framework.slice';
 import targetReducer from './slice/target.slice';

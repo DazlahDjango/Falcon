@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiSave } from 'react-icons/fi';
+import { FiSave, FiX } from 'react-icons/fi';
 import { fetchReferenceData, selectReferenceData } from '../../../../store/kpi';
 import KPILoading from '../../common/KPILoading';
 
@@ -8,6 +8,7 @@ const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
     const [formData, setFormData] = useState({
         framework_id: kpi?.framework_id || '',
         sector_id: kpi?.sector_id || '',
@@ -44,9 +45,16 @@ const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
     };
     
     const handleSubmit = async () => {
+        setSubmitError(null);
         setSaving(true);
-        await onSave(formData);
-        setSaving(false);
+        try {
+            await onSave(formData);
+        } catch (error) {
+            console.error('Failed to save KPI:', error);
+            setSubmitError(error?.message || 'Failed to save KPI. Please try again.');
+        } finally {
+            setSaving(false);
+        }
     };
     
     if (loading) {
@@ -55,6 +63,20 @@ const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
     
     return (
         <div className="kpi-edit-form">
+            {submitError && (
+                <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{submitError}</span>
+                        <button 
+                            className="close-btn" 
+                            onClick={() => setSubmitError(null)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                        >
+                            <FiX size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="form-row">
                 <div className="form-group">
                     <label>Framework</label>

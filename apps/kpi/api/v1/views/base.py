@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 import logging
 from apps.accounts.api.v1.permissions import IsTenantMember, CanViewKPIDashboard
@@ -18,16 +18,22 @@ class BaseKpiViewset(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         tenant_id = getattr(self.request, 'current_tenant_id', None)
         
-        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
+        if not tenant_id and self.request.user.is_authenticated:
             tenant_id = str(self.request.user.tenant_id)
         
+        # If Super Admin, they can see all records for the system
+        role = str(getattr(self.request.user, 'role', '')).lower()
+        if role in ['super_admin', 'superadmin', 'platform_admin']:
+            return queryset
+
         if tenant_id and hasattr(queryset.model, 'tenant_id'):
             return queryset.filter(tenant_id=tenant_id)
+            
         return queryset
 
     def perform_create(self, serializer):
         tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
+        if not tenant_id and self.request.user.is_authenticated:
             tenant_id = str(self.request.user.tenant_id)
         
         with transaction.atomic():
@@ -51,6 +57,11 @@ class BaseKpiViewset(viewsets.ModelViewSet):
         if isinstance(exc, ValidationError):
             return Response(
                 {'error': 'Validation Error', 'details': exc.detail},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if isinstance(exc, IntegrityError):
+            return Response(
+                {'error': 'Database Integrity Error', 'details': 'A database constraint was violated (e.g., duplicate code)'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         if isinstance(exc, PermissionDenied):

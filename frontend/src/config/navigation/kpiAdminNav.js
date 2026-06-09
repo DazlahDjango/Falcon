@@ -295,8 +295,8 @@ export const isKpiRouteActive = (path, currentPath) => {
   
   // Handle dynamic routes
   const patterns = [
-    /^\/kpis\/[\w-]+$/,
-    /^\/kpis\/[\w-]+\/edit$/,
+    /^\/kpi\/detail\/[\w-]+$/,
+    /^\/kpi\/edit\/[\w-]+$/,
     /^\/targets\/[\w-]+\/phasing$/,
     /^\/users\/[\w-]+\/kpis$/,
     /^\/users\/[\w-]+\/targets$/,

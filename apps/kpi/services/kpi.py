@@ -22,20 +22,33 @@ class KPICreator:
         if not user.tenant_id:
             raise PermissionDenied("User has no tenant association")
 
-        framework = KPIFramework.objects.filter(
-            id=data.get('framework_id'),
-            tenant_id=user.tenant_id,
-            status='PUBLISHED'
-        ).first()
+        # Check for Super Admin
+        is_super_admin = False
+        role = str(getattr(user, 'role', '')).lower()
+        if role in ['super_admin', 'superadmin', 'platform_admin']:
+            is_super_admin = True
+
+        framework_query = KPIFramework.objects.filter(id=data.get('framework_id'))
+        if not is_super_admin:
+            framework_query = framework_query.filter(tenant_id=user.tenant_id)
+        
+        # Only require PUBLISHED status if not a super admin testing
+        if not is_super_admin:
+            framework_query = framework_query.filter(status='PUBLISHED')
+            
+        framework = framework_query.first()
 
         if not framework:
             raise InvalidFrameworkError("Invalid or unpublished framework.")
 
-        if KPI.objects.filter(
-            tenant_id=user.tenant_id,
+        kpi_exists_query = KPI.objects.filter(
             framework_id=data['framework_id'],
             code=data['code']
-        ).exists():
+        )
+        if not is_super_admin:
+            kpi_exists_query = kpi_exists_query.filter(tenant_id=user.tenant_id)
+            
+        if kpi_exists_query.exists():
             raise DuplicateKPICodeError("KPI code must be unique within the framework.")
 
         validate_kpi_name(data['name'])
@@ -49,7 +62,7 @@ class KPICreator:
 
         with transaction.atomic():
             kpi = KPI.objects.create(
-                tenant_id=user.tenant_id,
+                tenant_id=user.tenant_id if not is_super_admin else framework.tenant_id,
                 name=data['name'],
                 code=data['code'],
                 description=data.get('description', ''),

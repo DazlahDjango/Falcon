@@ -11,6 +11,7 @@ const KPIEditConfig = ({ kpi, onSave, onCancel }) => {
     });
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
     
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -39,13 +40,35 @@ const KPIEditConfig = ({ kpi, onSave, onCancel }) => {
     
     const handleSubmit = async () => {
         if (!validate()) return;
+        setErrors({});
+        setSubmitError(null);
         setSaving(true);
-        await onSave(formData);
-        setSaving(false);
+        try {
+            await onSave(formData);
+        } catch (error) {
+            console.error('Failed to save KPI:', error);
+            setSubmitError(error?.message || 'Failed to save KPI. Please try again.');
+        } finally {
+            setSaving(false);
+        }
     };
     
     return (
         <div className="kpi-edit-form">
+            {submitError && (
+                <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{submitError}</span>
+                        <button 
+                            className="close-btn" 
+                            onClick={() => setSubmitError(null)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                        >
+                            <FiX size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="form-row">
                 <div className="form-group">
                     <label>Minimum Target</label>

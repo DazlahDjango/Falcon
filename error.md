@@ -1,15 +1,36 @@
-Hello, I want you to help me with my kpi app.
-Accessing its browser links gives me 404 page not found I think the routes are not being called correctly
-See how the other apps implement their routes in:
-src/config/constants/appnameApiConstants i.e config/constants/configApiConstants\
-also check the routes constants, earlier before cleaning my codes, I was using the confic/constants/index where all my kpis routes were being called but now I've integreated enterprise level architecture of the kpis
-I have save all the urls with python manage.py show_urls for kpis in the Docs/KPIs/urls.md file
-The backend apis are successfully called each returning 200 ok response and I've saved a refrence in Docs/KPIs/tested_apis.md file
-The frontend services are their in the src/services/api for full axios configuration though in that directory theirs a file called endpoints.js this is where the kpi services files imports the endpoints and this kpi services files are in src/services/kpi/**
-# Requirements
-1. Read the Docs/KPIs/urls.md for all kpi related urls and the Docs/KPIs/tested_apis.md
-2. Read the src/config/constants/appnameApiConstants to see how the other apps integrate the endpoints mostly focus on the config's, review's, billing's constants
-3. Read the src/config/constants/appnameRouteConstants to see how the routes/ imports the constants
-4. Read the src/routes/** to see the frontend dynamic routes of eaach app
-5. read the components/dashboard/Sidebar/** to see how each role sidebars were integrated
-6. read the src/config/navigation/ to see how admins-navigation and kpi-navigations are integrated
+Good morning, I want to work today fully on kpi app and make sure it's fully functional. 
+With your help, I managed to fix the routing issues and roght now I can view all the pages in the browser, just to be clear, all the backend apis when I was testing them earlier they all returned 200 ok status code which its much appealing, you can check this on the base directory path Docs/KPIs/tested_apis.md
+
+# KPI Files Paths
+If you'd want to check the backend kpi files, I don't have a problem with that but its okay, I myself can rate it 10/10 enterprise-oriented production ready
+For kpi frontend files this are the paths
+Frontend as base dir
+1. services/kpi/**
+2. store/kpi/slices/**, store/kpi/selectors/kpi.selectors
+3. components/kpi/**
+4. pages/kpi/**
+Then the routes are in src/routes/kpi.routes.jsx which I've told you it's fully functional
+
+# What I have see in frontend
+1. I can view all the pages, see creation buttons since I'm accessing as super admin role and all permissions they don't affect the super admin
+2. I started by trying to create sectors and the creation form was displayed but now when it comes button submission it doesn't submits, though when the form is empty and click the submit button, it gives you the validation messages on the asterisk fields that you have to fill them
+3. For the kpi management testing, I started by clicking the create button but it was just loading though it had displayed the wizard creation numbers form of the three steps, I think it will work perfectly after this, maybe it was because it lacked the sectors, categories, framework etc
+4. Being super admin, I called all the elements/components in the super admin navigation and including the other users dashboards, everything was working perfectly, it was well styled and appealing
+5. I could say that's all for now but one last thing, in kpi.routes.jsx files I've called all the analytics files correctly but the momment I try accessing them, they call the admin dashboard overview instead of the pages they are assigned. I think maybe I called the navigations link in the wrong way or something, you can check that too in config/navigation/platformAdminNavigation.js
+
+# what I want you to do now
+1. We start by fixing the the CRUD actions, just clean the files/pages for all actions performed either, create , edit, view, delete, update, search, achieve, activate, deactivate etc
+2. Once number 1 is done we can proceed to check the error code of too many request sent, I guess that is always handled by the hooks, slices or the selectors and I think is just introduction of useRef required to fix that
+3. After NO. 2 we can proceed to clean the whole files making sure their will be no any code error apart from the necessary status code i.e 200, 404, 201(I think so this is for create) etc.
+4. Lastly but not the least, we make sure that all the kpi app is fully functional and works perfectly as it should and since I'm the one using the app, the changes should be done in a way that won't affect the super admin access, and I'll appreciate if you could leave me with some kind of instruction or documentation after you're done for me to understand the best approach you took to fix these issues, so that I don't make these mistakes in future and also I can be able to fix them myself.
+
+**Note**:
+1. Make sure you don't affect the app's functionality
+2. Don't affect the distribution of permissions
+3. Don't affect the app's styling and appearance for now
+4. The Primary thing we're focusing on is to make all the pages to function as intended and make sure there are no other issues i.e 
+    * Too many requests
+    * No response from requests
+    * Status codes not being displayed correctly
+
+Thank you so much lets make this happen now, I'll be here to test as you make the changes and we fix them right there, don't mind you testing them, let me test by myself, you just make sure the files are clean and working, that's all I need from you, Thank you

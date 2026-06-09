@@ -32,6 +32,7 @@ export {
   resetDashboardCircuitBreaker,
   resetBillingCircuitBreaker,
   resetStructureCircuitBreaker,
+  resetKPICircuitBreaker,
 } from './clients';
 
 export { createApiClient, createRootClient, createAccountsClient } from './createClient';

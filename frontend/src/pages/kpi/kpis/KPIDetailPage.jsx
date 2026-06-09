@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KPIDetail } from '../../../components/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
+import { KpiPaths } from '../../../routes/kpi.routes';
 
 const KPIDetailPage = () => {
     const { id } = useParams();
@@ -9,11 +10,11 @@ const KPIDetailPage = () => {
     const { canManageKPIs } = useKPIPermissions();
     
     const handleBack = () => {
-        navigate('/kpis');
+        navigate(KpiPaths.KPIs);
     };
     
     const handleEdit = (kpiId) => {
-        navigate(`/kpis/${kpiId}/edit`);
+        navigate(KpiPaths.KPIEdit(kpiId));
     };
     
     return (

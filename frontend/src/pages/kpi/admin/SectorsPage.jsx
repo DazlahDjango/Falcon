@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { SectorList } from '../../../components/kpi';
 import { fetchSectors, createSector, updateSector, deleteSector, selectSectors, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
@@ -12,6 +12,12 @@ const SectorsPage = () => {
     const sectors = useSelector(selectSectors);
     const loading = useSelector(selectFrameworkLoading);
     const error = useSelector(selectFrameworkError);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchSectors({ is_active: true }));
+        }
+    }, [dispatch, isAuthenticated]);
     
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;

@@ -368,8 +368,8 @@ export const isKpiRouteActive = (path, currentPath) => {
   if (path === currentPath) return true;
   
   const patterns = [
-    /^\/kpi\/kpis\/[\w-]+$/,
-    /^\/kpi\/kpis\/[\w-]+\/edit$/,
+    /^\/kpi\/detail\/[\w-]+$/,
+    /^\/kpi\/edit\/[\w-]+$/,
     /^\/kpi\/targets\/[\w-]+\/phasing$/,
     /^\/kpi\/users\/[\w-]+\/kpis$/,
     /^\/kpi\/users\/[\w-]+\/targets$/,

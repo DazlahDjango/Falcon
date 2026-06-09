@@ -16,6 +16,8 @@ const KPIWeightForm = ({ weight, onSubmit, onCancel }) => {
         is_active: weight?.is_active !== undefined ? weight.is_active : true
     });
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
     
     useEffect(() => {
         const loadUsers = async () => {
@@ -54,9 +56,18 @@ const KPIWeightForm = ({ weight, onSubmit, onCancel }) => {
         return Object.keys(newErrors).length === 0;
     };
     
-    const handleSubmit = () => {
-        if (validate()) {
-            onSubmit(formData);
+    const handleSubmit = async () => {
+        if (!validate()) return;
+        setErrors({});
+        setSubmitError(null);
+        setIsLoading(true);
+        try {
+            await onSubmit(formData);
+        } catch (error) {
+            console.error('Failed to submit weight:', error);
+            setSubmitError(error?.message || 'Failed to save weight. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
     
@@ -73,6 +84,21 @@ const KPIWeightForm = ({ weight, onSubmit, onCancel }) => {
                         <FiX size={20} />
                     </button>
                 </div>
+                
+                {submitError && (
+                    <div className="alert alert-danger" style={{ margin: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>{submitError}</span>
+                            <button 
+                                className="close-btn" 
+                                onClick={() => setSubmitError(null)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                            >
+                                <FiX size={18} />
+                            </button>
+                        </div>
+                    </div>
+                )}
                 
                 <div className="kpi-weight-form-body">
                     <div className="form-group">
@@ -141,10 +167,10 @@ const KPIWeightForm = ({ weight, onSubmit, onCancel }) => {
                 </div>
                 
                 <div className="kpi-weight-form-footer">
-                    <button className="cancel-btn" onClick={onCancel}>Cancel</button>
-                    <button className="submit-btn" onClick={handleSubmit}>
+                    <button className="cancel-btn" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button className="submit-btn" onClick={handleSubmit} disabled={isLoading}>
                         <FiSave size={14} />
-                        {weight ? 'Update Weight' : 'Add Weight'}
+                        {isLoading ? 'Saving...' : (weight ? 'Update Weight' : 'Add Weight')}
                     </button>
                 </div>
             </div>

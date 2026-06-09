@@ -14,16 +14,7 @@ class SectorSerializer(TenantAwareSerializer):
             'description', 'icon', 'is_active', 'metadata',
             'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
-
-    def create(self, validated_data):
-        # Get tenant_id from request context if not provided
-        if 'tenant_id' not in validated_data and 'request' in self.context:
-            request = self.context.get('request')
-            tenant_id = getattr(request, 'current_tenant_id', None)
-            if tenant_id:
-                validated_data['tenant_id'] = tenant_id
-        return super().create(validated_data)
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'tenant_id']
 
 class KPICategorySerializer(TenantAwareSerializer):
     category_type_display = serializers.CharField(source='get_category_type_display', read_only=True)
@@ -43,16 +34,6 @@ class KPICategorySerializer(TenantAwareSerializer):
 
     def get_children_count(self, obj):
         return obj.children.count()
-    
-    def create(self, validated_data):
-        if 'tenant_id' not in validated_data and 'request' in self.context:
-            request = self.context.get('request')
-            tenant_id = getattr(request, 'current_tenant_id', None)
-            if tenant_id:
-                validated_data['tenant_id'] = tenant_id
-            elif hasattr(request.user, 'tenant_id'):
-                validated_data['tenant_id'] = str(request.user.tenant_id)
-        return super().create(validated_data)
 
 
 class KPIFrameworkSerializer(TenantAwareSerializer):

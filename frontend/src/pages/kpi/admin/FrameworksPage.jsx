@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FrameworkList } from '../../../components/kpi';
 import { fetchFrameworks, createFramework, updateFramework, deleteFramework, publishFramework, archiveFramework, duplicateFramework, selectFrameworks, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
@@ -12,6 +12,12 @@ const FrameworksPage = () => {
     const frameworks = useSelector(selectFrameworks);
     const loading = useSelector(selectFrameworkLoading);
     const error = useSelector(selectFrameworkError);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchFrameworks({ is_active: true }));
+        }
+    }, [dispatch, isAuthenticated]);
     
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;

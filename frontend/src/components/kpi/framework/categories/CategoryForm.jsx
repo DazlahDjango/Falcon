@@ -12,6 +12,8 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
         is_active: category?.is_active ?? true
     });
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
     const categoryTypes = [
         { value: 'FINANCIAL', label: 'Financial' },
@@ -23,7 +25,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
         { value: 'COMPLIANCE', label: 'Compliance & Risk' }
     ];
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Category name is required';
         if (!formData.code.trim()) newErrors.code = 'Category code is required';
@@ -32,7 +34,21 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
             setErrors(newErrors);
             return;
         }
-        onSubmit(formData);
+
+        setErrors({});
+        setSubmitError(null);
+        setIsLoading(true);
+
+        try {
+            console.log('Submitting category form:', formData);
+            await onSubmit(formData);
+            console.log('Category submission successful');
+        } catch (error) {
+            console.error('Category submission error:', error);
+            setSubmitError(error?.message || 'Failed to submit category. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -46,6 +62,14 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                 </div>
                 
                 <div className="kpi-category-form-body">
+                    {submitError && (
+                        <div className="form-error-alert">
+                            <span>{submitError}</span>
+                            <button type="button" className="close" onClick={() => setSubmitError(null)}>
+                                <FiX size={16} />
+                            </button>
+                        </div>
+                    )}
                     <div className="form-group">
                         <label>Category Name <span className="required">*</span></label>
                         <input 
@@ -130,10 +154,15 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                 </div>
                 
                 <div className="kpi-category-form-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="submit" onClick={handleSubmit}>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button 
+                        className="submit" 
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        type="button"
+                    >
                         <FiSave size={14} />
-                        {category ? 'Update' : 'Create'} Category
+                        {isLoading ? 'Submitting...' : (category ? 'Update' : 'Create')} Category
                     </button>
                 </div>
             </div>

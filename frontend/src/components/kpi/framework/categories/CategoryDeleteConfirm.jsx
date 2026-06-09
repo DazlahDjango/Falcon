@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
-import { FiAlertTriangle } from 'react-icons/fi';
+import { FiAlertTriangle, FiX } from 'react-icons/fi';
 
 const CategoryDeleteConfirm = ({ category, hasChildren, onConfirm, onCancel }) => {
     const [confirmText, setConfirmText] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (confirmText !== category.name) {
             setError(`Please type "${category.name}" to confirm`);
             return;
         }
-        onConfirm();
+        
+        setError('');
+        setIsLoading(true);
+
+        try {
+            console.log('Deleting category:', category?.id);
+            await onConfirm();
+            console.log('Category deletion successful');
+        } catch (err) {
+            console.error('Category deletion error:', err);
+            setError(err?.message || 'Failed to delete category. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -46,8 +60,10 @@ const CategoryDeleteConfirm = ({ category, hasChildren, onConfirm, onCancel }) =
                 </div>
                 
                 <div className="kpi-category-delete-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="delete" onClick={handleConfirm}>Delete Category</button>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button className="delete" onClick={handleConfirm} disabled={isLoading}>
+                        {isLoading ? 'Deleting...' : 'Delete Category'}
+                    </button>
                 </div>
             </div>
         </div>

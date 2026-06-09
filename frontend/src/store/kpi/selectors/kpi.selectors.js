@@ -1,20 +1,20 @@
 import { createSelector } from '@reduxjs/toolkit';
 
 // ============ Base Selectors ============
-const selectKPIState = (state) => state?.kpi;
-const selectFrameworkState = (state) => state?.framework;
-const selectTargetState = (state) => state?.target;
-const selectActualState = (state) => state?.actual;
-const selectScoreState = (state) => state?.score;
-const selectValidationState = (state) => state?.validation;
-const selectDashboardState = (state) => state?.dashboard;
-const selectAnalyticsState = (state) => state?.analytics;
-const selectBulkState = (state) => state?.bulk;
-const selectCalculationState = (state) => state?.calculation;
-const selectSettingsState = (state) => state?.settings;
-const selectHistoryState = (state) => state?.history;
-const selectCascadeState = (state) => state?.kpi?.cascade || state?.cascade || {};
-const selectExportState = (state) => state?.kpi?.exports || state?.exports || {};
+const selectKPIState = (state) => (state?.kpi || state?.kpis)?.kpis;
+const selectFrameworkState = (state) => (state?.kpi || state?.kpis)?.frameworks;
+const selectTargetState = (state) => (state?.kpi || state?.kpis)?.targets;
+const selectActualState = (state) => (state?.kpi || state?.kpis)?.actuals;
+const selectScoreState = (state) => (state?.kpi || state?.kpis)?.scores;
+const selectValidationState = (state) => (state?.kpi || state?.kpis)?.validations;
+const selectDashboardState = (state) => (state?.kpi || state?.kpis)?.dashboards;
+const selectAnalyticsState = (state) => (state?.kpi || state?.kpis)?.analytics;
+const selectBulkState = (state) => (state?.kpi || state?.kpis)?.bulk;
+const selectCalculationState = (state) => (state?.kpi || state?.kpis)?.calculations;
+const selectSettingsState = (state) => (state?.kpi || state?.kpis)?.settings;
+const selectHistoryState = (state) => (state?.kpi || state?.kpis)?.history;
+const selectCascadeState = (state) => (state?.kpi || state?.kpis)?.cascade || {};
+const selectExportState = (state) => (state?.kpi || state?.kpis)?.exports || {};
 
 // ============ KPI Selectors ============
 export const selectKPIs = createSelector(

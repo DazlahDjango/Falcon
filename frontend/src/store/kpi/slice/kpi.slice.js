@@ -360,10 +360,11 @@ const kpiSlice = createSlice({
       })
       .addCase(fetchKPIs.fulfilled, (state, action) => {
         state.loading = false;
-        state.kpis = action.payload.results || action.payload;
-        if (action.payload.count) {
-          state.pagination.total = action.payload.count;
-          state.pagination.totalPages = Math.ceil(action.payload.count / state.pagination.pageSize);
+        const payload = action.payload;
+        state.kpis = Array.isArray(payload) ? payload : (payload?.results || []);
+        if (payload?.count) {
+          state.pagination.total = payload.count;
+          state.pagination.totalPages = Math.ceil(payload.count / state.pagination.pageSize);
         }
       })
       .addCase(fetchKPIs.rejected, (state, action) => {

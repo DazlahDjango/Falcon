@@ -3,13 +3,28 @@ import { FiCopy, FiX } from 'react-icons/fi';
 
 const TemplateUseConfirm = ({ template, frameworks, onConfirm, onCancel }) => {
     const [frameworkId, setFrameworkId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (!frameworkId) {
-            alert('Please select a framework');
+            setError('Please select a framework');
             return;
         }
-        onConfirm(frameworkId);
+        
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            console.log('Creating KPI from template:', template?.id, 'in framework:', frameworkId);
+            await onConfirm(frameworkId);
+            console.log('KPI creation from template successful');
+        } catch (err) {
+            console.error('KPI creation error:', err);
+            setError(err?.message || 'Failed to create KPI from template. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -24,6 +39,14 @@ const TemplateUseConfirm = ({ template, frameworks, onConfirm, onCancel }) => {
                 </div>
                 
                 <div className="kpi-template-use-body">
+                    {error && (
+                        <div className="form-error-alert">
+                            <span>{error}</span>
+                            <button type="button" className="close" onClick={() => setError(null)}>
+                                <FiX size={16} />
+                            </button>
+                        </div>
+                    )}
                     <p>Create a new KPI from <strong>{template?.name}</strong> template?</p>
                     
                     <div className="form-group">
@@ -43,8 +66,10 @@ const TemplateUseConfirm = ({ template, frameworks, onConfirm, onCancel }) => {
                 </div>
                 
                 <div className="kpi-template-use-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="confirm" onClick={handleConfirm}>Create KPI from Template</button>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button className="confirm" onClick={handleConfirm} disabled={isLoading}>
+                        {isLoading ? 'Creating...' : 'Create KPI from Template'}
+                    </button>
                 </div>
             </div>
         </div>

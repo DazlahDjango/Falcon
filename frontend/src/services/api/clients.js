@@ -39,7 +39,7 @@ export const kpiApiClient = createApiClient({
   module: 'kpi',
   basePath: '',
   responseStyle: 'raw',
-  circuitBreaker: true,
+  circuitBreaker: false,
   forbiddenMessage: 'You do not have permission to access this KPI resource',
   attachTenantHeader: true,
 });

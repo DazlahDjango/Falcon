@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiArrowRight, FiArrowLeft, FiSave, FiCheck } from 'react-icons/fi';
+import { FiArrowRight, FiArrowLeft, FiSave, FiCheck, FiX } from 'react-icons/fi';
 
 const FrameworkWizard = ({ sectors, onSubmit, onCancel }) => {
     const [step, setStep] = useState(1);
@@ -11,6 +11,8 @@ const FrameworkWizard = ({ sectors, onSubmit, onCancel }) => {
         version: '1.0.0'
     });
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
     const handleNext = () => {
         if (step === 1) {
@@ -26,8 +28,21 @@ const FrameworkWizard = ({ sectors, onSubmit, onCancel }) => {
         setStep(step + 1);
     };
 
-    const handleSubmit = () => {
-        onSubmit(formData);
+    const handleSubmit = async () => {
+        setErrors({});
+        setSubmitError(null);
+        setIsLoading(true);
+
+        try {
+            console.log('Submitting framework wizard:', formData);
+            await onSubmit(formData);
+            console.log('Framework wizard submission successful');
+        } catch (error) {
+            console.error('Framework wizard submission error:', error);
+            setSubmitError(error?.message || 'Failed to submit framework. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -49,6 +64,14 @@ const FrameworkWizard = ({ sectors, onSubmit, onCancel }) => {
                 </div>
                 
                 <div className="kpi-framework-wizard-body">
+                    {submitError && (
+                        <div className="form-error-alert">
+                            <span>{submitError}</span>
+                            <button type="button" className="close" onClick={() => setSubmitError(null)}>
+                                <FiX size={16} />
+                            </button>
+                        </div>
+                    )}
                     {step === 1 && (
                         <div className="wizard-step">
                             <div className="form-group">
@@ -135,24 +158,29 @@ const FrameworkWizard = ({ sectors, onSubmit, onCancel }) => {
                 
                 <div className="kpi-framework-wizard-footer">
                     {step > 1 && (
-                        <button className="back" onClick={() => setStep(step - 1)}>
+                        <button className="back" onClick={() => setStep(step - 1)} disabled={isLoading}>
                             <FiArrowLeft size={14} />
                             Back
                         </button>
                     )}
                     {step < 2 && (
-                        <button className="next" onClick={handleNext}>
+                        <button className="next" onClick={handleNext} disabled={isLoading}>
                             Next
                             <FiArrowRight size={14} />
                         </button>
                     )}
                     {step === 2 && (
-                        <button className="submit" onClick={handleSubmit}>
+                        <button 
+                            className="submit" 
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            type="button"
+                        >
                             <FiSave size={14} />
-                            Create Framework
+                            {isLoading ? 'Creating...' : 'Create Framework'}
                         </button>
                     )}
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
                 </div>
             </div>
         </div>

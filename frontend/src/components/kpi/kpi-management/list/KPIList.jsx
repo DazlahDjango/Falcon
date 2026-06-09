@@ -39,11 +39,18 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
             ...filters,
             search: filters.search
         };
+
         Object.keys(params).forEach(key => {
-            if (params[key] === undefined || params[key] === '' || params[key] === null) {
+            const value = params[key];
+            const isUndefined = value === undefined;
+            const isEmptyString = value === '';
+            const isNull = value === null;
+
+            if (isUndefined || isEmptyString || isNull) {
                 delete params[key];
             }
         });
+
         dispatch(fetchKPIs(params));
     }, [dispatch, pagination.page, pagination.pageSize, filters]);
     

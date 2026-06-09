@@ -18,6 +18,8 @@ const TemplateForm = ({ template, sectors, categories, onSubmit, onCancel }) => 
     });
     const [errors, setErrors] = useState({});
     const [showJsonEditor, setShowJsonEditor] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
     const difficulties = [
         { value: 'BEGINNER', label: 'Beginner' },
@@ -25,7 +27,7 @@ const TemplateForm = ({ template, sectors, categories, onSubmit, onCancel }) => 
         { value: 'ADVANCED', label: 'Advanced' }
     ];
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Template name is required';
         if (!formData.code.trim()) newErrors.code = 'Template code is required';
@@ -35,7 +37,21 @@ const TemplateForm = ({ template, sectors, categories, onSubmit, onCancel }) => 
             setErrors(newErrors);
             return;
         }
-        onSubmit(formData);
+
+        setErrors({});
+        setSubmitError(null);
+        setIsLoading(true);
+
+        try {
+            console.log('Submitting template form:', formData);
+            await onSubmit(formData);
+            console.log('Template submission successful');
+        } catch (error) {
+            console.error('Template submission error:', error);
+            setSubmitError(error?.message || 'Failed to submit template. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const updateKpiDefinition = (field, value) => {
@@ -56,6 +72,14 @@ const TemplateForm = ({ template, sectors, categories, onSubmit, onCancel }) => 
                 </div>
                 
                 <div className="kpi-template-form-body">
+                    {submitError && (
+                        <div className="form-error-alert">
+                            <span>{submitError}</span>
+                            <button type="button" className="close" onClick={() => setSubmitError(null)}>
+                                <FiX size={16} />
+                            </button>
+                        </div>
+                    )}
                     <div className="form-row">
                         <div className="form-group">
                             <label>Template Name <span className="required">*</span></label>
@@ -199,10 +223,15 @@ const TemplateForm = ({ template, sectors, categories, onSubmit, onCancel }) => 
                 </div>
                 
                 <div className="kpi-template-form-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="submit" onClick={handleSubmit}>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button 
+                        className="submit" 
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        type="button"
+                    >
                         <FiSave size={14} />
-                        {template ? 'Update' : 'Create'} Template
+                        {isLoading ? 'Submitting...' : (template ? 'Update' : 'Create')} Template
                     </button>
                 </div>
             </div>

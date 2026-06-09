@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { TemplateList } from '../../../components/kpi';
 import { fetchTemplates, createTemplate, updateTemplate, deleteTemplate, publishTemplate, useTemplate, selectTemplates, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
 
 const TemplatesPage = () => {
     const dispatch = useDispatch();
@@ -13,6 +14,12 @@ const TemplatesPage = () => {
     const templates = useSelector(selectTemplates);
     const loading = useSelector(selectFrameworkLoading);
     const error = useSelector(selectFrameworkError);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchTemplates({ is_published: true }));
+        }
+    }, [dispatch, isAuthenticated]);
     
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
@@ -40,7 +47,7 @@ const TemplatesPage = () => {
     
     const handleUse = async (template) => {
         // Navigate to KPI create with template pre-filled
-        navigate(`/kpis/create?template=${template.id}`);
+        navigate(`${KPI_ROUTES.KPI_CREATE}?template=${template.id}`);
     };
     
     return (

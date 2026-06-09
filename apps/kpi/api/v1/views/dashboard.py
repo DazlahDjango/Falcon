@@ -222,27 +222,49 @@ class KPIOverviewDashboardView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
+            # Check for Super Admin
+            is_super_admin = False
+            role = str(getattr(request.user, 'role', '')).lower()
+            if role in ['super_admin', 'superadmin', 'platform_admin']:
+                is_super_admin = True
+
             # Framework statistics
-            frameworks = KPIFramework.objects.filter(tenant_id=tenant_id)
+            if is_super_admin:
+                frameworks = KPIFramework.objects.all()
+            else:
+                frameworks = KPIFramework.objects.filter(tenant_id=tenant_id)
+            
             total_frameworks = frameworks.count()
             published_frameworks = frameworks.filter(status='PUBLISHED').count()
             draft_frameworks = frameworks.filter(status='DRAFT').count()
             archived_frameworks = frameworks.filter(status='ARCHIVED').count()
 
             # Category statistics
-            categories = KPICategory.objects.filter(tenant_id=tenant_id)
+            if is_super_admin:
+                categories = KPICategory.objects.all()
+            else:
+                categories = KPICategory.objects.filter(tenant_id=tenant_id)
+            
             total_categories = categories.count()
             categories_with_kpis = categories.filter(kpis__isnull=False).distinct().count()
             active_categories = categories.filter(is_active=True).count()
 
             # Template statistics
-            templates = KPITemplate.objects.filter(tenant_id=tenant_id)
+            if is_super_admin:
+                templates = KPITemplate.objects.all()
+            else:
+                templates = KPITemplate.objects.filter(tenant_id=tenant_id)
+            
             total_templates = templates.count()
             published_templates = templates.filter(is_published=True).count()
             total_template_usage = templates.aggregate(total=Sum('usage_count'))['total'] or 0
 
             # KPI statistics
-            kpis = KPI.objects.filter(tenant_id=tenant_id)
+            if is_super_admin:
+                kpis = KPI.objects.all()
+            else:
+                kpis = KPI.objects.filter(tenant_id=tenant_id)
+            
             total_kpis = kpis.count()
             active_kpis = kpis.filter(is_active=True).count()
             inactive_kpis = kpis.filter(is_active=False).count()
@@ -259,9 +281,12 @@ class KPIOverviewDashboardView(APIView):
             kpis_by_sector = kpis.values('sector__name').annotate(count=Count('id')).order_by('-count')
 
             # Recent activity
-            recent_activity = KPIHistory.objects.filter(
-                tenant_id=tenant_id
-            ).select_related('kpi', 'performed_by')[:20]
+            if is_super_admin:
+                recent_activity = KPIHistory.objects.all().select_related('kpi', 'performed_by')[:20]
+            else:
+                recent_activity = KPIHistory.objects.filter(
+                    tenant_id=tenant_id
+                ).select_related('kpi', 'performed_by')[:20]
 
             return Response({
                 'frameworks': {

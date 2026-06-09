@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
-import { FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertTriangle, FiX } from 'react-icons/fi';
 
 const FrameworkPublish = ({ framework, onConfirm, onCancel }) => {
     const [confirmText, setConfirmText] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (confirmText !== 'PUBLISH') {
             setError('Please type "PUBLISH" to confirm');
             return;
         }
-        onConfirm();
+        
+        setError('');
+        setIsLoading(true);
+
+        try {
+            console.log('Publishing framework:', framework?.id);
+            await onConfirm();
+            console.log('Framework publish successful');
+        } catch (err) {
+            console.error('Framework publish error:', err);
+            setError(err?.message || 'Failed to publish framework. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -44,8 +58,10 @@ const FrameworkPublish = ({ framework, onConfirm, onCancel }) => {
                 </div>
                 
                 <div className="kpi-framework-publish-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="confirm" onClick={handleConfirm}>Publish Framework</button>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button className="confirm" onClick={handleConfirm} disabled={isLoading}>
+                        {isLoading ? 'Publishing...' : 'Publish Framework'}
+                    </button>
                 </div>
             </div>
         </div>

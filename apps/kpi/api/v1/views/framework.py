@@ -30,29 +30,10 @@ class SectorViewSet(BaseKpiViewset):
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if tenant_id:
-            return queryset.filter(tenant_id=tenant_id)
-        return queryset
-
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
-
-    def perform_create(self, serializer):
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
-            tenant_id = str(self.request.user.tenant_id)
-        print(f"[DEBUG] SectorViewSet.perform_create - tenant_id: {tenant_id}")
-        print(f"[DEBUG] request.current_tenant_id: {getattr(self.request, 'current_tenant_id', 'NOT SET')}")
-        serializer.save(
-            tenant_id=tenant_id,
-            created_by=self.request.user,
-            updated_by=self.request.user
-        )
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticatedAndActive])
     def frameworks(self, request, pk=None):
@@ -80,12 +61,6 @@ class KPIFrameworkViewSet(BaseKpiViewset):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        else:
-            queryset = queryset.none()
-        
         role = getattr(self.request.user, 'role', '')
         if role not in ['super_admin', 'client_admin']:
             queryset = queryset.filter(status='PUBLISHED')
@@ -96,18 +71,6 @@ class KPIFrameworkViewSet(BaseKpiViewset):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
-
-    def perform_create(self, serializer):
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
-            tenant_id = str(self.request.user.tenant_id)
-        print(f"[DEBUG] KPICategoryViewSet.perform_create - tenant_id: {tenant_id}")
-        print(f"[DEBUG] request.current_tenant_id: {getattr(self.request, 'current_tenant_id', 'NOT SET')}")
-        serializer.save(
-            tenant_id=tenant_id,
-            created_by=self.request.user,
-            updated_by=self.request.user
-        )
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticatedAndActive])
     def categories(self, request, pk=None):
@@ -202,31 +165,10 @@ class KPICategoryViewSet(BaseKpiViewset):
     ordering_fields = ['display_order', 'name']
     ordering = ['display_order', 'name']
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if tenant_id:
-            return queryset.filter(
-                tenant_id=tenant_id,
-                framework__tenant_id=tenant_id
-            )
-        return queryset.none()
-
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
-
-    def perform_create(self, serializer):
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if not tenant_id and hasattr(self.request, 'user') and self.request.user.is_authenticated:
-            tenant_id = str(self.request.user.tenant_id)
-        print(f"[DEBUG] KPICategoryViewSet.perform_create - tenant_id: {tenant_id}")
-        serializer.save(
-            tenant_id=tenant_id,
-            created_by=self.request.user,
-            updated_by=self.request.user
-        )
 
     @action(detail=True, methods=['post'], permission_classes=[IsFrameworkAdmin])
     def move(self, request, pk=None):
@@ -314,12 +256,6 @@ class KPITemplateViewSet(BaseKpiViewset):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        else:
-            queryset = queryset.none()
-        
         role = getattr(self.request.user, 'role', '')
         if role not in ['super_admin', 'client_admin']:
             queryset = queryset.filter(is_published=True)
@@ -330,14 +266,6 @@ class KPITemplateViewSet(BaseKpiViewset):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsFrameworkAdmin]
         return super().get_permissions()
-
-    def perform_create(self, serializer):
-        tenant_id = getattr(self.request, 'current_tenant_id', None)
-        serializer.save(
-            tenant_id=tenant_id,
-            created_by=self.request.user,
-            updated_by=self.request.user
-        )
 
     @action(detail=True, methods=['post'], permission_classes=[IsFrameworkAdmin])
     def publish(self, request, pk=None):

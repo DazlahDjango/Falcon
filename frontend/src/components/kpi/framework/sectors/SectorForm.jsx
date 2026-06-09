@@ -10,6 +10,8 @@ const SectorForm = ({ sector, onSubmit, onCancel }) => {
         is_active: sector?.is_active ?? true
     });
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
     const sectorTypes = [
         { value: 'COMMERCIAL', label: 'Commercial / Corporate' },
@@ -18,7 +20,7 @@ const SectorForm = ({ sector, onSubmit, onCancel }) => {
         { value: 'CONSULTING', label: 'Consulting / Professional Services' }
     ];
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Sector name is required';
         if (!formData.code.trim()) newErrors.code = 'Sector code is required';
@@ -27,7 +29,21 @@ const SectorForm = ({ sector, onSubmit, onCancel }) => {
             setErrors(newErrors);
             return;
         }
-        onSubmit(formData);
+
+        setErrors({});
+        setSubmitError(null);
+        setIsLoading(true);
+
+        try {
+            console.log('Submitting sector form:', formData);
+            await onSubmit(formData);
+            console.log('Sector submission successful');
+        } catch (error) {
+            console.error('Sector submission error:', error);
+            setSubmitError(error?.message || 'Failed to submit sector. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -41,6 +57,14 @@ const SectorForm = ({ sector, onSubmit, onCancel }) => {
                 </div>
                 
                 <div className="kpi-sector-form-body">
+                    {submitError && (
+                        <div className="form-error-alert">
+                            <span>{submitError}</span>
+                            <button type="button" className="close" onClick={() => setSubmitError(null)}>
+                                <FiX size={16} />
+                            </button>
+                        </div>
+                    )}
                     <div className="form-group">
                         <label>Sector Name <span className="required">*</span></label>
                         <input 
@@ -100,10 +124,15 @@ const SectorForm = ({ sector, onSubmit, onCancel }) => {
                 </div>
                 
                 <div className="kpi-sector-form-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="submit" onClick={handleSubmit}>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button 
+                        className="submit" 
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        type="button"
+                    >
                         <FiSave size={14} />
-                        {sector ? 'Update' : 'Create'} Sector
+                        {isLoading ? 'Submitting...' : (sector ? 'Update' : 'Create')} Sector
                     </button>
                 </div>
             </div>

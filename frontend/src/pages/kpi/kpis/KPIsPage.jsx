@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KPIList, KPICreate } from '../../../components/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
+import { KpiPaths } from '../../../routes/kpi.routes';
 
 const KPIsPage = () => {
     const navigate = useNavigate();
@@ -18,11 +19,11 @@ const KPIsPage = () => {
     }, [canManageKPIs, role, isSuperAdmin]);
     
     const handleViewKPI = (id) => {
-        navigate(`/kpis/${id}`);
+        navigate(KpiPaths.KPIDetail(id));
     };
     
     const handleEditKPI = (id) => {
-        navigate(`/kpis/${id}/edit`);
+        navigate(KpiPaths.KPIEdit(id));
     };
     
     const handleCreateKPI = () => {
@@ -32,7 +33,7 @@ const KPIsPage = () => {
     
     const handleCreateComplete = (newKPI) => {
         setShowCreateModal(false);
-        navigate(`/kpis/${newKPI.id}`);
+        navigate(KpiPaths.KPIDetail(newKPI.id));
     };
     
     return (

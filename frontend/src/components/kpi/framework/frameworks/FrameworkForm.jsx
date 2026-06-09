@@ -11,8 +11,10 @@ const FrameworkForm = ({ framework, sectors, onSubmit, onCancel }) => {
         status: framework?.status || 'DRAFT'
     });
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Framework name is required';
         if (!formData.code.trim()) newErrors.code = 'Framework code is required';
@@ -22,7 +24,21 @@ const FrameworkForm = ({ framework, sectors, onSubmit, onCancel }) => {
             setErrors(newErrors);
             return;
         }
-        onSubmit(formData);
+
+        setErrors({});
+        setSubmitError(null);
+        setIsLoading(true);
+
+        try {
+            console.log('Submitting framework form:', formData);
+            await onSubmit(formData);
+            console.log('Framework submission successful');
+        } catch (error) {
+            console.error('Framework submission error:', error);
+            setSubmitError(error?.message || 'Failed to submit framework. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -36,6 +52,14 @@ const FrameworkForm = ({ framework, sectors, onSubmit, onCancel }) => {
                 </div>
                 
                 <div className="kpi-framework-form-body">
+                    {submitError && (
+                        <div className="form-error-alert">
+                            <span>{submitError}</span>
+                            <button type="button" className="close" onClick={() => setSubmitError(null)}>
+                                <FiX size={16} />
+                            </button>
+                        </div>
+                    )}
                     <div className="form-group">
                         <label>Framework Name <span className="required">*</span></label>
                         <input 
@@ -111,10 +135,15 @@ const FrameworkForm = ({ framework, sectors, onSubmit, onCancel }) => {
                 </div>
                 
                 <div className="kpi-framework-form-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="submit" onClick={handleSubmit}>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button 
+                        className="submit" 
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        type="button"
+                    >
                         <FiSave size={14} />
-                        {framework ? 'Update' : 'Create'} Framework
+                        {isLoading ? 'Submitting...' : (framework ? 'Update' : 'Create')} Framework
                     </button>
                 </div>
             </div>

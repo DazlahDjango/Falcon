@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CategoryList } from '../../../components/kpi';
 import { fetchCategories, createCategory, updateCategory, deleteCategory, moveCategory, selectCategories, selectFrameworkLoading, selectFrameworkError } from '../../../store/kpi';
@@ -12,6 +12,12 @@ const CategoriesPage = () => {
     const categories = useSelector(selectCategories);
     const loading = useSelector(selectFrameworkLoading);
     const error = useSelector(selectFrameworkError);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchCategories({ is_active: true }));
+        }
+    }, [dispatch, isAuthenticated]);
     
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;

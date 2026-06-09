@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import environment from '../../config/environment';
 import { kpiWebSocket } from '../../services/websocket';
+import { KPI_ROUTES } from '../../config/constants/kpiRouteConstants';
 import { getAccessToken } from '../../services/accounts/storage/secureStorage';
 import { validationService } from '../../services/kpi';
 import { usePermissionContext } from '../accounts/PermissionContext';
@@ -155,7 +156,7 @@ export const KPIRealtimeProvider = ({ children }) => {
                 title: 'KPI definition updated',
                 message: `KPI ${data.data.kpi_id || ''} was ${data.data.action || 'updated'}.`,
                 dismissible: true,
-                link: `/kpis/${data.data.kpi_id}`,
+                link: KPI_ROUTES.KPI_DETAIL(data.data.kpi_id),
             }));
         }
         if (data.type === 'organization_health_update' && data.data) {

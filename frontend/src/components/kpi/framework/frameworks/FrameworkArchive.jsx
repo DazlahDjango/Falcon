@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
-import { FiArchive, FiAlertTriangle } from 'react-icons/fi';
+import { FiArchive, FiAlertTriangle, FiX } from 'react-icons/fi';
 
 const FrameworkArchive = ({ framework, onConfirm, onCancel }) => {
     const [confirmText, setConfirmText] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (confirmText !== 'ARCHIVE') {
             setError('Please type "ARCHIVE" to confirm');
             return;
         }
-        onConfirm();
+        
+        setError('');
+        setIsLoading(true);
+
+        try {
+            console.log('Archiving framework:', framework?.id);
+            await onConfirm();
+            console.log('Framework archive successful');
+        } catch (err) {
+            console.error('Framework archive error:', err);
+            setError(err?.message || 'Failed to archive framework. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -44,8 +58,10 @@ const FrameworkArchive = ({ framework, onConfirm, onCancel }) => {
                 </div>
                 
                 <div className="kpi-framework-archive-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="confirm" onClick={handleConfirm}>Archive Framework</button>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button className="confirm" onClick={handleConfirm} disabled={isLoading}>
+                        {isLoading ? 'Archiving...' : 'Archive Framework'}
+                    </button>
                 </div>
             </div>
         </div>

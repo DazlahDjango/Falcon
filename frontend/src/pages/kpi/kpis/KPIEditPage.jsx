@@ -5,6 +5,7 @@ import { fetchKPI, updateKPI, selectCurrentKPI, selectKPILoadingDetails } from '
 import { KPIEditBasic, KPIEditConfig, KPIEditAssignments, KPIActivateDeactivate } from '../../../components/kpi';
 import KPILoading from '../../../components/kpi/common/KPILoading';
 import { useKPIPermissions } from '../../../hooks/kpi';
+import { KpiPaths } from '../../../routes/kpi.routes';
 
 const KPIEditPage = () => {
     const { id } = useParams();
@@ -24,15 +25,15 @@ const KPIEditPage = () => {
     
     const handleUpdate = async (data) => {
         await dispatch(updateKPI({ id, data })).unwrap();
-        navigate(`/kpis/${id}`);
+        navigate(KpiPaths.KPIDetail(id));
     };
     
     const handleBack = () => {
-        navigate(`/kpis/${id}`);
+        navigate(KpiPaths.KPIDetail(id));
     };
     
     if (!canManageKPIs) {
-        navigate('/kpis');
+        navigate(KpiPaths.KPIs);
         return null;
     }
     

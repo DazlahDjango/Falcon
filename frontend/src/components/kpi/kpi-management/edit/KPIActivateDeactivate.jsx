@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { FiCheckCircle, FiXCircle, FiAlertTriangle } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiAlertTriangle, FiX } from 'react-icons/fi';
 import { activateKPI, deactivateKPI } from '../../../../store/kpi';
 import KPIConfirmDialog from '../../common/KPIConfirmDialog';
 
@@ -9,27 +9,56 @@ const KPIActivateDeactivate = ({ kpi, onComplete }) => {
     const [showActivateConfirm, setShowActivateConfirm] = useState(false);
     const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     
     const handleActivate = async () => {
+        setError(null);
         setLoading(true);
-        await dispatch(activateKPI(kpi.id)).unwrap();
-        setLoading(false);
-        setShowActivateConfirm(false);
-        onComplete?.();
+        try {
+            await dispatch(activateKPI(kpi.id)).unwrap();
+            setShowActivateConfirm(false);
+            onComplete?.();
+        } catch (err) {
+            console.error('Failed to activate KPI:', err);
+            setError(err?.message || 'Failed to activate KPI. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
     
     const handleDeactivate = async () => {
+        setError(null);
         setLoading(true);
-        await dispatch(deactivateKPI({ id: kpi.id, reason: 'Manual deactivation' })).unwrap();
-        setLoading(false);
-        setShowDeactivateConfirm(false);
-        onComplete?.();
+        try {
+            await dispatch(deactivateKPI({ id: kpi.id, reason: 'Manual deactivation' })).unwrap();
+            setShowDeactivateConfirm(false);
+            onComplete?.();
+        } catch (err) {
+            console.error('Failed to deactivate KPI:', err);
+            setError(err?.message || 'Failed to deactivate KPI. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
     
     const isActive = kpi?.is_active;
     
     return (
         <div className="kpi-actions-panel">
+            {error && (
+                <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{error}</span>
+                        <button 
+                            className="close-btn" 
+                            onClick={() => setError(null)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                        >
+                            <FiX size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="actions-header">
                 <h3>KPI Actions</h3>
                 <p>Manage the status and lifecycle of this KPI</p>

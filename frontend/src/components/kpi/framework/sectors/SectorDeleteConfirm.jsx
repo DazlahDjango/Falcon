@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
-import { FiAlertTriangle } from 'react-icons/fi';
+import { FiAlertTriangle, FiX } from 'react-icons/fi';
 
 const SectorDeleteConfirm = ({ sector, onConfirm, onCancel }) => {
     const [confirmText, setConfirmText] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (confirmText !== sector.name) {
             setError(`Please type "${sector.name}" to confirm`);
             return;
         }
-        onConfirm();
+        
+        setError('');
+        setIsLoading(true);
+
+        try {
+            console.log('Deleting sector:', sector?.id);
+            await onConfirm();
+            console.log('Sector deletion successful');
+        } catch (err) {
+            console.error('Sector deletion error:', err);
+            setError(err?.message || 'Failed to delete sector. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -41,8 +55,10 @@ const SectorDeleteConfirm = ({ sector, onConfirm, onCancel }) => {
                 </div>
                 
                 <div className="kpi-sector-delete-footer">
-                    <button className="cancel" onClick={onCancel}>Cancel</button>
-                    <button className="delete" onClick={handleConfirm}>Delete Sector</button>
+                    <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
+                    <button className="delete" onClick={handleConfirm} disabled={isLoading}>
+                        {isLoading ? 'Deleting...' : 'Delete Sector'}
+                    </button>
                 </div>
             </div>
         </div>
