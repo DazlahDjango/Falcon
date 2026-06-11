@@ -2,19 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
-    FiArrowLeft,
-    FiSmartphone,
-    FiTrash2,
-    FiShield,
-    FiCheckCircle,
-    FiLock,
-    FiClock,
-    FiAlertCircle
+    FiArrowLeft, FiSmartphone, FiTrash2, FiShield,
+    FiCheckCircle, FiLock, FiClock, FiAlertCircle
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
-import './mfa-admin.css';
 
 const AdminMfaDeviceClearView = () => {
     const { userId } = useParams();
@@ -42,9 +35,15 @@ const AdminMfaDeviceClearView = () => {
             await clearUserDevices(userId, deviceId);
             setShowDeviceConfirm(null);
             await loadAdminMFAStatus(userId);
-            dispatch(showAlert({ type: 'success', message: `${deviceName} removed successfully` }));
+            dispatch(showAlert({ 
+                type: 'success', 
+                message: `${deviceName} removed successfully` 
+            }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to remove device' }));
+            dispatch(showAlert({ 
+                type: 'error', 
+                message: error || 'Failed to remove device' 
+            }));
         }
     };
 
@@ -53,9 +52,15 @@ const AdminMfaDeviceClearView = () => {
             await clearUserDevices(userId);
             setShowAllConfirm(false);
             await loadAdminMFAStatus(userId);
-            dispatch(showAlert({ type: 'success', message: 'All MFA devices cleared' }));
+            dispatch(showAlert({ 
+                type: 'success', 
+                message: 'All MFA devices cleared' 
+            }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to clear devices' }));
+            dispatch(showAlert({ 
+                type: 'error', 
+                message: error || 'Failed to clear devices' 
+            }));
         }
     };
 
@@ -120,7 +125,7 @@ const AdminMfaDeviceClearView = () => {
             {/* Devices List */}
             <div className="devices-section">
                 <div className="section-header">
-                    <h3>MFA Devices</h3>
+                    <h3><FiSmartphone /> MFA Devices</h3>
                     {devices.length > 0 && (
                         <button
                             className="btn btn-danger btn-sm"
@@ -178,7 +183,7 @@ const AdminMfaDeviceClearView = () => {
                 )}
             </div>
 
-            {/* Device Remove Confirmation */}
+            {/* Device Remove Confirmation Modal */}
             {showDeviceConfirm && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -200,7 +205,7 @@ const AdminMfaDeviceClearView = () => {
                 </div>
             )}
 
-            {/* Clear All Confirmation */}
+            {/* Clear All Confirmation Modal */}
             {showAllConfirm && (
                 <div className="modal-overlay">
                     <div className="modal-content">

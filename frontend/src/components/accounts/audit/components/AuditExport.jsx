@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
     FiDownload, FiFileText, FiFile, FiX, FiCheckCircle,
-    FiCalendar, FiFilter, FiUser, FiShield, FiAlertCircle,
-    FiLoader
+    FiCalendar, FiFilter, FiUser, FiShield, FiAlertCircle
 } from 'react-icons/fi';
 import Modal from '../../../common/UI/Modal';
 import { exportAuditLogs } from '../../../../store/accounts/slice/auditSlice';
@@ -26,9 +25,6 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
         action_type: true,
         severity: true,
         ip_address: true,
-        user_agent: false,
-        changes: false,
-        metadata: false
     });
     const [isExporting, setIsExporting] = useState(false);
     const [exportProgress, setExportProgress] = useState(0);
@@ -38,25 +34,15 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
             id: 'csv',
             name: 'CSV',
             icon: <FiFileText size={24} />,
-            description: 'Comma-separated values, compatible with Excel and Google Sheets',
+            description: 'Comma-separated values, compatible with Excel',
             extension: '.csv',
-            mimeType: 'text/csv'
         },
         {
             id: 'json',
             name: 'JSON',
             icon: <FiFile size={24} />,
-            description: 'JSON format for developers and API integration',
+            description: 'JSON format for developers',
             extension: '.json',
-            mimeType: 'application/json'
-        },
-        {
-            id: 'excel',
-            name: 'Excel',
-            icon: <FiFile size={24} />,
-            description: 'Microsoft Excel format (.xlsx)',
-            extension: '.xlsx',
-            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         },
     ];
 
@@ -67,21 +53,7 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
         { id: 'action_type', label: 'Action Type', icon: <FiFilter size={12} /> },
         { id: 'severity', label: 'Severity', icon: <FiShield size={12} /> },
         { id: 'ip_address', label: 'IP Address', icon: <FiShield size={12} /> },
-        { id: 'user_agent', label: 'User Agent', icon: <FiFile size={12} /> },
-        { id: 'changes', label: 'Changes', icon: <FiFile size={12} /> },
-        { id: 'metadata', label: 'Metadata', icon: <FiFile size={12} /> },
     ];
-
-    const getActiveFiltersCount = () => {
-        let count = 0;
-        if (filters.action_type) count++;
-        if (filters.severity) count++;
-        if (filters.user_email) count++;
-        if (filters.ip_address) count++;
-        if (dateRange.start_date) count++;
-        if (dateRange.end_date) count++;
-        return count;
-    };
 
     const handleColumnToggle = (columnId) => {
         setSelectedColumns(prev => ({ ...prev, [columnId]: !prev[columnId] }));
@@ -101,7 +73,6 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
         setExportProgress(0);
 
         try {
-            // Simulate progress for large exports
             const progressInterval = setInterval(() => {
                 setExportProgress(prev => Math.min(prev + 10, 90));
             }, 500);
@@ -121,13 +92,11 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
             };
 
             const result = await dispatch(exportAuditLogs(exportData)).unwrap();
-
             clearInterval(progressInterval);
             setExportProgress(100);
 
-            // Create download link
             const selectedFormat = formats.find(f => f.id === format);
-            const blob = new Blob([result.data], { type: selectedFormat.mimeType });
+            const blob = new Blob([result.data], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
@@ -138,7 +107,7 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            dispatch(showAlert({ type: 'success', message: `Export completed: ${result.count || totalCount || 0} records exported` }));
+            dispatch(showAlert({ type: 'success', message: `Export completed: ${totalCount || 0} records exported` }));
             setTimeout(() => onClose(), 1500);
         } catch (error) {
             dispatch(showAlert({ type: 'error', message: error.message || 'Export failed' }));
@@ -179,16 +148,13 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Export Audit Logs" size="lg">
             <div className="audit-export-modal">
-                {/* Export Info Banner */}
                 <div className="export-info-banner">
                     <div className="info-icon"><FiDownload size={20} /></div>
                     <div className="info-text">
                         <strong>Export {totalCount?.toLocaleString() || 'filtered'} records</strong>
-                        <p>{getActiveFiltersCount()} active filter(s) applied</p>
                     </div>
                 </div>
 
-                {/* Format Selection */}
                 <div className="export-section">
                     <label className="section-label">Export Format</label>
                     <div className="format-options">
@@ -209,17 +175,11 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
                                     <strong>{f.name}</strong>
                                     <span>{f.description}</span>
                                 </div>
-                                {format === f.id && (
-                                    <div className="format-check">
-                                        <FiCheckCircle size={16} />
-                                    </div>
-                                )}
                             </label>
                         ))}
                     </div>
                 </div>
 
-                {/* Date Range */}
                 <div className="export-section">
                     <label className="section-label">Date Range</label>
                     <div className="date-range-actions">
@@ -234,19 +194,16 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
                             type="date"
                             value={dateRange.start_date}
                             onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
-                            placeholder="Start Date"
                         />
                         <span className="date-separator">to</span>
                         <input
                             type="date"
                             value={dateRange.end_date}
                             onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
-                            placeholder="End Date"
                         />
                     </div>
                 </div>
 
-                {/* Column Selection */}
                 <div className="export-section">
                     <div className="section-header">
                         <label className="section-label">Columns to Include</label>
@@ -272,7 +229,6 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
                     </div>
                 </div>
 
-                {/* Options */}
                 <div className="export-section">
                     <label className="section-label">Additional Options</label>
                     <div className="options-list">
@@ -283,7 +239,7 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
                                 onChange={(e) => setIncludeMetadata(e.target.checked)}
                             />
                             <span className="checkbox-custom"></span>
-                            <span>Include metadata (request details, user agent)</span>
+                            <span>Include metadata (request details)</span>
                         </label>
                         <label className="option-checkbox">
                             <input
@@ -292,12 +248,11 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
                                 onChange={(e) => setIncludeChanges(e.target.checked)}
                             />
                             <span className="checkbox-custom"></span>
-                            <span>Include change history (old/new values)</span>
+                            <span>Include change history</span>
                         </label>
                     </div>
                 </div>
 
-                {/* Export Progress */}
                 {isExporting && (
                     <div className="export-progress">
                         <div className="progress-bar">
@@ -307,7 +262,6 @@ const AuditExport = ({ isOpen, onClose, filters, totalCount }) => {
                     </div>
                 )}
 
-                {/* Actions */}
                 <div className="export-actions">
                     <button className="btn btn-secondary" onClick={onClose} disabled={isExporting}>
                         Cancel

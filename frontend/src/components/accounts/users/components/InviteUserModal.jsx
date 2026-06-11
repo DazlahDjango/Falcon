@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { FiMail, FiUser, FiSend, FiAlertCircle } from 'react-icons/fi';
+import { FiMail, FiSend, FiAlertCircle } from 'react-icons/fi';
 import { useUsers } from '../../../../hooks/accounts/useUsers';
 import Modal from '../../../common/UI/Modal';
 import Spinner from '../../../common/UI/Spinner';
 
 const InviteUserModal = ({ isOpen, onClose, onSuccess }) => {
-    const { sendInvitation, invitationLoading, clearUserError } = useUsers();
+    const { sendInvitation, invitationLoading } = useUsers();
 
     const [formData, setFormData] = useState({
         email: '',

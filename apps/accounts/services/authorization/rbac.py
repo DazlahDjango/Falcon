@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any, Tuple
 from django.contrib.auth.models import Permission
 from apps.accounts.models import User, Role, Permission as CustomPermission
 from apps.accounts.services.audit.logger import AuditService
+
 logger = logging.getLogger(__name__)
 
 class RBACService:
@@ -20,7 +21,7 @@ class RBACService:
         user.save(update_fields=['role'])
         self.audit_service.log(
             user=assigned_by or user, action='user.role_assigned', action_type='update', request=request, severity='info',
-            metadata= {
+            metadata={
                 'target_user': user.email,
                 'old_role': old_role,
                 'new_role': role_code
@@ -111,8 +112,21 @@ class RBACService:
         current = role.parent
         while current:
             higher.append(current.code)
-            current = current.parrent
+            current = current.parent  # FIXED: was 'current.parrent'
         return higher
     
     def get_lower_roles(self, role_code: str) -> List[str]:
         return self.get_role_hierarchy(role_code)[1:]
+
+    def get_assignable_roles(self, user: User) -> List[Role]:
+        """Get roles that user can assign to others."""
+        if user.role == 'super_admin':
+            return Role.objects.filter(is_assignable=True, is_deleted=False)
+        elif user.role == 'client_admin':
+            return Role.objects.filter(is_assignable=True, is_system=False, is_deleted=False)
+        elif user.role == 'executive':
+            return Role.objects.filter(code__in=['executive', 'supervisor', 'staff', 'read_only'], is_deleted=False)
+        elif user.role == 'supervisor':
+            return Role.objects.filter(code__in=['staff', 'read_only'], is_deleted=False)
+        else:
+            return Role.objects.none()

@@ -2,26 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
-    FiArrowLeft,
-    FiSmartphone,
-    FiCode,
-    FiCalendar,
-    FiClock,
-    FiShield,
-    FiCheckCircle,
-    FiXCircle,
-    FiAlertCircle,
-    FiRefreshCw,
-    FiTrash2,
-    FiMail,
-    FiUser,
-    FiBriefcase
+    FiArrowLeft, FiSmartphone, FiCode, FiCalendar, FiClock,
+    FiShield, FiCheckCircle, FiXCircle, FiAlertCircle, FiRefreshCw,
+    FiTrash2, FiMail, FiUser, FiBriefcase, FiShieldOff
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
 import { ROLE_DISPLAY_NAMES } from '../../../config/constants';
-import './policy.css';
 
 const UserMFAStatus = () => {
     const { userId } = useParams();
@@ -60,7 +48,7 @@ const UserMFAStatus = () => {
             await loadAdminMFAStatus(userId);
             dispatch(showAlert({ type: 'success', message: 'MFA reset successfully' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to reset MFA' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to reset MFA' }));
         }
     };
 
@@ -72,7 +60,7 @@ const UserMFAStatus = () => {
             await loadAdminMFAStatus(userId);
             dispatch(showAlert({ type: 'success', message: `${deviceName} removed successfully` }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to remove device' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to remove device' }));
         }
     };
 
@@ -95,7 +83,6 @@ const UserMFAStatus = () => {
     const user = userMFAStatus?.user || {};
     const mfa = userMFAStatus?.mfa || {};
     const policy = userMFAStatus?.policy || {};
-    const adminMfa = adminMFAStatus || {};
 
     return (
         <div className="policy-container user-mfa-status">
@@ -166,15 +153,17 @@ const UserMFAStatus = () => {
                                     <FiSmartphone />
                                 </div>
                                 <div className="device-info">
-                                    <div className="device-name">{device.name}</div>
+                                    <div className="device-name">
+                                        {device.name}
+                                        {device.is_primary && <span className="primary-badge">Primary</span>}
+                                    </div>
                                     <div className="device-meta">
                                         <span className="device-type">{device.device_type?.toUpperCase()}</span>
-                                        {device.is_primary && <span className="device-primary">Primary</span>}
                                         {device.is_verified && <span className="device-verified">Verified</span>}
                                     </div>
                                     {device.last_used_at && (
                                         <div className="device-last-used">
-                                            Last used: {new Date(device.last_used_at).toLocaleString()}
+                                            <FiClock /> Last used: {new Date(device.last_used_at).toLocaleString()}
                                         </div>
                                     )}
                                 </div>
@@ -209,11 +198,11 @@ const UserMFAStatus = () => {
                         <span className="stat-label">Remaining</span>
                     </div>
                     <div className="stat-item">
-                        <span className="stat-value">{(adminMfa.mfa?.backup_codes?.total || 0) - (mfa.backup_codes_remaining || 0)}</span>
+                        <span className="stat-value">{(adminMFAStatus?.mfa?.backup_codes?.total || 0) - (mfa.backup_codes_remaining || 0)}</span>
                         <span className="stat-label">Used</span>
                     </div>
                     <div className="stat-item">
-                        <span className="stat-value">{adminMfa.mfa?.backup_codes?.total || 0}</span>
+                        <span className="stat-value">{adminMFAStatus?.mfa?.backup_codes?.total || 0}</span>
                         <span className="stat-label">Total Generated</span>
                     </div>
                 </div>
@@ -233,7 +222,7 @@ const UserMFAStatus = () => {
                     </button>
                     <button
                         className="btn btn-secondary"
-                        onClick={() => handleClearDevice(userId)}
+                        onClick={() => setShowDeviceConfirm({ id: null, name: 'all devices' })}
                         disabled={clearingDevices || mfa.devices_count === 0}
                     >
                         {clearingDevices ? <Spinner size="sm" /> : <FiTrash2 />}
@@ -263,7 +252,8 @@ const UserMFAStatus = () => {
                                 value={resetReason}
                                 onChange={(e) => setResetReason(e.target.value)}
                                 placeholder="Enter reason for MFA reset..."
-                                rows="3"
+                                rows={3}
+                                className="form-input"
                             />
                         </div>
                         <div className="modal-actions">
@@ -286,13 +276,31 @@ const UserMFAStatus = () => {
                             <FiAlertCircle className="modal-icon warning" />
                             <h3>Remove Device?</h3>
                         </div>
-                        <p>Are you sure you want to remove "{showDeviceConfirm.name}"? The user will need to re-add this device.</p>
+                        <p>
+                            Are you sure you want to remove "{showDeviceConfirm.name || showDeviceConfirm.id ? 
+                                showDeviceConfirm.name : 'all devices'}"?
+                        </p>
+                        {showDeviceConfirm.id && (
+                            <p className="warning-text">The user will need to re-add this device.</p>
+                        )}
                         <div className="modal-actions">
                             <button className="btn btn-secondary" onClick={() => setShowDeviceConfirm(null)}>
                                 Cancel
                             </button>
-                            <button className="btn btn-danger" onClick={() => handleClearDevice(showDeviceConfirm.id, showDeviceConfirm.name)}>
-                                Remove Device
+                            <button className="btn btn-danger" onClick={() => {
+                                if (showDeviceConfirm.id) {
+                                    handleClearDevice(showDeviceConfirm.id, showDeviceConfirm.name);
+                                } else {
+                                    // Clear all devices
+                                    clearUserDevices(userId).then(() => {
+                                        setShowDeviceConfirm(null);
+                                        loadUserMFAStatus(userId);
+                                        loadAdminMFAStatus(userId);
+                                        dispatch(showAlert({ type: 'success', message: 'All devices cleared' }));
+                                    });
+                                }
+                            }}>
+                                Remove
                             </button>
                         </div>
                     </div>

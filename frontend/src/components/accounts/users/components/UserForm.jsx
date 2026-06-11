@@ -1,27 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiUser, FiMail, FiPhone, FiBriefcase, FiLock, FiUsers } from 'react-icons/fi';
-import PasswordStrength from '../../../common/Forms/PasswordStrength';
 import { useUsers } from '../../../../hooks/accounts/useUsers';
+import PasswordStrength from '../../../common/Forms/PasswordStrength';
 
 const UserForm = ({ initialData = {}, onSubmit, onCancel, isEdit = false }) => {
     const { users, getFullName } = useUsers();
 
     const [formData, setFormData] = useState({
-        email: initialData.email || '',
-        username: initialData.username || '',
-        first_name: initialData.first_name || '',
-        last_name: initialData.last_name || '',
-        phone: initialData.phone || '',
-        role: initialData.role || 'staff',
-        title: initialData.title || '',
-        department: initialData.department || '',
-        manager: initialData.manager || '',
+        email: '',
+        username: '',
+        first_name: '',
+        last_name: '',
+        phone: '',
+        role: 'staff',
+        title: '',
+        department: '',
+        manager: '',
         password: '',
         confirm_password: ''
     });
 
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        if (initialData) {
+            setFormData({
+                email: initialData.email || '',
+                username: initialData.username || '',
+                first_name: initialData.first_name || '',
+                last_name: initialData.last_name || '',
+                phone: initialData.phone || '',
+                role: initialData.role || 'staff',
+                title: initialData.title || '',
+                department: initialData.department || '',
+                manager: initialData.manager || '',
+                password: '',
+                confirm_password: ''
+            });
+        }
+    }, [initialData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -64,6 +82,14 @@ const UserForm = ({ initialData = {}, onSubmit, onCancel, isEdit = false }) => {
             onSubmit(submitData);
         }
     };
+
+    const roleOptions = [
+        { value: 'staff', label: 'Staff Member' },
+        { value: 'supervisor', label: 'Supervisor' },
+        { value: 'executive', label: 'Executive' },
+        { value: 'dashboard_champion', label: 'Dashboard Champion' },
+        { value: 'read_only', label: 'Read Only' },
+    ];
 
     return (
         <form onSubmit={handleSubmit} className="user-form">
@@ -158,11 +184,11 @@ const UserForm = ({ initialData = {}, onSubmit, onCancel, isEdit = false }) => {
                             className="form-input"
                             required
                         >
-                            <option value="staff">Staff Member</option>
-                            <option value="supervisor">Supervisor</option>
-                            <option value="executive">Executive</option>
-                            <option value="dashboard_champion">Dashboard Champion</option>
-                            <option value="read_only">Read Only</option>
+                            {roleOptions.map(role => (
+                                <option key={role.value} value={role.value}>
+                                    {role.label}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -206,7 +232,7 @@ const UserForm = ({ initialData = {}, onSubmit, onCancel, isEdit = false }) => {
                             className="form-input"
                         >
                             <option value="">None</option>
-                            {users.filter(u => u.id !== initialData.id).map(user => (
+                            {users.filter(u => u.id !== initialData?.id).map(user => (
                                 <option key={user.id} value={user.id}>
                                     {getFullName(user)} ({user.role})
                                 </option>

@@ -11,10 +11,14 @@ const UserEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { selectedUser, isLoading } = useSelector((state) => state.user);
+    const { selectedUser, isLoading } = useSelector((state) => state.users);
+
     useEffect(() => {
-        dispatch(fetchUserById(id));
-    }, [dispatch,id]);
+        if (id) {
+            dispatch(fetchUserById(id));
+        }
+    }, [dispatch, id]);
+
     const handleSubmit = async (formData) => {
         try {
             await dispatch(updateUser({ id, ...formData })).unwrap();
@@ -24,13 +28,15 @@ const UserEdit = () => {
             dispatch(showAlert({ type: 'error', message: error.message || 'Failed to update user' }));
         }
     };
-    if (isLoading && !seletedUser) {
+
+    if (isLoading && !selectedUser) {
         return (
             <div className="user-form-page">
-                <SkeletonLoader type='form' />
+                <SkeletonLoader type="form" />
             </div>
         );
     }
+
     return (
         <div className="user-form-page">
             <div className="page-header">
@@ -50,4 +56,5 @@ const UserEdit = () => {
         </div>
     );
 };
+
 export default UserEdit;

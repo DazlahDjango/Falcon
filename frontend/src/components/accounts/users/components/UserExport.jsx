@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import {
-    FiDownload, FiFileText, FiFile, FiX, FiCheckCircle,
-    FiUser, FiMail, FiBriefcase, FiCalendar, FiShield
-} from 'react-icons/fi';
+import { FiDownload, FiFileText, FiFile, FiX, FiCheckCircle, FiUser, FiMail, FiBriefcase, FiCalendar, FiShield } from 'react-icons/fi';
 import Modal from '../../../common/UI/Modal';
 import { showAlert } from '../../../../store/accounts/slice/uiSlice';
 import Spinner from '../../../common/UI/Spinner';
 
 const UserExport = ({ isOpen, onClose, users, totalCount }) => {
+    const dispatch = useDispatch();
     const [format, setFormat] = useState('csv');
     const [isExporting, setIsExporting] = useState(false);
     const [selectedColumns, setSelectedColumns] = useState({
@@ -26,7 +24,7 @@ const UserExport = ({ isOpen, onClose, users, totalCount }) => {
 
     const formats = [
         { id: 'csv', name: 'CSV', icon: <FiFileText size={24} />, extension: '.csv' },
-        { id: 'excel', name: 'Excel', icon: <FiFile size={24} />, extension: '.xlsx' },
+        { id: 'json', name: 'JSON', icon: <FiFile size={24} />, extension: '.json' },
     ];
 
     const columnOptions = [
@@ -86,17 +84,9 @@ const UserExport = ({ isOpen, onClose, users, totalCount }) => {
             let blob;
             let filename;
 
-            if (format === 'csv') {
-                const csvData = convertToCSV(users, selectedColumns);
-                blob = new Blob(["\uFEFF" + csvData], { type: 'text/csv;charset=utf-8;' });
-                filename = `users_export_${timestamp}.csv`;
-            } else {
-                // For Excel, we'd use a library like xlsx
-                // For now, use CSV as fallback
-                const csvData = convertToCSV(users, selectedColumns);
-                blob = new Blob(["\uFEFF" + csvData], { type: 'application/vnd.ms-excel' });
-                filename = `users_export_${timestamp}.xls`;
-            }
+            const csvData = convertToCSV(users, selectedColumns);
+            blob = new Blob(["\uFEFF" + csvData], { type: 'text/csv;charset=utf-8;' });
+            filename = `users_export_${timestamp}.csv`;
 
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');

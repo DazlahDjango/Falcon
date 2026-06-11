@@ -2,11 +2,13 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as usersApi from '../../../services/accounts/api/users';
 import * as authApi from '../../../services/accounts/api/auth';
 
-
+// ============================================================
 // Async Thunks
+// ============================================================
+
 export const fetchUsers = createAsyncThunk(
     'users/fetchUsers',
-    async (params, { rejectWithValue }) => {
+    async (params = {}, { rejectWithValue }) => {
         try {
             const response = await usersApi.getUsers(params);
             return response.data;
@@ -128,7 +130,7 @@ export const inviteUser = createAsyncThunk(
     'users/inviteUser',
     async (inviteData, { rejectWithValue }) => {
         try {
-            const response = await authApi.inviteUser(inviteData);
+            const response = await usersApi.inviteUser(inviteData);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to send invitation');
@@ -136,6 +138,7 @@ export const inviteUser = createAsyncThunk(
     }
 );
 
+// ✅ ADD MISSING THUNKS
 export const resendInvitation = createAsyncThunk(
     'users/resendInvitation',
     async (invitationId, { rejectWithValue }) => {
@@ -249,7 +252,7 @@ const userSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload;
             })
-            // Create user
+            // Create User
             .addCase(createUser.fulfilled, (state, action) => {
                 state.users.unshift(action.payload);
                 state.pagination.total_items += 1;
@@ -272,7 +275,7 @@ const userSlice = createSlice({
                     state.selectedUser = null;
                 }
             })
-            // Activate & Deactivate user
+            // Activate/Deactivate User
             .addCase(activateUser.fulfilled, (state, action) => {
                 const user = state.users.find(u => u.id === action.payload.userId);
                 if (user) user.is_active = true;
@@ -302,10 +305,6 @@ const userSlice = createSlice({
                     state.selectedUser.role = action.payload.data.role;
                 }
             })
-            // Change Password
-            .addCase(changeUserPassword.fulfilled, (state) => {
-                // Password changed successfully - no state update needed
-            })
             // Invite User
             .addCase(inviteUser.pending, (state) => {
                 state.invitationLoading = true;
@@ -318,25 +317,51 @@ const userSlice = createSlice({
                 state.invitationLoading = false;
                 state.error = action.payload;
             })
-            // Resend Invitation
+            // ✅ ADD RESEND INVITATION CASES
+            .addCase(resendInvitation.pending, (state) => {
+                state.invitationLoading = true;
+            })
             .addCase(resendInvitation.fulfilled, (state, action) => {
+                state.invitationLoading = false;
                 const index = state.invitations.findIndex(i => i.id === action.payload.id);
                 if (index !== -1) {
                     state.invitations[index] = action.payload;
                 }
             })
-            // Cancel Invitation
+            .addCase(resendInvitation.rejected, (state, action) => {
+                state.invitationLoading = false;
+                state.error = action.payload;
+            })
+            // ✅ ADD CANCEL INVITATION CASES
+            .addCase(cancelInvitation.pending, (state) => {
+                state.invitationLoading = true;
+            })
             .addCase(cancelInvitation.fulfilled, (state, action) => {
+                state.invitationLoading = false;
                 state.invitations = state.invitations.filter(i => i.id !== action.payload);
+            })
+            .addCase(cancelInvitation.rejected, (state, action) => {
+                state.invitationLoading = false;
+                state.error = action.payload;
             });
     }
 });
 
 // ============================================================
-// Actions & Selectors
+// Actions
 // ============================================================
 
-export const { setFilters, resetFilters, setPage, clearSelectedUser, clearError } = userSlice.actions;
+export const { 
+    setFilters, 
+    resetFilters, 
+    setPage, 
+    clearSelectedUser, 
+    clearError 
+} = userSlice.actions;
+
+// ============================================================
+// Selectors
+// ============================================================
 
 export const selectUsers = (state) => state.users;
 export const selectUsersList = (state) => state.users.users;
@@ -345,5 +370,7 @@ export const selectUsersPagination = (state) => state.users.pagination;
 export const selectUsersFilters = (state) => state.users.filters;
 export const selectUsersLoading = (state) => state.users.isLoading;
 export const selectUsersError = (state) => state.users.error;
+export const selectUserInvitations = (state) => state.users.invitations;
+export const selectUserInvitationLoading = (state) => state.users.invitationLoading;
 
 export default userSlice.reducer;

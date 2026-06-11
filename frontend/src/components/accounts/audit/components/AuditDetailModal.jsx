@@ -54,7 +54,6 @@ const AuditDetailModal = ({ isOpen, onClose, log }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Audit Log Details" size="lg">
             <div className="audit-detail-modal">
-                {/* Header */}
                 <div className="detail-header">
                     <div className={`severity-badge-large ${severityConfig.class}`}>
                         {severityConfig.icon}
@@ -66,7 +65,6 @@ const AuditDetailModal = ({ isOpen, onClose, log }) => {
                     </div>
                 </div>
 
-                {/* Meta Information */}
                 <div className="detail-section">
                     <h4>Metadata</h4>
                     <div className="meta-grid">
@@ -96,17 +94,9 @@ const AuditDetailModal = ({ isOpen, onClose, log }) => {
                                 </button>
                             )}
                         </div>
-                        {log.user_agent && (
-                            <div className="meta-item full-width">
-                                <FiActivity size={14} />
-                                <span className="meta-label">User Agent:</span>
-                                <span className="meta-value">{log.user_agent}</span>
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                {/* Object Information */}
                 {(log.content_type || log.object_repr) && (
                     <div className="detail-section">
                         <h4>Object Information</h4>
@@ -127,10 +117,8 @@ const AuditDetailModal = ({ isOpen, onClose, log }) => {
                     </div>
                 )}
 
-                {/* Changes Section */}
                 {formatChanges(log.changes)}
 
-                {/* Metadata JSON */}
                 {log.metadata && Object.keys(log.metadata).length > 0 && (
                     <div className="detail-section">
                         <h4>Additional Metadata</h4>
@@ -140,30 +128,6 @@ const AuditDetailModal = ({ isOpen, onClose, log }) => {
                     </div>
                 )}
 
-                {/* Request Information (if available) */}
-                {(log.request_method || log.request_path) && (
-                    <div className="detail-section">
-                        <h4>Request Information</h4>
-                        <div className="request-info">
-                            <div className="request-field">
-                                <span className="field-label">Method:</span>
-                                <code>{log.request_method || '—'}</code>
-                            </div>
-                            <div className="request-field">
-                                <span className="field-label">Path:</span>
-                                <code>{log.request_path || '—'}</code>
-                            </div>
-                            {log.referer && (
-                                <div className="request-field full-width">
-                                    <span className="field-label">Referer:</span>
-                                    <code>{log.referer}</code>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Timestamp */}
                 <div className="detail-footer">
                     <FiCalendar size={12} />
                     <span>Recorded: {format(new Date(log.created_at || log.timestamp), 'MMM dd, yyyy HH:mm:ss')}</span>

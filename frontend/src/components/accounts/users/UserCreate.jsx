@@ -9,6 +9,7 @@ import { showAlert } from '../../../store/accounts/slice/uiSlice';
 const UserCreate = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
     const handleSubmit = async (formData) => {
         try {
             await dispatch(createUser(formData)).unwrap();
@@ -18,6 +19,7 @@ const UserCreate = () => {
             dispatch(showAlert({ type: 'error', message: error.message || 'Failed to create user' }));
         }
     };
+
     return (
         <div className="user-form-page">
             <div className="page-header">
@@ -35,4 +37,5 @@ const UserCreate = () => {
         </div>
     );
 };
+
 export default UserCreate;

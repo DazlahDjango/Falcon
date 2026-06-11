@@ -1,5 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as usersApi from '../../../services/accounts/api/users';
+import * as profilesApi from '../../../services/accounts/api/profiles';  // ✅ You need to create this
+
+// ✅ FIXED: Use profiles API for avatar
+export const getMyProfile = createAsyncThunk(
+    'profile/getMyProfile',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await profilesApi.getMyProfile();
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to fetch profile');
+        }
+    }
+);
 
 export const fetchCurrentUserProfile = createAsyncThunk(
     'profile/fetchCurrent',
@@ -25,13 +39,30 @@ export const updateProfile = createAsyncThunk(
     }
 );
 
+export const updateUserProfile = createAsyncThunk(
+    'profile/updateUserProfile',
+    async ({ userId, data }, { rejectWithValue }) => {
+        try {
+            const response = await usersApi.updateUser(userId, data);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to update user profile');
+        }
+    }
+);
+
+// ✅ FIXED: Use correct avatar endpoints
 export const uploadAvatar = createAsyncThunk(
     'profile/uploadAvatar',
-    async ({ file, onProgress }, { rejectWithValue }) => {
+    async ({ file, onProgress }, { rejectWithValue, dispatch }) => {
         try {
+            // First get profile ID
+            const profileResponse = await profilesApi.getMyProfile();
+            const profileId = profileResponse.data?.id || profileResponse.id;
+            
             const formData = new FormData();
             formData.append('avatar', file);
-            const response = await usersApi.uploadAvatar(formData, onProgress);
+            const response = await profilesApi.uploadAvatar(profileId, formData, onProgress);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to upload avatar');
@@ -43,7 +74,9 @@ export const deleteAvatar = createAsyncThunk(
     'profile/deleteAvatar',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await usersApi.deleteAvatar();
+            const profileResponse = await profilesApi.getMyProfile();
+            const profileId = profileResponse.data?.id || profileResponse.id;
+            const response = await profilesApi.deleteAvatar(profileId);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to delete avatar');
@@ -65,6 +98,7 @@ export const changePassword = createAsyncThunk(
 
 const initialState = {
     profile: null,
+    profileData: null,
     isLoading: false,
     error: null,
     avatarUploadProgress: 0,
@@ -85,6 +119,19 @@ const profileSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Get My Profile
+            .addCase(getMyProfile.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(getMyProfile.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.profile = action.payload;
+            })
+            .addCase(getMyProfile.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
             // Fetch Current User Profile
             .addCase(fetchCurrentUserProfile.pending, (state) => {
                 state.isLoading = true;
@@ -92,7 +139,7 @@ const profileSlice = createSlice({
             })
             .addCase(fetchCurrentUserProfile.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.profile = action.payload;
+                state.profileData = action.payload;
             })
             .addCase(fetchCurrentUserProfile.rejected, (state, action) => {
                 state.isLoading = false;
@@ -105,7 +152,7 @@ const profileSlice = createSlice({
             })
             .addCase(updateProfile.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.profile = { ...state.profile, ...action.payload };
+                state.profileData = { ...state.profileData, ...action.payload };
             })
             .addCase(updateProfile.rejected, (state, action) => {
                 state.isLoading = false;
@@ -123,6 +170,9 @@ const profileSlice = createSlice({
                 if (state.profile) {
                     state.profile.avatar = action.payload.avatar_url;
                 }
+                if (state.profileData) {
+                    state.profileData.avatar = action.payload.avatar_url;
+                }
             })
             .addCase(uploadAvatar.rejected, (state, action) => {
                 state.isUploadingAvatar = false;
@@ -133,6 +183,9 @@ const profileSlice = createSlice({
             .addCase(deleteAvatar.fulfilled, (state) => {
                 if (state.profile) {
                     state.profile.avatar = null;
+                }
+                if (state.profileData) {
+                    state.profileData.avatar = null;
                 }
             })
             // Change Password
@@ -153,7 +206,8 @@ const profileSlice = createSlice({
 export const { clearProfileError, resetProfile, setAvatarProgress } = profileSlice.actions;
 
 export const selectProfile = (state) => state.profile;
-export const selectProfileData = (state) => state.profile.profile;
+export const selectProfileData = (state) => state.profile.profileData;
+export const selectProfileInfo = (state) => state.profile.profile;
 export const selectProfileLoading = (state) => state.profile.isLoading;
 export const selectProfileError = (state) => state.profile.error;
 export const selectAvatarUploadProgress = (state) => state.profile.avatarUploadProgress;

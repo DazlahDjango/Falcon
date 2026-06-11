@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import { FiLock, FiEye, FiEyeOff, FiCheckCircle, FiXCircle } from 'react-icons/fi';
-import { useProfile } from '../../../hooks/accounts/useProfile';
+import { useDispatch } from 'react-redux';
+import { FiLock, FiEye, FiEyeOff, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi';
+import { changePassword } from '../../../store/accounts/slice/authSlice';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import PasswordStrength from '../../common/Forms/PasswordStrength';
 import Spinner from '../../common/UI/Spinner';
 
 const PasswordChangeForm = ({ onClose }) => {
-    const { changeUserPassword, isLoading } = useProfile();
+    const dispatch = useDispatch();
 
     const [formData, setFormData] = useState({
         old_password: '',
         new_password: '',
         confirm_password: ''
     });
-    const [errors, setErrors] = useState({});
     const [showPasswords, setShowPasswords] = useState({
         old: false,
         new: false,
         confirm: false
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [success, setSuccess] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState({
         length: false,
         uppercase: false,
@@ -25,7 +30,6 @@ const PasswordChangeForm = ({ onClose }) => {
         special: false,
         score: 0
     });
-    const [success, setSuccess] = useState(false);
 
     const checkPasswordStrength = (password) => {
         const strength = {
@@ -93,14 +97,22 @@ const PasswordChangeForm = ({ onClose }) => {
         e.preventDefault();
         if (!validateForm()) return;
 
+        setIsLoading(true);
         try {
-            await changeUserPassword(formData.old_password, formData.new_password);
+            await dispatch(changePassword({
+                old_password: formData.old_password,
+                new_password: formData.new_password
+            })).unwrap();
             setSuccess(true);
+            dispatch(showAlert({ type: 'success', message: 'Password changed successfully' }));
             setTimeout(() => {
-                onClose();
+                if (onClose) onClose();
             }, 2000);
         } catch (error) {
-            setErrors({ submit: error.message || 'Failed to change password' });
+            setErrors({ submit: error || 'Failed to change password' });
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to change password' }));
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -119,9 +131,9 @@ const PasswordChangeForm = ({ onClose }) => {
     if (success) {
         return (
             <div className="password-change-success">
-                <FiCheckCircle size={48} />
+                <FiCheckCircle size={48} className="success-icon" />
                 <h3>Password Changed Successfully!</h3>
-                <p>Your password has been updated. You'll be redirected shortly.</p>
+                <p>Your password has been updated.</p>
             </div>
         );
     }
@@ -130,9 +142,6 @@ const PasswordChangeForm = ({ onClose }) => {
         <div className="password-change-form">
             <div className="form-header">
                 <h3>Change Password</h3>
-                <button className="close-btn" onClick={onClose}>
-                    <FiXCircle size={20} />
-                </button>
             </div>
 
             <form onSubmit={handleSubmit}>

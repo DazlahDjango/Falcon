@@ -26,14 +26,6 @@ import {
     clearError,
     resetAdmin,
     selectAdmin,
-    selectAdminStats,
-    selectAdminUsers,
-    selectAdminTenants,
-    selectAdminHealth,
-    selectAdminSystemConfig,
-    selectAdminPagination,
-    selectAdminLoading,
-    selectAdminError,
 } from '../../store/accounts/slice/adminSlice';
 
 export const useAdmin = () => {

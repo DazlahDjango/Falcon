@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 import {
-    FiSmartphone,
-    FiMail,
-    FiPhone,
-    FiCpu,
-    FiStar,
-    FiTrash2,
-    FiCheckCircle,
-    FiAlertCircle,
-    FiClock
+    FiSmartphone, FiMail, FiPhone, FiCpu,
+    FiStar, FiTrash2, FiCheckCircle, FiAlertCircle, FiClock
 } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -40,7 +33,7 @@ const MFADeviceCard = ({ device, onRemove, onSetPrimary }) => {
         if (device.is_verified) {
             return <span className="badge-success"><FiCheckCircle /> Verified</span>;
         }
-        return <span className="badge-secondary">Pending</span>;
+        return <span className="badge-secondary"><FiClock /> Pending</span>;
     };
 
     const getLastUsedText = () => {

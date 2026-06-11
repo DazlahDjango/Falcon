@@ -1,25 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
-    FiUsers,
-    FiSearch,
-    FiRefreshCw,
-    FiTrash2,
-    FiEye,
-    FiShield,
-    FiCheckCircle,
-    FiXCircle,
-    FiAlertCircle,
-    FiLoader,
-    FiChevronLeft,
-    FiChevronRight
+    FiUsers, FiSearch, FiRefreshCw, FiTrash2, FiEye,
+    FiShield, FiCheckCircle, FiXCircle, FiAlertCircle,
+    FiChevronLeft, FiChevronRight, FiLoader
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
 import { ROLE_DISPLAY_NAMES } from '../../../config/constants';
-import './mfa-admin.css';
 
 const AdminMfaResetView = () => {
     const navigate = useNavigate();
@@ -49,6 +39,7 @@ const AdminMfaResetView = () => {
         loadAllUsersMFAPolicy();
     }, [loadAllUsersMFAPolicy]);
 
+    // Debounced search
     useEffect(() => {
         const timer = setTimeout(() => {
             updateUsersFilters({ search: searchTerm });
@@ -81,9 +72,15 @@ const AdminMfaResetView = () => {
             setShowResetConfirm(null);
             setResetReason('');
             await loadAllUsersMFAPolicy();
-            dispatch(showAlert({ type: 'success', message: `MFA reset for ${showResetConfirm.email}` }));
+            dispatch(showAlert({ 
+                type: 'success', 
+                message: `MFA reset for ${showResetConfirm.email}` 
+            }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to reset MFA' }));
+            dispatch(showAlert({ 
+                type: 'error', 
+                message: error || 'Failed to reset MFA' 
+            }));
         }
     };
 
@@ -168,7 +165,6 @@ const AdminMfaResetView = () => {
                             <th>Role</th>
                             <th>MFA Status</th>
                             <th>Policy</th>
-                            <th>Devices</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -187,7 +183,9 @@ const AdminMfaResetView = () => {
                                     </div>
                                 </td>
                                 <td>
-                                    <span className="role-badge">{ROLE_DISPLAY_NAMES[user.role] || user.role}</span>
+                                    <span className="role-badge">
+                                        {ROLE_DISPLAY_NAMES[user.role] || user.role}
+                                    </span>
                                 </td>
                                 <td>
                                     <div className="mfa-status">
@@ -196,17 +194,20 @@ const AdminMfaResetView = () => {
                                     </div>
                                 </td>
                                 <td>
-                                    {user.mfa_required_override === true && <span className="badge override">Force On</span>}
-                                    {user.mfa_required_override === false && <span className="badge exempt">Force Off</span>}
-                                    {user.mfa_required_override === null && user.mfa_required_by_role && <span className="badge role">Role Required</span>}
-                                    {user.mfa_required_override === null && !user.mfa_required_by_role && <span className="badge none">Not Required</span>}
+                                    {user.mfa_required_override === true && (
+                                        <span className="badge override">Force On</span>
+                                    )}
+                                    {user.mfa_required_override === false && (
+                                        <span className="badge exempt">Force Off</span>
+                                    )}
+                                    {user.mfa_required_override === null && user.mfa_required_by_role && (
+                                        <span className="badge role">Role Required</span>
+                                    )}
+                                    {user.mfa_required_override === null && !user.mfa_required_by_role && (
+                                        <span className="badge none">Not Required</span>
+                                    )}
                                 </td>
-                                <td>
-                                    <span className="devices-count">
-                                        {user.mfa_devices_count || 0} device(s)
-                                    </span>
-                                </td>
-                                <td>
+                                <td className="actions-cell">
                                     <div className="action-buttons">
                                         <button
                                             className="btn-icon view"
@@ -280,7 +281,8 @@ const AdminMfaResetView = () => {
                                 value={resetReason}
                                 onChange={(e) => setResetReason(e.target.value)}
                                 placeholder="Enter reason for MFA reset..."
-                                rows="3"
+                                rows={3}
+                                className="form-input"
                             />
                         </div>
                         <div className="modal-actions">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiSearch, FiCalendar, FiUser, FiShield, FiMapPin } from 'react-icons/fi';
+import { FiX, FiSearch, FiCalendar, FiUser, FiShield, FiMapPin, FiAlertCircle } from 'react-icons/fi';
 
 const AuditFilters = ({ filters, onFilterChange, onReset }) => {
     const [localFilters, setLocalFilters] = useState(filters);
@@ -30,10 +30,10 @@ const AuditFilters = ({ filters, onFilterChange, onReset }) => {
 
     const severities = [
         { value: '', label: 'All Severities' },
-        { value: 'info', label: 'Info', color: '#3b82f6' },
-        { value: 'warning', label: 'Warning', color: '#f59e0b' },
-        { value: 'error', label: 'Error', color: '#ef4444' },
-        { value: 'critical', label: 'Critical', color: '#dc2626' },
+        { value: 'info', label: 'Info' },
+        { value: 'warning', label: 'Warning' },
+        { value: 'error', label: 'Error' },
+        { value: 'critical', label: 'Critical' },
     ];
 
     return (

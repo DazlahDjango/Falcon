@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useMFA } from '../../../hooks/accounts/useMfa';
 import { useDispatch } from 'react-redux';
+import { useMFA } from '../../../hooks/accounts/useMfa';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
 import { FiCopy, FiDownload, FiRefreshCw, FiCheck } from 'react-icons/fi';
@@ -20,12 +20,10 @@ const MFABackupCodes = ({ onGenerate }) => {
     const [copied, setCopied] = useState(false);
     const [showConfirmRegenerate, setShowConfirmRegenerate] = useState(false);
 
-    // Load status on mount
     useEffect(() => {
         loadMfaStatus();
     }, [loadMfaStatus]);
 
-    // Handle generate new codes
     const handleGenerateCodes = async () => {
         try {
             const result = await generateNewBackupCodes(10);
@@ -38,7 +36,6 @@ const MFABackupCodes = ({ onGenerate }) => {
         }
     };
 
-    // Copy codes to clipboard
     const copyToClipboard = async () => {
         const codesText = backupCodes.join('\n');
         await navigator.clipboard.writeText(codesText);
@@ -47,7 +44,6 @@ const MFABackupCodes = ({ onGenerate }) => {
         dispatch(showAlert({ type: 'success', message: 'Backup codes copied!' }));
     };
 
-    // Download codes as text file
     const downloadCodes = () => {
         const blob = new Blob([backupCodes.join('\n')], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);

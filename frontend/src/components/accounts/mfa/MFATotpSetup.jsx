@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useMFA } from '../../../hooks/accounts/useMfa';
 import { useDispatch } from 'react-redux';
+import { useMFA } from '../../../hooks/accounts/useMfa';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import QRCode from '../auth/components/QRCode';
 import Spinner from '../../common/UI/Spinner';
@@ -15,18 +15,16 @@ const MFATotpSetup = ({ onSuccess, onCancel }) => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [copied, setCopied] = useState(false);
 
-    // Initialize TOTP setup
     const handleInitSetup = async () => {
         try {
             const data = await initTotpSetup();
-            setSetupData(data);
+            setSetupData(data.data || data);
             setStep(2);
         } catch (error) {
             dispatch(showAlert({ type: 'error', message: error || 'Failed to setup TOTP' }));
         }
     };
 
-    // Handle OTP input change
     const handleOtpChange = (index, value) => {
         if (value.length > 1) return;
         if (!/^\d*$/.test(value)) return;
@@ -35,13 +33,11 @@ const MFATotpSetup = ({ onSuccess, onCancel }) => {
         newOtp[index] = value;
         setOtp(newOtp);
 
-        // Auto-focus next input
         if (value && index < 5) {
-            document.getElementById(`otp-input-${index + 1}`)?.focus();
+            document.getElementById(`totp-input-${index + 1}`)?.focus();
         }
     };
 
-    // Verify TOTP setup
     const handleVerify = async () => {
         const otpCode = otp.join('');
         if (otpCode.length !== 6) {
@@ -50,10 +46,9 @@ const MFATotpSetup = ({ onSuccess, onCancel }) => {
         }
 
         try {
-            await completeTotpSetup(otpCode, setupData.device_id);
+            await completeTotpSetup(otpCode, setupData?.device_id);
             dispatch(showAlert({ type: 'success', message: 'MFA device verified successfully!' }));
 
-            // Show backup codes if available
             if (setupData?.backup_codes?.length > 0) {
                 setStep(3);
             } else {
@@ -64,7 +59,6 @@ const MFATotpSetup = ({ onSuccess, onCancel }) => {
         }
     };
 
-    // Copy secret or backup codes
     const copyToClipboard = async (text, type) => {
         await navigator.clipboard.writeText(text);
         setCopied(true);
@@ -116,19 +110,19 @@ const MFATotpSetup = ({ onSuccess, onCancel }) => {
     }
 
     // Step 2: QR Code and verification
-    if (step === 2) {
+    if (step === 2 && setupData) {
         return (
             <div className="mfa-totp-setup step-2">
                 <h3>Scan QR Code</h3>
 
                 <div className="qr-section">
-                    <QRCode value={setupData?.qr_code_data} size={200} />
+                    <QRCode value={setupData.provisioning_uri || setupData.qr_code_data} size={200} />
 
                     <div className="secret-section">
                         <p>Can't scan? Enter this code manually:</p>
                         <div className="secret-code">
-                            <code>{setupData?.secret}</code>
-                            <button onClick={() => copyToClipboard(setupData?.secret, 'Secret key')}>
+                            <code>{setupData.secret}</code>
+                            <button onClick={() => copyToClipboard(setupData.secret, 'Secret key')}>
                                 {copied ? <FiCheck /> : <FiCopy />}
                             </button>
                         </div>
@@ -141,7 +135,7 @@ const MFATotpSetup = ({ onSuccess, onCancel }) => {
                         {otp.map((digit, index) => (
                             <input
                                 key={index}
-                                id={`otp-input-${index}`}
+                                id={`totp-input-${index}`}
                                 type="text"
                                 maxLength="1"
                                 value={digit}

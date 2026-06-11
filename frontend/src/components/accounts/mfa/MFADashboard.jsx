@@ -1,24 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
-    FiShield,
-    FiSmartphone,
-    FiCode,
-    FiActivity,
-    FiUsers,
-    FiSettings,
-    FiAlertCircle,
-    FiCheckCircle,
-    FiClock,
-    FiTrendingUp,
-    FiShieldOff,
-    FiUserCheck,
-    FiBarChart2,
-    FiLock,
-    FiUnlock,
-    FiChevronRight,
-    FiRefreshCw
+    FiShield, FiSmartphone, FiCode, FiActivity, FiUsers,
+    FiSettings, FiAlertCircle, FiCheckCircle, FiClock,
+    FiTrendingUp, FiShieldOff, FiUserCheck, FiBarChart2,
+    FiLock, FiRefreshCw, FiChevronRight
 } from 'react-icons/fi';
 import { useMFA } from '../../../hooks/accounts/useMfa';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
@@ -26,6 +13,9 @@ import { useAuth } from '../../../hooks/accounts/useAuth';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
 import { ROLES } from '../../../config/constants';
+import MFAStatusBadge from './MFAStatusBadge';
+import MFADeviceCard from './MFADeviceCard';
+import MFAActivityLog from './MFAActivityLog';
 import './mfa-dashboard.css';
 
 const MFADashboard = () => {
@@ -43,6 +33,8 @@ const MFADashboard = () => {
         activity,
         devicesLoading,
         statusLoading,
+        setAsPrimary,
+        removeDevice,
     } = useMFA();
 
     const {
@@ -115,24 +107,27 @@ const MFADashboard = () => {
         dispatch(showAlert({ type: 'success', message: 'Dashboard refreshed' }));
     };
 
-    const getDeviceIcon = (deviceType) => {
-        switch (deviceType) {
-            case 'totp':
-                return <FiSmartphone />;
-            case 'sms':
-                return <FiSmartphone />;
-            case 'email':
-                return <FiSmartphone />;
-            default:
-                return <FiShield />;
+    const handleRemoveDevice = async (deviceId, deviceName) => {
+        if (window.confirm(`Are you sure you want to remove "${deviceName}"?`)) {
+            try {
+                await removeDevice(deviceId);
+                await loadDevices();
+                await loadMfaStatus();
+                dispatch(showAlert({ type: 'success', message: `${deviceName} removed successfully` }));
+            } catch (error) {
+                dispatch(showAlert({ type: 'error', message: 'Failed to remove device' }));
+            }
         }
     };
 
-    const getActivityIcon = (eventType, success) => {
-        if (!success) return <FiAlertCircle className="activity-icon error" />;
-        if (eventType === 'enroll') return <FiShield className="activity-icon success" />;
-        if (eventType === 'disable') return <FiShieldOff className="activity-icon warning" />;
-        return <FiActivity className="activity-icon info" />;
+    const handleSetPrimary = async (deviceId) => {
+        try {
+            await setAsPrimary(deviceId);
+            await loadDevices();
+            dispatch(showAlert({ type: 'success', message: 'Primary device updated' }));
+        } catch (error) {
+            dispatch(showAlert({ type: 'error', message: 'Failed to set primary device' }));
+        }
     };
 
     const getTimeAgo = (timestamp) => {
@@ -148,6 +143,13 @@ const MFADashboard = () => {
         if (diffMins < 60) return `${diffMins} min ago`;
         if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
         return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    };
+
+    const getActivityIcon = (eventType, success) => {
+        if (!success) return <FiAlertCircle className="activity-icon error" />;
+        if (eventType === 'enroll') return <FiShield className="activity-icon success" />;
+        if (eventType === 'disable') return <FiShieldOff className="activity-icon warning" />;
+        return <FiActivity className="activity-icon info" />;
     };
 
     if (statusLoading && devicesLoading) {
@@ -226,7 +228,7 @@ const MFADashboard = () => {
                             <div className="status-card">
                                 <div className="card-icon"><FiSmartphone /></div>
                                 <div className="card-info">
-                                    <div className="card-value">{devices?.length || 0}</div>
+                                    <div className="card-value">{devices?.filter(d => d.is_active).length || 0}</div>
                                     <div className="card-label">Active Devices</div>
                                 </div>
                             </div>
@@ -267,7 +269,7 @@ const MFADashboard = () => {
                                 ) : (
                                     <button
                                         className="action-card"
-                                        onClick={() => navigate('/security/mfa/devices')}
+                                        onClick={() => setActiveTab('devices')}
                                     >
                                         <FiSmartphone className="action-icon" />
                                         <div>
@@ -290,7 +292,7 @@ const MFADashboard = () => {
                                 </button>
                                 <button
                                     className="action-card"
-                                    onClick={() => navigate('/security/mfa/activity')}
+                                    onClick={() => setActiveTab('activity')}
                                 >
                                     <FiActivity className="action-icon" />
                                     <div>
@@ -311,7 +313,7 @@ const MFADashboard = () => {
                                         <div key={index} className="activity-item">
                                             {getActivityIcon(log.event_type, log.success)}
                                             <div className="activity-details">
-                                                <div className="activity-message">{log.message}</div>
+                                                <div className="activity-message">{log.message || log.event_type}</div>
                                                 <div className="activity-meta">
                                                     <span className="activity-ip">{log.ip_address || 'Unknown IP'}</span>
                                                     <span className="activity-time">{getTimeAgo(log.created_at)}</span>
@@ -348,41 +350,15 @@ const MFADashboard = () => {
                             )}
                         </div>
 
-                        {devices && devices.length > 0 ? (
+                        {devices && devices.filter(d => d.is_active).length > 0 ? (
                             <div className="devices-grid">
-                                {devices.map((device) => (
-                                    <div key={device.id} className="device-card">
-                                        <div className="device-icon">
-                                            {getDeviceIcon(device.device_type)}
-                                        </div>
-                                        <div className="device-info">
-                                            <div className="device-name">{device.name}</div>
-                                            <div className="device-type-badge">{device.device_type?.toUpperCase()}</div>
-                                            {device.is_primary && <span className="primary-badge">Primary</span>}
-                                        </div>
-                                        <div className="device-status-badge">
-                                            {device.is_verified ? (
-                                                <span className="verified"><FiCheckCircle /> Verified</span>
-                                            ) : device.is_locked ? (
-                                                <span className="locked"><FiLock /> Locked</span>
-                                            ) : (
-                                                <span className="pending"><FiClock /> Pending</span>
-                                            )}
-                                        </div>
-                                        <div className="device-last-used">
-                                            Last used: {getTimeAgo(device.last_used_at)}
-                                        </div>
-                                        <div className="device-actions">
-                                            {!device.is_primary && device.is_verified && (
-                                                <button
-                                                    className="btn-secondary-sm"
-                                                    onClick={() => navigate(`/security/mfa/devices/${device.id}/set-primary`)}
-                                                >
-                                                    Set as Primary
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
+                                {devices.filter(d => d.is_active).map((device) => (
+                                    <MFADeviceCard
+                                        key={device.id}
+                                        device={device}
+                                        onRemove={handleRemoveDevice}
+                                        onSetPrimary={handleSetPrimary}
+                                    />
                                 ))}
                             </div>
                         ) : (
@@ -419,44 +395,7 @@ const MFADashboard = () => {
 
                 {/* Activity Tab */}
                 {activeTab === 'activity' && (
-                    <div className="activity-tab">
-                        <div className="activity-header">
-                            <h2>MFA Activity Log</h2>
-                            <div className="activity-stats">
-                                <span className="stat">
-                                    <FiActivity /> Total: {activity?.count || 0}
-                                </span>
-                                <span className="stat">
-                                    <FiClock /> Last {activity?.period_hours || 24} hours
-                                </span>
-                            </div>
-                        </div>
-
-                        {activity?.activity && activity.activity.length > 0 ? (
-                            <div className="full-activity-list">
-                                {activity.activity.map((log, index) => (
-                                    <div key={index} className="activity-item full">
-                                        {getActivityIcon(log.event_type, log.success)}
-                                        <div className="activity-details">
-                                            <div className="activity-message">{log.message}</div>
-                                            <div className="activity-meta">
-                                                <span className="activity-ip">{log.ip_address || 'Unknown IP'}</span>
-                                                <span className="activity-time">
-                                                    {new Date(log.created_at).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="empty-state">
-                                <FiActivity className="empty-icon" />
-                                <h3>No Activity Found</h3>
-                                <p>Your MFA activity will appear here</p>
-                            </div>
-                        )}
-                    </div>
+                    <MFAActivityLog />
                 )}
 
                 {/* Admin Tab */}
@@ -547,16 +486,6 @@ const MFADashboard = () => {
                                 <div>
                                     <strong>MFA Reset</strong>
                                     <p>Reset MFA for users who lost access</p>
-                                </div>
-                            </button>
-                            <button
-                                className="admin-action-card"
-                                onClick={() => navigate('/system-settings')}
-                            >
-                                <FiSettings />
-                                <div>
-                                    <strong>System Settings</strong>
-                                    <p>Configure global MFA policies</p>
                                 </div>
                             </button>
                         </div>

@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-    FiSettings,
-    FiSave,
-    FiRefreshCw,
-    FiAlertCircle,
-    FiCheckCircle,
-    FiShield,
-    FiClock,
-    FiUsers,
-    FiDatabase,
-    FiTrash2,
-    FiLoader,
-    FiServer,
-    FiGlobe,
-    FiLock
+    FiSettings, FiSave, FiRefreshCw, FiAlertCircle,
+    FiCheckCircle, FiShield, FiLock, FiMonitor,
+    FiDatabase, FiClock, FiUsers, FiGlobe,
+    FiTrash2, FiLoader, FiServer, FiShieldOff
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
@@ -41,9 +31,15 @@ const SystemSettings = () => {
         },
         mfa: {
             required_roles: [],
+            enforce_for_all: false,
         },
         password: {
             expiry_days: 90,
+            min_length: 8,
+            require_uppercase: true,
+            require_lowercase: true,
+            require_numbers: true,
+            require_special: true,
         },
         audit: {
             retention_days: 365,
@@ -53,11 +49,16 @@ const SystemSettings = () => {
             lockout_minutes: 15,
             ip_failure_limit: 5,
         },
+        jwt: {
+            access_token_lifetime_minutes: 30,
+            refresh_token_lifetime_days: 7,
+        },
     });
 
     const [isEditing, setIsEditing] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [showSyncConfirm, setShowSyncConfirm] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         loadSystemSettings();
@@ -71,6 +72,7 @@ const SystemSettings = () => {
                 password: systemSettings.password || settings.password,
                 audit: systemSettings.audit || settings.audit,
                 lockout: systemSettings.lockout || settings.lockout,
+                jwt: systemSettings.jwt || settings.jwt,
             });
         }
     }, [systemSettings]);
@@ -85,24 +87,47 @@ const SystemSettings = () => {
         }));
     };
 
+    const handleMfaRoleToggle = (role) => {
+        setSettings(prev => {
+            const currentRoles = prev.mfa.required_roles || [];
+            const newRoles = currentRoles.includes(role)
+                ? currentRoles.filter(r => r !== role)
+                : [...currentRoles, role];
+            return {
+                ...prev,
+                mfa: {
+                    ...prev.mfa,
+                    required_roles: newRoles,
+                    enforce_for_all: false,
+                },
+            };
+        });
+    };
+
     const handleSave = async () => {
+        setSaving(true);
         try {
             await updateSystemSettings(settings);
             setIsEditing(false);
             dispatch(showAlert({ type: 'success', message: 'System settings updated successfully' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to update system settings' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to update system settings' }));
+        } finally {
+            setSaving(false);
         }
     };
 
     const handleReset = async () => {
+        setSaving(true);
         try {
             await resetSystemSettings();
             setShowResetConfirm(false);
             setIsEditing(false);
             dispatch(showAlert({ type: 'success', message: 'System settings reset to defaults' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to reset system settings' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to reset system settings' }));
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -112,9 +137,18 @@ const SystemSettings = () => {
             setShowSyncConfirm(false);
             dispatch(showAlert({ type: 'success', message: 'Policy synced to all tenants successfully' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to sync policy' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to sync policy' }));
         }
     };
+
+    const MFA_ROLE_OPTIONS = [
+        { value: 'super_admin', label: 'Super Admin', description: 'Platform administrators' },
+        { value: 'client_admin', label: 'Client Admin', description: 'Organization administrators' },
+        { value: 'executive', label: 'Executive', description: 'C-level executives' },
+        { value: 'supervisor', label: 'Supervisor', description: 'Team managers' },
+        { value: 'staff', label: 'Staff', description: 'Regular employees' },
+        { value: 'read_only', label: 'Read Only', description: 'View-only users' },
+    ];
 
     if (systemSettingsLoading) {
         return (
@@ -142,7 +176,8 @@ const SystemSettings = () => {
                             className="btn btn-primary"
                             onClick={() => setIsEditing(true)}
                         >
-                            <FiSave /> Edit Settings
+                            <FiSettings size={16} />
+                            Edit Settings
                         </button>
                     ) : (
                         <>
@@ -152,16 +187,17 @@ const SystemSettings = () => {
                                     setSettings(systemSettings);
                                     setIsEditing(false);
                                 }}
+                                disabled={saving}
                             >
                                 Cancel
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleSave}
-                                disabled={systemSettingsUpdating}
+                                disabled={saving}
                             >
-                                {systemSettingsUpdating ? <Spinner size="sm" /> : <FiSave />}
-                                Save Changes
+                                {saving ? <Spinner size="sm" /> : <FiSave size={16} />}
+                                {saving ? 'Saving...' : 'Save Changes'}
                             </button>
                         </>
                     )}
@@ -171,7 +207,7 @@ const SystemSettings = () => {
             {/* Stats Cards */}
             <div className="settings-stats">
                 <div className="stat-card">
-                    <div className="stat-icon"><FiShield /></div>
+                    <div className="stat-icon"><FiLock /></div>
                     <div className="stat-info">
                         <div className="stat-value">{settings.lockout.failure_limit}</div>
                         <div className="stat-label">Failed Attempts Before Lockout</div>
@@ -205,7 +241,7 @@ const SystemSettings = () => {
                 {/* Session Settings */}
                 <div className="settings-section">
                     <div className="section-header">
-                        <FiServer className="section-icon" />
+                        <FiMonitor className="section-icon" />
                         <h2>Session Management</h2>
                     </div>
                     <div className="section-content">
@@ -218,6 +254,7 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="1"
                                 max="50"
+                                className="form-input"
                             />
                             <small>Maximum number of simultaneous sessions per user</small>
                         </div>
@@ -230,6 +267,7 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="5"
                                 max="1440"
+                                className="form-input"
                             />
                             <small>User will be logged out after inactivity</small>
                         </div>
@@ -242,6 +280,7 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="7"
                                 max="365"
+                                className="form-input"
                             />
                             <small>How long to keep session records</small>
                         </div>
@@ -264,6 +303,7 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="3"
                                 max="20"
+                                className="form-input"
                             />
                             <small>Number of failed attempts before lockout</small>
                         </div>
@@ -276,6 +316,7 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="5"
                                 max="1440"
+                                className="form-input"
                             />
                             <small>How long the account remains locked</small>
                         </div>
@@ -288,13 +329,50 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="5"
                                 max="50"
+                                className="form-input"
                             />
                             <small>Failed attempts from same IP before blocking</small>
                         </div>
                     </div>
                 </div>
 
-                {/* Password Settings */}
+                {/* JWT Settings */}
+                <div className="settings-section">
+                    <div className="section-header">
+                        <FiShield className="section-icon" />
+                        <h2>JWT Token Policy</h2>
+                    </div>
+                    <div className="section-content">
+                        <div className="form-group">
+                            <label>Access Token Lifetime (minutes)</label>
+                            <input
+                                type="number"
+                                value={settings.jwt.access_token_lifetime_minutes}
+                                onChange={(e) => handleChange('jwt', 'access_token_lifetime_minutes', parseInt(e.target.value))}
+                                disabled={!isEditing}
+                                min="5"
+                                max="1440"
+                                className="form-input"
+                            />
+                            <small>Access tokens expire after this many minutes</small>
+                        </div>
+                        <div className="form-group">
+                            <label>Refresh Token Lifetime (days)</label>
+                            <input
+                                type="number"
+                                value={settings.jwt.refresh_token_lifetime_days}
+                                onChange={(e) => handleChange('jwt', 'refresh_token_lifetime_days', parseInt(e.target.value))}
+                                disabled={!isEditing}
+                                min="1"
+                                max="30"
+                                className="form-input"
+                            />
+                            <small>Refresh tokens expire after this many days</small>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Password Policy */}
                 <div className="settings-section">
                     <div className="section-header">
                         <FiLock className="section-icon" />
@@ -310,9 +388,111 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="30"
                                 max="365"
+                                className="form-input"
                             />
                             <small>Password expires after this many days</small>
                         </div>
+                        <div className="form-group">
+                            <label>Minimum Password Length</label>
+                            <input
+                                type="number"
+                                value={settings.password.min_length}
+                                onChange={(e) => handleChange('password', 'min_length', parseInt(e.target.value))}
+                                disabled={!isEditing}
+                                min="8"
+                                max="20"
+                                className="form-input"
+                            />
+                        </div>
+                        <div className="checkbox-group">
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.password.require_uppercase}
+                                    onChange={(e) => handleChange('password', 'require_uppercase', e.target.checked)}
+                                    disabled={!isEditing}
+                                />
+                                Require uppercase letter
+                            </label>
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.password.require_lowercase}
+                                    onChange={(e) => handleChange('password', 'require_lowercase', e.target.checked)}
+                                    disabled={!isEditing}
+                                />
+                                Require lowercase letter
+                            </label>
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.password.require_numbers}
+                                    onChange={(e) => handleChange('password', 'require_numbers', e.target.checked)}
+                                    disabled={!isEditing}
+                                />
+                                Require number
+                            </label>
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.password.require_special}
+                                    onChange={(e) => handleChange('password', 'require_special', e.target.checked)}
+                                    disabled={!isEditing}
+                                />
+                                Require special character
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* MFA Policy */}
+                <div className="settings-section">
+                    <div className="section-header">
+                        <FiShield className="section-icon" />
+                        <h2>Multi-Factor Authentication</h2>
+                    </div>
+                    <div className="section-content">
+                        <div className="checkbox-group">
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={settings.mfa.enforce_for_all}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        handleChange('mfa', 'enforce_for_all', checked);
+                                        if (checked) {
+                                            handleChange('mfa', 'required_roles', []);
+                                        }
+                                    }}
+                                    disabled={!isEditing}
+                                />
+                                Enforce MFA for all users
+                            </label>
+                            <small>When enabled, all users must set up MFA</small>
+                        </div>
+
+                        {!settings.mfa.enforce_for_all && (
+                            <div className="form-group">
+                                <label>MFA Required Roles</label>
+                                <div className="role-checkboxes">
+                                    {MFA_ROLE_OPTIONS.map(({ value, label, description }) => (
+                                        <label key={value} className="checkbox-label">
+                                            <input
+                                                type="checkbox"
+                                                checked={settings.mfa.required_roles?.includes(value)}
+                                                onChange={() => handleMfaRoleToggle(value)}
+                                                disabled={!isEditing}
+                                            />
+                                            <div>
+                                                <span>{label}</span>
+                                                <small>{description}</small>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                                <small>Selected roles will be required to enable MFA</small>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -332,6 +512,7 @@ const SystemSettings = () => {
                                 disabled={!isEditing}
                                 min="30"
                                 max="3650"
+                                className="form-input"
                             />
                             <small>How long to keep audit logs</small>
                         </div>
@@ -342,26 +523,28 @@ const SystemSettings = () => {
             {/* Admin Actions */}
             <div className="settings-actions">
                 <div className="actions-card">
-                    <h3>Sync Policy to All Tenants</h3>
-                    <p>Push current system policies to all existing tenants</p>
+                    <h3><FiRefreshCw /> Sync Policy to All Tenants</h3>
+                    <p>Push current system policies to all existing tenants. Tenant-specific overrides will be preserved.</p>
                     <button
                         className="btn btn-secondary"
                         onClick={() => setShowSyncConfirm(true)}
                         disabled={syncingPolicy}
                     >
-                        {syncingPolicy ? <Spinner size="sm" /> : <FiRefreshCw />}
+                        {syncingPolicy ? <Spinner size="sm" /> : <FiRefreshCw size={16} />}
                         Sync Now
                     </button>
                 </div>
 
                 <div className="actions-card danger">
-                    <h3>Reset to Defaults</h3>
-                    <p>Restore all system settings to factory defaults</p>
+                    <h3><FiTrash2 /> Reset to Defaults</h3>
+                    <p>Restore all system settings to factory defaults. This action cannot be undone.</p>
                     <button
                         className="btn btn-danger"
                         onClick={() => setShowResetConfirm(true)}
+                        disabled={saving}
                     >
-                        <FiTrash2 /> Reset All Settings
+                        <FiTrash2 size={16} />
+                        Reset All Settings
                     </button>
                 </div>
             </div>
@@ -374,7 +557,8 @@ const SystemSettings = () => {
                             <FiAlertCircle className="modal-icon warning" />
                             <h3>Reset System Settings?</h3>
                         </div>
-                        <p>This action will reset all system settings to their default values. This cannot be undone.</p>
+                        <p>This action will reset all system settings to their default values.</p>
+                        <p className="warning-text">This cannot be undone. Tenants will need to sync to receive the changes.</p>
                         <div className="modal-actions">
                             <button className="btn btn-secondary" onClick={() => setShowResetConfirm(false)}>
                                 Cancel
@@ -395,7 +579,8 @@ const SystemSettings = () => {
                             <FiRefreshCw className="modal-icon info" />
                             <h3>Sync Policy to All Tenants?</h3>
                         </div>
-                        <p>This will push current system policies to all existing tenants. Tenant-specific overrides will be preserved.</p>
+                        <p>This will push current system policies to all existing tenants.</p>
+                        <p>Tenant-specific overrides will be preserved. New tenants will receive these settings by default.</p>
                         <div className="modal-actions">
                             <button className="btn btn-secondary" onClick={() => setShowSyncConfirm(false)}>
                                 Cancel

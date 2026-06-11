@@ -1,26 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-    FiUsers,
-    FiSearch,
-    FiFilter,
-    FiShield,
-    FiShieldOff,
-    FiCheckCircle,
-    FiXCircle,
-    FiEdit2,
-    FiSave,
-    FiX,
-    FiAlertCircle,
-    FiLoader,
-    FiChevronLeft,
-    FiChevronRight
+    FiUsers, FiSearch, FiFilter, FiShield, FiShieldOff,
+    FiCheckCircle, FiXCircle, FiEdit2, FiSave, FiX,
+    FiAlertCircle, FiChevronLeft, FiChevronRight
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
 import { ROLES, ROLE_DISPLAY_NAMES } from '../../../config/constants';
-import './policy.css';
 
 const UserMFAPolicy = () => {
     const dispatch = useDispatch();
@@ -50,6 +38,7 @@ const UserMFAPolicy = () => {
         loadAllUsersMFAPolicy();
     }, [loadAllUsersMFAPolicy]);
 
+    // Debounced search
     useEffect(() => {
         const timer = setTimeout(() => {
             updateUsersFilters({ search: searchTerm });
@@ -83,7 +72,7 @@ const UserMFAPolicy = () => {
             setEditingValue(null);
             dispatch(showAlert({ type: 'success', message: 'User MFA override updated' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to update user MFA override' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to update user MFA override' }));
         }
     };
 
@@ -93,7 +82,7 @@ const UserMFAPolicy = () => {
                 await clearUserMFAOverride(userId);
                 dispatch(showAlert({ type: 'success', message: 'MFA override cleared' }));
             } catch (error) {
-                dispatch(showAlert({ type: 'error', message: 'Failed to clear override' }));
+                dispatch(showAlert({ type: 'error', message: error || 'Failed to clear override' }));
             }
         }
     };

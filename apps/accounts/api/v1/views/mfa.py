@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Count
-from apps.accounts.models import MFADevice, MFAAuditLog
+from apps.accounts.models import MFADevice, MFAAuditLog  # ✅ ADD THIS IMPORT
 from apps.accounts.services import MFAService
 from ..serializers.mfa import (
     MFADeviceSerializer, 
@@ -30,6 +30,9 @@ from ..serializers.mfa import (
 from ..filters import MFADeviceFilter
 from ..permissions import IsOwner, IsSuperAdmin
 from .base import BaseModelViewset, BaseReadOnlyViewset
+
+# ✅ FIXED: Use absolute import instead of relative
+from apps.accounts.services.realtime import AccountsEventBroadcaster
 
 
 class MFADeviceViewSet(BaseModelViewset):
@@ -153,15 +156,13 @@ class MFADeviceViewSet(BaseModelViewset):
             return Response({
                 'error': message
             }, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            from ....services.realtime import AccountsEventBroadcaster
-            AccountsEventBroadcaster.mfa_enabled(
-                user_id=str(request.user.id),
-                tenant_id=str(request.user.tenant_id),
-                device_id=str(device.id),
-            )
-        except ImportError:
-            pass
+        
+        # ✅ FIXED: Import is now at top
+        AccountsEventBroadcaster.mfa_enabled(
+            user_id=str(request.user.id),
+            tenant_id=str(request.user.tenant_id),
+            device_id=str(device.id),
+        )
         
         return Response({
             'message': message,
@@ -178,7 +179,7 @@ class MFADeviceViewSet(BaseModelViewset):
         serializer.is_valid(raise_exception=True)
         success, device, message = self.mfa_service.verify_otp(
             user=request.user,
-            otp=serializer.validated_data['code'],  # Backup code passed as OTP
+            otp=serializer.validated_data['code'],
             ip_address=request.META.get('REMOTE_ADDR'),
             user_agent=request.META.get('HTTP_USER_AGENT', '')
         )
@@ -294,8 +295,8 @@ class MFADeviceViewSet(BaseModelViewset):
         status_data['backup_codes'] = {
             'enabled': status_data['backup_codes_remaining'] > 0,
             'configured': status_data['backup_codes_remaining'] > 0,
-            'verified': True,  # Backup codes don't need verification
-            'primary': False,  # Backup codes are fallback only
+            'verified': True,
+            'primary': False,
             'last_used': None
         }
         status_data.pop('devices', None)
@@ -330,7 +331,7 @@ class MFADeviceViewSet(BaseModelViewset):
         rate = self.mfa_service.get_failure_rate(request.user, hours)
         
         return Response({
-            'failure_rate': round(rate * 100, 2),  # Percentage
+            'failure_rate': round(rate * 100, 2),
             'period_hours': hours,
             'status': 'good' if rate < 0.1 else 'warning' if rate < 0.3 else 'critical'
         }, status=status.HTTP_200_OK)
@@ -344,7 +345,6 @@ class MFADeviceViewSet(BaseModelViewset):
                 'error': 'Use /setup-totp endpoint to create TOTP devices'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create device
         device_data = serializer.validated_data
         device = MFADevice(
             user=request.user,
@@ -352,7 +352,6 @@ class MFADeviceViewSet(BaseModelViewset):
             **device_data
         )
         
-        # Set as primary if first active device
         has_active_devices = MFADevice.objects.filter(
             user=request.user, 
             is_active=True, 
@@ -362,14 +361,16 @@ class MFADeviceViewSet(BaseModelViewset):
         
         device.save()
         
-        # Log creation
-        self.mfa_service.audit_manager.log_attempt(
+        # ✅ FIXED: Use MFAAuditLog.objects.create directly
+        MFAAuditLog.objects.create(
             user=request.user,
             device=device,
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            event_type='enroll',
+            ip_address=request.META.get('REMOTE_ADDR', ''),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:2000],
             success=True,
-            message=f'{device.get_device_type_display()} device created'
+            message=f'{device.get_device_type_display()} device created',
+            tenant_id=request.user.tenant_id
         )
         
         response_serializer = MFADeviceDetailSerializer(device)
@@ -382,7 +383,6 @@ class MFADeviceViewSet(BaseModelViewset):
         device.deleted_at = timezone.now()
         device.save(update_fields=['is_deleted', 'is_active', 'deleted_at'])
         
-        # If this was the primary device, set another as primary
         if device.is_primary:
             other_device = MFADevice.objects.filter(
                 user=request.user, 
@@ -394,14 +394,16 @@ class MFADeviceViewSet(BaseModelViewset):
                 other_device.is_primary = True
                 other_device.save(update_fields=['is_primary'])
         
-        # Log deletion
-        self.mfa_service.audit_manager.log_attempt(
+        # ✅ FIXED: Use MFAAuditLog.objects.create directly
+        MFAAuditLog.objects.create(
             user=request.user,
             device=device,
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            event_type='disable',
+            ip_address=request.META.get('REMOTE_ADDR', ''),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:2000],
             success=True,
-            message=f'Device "{device.name}" deleted'
+            message=f'Device "{device.name}" deleted',
+            tenant_id=request.user.tenant_id
         )
         
         return Response({
@@ -419,17 +421,14 @@ class MFAAuditLogViewSet(BaseReadOnlyViewset):
     ordering = ['-created_at']
 
     def get_serializer_class(self):
-        """Use detailed serializer for retrieve action"""
         if self.action == 'retrieve':
             return MFAAuditLogDetailSerializer
         return MFAAuditLogSerializer
 
     def get_queryset(self):
-        """Filter queryset by user permissions"""
         qs = super().get_queryset()
         qs = qs.select_related('user', 'device').filter(is_deleted=False)
         
-        # Non-superusers can only see their own logs
         if not self.request.user.is_superuser:
             qs = qs.filter(user=self.request.user)
         

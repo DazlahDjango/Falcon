@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiX, FiFilter } from 'react-icons/fi';
 
 const UserFilters = ({ filters, onFilterChange, onReset }) => {
     const [localFilters, setLocalFilters] = useState(filters);
+
+    useEffect(() => {
+        setLocalFilters(filters);
+    }, [filters]);
 
     const handleChange = (key, value) => {
         const newFilters = { ...localFilters, [key]: value };
@@ -87,21 +91,20 @@ const UserFilters = ({ filters, onFilterChange, onReset }) => {
                 </div>
 
                 <div className="filter-group">
-                    <label>Department</label>
-                    <input
-                        type="text"
-                        value={localFilters.department_id || ''}
-                        onChange={(e) => handleChange('department_id', e.target.value || undefined)}
-                        placeholder="Filter by department"
-                    />
-                </div>
-
-                <div className="filter-group">
                     <label>Joined After</label>
                     <input
                         type="date"
                         value={localFilters.joined_after || ''}
                         onChange={(e) => handleChange('joined_after', e.target.value || undefined)}
+                    />
+                </div>
+
+                <div className="filter-group">
+                    <label>Joined Before</label>
+                    <input
+                        type="date"
+                        value={localFilters.joined_before || ''}
+                        onChange={(e) => handleChange('joined_before', e.target.value || undefined)}
                     />
                 </div>
             </div>

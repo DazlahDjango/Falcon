@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiRefreshCw, FiDownload, FiFilter, FiCalendar, FiAlertCircle } from 'react-icons/fi';
+import { FiRefreshCw, FiDownload, FiFilter, FiCalendar } from 'react-icons/fi';
 import { useAudit } from '../../../hooks/accounts/useAudit';
 import AuditTable from './components/AuditTable';
 import AuditFilters from './components/AuditFilters';
@@ -143,6 +142,7 @@ const AuditLogs = () => {
                 isOpen={showExport}
                 onClose={() => setShowExport(false)}
                 filters={filters}
+                totalCount={pagination.total_items}
             />
         </div>
     );

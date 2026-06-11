@@ -3,7 +3,8 @@ import {
     FiLogIn, FiLogOut, FiShield, FiLock, FiUser,
     FiEdit, FiTrash2, FiPlus, FiCheckCircle, FiXCircle,
     FiClock, FiAlertCircle, FiSmartphone, FiMail,
-    FiDownload, FiEye, FiSettings, FiRefreshCw
+    FiDownload, FiEye, FiSettings, FiRefreshCw,
+    FiActivity
 } from 'react-icons/fi';
 import { formatDistanceToNow, format } from 'date-fns';
 import { useAudit } from '../../../hooks/accounts/useAudit';
@@ -16,7 +17,6 @@ const ActivityTimeline = ({ limit = 20, showHeader = true }) => {
         userActivity,
         isLoading,
         loadUserAuditActivity,
-        loadUserAuditSummary
     } = useAudit();
 
     const [filter, setFilter] = useState('all');
@@ -247,16 +247,6 @@ const ActivityTimeline = ({ limit = 20, showHeader = true }) => {
                             </div>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {/* View More */}
-            {userActivity?.logs && userActivity.logs.length > limit && (
-                <div className="timeline-footer">
-                    <button className="view-more-btn">
-                        View More Activity
-                        <FiRefreshCw size={14} />
-                    </button>
                 </div>
             )}
         </div>

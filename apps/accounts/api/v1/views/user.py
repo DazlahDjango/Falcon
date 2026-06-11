@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone  # ✅ ADD THIS LINE
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.models import User
 from apps.accounts.managers import UserManager
@@ -247,7 +248,7 @@ class UserViewSet(BaseModelViewset):
             )
         instance.is_active = False
         instance.is_deleted = True
-        instance.deleted_at = timezone.now()
+        instance.deleted_at = timezone.now()  # ✅ Now timezone is imported
         instance.save(update_fields=['is_active', 'is_deleted', 'deleted_at'])
         SessionService().terminate_all_sessions(instance)
         AuditService().log(
@@ -284,6 +285,7 @@ class UserViewSet(BaseModelViewset):
             'reporting_chain': chain
         }, status=status.HTTP_200_OK)
 
+# Rest of the file remains the same...
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
     

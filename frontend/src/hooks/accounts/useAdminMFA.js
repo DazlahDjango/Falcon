@@ -29,19 +29,7 @@ import {
 
     // Selectors
     selectAdminMfa,
-    selectSystemSettings,
-    selectSystemSettingsLoading,
-    selectTenantPolicy,
-    selectTenantPolicyLoading,
-    selectUsersPolicy,
-    selectUsersPolicyLoading,
-    selectCurrentUserPolicy,
-    selectUserMFAStatus,
-    selectAdminMFAStatus,
     selectStepUpVerified,
-    selectStepUpVerifying,
-    selectResettingUserMFA,
-    selectSyncingPolicy,
 
     // Actions
     clearAdminMfaErrors,
@@ -54,6 +42,7 @@ import {
 export const useAdminMFA = () => {
     const dispatch = useDispatch();
     const adminMfaState = useSelector(selectAdminMfa);
+    const stepUpVerified = useSelector(selectStepUpVerified);
 
     // Local UI state
     const [selectedUserId, setSelectedUserId] = useState(null);
@@ -129,8 +118,6 @@ export const useAdminMFA = () => {
 
     const verifyStepUpAction = useCallback(async (action, otp) => {
         const result = await dispatch(verifyStepUp({ action, otp })).unwrap();
-        setStepUpVerified(true);
-        setStepUpAction(action);
         return result;
     }, [dispatch]);
 

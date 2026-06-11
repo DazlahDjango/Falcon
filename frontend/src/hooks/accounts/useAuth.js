@@ -66,9 +66,9 @@ export const useAuth = () => {
         }
     }, [dispatch]);
 
-    const setupMfa = useCallback(async () => {
+    const setupMfa = useCallback(async (deviceName = 'Authenticator') => {
         try {
-            const result = await dispatch(setupMfaAction()).unwrap();
+            const result = await dispatch(setupMfaAction(deviceName)).unwrap();
             return { success: true, data: result };
         } catch (error) {
             return { success: false, error: error.message || 'MFA setup failed' };

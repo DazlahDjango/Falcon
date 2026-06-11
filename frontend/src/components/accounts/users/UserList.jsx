@@ -20,7 +20,6 @@ const UserList = () => {
         isLoading,
         loadUsers,
         deleteUser,
-        clearUserError,
         updateFilters,
         clearAllFilters,
         goToPage,

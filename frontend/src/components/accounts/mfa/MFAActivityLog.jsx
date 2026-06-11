@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useMFA } from '../../../hooks/accounts/useMfa';
 import { formatDistanceToNow, format } from 'date-fns';
-import { FiCheckCircle, FiXCircle, FiLogIn, FiSettings, FiAlertCircle } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiLogIn, FiSettings, FiAlertCircle, FiClock } from 'react-icons/fi';
+import Spinner from '../../common/UI/Spinner';
 
 const getEventIcon = (eventType, success) => {
     if (!success) return <FiXCircle className="icon-error" />;
@@ -35,7 +36,12 @@ const MFAActivityLog = () => {
     };
 
     if (activityLoading) {
-        return <div className="mfa-activity-loading">Loading activity...</div>;
+        return (
+            <div className="mfa-activity-loading">
+                <Spinner size="md" />
+                <p>Loading activity...</p>
+            </div>
+        );
     }
 
     return (
@@ -49,13 +55,13 @@ const MFAActivityLog = () => {
                 </select>
             </div>
 
-            {activity.length === 0 ? (
+            {!activity?.activity || activity.activity.length === 0 ? (
                 <div className="activity-empty">
                     <p>No MFA activity found</p>
                 </div>
             ) : (
                 <div className="activity-list">
-                    {activity.map((log, index) => (
+                    {activity.activity.map((log, index) => (
                         <div key={index} className="activity-item">
                             <div className="activity-icon">
                                 {getEventIcon(log.event_type, log.success)}
@@ -65,7 +71,7 @@ const MFAActivityLog = () => {
                                     {getEventText(log)}
                                 </div>
                                 <div className="activity-meta">
-                                    <span className="activity-ip">{log.ip_address}</span>
+                                    <span className="activity-ip">{log.ip_address || 'Unknown'}</span>
                                     <span className="activity-time">
                                         {format(new Date(log.created_at), 'MMM d, h:mm a')}
                                         {' • '}

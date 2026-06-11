@@ -1,53 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     FiUser, FiMail, FiPhone, FiBriefcase, FiCalendar,
-    FiMapPin, FiGlobe, FiEdit2, FiSave, FiX, FiShield,
+    FiGlobe, FiEdit2, FiSave, FiX, FiShield,
     FiLock, FiCheckCircle, FiAlertCircle, FiClock,
-    FiActivity, FiSmartphone, FiCode, FiShieldOff
+    FiActivity, FiSmartphone, FiCode, FiShieldOff,
+    FiMapPin, FiAward, FiBookOpen
 } from 'react-icons/fi';
 import { useProfile } from '../../../hooks/accounts/useProfile';
 import { useAuth } from '../../../hooks/accounts/useAuth';
-import { useMFA } from '../../../hooks/accounts/useMFA';
+import { useMFA } from '../../../hooks/accounts/useMfa';
 import AvatarUpload from '../users/components/AvatarUpload';
 import PasswordChangeForm from './PasswordChangeForm';
 import ActivityTimeline from './ActivityTimeline';
 import Spinner from '../../common/UI/Spinner';
-import './profile.css';
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
 
 const ProfileView = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const dispatch = useDispatch();
+    const { user: authUser } = useAuth();
     const {
         profile,
         isLoading,
         updateUserProfile,
         loadProfile,
+    } = useProfile();
+    const {
         isMfaEnabled,
-        mfaStatus,
         loadMfaStatus,
         devices,
         loadDevices,
-    } = useProfile();
-    const { getMfaStatus, loadMfaStatus: loadUserMfaStatus } = useMFA();
+        backupCodesRemaining,
+        loadMfaStatus: refreshMfaStatus,
+    } = useMFA();
 
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({});
     const [activeTab, setActiveTab] = useState('profile');
     const [showPasswordForm, setShowPasswordForm] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         loadProfile();
-        loadUserMfaStatus();
+        loadMfaStatus();
         loadDevices();
-    }, [loadProfile, loadUserMfaStatus, loadDevices]);
+    }, [loadProfile, loadMfaStatus, loadDevices]);
 
     useEffect(() => {
         if (profile) {
             setFormData({
                 first_name: profile.first_name || '',
                 last_name: profile.last_name || '',
-                phone: profile.phone || '',
+                phone: profile.phone_number || profile.phone || '',
                 title: profile.title || '',
                 department: profile.department || '',
                 location: profile.location || '',
@@ -64,8 +70,16 @@ const ProfileView = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await updateUserProfile(formData);
-        setIsEditing(false);
+        setIsSaving(true);
+        try {
+            await updateUserProfile(formData);
+            setIsEditing(false);
+            dispatch(showAlert({ type: 'success', message: 'Profile updated successfully' }));
+        } catch (error) {
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to update profile' }));
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const getMFAStatusBadge = () => {
@@ -73,6 +87,18 @@ const ProfileView = () => {
             return { text: 'MFA Enabled', class: 'status-enabled', icon: <FiShield /> };
         }
         return { text: 'MFA Disabled', class: 'status-disabled', icon: <FiShieldOff /> };
+    };
+
+    const getFullName = () => {
+        return `${formData.first_name || ''} ${formData.last_name || ''}`.trim() || authUser?.email || 'User';
+    };
+
+    const getInitials = () => {
+        const fullName = getFullName();
+        if (fullName === authUser?.email) {
+            return fullName.charAt(0).toUpperCase();
+        }
+        return fullName.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
     };
 
     const mfaStatusBadge = getMFAStatusBadge();
@@ -105,9 +131,9 @@ const ProfileView = () => {
                             <FiX size={16} />
                             Cancel
                         </button>
-                        <button className="btn btn-primary" onClick={handleSubmit}>
-                            <FiSave size={16} />
-                            Save Changes
+                        <button className="btn btn-primary" onClick={handleSubmit} disabled={isSaving}>
+                            {isSaving ? <Spinner size="sm" /> : <FiSave size={16} />}
+                            {isSaving ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div>
                 )}
@@ -149,7 +175,7 @@ const ProfileView = () => {
                         </div>
 
                         {/* Profile Form */}
-                        <form className="profile-form" onSubmit={handleSubmit}>
+                        <form className="profile-form">
                             <div className="form-section">
                                 <h3>Personal Information</h3>
                                 <div className="form-row">
@@ -188,7 +214,7 @@ const ProfileView = () => {
                                         <FiMail className="input-icon" />
                                         <input
                                             type="email"
-                                            value={profile?.email || ''}
+                                            value={authUser?.email || ''}
                                             disabled={true}
                                             className="form-input"
                                         />
@@ -322,7 +348,7 @@ const ProfileView = () => {
                                     <h3>MFA Devices</h3>
                                 </div>
                                 <div className="device-list">
-                                    {devices.map(device => (
+                                    {devices.filter(d => d.is_active).slice(0, 3).map(device => (
                                         <div key={device.id} className="device-item">
                                             <div className="device-icon">
                                                 <FiSmartphone />
@@ -337,6 +363,14 @@ const ProfileView = () => {
                                         </div>
                                     ))}
                                 </div>
+                                {devices.filter(d => d.is_active).length > 3 && (
+                                    <button
+                                        className="btn-link"
+                                        onClick={() => navigate('/security/mfa/devices')}
+                                    >
+                                        View all {devices.filter(d => d.is_active).length} devices
+                                    </button>
+                                )}
                             </div>
                         )}
 
@@ -347,12 +381,16 @@ const ProfileView = () => {
                                 <h3>Backup Codes</h3>
                             </div>
                             <div className="card-content">
+                                <div className="backup-stats">
+                                    <span className="backup-count">{backupCodesRemaining || 0}</span>
+                                    <span className="backup-label">codes remaining</span>
+                                </div>
                                 <p className="card-description">
                                     Backup codes can be used to access your account when you don't have access to your authenticator app.
                                 </p>
                                 <button
                                     className="btn btn-secondary"
-                                    onClick={() => navigate('/security/backup-codes')}
+                                    onClick={() => navigate('/security/mfa/backup-codes')}
                                 >
                                     Manage Backup Codes
                                 </button>
@@ -378,10 +416,20 @@ const ProfileView = () => {
                             </div>
                         </div>
 
-                        {/* Password Change Form */}
+                        {/* Password Change Form Modal/Drawer */}
                         {showPasswordForm && (
                             <div className="password-form-container">
-                                <PasswordChangeForm onClose={() => setShowPasswordForm(false)} />
+                                <div className="password-form-overlay">
+                                    <div className="password-form-wrapper">
+                                        <button
+                                            className="close-btn"
+                                            onClick={() => setShowPasswordForm(false)}
+                                        >
+                                            <FiX size={20} />
+                                        </button>
+                                        <PasswordChangeForm onClose={() => setShowPasswordForm(false)} />
+                                    </div>
+                                </div>
                             </div>
                         )}
 
@@ -396,17 +444,17 @@ const ProfileView = () => {
                                     <div className="login-item">
                                         <span className="login-label">Last Login:</span>
                                         <span className="login-value">
-                                            {user?.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}
+                                            {authUser?.last_login ? new Date(authUser.last_login).toLocaleString() : 'Never'}
                                         </span>
                                     </div>
                                     <div className="login-item">
                                         <span className="login-label">Last IP:</span>
-                                        <span className="login-value">{user?.last_login_ip || 'Unknown'}</span>
+                                        <span className="login-value">{authUser?.last_login_ip || 'Unknown'}</span>
                                     </div>
                                     <div className="login-item">
                                         <span className="login-label">Account Created:</span>
                                         <span className="login-value">
-                                            {user?.date_joined ? new Date(user.date_joined).toLocaleDateString() : 'Unknown'}
+                                            {authUser?.date_joined ? new Date(authUser.date_joined).toLocaleDateString() : 'Unknown'}
                                         </span>
                                     </div>
                                 </div>
@@ -422,7 +470,7 @@ const ProfileView = () => {
                             <h3>Recent Activity</h3>
                             <p>Your recent login and security activities</p>
                         </div>
-                        <ActivityTimeline />
+                        <ActivityTimeline limit={20} showHeader={false} />
                     </div>
                 )}
             </div>

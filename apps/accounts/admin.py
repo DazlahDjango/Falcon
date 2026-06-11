@@ -54,6 +54,7 @@ class UserAdmin(BaseUserAdmin, BaseAdmin):
     list_filter = BaseAdmin.list_filter + ['role', 'is_active', 'is_verified', 'is_staff', 'is_superuser', 'mfa_enabled', 'mfa_required']
     search_fields = ['email', 'username', 'first_name', 'last_name']
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at', 'last_login', 'login_attempts', 'locked_until']
+    
     def mfa_required_status(self, obj):
         if obj.mfa_required is True:
             return format_html('<span style="color: #dc2626;">✓ Required (Override)</span>')
@@ -61,12 +62,14 @@ class UserAdmin(BaseUserAdmin, BaseAdmin):
             return format_html('<span style="color: #10b981;">✗ Exempt (Override)</span>')
         return format_html('<span style="color: #6b7280;">↻ Role-Based</span>')
     mfa_required_status.short_description = 'MFA Requirement'
+    
+    # ✅ REMOVED 'mfa_devices' from fieldsets since we removed the ManyToManyField
     fieldsets = (
         (None, {'fields': ('id', 'email', 'username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone_number')}),
         (_('Organization'), {'fields': ('tenant_id', 'role', 'manager', 'department')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_verified', 'is_onboarded', 'groups', 'user_permissions')}),
-        (_('Security'), {'fields': ('mfa_enabled', 'mfa_secret', 'mfa_backup_codes', 'mfa_required_status', 'login_attempts', 'locked_until', 'last_login_ip', 'last_login_agent')}),
+        (_('Security'), {'fields': ('mfa_enabled', 'mfa_secret', 'mfa_backup_codes', 'mfa_required', 'login_attempts', 'locked_until', 'last_login_ip', 'last_login_agent')}),
         (_('Session'), {'fields': ('current_session_key', 'session_expires_at')}),
         (_('Preferences'), {'fields': ('language', 'timezone')}),
         (_('Metadata'), {'fields': ('title', 'employee_id', 'joined_at')}),
@@ -208,7 +211,7 @@ class MFADeviceAdmin(BaseAdmin):
     
     fieldsets = (
         (None, {'fields': ('id', 'user', 'name', 'device_type')}),
-        (_('Credentials'), {'fields': ('secret', 'phone', 'email')}),  # 'secret' property works
+        (_('Credentials'), {'fields': ('_secret', 'phone', 'email')}),  # ✅ Use '_secret' instead of 'secret' (the encrypted field)
         (_('Status'), {'fields': ('is_active', 'is_primary', 'is_verified', 'verified_at')}),
         (_('Usage'), {'fields': ('last_used_at', 'fail_count', 'locked_until')}),
         (_('Metadata'), {'fields': ('device_info',)}),
@@ -219,8 +222,6 @@ class MFADeviceAdmin(BaseAdmin):
 @admin.register(MFABackupCode)
 class MFABackupCodeAdmin(BaseAdmin):
     """MFA backup code admin."""
-    # FIXED: Removed 'code' field since it doesn't exist anymore
-    # Added 'code_hash_preview' to show a preview of the hash
     list_display = ['user', 'code_hash_preview', 'is_used', 'used_at', 'expires_at', 'is_valid_display']
     list_filter = BaseAdmin.list_filter + ['is_used']
     search_fields = ['user__email', 'code_hash']
@@ -342,7 +343,7 @@ class TenantPreferenceAdmin(BaseAdmin):
         (None, {'fields': ('id', 'client_id')}),
         (_('Branding'), {'fields': ('logo_url', 'favicon_url', 'primary_color', 'secondary_color')}),
         (_('Features'), {'fields': ('features',)}),
-        (_('Security'), {'fields': ('mfa_required_roles', 'password_expiry_days', 'session_timeout_minutes')}),
+        (_('Security'), {'fields': ('mfa_required_roles', 'password_expiry_days', 'session_timeout_minutes', 'max_concurrent_sessions')}),
         (_('Localization'), {'fields': ('default_language', 'available_languages', 'default_timezone')}),
         (_('Data Retention'), {'fields': ('audit_log_retention_days', 'session_retention_days')}),
         (_('API'), {'fields': ('api_rate_limit', 'webhook_url')}),

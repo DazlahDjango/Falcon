@@ -5,11 +5,14 @@ import TeamMemberCard from './components/TeamMemberCard';
 const TeamTreeNode = ({ node, level = 0, searchTerm = '', onMemberSelect }) => {
     const [expanded, setExpanded] = useState(true);
     const hasChildren = node.children && node.children.length > 0;
+    // ✅ FIXED: includes (not include)
     const matchesSearch = searchTerm === '' ||
-        node.name?.toLowerCase().include(searchTerm.toLowerCase()) ||
-        node.email?.toLowerCase().include(searchTerm.toLowerCase());
+        node.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        node.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
     if (!matchesSearch && !hasChildren) return null;
-    const shouldShowChidren = matchesSearch || expanded;
+    const shouldShowChildren = matchesSearch || expanded;
+    
     return (
         <div className="tree-node" style={{ paddingLeft: `${level * 24}px` }}>
             <div className="tree-node-content">
@@ -49,6 +52,7 @@ const TeamTreeNode = ({ node, level = 0, searchTerm = '', onMemberSelect }) => {
         </div>
     );
 };
+
 const TeamTree = ({ data, searchTerm = '', onMemberSelect }) => {
     if (!data || !data.root) {
         return (
@@ -75,4 +79,5 @@ const TeamTree = ({ data, searchTerm = '', onMemberSelect }) => {
         </div>
     );
 };
+
 export default TeamTree;

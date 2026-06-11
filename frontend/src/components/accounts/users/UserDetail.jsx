@@ -28,13 +28,13 @@ const UserDetail = () => {
     } = useUsers();
     const { loadReportingChain, reportingChain } = useTeam();
 
-    const [showRoleMenu, setShowRoleMenu] = useState(false);
-    const [selectedRole, setSelectedRole] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
-        loadUserById(id);
-        loadReportingChain(id);
+        if (id) {
+            loadUserById(id);
+            loadReportingChain(id);
+        }
         return () => {
             clearUserSelection();
         };
@@ -53,7 +53,6 @@ const UserDetail = () => {
             await loadUserById(id);
         } finally {
             setIsUpdating(false);
-            setShowRoleMenu(false);
         }
     };
 
@@ -101,7 +100,6 @@ const UserDetail = () => {
             { value: 'read_only', label: 'Read Only' },
         ];
 
-        // Filter based on current user's permissions
         if (currentUser?.role !== 'super_admin') {
             return roles.filter(r => r.value !== 'super_admin');
         }

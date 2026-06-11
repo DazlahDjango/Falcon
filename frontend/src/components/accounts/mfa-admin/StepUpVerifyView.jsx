@@ -1,19 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-    FiShield,
-    FiLock,
-    FiCheckCircle,
-    FiXCircle,
-    FiAlertCircle,
-    FiClock
+    FiShield, FiLock, FiCheckCircle, FiXCircle,
+    FiAlertCircle, FiClock
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
-import './mfa-admin.css';
 
-const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel }) => {
+const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel, isOpen = true }) => {
     const dispatch = useDispatch();
     const { verifyStepUp, stepUpVerifying } = useAdminMFA();
 
@@ -21,6 +16,17 @@ const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel }) => {
     const [error, setError] = useState('');
     const [timeLeft, setTimeLeft] = useState(30);
     const [canResend, setCanResend] = useState(false);
+
+    useEffect(() => {
+        if (timeLeft <= 0) {
+            setCanResend(true);
+            return;
+        }
+        const timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [timeLeft]);
 
     const handleOtpChange = (index, value) => {
         if (value.length > 1) return;
@@ -36,6 +42,23 @@ const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel }) => {
         }
     };
 
+    const handleKeyDown = (index, e) => {
+        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+            document.getElementById(`stepup-otp-${index - 1}`)?.focus();
+        }
+    };
+
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').slice(0, 6);
+        if (/^\d+$/.test(pastedData)) {
+            const newOtp = pastedData.split('');
+            while (newOtp.length < 6) newOtp.push('');
+            setOtp(newOtp);
+            document.getElementById('stepup-otp-5')?.focus();
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const otpCode = otp.join('');
@@ -46,20 +69,25 @@ const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel }) => {
         }
 
         try {
-            await verifyStepUp(action, otpCode);
-            dispatch(showAlert({ type: 'success', message: `Verified for ${actionLabel || action}` }));
+            const result = await verifyStepUp(action, otpCode);
+            dispatch(showAlert({ 
+                type: 'success', 
+                message: `Verified for ${actionLabel || action}` 
+            }));
             onSuccess?.();
         } catch (error) {
-            setError('Invalid verification code. Please try again.');
+            setError(error || 'Invalid verification code. Please try again.');
         }
     };
 
     const handleResend = () => {
-        // In a real implementation, this would trigger a new OTP via email/sms
         setTimeLeft(30);
         setCanResend(false);
         setError('');
-        dispatch(showAlert({ type: 'info', message: 'New verification code sent' }));
+        dispatch(showAlert({ 
+            type: 'info', 
+            message: 'New verification code sent to your authenticator app' 
+        }));
 
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
@@ -72,6 +100,8 @@ const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel }) => {
             });
         }, 1000);
     };
+
+    if (!isOpen) return null;
 
     return (
         <div className="stepup-modal-overlay">
@@ -90,7 +120,7 @@ const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel }) => {
                         <span>Action: {actionLabel || action}</span>
                     </div>
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} onPaste={handlePaste}>
                         <div className="stepup-otp-inputs">
                             {otp.map((digit, index) => (
                                 <input
@@ -100,6 +130,7 @@ const StepUpVerifyView = ({ action, onSuccess, onCancel, actionLabel }) => {
                                     maxLength="1"
                                     value={digit}
                                     onChange={(e) => handleOtpChange(index, e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(index, e)}
                                     className="stepup-otp-input"
                                     autoComplete="off"
                                     disabled={stepUpVerifying}

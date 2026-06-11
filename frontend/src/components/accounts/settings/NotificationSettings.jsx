@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiBell, FiMail, FiMessageSquare, FiAlertCircle } from 'react-icons/fi';
+import { FiBell, FiMail, FiMessageSquare, FiAlertCircle, FiSave, FiCheck } from 'react-icons/fi';
 import { fetchNotificationSettings, updateNotificationSettings } from '../../../store/accounts/slice/preferenceSlice';
-import { showAlert } from '../../../store/accounts/slice/uiSlice'; 
+import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import Spinner from '../../common/UI/Spinner';
 
 const NotificationSettings = () => {
     const dispatch = useDispatch();
-    const { settings, isLoading } = useSelector((state) => state.preferences);
+    const { notificationSettings, isLoading } = useSelector((state) => state.preferences || {});
     const [localSettings, setLocalSettings] = useState({});
     const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+
     useEffect(() => {
         dispatch(fetchNotificationSettings());
     }, [dispatch]);
+
     useEffect(() => {
-        if (settings) {
-            setLocalSettings(settings);
+        if (notificationSettings) {
+            setLocalSettings(notificationSettings);
         }
-    }, [settings]);
+    }, [notificationSettings]);
+
     const handleToggle = (eventType, channel) => {
         setLocalSettings(prev => {
             const current = prev[eventType] || [];
@@ -26,17 +31,22 @@ const NotificationSettings = () => {
             return { ...prev, [eventType]: newChannels };
         });
     };
+
     const handleSave = async () => {
         setSaving(true);
+        setSaved(false);
         try {
             await dispatch(updateNotificationSettings(localSettings)).unwrap();
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
             dispatch(showAlert({ type: 'success', message: 'Notification settings saved' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error.message || 'Failed to save notification' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to save notification settings' }));
         } finally {
             setSaving(false);
         }
     };
+
     const notificationEvents = [
         {
             id: 'kpi_pending',
@@ -73,13 +83,29 @@ const NotificationSettings = () => {
             name: 'System Alerts',
             description: 'Important system notifications',
             icon: <FiAlertCircle size={16} />
+        },
+        {
+            id: 'mfa_setup_required',
+            name: 'MFA Setup Required',
+            description: 'When MFA setup is required for your role',
+            icon: <FiShield size={16} />
         }
     ];
+
     const channels = [
         { id: 'email', name: 'Email', icon: <FiMail size={14} /> },
-        { id: 'in_app', name: 'In-App', icon: <FiBell size={14} /> },
-        { id: 'push', name: 'Push', icon: <FiMessageSquare size={14} /> }
+        { id: 'in_app', name: 'In-App', icon: <FiBell size={14} /> }
     ];
+
+    if (isLoading) {
+        return (
+            <div className="notification-settings-loading">
+                <Spinner size="md" />
+                <p>Loading notification settings...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="notification-settings">
             <div className="settings-header">
@@ -131,10 +157,12 @@ const NotificationSettings = () => {
                     onClick={handleSave}
                     disabled={saving}
                 >
-                    {saving ? 'Saving...' : 'Save Preferences'}
+                    {saving ? <Spinner size="sm" /> : saved ? <FiCheck /> : <FiSave />}
+                    {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Preferences'}
                 </button>
             </div>
         </div>
     );
 };
+
 export default NotificationSettings;

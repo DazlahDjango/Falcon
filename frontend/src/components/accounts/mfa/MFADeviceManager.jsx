@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { FiShield, FiSmartphone, FiCode, FiActivity, FiPlus } from 'react-icons/fi';
 import { useMFA } from '../../../hooks/accounts/useMfa';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
-import { useDispatch } from 'react-redux';
 import MFADeviceList from './MFADeviceList';
 import MFATotpSetup from './MFATotpSetup';
 import MFABackupCodes from './MFABackupCodes';
@@ -10,6 +12,7 @@ import MFAStatusBadge from './MFAStatusBadge';
 import Spinner from '../../common/UI/Spinner';
 
 const MFADeviceManager = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const {
         devices,
@@ -26,10 +29,8 @@ const MFADeviceManager = () => {
 
     const [activeTab, setActiveTab] = useState('devices');
     const [showTotpSetup, setShowTotpSetup] = useState(false);
-    const [showBackupCodes, setShowBackupCodes] = useState(false);
     const [showDisableConfirm, setShowDisableConfirm] = useState(false);
 
-    // Load data on mount
     useEffect(() => {
         loadDevices();
         loadMfaStatus();
@@ -39,6 +40,8 @@ const MFADeviceManager = () => {
         if (window.confirm(`Are you sure you want to remove "${deviceName}"?`)) {
             try {
                 await removeDevice(deviceId);
+                await loadDevices();
+                await loadMfaStatus();
                 dispatch(showAlert({ type: 'success', message: `${deviceName} removed successfully` }));
             } catch (error) {
                 dispatch(showAlert({ type: 'error', message: 'Failed to remove device' }));
@@ -49,6 +52,7 @@ const MFADeviceManager = () => {
     const handleSetPrimary = async (deviceId) => {
         try {
             await setAsPrimary(deviceId);
+            await loadDevices();
             dispatch(showAlert({ type: 'success', message: 'Primary device updated' }));
         } catch (error) {
             dispatch(showAlert({ type: 'error', message: 'Failed to set primary device' }));
@@ -58,6 +62,8 @@ const MFADeviceManager = () => {
     const handleDisableAllMfa = async () => {
         try {
             await disableAllMfa();
+            await loadDevices();
+            await loadMfaStatus();
             dispatch(showAlert({ type: 'success', message: 'MFA disabled for all devices' }));
             setShowDisableConfirm(false);
         } catch (error) {
@@ -82,7 +88,7 @@ const MFADeviceManager = () => {
                     <h2>Multi-Factor Authentication</h2>
                     <p>Manage your MFA devices and security settings</p>
                 </div>
-                <MFAStatusBadge enabled={isMfaEnabled} />
+                <MFAStatusBadge enabled={isMfaEnabled} size="lg" />
             </div>
 
             {/* Stats Cards */}
@@ -107,19 +113,19 @@ const MFADeviceManager = () => {
                     className={`tab-btn ${activeTab === 'devices' ? 'active' : ''}`}
                     onClick={() => setActiveTab('devices')}
                 >
-                    Devices
+                    <FiSmartphone /> Devices
                 </button>
                 <button
                     className={`tab-btn ${activeTab === 'backup' ? 'active' : ''}`}
                     onClick={() => setActiveTab('backup')}
                 >
-                    Backup Codes
+                    <FiCode /> Backup Codes
                 </button>
                 <button
                     className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
                     onClick={() => setActiveTab('activity')}
                 >
-                    Activity Log
+                    <FiActivity /> Activity Log
                 </button>
             </div>
 
@@ -149,12 +155,22 @@ const MFADeviceManager = () => {
                                 onCancel={() => setShowTotpSetup(false)}
                             />
                         ) : (
-                            <MFADeviceList
-                                devices={devices}
-                                onRemove={handleRemoveDevice}
-                                onSetPrimary={handleSetPrimary}
-                                onAddDevice={() => setShowTotpSetup(true)}
-                            />
+                            <>
+                                <MFADeviceList
+                                    devices={devices}
+                                    onRemove={handleRemoveDevice}
+                                    onSetPrimary={handleSetPrimary}
+                                    onAddDevice={() => setShowTotpSetup(true)}
+                                />
+                                {devices.length > 0 && (
+                                    <button
+                                        className="btn-add-device"
+                                        onClick={() => setShowTotpSetup(true)}
+                                    >
+                                        <FiPlus /> Add New Device
+                                    </button>
+                                )}
+                            </>
                         )}
 
                         {isMfaEnabled && devices.length > 0 && (

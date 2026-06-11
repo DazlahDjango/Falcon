@@ -2,29 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
-    FiArrowLeft,
-    FiSmartphone,
-    FiCode,
-    FiShield,
-    FiCheckCircle,
-    FiXCircle,
-    FiAlertCircle,
-    FiRefreshCw,
-    FiTrash2,
-    FiMail,
-    FiUser,
-    FiBriefcase,
-    FiClock,
-    FiCalendar,
-    FiShieldOff,
-    FiLock,
-    FiUnlock
+    FiArrowLeft, FiSmartphone, FiCode, FiShield, FiCheckCircle,
+    FiXCircle, FiAlertCircle, FiRefreshCw, FiTrash2, FiMail,
+    FiUser, FiBriefcase, FiClock, FiCalendar, FiShieldOff,
+    FiLock, FiUnlock
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
 import { ROLE_DISPLAY_NAMES } from '../../../config/constants';
-import './mfa-admin.css';
 
 const AdminMFAStatus = () => {
     const { userId } = useParams();
@@ -59,7 +45,7 @@ const AdminMFAStatus = () => {
             await loadAdminMFAStatus(userId);
             dispatch(showAlert({ type: 'success', message: 'MFA reset successfully' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to reset MFA' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to reset MFA' }));
         }
     };
 
@@ -70,7 +56,7 @@ const AdminMFAStatus = () => {
             await loadAdminMFAStatus(userId);
             dispatch(showAlert({ type: 'success', message: `${deviceName} removed successfully` }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to remove device' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to remove device' }));
         }
     };
 
@@ -81,7 +67,7 @@ const AdminMFAStatus = () => {
             await loadAdminMFAStatus(userId);
             dispatch(showAlert({ type: 'success', message: 'All MFA devices cleared' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to clear devices' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to clear devices' }));
         }
     };
 
@@ -201,7 +187,9 @@ const AdminMFAStatus = () => {
                     </div>
                     <div className="policy-item">
                         <span className="policy-label">Requires Enrollment:</span>
-                        <span className="policy-value">{policy.requires_enrollment ? 'Yes - User needs to set up MFA' : 'No'}</span>
+                        <span className="policy-value">
+                            {policy.requires_enrollment ? 'Yes - User needs to set up MFA' : 'No'}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -338,7 +326,8 @@ const AdminMFAStatus = () => {
                                 value={resetReason}
                                 onChange={(e) => setResetReason(e.target.value)}
                                 placeholder="Enter reason for MFA reset..."
-                                rows="3"
+                                rows={3}
+                                className="form-input"
                             />
                         </div>
                         <div className="modal-actions">

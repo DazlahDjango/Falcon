@@ -77,7 +77,7 @@ const AuditTable = ({ logs, pagination, onPageChange, onRefresh }) => {
                             <th>Type</th>
                             <th>Severity</th>
                             <th>IP Address</th>
-                            <th>Details</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,6 +86,7 @@ const AuditTable = ({ logs, pagination, onPageChange, onRefresh }) => {
                                 key={log.id}
                                 className={`audit-row ${log.severity === 'critical' ? 'critical-row' : ''}`}
                                 onClick={() => setSelectedLog(log)}
+                                style={{ cursor: 'pointer' }}
                             >
                                 <td className="time-cell">
                                     <div className="time-main">
@@ -101,7 +102,6 @@ const AuditTable = ({ logs, pagination, onPageChange, onRefresh }) => {
                                     </div>
                                     <div className="user-info">
                                         <div className="user-name">{log.user_email || 'System'}</div>
-                                        {log.user_name && <div className="user-role">{log.user_name}</div>}
                                     </div>
                                 </td>
                                 <td className="action-cell">
@@ -128,7 +128,7 @@ const AuditTable = ({ logs, pagination, onPageChange, onRefresh }) => {
                                     <code>{log.ip_address || '—'}</code>
                                 </td>
                                 <td className="view-cell">
-                                    <button className="view-details-btn">
+                                    <button className="view-details-btn" onClick={(e) => { e.stopPropagation(); setSelectedLog(log); }}>
                                         View Details
                                         <FiChevronRight size={14} />
                                     </button>

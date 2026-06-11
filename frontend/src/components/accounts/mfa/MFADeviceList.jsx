@@ -39,11 +39,6 @@ const MFADeviceList = ({ devices, onRemove, onSetPrimary, onAddDevice }) => {
                     </div>
                 </>
             )}
-
-            <button className="btn-add-device" onClick={onAddDevice}>
-                <FiPlus />
-                Add New Device
-            </button>
         </div>
     );
 };

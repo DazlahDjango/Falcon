@@ -10,11 +10,6 @@ import {
     resetProfile,
     setAvatarProgress,
     selectProfile,
-    selectProfileData,
-    selectProfileLoading,
-    selectProfileError,
-    selectAvatarUploadProgress,
-    selectIsUploadingAvatar,
 } from '../../store/accounts/slice/profileSlice';
 
 export const useProfile = () => {

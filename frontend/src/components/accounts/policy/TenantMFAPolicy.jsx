@@ -1,24 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-    FiShield,
-    FiSave,
-    FiUsers,
-    FiCheckCircle,
-    FiXCircle,
-    FiAlertCircle,
-    FiRefreshCw,
-    FiUserCheck,
-    FiUserX,
-    FiShieldOff,
-    FiShield as FiShieldOn,
-    FiLoader
+    FiShield, FiSave, FiUsers, FiCheckCircle, FiXCircle,
+    FiAlertCircle, FiRefreshCw, FiUserCheck, FiUserX,
+    FiShieldOff, FiShield as FiShieldOn, FiLoader
 } from 'react-icons/fi';
 import { useAdminMFA } from '../../../hooks/accounts/useAdminMFA';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
 import { ROLES, ROLE_DISPLAY_NAMES } from '../../../config/constants';
-import './policy.css';
 
 const TenantMFAPolicy = () => {
     const dispatch = useDispatch();
@@ -77,8 +67,13 @@ const TenantMFAPolicy = () => {
             setShowConfirm(false);
             dispatch(showAlert({ type: 'success', message: 'MFA policy updated successfully' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: 'Failed to update MFA policy' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to update MFA policy' }));
         }
+    };
+
+    const handleCancel = () => {
+        setSelectedRoles(tenantPolicy?.mfa_required_roles || []);
+        setIsEditing(false);
     };
 
     const getRoleIcon = (role) => {
@@ -95,7 +90,9 @@ const TenantMFAPolicy = () => {
     };
 
     const getComplianceStats = () => {
-        if (!usersPolicy || usersPolicy.length === 0) return { total: 0, compliant: 0, nonCompliant: 0 };
+        if (!usersPolicy || usersPolicy.length === 0) {
+            return { total: 0, compliant: 0, nonCompliant: 0, complianceRate: 0 };
+        }
 
         const total = usersPolicy.length;
         const compliant = usersPolicy.filter(u => {
@@ -103,8 +100,9 @@ const TenantMFAPolicy = () => {
             return !requiresMFA || u.mfa_enabled;
         }).length;
         const nonCompliant = total - compliant;
+        const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
 
-        return { total, compliant, nonCompliant };
+        return { total, compliant, nonCompliant, complianceRate };
     };
 
     const stats = getComplianceStats();
@@ -141,10 +139,8 @@ const TenantMFAPolicy = () => {
                         <>
                             <button
                                 className="btn btn-secondary"
-                                onClick={() => {
-                                    setSelectedRoles(tenantPolicy?.mfa_required_roles || []);
-                                    setIsEditing(false);
-                                }}
+                                onClick={handleCancel}
+                                disabled={tenantPolicyUpdating}
                             >
                                 Cancel
                             </button>
@@ -178,17 +174,17 @@ const TenantMFAPolicy = () => {
                     </div>
                 </div>
                 <div className="stat-card warning">
-                    <div className="stat-icon"><FiXCircle /></div>
+                    <div className="stat-icon"><FiAlertCircle /></div>
                     <div className="stat-info">
                         <div className="stat-value">{stats.nonCompliant}</div>
-                        <div className="stat-label">Requires MFA Setup</div>
+                        <div className="stat-label">Need MFA Setup</div>
                     </div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-icon"><FiShieldOn /></div>
                     <div className="stat-info">
-                        <div className="stat-value">{selectedRoles.length}</div>
-                        <div className="stat-label">Roles Requiring MFA</div>
+                        <div className="stat-value">{stats.complianceRate}%</div>
+                        <div className="stat-label">Compliance Rate</div>
                     </div>
                 </div>
             </div>
@@ -240,7 +236,9 @@ const TenantMFAPolicy = () => {
                 {isEditing && (
                     <div className="policy-note">
                         <FiAlertCircle />
-                        <span>Users in roles marked as "MFA Required" will be prompted to set up MFA on their next login.</span>
+                        <span>
+                            Users in roles marked as "MFA Required" will be prompted to set up MFA on their next login.
+                        </span>
                     </div>
                 )}
             </div>
@@ -258,7 +256,6 @@ const TenantMFAPolicy = () => {
                             {roleOptions.map((role) => {
                                 const usersInRole = usersPolicy.filter(u => u.role === role.value);
                                 const requiresMFA = selectedRoles.includes(role.value);
-                                const compliantUsers = usersInRole.filter(u => u.mfa_enabled);
                                 const nonCompliantUsers = usersInRole.filter(u => !u.mfa_enabled && requiresMFA);
 
                                 if (usersInRole.length === 0) return null;

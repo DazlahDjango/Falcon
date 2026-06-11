@@ -20,12 +20,6 @@ import {
     clearSelectedUser,
     clearError,
     selectUsers,
-    selectUsersList,
-    selectSelectedUser,
-    selectUsersPagination,
-    selectUsersFilters,
-    selectUsersLoading,
-    selectUsersError,
 } from '../../store/accounts/slice/userSlice';
 
 export const useUsers = () => {
