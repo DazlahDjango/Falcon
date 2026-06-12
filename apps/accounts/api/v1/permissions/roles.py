@@ -13,9 +13,6 @@ class HasRole(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        # ✅ Allow superuser flag to override
-        if request.user.is_superuser:
-            return True
         return request.user.role == self.required_role
     
     def has_object_permission(self, request, view, obj):
@@ -31,9 +28,6 @@ class HasAnyRole(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        # ✅ Allow superuser flag to override
-        if request.user.is_superuser:
-            return True
         return request.user.role in self.required_roles
     
     def has_object_permission(self, request, view, obj):
@@ -46,11 +40,10 @@ class IsSuperAdmin(HasRole):
     def __init__(self):
         super().__init__(UserRoles.SUPER_ADMIN)
     
-    # ✅ Override to also check is_superuser
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.is_superuser or request.user.role == UserRoles.SUPER_ADMIN
+        return request.user.role == UserRoles.SUPER_ADMIN
 
 
 class IsClientAdmin(HasRole):
@@ -62,7 +55,7 @@ class IsClientAdmin(HasRole):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.is_superuser or request.user.role == UserRoles.SUPER_ADMIN:
+        if request.user.role == UserRoles.SUPER_ADMIN:
             return True
         return request.user.role == UserRoles.CLIENT_ADMIN
 
@@ -76,7 +69,7 @@ class IsExecutive(HasRole):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
             return True
         return request.user.role == UserRoles.EXECUTIVE
 
@@ -90,7 +83,7 @@ class IsSupervisor(HasRole):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.is_superuser:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
             return True
         return request.user.role == UserRoles.SUPERVISOR
 
@@ -104,7 +97,7 @@ class IsStaff(HasRole):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.is_superuser:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.SUPERVISOR]:
             return True
         return request.user.role == UserRoles.STAFF
 
@@ -118,7 +111,7 @@ class IsReadOnly(HasRole):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.is_superuser:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
             return True
         return request.user.role == UserRoles.READ_ONLY
 
@@ -132,7 +125,7 @@ class IsDashboardChampion(HasRole):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.is_superuser:
+        if request.user.role == UserRoles.SUPER_ADMIN:
             return True
         return request.user.role == UserRoles.DASHBOARD_CHAMPION
 

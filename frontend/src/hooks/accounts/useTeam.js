@@ -13,7 +13,25 @@ import {
 
 export const useTeam = () => {
     const dispatch = useDispatch();
-    const teamState = useSelector(selectTeam);
+    const teamState = useSelector(selectTeam) || {
+        teamMembers: [],
+        selectedMember: null,
+        reportingChain: [],
+        hierarchy: null,
+        stats: {
+            total_members: 0,
+            active_members: 0,
+            active_percentage: 0,
+            avg_score: 0,
+            score_trend: 0,
+            at_risk_members: 0,
+            at_risk_percentage: 0,
+            member_trend: 0,
+            by_role: {}
+        },
+        isLoading: false,
+        error: null
+    };
 
     // ========== Data Fetching ==========
 

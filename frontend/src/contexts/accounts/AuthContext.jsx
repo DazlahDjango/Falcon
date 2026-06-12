@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout as logoutAction, fetchCurrentUser, login as loginAction, verifyMfa as verifyMfaAction, selectUser, selectIsAuthenticated, selectAuth } from '../../store/accounts/slice/authSlice';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens, getTenantId } from '../../services/accounts/storage/secureStorage';
 import { logout as logoutApi, refreshToken as refreshTokenApi } from '../../services/accounts/api/auth';
+import { persistor } from '../../store';
 
 const AuthContext = createContext(null);
 
@@ -42,11 +43,17 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const loadUser = async () => {
             const token = await getAccessToken();
-            if (token && !reduxUser) {
+            // If we have a token OR a persisted user, try to fetch user to verify
+            if (token || reduxUser) {
                 try {
                     await dispatch(fetchCurrentUser()).unwrap();
-                } catch {
+                } catch (err) {
+                    // If fetch fails, log out completely
+                    console.error("Failed to fetch user, logging out:", err);
                     await clearTokens();
+                    sessionStorage.removeItem('current_session_id');
+                    await persistor.purge(); // Clear persisted Redux state completely
+                    dispatch(logoutAction());
                 }
             }
             setIsLoading(false);
@@ -64,7 +71,7 @@ export const AuthProvider = ({ children }) => {
         return () => {
             window.removeEventListener('auth:logout', handleLogoutEvent);
         };
-    }, [dispatch, reduxUser]);
+    }, [dispatch]);
     
     const login = useCallback(async (credentials) => {
         setError(null);
@@ -109,6 +116,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             await clearTokens();
             sessionStorage.removeItem('current_session_id');
+            await persistor.purge(); // Clear persisted Redux state completely
             dispatch(logoutAction());
             navigate('/login', { replace: true });
         }

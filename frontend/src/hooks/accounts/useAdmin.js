@@ -30,7 +30,29 @@ import {
 
 export const useAdmin = () => {
     const dispatch = useDispatch();
-    const adminState = useSelector(selectAdmin);
+    const adminState = useSelector(selectAdmin) || {
+        stats: {
+            total_users: 0,
+            active_users: 0,
+            total_tenants: 0,
+            active_tenants: 0,
+            uptime: '0d',
+            api_requests: 0,
+            request_trend: null
+        },
+        users: [],
+        tenants: [],
+        health: null,
+        systemConfig: null,
+        pagination: {
+            current_page: 1,
+            total_pages: 1,
+            total_items: 0,
+            page_size: 20
+        },
+        isLoading: false,
+        error: null
+    };
 
     // Local UI state
     const [selectedUserId, setSelectedUserId] = useState(null);

@@ -14,7 +14,14 @@ import {
 
 export const useProfile = () => {
     const dispatch = useDispatch();
-    const profileState = useSelector(selectProfile);
+    const profileState = useSelector(selectProfile) || {
+        profile: null,
+        profileData: null,
+        isLoading: false,
+        error: null,
+        avatarUploadProgress: 0,
+        isUploadingAvatar: false
+    };
 
     // Local UI state
     const [isEditing, setIsEditing] = useState(false);

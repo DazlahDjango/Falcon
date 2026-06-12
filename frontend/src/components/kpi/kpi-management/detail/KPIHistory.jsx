@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchKPIHistoryForKPI, selectKPIHistoryForKPI, selectHistoryLoading } from '../../../../store/kpi';
 import KPILoading from '../../common/KPILoading';

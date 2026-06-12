@@ -3,46 +3,48 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import MFASetupForm from './components/MFASetupForm';
 import QRCode from './components/QRCode';
-import { setupMfa, verifyMfaSetup, disableMfa } from '../../../store/accounts/slice/authSlice';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import Spinner from '../../common/UI/Spinner';
+import { useMfa } from '../../../hooks/accounts/useMfa';
 
 const MFASetup = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { user, isLoading } = useSelector((state) => state.auth);
+    const { user } = useSelector((state) => state.auth);
+    const { totpSetup, totpSetupLoading, backupCodes, initTotpSetup, completeTotpSetup } = useMfa();
     const [step, setStep] = useState(1);
-    const [setupData, setSetupData] = useState(null);
-    const [backupCodes, setBackupCodes] = useState([]);
+    
     useEffect(() => {
         if (user?.mfa_enabled) {
             navigate('/security');
         }
     }, [user, navigate]);
+
     const handleSetup = async () => {
         try {
-            const result = await dispatch(setupMfa()).unwrap();
-            setSetupData(result);
-            setBackupCodes(result.backup_codes);
+            await initTotpSetup();
             setStep(2);
         } catch (err) {
             dispatch(showAlert({ type: 'error', message: err.message || 'MFA setup failed' }));
         }
     };
+
     const handleVerify = async (otp) => {
         try {
-            await dispatch(verifyMfaSetup({ otp, device_id: setupData?.device_id })).unwrap();
+            await completeTotpSetup(otp, totpSetup?.device_id);
             dispatch(showAlert({ type: 'success', message: 'MFA enabled successfully!' }));
             navigate('/security');
         } catch (err) {
             dispatch(showAlert({ type: 'error', message: err.message || 'Invalid verification code' }));
         }
     };
+
     const handleSkip = async () => {
         if (window.confirm('Are you sure you want to skip MFA Setup? You can enable it later from security settings')) {
             navigate('/dashboard');
         }
     };
+
     if (step === 1) {
         return (
             <div className="auth-page mfa-setup-page">
@@ -65,9 +67,9 @@ const MFASetup = () => {
                         <button 
                             className="btn btn-primary btn-lg"
                             onClick={handleSetup}
-                            disabled={isLoading}
+                            disabled={totpSetupLoading}
                         >
-                            {isLoading ? <Spinner size="sm" /> : 'Get Started'}
+                            {totpSetupLoading ? <Spinner size="sm" /> : 'Get Started'}
                         </button>
                         <button 
                             className="btn btn-secondary"
@@ -80,6 +82,7 @@ const MFASetup = () => {
             </div>
         );
     }
+
     return (
         <div className="auth-page mfa-setup-page">
             <div className="auth-header-text">
@@ -90,17 +93,17 @@ const MFASetup = () => {
             <div className="mfa-setup-content">
                 <div className="qr-code-section">
                     <QRCode 
-                        value={setupData?.qr_code_data} 
+                        value={totpSetup?.qr_code_data} 
                         size={200}
                         label="Scan with Google Authenticator, Microsoft Authenticator, or any TOTP app"
                     />
                     <div className="secret-key">
                         <p>Or enter this key manually:</p>
-                        <code>{setupData?.secret}</code>
+                        <code>{totpSetup?.secret}</code>
                         <button 
                             className="btn-copy" 
                             onClick={() => {
-                                navigator.clipboard.writeText(setupData?.secret);
+                                navigator.clipboard.writeText(totpSetup?.secret);
                                 dispatch(showAlert({ type: 'success', message: 'Secret copied!' }));
                             }}
                         >
@@ -110,7 +113,7 @@ const MFASetup = () => {
                 </div>
                 
                 <div className="verify-section">
-                    <MFASetupForm onSubmit={handleVerify} isLoading={isLoading} />
+                    <MFASetupForm onSubmit={handleVerify} isLoading={totpSetupLoading} />
                 </div>
                 
                 {backupCodes.length > 0 && (

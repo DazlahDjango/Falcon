@@ -572,37 +572,3 @@ export * from './reviewRouteConstants';
 export * from './reviewConstants';
 export * from './reviewStatusConstants';
 
-// Billing 
-export * from './billingApiConstants';
-export * from './billingConstants';
-export * from './billingValidationConstants';
-
-// KPI
-export * from './kpiApiConstants';
-export * from './kpiRouteConstants';
-export * from './kpiConstants';
-
-import billingConstants from './billingConstants';
-import billingApiConstants from './billingApiConstants';
-import billingValidationConstants from './billingValidationConstants';
-import kpiConstants from './kpiConstants';
-import kpiApiConstants from './kpiApiConstants';
-import kpiRouteConstants from './kpiRouteConstants';
-
-export {
-    billingConstants,
-    billingApiConstants,
-    billingValidationConstants,
-    kpiConstants,
-    kpiApiConstants,
-    kpiRouteConstants,
-};
-
-export default {
-    ...billingConstants,
-    ...billingApiConstants,
-    ...billingValidationConstants,
-    ...kpiConstants,
-    ...kpiApiConstants,
-    ...kpiRouteConstants,
-};

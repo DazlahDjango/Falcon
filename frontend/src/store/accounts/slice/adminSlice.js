@@ -310,15 +310,18 @@ const adminSlice = createSlice({
         builder
             // Fetch System Stats
             .addCase(fetchSystemStats.fulfilled, (state, action) => {
+                const userStats = action.payload.users || {};
+                const tenantStats = action.payload.tenants || {};
+                const systemStats = action.payload.system || {};
                 state.stats = {
                     ...state.stats,
-                    total_users: action.payload.users?.total_users || 0,
-                    active_users: action.payload.users?.active_users || 0,
-                    total_tenants: action.payload.tenants?.total_tenants || 0,
-                    active_tenants: action.payload.tenants?.active_tenants || 0,
-                    uptime: action.payload.system?.uptime || '0d',
-                    api_requests: action.payload.system?.api_requests || 0,
-                    request_trend: action.payload.system?.request_trend || null
+                    total_users: userStats.total_users || systemStats.statistics?.total_users || 0,
+                    active_users: userStats.active_users || 0,
+                    total_tenants: tenantStats.total_tenants || systemStats.statistics?.total_tenants || 0,
+                    active_tenants: tenantStats.active_tenants || 0,
+                    uptime: systemStats.uptime || '0d',
+                    api_requests: systemStats.api_requests || 0,
+                    request_trend: systemStats.request_trend || null
                 };
             })
             // Fetch All Users

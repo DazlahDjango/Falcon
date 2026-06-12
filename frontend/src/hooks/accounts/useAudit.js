@@ -21,7 +21,34 @@ import {
 
 export const useAudit = () => {
     const dispatch = useDispatch();
-    const auditState = useSelector(selectAudit);
+    const auditState = useSelector(selectAudit) || {
+        logs: [],
+        selectedLog: null,
+        userActivity: null,
+        userSummary: null,
+        tenantSummary: null,
+        securityEvents: [],
+        objectHistory: [],
+        complianceReport: null,
+        pagination: {
+            current_page: 1,
+            total_pages: 1,
+            total_items: 0,
+            page_size: 20
+        },
+        filters: {
+            action: '',
+            action_type: '',
+            severity: '',
+            user_id: '',
+            start_date: '',
+            end_date: '',
+            ip_address: ''
+        },
+        isLoading: false,
+        error: null,
+        exporting: false
+    };
 
     // Local UI state
     const [exportFormat, setExportFormat] = useState('json');

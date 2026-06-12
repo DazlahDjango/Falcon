@@ -109,13 +109,6 @@ export const changeUserPassword = (userId, oldPassword, newPassword) => {
     });
 };
 
-export const changePassword = (oldPassword, newPassword) => {
-    return request.post('/auth/change-password/', {
-        old_password: oldPassword,
-        new_password: newPassword
-    });
-};
-
 export const getUserActivity = (userId, params = {}) => {
     return request.get(`/users/${userId}/activity/`, { params });
 };
@@ -187,7 +180,6 @@ export const usersApi = {
     unlockUser,
     assignRole,
     changeUserPassword,
-    changePassword,
     getUserActivity,
     getMyActivity,
 

@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from '../../../services/accounts/api/auth';
 import * as userApi from '../../../services/accounts/api/users';
-import * as mfaApi from '../../../services/accounts/api/mfa';
 import { setTokens, clearTokens, setTenantId, clearTenantId } from '../../../services/accounts/storage/secureStorage';
 
 // ============================================================
@@ -28,7 +27,9 @@ export const verifyMfa = createAsyncThunk(
     'auth/verifyMfa',
     async (data, { rejectWithValue }) => {
         try {
-            const response = await authApi.verifyMfa(data);
+            const mfaToken = data.mfaToken || data.mfa_token;
+            const otp = data.otp;
+            const response = await authApi.verifyMfa(mfaToken, otp);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'MFA verification failed');
@@ -96,66 +97,6 @@ export const changePassword = createAsyncThunk(
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to change password');
-        }
-    }
-);
-
-export const setupMfa = createAsyncThunk(
-    'auth/setupMfa',
-    async (deviceName = 'Authenticator', { rejectWithValue }) => {
-        try {
-            const response = await mfaApi.setupTotp(deviceName);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'MFA setup failed');
-        }
-    }
-);
-
-export const verifyMfaSetup = createAsyncThunk(
-    'auth/verifyMfaSetup',
-    async ({ otp, deviceId }, { rejectWithValue }) => {
-        try {
-            const response = await mfaApi.verifyTotpSetup(otp, deviceId);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'MFA verification failed');
-        }
-    }
-);
-
-export const disableMfa = createAsyncThunk(
-    'auth/disableMfa',
-    async (deviceId = null, { rejectWithValue }) => {
-        try {
-            const response = await mfaApi.disableMfa(deviceId);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to disable MFA');
-        }
-    }
-);
-
-export const getBackupCodes = createAsyncThunk(
-    'auth/getBackupCodes',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await mfaApi.getBackupCodesStatus();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to get backup codes');
-        }
-    }
-);
-
-export const regenerateBackupCodes = createAsyncThunk(
-    'auth/regenerateBackupCodes',
-    async (count = 10, { rejectWithValue }) => {
-        try {
-            const response = await mfaApi.generateBackupCodes(count);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to regenerate backup codes');
         }
     }
 );
@@ -255,11 +196,6 @@ const initialState = {
     error: null,
     requiresMfa: false,
     mfaToken: null,
-    mfaSetup: null,
-    twoFactorEnabled: false,
-    invitationData: null,
-    backupCodes: null,
-    backupCodesRemaining: 0
 };
 
 // ============================================================
@@ -277,18 +213,9 @@ const authSlice = createSlice({
             state.requiresMfa = false;
             state.mfaToken = null;
         },
-        setInvitationData: (state, action) => {
-            state.invitationData = action.payload;
-        },
-        clearInvitationData: (state) => {
-            state.invitationData = null;
-        },
         setAuthenticated: (state, action) => {
             state.isAuthenticated = action.payload;
         },
-        clearMfaSetup: (state) => {
-            state.mfaSetup = null;
-        }
     },
     extraReducers: (builder) => {
         builder
@@ -348,7 +275,7 @@ const authSlice = createSlice({
                 }
                 
                 if (action.payload.user?.tenant_id) {
-                    setTenantId(action.payload.user.tenant_id).catch(err => {
+                    setTenantId(action.payload.user?.tenant_id).catch(err => {
                         console.error('Failed to set tenant ID after MFA:', err);
                     });
                 }
@@ -390,31 +317,6 @@ const authSlice = createSlice({
             .addCase(changePassword.rejected, (state, action) => {
                 state.error = action.payload;
             })
-            // MFA Setup
-            .addCase(setupMfa.fulfilled, (state, action) => {
-                state.mfaSetup = action.payload;
-            })
-            .addCase(verifyMfaSetup.fulfilled, (state) => {
-                state.twoFactorEnabled = true;
-                if (state.user) {
-                    state.user.mfa_enabled = true;
-                }
-                state.mfaSetup = null;
-            })
-            .addCase(disableMfa.fulfilled, (state) => {
-                state.twoFactorEnabled = false;
-                if (state.user) {
-                    state.user.mfa_enabled = false;
-                }
-            })
-            // Backup Codes
-            .addCase(getBackupCodes.fulfilled, (state, action) => {
-                state.backupCodesRemaining = action.payload.remaining || 0;
-            })
-            .addCase(regenerateBackupCodes.fulfilled, (state, action) => {
-                state.backupCodes = action.payload.data?.codes || action.payload.codes;
-                state.backupCodesRemaining = state.backupCodes?.length || 0;
-            })
             // Registration
             .addCase(register.fulfilled, (state) => {
                 state.error = null;
@@ -426,7 +328,6 @@ const authSlice = createSlice({
             .addCase(acceptInvitation.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 state.isAuthenticated = true;
-                state.invitationData = null;
             });
     }
 });
@@ -438,10 +339,7 @@ const authSlice = createSlice({
 export const { 
     clearError, 
     clearMfaState, 
-    setInvitationData, 
-    clearInvitationData, 
     setAuthenticated,
-    clearMfaSetup 
 } = authSlice.actions;
 
 // ============================================================
@@ -451,6 +349,5 @@ export const {
 export const selectAuth = (state) => state.auth;
 export const selectUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
-export const selectMfaSetup = (state) => state.auth.mfaSetup;
-export const selectBackupCodesRemaining = (state) => state.auth.backupCodesRemaining;
+
 export default authSlice.reducer;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useSyncExternalStore } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiUsers, 
@@ -19,17 +19,10 @@ import {
   FiChevronRight
 } from 'react-icons/fi';
 
-import { 
-  fetchSystemStats, 
-  fetchSystemHealth,
-  clearCache,
-  clearUserCache,
-  clearTenantCache
-} from '../../../store/accounts/slice/adminSlice';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { useConfigDashboard } from '../../../hooks/config';
+import { useAdmin } from '../../../hooks/accounts/useAdmin';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
-import store from '../../../store';
 import { useAppDispatch } from '../../../hooks/dashboard/useAppDispatch';
 
 // Local custom component for Stats Widget
@@ -95,12 +88,18 @@ export const SuperAdminDashboardCustom = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   
-  // Accounts Admin store states from the main store
-  const { stats, health, isLoading } = useSyncExternalStore(
-    (listener) => store.subscribe(listener),
-    () => store.getState().admin || { stats: null, health: null, isLoading: false },
-    () => store.getState().admin || { stats: null, health: null, isLoading: false }
-  );
+  // Accounts Admin store states from useAdmin hook
+  const { 
+    stats, 
+    health, 
+    isLoading,
+    loadSystemStats,
+    loadSystemHealth,
+    clearSystemCache,
+    clearUserCacheAction,
+    clearTenantCacheAction,
+    clearAdminError
+  } = useAdmin();
   
   // Configs app React Query states
   const { useOverview } = useConfigDashboard();
@@ -113,25 +112,25 @@ export const SuperAdminDashboardCustom = () => {
   const [isProcessingCache, setIsProcessingCache] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchSystemStats());
-    dispatch(fetchSystemHealth());
+    loadSystemStats();
+    loadSystemHealth();
     
     const interval = setInterval(() => {
-      dispatch(fetchSystemHealth());
+      loadSystemHealth();
     }, 30000);
     return () => clearInterval(interval);
-  }, [dispatch]);
+  }, [loadSystemStats, loadSystemHealth]);
 
   const handleRefresh = () => {
-    dispatch(fetchSystemStats());
-    dispatch(fetchSystemHealth());
+    loadSystemStats();
+    loadSystemHealth();
     dispatch(showAlert({ type: 'success', message: 'System statistics reloaded' }));
   };
 
   const handleClearAll = async () => {
     setIsProcessingCache(true);
     try {
-      await dispatch(clearCache()).unwrap();
+      await clearSystemCache();
       dispatch(showAlert({ type: 'success', message: 'Entire system cache cleared successfully' }));
     } catch (error) {
       dispatch(showAlert({ type: 'error', message: error.message || 'Failed to clear system cache' }));
@@ -145,7 +144,7 @@ export const SuperAdminDashboardCustom = () => {
     if (!clearValue) return;
     setIsProcessingCache(true);
     try {
-      await dispatch(clearUserCache(clearValue)).unwrap();
+      await clearUserCacheAction(clearValue);
       dispatch(showAlert({ type: 'success', message: `User cache cleared for ${clearValue}` }));
       setClearType(null);
       setClearValue('');
@@ -160,7 +159,7 @@ export const SuperAdminDashboardCustom = () => {
     if (!clearValue) return;
     setIsProcessingCache(true);
     try {
-      await dispatch(clearTenantCache(clearValue)).unwrap();
+      await clearTenantCacheAction(clearValue);
       dispatch(showAlert({ type: 'success', message: `Tenant cache cleared for ${clearValue}` }));
       setClearType(null);
       setClearValue('');

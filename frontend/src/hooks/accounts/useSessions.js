@@ -11,7 +11,19 @@ import {
 
 export const useSessions = () => {
     const dispatch = useDispatch();
-    const sessionState = useSelector((state) => state.sessions);
+    const sessionState = useSelector((state) => state.sessions) || {
+        sessions: [],
+        activeSessions: [],
+        currentSession: null,
+        pagination: {
+            current_page: 1,
+            total_pages: 1,
+            total_items: 0,
+            page_size: 20
+        },
+        isLoading: false,
+        error: null
+    };
 
     const loadSessions = useCallback(async (params = {}) => {
         return await dispatch(fetchSessions(params)).unwrap();

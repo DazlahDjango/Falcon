@@ -4,7 +4,8 @@ import { selectAuth } from '../../store/accounts/slice/authSlice';
 import * as permissionsApi from '../../services/accounts/api/permissions';
 
 export const usePermissions = () => {
-    const { user } = useSelector(selectAuth);
+    const authState = useSelector(selectAuth) || {};
+    const { user } = authState;
     const [permissions, setPermissions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiDownload, FiMail, FiPrinter, FiCalendar, FiDollarSign, FiTag, FiUser, FiBuilding, FiAlertCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiMail, FiPrinter, FiAlertCircle } from 'react-icons/fi';
 import { BillingShell } from '../common/BillingShell';
 import { StatusBadge } from '../shared/StatusBadge';
 import { CurrencyFormatter } from '../shared/CurrencyFormatter';

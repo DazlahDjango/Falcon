@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as usersApi from '../../../services/accounts/api/users';
-import * as profilesApi from '../../../services/accounts/api/profiles';  // ✅ You need to create this
+import * as profilesApi from '../../../services/accounts/api/profiles';
 
 // ✅ FIXED: Use profiles API for avatar
 export const getMyProfile = createAsyncThunk(
@@ -84,11 +84,12 @@ export const deleteAvatar = createAsyncThunk(
     }
 );
 
+
 export const changePassword = createAsyncThunk(
     'profile/changePassword',
     async ({ oldPassword, newPassword }, { rejectWithValue }) => {
         try {
-            const response = await usersApi.changePassword(oldPassword, newPassword);
+            const response = await usersApi.changeUserPassword(oldPassword, newPassword);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to change password');
@@ -139,6 +140,7 @@ const profileSlice = createSlice({
             })
             .addCase(fetchCurrentUserProfile.fulfilled, (state, action) => {
                 state.isLoading = false;
+                state.profile = action.payload;
                 state.profileData = action.payload;
             })
             .addCase(fetchCurrentUserProfile.rejected, (state, action) => {
@@ -152,6 +154,7 @@ const profileSlice = createSlice({
             })
             .addCase(updateProfile.fulfilled, (state, action) => {
                 state.isLoading = false;
+                state.profile = { ...state.profile, ...action.payload };
                 state.profileData = { ...state.profileData, ...action.payload };
             })
             .addCase(updateProfile.rejected, (state, action) => {

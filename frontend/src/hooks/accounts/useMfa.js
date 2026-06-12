@@ -294,3 +294,5 @@ export const useMFA = () => {
         resetState,
     };
 };
+
+export const useMfa = useMFA;

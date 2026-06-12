@@ -41,8 +41,43 @@ import {
 
 export const useAdminMFA = () => {
     const dispatch = useDispatch();
-    const adminMfaState = useSelector(selectAdminMfa);
-    const stepUpVerified = useSelector(selectStepUpVerified);
+    const adminMfaState = useSelector(selectAdminMfa) || {
+        systemSettings: null,
+        systemSettingsLoading: false,
+        systemSettingsError: null,
+        systemSettingsUpdating: false,
+        tenantPolicy: null,
+        tenantPolicyLoading: false,
+        tenantPolicyError: null,
+        tenantPolicyUpdating: false,
+        usersPolicy: [],
+        usersPolicyLoading: false,
+        usersPolicyError: null,
+        currentUserPolicy: null,
+        currentUserPolicyLoading: false,
+        currentUserPolicyUpdating: false,
+        userMFAStatus: null,
+        userMFAStatusLoading: false,
+        adminMFAStatus: null,
+        adminMFAStatusLoading: false,
+        resettingUserMFA: false,
+        clearingDevices: false,
+        stepUpVerified: false,
+        stepUpVerifying: false,
+        stepUpAction: null,
+        stepUpExpiresAt: null,
+        syncingPolicy: false,
+        usersFilters: {
+            search: '',
+            role: '',
+            mfa_enabled: null,
+            mfa_required_override: null,
+        },
+        usersPage: 1,
+        usersPageSize: 20,
+        usersTotal: 0,
+    };
+    const stepUpVerified = useSelector(selectStepUpVerified) || false;
 
     // Local UI state
     const [selectedUserId, setSelectedUserId] = useState(null);

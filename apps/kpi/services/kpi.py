@@ -16,6 +16,13 @@ from ..exceptions import DuplicateKPICodeError, InvalidFrameworkError, WeightSum
 CACHE_TTL = 300
 CACHE_PREFIX = "kpi_service"
 
+def _safe_delete_pattern(pattern: str) -> None:
+    """Safely delete cache pattern if supported"""
+    try:
+        if hasattr(cache, 'delete_pattern'):
+            cache.delete_pattern(pattern)
+    except AttributeError:
+        pass 
 
 class KPICreator:
     def create(self, data: Dict, user) -> KPI:
@@ -117,7 +124,7 @@ class KPICreator:
             cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
         if kpi_id:
             cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+        _safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
 
 
 class KPIUpdater:
@@ -172,7 +179,7 @@ class KPIUpdater:
     def _invalidate_caches(self, framework_id: str, kpi_id: str) -> None:
         cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
         cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+        _safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
 
 
 class KPIActivator:

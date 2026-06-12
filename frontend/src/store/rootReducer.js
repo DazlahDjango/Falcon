@@ -19,7 +19,7 @@ import preferenceReducer from './accounts/slice/preferenceSlice';
 import accountsTeamReducer from './accounts/slice/teamSlice';
 import accountsUiReducer from './accounts/slice/uiSlice';
 import accountsSecurityReducer from './accounts/slice/securitySlice';
-import mfaReducer from './accounts//slice/mfaSlice';
+import mfaReducer from './accounts/slice/mfaSlice';
 import profileReducer from './accounts/slice/profileSlice';
 import adminMfaReducer from './accounts/slice/adminMfaSlice';
 // =============================================

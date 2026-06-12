@@ -339,9 +339,13 @@ const mfaSlice = createSlice({
             .addCase(verifyTotpSetup.pending, (state) => {
                 state.totpSetupLoading = true;
             })
-            .addCase(verifyTotpSetup.fulfilled, (state) => {
+            .addCase(verifyTotpSetup.fulfilled, (state, action) => {
                 state.totpSetupLoading = false;
                 state.totpSetup = null;
+                if (action.payload?.backup_codes || action.payload?.codes) {
+                    state.backupCodes = action.payload.backup_codes || action.payload.codes;
+                    state.backupCodesRemaining = state.backupCodes.length;
+                }
             })
             .addCase(verifyTotpSetup.rejected, (state, action) => {
                 state.totpSetupLoading = false;

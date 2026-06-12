@@ -24,7 +24,30 @@ import {
 
 export const useUsers = () => {
     const dispatch = useDispatch();
-    const usersState = useSelector(selectUsers);
+    const usersState = useSelector(selectUsers) || {
+        users: [],
+        selectedUser: null,
+        pagination: {
+            current_page: 1,
+            total_pages: 1,
+            total_items: 0,
+            page_size: 20
+        },
+        filters: {
+            search: '',
+            role: '',
+            is_active: undefined,
+            is_verified: undefined,
+            mfa_enabled: undefined,
+            department_id: '',
+            joined_after: '',
+            joined_before: ''
+        },
+        isLoading: false,
+        error: null,
+        invitations: [],
+        invitationLoading: false
+    };
 
     // Local UI state
     const [selectedUserId, setSelectedUserId] = useState(null);
