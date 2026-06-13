@@ -2,8 +2,11 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Palette } from 'lucide-react'
+import { FiSettings, FiDollarSign, FiShield } from 'react-icons/fi';
 import { TenantGeneralSettings, TenantBrandingSettings } from '../../components/tenant/tenant-settings';
 import { updateTenant, selectCurrentTenant } from '../../store/tenant/slice';
+
 
 export const TenantSettingsPage = () => {
     const { tenantId } = useParams();
@@ -12,10 +15,10 @@ export const TenantSettingsPage = () => {
     const [activeTab, setActiveTab] = useState('general');
 
     const tabs = [
-        { id: 'general', label: 'General', icon: '⚙️' },
-        { id: 'branding', label: 'Branding', icon: '🎨' },
-        { id: 'billing', label: 'Billing', icon: '💰' },
-        { id: 'security', label: 'Security', icon: '🔒' },
+        { id: 'general', label: 'General', icon: FiSettings },
+        { id: 'branding', label: 'Branding', icon: Palette },
+        { id: 'billing', label: 'Billing', icon: FiDollarSign },
+        { id: 'security', label: 'Security', icon: FiShield },
     ];
 
     const handleSaveGeneral = async (data) => {
@@ -27,32 +30,32 @@ export const TenantSettingsPage = () => {
     };
 
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Tenant Settings</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage tenant configuration</p>
+        <div className="p-8 max-w-4xl mx-auto">
+            <div className="mb-8">
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tenant Settings</h1>
+                <p className="text-slate-500 mt-2">Manage tenant configuration</p>
             </div>
 
-            <div className="border-b border-gray-200 mb-6">
-                <nav className="flex gap-4">
+            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden mb-6">
+                <nav className="flex border-b border-slate-50 p-2">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`px-4 py-2 text-sm font-medium transition-colors ${
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
                                 activeTab === tab.id
-                                    ? 'text-blue-600 border-b-2 border-blue-600'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                    ? 'bg-slate-900 text-white shadow-lg'
+                                    : 'text-slate-600 hover:bg-slate-100'
                             }`}
                         >
-                            <span className="mr-2">{tab.icon}</span>
+                            <tab.icon className="h-4 w-4" />
                             {tab.label}
                         </button>
                     ))}
                 </nav>
             </div>
 
-            <div className="max-w-2xl">
+            <div>
                 {activeTab === 'general' && (
                     <TenantGeneralSettings 
                         settings={tenant} 
@@ -66,13 +69,17 @@ export const TenantSettingsPage = () => {
                     />
                 )}
                 {activeTab === 'billing' && (
-                    <div className="bg-white rounded-lg shadow-sm p-6 text-center text-gray-500">
-                        Billing settings coming soon
+                    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-12 text-center">
+                        <FiDollarSign className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">Billing Settings</h3>
+                        <p className="text-slate-500">Coming soon</p>
                     </div>
                 )}
                 {activeTab === 'security' && (
-                    <div className="bg-white rounded-lg shadow-sm p-6 text-center text-gray-500">
-                        Security settings coming soon
+                    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-12 text-center">
+                        <FiShield className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">Security Settings</h3>
+                        <p className="text-slate-500">Coming soon</p>
                     </div>
                 )}
             </div>

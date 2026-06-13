@@ -14,14 +14,20 @@ class IndividualDashboard:
         cached = cache.get(cache_key)
         if cached:
             return cached
-        scores = Score.objects.filter(user_id=user_id, year=year, month=month).select_related('kpi', 'traffic_light')
+        scores = Score.objects.filter(user_id=user_id, year=year, month=month).select_related('kpi')
         kpi_data = []
         for score in scores:
+            traffic_light_status = 'UNKNOWN'
+            if hasattr(score, 'traffic_light'):
+                traffic_light_status = score.traffic_light.status
+            elif hasattr(score, 'status'):
+                traffic_light_status = score.status
+            
             kpi_data.append({
                 'kpi_id': str(score.kpi.id),
                 'kpi_name': score.kpi.name,
                 'score': float(score.score),
-                'status': score.traffic_light.status if hasattr(score, 'traffic_light') else 'UNKNOWN',
+                'status': traffic_light_status,
                 'actual_value': float(score.actual_value),
                 'target_value': float(score.target_value)
             })

@@ -43,6 +43,17 @@ const PeriodSelector = ({
             newMonth = 12;
             newYear--;
         }
+        if (newYear >= minYear) {
+            onChange(newYear, newMonth);
+        }
+    };
+    const goToNextMonth = () => {
+        let newYear = selectedYear;
+        let newMonth = selectedMonth + 1;
+        if (newMonth > 12) {
+            newMonth = 1;
+            newYear++;
+        }
         if (newYear <= maxYear) {
             onChange(newYear, newMonth);
         }

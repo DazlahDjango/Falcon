@@ -11,7 +11,7 @@ class Location(BaseStructureModel):
         ('satellite', 'Satellite Office'),
     ]
     name = models.CharField(_('name'), max_length=255, db_index=True)
-    code = models.CharField(_('code'), max_length=50, unique=True, db_index=True)
+    code = models.CharField(_('code'), max_length=50, db_index=True)
     type = models.CharField(_('location type'), max_length=20, choices=TYPE_CHOICES, default='branch')
     parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='sub_locations', verbose_name=_('parent location'))
     address_line1 = models.CharField(_('address line 1'), max_length=255, blank=True)
@@ -32,6 +32,13 @@ class Location(BaseStructureModel):
         db_table = 'structure_location'
         verbose_name = _('location')
         verbose_name_plural = _('locations')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant_id', 'code'],
+                condition=models.Q(is_deleted=False),
+                name='unique_tenant_location_code'
+            )
+        ]
         indexes = [
             models.Index(fields=['tenant_id', 'code']),
             models.Index(fields=['tenant_id', 'type', 'is_active']),

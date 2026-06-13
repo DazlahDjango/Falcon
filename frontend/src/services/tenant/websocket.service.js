@@ -54,6 +54,9 @@ class TenantWebSocketService {
             case 'quota_warning':
                 if (this.listeners.onQuotaWarning) this.listeners.onQuotaWarning(data);
                 break;
+            case 'audit_log_created':
+                if (this.listeners.onAuditLogCreated) this.listeners.onAuditLogCreated(data);
+                break;
             case 'provisioning_progress':
                 if (this.listeners.onProvisioningProgress) this.listeners.onProvisioningProgress(data);
                 break;

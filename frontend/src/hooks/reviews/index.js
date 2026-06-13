@@ -16,3 +16,7 @@ export { useReports } from './useReports';
 export { useWebSocket } from './useWebSocket';
 export { useNotification } from './useNotification';
 export { useReviewForm, validators } from './useReviewForm';
+export { useAnalytics } from './useAnalytics';
+export { useInsights } from './useInsights';
+export { usePredictions } from './usePredictions';
+export { useAnalyticsDashboard } from './useAnalyticsDashboard';

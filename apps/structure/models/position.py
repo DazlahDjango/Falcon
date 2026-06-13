@@ -12,7 +12,7 @@ class Position(BaseStructureModel):
         ('project', 'Project-Based'),
     ]
     title = models.CharField(_('title'), max_length=255, db_index=True)
-    job_code = models.CharField(_('job code'), max_length=50, unique=True, db_index=True)
+    job_code = models.CharField(_('job code'), max_length=50, db_index=True)
     grade = models.CharField(_('grade level'), max_length=20, blank=True, db_index=True)
     level = models.PositiveSmallIntegerField(_('hierarchy level'), default=99, validators=[MinValueValidator(1), MaxValueValidator(20)])
     reports_to = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='direct_reports', verbose_name=_('reports to position'))
@@ -29,6 +29,13 @@ class Position(BaseStructureModel):
         db_table = 'structure_position'
         verbose_name = _('position')
         verbose_name_plural = _('positions')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant_id', 'job_code'],
+                condition=models.Q(is_deleted=False),
+                name='unique_tenant_position_job_code'
+            )
+        ]
         indexes = [
             models.Index(fields=['tenant_id', 'level']),
             models.Index(fields=['tenant_id', 'grade']),

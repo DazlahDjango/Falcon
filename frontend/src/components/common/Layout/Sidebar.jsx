@@ -120,7 +120,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/reviews/pips', name: 'Performance Plans', icon: FiFlag, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
             { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
             { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders, roles: ['supervisor', 'client_admin', "super_admin"] },
-            { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText, roles: ['supervisor', 'client_admin', 'client_admin', 'executive'] },
+            { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reviews/analytics', name: 'Analytics', icon: FiTrendingUp, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings, roles: ['super_admin'] },
         ];
         const configItems = [

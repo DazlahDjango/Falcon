@@ -27,3 +27,10 @@ export { calibrationSessionService, calibrationRatingService, calibrationComment
 export { reviewCommentService } from './reviewComment.service';
 export { promotionService } from './promotion.service';
 export { reportService } from './report.service';
+
+// Analytics & Prediction Services
+export { analyticsService } from './analytics.service';
+export { analyticsDashboardService } from './analyticsDashboard.service';
+export { analyticsExportService } from './analyticsExport.service';
+export { insightService } from './insight.service';
+export { predictionService } from './prediction.service';

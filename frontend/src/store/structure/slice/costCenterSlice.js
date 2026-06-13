@@ -12,7 +12,8 @@ export const fetchCostCenters = createAsyncThunk(
       const response = await costCenterService.list(params);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch cost centers');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch cost centers';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -24,7 +25,8 @@ export const fetchCostCenterById = createAsyncThunk(
       const response = await costCenterService.getById(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch cost center');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch cost center';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -36,7 +38,8 @@ export const fetchCostCenterTree = createAsyncThunk(
       const response = await costCenterService.getTree(includeInactive);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch cost center tree');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch cost center tree';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -51,8 +54,9 @@ export const createCostCenter = createAsyncThunk(
       dispatch(fetchCostCenterTree());
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to create cost center', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to create cost center';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -67,8 +71,9 @@ export const updateCostCenter = createAsyncThunk(
       dispatch(fetchCostCenters({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to update cost center', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to update cost center';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -83,8 +88,9 @@ export const deleteCostCenter = createAsyncThunk(
       dispatch(fetchCostCenterTree());
       return id;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to delete cost center', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to delete cost center';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );

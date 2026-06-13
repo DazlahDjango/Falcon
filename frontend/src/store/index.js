@@ -6,7 +6,7 @@ import { encryptTransform } from 'redux-persist-transform-encrypt';
 import rootReducer from './rootReducer';
 // Accounts Middlewares
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
-import { loggerMiddleware } from './accounts/middlewares/loggerMiddleware';
+import { loggerMiddleware } from './middleware';
 // Tenant Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
 // Billing

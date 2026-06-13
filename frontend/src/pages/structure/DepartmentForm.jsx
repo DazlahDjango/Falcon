@@ -84,6 +84,7 @@ const DepartmentForm = () => {
       sensitivity_level: formData.sensitivity_level,
       is_active: formData.is_active,
     };
+    console.log('Submitting department data:', submitData);
     try {
       if (isEditMode) {
         await dispatch(updateDepartment({ id, data: submitData })).unwrap();

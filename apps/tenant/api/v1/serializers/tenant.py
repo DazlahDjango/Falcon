@@ -45,6 +45,10 @@ class TenantCreateSerializer(serializers.ModelSerializer):
             'country',
             'primary_color',
             'secondary_color',
+            'logo',
+            'favicon',
+            'schema_type',
+            'database_name',
             'settings',
             'features',
         ]

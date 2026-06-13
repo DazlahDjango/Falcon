@@ -697,6 +697,7 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 10,  # 10 MB
             'backupCount': 5,
             'formatter': 'json',
+            'delay': True,
         },
         'audit': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -704,6 +705,7 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 10,
             'backupCount': 5,
             'formatter': 'json',
+            'delay': True,
         },
     },
     'root': {

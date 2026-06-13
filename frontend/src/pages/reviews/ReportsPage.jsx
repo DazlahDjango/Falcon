@@ -1,10 +1,10 @@
 // src/pages/reviews/ReportsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useReports, useCycles } from '../../hooks/reviews';
-import { ReviewSummaryReport, TeamSummaryReport, CycleSummaryReport, PIPReport, CalibrationReport } from '../../components/reviews/reports';
+import { ReviewSummaryReport, TeamSummaryReport, CycleSummaryReport, PIPReport, CalibrationReport, OrganizationStrategicReport } from '../../components/reviews/reports';
 
 const ReportsPage = () => {
-    const { getEmployeeSummary, getTeamSummary, getCycleSummary, getPIPSummary, getCalibrationSummary, exportReport, loading } = useReports();
+    const { getEmployeeSummary, getTeamSummary, getCycleSummary, getPIPSummary, getCalibrationSummary, getOrganizationStrategicReport, exportReport, loading } = useReports();
     const { cycles, fetchCycles } = useCycles();
     
     const [reportType, setReportType] = useState('employee');
@@ -53,6 +53,13 @@ const ReportsPage = () => {
                     }
                     data = await getCalibrationSummary(selectedCycleId);
                     break;
+                case 'organization':
+                    if (!selectedCycleId) {
+                        alert('Please select cycle');
+                        return;
+                    }
+                    data = await getOrganizationStrategicReport(selectedCycleId);
+                    break;
             }
             setReportData(data);
         } catch (error) {
@@ -86,6 +93,7 @@ const ReportsPage = () => {
                             <option value="cycle">Cycle Summary</option>
                             <option value="pip">PIP Summary</option>
                             <option value="calibration">Calibration Summary</option>
+                            <option value="organization">Organization Strategic Report</option>
                         </select>
                     </div>
                     {reportType !== 'pip' && (
@@ -120,6 +128,7 @@ const ReportsPage = () => {
                     {reportType === 'cycle' && <CycleSummaryReport summary={reportData} onExport={handleExport} />}
                     {reportType === 'pip' && <PIPReport report={reportData} onExport={handleExport} />}
                     {reportType === 'calibration' && <CalibrationReport report={reportData} onExport={handleExport} />}
+                    {reportType === 'organization' && <OrganizationStrategicReport report={reportData} onExport={handleExport} />}
                 </>
             )}
         </div>

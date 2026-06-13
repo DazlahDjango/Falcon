@@ -12,7 +12,7 @@ export const webhookMiddleware = createListenerMiddleware();
 
 // Handle payment success webhook
 webhookMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'websocket/message' && 
         action.payload?.type === 'payment_success',
     effect: async (action, { dispatch }) => {
@@ -37,7 +37,7 @@ webhookMiddleware.startListening({
 
 // Handle payment failed webhook
 webhookMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'websocket/message' && 
         action.payload?.type === 'payment_failed',
     effect: async (action, { dispatch }) => {
@@ -58,7 +58,7 @@ webhookMiddleware.startListening({
 
 // Handle subscription update webhook
 webhookMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'websocket/message' && 
         action.payload?.type === 'subscription_updated',
     effect: async (action, { dispatch }) => {
@@ -76,7 +76,7 @@ webhookMiddleware.startListening({
 
 // Handle invoice ready webhook
 webhookMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'websocket/message' && 
         action.payload?.type === 'invoice_ready',
     effect: async (action, { dispatch }) => {
@@ -97,7 +97,7 @@ webhookMiddleware.startListening({
 
 // Handle trial ending webhook
 webhookMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'websocket/message' && 
         action.payload?.type === 'trial_ending',
     effect: async (action, { dispatch }) => {

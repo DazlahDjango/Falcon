@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { SchemaInfoCard, SchemaTablesList } from '../../components/tenant/schema';
-import { fetchSchema, fetchSchemaTables, refreshSchemaStats, selectSchema, selectSchemaTables, selectSchemaRefreshing, selectTenantLoading } from '../../store/tenant/slice';
+import { fetchSchema, fetchSchemaTables, refreshSchemaStats, selectSchema, selectSchemaTables, selectSchemaRefreshing, selectSchemaLoading } from '../../store/tenant/slice';
 import { FiDatabase, FiRefreshCw, FiLayers, FiActivity, FiServer } from 'react-icons/fi';
 
 
@@ -12,7 +12,7 @@ export const TenantSchemaPage = () => {
     const schema = useSelector(selectSchema);
     const tables = useSelector(selectSchemaTables);
     const refreshing = useSelector(selectSchemaRefreshing);
-    const loading = useSelector(selectTenantLoading);
+    const loading = useSelector(selectSchemaLoading);
 
     useEffect(() => {
         if (tenantId) {

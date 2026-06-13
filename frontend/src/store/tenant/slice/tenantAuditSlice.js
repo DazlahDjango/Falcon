@@ -60,6 +60,15 @@ const tenantAuditSlice = createSlice({
         setSelectedLog: (state, action) => {
             state.selectedLog = action.payload;
         },
+        appendAuditLog: (state, action) => {
+            if (action.payload) {
+                const exists = state.logs.some(log => log.id === action.payload.id);
+                if (!exists) {
+                    state.logs = [action.payload, ...state.logs];
+                    state.total += 1;
+                }
+            }
+        },
         clearAuditError: (state) => {
             state.error = null;
         },
@@ -105,6 +114,7 @@ export const {
     setAuditFilters,
     clearAuditFilters,
     setSelectedLog,
+    appendAuditLog,
     clearAuditError,
     resetAuditState,
 } = tenantAuditSlice.actions;

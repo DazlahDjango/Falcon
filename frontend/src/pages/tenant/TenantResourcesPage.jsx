@@ -3,18 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ResourceUsageDashboard, ResourceLimitTable, ResourceLimitForm } from '../../components/tenant/resources';
-import { fetchTenantResources, updateResourceLimit, selectResources, selectTenantLoading } from '../../store/tenant/slice';
+import { fetchTenantResources, updateResourceLimit, syncTenantResources, selectResources, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantResourcesPage = () => {
     const { tenantId } = useParams();
     const dispatch = useDispatch();
-    const resources = useSelector(selectResources);
+    const resources = useSelector(selectResources) || [];
     const loading = useSelector(selectTenantLoading);
     const [editingResource, setEditingResource] = useState(null);
 
     useEffect(() => {
         if (tenantId) {
-            dispatch(fetchTenantResources(tenantId));
+            dispatch(fetchTenantResources({ tenantId }));
         }
     }, [dispatch, tenantId]);
 
@@ -35,14 +35,23 @@ export const TenantResourcesPage = () => {
         resource_type: r.resource_type,
         current_value: r.current_value,
         limit_value: r.limit_value,
-        percentage: (r.current_value / r.limit_value) * 100,
+        percentage: r.limit_value > 0 ? (r.current_value / r.limit_value) * 100 : 0,
     }));
 
     return (
         <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Resource Management</h1>
-                <p className="text-sm text-gray-500 mt-1">Monitor and manage tenant resource limits</p>
+            <div className="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Resource Management</h1>
+                    <p className="text-sm text-gray-500 mt-1">Monitor and manage tenant resource limits</p>
+                </div>
+                <button
+                    onClick={() => dispatch(syncTenantResources(tenantId))}
+                    disabled={loading}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                >
+                    Sync Live Data
+                </button>
             </div>
 
             <ResourceUsageDashboard resources={usageData} loading={loading} />

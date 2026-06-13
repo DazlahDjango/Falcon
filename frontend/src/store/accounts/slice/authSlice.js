@@ -266,6 +266,9 @@ const authSlice = createSlice({
                     state.mfaToken = null;
                     // Save user to redux state - extract from response correctly
                     state.user = action.payload.user || { email: 'dazlah@gmail.com', role: 'super_admin' };
+                    if (state.user?.role) {
+                        localStorage.setItem('user_role', state.user.role);
+                    }
                     
                     // Extract and save tokens using secureStorage
                     const accessToken = action.payload.access || action.payload.access_token;
@@ -309,6 +312,9 @@ const authSlice = createSlice({
                 state.requiresMfa = false;
                 state.mfaToken = null;
                 state.user = action.payload.user;
+                if (state.user?.role) {
+                    localStorage.setItem('user_role', state.user.role);
+                }
                 
                 // Save tokens using secureStorage
                 if (action.payload.access && action.payload.refresh) {
@@ -333,6 +339,7 @@ const authSlice = createSlice({
                 clearTenantId().catch(err => {
                     console.error('Failed to clear tenant ID:', err);
                 });
+                localStorage.removeItem('user_role');
                 return {
                     ...initialState,
                     isAuthenticated: false,
@@ -347,6 +354,9 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.user = action.payload;
                 state.isAuthenticated = true;
+                if (state.user?.role) {
+                    localStorage.setItem('user_role', state.user.role);
+                }
             })
             .addCase(fetchCurrentUser.rejected, (state) => {
                 state.isLoading = false;
@@ -356,6 +366,9 @@ const authSlice = createSlice({
             // Update Profile
             .addCase(updateProfile.fulfilled, (state, action) => {
                 state.user = { ...state.user, ...action.payload };
+                if (state.user?.role) {
+                    localStorage.setItem('user_role', state.user.role);
+                }
             })
             // Change Password
             .addCase(changePassword.fulfilled, (state) => {
@@ -393,6 +406,9 @@ const authSlice = createSlice({
                 state.user = action.payload.user;
                 state.isAuthenticated = true;
                 state.invitationData = null;
+                if (state.user?.role) {
+                    localStorage.setItem('user_role', state.user.role);
+                }
             });
     }
 });

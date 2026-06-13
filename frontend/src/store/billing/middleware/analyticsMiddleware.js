@@ -17,7 +17,7 @@ export const analyticsMiddleware = createListenerMiddleware();
 
 // Track subscription creation
 analyticsMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'billing/subscriptions/create/fulfilled',
     effect: async (action) => {
         const subscription = action.payload;
@@ -31,7 +31,7 @@ analyticsMiddleware.startListening({
 
 // Track subscription cancellation
 analyticsMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'billing/subscriptions/cancel/fulfilled',
     effect: async (action) => {
         const result = action.payload;
@@ -43,7 +43,7 @@ analyticsMiddleware.startListening({
 
 // Track subscription upgrade/downgrade
 analyticsMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'billing/subscriptions/upgrade/fulfilled' ||
         action.type === 'billing/subscriptions/downgrade/fulfilled',
     effect: async (action) => {
@@ -57,7 +57,7 @@ analyticsMiddleware.startListening({
 
 // Track successful payment
 analyticsMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'billing/checkout/verify/fulfilled' &&
         action.payload?.verified === true,
     effect: async (action) => {
@@ -71,7 +71,7 @@ analyticsMiddleware.startListening({
 
 // Track invoice download
 analyticsMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'billing/invoices/download/fulfilled',
     effect: async (action) => {
         const { id, format } = action.payload;
@@ -84,7 +84,7 @@ analyticsMiddleware.startListening({
 
 // Track plan view
 analyticsMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type === 'billing/plans/fetchPlans/fulfilled',
     effect: async (action) => {
         const plans = action.payload;
@@ -96,7 +96,7 @@ analyticsMiddleware.startListening({
 
 // Track checkout started
 analyticsMiddleware.startListening({
-    actionCreator: (action) => 
+    matcher: (action) => 
         action.type?.startsWith('billing/checkout/init') &&
         action.type?.endsWith('/fulfilled'),
     effect: async (action) => {

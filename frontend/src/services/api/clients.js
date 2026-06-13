@@ -3,12 +3,24 @@
  */
 import { createApiClient, createRootClient, createAccountsClient } from './createClient';
 import { resetCircuitBreaker } from './circuitBreaker';
+import { isAuthUrl } from './constants';
 
 // —— Root (KPI, files, notifications) — raw axios response ——
 export const rootApiClient = createRootClient();
 
 // —— Accounts (auth, users, admin) — raw ——
 export const accountsApiClient = createAccountsClient();
+
+// Add the accounts-specific interceptor here instead of in accountsClient.js
+accountsApiClient.interceptors.request.use(
+  async (config) => {
+    if (isAuthUrl(config.url || '')) {
+      delete config.headers.Authorization;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
 // —— Config — envelope + circuit breaker ——
 export const configApiClient = createApiClient({
