@@ -1,81 +1,39 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import { FiDollarSign, FiUsers, FiActivity, FiTrendingUp, FiTrendingDown, FiCalendar } from 'react-icons/fi';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './analytics.css';
 
-export const BillingMetricsCards = ({ metrics, loading }) => {
-    if (loading) {
-        return (
-            <div className="metrics-cards-skeleton">
-                {[...Array(4)].map((_, i) => (
-                    <div key={i} className="metric-card-skeleton"></div>
-                ))}
-            </div>
-        );
-    }
+export const BillingMetricsCards = ({ metrics, loading = false }) => {
+    const defaultMetrics = {
+        mrr: 0, mrrChange: 0, activeSubscriptions: 0, activeChange: 0,
+        totalRevenue: 0, revenueChange: 0, successRate: 0, successRateChange: 0,
+        arpu: 0, arpuChange: 0, ltv: 0, ltvChange: 0
+    };
+
+    const data = { ...defaultMetrics, ...metrics };
 
     const cards = [
-        {
-            title: 'Total Revenue',
-            value: `KES ${((metrics?.total_revenue || 0) / 100).toLocaleString()}`,
-            change: metrics?.revenue_growth,
-            icon: renderBillingIcon('totalRevenue', { size: 22 }),
-            color: '#2563eb',
-        },
-        {
-            title: 'Active Subscriptions',
-            value: metrics?.active_subscriptions || 0,
-            change: metrics?.subscription_growth,
-            icon: renderBillingIcon('activeSubscriptions', { size: 22 }),
-            color: '#10b981',
-        },
-        {
-            title: 'Avg. Revenue Per User',
-            value: `KES ${((metrics?.arpu || 0) / 100).toLocaleString()}`,
-            change: metrics?.arpu_change,
-            icon: renderBillingIcon('revenuePerUser', { size: 22 }),
-            color: '#8b5cf6',
-        },
-        {
-            title: 'Payment Success Rate',
-            value: `${metrics?.payment_success_rate || 0}%`,
-            change: metrics?.success_rate_change,
-            icon: renderBillingIcon('paymentSuccessRate', { size: 22 }),
-            color: '#f59e0b',
-        },
+        { key: 'mrr', label: 'Monthly Recurring Revenue', value: data.mrr, change: data.mrrChange, icon: FiDollarSign, color: '#3b82f6', isCurrency: true },
+        { key: 'active', label: 'Active Subscriptions', value: data.activeSubscriptions, change: data.activeChange, icon: FiUsers, color: '#22c55e', isCurrency: false },
+        { key: 'revenue', label: 'Total Revenue', value: data.totalRevenue, change: data.revenueChange, icon: FiActivity, color: '#8b5cf6', isCurrency: true },
+        { key: 'success', label: 'Success Rate', value: data.successRate, change: data.successRateChange, icon: FiTrendingUp, color: '#f59e0b', isCurrency: false, suffix: '%' },
+        { key: 'arpu', label: 'Average Revenue Per User', value: data.arpu, change: data.arpuChange, icon: FiCalendar, color: '#ec4899', isCurrency: true },
+        { key: 'ltv', label: 'Customer LTV', value: data.ltv, change: data.ltvChange, icon: FiTrendingUp, color: '#06b6d4', isCurrency: true }
     ];
 
+    if (loading) return <div className="metrics-skeleton"><div className="skeleton skeleton-card"></div><div className="skeleton skeleton-card"></div><div className="skeleton skeleton-card"></div><div className="skeleton skeleton-card"></div></div>;
+
     return (
-        <div className="billing-metrics-cards">
-            {cards.map((card, index) => (
-                <div key={index} className="metric-card" style={{ borderTopColor: card.color }}>
-                    <div className="metric-card-header">
-                        <span className="metric-card-icon">{card.icon}</span>
-                        <span className="metric-card-title">{card.title}</span>
-                    </div>
-                    <div className="metric-card-value">{card.value}</div>
-                    {card.change !== undefined && (
-                        <div className={`metric-card-change ${card.change >= 0 ? 'positive' : 'negative'}`}>
-                            {card.change >= 0 ? '↑' : '↓'} {Math.abs(card.change)}% from last month
-                        </div>
-                    )}
+        <div className="metrics-cards-grid">
+            {cards.map(card => (
+                <div key={card.key} className="metric-card" style={{ borderTopColor: card.color }}>
+                    <div className="metric-header"><span className="metric-label">{card.label}</span><card.icon className="metric-icon" style={{ color: card.color }} /></div>
+                    <div className="metric-value">{card.isCurrency ? <CurrencyFormatter amount={card.value} showCents={false} /> : card.value}{card.suffix || ''}</div>
+                    <div className={`metric-change ${card.change >= 0 ? 'positive' : 'negative'}`}>{card.change >= 0 ? <FiTrendingUp /> : <FiTrendingDown />} {Math.abs(card.change)}% from last month</div>
                 </div>
             ))}
         </div>
     );
-};
-
-BillingMetricsCards.propTypes = {
-    metrics: PropTypes.shape({
-        total_revenue: PropTypes.number,
-        revenue_growth: PropTypes.number,
-        active_subscriptions: PropTypes.number,
-        subscription_growth: PropTypes.number,
-        arpu: PropTypes.number,
-        arpu_change: PropTypes.number,
-        payment_success_rate: PropTypes.number,
-        success_rate_change: PropTypes.number,
-    }),
-    loading: PropTypes.bool,
 };
 
 export default BillingMetricsCards;

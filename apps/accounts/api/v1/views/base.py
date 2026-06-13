@@ -14,19 +14,21 @@ class BaseViewset(viewsets.ViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
-    
+
 class BaseModelViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsTenantMember]
     throttle_classes = [UserRateThrottle]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    
     def get_queryset(self):
         qs = super().get_queryset()
-        if hasattr(qs.model, 'tenant_id') and not self.request.user.is_superuser:
-            qs = qs.filter(tenant_id=self.request.user.tenant_id)
+        if not self.request.user.is_superuser:
+            if hasattr(qs.model, 'tenant_id'):
+                qs = qs.filter(tenant_id=self.request.user.tenant_id)
         return qs
     
     def get_serializer_context(self):
-        context =  super().get_serializer_context()
+        context = super().get_serializer_context()
         context['request'] = self.request
         return context
     
@@ -43,15 +45,53 @@ class BaseModelViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         if hasattr(instance, 'soft_delete'):
             instance.soft_delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'message': 'Resource deleted successfully'},
+                status=status.HTTP_200_OK
+            )
         return super().destroy(request, *args, **kwargs)
     
+    @action(detail=True, methods=['post'], url_path='restore')
+    def restore(self, request, pk=None):
+        instance = self.get_object()
+        if hasattr(instance, 'restore'):
+            instance.restore()
+            return Response(
+                {'message': 'Resource restored successfully'},
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {'error': 'Restore not supported for this resource'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    @action(detail=True, methods=['delete'], url_path='hard-delete')
+    def hard_delete(self, request, pk=None):
+        if not request.user.is_superuser:
+            return Response(
+                {'error': 'Only superusers can perform hard delete'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        instance = self.get_object()
+        instance.delete()
+        return Response(
+            {'message': 'Resource permanently deleted'},
+            status=status.HTTP_200_OK
+        )
+
+
 class BaseReadOnlyViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, IsTenantMember]
     throttle_classes = [UserRateThrottle]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     def get_queryset(self):
         qs = super().get_queryset()
-        if hasattr(qs.model, 'tenant_id') and not self.request.user.is_superuser:
-            qs = qs.filter(tenant_id=self.request.user.tenant_id)
+        if not self.request.user.is_superuser:
+            if hasattr(qs.model, 'tenant_id'):
+                qs = qs.filter(tenant_id=self.request.user.tenant_id)
         return qs
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context

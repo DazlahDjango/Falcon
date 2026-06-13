@@ -28,6 +28,7 @@ class TenantFilter(admin.SimpleListFilter):
 
 class BaseAdmin(admin.ModelAdmin):
     list_filter = [TenantFilter]
+    
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if not request.user.is_superuser and hasattr(request.user, 'tenant_id'):
@@ -45,19 +46,30 @@ class BaseAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return True
         return request.user.role in ['client_admin', 'executive']
-    
+
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, BaseAdmin):
-    list_display = ['email', 'username', 'first_name', 'last_name', 'role', 'is_active', 'is_verified', 'mfa_enabled', 'created_at']
-    list_filter = BaseAdmin.list_filter + ['role', 'is_active', 'is_verified', 'is_staff', 'is_superuser', 'mfa_enabled']
+    list_display = ['email', 'username', 'first_name', 'last_name', 'role', 'is_active', 'is_verified', 'mfa_enabled', 'mfa_required', 'mfa_required_status', 'created_at']
+    list_filter = BaseAdmin.list_filter + ['role', 'is_active', 'is_verified', 'is_staff', 'is_superuser', 'mfa_enabled', 'mfa_required']
     search_fields = ['email', 'username', 'first_name', 'last_name']
     readonly_fields = ['id', 'created_at', 'updated_at', 'deleted_at', 'last_login', 'login_attempts', 'locked_until']
+    
+    def mfa_required_status(self, obj):
+        if obj.mfa_required is True:
+            return format_html('<span style="color: #dc2626;">✓ Required (Override)</span>')
+        elif obj.mfa_required is False:
+            return format_html('<span style="color: #10b981;">✗ Exempt (Override)</span>')
+        return format_html('<span style="color: #6b7280;">↻ Role-Based</span>')
+    mfa_required_status.short_description = 'MFA Requirement'
+    
+    # ✅ REMOVED 'mfa_devices' from fieldsets since we removed the ManyToManyField
     fieldsets = (
         (None, {'fields': ('id', 'email', 'username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone_number')}),
         (_('Organization'), {'fields': ('tenant_id', 'role', 'manager', 'department')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_verified', 'is_onboarded', 'groups', 'user_permissions')}),
-        (_('Security'), {'fields': ('mfa_enabled', 'mfa_secret', 'mfa_backup_codes', 'login_attempts', 'locked_until', 'last_login_ip', 'last_login_agent')}),
+        (_('Security'), {'fields': ('mfa_enabled', 'mfa_secret', 'mfa_backup_codes', 'mfa_required', 'login_attempts', 'locked_until', 'last_login_ip', 'last_login_agent')}),
         (_('Session'), {'fields': ('current_session_key', 'session_expires_at')}),
         (_('Preferences'), {'fields': ('language', 'timezone')}),
         (_('Metadata'), {'fields': ('title', 'employee_id', 'joined_at')}),
@@ -69,13 +81,14 @@ class UserAdmin(BaseUserAdmin, BaseAdmin):
             'fields': ('email', 'username', 'tenant_id', 'password1', 'password2', 'role'),
         }),
     )
+    
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if not request.user.is_superuser and hasattr(request.user, 'tenant_id'):
             return qs.filter(tenant_id=request.user.tenant_id)
         return qs
     
-    def get_form(self, request, obj =None, **kwargs):
+    def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
         if not request.user.is_superuser:
             form.base_fields['role'].choices = [
@@ -83,7 +96,8 @@ class UserAdmin(BaseUserAdmin, BaseAdmin):
                 if c not in ['super_admin', 'client_admin'] or request.user.role == 'client_admin'
             ]
         return form
-    
+
+
 @admin.register(Role)
 class RoleAdmin(BaseAdmin):
     list_display = ['name', 'code', 'role_type', 'is_system', 'is_assignable', 'parent', 'order']
@@ -197,7 +211,7 @@ class MFADeviceAdmin(BaseAdmin):
     
     fieldsets = (
         (None, {'fields': ('id', 'user', 'name', 'device_type')}),
-        (_('Credentials'), {'fields': ('secret', 'phone', 'email')}),
+        (_('Credentials'), {'fields': ('_secret', 'phone', 'email')}),  # ✅ Use '_secret' instead of 'secret' (the encrypted field)
         (_('Status'), {'fields': ('is_active', 'is_primary', 'is_verified', 'verified_at')}),
         (_('Usage'), {'fields': ('last_used_at', 'fail_count', 'locked_until')}),
         (_('Metadata'), {'fields': ('device_info',)}),
@@ -208,31 +222,62 @@ class MFADeviceAdmin(BaseAdmin):
 @admin.register(MFABackupCode)
 class MFABackupCodeAdmin(BaseAdmin):
     """MFA backup code admin."""
-    list_display = ['user', 'code', 'is_used', 'used_at', 'expires_at']
+    list_display = ['user', 'code_hash_preview', 'is_used', 'used_at', 'expires_at', 'is_valid_display']
     list_filter = BaseAdmin.list_filter + ['is_used']
-    search_fields = ['user__email', 'code']
+    search_fields = ['user__email', 'code_hash']
     readonly_fields = ['id', 'created_at', 'code_hash']
     
     fieldsets = (
-        (None, {'fields': ('id', 'user', 'code', 'code_hash')}),
+        (None, {'fields': ('id', 'user', 'code_hash')}),
         (_('Status'), {'fields': ('is_used', 'used_at', 'expires_at')}),
         (_('Audit'), {'fields': ('created_at', 'updated_at', 'deleted_at', 'created_by', 'modified_by', 'tenant_id')}),
     )
+    
+    def code_hash_preview(self, obj):
+        """Show first 16 characters of the hash as preview"""
+        if obj.code_hash:
+            return obj.code_hash[:16] + '...'
+        return '—'
+    code_hash_preview.short_description = _('code hash (preview)')
+    
+    def is_valid_display(self, obj):
+        """Display whether the backup code is still valid"""
+        if obj.is_used:
+            return format_html('<span style="color: red;">✓ Used</span>')
+        if timezone.now() > obj.expires_at:
+            return format_html('<span style="color: orange;">✗ Expired</span>')
+        return format_html('<span style="color: green;">✓ Valid</span>')
+    is_valid_display.short_description = _('validity')
+    
+    def has_add_permission(self, request):
+        """Prevent manual addition of backup codes - they should be generated"""
+        return False
 
 
 @admin.register(MFAAuditLog)
 class MFAAuditLogAdmin(BaseAdmin):
     """MFA audit log admin."""
-    list_display = ['user', 'event_type', 'success', 'ip_address', 'created_at']
+    list_display = ['user', 'event_type', 'success', 'ip_address', 'device_name', 'created_at']
     list_filter = BaseAdmin.list_filter + ['event_type', 'success']
     search_fields = ['user__email', 'ip_address', 'message']
-    readonly_fields = ['id', 'created_at', 'user', 'device', 'event_type', 'ip_address', 'user_agent', 'success', 'message', 'metadata']
+    readonly_fields = ['id', 'created_at', 'user', 'device', 'event_type', 'ip_address', 'user_agent', 'success', 'message', 'metadata', 'request_id']
+    
+    def device_name(self, obj):
+        """Display device name if available"""
+        if obj.device:
+            return obj.device.name
+        return '—'
+    device_name.short_description = _('device')
     
     def has_add_permission(self, request):
         return False
     
     def has_change_permission(self, request, obj=None):
         return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Allow superusers to delete audit logs if needed for cleanup"""
+        return request.user.is_superuser
 
 
 @admin.register(LoginAttempt)
@@ -298,7 +343,7 @@ class TenantPreferenceAdmin(BaseAdmin):
         (None, {'fields': ('id', 'client_id')}),
         (_('Branding'), {'fields': ('logo_url', 'favicon_url', 'primary_color', 'secondary_color')}),
         (_('Features'), {'fields': ('features',)}),
-        (_('Security'), {'fields': ('mfa_required_roles', 'password_expiry_days', 'session_timeout_minutes')}),
+        (_('Security'), {'fields': ('mfa_required_roles', 'password_expiry_days', 'session_timeout_minutes', 'max_concurrent_sessions')}),
         (_('Localization'), {'fields': ('default_language', 'available_languages', 'default_timezone')}),
         (_('Data Retention'), {'fields': ('audit_log_retention_days', 'session_retention_days')}),
         (_('API'), {'fields': ('api_rate_limit', 'webhook_url')}),

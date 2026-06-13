@@ -60,6 +60,13 @@ class WebhookEventLog(BaseBillingModel):
         related_name='webhook_events',
         verbose_name=_('related subscription')
     )
+    next_retry_at = models.DateTimeField(_('next retry at'), null=True, blank=True)
+    max_retries = models.PositiveSmallIntegerField(_('max retries'), default=3)
+    retry_delay_minutes = models.PositiveSmallIntegerField(
+        _('retry delay minutes'),
+        default=5,
+        help_text=_('Minutes to wait before retry')
+    )
     class Meta:
         db_table = 'billing_webhook_event_log'
         verbose_name = _('webhook event log')
@@ -111,3 +118,24 @@ class WebhookEventLog(BaseBillingModel):
         self.retry_count += 1
         self.last_retry_at = timezone.now()
         self.save(update_fields=['retry_count', 'last_retry_at', 'updated_at'])
+
+    def schedule_retry(self, delay_minutes=None):
+        """Schedule a retry for failed webhook."""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        if self.retry_count >= self.max_retries:
+            self.processing_status = self.PROCESSING_STATUS_FAILED
+            self.processing_error = f"Max retries ({self.max_retries}) exceeded"
+            self.save()
+            return False
+        
+        self.retry_count += 1
+        self.last_retry_at = timezone.now()
+        
+        delay = delay_minutes or self.retry_delay_minutes * (2 ** (self.retry_count - 1))
+        self.next_retry_at = timezone.now() + timedelta(minutes=delay)
+        self.processing_status = self.PROCESSING_STATUS_PENDING
+        
+        self.save()
+        return True

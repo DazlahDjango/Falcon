@@ -3,13 +3,13 @@ import { ExportScheduleList, ExportHistory } from '../../../components/dashboard
 import { useDashboardExports } from '../../../hooks/dashboard/useDashboardExports';
 
 export const ExecutiveReports = () => {
-  const { 
-    exports, 
-    history, 
-    loading, 
-    createExport, 
-    updateExport, 
-    deleteExport, 
+  const {
+    exports,
+    history,
+    loading,
+    createExport,
+    updateExport,
+    deleteExport,
     triggerExport,
     downloadExport,
     fetchExports,
@@ -22,19 +22,19 @@ export const ExecutiveReports = () => {
         <h1>Reports & Exports</h1>
         <p>Schedule and manage dashboard exports</p>
       </div>
-      
+
       <div className="reports-grid">
         <ExportScheduleList
           exports={exports}
           loading={loading}
           onRefresh={fetchExports}
-          onAdd={() => {}}
+          onAdd={() => { }}
           onEdit={updateExport}
           onDelete={deleteExport}
           onTrigger={triggerExport}
           onDownload={downloadExport}
         />
-        
+
         <ExportHistory
           history={history}
           loading={loading}
@@ -45,3 +45,5 @@ export const ExecutiveReports = () => {
     </div>
   );
 };
+
+export default ExecutiveReports;

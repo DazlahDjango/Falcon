@@ -2,7 +2,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { connectionService } from '../../../services/tenant/connection.service';
 
-// Async Thunks
 export const fetchConnections = createAsyncThunk(
     'connections/fetchConnections',
     async (params, { rejectWithValue }) => {
@@ -134,6 +133,7 @@ const initialState = {
     },
     realtimeData: {},
     lastUpdated: null,
+    needsRefresh: false,
 };
 
 // Connection Slice
@@ -143,7 +143,7 @@ const connectionSlice = createSlice({
     reducers: {
         setConnectionFilters: (state, action) => {
             state.filters = { ...state.filters, ...action.payload };
-            state.pagination.page = 1; // Reset to first page when filters change
+            state.pagination.page = 1;
         },
         clearConnectionFilters: (state) => {
             state.filters = initialState.filters;
@@ -163,8 +163,7 @@ const connectionSlice = createSlice({
                 ...data,
                 updatedAt: new Date().toISOString(),
             };
-            
-            // Update in connections list if exists
+
             const index = state.connections.findIndex(c => c.id === connectionId);
             if (index !== -1) {
                 state.connections[index] = { ...state.connections[index], ...data };
@@ -174,6 +173,20 @@ const connectionSlice = createSlice({
             state.error = null;
         },
         resetState: () => initialState,
+        clearHealthStatus: (state) => {
+            state.healthStatus = {};
+        },
+        batchUpdateHealthStatus: (state, action) => {
+            const healthDataArray = action.payload;
+            const newHealthStatus = { ...state.healthStatus };
+            healthDataArray.forEach(healthData => {
+                if (healthData && healthData.tenant_id) {
+                    newHealthStatus[healthData.tenant_id] = healthData;
+                }
+            });
+            state.healthStatus = newHealthStatus;
+            state.lastUpdated = new Date().toISOString();
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -192,12 +205,13 @@ const connectionSlice = createSlice({
                     total_pages: Math.ceil((action.payload.count || action.payload.length) / state.pagination.page_size),
                 };
                 state.lastUpdated = new Date().toISOString();
+                state.needsRefresh = false;
             })
             .addCase(fetchConnections.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
             })
-            
+
             // Fetch Tenant Connections
             .addCase(fetchTenantConnections.pending, (state) => {
                 state.loading = true;
@@ -213,12 +227,13 @@ const connectionSlice = createSlice({
                     total_pages: Math.ceil((action.payload.data.count || action.payload.data.length) / state.pagination.page_size),
                 };
                 state.lastUpdated = new Date().toISOString();
+                state.needsRefresh = false;
             })
             .addCase(fetchTenantConnections.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
             })
-            
+
             // Fetch Connection Details
             .addCase(fetchConnectionDetails.pending, (state) => {
                 state.loading = true;
@@ -232,7 +247,7 @@ const connectionSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload || action.error.message;
             })
-            
+
             // Fetch Connection Metrics
             .addCase(fetchConnectionMetrics.pending, (state) => {
                 state.loading = true;
@@ -245,15 +260,23 @@ const connectionSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload || action.error.message;
             })
-            
-            // Perform Health Check
+
+            // Perform Health Check (Single)
+            .addCase(performHealthCheck.pending, (state) => {
+                state.loading = true;
+            })
             .addCase(performHealthCheck.fulfilled, (state, action) => {
+                state.loading = false;
                 state.healthStatus = {
                     ...state.healthStatus,
                     [action.payload.tenant_id]: action.payload,
                 };
             })
-            
+            .addCase(performHealthCheck.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+
             // Update Connection Status
             .addCase(updateConnectionStatus.fulfilled, (state, action) => {
                 const index = state.connections.findIndex(c => c.id === action.payload.id);
@@ -264,23 +287,22 @@ const connectionSlice = createSlice({
                     state.currentConnection = { ...state.currentConnection, ...action.payload };
                 }
             })
-            
+
             // Close Connection
             .addCase(closeConnection.fulfilled, (state, action) => {
                 const index = state.connections.findIndex(c => c.id === action.payload.connectionId);
                 if (index !== -1) {
-                    state.connections[index] = { 
-                        ...state.connections[index], 
+                    state.connections[index] = {
+                        ...state.connections[index],
                         status: 'closed',
                         closed_at: new Date().toISOString(),
                     };
                 }
             })
-            
+
             // Execute Manager Action
             .addCase(executeManagerAction.fulfilled, (state, action) => {
                 if (action.payload.details?.connections_closed) {
-                    // Refresh connections list after bulk action
                     state.needsRefresh = true;
                 }
             });
@@ -296,6 +318,8 @@ export const {
     updateRealtimeData,
     clearError,
     resetState,
+    clearHealthStatus,
+    batchUpdateHealthStatus,
 } = connectionSlice.actions;
 
 export default connectionSlice.reducer;

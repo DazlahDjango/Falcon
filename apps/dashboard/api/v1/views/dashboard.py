@@ -1,7 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import logging
@@ -15,10 +14,7 @@ from apps.dashboard.api.v1.serializers import (
     ClientAdminDashboardDataSerializer, SuperAdminDashboardDataSerializer,
     DepartmentPerformanceSerializer, KPITrendSerializer
 )
-from apps.dashboard.api.v1.permissions import (
-    ExecutiveDashboardPermission, ClientAdminDashboardPermission,
-    SuperAdminDashboardPermission
-)
+from apps.accounts.api.v1.permissions import IsAuthenticated, IsTenantMember, IsSuperAdmin, IsExecutive, IsClientAdmin
 from apps.dashboard.api.v1.throttles import (
     ExecutiveDashboardThrottle, ClientAdminDashboardThrottle,
     SuperAdminDashboardThrottle,
@@ -29,7 +25,7 @@ from apps.dashboard.exceptions import DashboardAccessError
 logger = logging.getLogger(__name__)
 
 class ExecutiveDashboardViewSet(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated, ExecutiveDashboardPermission]
+    permission_classes = [IsAuthenticated, IsTenantMember, IsExecutive]
     throttle_classes = [BurstDashboardThrottle, ExecutiveDashboardThrottle]
     
     def __init__(self, *args, **kwargs):
@@ -148,7 +144,7 @@ class ExecutiveDashboardViewSet(viewsets.GenericViewSet):
 
 
 class ClientAdminDashboardViewSet(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated, ClientAdminDashboardPermission]
+    permission_classes = [IsAuthenticated, IsTenantMember, IsClientAdmin]
     throttle_classes = [BurstDashboardThrottle, ClientAdminDashboardThrottle]
     
     def __init__(self, *args, **kwargs):
@@ -271,7 +267,7 @@ class ClientAdminDashboardViewSet(viewsets.GenericViewSet):
 
 
 class SuperAdminDashboardViewSet(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated, SuperAdminDashboardPermission]
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
     throttle_classes = [BurstDashboardThrottle, SuperAdminDashboardThrottle]
     
     def __init__(self, *args, **kwargs):

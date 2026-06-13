@@ -55,6 +55,7 @@ export const DashboardGrid = ({
           props: {
             ...widget.config,
             data: widget.data,
+            component: widget.component,
             loading: widget.loading,
             error: widget.error,
             title: widget.title,

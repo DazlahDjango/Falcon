@@ -1,5 +1,8 @@
 import { dashboardApiClient } from '../api/clients';
 
+// expose the underlying client as a named export for other modules
+export const apiClient = dashboardApiClient;
+
 // Retry wrapper for transient failures
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;

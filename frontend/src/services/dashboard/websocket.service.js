@@ -2,6 +2,7 @@
 
 import { WEBSOCKET_PATHS } from '../../config/constants/dashboardApiConstants';
 import { getAccessToken } from '../accounts/storage/secureStorage';
+import { websocketService } from '../websocket';
 
 // ===================== WEBSOCKET CHANNELS =====================
 
@@ -82,69 +83,59 @@ class DashboardWebSocketService {
       return false;
     }
 
+    // Validate dashboardType
+    if (!dashboardType || typeof dashboardType !== 'string') {
+      console.error('[WebSocket] Invalid dashboardType:', typeof dashboardType, dashboardType);
+      return false;
+    }
+
     this.currentDashboardType = dashboardType;
     const wsUrl = WEBSOCKET_PATHS.DASHBOARD(dashboardType);
-    this.socket = new WebSocket(`${wsUrl}?token=${token}`);
+    const key = `dashboard_${dashboardType}`;
 
-    this.socket.onopen = () => {
-      console.log(`[WebSocket] Connected to ${dashboardType} dashboard`);
-      this.reconnectAttempts = 0;
-      this.startHeartbeat();
-      this.notifyListeners(EVENT_TYPES.CONNECTION_ESTABLISHED, {
-        dashboardType,
-        timestamp: new Date().toISOString()
-      });
-    };
-
-    this.socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+    await websocketService.connect(
+      key,
+      wsUrl,
+      (data) => {
         if (data.type === EVENT_TYPES.PONG) return;
         if (onMessage) onMessage(data);
         this.notifyListeners(data.type, data);
-      } catch (error) {
-        console.error('[WebSocket] Message parse error:', error);
+      },
+      () => {
+        console.log(`[WebSocket] Connected to ${dashboardType} dashboard`);
+        this.reconnectAttempts = 0;
+        this.startHeartbeat();
+        this.notifyListeners(EVENT_TYPES.CONNECTION_ESTABLISHED, {
+          dashboardType,
+          timestamp: new Date().toISOString()
+        });
+      },
+      (error) => {
+        console.error('[WebSocket] Error:', error);
+        if (onError) onError(error);
+        this.notifyListeners(EVENT_TYPES.ERROR, { error });
+      },
+      (event) => {
+        console.log(`[WebSocket] Disconnected: ${event?.code} - ${event?.reason}`);
+        this.stopHeartbeat();
+        if (onClose) onClose(event);
+        // websocketService handles reconnect
       }
-    };
+    );
 
-    this.socket.onerror = (error) => {
-      console.error('[WebSocket] Error:', error);
-      if (onError) onError(error);
-      this.notifyListeners(EVENT_TYPES.ERROR, { error });
-    };
-
-    this.socket.onclose = (event) => {
-      console.log(`[WebSocket] Disconnected: ${event.code} - ${event.reason}`);
-      this.stopHeartbeat();
-      if (onClose) onClose(event);
-      this.reconnect(dashboardType, onMessage, onError, onClose);
-    };
-
+    this.connectionKey = key;
     return true;
   }
 
   reconnect(dashboardType, onMessage, onError, onClose) {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('[WebSocket] Max reconnect attempts reached');
-      this.notifyListeners(EVENT_TYPES.ERROR, { 
-        error: 'Max reconnect attempts reached',
-        fatal: true 
-      });
-      return;
-    }
-
-    this.reconnectAttempts++;
-    console.log(`[WebSocket] Reconnecting in ${this.reconnectDelay}ms (attempt ${this.reconnectAttempts})`);
-
-    setTimeout(() => {
-      this.connect(dashboardType, onMessage, onError, onClose);
-    }, this.reconnectDelay * this.reconnectAttempts);
+    // Deprecated: websocketService handles reconnect attempts
   }
 
   disconnect() {
     this.stopHeartbeat();
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.close();
+    if (this.connectionKey) {
+      websocketService.disconnect(this.connectionKey);
+      this.connectionKey = null;
     }
     this.socket = null;
     this.currentDashboardType = null;
@@ -155,12 +146,7 @@ class DashboardWebSocketService {
   // ===================== SEND METHODS =====================
 
   send(data) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(data));
-      return true;
-    }
-    console.warn('[WebSocket] Cannot send message: socket not open');
-    return false;
+    return websocketService.send(this.connectionKey, data);
   }
 
   refresh() {

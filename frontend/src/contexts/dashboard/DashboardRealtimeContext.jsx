@@ -53,8 +53,20 @@ export const DashboardRealtimeProvider = ({ children }) => {
   const [lastEvent, setLastEvent] = useState(null);
   const handlersRef = useRef({});
 
-  const isDashboardRoute = location.pathname.startsWith('/dashboard');
-  const activeType = dashboardRole || 'staff';
+  /** Stay connected for platform admins on config/billing/tenant routes (RoleBasedAppLayout). */
+  const isDashboardRoute =
+    location.pathname.startsWith('/dashboard')
+    || location.pathname.startsWith('/config')
+    || location.pathname.startsWith('/billing')
+    || location.pathname.startsWith('/tenants');
+  
+  // Ensure dashboardRole is a valid string
+  const validDashboardRole = (typeof dashboardRole === 'string' && dashboardRole) ? dashboardRole : null;
+  const activeType = validDashboardRole || 'staff';
+  
+  if (dashboardRole && typeof dashboardRole !== 'string') {
+    console.warn('[DashboardRealtimeContext] dashboardRole is not a string:', typeof dashboardRole, dashboardRole);
+  }
 
   const handleMessage = useCallback((message) => {
     setLastEvent(message);
@@ -73,7 +85,7 @@ export const DashboardRealtimeProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (!isDashboardRoute || !dashboardRole) {
+    if (!dashboardRole) {
       dashboardWebSocket.disconnect();
       setConnected(false);
       return undefined;
@@ -91,7 +103,7 @@ export const DashboardRealtimeProvider = ({ children }) => {
       dashboardWebSocket.disconnect();
       setConnected(false);
     };
-  }, [isDashboardRoute, dashboardRole, activeType, handleMessage, handleError]);
+  }, [dashboardRole, activeType, handleMessage, handleError]);
 
   const refresh = useCallback(() => {
     dashboardWebSocket.refresh();

@@ -10,7 +10,7 @@ class DashboardBasePermission(BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         tenant_id = getattr(request.user, 'tenant_id', None)
-        if not tenant_id:
+        if not tenant_id and request.user.role != 'super_admin':
             return False
         return True
     
@@ -256,7 +256,7 @@ class KpiSubmissionPermission(DashboardBasePermission):
         if not super().has_permission(request, view):
             return False
         
-        allowed_roles = ['staff', 'manager', 'supervisor']
+        allowed_roles = ['staff', 'manager', 'supervisor', 'client_admin', 'super_admin']
         
         if request.user.role not in allowed_roles:
             raise PermissionDenied(f"Role {request.user.role} cannot submit KPI data")

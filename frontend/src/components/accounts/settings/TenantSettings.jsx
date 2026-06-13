@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiSave, FiUpload, FiGlobe, FiUsers, FiClock, FiShield } from 'react-icons/fi';
-import { fetchTenantSettings, updateTenantSettings, updateTenantBranding } from '../../../store/accounts/slice/tenantSlice';
+import { FiSave, FiUpload, FiGlobe, FiUsers, FiClock, FiShield, FiCheck } from 'react-icons/fi';
+import { fetchTenantSettings, updateTenantSettings } from '../../../store/accounts/slice/tenantSlice';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import Spinner from '../../common/UI/Spinner';
 
 const TenantSettings = () => {
     const dispatch = useDispatch();
-    const { tenantSettings, isLoading } = useSelector((state) => state.tenant);
+    const { tenantSettings, isLoading } = useSelector((state) => state.tenant || {});
     const [formData, setFormData] = useState({
         name: '',
         logo_url: '',
@@ -18,9 +19,12 @@ const TenantSettings = () => {
         mfa_required_roles: []
     });
     const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+
     useEffect(() => {
         dispatch(fetchTenantSettings());
     }, [dispatch]);
+
     useEffect(() => {
         if (tenantSettings) {
             setFormData({
@@ -35,6 +39,7 @@ const TenantSettings = () => {
             });
         }
     }, [tenantSettings]);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -42,9 +47,11 @@ const TenantSettings = () => {
             [name]: type === 'checkbox' ? checked : value
         }));
     };
+
     const handleColorChange = (color) => {
         setFormData(prev => ({ ...prev, primary_color: color }));
     };
+
     const handleRoleToggle = (role) => {
         setFormData(prev => ({
             ...prev,
@@ -53,24 +60,40 @@ const TenantSettings = () => {
                 : [...prev.mfa_required_roles, role]
         }));
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
+        setSaved(false);
         try {
             await dispatch(updateTenantSettings(formData)).unwrap();
-            dispatch(showAlert({ type: 'success', message: 'Tenant settings updated successfuly' }));
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+            dispatch(showAlert({ type: 'success', message: 'Tenant settings updated successfully' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error.message || 'Failed to update settings'}));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to update settings' }));
         } finally {
             setSaving(false);
         }
     };
+
     const roles = [
         { value: 'executive', label: 'Executive' },
         { value: 'supervisor', label: 'Supervisor' },
         { value: 'staff', label: 'Staff' },
-        { value: 'read_only', label: 'Read Only' }
+        { value: 'read_only', label: 'Read Only' },
+        { value: 'dashboard_champion', label: 'Dashboard Champion' }
     ];
+
+    if (isLoading) {
+        return (
+            <div className="tenant-settings-loading">
+                <Spinner size="md" />
+                <p>Loading organization settings...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="tenant-settings">
             <div className="settings-header">
@@ -87,6 +110,7 @@ const TenantSettings = () => {
                         value={formData.name}
                         onChange={handleChange}
                         className="form-input"
+                        placeholder="Your Organization Name"
                     />
                 </div>
                 
@@ -106,6 +130,7 @@ const TenantSettings = () => {
                             Upload
                         </button>
                     </div>
+                    <small className="input-help">Enter URL for your organization logo</small>
                 </div>
                 
                 <div className="form-row">
@@ -185,8 +210,10 @@ const TenantSettings = () => {
                         value={formData.session_timeout_minutes}
                         onChange={handleChange}
                         className="form-input"
+                        min="5"
+                        max="1440"
                     />
-                    <small>Users will be logged out after inactivity</small>
+                    <small className="input-help">Users will be logged out after inactivity</small>
                 </div>
                 
                 <div className="form-group">
@@ -203,17 +230,18 @@ const TenantSettings = () => {
                             </label>
                         ))}
                     </div>
-                    <small>Selected roles will be required to enable MFA</small>
+                    <small className="input-help">Selected roles will be required to enable MFA</small>
                 </div>
                 
                 <div className="form-actions">
                     <button type="submit" className="btn btn-primary" disabled={saving}>
-                        <FiSave size={16} />
-                        {saving ? 'Saving...' : 'Save Settings'}
+                        {saving ? <Spinner size="sm" /> : saved ? <FiCheck /> : <FiSave size={16} />}
+                        {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
                     </button>
                 </div>
             </form>
         </div>
     );
 };
+
 export default TenantSettings;

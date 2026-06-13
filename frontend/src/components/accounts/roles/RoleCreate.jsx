@@ -9,15 +9,17 @@ import { showAlert } from '../../../store/accounts/slice/uiSlice';
 const RoleCreate = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
     const handleSubmit = async (formData) => {
         try {
             await dispatch(createRole(formData)).unwrap();
             dispatch(showAlert({ type: 'success', message: 'Role created successfully' }));
             navigate('/roles');
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error.message || 'Failed to create role' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to create role' }));
         }
     };
+
     return (
         <div className="role-form-page">
             <div className="page-header">
@@ -35,4 +37,5 @@ const RoleCreate = () => {
         </div>
     );
 };
+
 export default RoleCreate;

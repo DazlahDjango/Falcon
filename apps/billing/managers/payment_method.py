@@ -2,9 +2,6 @@ from django.db import models
 from .base import BaseBillingManager, TenantAwareManager
 
 class PaymentMethodManager(TenantAwareManager):
-    def __init__(self, tenant_id=None, *args, **kwargs):
-        super().__init__(tenant_id, *args, **kwargs)
-    
     def active(self):
         """Return active payment methods."""
         return self.get_queryset().filter(status__in=['active', 'default'])

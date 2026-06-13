@@ -1,0 +1,123 @@
+/* Billing Breadcrumb */
+.billing-breadcrumb {
+    padding: 12px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.billing-breadcrumb-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.billing-breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.billing-breadcrumb-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.billing-breadcrumb-link:hover {
+    color: #3b82f6;
+}
+
+.billing-breadcrumb-current {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.billing-breadcrumb-separator {
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+}
+
+.billing-breadcrumb-home-text {
+    margin-left: 4px;
+}
+
+@media (max-width: 640px) {
+    .billing-breadcrumb-home-text {
+        display: none;
+    }
+}
+
+/* Billing Shell */
+.billing-shell {
+    padding: 24px;
+    min-height: calc(100vh - 60px);
+}
+
+.billing-shell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.billing-shell-title-section {
+    flex: 1;
+}
+
+.billing-shell-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+}
+
+.billing-shell-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.billing-shell-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.billing-shell-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .billing-shell {
+        padding: 16px;
+    }
+
+    .billing-shell-title {
+        font-size: 24px;
+    }
+}

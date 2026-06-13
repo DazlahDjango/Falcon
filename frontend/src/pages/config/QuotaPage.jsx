@@ -29,3 +29,4 @@ export const QuotaPage = () => {
     </div>
   );
 };
+export default QuotaPage;

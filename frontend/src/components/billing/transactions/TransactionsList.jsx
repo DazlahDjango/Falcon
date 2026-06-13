@@ -1,159 +1,89 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { TransactionRow } from './TransactionRow';
-import { TransactionFilter } from './TransactionFilter';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiSearch, FiFilter, FiChevronLeft, FiChevronRight, FiDownload, FiRefreshCw, FiDollarSign, FiActivity, FiCheckCircle, FiXCircle, FiClock } from 'react-icons/fi';
+import { BillingShell } from '../common/BillingShell';
+import { BillingCard } from '../shared/BillingCard';
+import { StatusBadge } from '../shared/StatusBadge';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
-import { renderBillingIcon } from '../shared/BillingIcons';
-import { useTransactions } from '../../../hooks/billing';
+import { useTransactions } from '../../../hooks/billing/useTransactions';
+import { useBillingPermissions } from '../../../hooks/billing/useBillingPermissions';
+import { TransactionFilter } from './TransactionFilter';
+import { TransactionRow } from './TransactionRow';
+import './transactions.css';
 
-export const TransactionsList = ({ 
-    limit = null,
-    showFilter = true,
-    onTransactionClick,
-    className = '' 
-}) => {
-    const {
-        transactions,
-        loading,
-        error,
-        summary,
-        totalCount,
-        currentPage,
-        totalPages,
-        filters,
-        updateFilters,
-        clearFilters,
-        goToPage,
-        verifyTransaction,
-    } = useTransactions();
+export const TransactionsList = () => {
+    const navigate = useNavigate();
+    const { permissions } = useBillingPermissions();
+    const { transactions, pagination, summary, loading, fetchAll, setPage, setPageSize, applyFilters, filters, exportTransactions } = useTransactions({ autoFetch: false });
+    const [showFilters, setShowFilters] = useState(false);
+    const [localFilters, setLocalFilters] = useState(filters);
+    const [exporting, setExporting] = useState(false);
 
-    const [verifyingId, setVerifyingId] = useState(null);
+    useEffect(() => { fetchAll({ page: pagination.page, pageSize: pagination.pageSize, filters }); }, [pagination.page, pagination.pageSize, filters, fetchAll]);
 
-    const displayedTransactions = limit ? transactions.slice(0, limit) : transactions;
+    const handleFilterApply = () => { applyFilters(localFilters); setShowFilters(false); };
+    const handleFilterClear = () => { setLocalFilters({ status: null, type: null, startDate: null, endDate: null, reference: null }); applyFilters({ status: null, type: null, startDate: null, endDate: null, reference: null }); };
+    const handleExport = async () => { setExporting(true); await exportTransactions(); setExporting(false); };
+    const handleViewDetails = (id) => navigate(`/billing/transactions/${id}`);
 
-    const handleVerify = async (reference) => {
-        setVerifyingId(reference);
-        try {
-            await verifyTransaction(reference);
-        } finally {
-            setVerifyingId(null);
-        }
-    };
+    const stats = [
+        { label: 'Total Transactions', value: pagination.total, icon: FiActivity, color: '#3b82f6' },
+        { label: 'Successful', value: summary?.successful_transactions || 0, icon: FiCheckCircle, color: '#22c55e' },
+        { label: 'Failed', value: summary?.failed_transactions || 0, icon: FiXCircle, color: '#dc2626' },
+        { label: 'Total Volume', value: summary?.total_spent || 0, icon: FiDollarSign, color: '#8b5cf6', isCurrency: true }
+    ];
 
-    if (loading && transactions.length === 0) {
-        return <LoadingSkeleton type="list" count={limit || 10} />;
-    }
-
-    if (error) {
-        return (
-            <EmptyState 
-                title="Unable to load transactions"
-                message={error}
-                icon={renderBillingIcon('warning', { size: 40 })}
-            />
-        );
-    }
-
-    if (transactions.length === 0) {
-        return (
-            <EmptyState 
-                title="No transactions found"
-                message="Your transaction history will appear here"
-                icon={renderBillingIcon('noTransactions', { size: 40 })}
-            />
-        );
-    }
+    if (loading && transactions.length === 0) return <LoadingSkeleton type="table" count={1} />;
 
     return (
-        <div className={`transactions-container ${className}`}>
-            {summary && (
-                <div className="transactions-summary">
-                    <div className="transactions-summary-card">
-                        <span className="transactions-summary-label">Total Spent</span>
-                        <span className="transactions-summary-value">
-                            KES {((summary.total_spent || 0) / 100).toLocaleString()}
-                        </span>
-                    </div>
-                    <div className="transactions-summary-card">
-                        <span className="transactions-summary-label">Successful</span>
-                        <span className="transactions-summary-value success">
-                            {summary.successful || 0}
-                        </span>
-                    </div>
-                    <div className="transactions-summary-card">
-                        <span className="transactions-summary-label">Failed</span>
-                        <span className="transactions-summary-value failed">
-                            {summary.failed || 0}
-                        </span>
-                    </div>
-                    <div className="transactions-summary-card">
-                        <span className="transactions-summary-label">Pending</span>
-                        <span className="transactions-summary-value pending">
-                            {summary.pending || 0}
-                        </span>
-                    </div>
+        <BillingShell title="Transactions" subtitle="View and manage all your payment transactions">
+            <div className="transactions-container">
+                <div className="transactions-stats-grid">
+                    {stats.map((stat, index) => (
+                        <div key={index} className="transaction-stat-card" style={{ borderTopColor: stat.color }}>
+                            <div className="transaction-stat-header"><span className="transaction-stat-label">{stat.label}</span><stat.icon className="transaction-stat-icon" style={{ color: stat.color }} /></div>
+                            <div className="transaction-stat-value">{stat.isCurrency ? <CurrencyFormatter amount={stat.value} showCents={false} /> : stat.value}</div>
+                        </div>
+                    ))}
                 </div>
-            )}
 
-            {showFilter && (
-                <TransactionFilter 
-                    filters={filters}
-                    onFilterChange={updateFilters}
-                    onClear={clearFilters}
-                />
-            )}
+                <BillingCard title="Transaction History" icon={<FiActivity />} headerAction={
+                    <div className="transactions-header-actions">
+                        <button className="transactions-filter-btn" onClick={() => setShowFilters(!showFilters)}><FiFilter /> Filter</button>
+                        <button className="transactions-export-btn" onClick={handleExport} disabled={exporting}><FiDownload /> {exporting ? 'Exporting...' : 'Export'}</button>
+                        <button className="transactions-refresh-btn" onClick={() => fetchAll({ page: pagination.page, pageSize: pagination.pageSize, filters })}><FiRefreshCw /> Refresh</button>
+                    </div>
+                }>
+                    <TransactionFilter filters={localFilters} onChange={setLocalFilters} onApply={handleFilterApply} onClear={handleFilterClear} show={showFilters} />
 
-            <div className="transactions-list">
-                <div className="transactions-list-header">
-                    <div className="transaction-header-reference">Reference</div>
-                    <div className="transaction-header-type">Type</div>
-                    <div className="transaction-header-date">Date</div>
-                    <div className="transaction-header-amount">Amount</div>
-                    <div className="transaction-header-status">Status</div>
-                    <div className="transaction-header-actions">Actions</div>
-                </div>
-                {displayedTransactions.map((transaction) => (
-                    <TransactionRow
-                        key={transaction.id}
-                        transaction={transaction}
-                        onClick={() => onTransactionClick?.(transaction.id)}
-                        onVerify={() => handleVerify(transaction.reference)}
-                        verifying={verifyingId === transaction.reference}
-                    />
-                ))}
+                    {transactions.length === 0 ? <EmptyState type="transactions" /> : (
+                        <div className="transactions-table-container">
+                            <table className="transactions-table">
+                                <thead>
+                                    <tr><th>Reference</th><th>Date</th><th>Type</th><th>Amount</th><th>Status</th><th>Payment Method</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody>
+                                    {transactions.map(tx => (
+                                        <TransactionRow key={tx.id} transaction={tx} onViewDetails={() => handleViewDetails(tx.id)} />
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {pagination.total > pagination.pageSize && (
+                        <div className="transactions-pagination">
+                            <button disabled={pagination.page === 1} onClick={() => setPage(pagination.page - 1)}><FiChevronLeft /></button>
+                            <span>Page {pagination.page} of {Math.ceil(pagination.total / pagination.pageSize)} ({pagination.total} transactions)</span>
+                            <button disabled={pagination.page >= Math.ceil(pagination.total / pagination.pageSize)} onClick={() => setPage(pagination.page + 1)}><FiChevronRight /></button>
+                        </div>
+                    )}
+                </BillingCard>
             </div>
-
-            {!limit && totalPages > 1 && (
-                <div className="transactions-pagination">
-                    <button
-                        className="pagination-btn"
-                        disabled={currentPage === 1}
-                        onClick={() => goToPage(currentPage - 1)}
-                    >
-                        Previous
-                    </button>
-                    <span className="pagination-info">
-                        Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                        className="pagination-btn"
-                        disabled={currentPage === totalPages}
-                        onClick={() => goToPage(currentPage + 1)}
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
-        </div>
+        </BillingShell>
     );
-};
-
-TransactionsList.propTypes = {
-    limit: PropTypes.number,
-    showFilter: PropTypes.bool,
-    onTransactionClick: PropTypes.func,
-    className: PropTypes.string,
 };
 
 export default TransactionsList;

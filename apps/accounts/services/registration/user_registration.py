@@ -7,6 +7,7 @@ from django.conf import settings
 from apps.accounts.models import User, UserPreference, Profile, AuditLog
 from apps.accounts.services.auth.password import PasswordService
 from apps.accounts.services.audit.logger import AuditService
+
 logger = logging.getLogger(__name__)
 
 class UserRegistrationService:
@@ -19,8 +20,8 @@ class UserRegistrationService:
             return None, 'Email, username and password is required'
         if User.objects.filter(email__iexact=email).exists():
             return None, 'This email already exists'
-        if User.objects.filter(email__iexact=username).exists():
-            return None, 'This email user already exists'
+        if User.objects.filter(username__iexact=username).exists():
+            return None, 'This username already exists'
         is_valid, errors = self.password_service.validate_password(password)
         if not is_valid:
             return None, errors[0]
@@ -34,7 +35,7 @@ class UserRegistrationService:
                 last_name=last_name.strip(),
                 role=role,
                 is_verified=False,
-                is_onboarded = False
+                is_onboarded=False
             )
             Profile.objects.create(
                 user=user,
@@ -58,11 +59,12 @@ class UserRegistrationService:
         if not user:
             return False, 'Invalid or expired verification token'
         user.is_verified = True
-        user.save(updated_fields=['is_verified'])
+        # FIXED: changed 'updated_fields' to 'update_fields'
+        user.save(update_fields=['is_verified'])
         self.audit_service.log(
             user=user, action='user.email_verified', action_type='update', severity='info'
         )
-        return True, 'Email verified successful'
+        return True, 'Email verified successfully'
     
     def complete_onboarding(self, user: User, request=None) -> Tuple[bool, str]:
         try:
@@ -71,7 +73,7 @@ class UserRegistrationService:
             self.audit_service.log(
                 user=user, action='user.onboarded', action_type='update', request=request, severity='info'
             )
-            return True, 'Onboading  completed'
+            return True, 'Onboarding completed'
         except Exception as e:
             logger.error(f"Onboarding error: {str(e)}")
             return False, 'Unable to complete onboarding'
@@ -91,20 +93,20 @@ class UserRegistrationService:
         
     def _send_verification_email(self, user: User):
         token = self._generate_verification_token(user)
-        subject = 'verifiy your email'
+        subject = 'Verify your email'
         context = {
             'user': user,
             'token': token,
             'verification_url': f"{settings.FRONTEND_URL}/verify-email?token={token}"
         }
-        html_context = render_to_string('accounts/email/welcome.html', context)
+        html_content = render_to_string('accounts/email/welcome.html', context)
         text_content = f"Click the link to verify your email: {context['verification_url']}"
         send_mail(
             subject=subject,
             message=text_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
-            html_message=html_context,
+            html_message=html_content,
             fail_silently=False
         )
     
@@ -130,4 +132,3 @@ class UserRegistrationService:
             return User.objects.get(id=user_id, is_active=True)
         except User.DoesNotExist:
             return None
-        

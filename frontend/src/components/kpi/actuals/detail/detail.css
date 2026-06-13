@@ -1,0 +1,295 @@
+/* Actual Detail Styles */
+.kpi-actual-detail {
+    padding: var(--kpi-space-4);
+}
+
+.kpi-actual-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--kpi-space-6);
+}
+
+.kpi-actual-detail-back {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    background: transparent;
+    border: none;
+    color: var(--kpi-gray-600);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-actual-detail-back:hover {
+    color: var(--kpi-primary);
+}
+
+.kpi-actual-detail-actions {
+    display: flex;
+    gap: var(--kpi-space-3);
+}
+
+.kpi-actual-detail-approve,
+.kpi-actual-detail-reject,
+.kpi-actual-detail-escalate,
+.kpi-actual-detail-resubmit {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-2) var(--kpi-space-4);
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-actual-detail-approve {
+    background: var(--kpi-success);
+    color: white;
+}
+
+.kpi-actual-detail-approve:hover {
+    background: var(--kpi-success-dark);
+}
+
+.kpi-actual-detail-reject {
+    background: var(--kpi-danger);
+    color: white;
+}
+
+.kpi-actual-detail-reject:hover {
+    background: var(--kpi-danger-dark);
+}
+
+.kpi-actual-detail-escalate {
+    background: var(--kpi-warning);
+    color: white;
+}
+
+.kpi-actual-detail-escalate:hover {
+    background: var(--kpi-warning-dark);
+}
+
+.kpi-actual-detail-resubmit {
+    background: var(--kpi-primary);
+    color: white;
+}
+
+.kpi-actual-detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-5);
+}
+
+/* Info Card */
+.kpi-actual-info-card,
+.kpi-actual-evidence-card,
+.kpi-actual-validations-card {
+    background: white;
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-space-5);
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+.kpi-actual-info-card h3,
+.kpi-actual-evidence-card h3,
+.kpi-actual-validations-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--kpi-space-4);
+    padding-bottom: var(--kpi-space-2);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.kpi-actual-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--kpi-space-4);
+}
+
+.kpi-actual-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-1);
+}
+
+.kpi-actual-info-label {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--kpi-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.kpi-actual-info-value {
+    font-size: 0.875rem;
+    color: var(--kpi-gray-900);
+}
+
+.kpi-actual-info-highlight {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--kpi-primary);
+}
+
+.kpi-actual-info-notes {
+    margin-top: var(--kpi-space-4);
+    padding-top: var(--kpi-space-4);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+/* Evidence */
+.kpi-actual-evidence-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-3);
+}
+
+.kpi-actual-evidence-item {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-3);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-md);
+}
+
+.kpi-actual-evidence-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: var(--kpi-radius-md);
+    color: var(--kpi-gray-600);
+}
+
+.kpi-actual-evidence-info {
+    flex: 1;
+}
+
+.kpi-actual-evidence-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.kpi-actual-evidence-meta {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.kpi-actual-evidence-actions {
+    display: flex;
+    gap: var(--kpi-space-2);
+}
+
+.kpi-actual-evidence-view,
+.kpi-actual-evidence-download {
+    padding: var(--kpi-space-1) var(--kpi-space-2);
+    background: white;
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-sm);
+    cursor: pointer;
+    transition: var(--kpi-transition-base);
+}
+
+.kpi-actual-evidence-view:hover,
+.kpi-actual-evidence-download:hover {
+    background: var(--kpi-gray-100);
+}
+
+.kpi-actual-evidence-empty,
+.kpi-actual-validations-empty {
+    color: var(--kpi-gray-500);
+    font-size: 0.875rem;
+    text-align: center;
+    padding: var(--kpi-space-4);
+}
+
+/* Validations */
+.kpi-actual-validations-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-4);
+}
+
+.kpi-actual-validation-item {
+    padding: var(--kpi-space-3);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-md);
+}
+
+.kpi-actual-validation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--kpi-space-2);
+}
+
+.kpi-actual-validation-status {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+}
+
+.kpi-actual-validation-status span {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.kpi-actual-validation-status span.approved {
+    color: var(--kpi-success);
+}
+
+.kpi-actual-validation-status span.rejected {
+    color: var(--kpi-danger);
+}
+
+.kpi-actual-validation-date {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-1);
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.kpi-actual-validation-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-1);
+    font-size: 0.75rem;
+    color: var(--kpi-gray-600);
+}
+
+.kpi-actual-validation-validator,
+.kpi-actual-validation-reason,
+.kpi-actual-validation-comment {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+}
+
+@media (max-width: 768px) {
+    .kpi-actual-detail-header {
+        flex-direction: column;
+        gap: var(--kpi-space-4);
+        align-items: stretch;
+    }
+    
+    .kpi-actual-detail-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .kpi-actual-info-grid {
+        grid-template-columns: 1fr;
+    }
+}

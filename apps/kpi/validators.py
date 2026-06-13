@@ -1,4 +1,6 @@
 from decimal import Decimal
+from typing import List, Tuple, Dict
+from datetime import date
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -214,3 +216,341 @@ class DateRangeValidator:
             raise ValidationError({
                 self.end_field: _("End date cannot be before start date.")
             })
+        
+# Add to existing validators.py
+
+# ============================================================================
+# Budget & Cascade Validators
+# ============================================================================
+
+def validate_budget_allocation(budget_items: List[Dict], total_budget: Decimal) -> Tuple[bool, str, Decimal]:
+    """
+    Validate budget allocation sums to total budget
+    Returns: (is_valid, error_message, total_allocated)
+    """
+    total_allocated = Decimal('0')
+    
+    for item in budget_items:
+        amount = Decimal(str(item.get('amount', 0)))
+        if amount < 0:
+            return False, f"Budget amount cannot be negative: {item.get('name', 'Unknown')}", total_allocated
+        total_allocated += amount
+    
+    if abs(total_allocated - total_budget) > Decimal('0.01'):
+        return False, f"Budget allocation sum ({total_allocated}) does not equal total budget ({total_budget})", total_allocated
+    
+    return True, "", total_allocated
+
+
+def validate_cascade_weights(weights: Dict[str, Decimal], total: Decimal = Decimal('100')) -> Tuple[bool, str, Decimal]:
+    """
+    Validate cascade weights sum to 100%
+    Returns: (is_valid, error_message, total_weight)
+    """
+    total_weight = sum(weights.values())
+    
+    if abs(total_weight - total) > Decimal('0.01'):
+        return False, f"Cascade weights sum to {total_weight}%, must be {total}%", total_weight
+    
+    # Check individual weights
+    for entity_id, weight in weights.items():
+        if weight < 0:
+            return False, f"Weight for {entity_id} cannot be negative", total_weight
+        if weight > total:
+            return False, f"Weight for {entity_id} exceeds {total}%", total_weight
+    
+    return True, "", total_weight
+
+
+def validate_department_budget(department_id: str, allocated_budget: Decimal, total_org_budget: Decimal) -> Tuple[bool, str]:
+    """
+    Validate department budget against organization budget
+    """
+    if allocated_budget < 0:
+        return False, "Department budget cannot be negative"
+    
+    if allocated_budget > total_org_budget:
+        return False, f"Department budget ({allocated_budget}) exceeds organization budget ({total_org_budget})"
+    
+    return True, ""
+
+
+# ============================================================================
+# Cross-Model Validators
+# ============================================================================
+
+def validate_unique_constraints(model, fields: Dict, exclude_id: str = None) -> Tuple[bool, str]:
+    """
+    Validate unique constraints across model
+    """
+    queryset = model.objects.filter(**fields)
+    if exclude_id:
+        queryset = queryset.exclude(id=exclude_id)
+    
+    if queryset.exists():
+        field_names = ', '.join(fields.keys())
+        return False, f"A record with these {field_names} already exists"
+    
+    return True, ""
+
+
+def validate_referential_integrity(model, field_name: str, value: str, error_message: str = None) -> Tuple[bool, str]:
+    """
+    Validate that referenced record exists
+    """
+    try:
+        model.objects.get(id=value)
+        return True, ""
+    except model.DoesNotExist:
+        message = error_message or f"Referenced {model.__name__} does not exist: {value}"
+        return False, message
+
+
+# ============================================================================
+# Date & Period Validators
+# ============================================================================
+
+def validate_date_range(start_date: date, end_date: date, allow_same: bool = True) -> Tuple[bool, str]:
+    """
+    Validate date range (start <= end)
+    """
+    if not start_date or not end_date:
+        return False, "Both start and end dates are required"
+    
+    if start_date > end_date:
+        return False, f"Start date ({start_date}) cannot be after end date ({end_date})"
+    
+    if not allow_same and start_date == end_date:
+        return False, "Start and end dates must be different"
+    
+    return True, ""
+
+
+def validate_period_overlap(start_date: date, end_date: date, existing_ranges: List[Tuple[date, date]]) -> Tuple[bool, str]:
+    """
+    Validate that period does not overlap with existing periods
+    """
+    for existing_start, existing_end in existing_ranges:
+        if not (end_date < existing_start or start_date > existing_end):
+            return False, f"Period overlaps with existing period: {existing_start} to {existing_end}"
+    
+    return True, ""
+
+
+def validate_fiscal_period(year: int, month: int, fiscal_start_month: int = 1) -> Tuple[bool, str]:
+    """
+    Validate period is within fiscal year
+    """
+    if fiscal_start_month == 1:
+        return True, ""
+    
+    fiscal_year_start = date(year, fiscal_start_month, 1)
+    fiscal_year_end = date(year + 1, fiscal_start_month - 1, 1) if fiscal_start_month > 1 else date(year, 12, 31)
+    
+    period_date = date(year, month, 1)
+    
+    if period_date < fiscal_year_start or period_date > fiscal_year_end:
+        return False, f"Period {year}-{month:02d} is outside fiscal year {fiscal_year_start.year}-{fiscal_year_end.year}"
+    
+    return True, ""
+
+
+# ============================================================================
+# KPI Specific Validators
+# ============================================================================
+
+def validate_kpi_dependencies(source_kpi_id: str, target_kpi_id: str) -> Tuple[bool, str]:
+    """
+    Validate KPI dependency relationship (no self-reference)
+    """
+    if source_kpi_id == target_kpi_id:
+        return False, "A KPI cannot depend on itself"
+    
+    return True, ""
+
+
+def validate_kpi_formula(formula: Dict) -> Tuple[bool, List[str]]:
+    """
+    Validate KPI formula structure
+    """
+    errors = []
+    
+    if not isinstance(formula, dict):
+        errors.append("Formula must be a JSON object")
+        return False, errors
+    
+    required_fields = ['type', 'expression']
+    for field in required_fields:
+        if field not in formula:
+            errors.append(f"Formula missing required field: {field}")
+    
+    # Validate formula type
+    allowed_types = ['simple', 'weighted', 'custom']
+    if formula.get('type') not in allowed_types:
+        errors.append(f"Invalid formula type. Must be one of: {', '.join(allowed_types)}")
+    
+    # Validate expression
+    if 'expression' in formula and not isinstance(formula['expression'], str):
+        errors.append("Formula expression must be a string")
+    
+    return len(errors) == 0, errors
+
+
+# ============================================================================
+# Weight & Score Validators
+# ============================================================================
+
+def validate_weight_distribution(weights: List[Decimal], total: Decimal = Decimal('100')) -> Tuple[bool, str, Decimal]:
+    """
+    Validate weight distribution across KPIs
+    """
+    if not weights:
+        return False, "No weights provided", Decimal('0')
+    
+    total_weight = sum(weights)
+    
+    if abs(total_weight - total) > Decimal('0.01'):
+        return False, f"Weight sum ({total_weight}) does not equal required total ({total})", total_weight
+    
+    # Check individual weights
+    for idx, weight in enumerate(weights):
+        if weight < 0:
+            return False, f"Weight at index {idx} is negative", total_weight
+        if weight > total:
+            return False, f"Weight at index {idx} exceeds {total}%", total_weight
+    
+    return True, "", total_weight
+
+
+def validate_score_calculation(actual: Decimal, target: Decimal, logic: str) -> Tuple[bool, str, Decimal]:
+    """
+    Validate score calculation inputs
+    """
+    if target == 0:
+        return False, "Target cannot be zero", Decimal('0')
+    
+    if actual < 0:
+        return False, "Actual value cannot be negative", Decimal('0')
+    
+    if logic not in ['HIGHER_IS_BETTER', 'LOWER_IS_BETTER']:
+        return False, f"Invalid calculation logic: {logic}", Decimal('0')
+    
+    # Calculate expected score range
+    if logic == 'HIGHER_IS_BETTER':
+        score = (actual / target) * 100
+    else:
+        score = (target / actual) * 100 if actual > 0 else Decimal('0')
+    
+    if score < 0 or score > 100:
+        return False, f"Calculated score {score} is outside valid range (0-100)", score
+    
+    return True, "", score
+
+
+# ============================================================================
+# Performance Threshold Validators
+# ============================================================================
+
+def validate_thresholds(green_threshold: Decimal, yellow_threshold: Decimal) -> Tuple[bool, str]:
+    """
+    Validate traffic light thresholds
+    """
+    if green_threshold <= yellow_threshold:
+        return False, f"Green threshold ({green_threshold}) must be greater than yellow threshold ({yellow_threshold})"
+    
+    if yellow_threshold < 0:
+        return False, f"Yellow threshold cannot be negative: {yellow_threshold}"
+    
+    if green_threshold > 100:
+        return False, f"Green threshold cannot exceed 100: {green_threshold}"
+    
+    if yellow_threshold > 100:
+        return False, f"Yellow threshold cannot exceed 100: {yellow_threshold}"
+    
+    return True, ""
+
+
+def validate_performance_targets(min_target: Decimal, max_target: Decimal, kpi_type: str = None) -> Tuple[bool, str]:
+    """
+    Validate performance targets based on KPI type
+    """
+    if min_target is not None and max_target is not None:
+        if min_target > max_target:
+            return False, f"Minimum target ({min_target}) cannot be greater than maximum target ({max_target})"
+    
+    if kpi_type == 'PERCENTAGE':
+        if min_target is not None and min_target > 100:
+            return False, f"Percentage minimum target cannot exceed 100: {min_target}"
+        if max_target is not None and max_target > 100:
+            return False, f"Percentage maximum target cannot exceed 100: {max_target}"
+    
+    if min_target is not None and min_target < 0:
+        return False, f"Target cannot be negative: {min_target}"
+    
+    return True, ""
+
+
+# ============================================================================
+# Import/Export Validators
+# ============================================================================
+
+def validate_csv_headers(headers: List[str], required_headers: List[str]) -> Tuple[bool, List[str]]:
+    """
+    Validate CSV file headers
+    """
+    missing = [h for h in required_headers if h not in headers]
+    if missing:
+        return False, missing
+    
+    return True, []
+
+
+def validate_csv_row(row: Dict, required_fields: List[str], field_validators: Dict = None) -> Tuple[bool, List[str]]:
+    """
+    Validate CSV row data
+    """
+    errors = []
+    
+    for field in required_fields:
+        if field not in row or not row[field]:
+            errors.append(f"Missing required field: {field}")
+    
+    if field_validators:
+        for field, validator in field_validators.items():
+            if field in row and row[field]:
+                try:
+                    valid, error = validator(row[field])
+                    if not valid:
+                        errors.append(f"Field '{field}': {error}")
+                except Exception as e:
+                    errors.append(f"Field '{field}': {str(e)}")
+    
+    return len(errors) == 0, errors
+
+
+# ============================================================================
+# Bulk Operation Validators
+# ============================================================================
+
+def validate_batch_size(items: List, max_size: int = 1000) -> Tuple[bool, str]:
+    if len(items) > max_size:
+        return False, f"Batch size ({len(items)}) exceeds maximum allowed ({max_size})"
+    return True,
+
+
+def validate_batch_items(items: List, required_fields: List[str]) -> Tuple[bool, List[Dict]]:
+    """
+    Validate each item in a batch
+    """
+    errors = []
+    
+    for idx, item in enumerate(items):
+        missing = [f for f in required_fields if f not in item or not item[f]]
+        if missing:
+            errors.append({
+                'index': idx,
+                'missing_fields': missing,
+                'item': item
+            })
+    
+    return len(errors) == 0, errors

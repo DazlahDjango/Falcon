@@ -5,6 +5,13 @@ import { ExecutiveDepartments } from './ExecutiveDepartments';
 import { ExecutiveTrends } from './ExecutiveTrends';
 import { ExecutiveAlerts } from './ExecutiveAlerts';
 import { useExecutiveDashboard } from '../../../hooks/dashboard/useExecutiveDashboard';
+import {
+  fetchExecutiveDashboard,
+  fetchExecutiveDepartments,
+  fetchExecutiveTrends,
+  fetchExecutiveIssues,
+} from '../../../store/dashboard/slices/dashboardSlice';
+import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const ExecutiveDashboard = () => {
   const {

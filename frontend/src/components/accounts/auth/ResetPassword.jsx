@@ -12,18 +12,21 @@ const ResetPassword = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const token = searchParams.get('token');
+    
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPassowrd, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [errors, setErrors] = useState({});
+
     useEffect(() => {
         if (!token) {
             dispatch(showAlert({ type: 'error', message: 'Invalid or missing reset token' }));
             navigate('/forgot-password');
         }
     }, [token, navigate, dispatch]);
+
     const validateForm = () => {
         const newErrors = {};
         
@@ -34,25 +37,29 @@ const ResetPassword = () => {
         if (password !== confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
         }
+        
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
+        
         setIsLoading(true);
         try {
-            await dispatch(resetPassword({ token, password, confirm_password: confirmPassword })).unwrap();
+            await dispatch(resetPassword({ token, new_password: password, confirm_password: confirmPassword })).unwrap();
             setSubmitted(true);
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
         } catch (err) {
-            dispatch(showAlert({ type: 'error', message: err.message || 'Failed to reset password' }));
+            dispatch(showAlert({ type: 'error', message: err || 'Failed to reset password' }));
         } finally {
             setIsLoading(false);
         }
     };
+
     if (submitted) {
         return (
             <div className="auth-page">
@@ -70,12 +77,14 @@ const ResetPassword = () => {
             </div>
         );
     }
+
     return (
         <div className="auth-page">
             <div className="auth-header-text">
                 <h2>Create New Password</h2>
                 <p>Enter a new password for your account</p>
             </div>
+            
             <form onSubmit={handleSubmit} className="auth-form">
                 <div className="form-group">
                     <label htmlFor="password">New Password</label>
@@ -98,8 +107,10 @@ const ResetPassword = () => {
                         </button>
                     </div>
                     {errors.password && <div className="input-feedback error">{errors.password}</div>}
-                </div> 
+                </div>
+                
                 <PasswordStrength password={password} />
+                
                 <div className="form-group">
                     <label htmlFor="confirmPassword">Confirm Password</label>
                     <div className="input-wrapper">
@@ -115,6 +126,7 @@ const ResetPassword = () => {
                     </div>
                     {errors.confirmPassword && <div className="input-feedback error">{errors.confirmPassword}</div>}
                 </div>
+                
                 <button type="submit" className="btn btn-primary btn-block" disabled={isLoading}>
                     {isLoading ? <Spinner size="sm" /> : 'Reset Password'}
                 </button>
@@ -122,4 +134,5 @@ const ResetPassword = () => {
         </div>
     );
 };
+
 export default ResetPassword;

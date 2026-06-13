@@ -1,67 +1,63 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiChevronRight, FiHome } from 'react-icons/fi';
-import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
+import { FiHome, FiChevronRight } from 'react-icons/fi';
+import './common.css';
 
-const SEGMENT_LABELS = {
-    billing: 'Billing',
-    portal: 'Overview',
-    plans: 'Plans',
-    checkout: 'Checkout',
-    success: 'Success',
-    cancel: 'Cancelled',
-    subscriptions: 'Subscriptions',
-    upgrade: 'Upgrade',
-    invoices: 'Invoices',
-    transactions: 'Transactions',
+const BREADCRUMB_MAP = {
+    'plans': 'Plans',
+    'subscriptions': 'Subscriptions',
+    'invoices': 'Invoices',
+    'transactions': 'Transactions',
     'payment-methods': 'Payment Methods',
-    settings: 'Settings',
-    admin: 'Admin',
-    refunds: 'Refunds',
-    webhooks: 'Webhooks',
-    analytics: 'Analytics',
-    reports: 'Reports',
-    revenue: 'Revenue',
-    tax: 'Tax',
-    'platform-settings': 'Platform Settings',
+    'portal': 'Billing Portal',
+    'analytics': 'Analytics',
+    'admin': 'Admin',
+    'webhooks': 'Webhooks',
+    'settings': 'Settings',
+    'checkout': 'Checkout',
+    'success': 'Success',
+    'cancel': 'Cancelled',
+    'upgrade': 'Upgrade Plan',
+    'downgrade': 'Downgrade Plan',
+    'cancel-subscription': 'Cancel Subscription',
+    'usage': 'Usage Tracking',
+    'audit': 'Audit Logs',
+    'enterprise': 'Enterprise',
 };
 
-export const BillingBreadcrumb = () => {
-    const { pathname } = useLocation();
-    const parts = pathname.split('/').filter(Boolean);
+export const BillingBreadcrumb = ({ items, separator = <FiChevronRight size={14} />, className = '' }) => {
+    const location = useLocation();
+    const pathSegments = location.pathname.split('/').filter(seg => seg && seg !== 'billing');
 
-    if (!parts.includes('billing')) {
-        return null;
-    }
+    const breadcrumbItems = items || pathSegments.map((segment, index) => {
+        const path = `/billing/${pathSegments.slice(0, index + 1).join('/')}`;
+        const isLast = index === pathSegments.length - 1;
+        const label = BREADCRUMB_MAP[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
 
-    const crumbs = [];
-    let acc = '';
-    parts.forEach((part, idx) => {
-        acc += `/${part}`;
-        const isLast = idx === parts.length - 1;
-        const label = SEGMENT_LABELS[part] || (part.length > 20 ? `${part.slice(0, 8)}…` : part);
-        crumbs.push({
-            path: acc,
-            label,
-            isLast,
-        });
+        return { label, path, isLast };
     });
 
     return (
-        <nav className="billing-breadcrumb" aria-label="Billing breadcrumb">
-            <Link to={BILLING_ROUTES.PORTAL} className="billing-breadcrumb-home">
-                <FiHome size={14} />
-            </Link>
-            {crumbs.map((crumb) => (
-                <span key={crumb.path} className="billing-breadcrumb-segment">
-                    <FiChevronRight size={12} className="billing-breadcrumb-chevron" />
-                    {crumb.isLast ? (
-                        <span className="billing-breadcrumb-current">{crumb.label}</span>
-                    ) : (
-                        <Link to={crumb.path}>{crumb.label}</Link>
-                    )}
-                </span>
-            ))}
+        <nav className={`billing-breadcrumb ${className}`} aria-label="Breadcrumb">
+            <ol className="billing-breadcrumb-list">
+                <li className="billing-breadcrumb-item">
+                    <Link to="/dashboard" className="billing-breadcrumb-link">
+                        <FiHome size={16} />
+                        <span className="billing-breadcrumb-home-text">Home</span>
+                    </Link>
+                    {breadcrumbItems.length > 0 && <span className="billing-breadcrumb-separator">{separator}</span>}
+                </li>
+                {breadcrumbItems.map((item, index) => (
+                    <li key={index} className="billing-breadcrumb-item">
+                        {item.isLast ? (
+                            <span className="billing-breadcrumb-current">{item.label}</span>
+                        ) : (
+                            <Link to={item.path} className="billing-breadcrumb-link">{item.label}</Link>
+                        )}
+                        {!item.isLast && <span className="billing-breadcrumb-separator">{separator}</span>}
+                    </li>
+                ))}
+            </ol>
         </nav>
     );
 };

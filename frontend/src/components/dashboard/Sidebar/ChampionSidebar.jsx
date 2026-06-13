@@ -1,24 +1,22 @@
-// frontend/src/components/dashboard/Sidebar/ChampionSidebar.jsx
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
 import {
     FiHome, FiBarChart2, FiUsers, FiTrendingUp, FiAlertCircle, 
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
-    FiDownload, FiSettings, FiHelpCircle, FiLogOut, FiBell,
-    FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar, FiEdit,
-    FiLayers, FiCopy, FiSave, FiUserPlus
+    FiDownload, FiSettings, FiBell, FiGrid, FiPieChart, FiFileText,
+    FiTarget, FiCheckCircle, FiClock, FiShield, FiActivity, FiDatabase
 } from 'react-icons/fi';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../../../config/constants/kpiRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
     const [expandedMenus, setExpandedMenus] = useState({
         main: true,
-        configuration: true,
-        templates: true,
-        bulk: false,
+        oversight: true,
+        kpiAdmin: false,
+        kpiManagement: false,
+        reports: false,
         settings: false
     });
 
@@ -32,23 +30,38 @@ const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
     const navigation = {
         main: [
             { path: DASHBOARD_ROUTES.CHAMPION.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
+            { path: DASHBOARD_ROUTES.CHAMPION.CONFIGURATION, name: 'Champion Dashboard', icon: FiShield },
         ],
-        configuration: [
-            { path: DASHBOARD_ROUTES.CHAMPION.CONFIGURATION, name: 'Dashboard Config', icon: FiSettings },
-            { path: DASHBOARD_ROUTES.CHAMPION.CONFIGURATION, name: 'KPI Assignment', icon: FiBarChart2 },
-            { path: DASHBOARD_ROUTES.CHAMPION.CONFIGURATION, name: 'Target Settings', icon: FiTarget },
+        oversight: [
+            { path: DASHBOARD_ROUTES.CHAMPION.APPROVALS, name: 'Pending Approvals', icon: FiClock },
+            { path: DASHBOARD_ROUTES.CHAMPION.MISSING_DATA, name: 'Missing Data', icon: FiAlertCircle },
+            { path: DASHBOARD_ROUTES.CHAMPION.USER_ACTIVITY, name: 'User Activity', icon: FiActivity },
+            { path: '/validations', name: 'Validations Queue', icon: FiCheckCircle },
+            { path: '/escalations', name: 'Escalations', icon: FiAlertCircle },
         ],
-        templates: [
-            { path: DASHBOARD_ROUTES.CHAMPION.TEMPLATES, name: 'Template Library', icon: FiLayers },
-            { path: DASHBOARD_ROUTES.CHAMPION.CREATE_TEMPLATE, name: 'Create Template', icon: FiCopy },
-            { path: DASHBOARD_ROUTES.CHAMPION.TEMPLATES, name: 'Saved Templates', icon: FiSave },
+        kpiAdmin: [
+            { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
+            { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiGrid },
+            { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiDatabase },
+            { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFileText },
+            { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiTarget },
         ],
-        bulk: [
-            { path: DASHBOARD_ROUTES.CHAMPION.BULK_ASSIGN, name: 'Bulk Assign', icon: FiUserPlus },
-            { path: DASHBOARD_ROUTES.CHAMPION.BULK_ASSIGN, name: 'Mass Update', icon: FiEdit },
+        kpiManagement: [
+            { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'All KPIs', icon: FiTarget },
+            { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiUsers },
+            { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiBarChart2 },
+            { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiCheckCircle },
+            { path: '/bulk-upload', name: 'Bulk Upload', icon: FiDownload },
+        ],
+        reports: [
+            { path: KPI_ROUTES.KPI_ANALYTICS, name: 'Analytics Insights', icon: FiTrendingUp },
+            { path: KPI_ROUTES.KPI_REPORTS, name: 'Reports', icon: FiFileText },
+            { path: '/organization-health', name: 'Organization Health', icon: FiActivity },
         ],
         settings: [
-            { path: DASHBOARD_ROUTES.CHAMPION.SETTINGS, name: 'Champion Settings', icon: FiSettings },
+            { path: KPI_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+            { path: KPI_ROUTES.REFERENCE_DATA, name: 'Reference Data', icon: FiDatabase },
+            { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, name: 'Notifications', icon: FiBell },
         ]
     };
 
@@ -119,9 +132,10 @@ const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
             {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
-                {renderNavGroup('Dashboard Configuration', navigation.configuration, 'configuration')}
-                {renderNavGroup('Templates', navigation.templates, 'templates')}
-                {renderNavGroup('Bulk Operations', navigation.bulk, 'bulk')}
+                {renderNavGroup('Oversight', navigation.oversight, 'oversight')}
+                {renderNavGroup('KPI System Admin', navigation.kpiAdmin, 'kpiAdmin')}
+                {renderNavGroup('KPI Management', navigation.kpiManagement, 'kpiManagement')}
+                {renderNavGroup('Reports & Analytics', navigation.reports, 'reports')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>
             

@@ -1,0 +1,307 @@
+/* Executive Dashboard Styles */
+.kpi-executive-dashboard {
+    padding: var(--kpi-space-6);
+    background: var(--kpi-gray-50);
+    min-height: 100vh;
+}
+
+/* Organization Health Card */
+.org-health-card {
+    background: white;
+    border-radius: var(--kpi-radius-xl);
+    padding: var(--kpi-space-6);
+    margin-bottom: var(--kpi-space-6);
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+.org-health-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--kpi-space-5);
+    padding-bottom: var(--kpi-space-3);
+    border-bottom: 1px solid var(--kpi-gray-200);
+}
+
+.org-health-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.health-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-1) var(--kpi-space-3);
+    border-radius: var(--kpi-radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.health-badge.excellent {
+    background: var(--kpi-success-bg);
+    color: var(--kpi-success-dark);
+}
+
+.health-badge.good {
+    background: var(--kpi-info-bg);
+    color: var(--kpi-info-dark);
+}
+
+.health-badge.fair {
+    background: var(--kpi-warning-bg);
+    color: var(--kpi-warning-dark);
+}
+
+.health-badge.poor {
+    background: var(--kpi-danger-bg);
+    color: var(--kpi-danger-dark);
+}
+
+.org-health-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--kpi-space-6);
+    flex-wrap: wrap;
+}
+
+.health-gauge {
+    flex-shrink: 0;
+}
+
+.health-metrics {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--kpi-space-4);
+}
+
+.health-metric {
+    text-align: center;
+    padding: var(--kpi-space-3);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-lg);
+}
+
+.metric-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--kpi-gray-900);
+}
+
+.metric-label {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+/* Rankings List */
+.rankings-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-3);
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-3);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-lg);
+    transition: var(--kpi-transition-base);
+}
+
+.ranking-item:hover {
+    background: var(--kpi-gray-100);
+}
+
+.ranking-position {
+    width: 40px;
+    text-align: center;
+}
+
+.rank-number {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.ranking-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ranking-name {
+    font-weight: 500;
+}
+
+.ranking-score {
+    font-weight: 700;
+    color: var(--kpi-primary);
+}
+
+.trend-up {
+    font-size: 0.7rem;
+    color: var(--kpi-success);
+}
+
+.trend-down {
+    font-size: 0.7rem;
+    color: var(--kpi-danger);
+}
+
+/* Alerts List */
+.alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-3);
+}
+
+.alert-item {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-3);
+    background: var(--kpi-danger-bg);
+    border-radius: var(--kpi-radius-lg);
+    border-left: 3px solid var(--kpi-danger);
+}
+
+.alert-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.alert-info {
+    flex: 1;
+}
+
+.alert-title {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: var(--kpi-space-1);
+}
+
+.alert-user {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-1);
+    font-size: 0.7rem;
+    color: var(--kpi-gray-600);
+}
+
+.alert-consecutive {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--kpi-danger);
+    background: white;
+    padding: 2px 6px;
+    border-radius: var(--kpi-radius-full);
+}
+
+/* Trend Summary */
+.trend-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-top: var(--kpi-space-5);
+    padding-top: var(--kpi-space-4);
+    border-top: 1px solid var(--kpi-gray-200);
+}
+
+.trend-stat {
+    text-align: center;
+}
+
+.trend-stat .label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+    margin-bottom: var(--kpi-space-1);
+}
+
+.trend-stat .value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--kpi-gray-900);
+}
+
+/* Risk Indicators */
+.risk-indicators {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-4);
+}
+
+.risk-item {
+    width: 100%;
+}
+
+.risk-header {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    margin-bottom: var(--kpi-space-2);
+    font-size: 0.875rem;
+}
+
+.risk-icon {
+    width: 24px;
+}
+
+.risk-label {
+    flex: 1;
+}
+
+.risk-value {
+    font-weight: 600;
+}
+
+.risk-value.high {
+    color: var(--kpi-danger);
+}
+
+.risk-bar {
+    height: 6px;
+    background: var(--kpi-gray-200);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.risk-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+    .org-health-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .health-metrics {
+        width: 100%;
+    }
+    
+    .dashboard-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .health-metrics {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,60 +1,43 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import React, { useState } from 'react';
+import { FiDownload, FiLoader } from 'react-icons/fi';
+import { useInvoice } from '../../../hooks/billing/useInvoice';
+import './invoices.css';
 
-export const InvoiceDownloadButton = ({ 
-    invoice, 
-    onDownload, 
-    downloading = false,
-    variant = 'outline',
-    size = 'medium',
-    children 
-}) => {
-    const handleClick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onDownload?.(invoice.id);
+export const InvoiceDownloadButton = ({ invoiceId, variant = 'icon', onSuccess }) => {
+    const { download, downloading } = useInvoice();
+    const [loading, setLoading] = useState(false);
+
+    const handleDownload = async (format = 'pdf') => {
+        setLoading(true);
+        try {
+            const result = await download(invoiceId, format);
+            if (result?.data) {
+                const blob = new Blob([result.data], { type: format === 'pdf' ? 'application/pdf' : 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `invoice_${invoiceId}.${format}`;
+                a.click();
+                URL.revokeObjectURL(url);
+                if (onSuccess) onSuccess();
+            }
+        } catch (error) { console.error('Download failed:', error); }
+        finally { setLoading(false); }
     };
 
-    const variants = {
-        primary: 'invoice-download-btn-primary',
-        secondary: 'invoice-download-btn-secondary',
-        outline: 'invoice-download-btn-outline',
-    };
-
-    const sizes = {
-        small: 'invoice-download-btn-small',
-        medium: 'invoice-download-btn-medium',
-        large: 'invoice-download-btn-large',
-    };
+    if (variant === 'text') {
+        return (
+            <button className="invoice-download-text" onClick={() => handleDownload('pdf')} disabled={loading}>
+                {loading ? <FiLoader className="spin" /> : <FiDownload />} Download PDF
+            </button>
+        );
+    }
 
     return (
-        <button
-            className={`invoice-download-btn ${variants[variant]} ${sizes[size]} ${downloading ? 'invoice-download-btn-loading' : ''}`}
-            onClick={handleClick}
-            disabled={downloading}
-        >
-            {downloading ? (
-                <span className="invoice-download-spinner"></span>
-            ) : (
-                children || (
-                    <>
-                        <span className="invoice-download-icon">{renderBillingIcon('invoiceDownload', { size: 18 })}</span>
-                        <span>Download PDF</span>
-                    </>
-                )
-            )}
+        <button className="invoice-action-btn" onClick={() => handleDownload('pdf')} title="Download PDF" disabled={loading}>
+            {loading ? <FiLoader className="spin" /> : <FiDownload />}
         </button>
     );
-};
-
-InvoiceDownloadButton.propTypes = {
-    invoice: PropTypes.object.isRequired,
-    onDownload: PropTypes.func,
-    downloading: PropTypes.bool,
-    variant: PropTypes.oneOf(['primary', 'secondary', 'outline']),
-    size: PropTypes.oneOf(['small', 'medium', 'large']),
-    children: PropTypes.node,
 };
 
 export default InvoiceDownloadButton;

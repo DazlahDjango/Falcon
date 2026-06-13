@@ -8,12 +8,14 @@ import tenantRoutes from "./tenant.routes";
 import structureRoutes from "./structure.routes";
 import kpiRoutes from "./kpi.routes";
 import billingRoutes from "./billing.routes";
-import reviewsRoutes from "./reviews.routes";  // ← LINE 1: ADD THIS IMPORT
-import configRoutes from "./config.routes"; 
+import reviewsRoutes from "./reviews.routes";
+import configRoutes from "./config.routes";
+import dashboardRoutes from "./dashboard.routes";
+import { getDefaultRouteByRole } from "../config/constants/dashboardRouteConstants";
 
 // Layouts
-const MainLayout = React.lazy(() => import("../components/common/Layout/MainLayout"));
-const AuthLayout = React.lazy(() => import("../components/common/Layout/AuthLayout"));
+const AuthLayout = React.lazy(() => import("../components/dashboard/Layout/AuthLayout"));
+const RoleBasedAppLayout = React.lazy(() => import("../components/dashboard/Layout/RoleBasedAppLayout"));
 // Auth pages
 const Login = React.lazy(() => import('../components/accounts/auth/Login'));
 const Register = React.lazy(() => import('../components/accounts/auth/Register'));
@@ -50,27 +52,41 @@ const AppRouter = () => {
             </Route>
             {/* Protected routes */}
             <Route element={<PrivateRoute />}>
-                <Route element={<MainLayout />}>
-                    <Route index element={<Navigate to="/kpi/dashboard" replace />} />
+                {/* Default redirect for root path */}
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                
+                {/* Dashboard routes (takes priority, uses DashboardShell) */}
+                {dashboardRoutes.map((route, idx) => (
+                    <Route key={idx} path={route.path} element={route.element}>
+                        {route.children?.map((child, childIdx) => (
+                            <Route key={childIdx} {...child} />
+                        ))}
+                    </Route>
+                ))}
+                
+                {/* Legacy app routes */}
+                <Route element={<RoleBasedAppLayout />}>
                     {/* Account routes */}
                     {renderRoutes(accountsRoutes)}
                     {/* Tenants routes */}
                     {renderRoutes(tenantRoutes)}
                     {/* Structure routes */}
-                    {renderRoutes(structureRoutes)} 
+                    {renderRoutes(structureRoutes)}
                     {/* KPI routes */}
                     {renderRoutes(kpiRoutes)}
                     {/* Billing routes */}
                     {renderRoutes(billingRoutes)}
-                    {/* Reviews routes - ADD THIS LINE */}
-                    {renderRoutes(reviewsRoutes)}  {/* ← LINE 2: ADD THIS LINE */}
+                    {/* Reviews routes */}
+                    {renderRoutes(reviewsRoutes)}
                     {/* Config routes */}
                     {renderRoutes(configRoutes)}
                     {/* Error routes */}
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="/server-error" element={<ServerError />} />
-                    <Route path="*" element={<NotFound />} />
                 </Route>
+                
+                {/* Fallback for unknown routes */}
+                <Route path="*" element={<NotFound />} />
             </Route>
         </Routes>
     );

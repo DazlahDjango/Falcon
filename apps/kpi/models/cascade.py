@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .base import BaseKPIModel
+from ..managers import CascadeMapManager, CascadeRuleManager
 
 
 class CascadeMap(BaseKPIModel):
@@ -10,6 +11,7 @@ class CascadeMap(BaseKPIModel):
     individual_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='individual_cascades')
     cascade_rule = models.ForeignKey('CascadeRule', on_delete=models.PROTECT)
     contribution_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="% of org target this represents")
+    objects = CascadeMapManager()
     class Meta:
         db_table = 'kpi_cascade_maps'
         indexes = [
@@ -37,6 +39,7 @@ class CascadeRule(BaseKPIModel):
     configuration = models.JSONField(default=dict, help_text="Rule-specific configuration")
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    objects = CascadeRuleManager()
     class Meta:
         db_table = 'kpi_cascade_rules'
         ordering = ['name']

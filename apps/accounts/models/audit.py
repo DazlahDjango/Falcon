@@ -1,7 +1,3 @@
-"""
-Audit model — Comprehensive audit logging for all user actions.
-"""
-
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -11,25 +7,41 @@ from .user import User
 
 class AuditLog(BaseModel):
     # Actor
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs', verbose_name=_('user'), db_index=True)
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, 
+        related_name='audit_logs', verbose_name=_('user'), db_index=True
+    )
+    
     # Action details
-    action = models.CharField(_('action'), max_length=100, db_index=True, help_text='e.g., user.login, kpi.create, review.approve')
-    action_type = models.CharField(_('action type'), max_length=20, db_index=True, choices=[
-        ('create', 'Create'),
-        ('read', 'Read'),
-        ('update', 'Update'),
-        ('delete', 'Delete'),
-        ('login', 'Login'),
-        ('logout', 'Logout'),
-        ('approve', 'Approve'),
-        ('reject', 'Reject'),
-        ('export', 'Export'),
-        ('view', 'View'),
-    ])
+    action = models.CharField(
+        _('action'), max_length=100, db_index=True,
+        help_text='e.g., user.login, kpi.create, review.approve'
+    )
+    action_type = models.CharField(
+        _('action type'), max_length=20, db_index=True, choices=[
+            ('create', 'Create'),
+            ('read', 'Read'),
+            ('update', 'Update'),
+            ('delete', 'Delete'),
+            ('login', 'Login'),
+            ('logout', 'Logout'),
+            ('approve', 'Approve'),
+            ('reject', 'Reject'),
+            ('export', 'Export'),
+            ('view', 'View'),
+            ('security', 'Security'),
+        ]
+    )
     
     # Target (what was acted upon)
-    content_type = models.CharField(_('content type'), max_length=100, blank=True, null=True, db_index=True, help_text='App.Model name')
-    object_id = models.CharField(_('object ID'), max_length=100, blank=True, db_index=True)
+    content_type = models.CharField(
+        _('content type'), max_length=100, blank=True, null=True, 
+        db_index=True, help_text='App.Model name'
+    )
+    object_id = models.CharField(
+        _('object ID'), max_length=100, blank=True, null=True,  # Fixed: allow NULL
+        db_index=True
+    )
     object_repr = models.CharField(_('object representation'), max_length=500, blank=True)
     
     # Changes
@@ -38,8 +50,8 @@ class AuditLog(BaseModel):
     changes = models.JSONField(_('changes'), default=dict, blank=True, help_text='Structured changes')
     
     # Request context
-    ip_address = models.GenericIPAddressField(_('IP address'), db_index=True)
-    user_agent = models.CharField(_('user agent'), max_length=500)
+    ip_address = models.GenericIPAddressField(_('IP address'), db_index=True, blank=True, null=True)  # Fixed: allow NULL
+    user_agent = models.CharField(_('user agent'), max_length=2000, blank=True, default='')  # Fixed: increased length
     referer = models.URLField(_('referer'), max_length=500, blank=True)
     request_method = models.CharField(_('request method'), max_length=10, blank=True)
     request_path = models.CharField(_('request path'), max_length=500, blank=True)
@@ -66,13 +78,20 @@ class AuditLog(BaseModel):
         (SEVERITY_ERROR, 'Error'),
         (SEVERITY_CRITICAL, 'Critical'),
     ]
-    severity = models.CharField(_('severity'), max_length=20, choices=SEVERITY_CHOICES, default=SEVERITY_INFO, db_index=True)
+    severity = models.CharField(
+        _('severity'), max_length=20, choices=SEVERITY_CHOICES, 
+        default=SEVERITY_INFO, db_index=True
+    )
     
     # Additional metadata
     metadata = models.JSONField(_('metadata'), default=dict, blank=True)
     
     # Immutable flag (cannot be edited or deleted)
     is_immutable = models.BooleanField(_('immutable'), default=True, editable=False)
+    
+    # Soft delete
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         db_table = 'accounts_audit_log'
@@ -86,6 +105,7 @@ class AuditLog(BaseModel):
             models.Index(fields=['ip_address', 'timestamp']),
             models.Index(fields=['severity', 'timestamp']),
             models.Index(fields=['tenant_id', 'timestamp']),
+            models.Index(fields=['is_deleted']),
         ]
     
     def __str__(self):
@@ -94,16 +114,18 @@ class AuditLog(BaseModel):
     
     def save(self, *args, **kwargs):
         """Prevent modification of immutable logs."""
-        # When using UUID primary keys with defaults, self.pk is set on creation.
-        # Use self._state.adding to check if this is a new record.
         if not self._state.adding and self.is_immutable:
             raise PermissionError("Cannot modify immutable audit log")
         super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
-        """Prevent deletion of immutable logs."""
+        """Prevent deletion of immutable logs (use soft delete instead)."""
         if self.is_immutable:
-            raise PermissionError("Cannot delete immutable audit log")
+            # Soft delete instead of hard delete
+            self.is_deleted = True
+            self.deleted_at = timezone.now()
+            self.save(update_fields=['is_deleted', 'deleted_at'])
+            return
         super().delete(*args, **kwargs)
     
     @classmethod
@@ -118,20 +140,22 @@ class AuditLog(BaseModel):
             'new_value': kwargs.get('new_value'),
             'changes': kwargs.get('changes', {}),
             'content_type': kwargs.get('content_type', ''),
-            'object_id': str(kwargs.get('object_id', '')),
-            'object_repr': kwargs.get('object_repr', ''),
+            'object_id': str(kwargs.get('object_id', '')) if kwargs.get('object_id') else None,
+            'object_repr': kwargs.get('object_repr', '')[:500],
             'severity': kwargs.get('severity', cls.SEVERITY_INFO),
+            'tenant_id': kwargs.get('tenant_id'),
         }
         
         if request:
-            data['ip_address'] = cls.get_client_ip(request) or '127.0.0.1'
-            data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:500]
+            data['ip_address'] = cls.get_client_ip(request) or '0.0.0.0'
+            data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:2000]
             data['referer'] = request.META.get('HTTP_REFERER', '')[:500]
             data['request_method'] = request.method
-            data['request_path'] = request.path
+            data['request_path'] = request.path[:500]
             data['session_key'] = request.session.session_key or ''
         else:
-            data['ip_address'] = '127.0.0.1'
+            data['ip_address'] = '0.0.0.0'
+            data['user_agent'] = 'system'
         
         return cls.objects.create(**data)
     
@@ -139,8 +163,8 @@ class AuditLog(BaseModel):
     def get_client_ip(request):
         """Extract client IP from request."""
         if not request:
-            return '127.0.0.1'
+            return '0.0.0.0'
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
-        return request.META.get('REMOTE_ADDR', '') or '127.0.0.1'
+        return request.META.get('REMOTE_ADDR', '') or '0.0.0.0'

@@ -4,8 +4,10 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getAccessToken, getTenantId } from '../../services/accounts/storage/secureStorage';
 import { useAuth } from '../accounts/useAuth';
+import billingWebSocketService from '../../services/billing/websocket.service';
+
+// Use shared billingWebSocketService which delegates to websocketService
 
 export const useBillingWebSocket = (options = {}) => {
     const {
@@ -53,96 +55,23 @@ export const useBillingWebSocket = (options = {}) => {
         }
     }, []);
 
-    // Get WebSocket URL
-    const getWebSocketUrl = useCallback(async () => {
-        const token = await getAccessToken();
-        const tenantId = await getTenantId();
-        
-        if (!token) {
-            throw new Error('No access token available');
-        }
-        
-        if (!tenantId) {
-            throw new Error('No tenant ID available');
-        }
-        
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsHost = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.host}`;
-        return `${wsHost}/ws/billing/${tenantId}/?token=${encodeURIComponent(token)}`;
-    }, []);
-
-    // Connect WebSocket
+    // Connect WebSocket using billingWebSocketService (delegates to websocketService)
     const connect = useCallback(async () => {
-        // Don't connect if already connected or connecting
-        if (wsRef.current?.readyState === WebSocket.OPEN || isConnecting) {
-            return;
-        }
-        
-        // Don't connect if not authenticated
+        if (isConnecting) return;
         if (!isAuthenticated && !authLoading) {
             console.log('[BillingWebSocket] Not authenticated, skipping connection');
             return;
         }
-        
-        // Clean up existing connection
-        cleanup();
-        
+
         setIsConnecting(true);
         setError(null);
-        
+
         try {
-            const wsUrl = await getWebSocketUrl();
-            console.log('[BillingWebSocket] Connecting...');
-            
-            const ws = new WebSocket(wsUrl);
-            wsRef.current = ws;
-            
-            // Connection timeout
-            const connectionTimeout = setTimeout(() => {
-                if (ws.readyState !== WebSocket.OPEN && isMountedRef.current) {
-                    console.error('[BillingWebSocket] Connection timeout');
-                    ws.close();
-                    setError('Connection timeout');
-                    setIsConnecting(false);
-                }
-            }, 10000);
-            
-            ws.onopen = () => {
-                if (!isMountedRef.current) return;
-                
-                clearTimeout(connectionTimeout);
-                console.log('[BillingWebSocket] Connected');
-                setIsConnected(true);
-                setIsConnecting(false);
-                setError(null);
-                reconnectAttemptsRef.current = 0;
-                
-                // Send ping to keep connection alive
-                if (pingIntervalRef.current) {
-                    clearInterval(pingIntervalRef.current);
-                }
-                
-                pingIntervalRef.current = setInterval(() => {
-                    if (ws.readyState === WebSocket.OPEN && isMountedRef.current) {
-                        ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
-                    } else if (pingIntervalRef.current) {
-                        clearInterval(pingIntervalRef.current);
-                    }
-                }, 30000);
-            };
-            
-            ws.onmessage = (event) => {
-                if (!isMountedRef.current) return;
-                
-                try {
-                    const data = JSON.parse(event.data);
-                    
-                    // Skip pong responses
+            await billingWebSocketService.connect(
+                (data) => {
+                    if (!isMountedRef.current) return;
                     if (data.type === 'pong') return;
-                    
                     setLastMessage(data);
-                    
-                    // Handle different message types
                     switch (data.type) {
                         case 'payment_success':
                             if (onPaymentSuccess) onPaymentSuccess(data.data);
@@ -160,80 +89,37 @@ export const useBillingWebSocket = (options = {}) => {
                             if (onTrialEnding) onTrialEnding(data.data);
                             break;
                         default:
-                            // Silent for unknown types
                             break;
                     }
-                } catch (err) {
-                    console.error('[BillingWebSocket] Error parsing message:', err);
+                },
+                () => {
+                    if (!isMountedRef.current) return;
+                    setIsConnected(true);
+                    setIsConnecting(false);
+                    setError(null);
+                    reconnectAttemptsRef.current = 0;
+                },
+                (err) => {
+                    if (!isMountedRef.current) return;
+                    console.error('[BillingWebSocket] Error:', err);
+                    setError('WebSocket connection error');
+                },
+                () => {
+                    if (!isMountedRef.current) return;
+                    setIsConnected(false);
+                    setIsConnecting(false);
                 }
-            };
-            
-            ws.onerror = (event) => {
-                if (!isMountedRef.current) return;
-                
-                console.error('[BillingWebSocket] Error:', event);
-                setError('WebSocket connection error');
-            };
-            
-            ws.onclose = (event) => {
-                if (!isMountedRef.current) return;
-                
-                console.log(`[BillingWebSocket] Disconnected: ${event.code}`);
-                setIsConnected(false);
-                setIsConnecting(false);
-                
-                // Clear ping interval
-                if (pingIntervalRef.current) {
-                    clearInterval(pingIntervalRef.current);
-                    pingIntervalRef.current = null;
-                }
-                
-                // Attempt to reconnect only if authenticated and not intentional close
-                if (isAuthenticated && reconnectAttemptsRef.current < maxReconnectAttempts) {
-                    const delay = Math.min(reconnectInterval * Math.pow(2, reconnectAttemptsRef.current), 30000);
-                    
-                    console.log(`[BillingWebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts})`);
-                    
-                    if (reconnectTimeoutRef.current) {
-                        clearTimeout(reconnectTimeoutRef.current);
-                    }
-                    
-                    reconnectTimeoutRef.current = setTimeout(() => {
-                        if (isMountedRef.current && isAuthenticated) {
-                            reconnectAttemptsRef.current++;
-                            connect();
-                        }
-                    }, delay);
-                } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-                    console.warn('[BillingWebSocket] Max reconnect attempts reached');
-                    setError('Unable to establish WebSocket connection');
-                }
-            };
+            );
         } catch (err) {
             console.error('[BillingWebSocket] Connection error:', err);
             setError(err.message);
             setIsConnecting(false);
         }
-    }, [getWebSocketUrl, isConnecting, isAuthenticated, authLoading, cleanup, maxReconnectAttempts, reconnectInterval, onPaymentSuccess, onPaymentFailed, onSubscriptionUpdate, onInvoiceReady, onTrialEnding]);
+    }, [isConnecting, isAuthenticated, authLoading, onPaymentSuccess, onPaymentFailed, onSubscriptionUpdate, onInvoiceReady, onTrialEnding]);
 
     // Disconnect WebSocket
     const disconnect = useCallback(() => {
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current);
-            reconnectTimeoutRef.current = null;
-        }
-        
-        if (pingIntervalRef.current) {
-            clearInterval(pingIntervalRef.current);
-            pingIntervalRef.current = null;
-        }
-        
-        if (wsRef.current) {
-            // Mark as intentional close to prevent reconnection
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-        
+        billingWebSocketService.disconnect();
         setIsConnected(false);
         setIsConnecting(false);
         setError(null);
@@ -241,13 +127,7 @@ export const useBillingWebSocket = (options = {}) => {
     }, []);
 
     // Send message
-    const sendMessage = useCallback((type, data = {}) => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({ type, ...data }));
-            return true;
-        }
-        return false;
-    }, []);
+    const sendMessage = useCallback((type, data = {}) => billingWebSocketService.send({ type, ...data }), []);
 
     // Request subscription status
     const requestSubscriptionStatus = useCallback(() => {

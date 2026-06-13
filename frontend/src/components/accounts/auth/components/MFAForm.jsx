@@ -5,26 +5,32 @@ import Spinner from '../../../common/UI/Spinner';
 const MFAForm = ({ onSubmit, isLoading, timeLeft, canResend, onResend }) => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const inputRefs = useRef([]);
+
     useEffect(() => {
         if (inputRefs.current[0]) {
             inputRefs.current[0].focus();
         }
     }, []);
+
     const handleChange = (index, value) => {
         if (value.length > 1) return;
         if (!/^\d*$/.test(value)) return;
+        
         const newOtp = [...otp];
         newOtp[index] = value;
         setOtp(newOtp);
+        
         if (value && index < 5) {
             inputRefs.current[index + 1].focus();
         }
     };
+
     const handleKeyDown = (index, e) => {
         if (e.key === 'Backspace' && !otp[index] && index > 0) {
             inputRefs.current[index - 1].focus();
         }
     };
+
     const handlePaste = (e) => {
         e.preventDefault();
         const pastedData = e.clipboardData.getData('text').slice(0, 6);
@@ -35,6 +41,7 @@ const MFAForm = ({ onSubmit, isLoading, timeLeft, canResend, onResend }) => {
             inputRefs.current[5].focus();
         }
     };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         const code = otp.join('');
@@ -42,13 +49,14 @@ const MFAForm = ({ onSubmit, isLoading, timeLeft, canResend, onResend }) => {
             onSubmit({ otp: code });
         }
     };
+
     return (
-        <form onSubmit={handleSubmit} className="auth-form mfa-form">
+        <form onSubmit={handleSubmit} className="auth-form mfa-form" onPaste={handlePaste}>
             <div className="mfa-instructions">
                 <p>Enter the 6-digit code from your authenticator app</p>
             </div>
             
-            <div className="otp-inputs" onPaste={handlePaste}>
+            <div className="otp-inputs">
                 {otp.map((digit, index) => (
                     <input
                         key={index}
@@ -79,10 +87,15 @@ const MFAForm = ({ onSubmit, isLoading, timeLeft, canResend, onResend }) => {
                 </div>
             )}
             
-            <button type="submit" className="btn btn-primary btn-block" disabled={isLoading || otp.join('').length !== 6}>
+            <button 
+                type="submit" 
+                className="btn btn-primary btn-block" 
+                disabled={isLoading || otp.join('').length !== 6}
+            >
                 {isLoading ? <Spinner size="sm" /> : 'Verify'}
             </button>
         </form>
     );
 };
+
 export default MFAForm;

@@ -34,7 +34,7 @@ export const TenantOverview = ({ data, loading }) => {
             </div>
           ))}
         </div>
-        
+
         <div className="health-score">
           <ScoreGauge score={data.health_score || 0} size={100} />
           <div className="score-label">Overall Health</div>
@@ -48,3 +48,4 @@ TenantOverview.propTypes = {
   data: PropTypes.object,
   loading: PropTypes.bool
 };
+export default TenantOverview;

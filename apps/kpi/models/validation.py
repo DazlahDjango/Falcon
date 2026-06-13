@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .base import BaseKPIModel
+from ..managers import ValidationRecordManager, EscalationManager
 
 class ValidationRecord(BaseKPIModel):
     STATUS_CHOICES = [
@@ -14,6 +15,7 @@ class ValidationRecord(BaseKPIModel):
     validated_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, related_name='validations')
     validated_at = models.DateTimeField(null=True, blank=True)
     comment = models.TextField(blank=True)
+    objects = ValidationRecordManager()
     class Meta:
         db_table = 'kpi_validation_records'
         ordering = ['-validated_at']
@@ -75,6 +77,7 @@ class Escalation(BaseKPIModel):
     resolution = models.TextField(blank=True)
     resolved_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, related_name='escalations_resolved')
     resolved_at = models.DateTimeField(null=True, blank=True)
+    objects = EscalationManager()
     class Meta:
         db_table = 'kpi_escalations'
         ordering = ['-escalated_at']

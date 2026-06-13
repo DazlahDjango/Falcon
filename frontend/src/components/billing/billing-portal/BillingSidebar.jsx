@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import renderBillingIcon from '../shared/BillingIcons';
 
 const MENU_ITEMS = [
     { id: 'overview', label: 'Overview', icon: renderBillingIcon('overview') },

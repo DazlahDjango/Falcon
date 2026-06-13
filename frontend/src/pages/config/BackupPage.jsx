@@ -109,3 +109,4 @@ export const BackupPage = () => {
     </div>
   );
 };
+export default BackupPage;

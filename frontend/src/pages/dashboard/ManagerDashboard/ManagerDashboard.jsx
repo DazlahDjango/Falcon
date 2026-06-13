@@ -3,6 +3,13 @@
 import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { useManagerDashboard } from '../../../hooks/dashboard/useManagerDashboard';
+import {
+  fetchManagerDashboard,
+  fetchTeamMembers,
+  fetchTeamSummary,
+  fetchPendingApprovals,
+} from '../../../store/dashboard/slices/managerDashboardSlice';
+import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const ManagerDashboard = () => {
   const {

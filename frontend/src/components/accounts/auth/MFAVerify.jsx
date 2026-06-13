@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import MFAForm from './components/MFAForm';
@@ -9,20 +9,26 @@ const MFAVerify = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
-    const { isLoading, mfaToken, isAuthenticated } = useSelector((state) => state.auth);
+    const { isLoading, isAuthenticated } = useSelector((state) => state.auth);
     const [timeLeft, setTimeLeft] = useState(30);
     const [canResend, setCanResend] = useState(false);
+    const [mfaToken, setMfaToken] = useState(null);
+
     useEffect(() => {
-        const token = location.state?.mfaToken || mfaToken;
+        const token = location.state?.mfaToken || localStorage.getItem('mfa_token');
         if (!token) {
             navigate('/login');
+        } else {
+            setMfaToken(token);
         }
-    }, [location.state, mfaToken, navigate]);
+    }, [location.state, navigate]);
+
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/dashboard');
         }
     }, [isAuthenticated, navigate]);
+
     useEffect(() => {
         if (timeLeft <= 0) {
             setCanResend(true);
@@ -33,23 +39,40 @@ const MFAVerify = () => {
         }, 1000);
         return () => clearInterval(timer);
     }, [timeLeft]);
+
+    useEffect(() => {
+        return () => {
+            dispatch(clearMfaState());
+        };
+    }, [dispatch]);
+
     const handleVerify = async (values) => {
+        if (!mfaToken) {
+            dispatch(showAlert({ type: 'error', message: 'MFA token missing. Please login again.' }));
+            navigate('/login');
+            return;
+        }
+        
         try {
             await dispatch(verifyMfa({
-                mfa_token: location.state?.mfaToken || mfaToken,
+                mfa_token: mfaToken,
                 otp: values.otp
             })).unwrap();
+            localStorage.removeItem('mfa_token');
             dispatch(showAlert({ type: 'success', message: 'MFA verification successful!' }));
             navigate('/dashboard');
         } catch (err) {
-            dispatch(showAlert({ type: 'error', message: err.message || 'Invalid verification code' }));
+            dispatch(showAlert({ type: 'error', message: err || 'Invalid verification code' }));
         }
     };
+
     const handleResend = () => {
         setTimeLeft(30);
         setCanResend(false);
-        dispatch(showAlert({ type: 'info', message: 'New verification code send' }));
+        // In a real implementation, this would trigger a new OTP via email/sms
+        dispatch(showAlert({ type: 'info', message: 'New verification code sent to your authenticator app' }));
     };
+
     return (
         <div className="auth-page">
             <div className="auth-header-text">
@@ -75,7 +98,7 @@ const MFAVerify = () => {
                 <span className="divider">|</span>
                 <button 
                     className="auth-link-button" 
-                    onClick={() => navigate('/recovery-codes')}
+                    onClick={() => navigate('/security/mfa/backup-codes')}
                 >
                     Use recovery code
                 </button>
@@ -83,4 +106,5 @@ const MFAVerify = () => {
         </div>
     );
 };
+
 export default MFAVerify;

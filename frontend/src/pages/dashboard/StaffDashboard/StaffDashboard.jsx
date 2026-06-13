@@ -3,6 +3,14 @@
 import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { useStaffDashboard } from '../../../hooks/dashboard/useStaffDashboard';
+import {
+  fetchStaffDashboard,
+  fetchMyKPIs,
+  fetchPendingSubmissions,
+  fetchMissionStatus,
+  fetchPendingTasks,
+} from '../../../store/dashboard/slices/staffDashboardSlice';
+import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
 
 const StaffDashboard = () => {
   const {

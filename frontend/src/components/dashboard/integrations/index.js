@@ -25,9 +25,9 @@ export { GlobalMaintenanceBanner } from '../../config/common/GlobalMaintenanceBa
 export { GlobalTenantQuotaBanner } from '../../tenant/common/GlobalTenantQuotaBanner';
 
 // ——— Billing (subscriptions, plans) ———
-export { default as AdminBillingPage } from '../../../pages/billing/admin/AdminBillingPage';
-export { default as AdminPlansPage } from '../../../pages/billing/admin/AdminPlansPage';
-export { default as AdminSubscriptionsPage } from '../../../pages/billing/admin/AdminSubscriptionsPage';
+export { default as AdminBillingPage } from '../../../pages/billing/AdminDashboardPage';
+export { default as AdminPlansPage } from '../../../pages/billing/PlansPage';
+export { default as AdminSubscriptionsPage } from '../../../pages/billing/SubscriptionsPage';
 
 // ——— Reviews (assessments, cycles) ———
 export { default as SelfAssessmentView } from '../../reviews/assessment/SelfAssessmentView';

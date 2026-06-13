@@ -15,30 +15,27 @@ import { updateStaffData, addLocalSubmission } from '../slices/staffDashboardSli
 import { updateChampionData } from '../slices/championDashboardSlice';
 import { updateReadOnlyData } from '../slices/readOnlyDashboardSlice';
 
-let wsConnections = new Map();
-let reconnectAttempts = new Map();
-const MAX_RECONNECT_ATTEMPTS = 5;
-const RECONNECT_DELAY = 3000;
+import { websocketService } from '../../../services/websocket';
+import { DASHBOARD_WS, websocketBase } from '../../../config/constants/websocketApiConstants';
+import { getAccessToken } from '../../../services/accounts/storage/secureStorage';
 
-const createWebSocketConnection = (dashboardType, dispatch, getState) => {
-  const token = getState()?.auth?.accessToken || localStorage.getItem('access_token');
+let wsConnections = new Map();
+
+const createWebSocketConnection = async (dashboardType, dispatch, getState) => {
+  const token = getState()?.auth?.accessToken || (await getAccessToken()) || localStorage.getItem('access_token');
   if (!token) return null;
 
-  const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws'}/dashboard/${dashboardType}?token=${token}`;
-  const ws = new WebSocket(wsUrl);
+  websocketService.init(websocketBase, token);
+  const key = `dashboard_${dashboardType}`;
+  if (wsConnections.has(key) && websocketService.isConnected(key)) return wsConnections.get(key);
 
-  ws.onopen = () => {
-    console.log(`[WebSocket] Connected to ${dashboardType} dashboard`);
-    reconnectAttempts.set(dashboardType, 0);
-    
-    ws.send(JSON.stringify({ action: 'subscribe', dashboard_type: dashboardType }));
-  };
-
-  ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      
-      switch (data.type) {
+  const endpoint = DASHBOARD_WS.DASHBOARD(dashboardType);
+  const ws = websocketService.connect(
+    key,
+    endpoint,
+    (data) => {
+      try {
+        switch (data.type) {
         case 'update':
         case 'initial':
           // Existing dashboards
@@ -115,37 +112,16 @@ const createWebSocketConnection = (dashboardType, dispatch, getState) => {
     } catch (error) {
       console.error('[WebSocket] Message parse error:', error);
     }
-  };
+    },
+    () => console.log(`WebSocket connected: ${key}`),
+    (err) => console.error(`WebSocket error: ${key}`, err),
+    () => dispatch(showToast({ message: `Real-time updates for ${dashboardType} dashboard are unavailable. Please refresh the page.`, type: 'error' }))
+  );
 
-  ws.onerror = (error) => {
-    console.error(`[WebSocket] Error for ${dashboardType}:`, error);
-  };
-
-  ws.onclose = (event) => {
-    console.log(`[WebSocket] Disconnected from ${dashboardType}: ${event.code} - ${event.reason}`);
-    
-    const attempts = reconnectAttempts.get(dashboardType) || 0;
-    if (attempts < MAX_RECONNECT_ATTEMPTS) {
-      const delay = RECONNECT_DELAY * Math.pow(2, attempts);
-      console.log(`[WebSocket] Reconnecting to ${dashboardType} in ${delay}ms (attempt ${attempts + 1})`);
-      
-      setTimeout(() => {
-        reconnectAttempts.set(dashboardType, attempts + 1);
-        const newWs = createWebSocketConnection(dashboardType, dispatch, getState);
-        if (newWs) {
-          wsConnections.set(dashboardType, newWs);
-        }
-      }, delay);
-    } else {
-      console.error(`[WebSocket] Max reconnect attempts reached for ${dashboardType}`);
-      dispatch(showToast({ 
-        message: `Real-time updates for ${dashboardType} dashboard are unavailable. Please refresh the page.`, 
-        type: 'error' 
-      }));
-    }
-  };
-
-  return ws;
+  wsConnections.set(key, true);
+  // auto-subscribe
+  websocketService.send(key, { action: 'subscribe', dashboard_type: dashboardType });
+  return key;
 };
 
 export const dashboardWebsocketMiddleware = (store) => (next) => (action) => {
@@ -155,128 +131,87 @@ export const dashboardWebsocketMiddleware = (store) => (next) => (action) => {
 
   if (action.type === 'dashboard/setActiveDashboard') {
     const newDashboard = action.payload;
-    
-    wsConnections.forEach((ws, type) => {
-      if (type !== newDashboard && ws.readyState === WebSocket.OPEN) {
-        ws.close();
+
+    // Close other dashboards
+    wsConnections.forEach((connKey, type) => {
+      if (type !== newDashboard) {
+        websocketService.disconnect(connKey);
         wsConnections.delete(type);
       }
     });
-    
+
     if (newDashboard && !wsConnections.has(newDashboard)) {
-      const ws = createWebSocketConnection(newDashboard, store.dispatch, store.getState);
-      if (ws) {
-        wsConnections.set(newDashboard, ws);
+      const connKey = createWebSocketConnection(newDashboard, store.dispatch, store.getState);
+      if (connKey) {
+        wsConnections.set(newDashboard, connKey);
       }
     }
   }
 
   // Existing refresh
   if (action.type === 'dashboard/refreshAllDashboards/fulfilled') {
-    const ws = wsConnections.get(activeDashboard);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ action: 'refresh' }));
+    const connKey = wsConnections.get(activeDashboard);
+    if (connKey && websocketService.isConnected(connKey)) {
+      websocketService.send(connKey, { action: 'refresh' });
     }
   }
 
   // ===== ADD NEW REFRESH ACTIONS =====
   if (action.type === 'managerDashboard/refreshAll/fulfilled') {
-    const ws = wsConnections.get('manager');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ action: 'refresh' }));
-    }
+    const connKey = wsConnections.get('manager');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'refresh' });
   }
   
   if (action.type === 'staffDashboard/refreshAll/fulfilled') {
-    const ws = wsConnections.get('staff');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ action: 'refresh' }));
-    }
+    const connKey = wsConnections.get('staff');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'refresh' });
   }
   
   if (action.type === 'championDashboard/refreshAll/fulfilled') {
-    const ws = wsConnections.get('champion');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ action: 'refresh' }));
-    }
+    const connKey = wsConnections.get('champion');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'refresh' });
   }
   
   if (action.type === 'readOnlyDashboard/refresh/fulfilled') {
-    const ws = wsConnections.get('read_only');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ action: 'refresh' }));
-    }
+    const connKey = wsConnections.get('read_only');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'refresh' });
   }
 
   // ===== ADD NEW ACTION SENDERS =====
   
   // Manager approval actions
   if (action.type === 'managerDashboard/approveSubmission/fulfilled') {
-    const ws = wsConnections.get('manager');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ 
-        action: 'approval_action', 
-        submission_id: action.meta.arg.submissionId,
-        approval_action: 'approve'
-      }));
-    }
+    const connKey = wsConnections.get('manager');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'approval_action', submission_id: action.meta.arg.submissionId, approval_action: 'approve' });
   }
   
   if (action.type === 'managerDashboard/rejectSubmission/fulfilled') {
-    const ws = wsConnections.get('manager');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ 
-        action: 'approval_action', 
-        submission_id: action.meta.arg.submissionId,
-        approval_action: 'reject'
-      }));
-    }
+    const connKey = wsConnections.get('manager');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'approval_action', submission_id: action.meta.arg.submissionId, approval_action: 'reject' });
   }
   
   // Staff submission action
   if (action.type === 'staffDashboard/submitKPI/fulfilled') {
-    const ws = wsConnections.get('staff');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ 
-        action: 'submit_kpi', 
-        kpi_id: action.meta.arg.kpiId,
-        value: action.meta.arg.value
-      }));
-    }
+    const connKey = wsConnections.get('staff');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'submit_kpi', kpi_id: action.meta.arg.kpiId, value: action.meta.arg.value });
   }
   
   // Champion config update action
   if (action.type === 'championDashboard/updateConfig/fulfilled') {
-    const ws = wsConnections.get('champion');
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ 
-        action: 'update_config', 
-        user_id: action.meta.arg.targetUserId,
-        config: action.meta.arg.config
-      }));
-    }
+    const connKey = wsConnections.get('champion');
+    if (connKey && websocketService.isConnected(connKey)) websocketService.send(connKey, { action: 'update_config', user_id: action.meta.arg.targetUserId, config: action.meta.arg.config });
   }
 
   // Logout
   if (action.type === 'auth/logout') {
-    wsConnections.forEach((ws) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    });
+    wsConnections.forEach((connKey) => websocketService.disconnect(connKey));
     wsConnections.clear();
-    reconnectAttempts.clear();
   }
 
   return result;
 };
 
 export const disconnectAllWebSockets = () => {
-  wsConnections.forEach((ws) => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.close();
-    }
-  });
+  wsConnections.forEach((connKey) => websocketService.disconnect(connKey));
   wsConnections.clear();
-  reconnectAttempts.clear();
 };

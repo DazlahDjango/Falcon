@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
 import {
-    FiHome, FiBarChart2, FiUsers, FiTrendingUp, FiAlertCircle, 
+    FiHome, FiBarChart2, FiTrendingUp, FiAlertCircle, 
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
-    FiDownload, FiSettings, FiHelpCircle, FiLogOut, FiBell,
-    FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar, FiCheckCircle, FiClock,
-    FiTarget, FiAward
+    FiDownload, FiSettings, FiBell, FiFileText, FiTarget,
+    FiCheckCircle, FiClock, FiAward, FiCalendar
 } from 'react-icons/fi';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
@@ -30,22 +29,26 @@ const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, curr
     const navigation = {
         main: [
             { path: DASHBOARD_ROUTES.STAFF.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
+            { path: KPI_ROUTES.DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2 },
         ],
         performance: [
-            { path: DASHBOARD_ROUTES.STAFF.KPIS, name: 'My KPIs', icon: FiTarget },
-            { path: DASHBOARD_ROUTES.STAFF.MISSION_STATUS, name: 'Mission Status', icon: FiFileText },
-            { path: DASHBOARD_ROUTES.STAFF.KPIS, name: 'Performance Trends', icon: FiTrendingUp },
+            { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiTarget },
+            { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'My Scores', icon: FiTrendingUp },
+            { path: KPI_ROUTES.SCORE_STATISTICS, name: 'Performance Stats', icon: FiBarChart2 },
+            { path: '/my-performance', name: 'Mission Status', icon: FiFileText },
         ],
         tasks: [
-            { path: DASHBOARD_ROUTES.STAFF.TASKS, name: 'My Tasks', icon: FiClock },
-            { path: DASHBOARD_ROUTES.STAFF.SUBMISSIONS, name: 'Submissions', icon: FiCheckCircle },
+            { path: KPI_ROUTES.ACTUAL_SUBMIT, name: 'Submit Actuals', icon: FiCheckCircle },
+            { path: KPI_ROUTES.ACTUALS, name: 'My Submissions', icon: FiClock },
+            { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alerts', icon: FiAlertCircle },
         ],
         history: [
-            { path: DASHBOARD_ROUTES.STAFF.HISTORY, name: 'Performance History', icon: FiAward },
-            { path: DASHBOARD_ROUTES.STAFF.HISTORY, name: 'Past Submissions', icon: FiCalendar },
+            { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'Performance History', icon: FiAward },
+            { path: KPI_ROUTES.ACTUAL_HISTORY, name: 'Past Submissions', icon: FiCalendar },
         ],
         settings: [
-            { path: DASHBOARD_ROUTES.STAFF.SETTINGS, name: 'Preferences', icon: FiSettings },
+            { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, name: 'Preferences', icon: FiSettings },
+            { path: KPI_ROUTES.REFERENCE_DATA, name: 'Reference', icon: FiBell },
         ]
     };
 

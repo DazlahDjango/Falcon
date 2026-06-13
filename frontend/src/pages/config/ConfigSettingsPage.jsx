@@ -21,3 +21,4 @@ export const ConfigSettingsPage = () => {
     </div>
   );
 };
+export default ConfigSettingsPage;

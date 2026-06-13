@@ -1,15 +1,14 @@
 from rest_framework import serializers
-from django.utils.translation import gettext_lazy as _ 
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.password_validation import validate_password
 from apps.accounts.models import User
 from apps.accounts.validators import validate_password_strength
 from .base import DynamicFieldsModelSerializer, AuditSerializer
 
 class UserMinimalSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(format='hex')  # ✅ Converts UUID to string
+    id = serializers.UUIDField(format='hex')
     tenant_id = serializers.UUIDField(read_only=True)
     full_name = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = User
         fields = [
@@ -17,14 +16,12 @@ class UserMinimalSerializer(serializers.ModelSerializer):
             'is_superuser', 'is_verified', 'tenant_id'
         ]
         read_only_fields = fields
-
     def get_full_name(self, obj):
         return obj.get_full_name()
-    
+
 class UserListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
     full_name = serializers.SerializerMethodField()
     manager_name = serializers.SerializerMethodField()
-
     class Meta:
         model = User
         fields = [
@@ -33,20 +30,14 @@ class UserListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
             'manager', 'manager_name', 'department', 'title', 'employee_id',
             'last_login', 'created_at', 'updated_at', 'created_by', 'modified_by'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'modified_by']
-    
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'modified_by']    
     def get_full_name(self, obj):
         return obj.get_full_name()
-    
     def get_manager_name(self, obj):
-        mgr = getattr(obj, 'manager', None)
-        if mgr:
-            return mgr.get_full_name()
-        return None
-    
+        return obj.manager.get_full_name() if obj.manager else None
+
 class UserDetailSerializer(UserListSerializer):
     phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
-
     class Meta(UserListSerializer.Meta):
         fields = UserListSerializer.Meta.fields + [
             'phone', 'tenant_id', 'last_login_ip', 'last_login_agent',
@@ -54,8 +45,12 @@ class UserDetailSerializer(UserListSerializer):
         ]
 
 class UserCreationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-    password_confirm = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    password = serializers.CharField(
+        write_only=True, required=True, style={'input_type': 'password'}
+    )
+    password_confirm = serializers.CharField(
+        write_only=True, required=True, style={'input_type': 'password'}
+    )
     phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
     class Meta:
         model = User
@@ -63,6 +58,7 @@ class UserCreationSerializer(serializers.ModelSerializer):
             'email', 'username', 'password', 'password_confirm', 'first_name', 'last_name',
             'phone', 'role', 'manager', 'department', 'title', 'employee_id', 'joined_at'
         ]
+
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError(_("A user with this email already exists"))
@@ -70,7 +66,7 @@ class UserCreationSerializer(serializers.ModelSerializer):
     
     def validate_username(self, value):
         if User.objects.filter(username__iexact=value).exists():
-            raise serializers.ValidationError(_("User with this email exists"))
+            raise serializers.ValidationError(_("A user with this username already exists"))
         return value.strip()
     
     def validate_password(self, value):
@@ -83,7 +79,9 @@ class UserCreationSerializer(serializers.ModelSerializer):
         password = attrs.get('password')
         password_confirm = attrs.get('password_confirm')
         if password != password_confirm:
-            raise serializers.ValidationError({'password_confirm': _('Passwords do not match')})
+            raise serializers.ValidationError({
+                'password_confirm': _('Passwords do not match')
+            })
         return attrs
     
     def create(self, validated_data):
@@ -93,10 +91,10 @@ class UserCreationSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
-    
+
+
 class UserUpdateSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
-
     class Meta:
         model = User
         fields = [
@@ -110,13 +108,14 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if request and request.user:
             from apps.accounts.api.v1.permissions import CanAssignRole
             if not CanAssignRole()._can_assign_role(request.user, value):
-                raise serializers.ValidationError(_("You do not have permission to assign this role"))
+                raise serializers.ValidationError(
+                    _("You do not have permission to assign this role")
+                )
         return value
-    
+
 class UserSerializer(DynamicFieldsModelSerializer):
     full_name = serializers.SerializerMethodField(read_only=True)
     phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
-
     class Meta:
         model = User
         fields = [
@@ -127,16 +126,15 @@ class UserSerializer(DynamicFieldsModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at', 'last_login']
-    
     def get_full_name(self, obj):
         return obj.get_full_name()
-    
+
 class UserProfileSerializer(UserSerializer):
     profile = serializers.SerializerMethodField()
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ['profile']
     def get_profile(self, obj):
         from .profile import ProfileMinimalSerializer
-        if hasattr(obj, 'profile'):
+        if hasattr(obj, 'profile') and obj.profile:
             return ProfileMinimalSerializer(obj.profile).data
         return None

@@ -2,15 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { FiX, FiRefreshCw } from 'react-icons/fi';
 import { StatusBadge, ScoreGauge } from '../../../components/dashboard/common';
-import { useSuperAdminDashboard } from '../../../hooks/dashboard/useSuperAdminDashboard';
 
-export const TenantDetailModal = ({ isOpen, onClose, tenant }) => {
-  const { refreshTenantSnapshot } = useSuperAdminDashboard();
+export const TenantDetailModal = ({ isOpen, onClose, tenant, onRefreshTenant }) => {
 
   if (!isOpen || !tenant) return null;
 
   const handleRefresh = async () => {
-    await refreshTenantSnapshot(tenant.client_id);
+    await onRefreshTenant?.(tenant.client_id);
   };
 
   const metrics = [
@@ -31,7 +29,7 @@ export const TenantDetailModal = ({ isOpen, onClose, tenant }) => {
             <FiX size={20} />
           </button>
         </div>
-        
+
         <div className="modal-body">
           <div className="tenant-status-bar">
             <StatusBadge status={tenant.subscription_status} size="large" />
@@ -40,7 +38,7 @@ export const TenantDetailModal = ({ isOpen, onClose, tenant }) => {
               Refresh Data
             </button>
           </div>
-          
+
           <div className="tenant-metrics-grid">
             {metrics.map((metric, index) => (
               <div key={index} className="tenant-metric">
@@ -50,12 +48,12 @@ export const TenantDetailModal = ({ isOpen, onClose, tenant }) => {
               </div>
             ))}
           </div>
-          
+
           <div className="tenant-performance">
             <h3>Performance Score</h3>
             <ScoreGauge score={tenant.health_score} size={120} />
           </div>
-          
+
           <div className="tenant-actions">
             <button className="action-btn primary">View Detailed Report</button>
             <button className="action-btn">Manage Subscription</button>
@@ -70,5 +68,7 @@ export const TenantDetailModal = ({ isOpen, onClose, tenant }) => {
 TenantDetailModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  tenant: PropTypes.object
+  tenant: PropTypes.object,
+  onRefreshTenant: PropTypes.func
 };
+export default TenantDetailModal;

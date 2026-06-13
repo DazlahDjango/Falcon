@@ -409,4 +409,4 @@ export const TenantListPage = () => {
     );
 };
 
-export default TenantListPage;
+export default TenantListPage;

@@ -1,5 +1,3 @@
-# apps/accounts/middleware/websocket.py
-
 import jwt
 import logging
 from channels.db import database_sync_to_async
@@ -40,23 +38,47 @@ def get_user_from_token(token):
 
 class WebSocketAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        # Extract token from query string
-        query_string = scope.get('query_string', b'').decode()
+        token = ''
+        query_string = scope.get('query_string', b'')
+        if isinstance(query_string, bytes):
+            query_string = query_string.decode(errors='ignore')
         params = parse_qs(query_string)
         token_list = params.get('token', [])
-        
+
         if token_list:
             token = token_list[0]
+        else:
+            for name, value in scope.get('headers', []):
+                if isinstance(name, bytes):
+                    name = name.decode(errors='ignore').lower()
+                if name == 'authorization' and value:
+                    if isinstance(value, bytes):
+                        value = value.decode(errors='ignore')
+                    lower_value = value.lower()
+                    if lower_value.startswith('bearer '):
+                        token = value.split(' ', 1)[1]
+                        break
+                    if lower_value.startswith('token '):
+                        token = value.split(' ', 1)[1]
+                        break
+                    token = value.strip()
+                    break
+
+        if token:
             user = await get_user_from_token(token)
             if user:
-                # ✅ Set user and tenant in scope
                 scope['user'] = user
-                scope['tenant_id'] = str(user.tenant_id)  # Ensure string
+                scope['tenant_id'] = str(user.tenant_id) if getattr(user, 'tenant_id', None) else None
                 logger.debug(f"WebSocket authenticated for user {user.email}")
             else:
                 scope['user'] = AnonymousUser()
                 logger.debug("WebSocket authentication failed - invalid token")
         else:
-            scope['user'] = AnonymousUser()
-            logger.debug("No token provided for WebSocket connection")
+            user = scope.get('user')
+            if user and getattr(user, 'is_authenticated', False):
+                scope['tenant_id'] = str(user.tenant_id) if getattr(user, 'tenant_id', None) else None
+                logger.debug(f"WebSocket session authenticated for user {user.email}")
+            else:
+                scope['user'] = AnonymousUser()
+                logger.debug("No token provided for WebSocket connection")
         return await super().__call__(scope, receive, send)

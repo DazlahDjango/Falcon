@@ -19,6 +19,10 @@
 @import './styles/pages.css';
 @import './components/auth.css';
 @import './components/dashboard.css';
+@import './styles/dashboard/dashboard.css';
+@import './styles/dashboard/super.css';
+@import './styles/dashboard/client.css';
+@import './styles/dashboard/executive.css';
 @import './components/users.css';
 @import './components/team.css';
 @import './components/roles.css';
@@ -35,6 +39,8 @@
 @import './assets/styles/kpi/charts.css';
 @import './assets/styles/kpi/traffic-light.css';
 @import './assets/styles/kpi/forms.css';
+@import './styles/sidebar.css';
+@import './components/accounts/mfa/mfa.css';
 
 /* ============================================
    TENANT APP CSS IMPORTS
@@ -88,15 +94,56 @@
 @import './styles/config/registry.css';
 @import './styles/config/realtime.css';
 
-/* Billing */
-@import './styles/billing.css';
-@import './styles/billing/invtrans.css';
-@import './styles/billing/metportal.css';
-@import './styles/billing/pages.css';
-@import './styles/billing/shell.css';
-@import './styles/billing/plans.css';
-@import './styles/billing/subcheck.css';
-@import './styles/billing/waa.css';
+
+/* KPI Modules */
+/* kpi common */
+@import './components/kpi/common/common.css';
+/* kpi actuals */
+@import './components/kpi/actuals/adjustments/adjustments.css';
+@import './components/kpi/actuals/detail/detail.css';
+@import './components/kpi/actuals/list/list.css';
+@import './components/kpi/actuals/submission/submission.css';
+/* kpi analytics */
+@import './components/kpi/analytics/analytics.css';
+/* kpi bulk */
+@import './components/kpi/bulk/bulk.css';
+/* kpi calculations */
+@import './components/kpi/calculations/calculations.css';
+/* kpi dashboard */
+@import './components/kpi/dashboard/admin/admin.css';
+@import './components/kpi/dashboard/champion/champion.css';
+@import './components/kpi/dashboard/executive/executive.css';
+@import './components/kpi/dashboard/individual/individual.css';
+@import './components/kpi/dashboard/manager/manager.css';
+/* kpi exports */
+@import './components/kpi/exports/exports.css';
+/* kpi framework */
+@import './components/kpi/framework/categories/categories.css';
+@import './components/kpi/framework/frameworks/frameworks.css';
+@import './components/kpi/framework/sectors/sectors.css';
+@import './components/kpi/framework/templates/templates.css';
+/* kpi history */
+@import './components/kpi/history/history.css';
+/* kpi kpis management */
+@import './components/kpi/kpi-management/create/create.css';
+@import './components/kpi/kpi-management/detail/detail.css';
+@import './components/kpi/kpi-management/edit/edit.css';
+@import './components/kpi/kpi-management/list/list.css';
+@import './components/kpi/kpi-management/weights/weights.css';
+/* kpi scores */
+@import './components/kpi/scores/scores.css';
+/* kpi settings */
+@import './components/kpi/settings/settings.css';
+/* kpi targets */
+@import './components/kpi/targets/cascade/cascade.css';
+@import './components/kpi/targets/create/create.css';
+@import './components/kpi/targets/list/list.css';
+@import './components/kpi/targets/phasing/phasing.css';
+/* kpi users */
+@import './components/kpi/users/users.css';
+/* kpi validations */
+@import './components/kpi/validations/validations.css';
+
 
 /* Utility Classes */
 .container-center {
@@ -159,4 +206,3 @@
   opacity: 0;
   transition: opacity 200ms ease-out;
 }
-

@@ -5,20 +5,48 @@ from .profile import ProfileSerializer, ProfileUpdateSerializer, ProfilDetailSer
 from .role import RoleSerializer, RoleCreateSerializer, RoleUpdateSerializer, RoleListSerializer, RoleDetailSerializer, RoleMinimalSerializer
 from .permission import PermissionSerializer, PermissionListSerializer, PermissionDetailSerializer, PermissionMinimalSerializer
 from .session import UserSessionSerializer, UserSessionListSerializer, UserSessionDetailSerializer, SessionBlacklistSerializer
-from .mfa import MFADeviceSerializer, MFADeviceListSerializer, MFADeviceCreateSerializer, MFADeviceDetailSerializer, MFAAuditLogSerializer, MFABackupCodeSerializer, MFABackupListSerializer
+
+from .mfa import (
+    MFADeviceSerializer,
+    MFADeviceListSerializer,
+    MFADeviceDetailSerializer,
+    MFADeviceCreateSerializer,
+    MFADeviceUpdateSerializer,
+    MFABackupCodeReadSerializer,
+    MFABackupCodeVerifySerializer,
+    MFABackupCodeGenerateSerializer,
+    MFABackupListSerializer,
+    MFAAuditLogSerializer,
+    MFAAuditLogDetailSerializer,
+    MFAVerifyOTPSerializer,
+    MFADisableSerializer,
+    MFASetPrimarySerializer,
+    MFASetupTOTPSerializer,
+    MFAVerifySetupSerializer,
+    MFADeviceStatusSerializer,
+    MFAMethodStatusSerializer,
+    MFAMFAStatusSerializer,
+    MFAErrorSerializer,
+    MFASuccessSerializer,
+)
+
 from .preference import UserPreferenceSerializer, UserPreferenceUpdateSerializer, TenantPreferenceUpdateSerializer, TenantPreferenceSerializer
 from .audit import AuditLogSerializer, AuditLogDetailSerializer, AuditLogExportSerializer, AuditLogListSerializer
 from .password import PasswordChangeSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer
 from .registration import UserRegistrationSerializer, TenantRegistrationSerializer, InvitationSerializer, InvitationAcceptSerializer, VerifyEmailSerializer
 from .tenant import TenantSerializer, TenantCreateSerializer, TenantDetailSerializer, TenantMinimalSerializer, TenantUpdateSerializer, TenantListSerializer
 
+# REMOVED: ViewSet imports don't belong here!
+# from .base import BaseModelViewset, BaseViewset, BaseReadOnlyViewset  # DELETE THIS LINE!
+
 __all__ = [
-    # Base
+    # Base Serializers
     'BaseSerializer',
     'DynamicFieldsModelSerializer',
     'TenantAwareSerializer',
     'AuditSerializer',
-    # Auth
+    
+    # Auth Serializers
     'LoginSerializer',
     'LoginResponseSerializer',
     'LogoutSerializer',
@@ -28,72 +56,96 @@ __all__ = [
     'MFASetupResponseSerializer',
     'MFAAuthSerializer',
     'MFAResponseSerializer',
-    # User
+    
+    # User Serializers
     'UserSerializer',
-    'UserCreateSerializer',
+    'UserCreationSerializer',
     'UserUpdateSerializer',
     'UserListSerializer',
     'UserDetailSerializer',
     'UserMinimalSerializer',
     'UserProfileSerializer',
-    'UserCreationSerializer',
-    # Profile
+    
+    # Profile Serializers
     'ProfileSerializer',
     'ProfileUpdateSerializer',
     'ProfileDetailSerializer',
     'ProfileMinimalSerializer',
-    'SkillSerializer',
-    'CertificationSerializer',
-    'ProfilDetailSerializer',
     'ProfileListSerializer',
+    'SkillSerializer',
     'SkillUpdateSerializer',
+    'CertificationSerializer',
     'CertificationUpdateSerializer',
-    # Role
+    'ProfilDetailSerializer',
+    
+    # Role Serializers
     'RoleSerializer',
     'RoleCreateSerializer',
     'RoleUpdateSerializer',
     'RoleListSerializer',
     'RoleDetailSerializer',
     'RoleMinimalSerializer',
-    # Permission
+    
+    # Permission Serializers
     'PermissionSerializer',
     'PermissionListSerializer',
     'PermissionDetailSerializer',
     'PermissionMinimalSerializer',
-    # Session
+    
+    # Session Serializers
     'UserSessionSerializer',
     'UserSessionListSerializer',
     'UserSessionDetailSerializer',
     'SessionBlacklistSerializer',
-    # MFA
+    
+    # MFA Serializers
     'MFADeviceSerializer',
-    'MFADeviceCreateSerializer',
     'MFADeviceListSerializer',
-    'MFABackupCodeSerializer',
-    'MFAAuditLogSerializer',
     'MFADeviceDetailSerializer',
+    'MFADeviceCreateSerializer',
+    'MFADeviceUpdateSerializer',
+    'MFABackupCodeReadSerializer',
+    'MFABackupCodeVerifySerializer',
+    'MFABackupCodeGenerateSerializer',
     'MFABackupListSerializer',
-    # Preferences
+    'MFAAuditLogSerializer',
+    'MFAAuditLogDetailSerializer',
+    'MFAVerifyOTPSerializer',
+    'MFADisableSerializer',
+    'MFASetPrimarySerializer',
+    'MFASetupTOTPSerializer',
+    'MFAVerifySetupSerializer',
+    'MFADeviceStatusSerializer',
+    'MFAMethodStatusSerializer',
+    'MFAMFAStatusSerializer',
+    'MFAErrorSerializer',
+    'MFASuccessSerializer',
+    
+    # Preference Serializers
     'UserPreferenceSerializer',
     'UserPreferenceUpdateSerializer',
     'TenantPreferenceSerializer',
     'TenantPreferenceUpdateSerializer',
-    # Audit
+    
+    # Audit Serializers
     'AuditLogSerializer',
     'AuditLogListSerializer',
     'AuditLogDetailSerializer',
     'AuditLogExportSerializer',
-    # Password
+    
+    # Password Serializers
     'PasswordChangeSerializer',
     'PasswordResetRequestSerializer',
     'PasswordResetConfirmSerializer',
-    # Registration
+    
+    # Registration Serializers
     'UserRegistrationSerializer',
     'TenantRegistrationSerializer',
     'InvitationSerializer',
     'InvitationAcceptSerializer',
     'VerifyEmailSerializer',
-    # Tenant
+    
+    # Tenant Serializers
     'TenantSerializer',
     'TenantCreateSerializer',
     'TenantUpdateSerializer',

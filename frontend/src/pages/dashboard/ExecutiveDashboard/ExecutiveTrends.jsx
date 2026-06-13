@@ -20,23 +20,23 @@ export const ExecutiveTrends = () => {
         <h1>KPIs & Trends</h1>
         <p>Track key performance indicators over time</p>
       </div>
-      
-      <FilterBar 
+
+      <FilterBar
         filters={{ period }}
         onFilterChange={handleFilterChange}
         showSearch={false}
       />
-      
+
       <div className="trends-grid">
         <TrendChartWidget
           data={trends}
           loading={loading}
           title="Performance Trends"
           height={400}
-          onRefresh={() => {}}
-          onExport={() => {}}
+          onRefresh={() => { }}
+          onExport={() => { }}
         />
-        
+
         <KPITableWidget
           data={trends?.flatMap(t => t.kpis) || []}
           loading={loading}
@@ -47,3 +47,4 @@ export const ExecutiveTrends = () => {
     </div>
   );
 };
+export default ExecutiveTrends;

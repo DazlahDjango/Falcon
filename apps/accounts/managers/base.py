@@ -1,3 +1,4 @@
+# apps/accounts/managers/base.py
 from django.db import models
 from django.utils import timezone
 
@@ -86,18 +87,33 @@ class TenantAwareManager(BaseManager):
     def tenant_objects(self, tenant_id):
         return self.for_tenant(tenant_id)
     
+
 class SoftDeleteManager(TenantAwareManager):
+    """
+    Manager that excludes soft-deleted objects by default.
+    FIXED: Properly chains the queryset without breaking self.model
+    """
+    
     def get_queryset(self):
+        # Get the base queryset from parent
         qs = super().get_queryset()
+        
+        # Filter out soft-deleted items if the model has is_deleted field
         if hasattr(self.model, 'is_deleted'):
             return qs.filter(is_deleted=False)
+        
         return qs
     
     def all_with_deleted(self):
+        """Return all objects including soft-deleted ones"""
         return super().get_queryset()
     
     def deleted_only(self):
-        """Return only soft-deleted records."""
+        """Return only soft-deleted records"""
         if hasattr(self.model, 'is_deleted'):
             return super().get_queryset().filter(is_deleted=True)
         return self.none()
+    
+    def hard_delete(self, **kwargs):
+        """Permanently delete records matching criteria"""
+        return super().get_queryset().filter(**kwargs).delete()

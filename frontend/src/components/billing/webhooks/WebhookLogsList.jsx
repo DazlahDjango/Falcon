@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { WebhookEventRow } from './WebhookEventRow';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import renderBillingIcon from '../shared/BillingIcons';
 
 export const WebhookLogsList = ({ logs, loading, onRetry }) => {
     if (loading) {

@@ -1,67 +1,31 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import React, { useState } from 'react';
+import { FiCheck, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import './plans.css';
 
-const FEATURE_ICONS = {
-    included: () => renderBillingIcon('success', { size: 14 }),
-    notIncluded: () => renderBillingIcon('failed', { size: 14 }),
-    unlimited: () => renderBillingIcon('unlimited', { size: 14 }),
-};
+export const PlanFeatureList = ({ features, limit = 6, showAll = false }) => {
+    const [expanded, setExpanded] = useState(showAll);
+    const displayFeatures = expanded ? features : features?.slice(0, limit);
+    const hasMore = features?.length > limit;
 
-export const PlanFeatureList = ({ plan, showAll = false }) => {
-    const features = [
-        { key: 'max_users', label: 'Users', value: plan.max_users === -1 ? 'Unlimited' : `${plan.max_users}` },
-        { key: 'max_kpis', label: 'KPIs', value: plan.max_kpis === -1 ? 'Unlimited' : `${plan.max_kpis}` },
-        { key: 'custom_branding', label: 'Custom Branding', value: plan.custom_branding },
-        { key: 'api_access', label: 'API Access', value: plan.api_access },
-        { key: 'sso_enabled', label: 'SSO', value: plan.sso_enabled },
-        { key: 'advanced_analytics', label: 'Advanced Analytics', value: plan.advanced_analytics },
-        { key: 'audit_logs', label: 'Audit Logs', value: plan.audit_logs },
-        { key: 'custom_reports', label: 'Custom Reports', value: plan.custom_reports },
-        { key: 'priority_support', label: 'Priority Support', value: plan.priority_support },
-    ];
-
-    const getIcon = (value) => {
-        if (value === true || value === 'Included') return FEATURE_ICONS.included();
-        if (value === false || value === 'Not Included') return FEATURE_ICONS.notIncluded();
-        if (value === 'Unlimited') return FEATURE_ICONS.unlimited();
-        return null;
-    };
-
-    const getValueDisplay = (feature) => {
-        if (typeof feature.value === 'boolean') {
-            return feature.value ? 'Included' : 'Not Included';
-        }
-        return feature.value;
-    };
-
-    const displayedFeatures = showAll ? features : features.slice(0, 6);
+    if (!features?.length) return <div className="feature-list-empty">No features listed</div>;
 
     return (
-        <div className="plan-features">
-            <ul className="plan-features-list">
-                {displayedFeatures.map((feature) => (
-                    <li key={feature.key} className="plan-feature-item">
-                        <span className={`plan-feature-icon plan-feature-icon-${feature.value === true ? 'included' : 'not-included'}`}>
-                            {getIcon(feature.value)}
-                        </span>
-                        <span className="plan-feature-label">{feature.label}</span>
-                        <span className="plan-feature-value">{getValueDisplay(feature)}</span>
+        <div className="plan-feature-list">
+            <ul>
+                {displayFeatures?.map((feature, index) => (
+                    <li key={index}>
+                        <FiCheck className="feature-check" />
+                        <span>{feature}</span>
                     </li>
                 ))}
             </ul>
-            {!showAll && features.length > 6 && (
-                <div className="plan-features-more">
-                    <span>+{features.length - 6} more features</span>
-                </div>
+            {hasMore && (
+                <button className="feature-expand-btn" onClick={() => setExpanded(!expanded)}>
+                    {expanded ? <><FiChevronUp /> Show Less</> : <><FiChevronDown /> Show {features.length - limit} More</>}
+                </button>
             )}
         </div>
     );
-};
-
-PlanFeatureList.propTypes = {
-    plan: PropTypes.object.isRequired,
-    showAll: PropTypes.bool,
 };
 
 export default PlanFeatureList;

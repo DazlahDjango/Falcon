@@ -32,6 +32,11 @@ class TenantLimitsMiddleware(MiddlewareMixin):
         """
         Check tenant limits before processing request.
         """
+        # Skip limit checking for super_admin and superuser
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+                return None
 
         # Skip for admin and auth endpoints
         if self._should_skip_limits(request):

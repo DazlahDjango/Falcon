@@ -4,14 +4,6 @@ from datetime import timedelta
 from .base import BaseBillingManager, TenantAwareManager
 
 class TransactionManager(TenantAwareManager):
-    """
-    Custom manager for Transaction model.
-    Provides transaction-specific queryset methods.
-    """
-    
-    def __init__(self, tenant_id=None, *args, **kwargs):
-        super().__init__(tenant_id, *args, **kwargs)
-    
     def successful(self):
         """Return successful transactions."""
         return self.get_queryset().filter(status='success')

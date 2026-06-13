@@ -183,8 +183,8 @@ export const DASHBOARD_API = {
 }
 
 export const WEBSOCKET_PATHS = {
-  DASHBOARD: (dashboardType) => `${WS_BASE}/dashboard/${dashboardType}`,
-  NOTIFICATIONS: `${WS_BASE}/notifications`
+  DASHBOARD: (dashboardType) => `${WS_BASE}/dashboard/${dashboardType}/`,
+  NOTIFICATIONS: `${WS_BASE}/notifications/`
 }
 
 export const DASHBOARD_QUERY_KEYS = {

@@ -1,52 +1,32 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { FiEye, FiCreditCard, FiCalendar } from 'react-icons/fi';
 import { StatusBadge } from '../shared/StatusBadge';
-import { PriceDisplay } from '../shared/PriceDisplay';
-import { buildBillingPath, BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './subscription.css';
 
 export const SubscriptionCard = ({ subscription }) => {
-    const isExpiringSoon = subscription.is_active_status?.days_until_expiry <= 7 && 
-                          subscription.is_active_status?.days_until_expiry > 0;
+    const navigate = useNavigate();
+
+    const handleView = () => navigate(`/billing/subscriptions/${subscription.id}`);
 
     return (
-        <Link to={buildBillingPath(BILLING_ROUTES.SUBSCRIPTION_DETAIL(), { id: subscription.id })} className="subscription-card">
+        <div className="subscription-card-item" onClick={handleView}>
             <div className="subscription-card-header">
                 <div className="subscription-card-plan">
-                    <h3 className="subscription-card-plan-name">{subscription.plan?.name}</h3>
-                    <StatusBadge status={subscription.status} size="small" />
+                    <h3>{subscription.plan?.name}</h3>
+                    <StatusBadge type="subscription" status={subscription.status} size="sm" />
                 </div>
-                <PriceDisplay 
-                    amount={subscription.amount} 
-                    period={subscription.billing_interval}
-                    size="small"
-                />
+                <button className="subscription-card-view" onClick={(e) => { e.stopPropagation(); handleView(); }}><FiEye /></button>
             </div>
-
             <div className="subscription-card-body">
-                <div className="subscription-card-dates">
-                    <div className="subscription-card-date">
-                        <span>Started:</span>
-                        <span>{new Date(subscription.start_date).toLocaleDateString()}</span>
-                    </div>
-                    <div className="subscription-card-date">
-                        <span>Renews:</span>
-                        <span className={isExpiringSoon ? 'subscription-card-date-warning' : ''}>
-                            {new Date(subscription.current_period_end).toLocaleDateString()}
-                        </span>
-                    </div>
-                </div>
+                <div className="subscription-card-price"><CurrencyFormatter amount={subscription.amount} currency={subscription.currency} /><span>/{subscription.billing_interval}</span></div>
+                <div className="subscription-card-dates"><FiCalendar /> {new Date(subscription.current_period_start).toLocaleDateString()} - {new Date(subscription.current_period_end).toLocaleDateString()}</div>
+                {subscription.auto_renew && <div className="subscription-card-renewal"><FiCreditCard /> Auto-renewal enabled</div>}
+                {subscription.cancel_at_period_end && <div className="subscription-card-cancellation">Cancels at period end</div>}
             </div>
-
-            <div className="subscription-card-footer">
-                <span className="subscription-card-link">View Details →</span>
-            </div>
-        </Link>
+        </div>
     );
-};
-
-SubscriptionCard.propTypes = {
-    subscription: PropTypes.object.isRequired,
 };
 
 export default SubscriptionCard;

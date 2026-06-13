@@ -113,38 +113,46 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     def get_unread_count(self):
         """Get unread notification count for the user"""
         try:
-            from apps.notifications.models import Notification
+            from notifications.models import Notification
             return Notification.objects.filter(
-                user=self.user,
-                is_read=False,
-                is_deleted=False
+                recipient=self.user,
+                unread=True
             ).count()
         except ImportError:
-            # Notifications app not ready
+            # Notifications library not ready
             return 0
     
     @database_sync_to_async
     def get_recent_notifications(self, limit=20):
         """Get recent notifications for the user"""
         try:
-            from apps.notifications.models import Notification
+            from notifications.models import Notification
+            field_names = {field.name for field in Notification._meta.fields}
+            if 'timestamp' in field_names:
+                ordering = '-timestamp'
+            elif 'created_at' in field_names:
+                ordering = '-created_at'
+            else:
+                ordering = '-id'
+
             notifications = Notification.objects.filter(
-                user=self.user,
-                is_deleted=False
-            ).order_by('-created_at')[:limit]
+                recipient=self.user
+            ).order_by(ordering)[:limit]
             
-            return [
-                {
+            results = []
+            for n in notifications:
+                created_at = getattr(n, 'timestamp', None) or getattr(n, 'created_at', None)
+                data = getattr(n, 'data', {}) or {}
+                results.append({
                     'id': n.id,
-                    'title': n.title,
-                    'message': n.message,
-                    'notification_type': n.type,
-                    'link': n.link,
-                    'created_at': n.created_at.isoformat(),
-                    'is_read': n.is_read
-                }
-                for n in notifications
-            ]
+                    'title': getattr(n, 'verb', '') or '',
+                    'message': getattr(n, 'description', '') or '',
+                    'notification_type': data.get('notification_type') or getattr(n, 'verb', ''),
+                    'link': data.get('link'),
+                    'created_at': created_at.isoformat() if created_at else None,
+                    'is_read': not getattr(n, 'unread', False)
+                })
+            return results
         except ImportError:
             return []
     
@@ -152,11 +160,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     def mark_notification_read(self, notification_id):
         """Mark a single notification as read"""
         try:
-            from apps.notifications.models import Notification
+            from notifications.models import Notification
             Notification.objects.filter(
                 id=notification_id,
-                user=self.user
-            ).update(is_read=True)
+                recipient=self.user
+            ).update(unread=False)
         except ImportError:
             pass
     
@@ -164,11 +172,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     def mark_all_notifications_read(self):
         """Mark all notifications as read for the user"""
         try:
-            from apps.notifications.models import Notification
+            from notifications.models import Notification
             Notification.objects.filter(
-                user=self.user,
-                is_read=False
-            ).update(is_read=True)
+                recipient=self.user,
+                unread=True
+            ).update(unread=False)
         except ImportError:
             pass
 

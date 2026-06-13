@@ -1,0 +1,486 @@
+.payment-methods-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.payment-methods-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.payment-methods-stats {
+    display: flex;
+    gap: 16px;
+}
+
+.stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #374151;
+}
+
+.payment-methods-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.refresh-btn,
+.add-method-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+}
+
+.refresh-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.add-method-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+.payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+}
+
+.payment-method-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    border: 1px solid #e5e7eb;
+}
+
+.payment-method-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.payment-method-card.default {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.payment-method-card.expired {
+    opacity: 0.7;
+    background: #f9fafb;
+}
+
+.method-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.method-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.method-icon-default {
+    color: #6b7280;
+}
+
+.method-icon-bank {
+    color: #22c55e;
+}
+
+.method-icon-mobile {
+    color: #f59e0b;
+}
+
+.method-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.method-card-body {
+    margin-bottom: 16px;
+}
+
+.method-display-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 12px;
+}
+
+.method-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.method-detail {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.detail-label {
+    color: #6b7280;
+}
+
+.detail-value {
+    font-weight: 500;
+    color: #1f2937;
+    font-family: monospace;
+}
+
+.detail-value.capitalize {
+    text-transform: capitalize;
+}
+
+.method-email {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.method-card-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+.method-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.method-action.set-default {
+    color: #3b82f6;
+}
+
+.method-action.set-default:hover {
+    background: #eff6ff;
+}
+
+.method-action.delete {
+    color: #dc2626;
+}
+
+.method-action.delete:hover {
+    background: #fee2e2;
+}
+
+.default-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #3b82f6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.add-method-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.add-method-modal {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.add-method-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.add-method-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 4px;
+}
+
+.add-method-form {
+    padding: 24px;
+}
+
+.card-preview {
+    margin-bottom: 24px;
+}
+
+.card-simulator {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+    position: relative;
+    min-height: 200px;
+}
+
+.card-chip {
+    width: 40px;
+    height: 30px;
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.card-number {
+    font-size: 18px;
+    font-family: monospace;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.card-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.card-brand-icon {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
+.card-icons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.security-info {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin: 20px 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.security-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.delete-modal {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+}
+
+.delete-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.warning-icon {
+    color: #f59e0b;
+    width: 24px;
+    height: 24px;
+}
+
+.delete-modal-header h3 {
+    margin: 0;
+    flex: 1;
+}
+
+.delete-modal-body {
+    padding: 24px;
+}
+
+.warning-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #fef3c7;
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #d97706;
+}
+
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #fee2e2;
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: #dc2626;
+}
+
+.confirm-input {
+    margin-top: 16px;
+}
+
+.confirm-input label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.confirm-input input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+    font-family: monospace;
+    font-weight: 600;
+}
+
+.delete-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.delete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.payment-method-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.security-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #f0fdf4;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #22c55e;
+}
+
+.form-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #fee2e2;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 13px;
+}
+
+@media (max-width: 640px) {
+    .payment-methods-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-methods-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .payment-methods-actions {
+        justify-content: stretch;
+    }
+
+    .refresh-btn,
+    .add-method-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}

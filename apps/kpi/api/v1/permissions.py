@@ -1,16 +1,7 @@
+# apps/kpi/api/v1/permissions.py
+
 from rest_framework import permissions
 from rest_framework.permissions import BasePermission, SAFE_METHODS
-from apps.accounts.constants import UserRoles
-from apps.accounts.api.v1.permissions import (
-    IsAdminOrSupervisor, IsAdminOrExecutive, IsSuperAdmin, IsTenantMember, IsManagement, IsSupervisor, IsDashboardChampion,
-    IsExecutive, IsClientAdmin, CanViewKPIDashboard, CanValidateKPIs, CanManageTeam, CanExportReports
-)
-
-class IsSuperAdminOrReadOnly(BasePermission):
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        return request.user and request.user.is_superuser
 
 
 class IsAuthenticatedAndActive(BasePermission):
@@ -20,109 +11,145 @@ class IsAuthenticatedAndActive(BasePermission):
                 request.user.is_active)
 
 
-class IsOwnerOrSupervisorOrReadOnly(BasePermission):
-    """
-    Object-level permission to allow owners and supervisors to edit.
-    """
-    def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
-            return True
-        
-        # User is the owner
-        if hasattr(obj, 'user_id') and obj.user_id == request.user.id:
-            return True
-        if hasattr(obj, 'owner_id') and obj.owner_id == request.user.id:
-            return True
-        
-        # User is supervisor of the owner
-        user_id = getattr(obj, 'user_id', None) or getattr(obj, 'owner_id', None)
-        if user_id:
-            # Check if request.user is in the management chain of the user
-            try:
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                target_user = User.objects.get(id=user_id)
-                management_chain = target_user.get_management_chain()
-                return request.user in management_chain
-            except User.DoesNotExist:
-                return False
-
-        return False
-
-
-class IsDashboardChampion(BasePermission):
-    """
-    Permission for Dashboard Champion role.
-    """
+class IsManager(BasePermission):
     def has_permission(self, request, view):
-        return (request.user and
-                request.user.is_authenticated and
-                request.user.role == UserRoles.DASHBOARD_CHAMPION)
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Grant access to superusers, administrators, and executives
+        role = getattr(request.user, 'role', '')
+        if (request.user.is_superuser or 
+            role.lower() in ['super_admin', 'client_admin', 'executive', 'ceo', 'director', 'dashboard_champion'] or
+            role.upper() in ['SUPER_ADMIN', 'CLIENT_ADMIN', 'EXECUTIVE', 'CEO', 'DIRECTOR', 'DASHBOARD_CHAMPION']):
+            return True
+            
+        return request.user.get_direct_reports().exists()
 
 
 class IsExecutive(BasePermission):
-    """
-    Permission for executive/C-level access.
-    """
     def has_permission(self, request, view):
-        return (request.user and
-                request.user.is_authenticated and
-                (request.user.is_superuser or
-                 request.user.role == UserRoles.EXECUTIVE))
-    
-    def has_object_permission(self, request, view, obj):
-        # Super admin can validate anything
-        if request.user.is_superuser:
-            return True
-
-        # Check if the user to validate is a direct report
-        user_id = getattr(obj, 'user_id', None)
-        if user_id:
-            try:
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                target_user = User.objects.get(id=user_id)
-                return request.user.is_manager_of(target_user)
-            except User.DoesNotExist:
-                return False
-
-        return False
+        if not request.user or not request.user.is_authenticated:
+            return False
+        role = getattr(request.user, 'role', '')
+        return (request.user.is_superuser or 
+                role.lower() in ['executive', 'ceo', 'director'] or
+                role.upper() in ['EXECUTIVE', 'CEO', 'DIRECTOR'])
 
 
-class IsManager(BasePermission):
-    """
-    Permission for manager-level access (users who have direct reports).
-    """
+class IsDashboardChampion(BasePermission):
     def has_permission(self, request, view):
-        return (request.user and
-                request.user.is_authenticated and
-                request.user.get_direct_reports().exists())
+        if not request.user or not request.user.is_authenticated:
+            return False
+        role = getattr(request.user, 'role', '')
+        return (request.user.is_superuser or 
+                role.lower() in ['dashboard_champion', 'super_admin', 'client_admin'] or
+                role.upper() in ['DASHBOARD_CHAMPION', 'SUPER_ADMIN', 'CLIENT_ADMIN'])
 
 
 class CanCascadeTargets(BasePermission):
-    """
-    Permission to cascade targets (Dashboard Champion or Admin).
-    """
+    """Permission to cascade targets (Dashboard Champion or Admin)."""
     def has_permission(self, request, view):
-        return (request.user and 
-                request.user.is_authenticated and 
-                (request.user.is_superuser or 
-                 request.user.role == UserRoles.DASHBOARD_CHAMPION or 
-                 request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]))
+        if not request.user or not request.user.is_authenticated:
+            return False
         
         if request.user.is_superuser:
             return True
         
-        # Check if user is a manager (has direct reports)
-        has_reports = request.user.get_direct_reports().exists()
+        role = getattr(request.user, 'role', '')
+        if (role.lower() in ['dashboard_champion', 'super_admin', 'client_admin'] or
+            role.upper() in ['DASHBOARD_CHAMPION', 'SUPER_ADMIN', 'CLIENT_ADMIN']):
+            return True
         
-        return has_reports or request.user.role == UserRoles.EXECUTIVE
+        return request.user.get_direct_reports().exists()
+
+
+class CanViewAuditLogs(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        role = getattr(request.user, 'role', '')
+        return (request.user.is_superuser or 
+                role in ['super_admin', 'client_admin', 'auditor'])
+
+
+class CanViewKPIAdminOverview(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        role = getattr(request.user, 'role', '')
+        return (request.user.is_superuser or 
+                role in ['super_admin', 'client_admin', 'executive'])
+
+
+class IsTenantMember(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'tenant', None)
+        if tenant_id:
+            if hasattr(tenant_id, 'id'):
+                tenant_id = tenant_id.id
+            return str(request.user.tenant_id) == str(tenant_id)
+        
+        return True
+
+
+class IsFrameworkAdmin(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.user.is_superuser:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in ['super_admin', 'client_admin']
+    
+    def has_object_permission(self, request, view, obj):
+        if hasattr(obj, 'tenant_id') and str(obj.tenant_id) != str(request.user.tenant_id):
+            return False
+        
+        if request.method in SAFE_METHODS:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in ['super_admin', 'client_admin']
+
+
+class CanManageFramework(IsFrameworkAdmin):
+    pass
+
+
+class CanManageCategory(IsFrameworkAdmin):
+    pass
+
+
+class CanPublishFramework(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.user.is_superuser:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in ['super_admin', 'client_admin']
+
+
+class CanArchiveFramework(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if request.user.is_superuser:
+            return True
+        
+        role = getattr(request.user, 'role', '')
+        return role in ['super_admin', 'client_admin']
 
 
 class IsOwnerOrReadOnly(BasePermission):
-    """
-    Object-level permission to allow owners to edit.
-    """
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
@@ -143,82 +170,21 @@ class IsOwnerOrReadOnly(BasePermission):
 
 
 class HasKPIWritePermission(BasePermission):
-    """
-    Permission to create/update KPIs (must be Dashboard Champion or Admin).
-    """
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
         
-        return (request.user and
-                request.user.is_authenticated and
-                (request.user.is_superuser or
-                 request.user.role == UserRoles.DASHBOARD_CHAMPION or
-                 request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]))
-
-
-class CanViewOwnDataOnly(BasePermission):
-    """
-    Users can only view their own data (for sensitive endpoints).
-    """
-    def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
         
-        # Super admin can view everything
         if request.user.is_superuser:
             return True
         
-        # Check if the user is requesting their own data
-        user_id = request.query_params.get('user_id')
-        if user_id:
-            return user_id == str(request.user.id)
-        
-        return True
-    
-    def has_object_permission(self, request, view, obj):
-        if request.user.is_superuser:
-            return True
-        
-        user_id = getattr(obj, 'user_id', None)
-        if user_id:
-            return user_id == request.user.id
-        
-        return True
+        role = getattr(request.user, 'role', '')
+        return (role.lower() in ['dashboard_champion', 'super_admin', 'client_admin'] or
+                role.upper() in ['DASHBOARD_CHAMPION', 'SUPER_ADMIN', 'CLIENT_ADMIN'])
 
 
-class IsTenantMember(BasePermission):
-    """
-    User must belong to the tenant they're trying to access.
-    """
+class CanUseTemplate(BasePermission):
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-        
-        tenant_id = getattr(request, 'tenant_id', None)
-        if tenant_id:
-            return str(request.user.tenant_id) == str(tenant_id)
-        
-        return True
-    
-    def has_object_permission(self, request, view, obj):
-        if not request.user or not request.user.is_authenticated:
-            return False
-        
-        obj_tenant_id = getattr(obj, 'tenant_id', None)
-        if obj_tenant_id:
-            return str(request.user.tenant_id) == str(obj_tenant_id)
-        
-        return True
-
-
-class CanViewAuditLogs(BasePermission):
-    """
-    Permission to view audit logs (admin only).
-    """
-    def has_permission(self, request, view):
-        return (request.user and
-                request.user.is_authenticated and
-                (request.user.is_superuser or
-                 request.user.role == UserRoles.SUPER_ADMIN or
-                 request.user.role == UserRoles.CLIENT_ADMIN))
+        return request.user and request.user.is_authenticated and request.user.is_active

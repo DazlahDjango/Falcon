@@ -1,0 +1,675 @@
+.billing-portal {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.portal-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+}
+
+.portal-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.portal-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.portal-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.portal-tab:hover {
+    color: #374151;
+}
+
+.portal-tab.active {
+    color: #3b82f6;
+}
+
+.portal-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #3b82f6;
+}
+
+.portal-content {
+    min-height: 500px;
+}
+
+.overview-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+    border-radius: 12px;
+    color: #3b82f6;
+}
+
+.stat-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.stat-value.active {
+    color: #22c55e;
+}
+
+.stat-value.inactive {
+    color: #dc2626;
+}
+
+.overview-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.overview-section {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.overview-section h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.preview-plan {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.plan-name {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.preview-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 16px;
+}
+
+.preview-price span {
+    font-size: 14px;
+    font-weight: 400;
+    color: #6b7280;
+}
+
+.preview-invoice {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.preview-invoice:last-child {
+    border-bottom: none;
+}
+
+.invoice-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.invoice-number {
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.invoice-amount {
+    font-weight: 600;
+}
+
+.preview-payment {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.preview-payment:last-child {
+    border-bottom: none;
+}
+
+.payment-icon svg {
+    width: 20px;
+    height: 20px;
+    color: #6b7280;
+}
+
+.payment-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.payment-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.preview-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.portal-subscription .sub-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sub-plan {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sub-pricing {
+    font-size: 28px;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.sub-period {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.sub-warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #d97706;
+}
+
+.sub-warning.cancel {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.sub-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.portal-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.portal-action-btn.primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.portal-action-btn.upgrade {
+    background: #8b5cf6;
+    color: white;
+}
+
+.portal-action-btn.downgrade {
+    background: #f59e0b;
+    color: white;
+}
+
+.portal-action-btn.danger {
+    background: #dc2626;
+    color: white;
+}
+
+.portal-action-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+.feature-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.feature-item svg {
+    color: #22c55e;
+    width: 16px;
+    height: 16px;
+}
+
+.feature-more {
+    font-size: 12px;
+    color: #3b82f6;
+    margin-top: 8px;
+}
+
+.portal-invoices .invoice-summary-banner {
+    display: flex;
+    gap: 24px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.portal-invoices-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.portal-invoices-table th,
+.portal-invoices-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.portal-invoices-table th {
+    background: #f9fafb;
+    font-weight: 600;
+}
+
+.overdue-row {
+    background: #fef2f2;
+}
+
+.overdue-date {
+    color: #dc2626;
+    font-weight: 500;
+}
+
+.portal-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    margin: 0 2px;
+}
+
+.portal-icon-btn:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+}
+
+.portal-payment-methods .payment-methods-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.payment-methods-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.payment-method-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+}
+
+.payment-method-row.default {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.method-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.method-info {
+    flex: 1;
+}
+
+.method-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.method-detail {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.method-expiry {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.method-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.method-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.method-action.set-default {
+    color: #3b82f6;
+}
+
+.method-action.set-default:hover {
+    background: #eff6ff;
+}
+
+.method-action.delete {
+    color: #dc2626;
+}
+
+.method-action.delete:hover {
+    background: #fee2e2;
+}
+
+.portal-activity .activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.activity-item:hover {
+    background: #f3f4f6;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 10px;
+}
+
+.activity-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.icon-success {
+    color: #22c55e;
+}
+
+.icon-failed {
+    color: #dc2626;
+}
+
+.icon-pending {
+    color: #f59e0b;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.activity-details {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.activity-amount {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.activity-reference {
+    font-size: 11px;
+    color: #9ca3af;
+    font-family: monospace;
+}
+
+.portal-settings .settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.settings-toggle input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.toggle-note {
+    font-size: 12px;
+    color: #6b7280;
+    margin-left: auto;
+}
+
+.save-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: #dcfce7;
+    border-radius: 8px;
+    color: #22c55e;
+    font-size: 13px;
+}
+
+.save-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.security-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.security-action {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    cursor: pointer;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.portal-empty {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+.portal-empty button {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .sub-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-sections {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .portal-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+
+    .feature-list {
+        grid-template-columns: 1fr;
+    }
+
+    .method-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
