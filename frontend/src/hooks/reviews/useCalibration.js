@@ -1,296 +1,271 @@
 // src/hooks/reviews/useCalibration.js
-// Hook for calibration operations
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useMemo } from 'react';
+import {
+  selectAllCalibrationSessions,
+  selectCalibrationSessionsLoading,
+  selectCalibrationSessionsError,
+  selectSelectedCalibrationSession,
+  selectCalibrationReport,
+  selectCalibrationOutliers,
+  selectCalibrationRecommendations,
+  selectMyCalibrationSessions,
+  selectUpcomingCalibrationSessions,
+  selectCompletedCalibrationSessions,
+  selectInProgressCalibrationSessions,
+} from '../../store/reviews/selectors';
+import {
+  fetchCalibrationSessions,
+  fetchCalibrationSession,
+  createCalibrationSession,
+  updateCalibrationSession,
+  deleteCalibrationSession,
+  startCalibrationSession,
+  completeCalibrationSession,
+  cancelCalibrationSession,
+  addCalibrationRating,
+  addCalibrationComment,
+  fetchCalibrationReport,
+  fetchMyCalibrationSessions,
+  fetchCalibrationOutliers,
+  fetchCalibrationRecommendations,
+  resetSessionState,
+} from '../../store/reviews/slices/calibration.slice';
+import {
+  fetchCalibrationRatings,
+  fetchCalibrationRating,
+  fetchCalibrationRatingsForSession,
+  resetRatingState,
+} from '../../store/reviews/slices/calibration.slice';
+import { useReviewsPermissions } from './';
 
-import { useState, useEffect, useCallback } from 'react';
-import { 
-    calibrationSessionService, 
-    calibrationRatingService, 
-    calibrationCommentService 
-} from '@/services/reviews';
+const useCalibration = () => {
+  const dispatch = useDispatch();
+  const permissions = useReviewsPermissions();
 
-export const useCalibration = () => {
-    const [sessions, setSessions] = useState([]);
-    const [mySessions, setMySessions] = useState([]);
-    const [currentSession, setCurrentSession] = useState(null);
-    const [outlierReport, setOutlierReport] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  // Session Selectors
+  const sessionData = useSelector(selectAllCalibrationSessions);
+  const sessionLoading = useSelector(selectCalibrationSessionsLoading);
+  const sessionError = useSelector(selectCalibrationSessionsError);
+  const selectedSession = useSelector(selectSelectedCalibrationSession);
+  const report = useSelector(selectCalibrationReport);
+  const outliers = useSelector(selectCalibrationOutliers);
+  const recommendations = useSelector(selectCalibrationRecommendations);
+  const mySessions = useSelector(selectMyCalibrationSessions);
+  const upcomingSessions = useSelector(selectUpcomingCalibrationSessions);
+  const completedSessions = useSelector(selectCompletedCalibrationSessions);
+  const inProgressSessions = useSelector(selectInProgressCalibrationSessions);
 
-    // ========== Session Operations ==========
+  // Rating Selectors
+  const ratingData = useSelector((state) => state.reviews.calibrationRatings.items);
+  const ratingLoading = useSelector((state) => state.reviews.calibrationRatings.loading);
 
-    // Fetch all calibration sessions
-    const fetchSessions = useCallback(async (params = {}) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationSessionService.getAll(params);
-            setSessions(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch calibration sessions');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // ===== Session Actions =====
+  const fetchSessions = useCallback(
+    (params) => dispatch(fetchCalibrationSessions(params)),
+    [dispatch]
+  );
 
-    // Fetch my upcoming sessions
-    const fetchMySessions = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationSessionService.getMySessions();
-            setMySessions(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch my sessions');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchSession = useCallback(
+    (id) => dispatch(fetchCalibrationSession(id)),
+    [dispatch]
+  );
 
-    // Get single session by ID
-    const getSession = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationSessionService.getById(id);
-            setCurrentSession(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch session');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const createSession = useCallback(
+    (data) => {
+      if (!permissions.canCreateCalibrationSession) {
+        throw new Error('You do not have permission to create calibration sessions');
+      }
+      return dispatch(createCalibrationSession(data));
+    },
+    [dispatch, permissions.canCreateCalibrationSession]
+  );
 
-    // Create calibration session
-    const createSession = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await calibrationSessionService.create(data);
-            await fetchSessions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to create session');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchSessions]);
+  const updateSession = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateCalibrationSession) {
+        throw new Error('You do not have permission to update calibration sessions');
+      }
+      return dispatch(updateCalibrationSession({ id, data }));
+    },
+    [dispatch, permissions.canUpdateCalibrationSession]
+  );
 
-    // Update calibration session
-    const updateSession = useCallback(async (id, data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await calibrationSessionService.update(id, data);
-            if (currentSession?.id === id) setCurrentSession(result);
-            await fetchSessions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to update session');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchSessions, currentSession]);
+  const deleteSession = useCallback(
+    (id) => {
+      if (!permissions.canDeleteCalibrationSession) {
+        throw new Error('You do not have permission to delete calibration sessions');
+      }
+      return dispatch(deleteCalibrationSession(id));
+    },
+    [dispatch, permissions.canDeleteCalibrationSession]
+  );
 
-    // Delete calibration session
-    const deleteSession = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await calibrationSessionService.delete(id);
-            if (currentSession?.id === id) setCurrentSession(null);
-            await fetchSessions();
-            await fetchMySessions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to delete session');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchSessions, fetchMySessions, currentSession]);
+  const startSession = useCallback(
+    (id) => {
+      if (!permissions.canStartCalibration) {
+        throw new Error('You do not have permission to start calibration sessions');
+      }
+      return dispatch(startCalibrationSession(id));
+    },
+    [dispatch, permissions.canStartCalibration]
+  );
 
-    // Start session
-    const startSession = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await calibrationSessionService.start(id);
-            if (currentSession?.id === id) setCurrentSession(result);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to start session');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [currentSession]);
+  const completeSession = useCallback(
+    (id, decisions, notes) => {
+      if (!permissions.canCompleteCalibration) {
+        throw new Error('You do not have permission to complete calibration sessions');
+      }
+      return dispatch(completeCalibrationSession({ id, decisions, notes }));
+    },
+    [dispatch, permissions.canCompleteCalibration]
+  );
 
-    // Complete session
-    const completeSession = useCallback(async (id, decisions = '', notes = '') => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await calibrationSessionService.complete(id, decisions, notes);
-            if (currentSession?.id === id) setCurrentSession(result);
-            await fetchSessions();
-            await fetchMySessions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to complete session');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchSessions, fetchMySessions, currentSession]);
+  const cancelSession = useCallback(
+    (id) => {
+      if (!permissions.canCancelCalibration) {
+        throw new Error('You do not have permission to cancel calibration sessions');
+      }
+      return dispatch(cancelCalibrationSession(id));
+    },
+    [dispatch, permissions.canCancelCalibration]
+  );
 
-    // Get session report
-    const getSessionReport = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationSessionService.getReport(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch session report');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const addRating = useCallback(
+    (sessionId, finalRatingId, beforeScore, afterScore, reason) => {
+      if (!permissions.canCalibrateFinalRating) {
+        throw new Error('You do not have permission to add calibration ratings');
+      }
+      return dispatch(addCalibrationRating({
+        sessionId,
+        finalRatingId,
+        beforeScore,
+        afterScore,
+        reason,
+      }));
+    },
+    [dispatch, permissions.canCalibrateFinalRating]
+  );
 
-    // Get sessions for a cycle
-    const getSessionsForCycle = useCallback(async (cycleId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationSessionService.getForCycle(cycleId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch cycle sessions');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const addComment = useCallback(
+    (sessionId, comment, parentCommentId) => {
+      if (!permissions.canCreateComment) {
+        throw new Error('You do not have permission to add calibration comments');
+      }
+      return dispatch(addCalibrationComment({ sessionId, comment, parentCommentId }));
+    },
+    [dispatch, permissions.canCreateComment]
+  );
 
-    // Get outlier report
-    const fetchOutlierReport = useCallback(async (cycleId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationSessionService.getOutlierReport(cycleId);
-            setOutlierReport(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch outlier report');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const getReport = useCallback(
+    (id) => dispatch(fetchCalibrationReport(id)),
+    [dispatch]
+  );
 
-    // ========== Rating Adjustment Operations ==========
+  const getMySessions = useCallback(
+    () => dispatch(fetchMyCalibrationSessions()),
+    [dispatch]
+  );
 
-    // Adjust rating
-    const adjustRating = useCallback(async (sessionId, finalRatingId, beforeScore, afterScore, reason) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await calibrationRatingService.adjust(sessionId, finalRatingId, beforeScore, afterScore, reason);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to adjust rating');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const getOutliers = useCallback(
+    (cycleId) => dispatch(fetchCalibrationOutliers(cycleId)),
+    [dispatch]
+  );
 
-    // Get adjustments for a session
-    const getAdjustmentsForSession = useCallback(async (sessionId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationRatingService.getForSession(sessionId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch adjustments');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const getRecommendations = useCallback(
+    (cycleId) => dispatch(fetchCalibrationRecommendations(cycleId)),
+    [dispatch]
+  );
 
-    // ========== Comment Operations ==========
+  const resetSessions = useCallback(
+    () => dispatch(resetSessionState()),
+    [dispatch]
+  );
 
-    // Add comment to session
-    const addComment = useCallback(async (sessionId, comment, parentCommentId = null) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await calibrationCommentService.add(sessionId, comment, parentCommentId);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to add comment');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // ===== Rating Actions =====
+  const fetchRatings = useCallback(
+    (params) => dispatch(fetchCalibrationRatings(params)),
+    [dispatch]
+  );
 
-    // Get comments for a session
-    const getCommentsForSession = useCallback(async (sessionId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await calibrationCommentService.getForSession(sessionId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch comments');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchRating = useCallback(
+    (id) => dispatch(fetchCalibrationRating(id)),
+    [dispatch]
+  );
 
-    useEffect(() => {
-        fetchSessions();
-        fetchMySessions();
-    }, [fetchSessions, fetchMySessions]);
+  const fetchRatingsForSession = useCallback(
+    (sessionId) => dispatch(fetchCalibrationRatingsForSession(sessionId)),
+    [dispatch]
+  );
 
-    return {
-        // State
-        sessions,
-        mySessions,
-        currentSession,
-        outlierReport,
-        loading,
-        error,
-        // Session Methods
-        fetchSessions,
-        fetchMySessions,
-        getSession,
-        createSession,
-        updateSession,
-        deleteSession,
-        startSession,
-        completeSession,
-        getSessionReport,
-        getSessionsForCycle,
-        fetchOutlierReport,
-        // Rating Methods
-        adjustRating,
-        getAdjustmentsForSession,
-        // Comment Methods
-        addComment,
-        getCommentsForSession,
-    };
+  const resetRatings = useCallback(
+    () => dispatch(resetRatingState()),
+    [dispatch]
+  );
+
+  // Computed
+  const canManage = useMemo(
+    () => permissions.canManageCalibration,
+    [permissions.canManageCalibration]
+  );
+
+  const canView = useMemo(
+    () => permissions.canViewCalibration,
+    [permissions.canViewCalibration]
+  );
+
+  return {
+    // Session Data
+    sessionData,
+    sessionLoading,
+    sessionError,
+    selectedSession,
+    report,
+    outliers,
+    recommendations,
+    mySessions,
+    upcomingSessions,
+    completedSessions,
+    inProgressSessions,
+
+    // Rating Data
+    ratingData,
+    ratingLoading,
+
+    // Session Actions
+    fetchSessions,
+    fetchSession,
+    createSession,
+    updateSession,
+    deleteSession,
+    startSession,
+    completeSession,
+    cancelSession,
+    addRating,
+    addComment,
+    getReport,
+    getMySessions,
+    getOutliers,
+    getRecommendations,
+    resetSessions,
+
+    // Rating Actions
+    fetchRatings,
+    fetchRating,
+    fetchRatingsForSession,
+    resetRatings,
+
+    // Permissions
+    canManage,
+    canView,
+
+    // Utilities
+    isEmpty: sessionData.length === 0,
+    totalCount: sessionData.length,
+    getSessionById: (id) => sessionData.find((item) => item.id === id),
+    hasUpcomingSessions: upcomingSessions.length > 0,
+    hasInProgressSessions: inProgressSessions.length > 0,
+  };
 };
+
+export default useCalibration;

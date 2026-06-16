@@ -18,10 +18,10 @@ class RatingScaleSerializer(BaseTenantSerializer):
         fields = [
             'id', 'name', 'description', 'tenant', 'tenant_name',
             'levels', 'min_value', 'max_value', 'allow_decimal',
-            'reverse_scoring', 'scoring_type', 'is_active', 'is_default',
+            'reverse_scoring', 'is_active', 'is_default',
             'created_by', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_by', 'created_at', 'updated_at', 'tenant']
 
 
 class RatingScaleListSerializer(RatingScaleSerializer):
@@ -60,14 +60,14 @@ class RatingScaleCreateUpdateSerializer(RatingScaleSerializer):
     """
     
     class Meta(RatingScaleSerializer.Meta):
-        read_only_fields = ['id', 'created_by', 'created_at', 'updated_at', 'is_default']
+        read_only_fields = ['id', 'created_by', 'created_at', 'updated_at', 'is_default', 'tenant']
 
 
 class ConvertScoreSerializer(serializers.Serializer):
     """
     Serializer for score conversion.
     """
-    
+    rating_scale_id = serializers.UUIDField()
     score = serializers.DecimalField(max_digits=5, decimal_places=2)
     from_type = serializers.ChoiceField(choices=['raw', 'percentage'])
     to_type = serializers.ChoiceField(choices=['raw', 'percentage', 'label'])

@@ -1,98 +1,60 @@
 // src/services/reviews/report.service.js
-// Handles all report generation API calls
+// Reports API service
 
-import { apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+import { reviewsApiClient } from '../api';
 
-class ReportService {
-    /**
-     * Get employee review summary report
-     * @param {string|number} employeeId - Employee ID
-     * @param {string|number} cycleId - Review cycle ID
-     * @returns {Promise<Object>} Employee summary report
-     */
-    async getEmployeeSummary(employeeId, cycleId) {
-        const response = await apiClient.post(REVIEWS_API.REPORTS_EMPLOYEE_SUMMARY, {
-            employee_id: employeeId,
-            cycle_id: cycleId,
-        });
-        return response.data;
-    }
+class ReviewsReportService {
+  async getEmployeeSummary(employeeId, cycleId) {
+    const response = await reviewsApiClient.post('/reports/employee-summary/', {
+      employee_id: employeeId,
+      cycle_id: cycleId,
+    });
+    return response.data;
+  }
 
-    /**
-     * Get team review summary report (for managers)
-     * @param {string|number} managerId - Manager ID
-     * @param {string|number} cycleId - Review cycle ID
-     * @returns {Promise<Object>} Team summary report
-     */
-    async getTeamSummary(managerId, cycleId) {
-        const response = await apiClient.post(REVIEWS_API.REPORTS_TEAM_SUMMARY, {
-            manager_id: managerId,
-            cycle_id: cycleId,
-        });
-        return response.data;
-    }
+  async getTeamSummary(managerId, cycleId) {
+    const response = await reviewsApiClient.post('/reports/team-summary/', {
+      manager_id: managerId,
+      cycle_id: cycleId,
+    });
+    return response.data;
+  }
 
-    /**
-     * Get cycle summary report
-     * @param {string|number} cycleId - Review cycle ID
-     * @returns {Promise<Object>} Cycle summary report
-     */
-    async getCycleSummary(cycleId) {
-        const response = await apiClient.post(REVIEWS_API.REPORTS_CYCLE_SUMMARY, {
-            cycle_id: cycleId,
-        });
-        return response.data;
-    }
+  async getCycleStats(cycleId) {
+    const response = await reviewsApiClient.get('/reports/cycle-stats/', {
+      params: { cycle_id: cycleId },
+    });
+    return response.data;
+  }
 
-    /**
-     * Get PIP summary report
-     * @returns {Promise<Object>} PIP summary report
-     */
-    async getPIPSummary() {
-        const response = await apiClient.post(REVIEWS_API.REPORTS_PIP_SUMMARY);
-        return response.data;
-    }
+  async getPIPSummary() {
+    const response = await reviewsApiClient.get('/reports/pip-summary/');
+    return response.data;
+  }
 
-    /**
-     * Get calibration summary report for a cycle
-     * @param {string|number} cycleId - Review cycle ID
-     * @returns {Promise<Object>} Calibration summary report
-     */
-    async getCalibrationSummary(cycleId) {
-        const response = await apiClient.post(REVIEWS_API.REPORTS_CALIBRATION_SUMMARY, {
-            cycle_id: cycleId,
-        });
-        return response.data;
-    }
+  async getCalibrationSummary(cycleId) {
+    const response = await reviewsApiClient.post('/reports/calibration-summary/', {
+      cycle_id: cycleId,
+    });
+    return response.data;
+  }
 
-    /**
-     * Get rating distribution report for a cycle
-     * @param {string|number} cycleId - Review cycle ID
-     * @returns {Promise<Object>} Rating distribution report
-     */
-    async getRatingDistribution(cycleId) {
-        const response = await apiClient.post(REVIEWS_API.REPORTS_RATING_DISTRIBUTION, {
-            cycle_id: cycleId,
-        });
-        return response.data;
-    }
+  async getRatingDistribution(cycleId) {
+    const response = await reviewsApiClient.get('/reports/rating-distribution/', {
+      params: { cycle_id: cycleId },
+    });
+    return response.data;
+  }
 
-    /**
-     * Export report to file
-     * @param {string} reportType - 'ratings', 'pips', 'calibration'
-     * @param {string|number} cycleId - Review cycle ID
-     * @param {string} format - 'csv', 'excel', 'pdf'
-     * @returns {Promise<Object>} Export data
-     */
-    async export(reportType, cycleId, format = 'csv') {
-        const response = await apiClient.post(REVIEWS_API.REPORTS_EXPORT, {
-            report_type: reportType,
-            cycle_id: cycleId,
-            format,
-        });
-        return response.data;
-    }
+  async exportReport(reportType, cycleId, format = 'csv') {
+    const response = await reviewsApiClient.post('/reports/export/', {
+      report_type: reportType,
+      cycle_id: cycleId,
+      format,
+    });
+    return response.data;
+  }
 }
 
-export const reportService = new ReportService();
+export const reviewsReportService = new ReviewsReportService();
+export default reviewsReportService;

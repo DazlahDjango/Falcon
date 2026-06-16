@@ -1,67 +1,20 @@
-# apps/reviews/api/v1/views/pip_views.py
-"""
-Views for PIP, PIPAction, and PIPReview models
-"""
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from django.db import models
-
 from apps.reviews.models import PIP, PIPAction, PIPReview, FinalRating
 from apps.reviews.services.pip.pip_service import PIPService
 from apps.reviews.services.pip.pip_generator import PIPGenerator
 from apps.reviews.services.pip.pip_tracker import PIPTracker
 from apps.reviews.services.reporting.pip_report_service import PIPReportService
-from ..serializers import (
-    PIPSerializer,
-    PIPListSerializer,
-    PIPDetailSerializer,
-    PIPCreateSerializer,
-    PIPActionSerializer,
-    PIPActionCompleteSerializer,
-    PIPReviewSerializer,
-    PIPApproveSerializer,
-    PIPExtendSerializer,
-)
+from apps.reviews.api.v1.serializers import PIPSerializer, PIPListSerializer, PIPDetailSerializer, PIPCreateSerializer, PIPActionSerializer, PIPActionCompleteSerializer, PIPReviewSerializer, PIPApproveSerializer, PIPExtendSerializer
 from .base_views import BaseReviewViewSet
-from ..permissions import (
-    CanViewPIP,
-    CanCreatePIP,
-    CanManagePIP,
-    CanApprovePIP,
-    CanCompletePIPAction,
-)
-from ..filters.pip_filters import PIPFilter, PIPActionFilter
-
+from ..permissions import IsAdminOrManager, IsAdminOnly
+from apps.accounts.constants import UserRoles
 
 class PIPViewSet(BaseReviewViewSet):
-    """
-    ViewSet for Performance Improvement Plans.
-    
-    Actions:
-    - GET /pips/ - List all PIPs
-    - POST /pips/ - Create new PIP
-    - GET /pips/{id}/ - Get PIP details
-    - PUT /pips/{id}/ - Update PIP
-    - DELETE /pips/{id}/ - Delete PIP
-    - POST /pips/{id}/approve/ - Approve PIP
-    - POST /pips/{id}/extend/ - Extend PIP deadline
-    - POST /pips/{id}/complete/ - Complete PIP
-    - GET /pips/{id}/progress/ - Get PIP progress
-    - GET /pips/my/ - Get my PIPs
-    - GET /pips/team/ - Get team PIPs (managers)
-    - GET /pips/active/ - Get active PIPs
-    - GET /pips/overdue/ - Get overdue PIPs
-    - GET /pips/for-employee/{employee_id}/ - Get by employee
-    - POST /pips/generate-from-rating/{rating_id}/ - Generate PIP from final rating
-    - GET /pips/report/ - Get organization PIP report
-    """
-    
     queryset = PIP.objects.all()
-    filterset_class = PIPFilter
-    
     def get_serializer_class(self):
         if self.action == 'list':
             return PIPListSerializer
@@ -70,403 +23,247 @@ class PIPViewSet(BaseReviewViewSet):
         elif self.action == 'create':
             return PIPCreateSerializer
         return PIPSerializer
-    
     def get_permissions(self):
         if self.action == 'create':
-            self.permission_classes = [CanCreatePIP]
-        elif self.action in ['update', 'partial_update', 'destroy', 'extend', 'complete']:
-            self.permission_classes = [CanManagePIP]
-        elif self.action == 'approve':
-            self.permission_classes = [CanApprovePIP]
-        else:
-            self.permission_classes = [CanViewPIP]
+            self.permission_classes = [IsAdminOrManager]
+        elif self.action in ['approve', 'extend', 'complete', 'cancel']:
+            self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
-    
+    def perform_create(self, serializer):
+        serializer.save(tenant_id=self.request.user.tenant_id)
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
-        """
-        Approve a PIP.
-        """
         pip = self.get_object()
-        
         if pip.status != 'draft':
-            return Response(
-                {'error': f'PIP cannot be approved (current status: {pip.status})'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+            return Response({'error': f'Cannot approve with status: {pip.status}'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = PIPApproveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        pip.status = 'active'
+        pip.status = 'submitted'
         pip.manager_signed_at = timezone.now()
         pip.save()
-        
-        result_serializer = self.get_serializer(pip)
-        return Response(result_serializer.data)
-    
+        return Response(self.get_serializer(pip).data)
+    @action(detail=True, methods=['post'])
+    def start(self, request, pk=None):
+        pip = self.get_object()
+        if pip.status != 'submitted':
+            return Response({'error': f'Cannot start with status: {pip.status}'}, status=status.HTTP_400_BAD_REQUEST)
+        pip.status = 'submitted'
+        pip.employee_acknowledged_at = timezone.now()
+        pip.save()
+        return Response(self.get_serializer(pip).data)
     @action(detail=True, methods=['post'])
     def extend(self, request, pk=None):
-        """
-        Extend a PIP deadline.
-        """
         pip = self.get_object()
-        
-        if pip.status != 'active':
-            return Response(
-                {'error': f'Only active PIPs can be extended (current status: {pip.status})'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+        if pip.status not in ['draft', 'submitted']:
+            return Response({'error': f'Cannot extend with status: {pip.status}'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = PIPExtendSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        data = serializer.validated_data
-        pip.extended_to_date = data['new_end_date']
-        pip.extension_reason = data['reason']
+        pip.extended_to_date = serializer.validated_data['new_end_date']
+        pip.extension_reason = serializer.validated_data['reason']
         pip.save()
-        
-        result_serializer = self.get_serializer(pip)
-        return Response(result_serializer.data)
-    
+        return Response(self.get_serializer(pip).data)
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
-        """
-        Complete a PIP with outcome.
-        """
         pip = self.get_object()
-        
-        if pip.status != 'active':
-            return Response(
-                {'error': f'Only active PIPs can be completed (current status: {pip.status})'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+        if pip.status not in ['draft', 'submitted']:
+            return Response({'error': f'Cannot complete with status: {pip.status}'}, status=status.HTTP_400_BAD_REQUEST)
         outcome = request.data.get('outcome')
         notes = request.data.get('notes', '')
-        
-        if outcome not in ['successful', 'failed']:
-            return Response(
-                {'error': 'outcome must be "successful" or "failed"'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+        if outcome not in ['successful', 'failed', 'extended', 'terminated', 'resigned']:
+            return Response({'error': 'outcome must be successful, failed, extended, terminated, or resigned'}, status=status.HTTP_400_BAD_REQUEST)
         pip.status = 'completed'
         pip.outcome = outcome
         pip.outcome_notes = notes
         pip.completed_at = timezone.now()
         pip.save()
-        
-        result_serializer = self.get_serializer(pip)
-        return Response(result_serializer.data)
-    
+        return Response(self.get_serializer(pip).data)
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        pip = self.get_object()
+        if pip.status not in ['draft', 'submitted']:
+            return Response({'error': f'Cannot cancel with status: {pip.status}'}, status=status.HTTP_400_BAD_REQUEST)
+        pip.status = 'cancelled'
+        pip.save()
+        return Response(self.get_serializer(pip).data)
     @action(detail=True, methods=['get'])
     def progress(self, request, pk=None):
-        """
-        Get detailed progress for a PIP.
-        """
         pip = self.get_object()
         progress = PIPTracker.get_pip_progress(pip.id)
         return Response(progress)
-    
-    @action(detail=False, methods=['get'])
-    def my(self, request):
-        """
-        Get PIPs for the current user.
-        """
-        employee = request.user
-        
-        pips = self.get_queryset().filter(employee=employee)
-        serializer = self.get_serializer(pips, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
-    def team(self, request):
-        """
-        Get PIPs for manager's team.
-        """
-        manager = request.user
-        
-        if manager.role not in ['manager', 'executive', 'admin', 'hr']:
-            return Response(
-                {'error': 'You do not have permission to view team PIPs'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        # Get direct reports
-        direct_reports = manager.direct_reports.all()
-        
-        pips = self.get_queryset().filter(employee__in=direct_reports)
-        serializer = self.get_serializer(pips, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
-    def active(self, request):
-        """
-        Get all active PIPs.
-        """
-        pips = self.get_queryset().filter(status='active')
-        serializer = self.get_serializer(pips, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
-    def overdue(self, request):
-        """
-        Get all overdue PIPs.
-        """
-        today = timezone.now().date()
-        
-        pips = self.get_queryset().filter(
-            status='active',
-            end_date__lt=today
-        )
-        
-        serializer = self.get_serializer(pips, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'], url_path='for-employee/(?P<employee_id>[^/.]+)')
-    def for_employee(self, request, employee_id=None):
-        """
-        Get PIPs for a specific employee.
-        """
-        from apps.accounts.models import User
-        
-        try:
-            employee = User.objects.get(id=employee_id)
-        except User.DoesNotExist:
-            return Response(
-                {'error': 'Employee not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check permission
-        if request.user.role not in ['admin', 'hr'] and request.user != employee.manager:
-            return Response(
-                {'error': 'You do not have permission to view these PIPs'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        pips = self.get_queryset().filter(employee=employee)
-        serializer = self.get_serializer(pips, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['post'], url_path='generate-from-rating/(?P<rating_id>[^/.]+)')
-    def generate_from_rating(self, request, rating_id=None):
-        """
-        Generate a PIP from a low final rating.
-        """
-        try:
-            final_rating = FinalRating.objects.get(id=rating_id)
-        except FinalRating.DoesNotExist:
-            return Response(
-                {'error': 'Final rating not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check permission
-        if request.user.role not in ['admin', 'hr', 'manager']:
-            return Response(
-                {'error': 'You do not have permission to generate PIPs'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        custom_data = request.data.get('custom_data', None)
-        owner = request.user if request.user.role in ['admin', 'hr'] else final_rating.employee.manager
-        
-        pip = PIPGenerator.generate_pip_from_rating(rating_id, owner, custom_data)
-        
-        if not pip:
-            return Response(
-                {'error': 'PIP could not be generated. Check if rating is below threshold or PIP already exists.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        serializer = self.get_serializer(pip)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    @action(detail=False, methods=['get'])
-    def report(self, request):
-        """
-        Get organization-wide PIP report.
-        """
-        tenant = request.user.tenant
-        
-        report = PIPReportService.get_organization_pip_summary(tenant)
-        return Response(report)
-    
-    @action(detail=True, methods=['get'])
-    def full_report(self, request, pk=None):
-        """
-        Get detailed report for a specific PIP.
-        """
+    @action(detail=True, methods=['post'])
+    def add_action(self, request, pk=None):
         pip = self.get_object()
-        report = PIPReportService.get_pip_details(pip.id)
-        return Response(report)
-    
-    @action(detail=False, methods=['get'])
-    def trends(self, request):
-        """
-        Get PIP trends over time.
-        """
-        tenant = request.user.tenant
-        months = int(request.query_params.get('months', 6))
-        
-        trends = PIPReportService.get_pip_trends(tenant, months)
-        return Response(trends)
-
-
-class PIPActionViewSet(BaseReviewViewSet):
-    """
-    ViewSet for PIP Actions.
-    
-    Actions:
-    - GET /pip-actions/ - List all PIP actions
-    - POST /pip-actions/ - Create new PIP action
-    - GET /pip-actions/{id}/ - Get action details
-    - PUT /pip-actions/{id}/ - Update action
-    - DELETE /pip-actions/{id}/ - Delete action
-    - POST /pip-actions/{id}/complete/ - Mark action as complete
-    - POST /pip-actions/{id}/verify/ - Verify action evidence (manager)
-    """
-    
-    queryset = PIPAction.objects.all()
-    filterset_class = PIPActionFilter
-    serializer_class = PIPActionSerializer
-    
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            self.permission_classes = [CanManagePIP]
-        elif self.action == 'verify':
-            self.permission_classes = [CanManagePIP]
-        else:
-            self.permission_classes = [CanViewPIP]
-        return super().get_permissions()
-    
-    @action(detail=True, methods=['post'])
-    def complete(self, request, pk=None):
-        """
-        Mark a PIP action as complete.
-        """
-        action = self.get_object()
-        
-        if action.status == 'completed':
-            return Response(
-                {'error': 'Action is already completed'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        serializer = PIPActionCompleteSerializer(
-            data=request.data,
-            context={'action_id': action.id}
-        )
-        serializer.is_valid(raise_exception=True)
-        
-        action.status = 'completed'
-        action.completed_at = timezone.now()
-        
-        if request.data.get('notes'):
-            action.progress_notes = request.data['notes']
-        
-        if request.data.get('evidence'):
-            action.evidence = request.data['evidence']
-        
-        action.save()
-        
-        result_serializer = self.get_serializer(action)
-        return Response(result_serializer.data)
-    
-    @action(detail=True, methods=['post'])
-    def verify(self, request, pk=None):
-        """
-        Verify evidence for a completed action (manager action).
-        """
-        action = self.get_object()
-        
-        if action.status != 'completed':
-            return Response(
-                {'error': 'Action must be completed before verification'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if not action.requires_evidence:
-            return Response(
-                {'error': 'This action does not require evidence verification'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        verified = request.data.get('verified', False)
-        
-        if verified:
+        action_data = request.data
+        action = PIPAction.objects.create(pip=pip, title=action_data.get('title'), description=action_data.get('description', ''), priority=action_data.get('priority', 'medium'), due_date=action_data.get('due_date'), requires_evidence=action_data.get('requires_evidence', False))
+        return Response(PIPActionSerializer(action).data, status=status.HTTP_201_CREATED)
+    @action(detail=True, methods=['post'], url_path='actions/(?P<action_id>[^/.]+)/complete')
+    def complete_action(self, request, pk=None, action_id=None):
+        pip = self.get_object()
+        try:
+            action = pip.actions.get(id=action_id)
+            if action.status == 'completed':
+                return Response({'error': 'Action already completed'}, status=status.HTTP_400_BAD_REQUEST)
+            action.status = 'completed'
+            action.completed_at = timezone.now()
+            if request.data.get('notes'):
+                action.progress_notes = request.data['notes']
+            if request.data.get('evidence'):
+                action.evidence = request.data['evidence']
+            action.save()
+            return Response(PIPActionSerializer(action).data)
+        except PIPAction.DoesNotExist:
+            return Response({'error': 'Action not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=True, methods=['post'], url_path='actions/(?P<action_id>[^/.]+)/verify')
+    def verify_action(self, request, pk=None, action_id=None):
+        pip = self.get_object()
+        try:
+            action = pip.actions.get(id=action_id)
+            if action.status != 'completed':
+                return Response({'error': 'Action must be completed first'}, status=status.HTTP_400_BAD_REQUEST)
+            if not action.requires_evidence:
+                return Response({'error': 'This action does not require verification'}, status=status.HTTP_400_BAD_REQUEST)
             action.evidence_verified_by = request.user
             action.evidence_verified_at = timezone.now()
             action.save()
-        
-        result_serializer = self.get_serializer(action)
-        return Response(result_serializer.data)
-    
+            return Response(PIPActionSerializer(action).data)
+        except PIPAction.DoesNotExist:
+            return Response({'error': 'Action not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=True, methods=['post'])
+    def add_review(self, request, pk=None):
+        pip = self.get_object()
+        review = PIPReview.objects.create(pip=pip, reviewer=request.user, employee_id=request.data.get('employee_id'), review_date=request.data.get('review_date', timezone.now().date()), rating=request.data.get('rating'), summary=request.data.get('summary'), accomplishments=request.data.get('accomplishments', ''), challenges=request.data.get('challenges', ''), action_items=request.data.get('action_items', ''), employee_attended=request.data.get('employee_attended', True), employee_signature=request.data.get('employee_signature', False))
+        return Response(PIPReviewSerializer(review).data, status=status.HTTP_201_CREATED)
+    @action(detail=False, methods=['get'])
+    def my(self, request):
+        pips = self.get_queryset().filter(employee=request.user)
+        return Response(self.get_serializer(pips, many=True).data)
+    @action(detail=False, methods=['get'])
+    def managing(self, request):
+        pips = self.get_queryset().filter(owner=request.user)
+        return Response(self.get_serializer(pips, many=True).data)
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        pips = self.get_queryset().filter(status__in=['draft', 'submitted'])
+        return Response(self.get_serializer(pips, many=True).data)
+    @action(detail=False, methods=['get'])
+    def overdue(self, request):
+        pips = self.get_queryset().filter(status__in=['draft', 'submitted'], end_date__lt=timezone.now().date())
+        return Response(self.get_serializer(pips, many=True).data)
+    @action(detail=False, methods=['get'], url_path='for-employee/(?P<employee_id>[^/.]+)')
+    def for_employee(self, request, employee_id=None):
+        from apps.accounts.models import User
+        try:
+            employee = User.objects.get(id=employee_id)
+            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != employee.manager:
+                return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+            pips = self.get_queryset().filter(employee=employee)
+            return Response(self.get_serializer(pips, many=True).data)
+        except User.DoesNotExist:
+            return Response({'error': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=['get'])
+    def team(self, request):
+        if request.user.role not in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        direct_reports = request.user.direct_reports.all()
+        pips = self.get_queryset().filter(employee__in=direct_reports)
+        return Response(self.get_serializer(pips, many=True).data)
+    @action(detail=False, methods=['post'], url_path='generate-from-rating/(?P<rating_id>[^/.]+)')
+    def generate_from_rating(self, request, rating_id=None):
+        try:
+            rating = FinalRating.objects.get(id=rating_id)
+            if rating.final_score and rating.final_score >= 60:
+                return Response({'error': 'Score is above 60%, PIP not needed'}, status=status.HTTP_400_BAD_REQUEST)
+            pip = PIPGenerator.generate_pip_from_rating(rating_id)
+            return Response(self.get_serializer(pip).data if pip else {'error': 'Could not generate PIP'}, status=status.HTTP_201_CREATED if pip else status.HTTP_400_BAD_REQUEST)
+        except FinalRating.DoesNotExist:
+            return Response({'error': 'Rating not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=['get', 'post'])
+    def report(self, request):
+        from apps.tenant.models import Client
+        try:
+            tenant = Client.objects.get(id=request.user.tenant_id)
+        except Client.DoesNotExist:
+            return Response({'error': 'Tenant not found'}, status=status.HTTP_404_NOT_FOUND)
+        report = PIPReportService.get_organization_pip_summary(tenant)
+        return Response(report)
+    @action(detail=True, methods=['get'])
+    def full_report(self, request, pk=None):
+        pip = self.get_object()
+        report = PIPReportService.get_pip_details(pip.id)
+        return Response(report)
+    @action(detail=False, methods=['get'])
+    def trends(self, request):
+        from apps.tenant.models import Client
+        tenant = Client.objects.get(id=request.user.tenant_id)
+        months = int(request.query_params.get('months', 6))
+        trends = PIPReportService.get_pip_trends(tenant, months)
+        return Response(trends)
+
+class PIPActionViewSet(BaseReviewViewSet):
+    queryset = PIPAction.objects.all()
+    serializer_class = PIPActionSerializer
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'complete', 'verify']:
+            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+        return super().get_permissions()
+    @action(detail=True, methods=['post'])
+    def complete(self, request, pk=None):
+        action = self.get_object()
+        if action.status == 'completed':
+            return Response({'error': 'Action already completed'}, status=status.HTTP_400_BAD_REQUEST)
+        action.status = 'completed'
+        action.completed_at = timezone.now()
+        if request.data.get('notes'):
+            action.progress_notes = request.data['notes']
+        if request.data.get('evidence'):
+            action.evidence = request.data['evidence']
+        action.save()
+        return Response(self.get_serializer(action).data)
+    @action(detail=True, methods=['post'])
+    def verify(self, request, pk=None):
+        action = self.get_object()
+        if action.status != 'completed':
+            return Response({'error': 'Action must be completed first'}, status=status.HTTP_400_BAD_REQUEST)
+        if not action.requires_evidence:
+            return Response({'error': 'This action does not require verification'}, status=status.HTTP_400_BAD_REQUEST)
+        action.evidence_verified_by = request.user
+        action.evidence_verified_at = timezone.now()
+        action.save()
+        return Response(self.get_serializer(action).data)
+    @action(detail=True, methods=['post'])
+    def reopen(self, request, pk=None):
+        action = self.get_object()
+        if action.status != 'completed':
+            return Response({'error': 'Only completed actions can be reopened'}, status=status.HTTP_400_BAD_REQUEST)
+        action.status = 'pending'
+        action.completed_at = None
+        action.evidence_verified_by = None
+        action.evidence_verified_at = None
+        action.save()
+        return Response(self.get_serializer(action).data)
     @action(detail=False, methods=['get'], url_path='for-pip/(?P<pip_id>[^/.]+)')
     def for_pip(self, request, pip_id=None):
-        """
-        Get all actions for a specific PIP.
-        """
         try:
             pip = PIP.objects.get(id=pip_id)
+            actions = self.get_queryset().filter(pip=pip)
+            return Response(self.get_serializer(actions, many=True).data)
         except PIP.DoesNotExist:
-            return Response(
-                {'error': 'PIP not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        actions = self.get_queryset().filter(pip=pip)
-        serializer = self.get_serializer(actions, many=True)
-        return Response(serializer.data)
-
+            return Response({'error': 'PIP not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class PIPReviewViewSet(BaseReviewViewSet):
-    """
-    ViewSet for PIP Reviews (progress check-ins).
-    
-    Actions:
-    - GET /pip-reviews/ - List all PIP reviews
-    - POST /pip-reviews/ - Create new PIP review
-    - GET /pip-reviews/{id}/ - Get review details
-    - PUT /pip-reviews/{id}/ - Update review
-    - DELETE /pip-reviews/{id}/ - Delete review
-    - GET /pip-reviews/for-pip/{pip_id}/ - Get reviews for a PIP
-    """
-    
     queryset = PIPReview.objects.all()
     serializer_class = PIPReviewSerializer
-    
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            self.permission_classes = [CanManagePIP]
-        else:
-            self.permission_classes = [CanViewPIP]
+            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
         return super().get_permissions()
-    
     def perform_create(self, serializer):
-        """
-        Create a new PIP review.
-        """
-        serializer.save(
-            reviewer=self.request.user,
-            employee=self.request.data.get('employee_id')
-        )
-    
+        serializer.save(reviewer=self.request.user)
     @action(detail=False, methods=['get'], url_path='for-pip/(?P<pip_id>[^/.]+)')
     def for_pip(self, request, pip_id=None):
-        """
-        Get all reviews for a specific PIP.
-        """
         try:
             pip = PIP.objects.get(id=pip_id)
+            reviews = self.get_queryset().filter(pip=pip)
+            return Response(self.get_serializer(reviews, many=True).data)
         except PIP.DoesNotExist:
-            return Response(
-                {'error': 'PIP not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        reviews = self.get_queryset().filter(pip=pip)
-        serializer = self.get_serializer(reviews, many=True)
-        return Response(serializer.data)
+            return Response({'error': 'PIP not found'}, status=status.HTTP_404_NOT_FOUND)

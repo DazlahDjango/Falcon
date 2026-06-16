@@ -1,0 +1,260 @@
+/* src/components/reviews/reports/exports/exports.css */
+
+.report-export {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.report-export-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.report-export-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.report-export-back:hover {
+  color: #1a1a2e;
+}
+
+.report-export-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.report-export-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+/* Export Options */
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.export-options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.export-options-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.export-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.export-options-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-options-btn:hover {
+  background: #f3f4f6;
+}
+
+.export-options-btn.active {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.export-options-select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #374151;
+  width: 100%;
+}
+
+.export-options-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.export-options-formats {
+  display: flex;
+  gap: 8px;
+}
+
+.export-options-format-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-options-format-btn:hover {
+  background: #f3f4f6;
+}
+
+.export-options-format-btn.active {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.report-export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 20px;
+}
+
+/* Export Button */
+.export-button-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-button-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.export-button-dropdown:hover {
+  opacity: 0.8;
+}
+
+.export-button-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 150px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.export-button-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+}
+
+.export-button-dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+/* Export Progress */
+.export-progress {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.export-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.export-progress-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.export-progress-percentage {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.export-progress-bar {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.export-progress-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.export-progress-status {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 8px 0 0 0;
+}
+
+@media (max-width: 640px) {
+  .export-options-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,191 +1,241 @@
 // src/hooks/reviews/useSupervisorReview.js
-// Hook for supervisor review operations
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useMemo } from 'react';
+import {
+  selectAllSupervisorReviews,
+  selectSupervisorReviewsLoading,
+  selectSupervisorReviewsError,
+  selectSelectedSupervisorReview,
+  selectSupervisorReviewComparison,
+  selectSupervisorReviewStats,
+  selectMyReviewQueue,
+  selectPendingApprovals,
+} from '../../store/reviews/selectors';
+import {
+  fetchSupervisorReviews,
+  fetchSupervisorReview,
+  createSupervisorReview,
+  updateSupervisorReview,
+  patchSupervisorReview,
+  deleteSupervisorReview,
+  submitSupervisorReview,
+  saveSupervisorReviewDraft,
+  approveSupervisorReview,
+  rejectSupervisorReview,
+  requestChangesSupervisorReview,
+  resetSupervisorReviewToDraft,
+  compareSupervisorWithSelf,
+  fetchMyReviewQueue,
+  fetchPendingApprovals,
+  fetchSupervisorReviewStats,
+  resetSupervisorReviewState,
+} from '../../store/reviews/slices/supervisorReview.slice';
+import { useReviewsPermissions } from './';
 
-import { useState, useEffect, useCallback } from 'react';
-import { supervisorReviewService } from '@/services/reviews';
+const useSupervisorReview = () => {
+  const dispatch = useDispatch();
+  const permissions = useReviewsPermissions();
 
-export const useSupervisorReview = () => {
-    const [reviewQueue, setReviewQueue] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [approving, setApproving] = useState(false);
+  // Selectors
+  const data = useSelector(selectAllSupervisorReviews);
+  const loading = useSelector(selectSupervisorReviewsLoading);
+  const error = useSelector(selectSupervisorReviewsError);
+  const selected = useSelector(selectSelectedSupervisorReview);
+  const comparison = useSelector(selectSupervisorReviewComparison);
+  const stats = useSelector(selectSupervisorReviewStats);
+  const myQueue = useSelector(selectMyReviewQueue);
+  const pendingApprovals = useSelector(selectPendingApprovals);
 
-    // Get manager's review queue
-    const fetchReviewQueue = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await supervisorReviewService.getQueue();
-            setReviewQueue(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch review queue');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // Actions
+  const fetchAll = useCallback(
+    (params) => dispatch(fetchSupervisorReviews(params)),
+    [dispatch]
+  );
 
-    // Get single review by ID
-    const getReview = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await supervisorReviewService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch review');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchOne = useCallback(
+    (id) => dispatch(fetchSupervisorReview(id)),
+    [dispatch]
+  );
 
-    // Save review as draft
-    const saveReview = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await supervisorReviewService.save(data);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to save review');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const create = useCallback(
+    (data) => {
+      if (!permissions.canCreateSupervisorReview) {
+        throw new Error('You do not have permission to create supervisor reviews');
+      }
+      return dispatch(createSupervisorReview(data));
+    },
+    [dispatch, permissions.canCreateSupervisorReview]
+  );
 
-    // Submit review
-    const submitReview = useCallback(async (id) => {
-        setSubmitting(true);
-        setError(null);
-        try {
-            const result = await supervisorReviewService.submit(id);
-            await fetchReviewQueue();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to submit review');
-            throw err;
-        } finally {
-            setSubmitting(false);
-        }
-    }, [fetchReviewQueue]);
+  const update = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateSupervisorReview) {
+        throw new Error('You do not have permission to update supervisor reviews');
+      }
+      return dispatch(updateSupervisorReview({ id, data }));
+    },
+    [dispatch, permissions.canUpdateSupervisorReview]
+  );
 
-    // Approve review (HR only)
-    const approveReview = useCallback(async (id) => {
-        setApproving(true);
-        setError(null);
-        try {
-            const result = await supervisorReviewService.approve(id);
-            await fetchReviewQueue();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to approve review');
-            throw err;
-        } finally {
-            setApproving(false);
-        }
-    }, [fetchReviewQueue]);
+  const patch = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateSupervisorReview) {
+        throw new Error('You do not have permission to update supervisor reviews');
+      }
+      return dispatch(patchSupervisorReview({ id, data }));
+    },
+    [dispatch, permissions.canUpdateSupervisorReview]
+  );
 
-    // Reject review (HR only)
-    const rejectReview = useCallback(async (id, reason) => {
-        setApproving(true);
-        setError(null);
-        try {
-            const result = await supervisorReviewService.reject(id, reason);
-            await fetchReviewQueue();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to reject review');
-            throw err;
-        } finally {
-            setApproving(false);
-        }
-    }, [fetchReviewQueue]);
+  const remove = useCallback(
+    (id) => {
+      if (!permissions.canDeleteSupervisorReview) {
+        throw new Error('You do not have permission to delete supervisor reviews');
+      }
+      return dispatch(deleteSupervisorReview(id));
+    },
+    [dispatch, permissions.canDeleteSupervisorReview]
+  );
 
-    // Get review for specific employee
-    const getReviewForEmployee = useCallback(async (employeeId, cycleId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await supervisorReviewService.getForEmployee(employeeId, cycleId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch employee review');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const submit = useCallback(
+    (id) => {
+      if (!permissions.canSubmitSupervisorReview) {
+        throw new Error('You do not have permission to submit supervisor reviews');
+      }
+      return dispatch(submitSupervisorReview(id));
+    },
+    [dispatch, permissions.canSubmitSupervisorReview]
+  );
 
-    // Get reviews for a cycle
-    const getReviewsForCycle = useCallback(async (cycleId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await supervisorReviewService.getForCycle(cycleId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch cycle reviews');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const saveDraft = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateSupervisorReview) {
+        throw new Error('You do not have permission to save supervisor review drafts');
+      }
+      return dispatch(saveSupervisorReviewDraft({ id, data }));
+    },
+    [dispatch, permissions.canUpdateSupervisorReview]
+  );
 
-    // Save competency ratings
-    const saveRatings = useCallback(async (id, ratings) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await supervisorReviewService.saveRatings(id, ratings);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to save ratings');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const approve = useCallback(
+    (id, notes) => {
+      if (!permissions.canApproveSupervisorReview) {
+        throw new Error('You do not have permission to approve supervisor reviews');
+      }
+      return dispatch(approveSupervisorReview({ id, notes }));
+    },
+    [dispatch, permissions.canApproveSupervisorReview]
+  );
 
-    // Get comparison with self assessment
-    const getComparison = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await supervisorReviewService.getComparison(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch comparison');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const reject = useCallback(
+    (id, reason) => {
+      if (!permissions.canRejectSupervisorReview) {
+        throw new Error('You do not have permission to reject supervisor reviews');
+      }
+      return dispatch(rejectSupervisorReview({ id, reason }));
+    },
+    [dispatch, permissions.canRejectSupervisorReview]
+  );
 
-    useEffect(() => {
-        fetchReviewQueue();
-    }, [fetchReviewQueue]);
+  const requestChanges = useCallback(
+    (id, feedback) => {
+      if (!permissions.canRejectSupervisorReview) {
+        throw new Error('You do not have permission to request changes');
+      }
+      return dispatch(requestChangesSupervisorReview({ id, feedback }));
+    },
+    [dispatch, permissions.canRejectSupervisorReview]
+  );
 
-    return {
-        // State
-        reviewQueue,
-        loading,
-        error,
-        submitting,
-        approving,
-        // Methods
-        fetchReviewQueue,
-        getReview,
-        saveReview,
-        submitReview,
-        approveReview,
-        rejectReview,
-        getReviewForEmployee,
-        getReviewsForCycle,
-        saveRatings,
-        getComparison,
-    };
+  const resetToDraft = useCallback(
+    (id) => {
+      if (!permissions.canUpdateSupervisorReview) {
+        throw new Error('You do not have permission to reset supervisor reviews');
+      }
+      return dispatch(resetSupervisorReviewToDraft(id));
+    },
+    [dispatch, permissions.canUpdateSupervisorReview]
+  );
+
+  const compare = useCallback(
+    (id) => dispatch(compareSupervisorWithSelf(id)),
+    [dispatch]
+  );
+
+  const fetchQueue = useCallback(
+    () => dispatch(fetchMyReviewQueue()),
+    [dispatch]
+  );
+
+  const fetchApprovals = useCallback(
+    () => dispatch(fetchPendingApprovals()),
+    [dispatch]
+  );
+
+  const getStats = useCallback(
+    (cycleId) => dispatch(fetchSupervisorReviewStats(cycleId)),
+    [dispatch]
+  );
+
+  const reset = useCallback(
+    () => dispatch(resetSupervisorReviewState()),
+    [dispatch]
+  );
+
+  // Computed
+  const canManage = useMemo(
+    () => permissions.canCreateSupervisorReview,
+    [permissions.canCreateSupervisorReview]
+  );
+
+  const canApprove = useMemo(
+    () => permissions.canApproveSupervisorReview,
+    [permissions.canApproveSupervisorReview]
+  );
+
+  return {
+    // Data
+    data,
+    loading,
+    error,
+    selected,
+    comparison,
+    stats,
+    myQueue,
+    pendingApprovals,
+
+    // CRUD Operations
+    fetchAll,
+    fetchOne,
+    create,
+    update,
+    patch,
+    remove,
+
+    // Actions
+    submit,
+    saveDraft,
+    approve,
+    reject,
+    requestChanges,
+    resetToDraft,
+    compare,
+    fetchQueue,
+    fetchApprovals,
+    getStats,
+    reset,
+
+    // Permissions
+    canManage,
+    canApprove,
+
+    // Utilities
+    isEmpty: data.length === 0,
+    totalCount: data.length,
+    getById: (id) => data.find((item) => item.id === id),
+    hasPendingReviews: myQueue.length > 0,
+    hasPendingApprovals: pendingApprovals.length > 0,
+  };
 };
+
+export default useSupervisorReview;

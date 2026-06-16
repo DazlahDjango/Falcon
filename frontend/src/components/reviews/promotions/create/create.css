@@ -1,0 +1,104 @@
+/* src/components/reviews/promotions/create/create.css */
+
+.promotion-create {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.promotion-create-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.promotion-create-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.promotion-create-back:hover {
+  color: #1a1a2e;
+}
+
+.promotion-create-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.promotion-create-form {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+/* Form Styles */
+.promotion-form-group {
+  margin-bottom: 20px;
+}
+
+.promotion-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.promotion-form-input,
+.promotion-form-textarea,
+.promotion-form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background: white;
+}
+
+.promotion-form-input:focus,
+.promotion-form-textarea:focus,
+.promotion-form-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.promotion-form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.promotion-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.promotion-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .promotion-form-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,282 +1,202 @@
 // src/hooks/reviews/useCompetencies.js
-// Hook for competency operations
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useMemo } from 'react';
+import {
+  selectAllCompetencies,
+  selectCompetenciesLoading,
+  selectCompetenciesError,
+  selectSelectedCompetency,
+  selectCompetencyUsageStats,
+  selectActiveCompetenciesList,
+  selectRequiredCompetenciesList,
+  selectCompetenciesPagination,
+  selectCompetenciesFilters,
+  selectActiveCompetencies,
+  selectRequiredCompetencies,
+  selectCompetenciesByType,
+} from '../../store/reviews/selectors';
+import {
+  fetchCompetencies,
+  fetchCompetency,
+  createCompetency,
+  updateCompetency,
+  patchCompetency,
+  deleteCompetency,
+  activateCompetency,
+  deactivateCompetency,
+  fetchActiveCompetencies,
+  fetchRequiredCompetencies,
+  fetchCompetenciesByType,
+  fetchCompetencyUsageStats,
+  resetCompetencyState,
+} from '../../store/reviews/slices/competency.slice';
+import { useReviewsPermissions } from './';
 
-import { useState, useEffect, useCallback } from 'react';
-import { 
-    competencyService, 
-    competencyCategoryService, 
-    competencyRatingService 
-} from '../../services/reviews';
+const useCompetencies = () => {
+  const dispatch = useDispatch();
+  const permissions = useReviewsPermissions();
 
-export const useCompetencies = () => {
-    const [competencies, setCompetencies] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [activeCompetencies, setActiveCompetencies] = useState([]);
-    const [requiredCompetencies, setRequiredCompetencies] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  // Selectors
+  const data = useSelector(selectAllCompetencies);
+  const loading = useSelector(selectCompetenciesLoading);
+  const error = useSelector(selectCompetenciesError);
+  const selected = useSelector(selectSelectedCompetency);
+  const usageStats = useSelector(selectCompetencyUsageStats);
+  const activeCompetenciesList = useSelector(selectActiveCompetenciesList);
+  const requiredCompetenciesList = useSelector(selectRequiredCompetenciesList);
+  const pagination = useSelector(selectCompetenciesPagination);
+  const filters = useSelector(selectCompetenciesFilters);
+  const activeCompetencies = useSelector(selectActiveCompetencies);
+  const requiredCompetencies = useSelector(selectRequiredCompetencies);
 
-    // ========== Competency Operations ==========
+  // Actions
+  const fetchAll = useCallback(
+    (params) => dispatch(fetchCompetencies(params)),
+    [dispatch]
+  );
 
-    const fetchCompetencies = useCallback(async (params = {}) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyService.getAll(params);
-            setCompetencies(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch competencies');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchOne = useCallback(
+    (id) => dispatch(fetchCompetency(id)),
+    [dispatch]
+  );
 
-    const fetchActiveCompetencies = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyService.getActive();
-            setActiveCompetencies(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch active competencies');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const create = useCallback(
+    (data) => {
+      if (!permissions.canCreateCompetency) {
+        throw new Error('You do not have permission to create competencies');
+      }
+      return dispatch(createCompetency(data));
+    },
+    [dispatch, permissions.canCreateCompetency]
+  );
 
-    const fetchRequiredCompetencies = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyService.getRequired();
-            setRequiredCompetencies(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch required competencies');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const update = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateCompetency) {
+        throw new Error('You do not have permission to update competencies');
+      }
+      return dispatch(updateCompetency({ id, data }));
+    },
+    [dispatch, permissions.canUpdateCompetency]
+  );
 
-    const getCompetency = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch competency');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const patch = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateCompetency) {
+        throw new Error('You do not have permission to update competencies');
+      }
+      return dispatch(patchCompetency({ id, data }));
+    },
+    [dispatch, permissions.canUpdateCompetency]
+  );
 
-    const createCompetency = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await competencyService.create(data);
-            await fetchCompetencies();
-            await fetchActiveCompetencies();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to create competency');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCompetencies, fetchActiveCompetencies]);
+  const remove = useCallback(
+    (id) => {
+      if (!permissions.canDeleteCompetency) {
+        throw new Error('You do not have permission to delete competencies');
+      }
+      return dispatch(deleteCompetency(id));
+    },
+    [dispatch, permissions.canDeleteCompetency]
+  );
 
-    const updateCompetency = useCallback(async (id, data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await competencyService.update(id, data);
-            await fetchCompetencies();
-            await fetchActiveCompetencies();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to update competency');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCompetencies, fetchActiveCompetencies]);
+  const activate = useCallback(
+    (id) => {
+      if (!permissions.canCreateCompetency) {
+        throw new Error('You do not have permission to activate competencies');
+      }
+      return dispatch(activateCompetency(id));
+    },
+    [dispatch, permissions.canCreateCompetency]
+  );
 
-    const deleteCompetency = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await competencyService.delete(id);
-            await fetchCompetencies();
-            await fetchActiveCompetencies();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to delete competency');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCompetencies, fetchActiveCompetencies]);
+  const deactivate = useCallback(
+    (id) => {
+      if (!permissions.canCreateCompetency) {
+        throw new Error('You do not have permission to deactivate competencies');
+      }
+      return dispatch(deactivateCompetency(id));
+    },
+    [dispatch, permissions.canCreateCompetency]
+  );
 
-    // ========== Category Operations ==========
+  const getActive = useCallback(
+    () => dispatch(fetchActiveCompetencies()),
+    [dispatch]
+  );
 
-    const fetchCategories = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyCategoryService.getAll();
-            setCategories(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch categories');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const getRequired = useCallback(
+    () => dispatch(fetchRequiredCompetencies()),
+    [dispatch]
+  );
 
-    const getCategory = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyCategoryService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch category');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const getByType = useCallback(
+    (type) => dispatch(fetchCompetenciesByType(type)),
+    [dispatch]
+  );
 
-    const createCategory = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await competencyCategoryService.create(data);
-            await fetchCategories();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to create category');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCategories]);
+  const getUsageStats = useCallback(
+    (id) => dispatch(fetchCompetencyUsageStats(id)),
+    [dispatch]
+  );
 
-    const updateCategory = useCallback(async (id, data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await competencyCategoryService.update(id, data);
-            await fetchCategories();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to update category');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCategories]);
+  const reset = useCallback(
+    () => dispatch(resetCompetencyState()),
+    [dispatch]
+  );
 
-    const deleteCategory = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await competencyCategoryService.delete(id);
-            await fetchCategories();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to delete category');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCategories]);
+  // Computed
+  const canManage = useMemo(
+    () => permissions.canManageCompetencies,
+    [permissions.canManageCompetencies]
+  );
 
-    // ========== Competency Rating Operations ==========
+  const canView = useMemo(
+    () => permissions.canViewCompetencies,
+    [permissions.canViewCompetencies]
+  );
 
-    const getRatingsForSelfAssessment = useCallback(async (assessmentId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyRatingService.getForSelfAssessment(assessmentId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch competency ratings');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  return {
+    // Data
+    data,
+    loading,
+    error,
+    selected,
+    usageStats,
+    activeCompetenciesList,
+    requiredCompetenciesList,
+    pagination,
+    filters,
+    activeCompetencies,
+    requiredCompetencies,
 
-    const getRatingsForSupervisorReview = useCallback(async (reviewId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await competencyRatingService.getForSupervisorReview(reviewId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch competency ratings');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    // CRUD Operations
+    fetchAll,
+    fetchOne,
+    create,
+    update,
+    patch,
+    remove,
 
-    const bulkCreateRatings = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await competencyRatingService.bulkCreate(data);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to save competency ratings');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    // Actions
+    activate,
+    deactivate,
+    getActive,
+    getRequired,
+    getByType,
+    getUsageStats,
+    reset,
 
-    useEffect(() => {
-        fetchCompetencies();
-        fetchCategories();
-        fetchActiveCompetencies();
-        fetchRequiredCompetencies();
-    }, [fetchCompetencies, fetchCategories, fetchActiveCompetencies, fetchRequiredCompetencies]);
+    // Permissions
+    canManage,
+    canView,
 
-    return {
-        // State
-        competencies,
-        categories,
-        activeCompetencies,
-        requiredCompetencies,
-        loading,
-        error,
-        // Competency methods
-        fetchCompetencies,
-        getCompetency,
-        createCompetency,
-        updateCompetency,
-        deleteCompetency,
-        fetchActiveCompetencies,
-        fetchRequiredCompetencies,
-        // Category methods
-        fetchCategories,
-        getCategory,
-        createCategory,
-        updateCategory,
-        deleteCategory,
-        // Rating methods
-        getRatingsForSelfAssessment,
-        getRatingsForSupervisorReview,
-        bulkCreateRatings,
-    };
+    // Utilities
+    isEmpty: data.length === 0,
+    totalCount: data.length,
+    getById: (id) => data.find((item) => item.id === id),
+    getByCategory: (categoryId) => data.filter((item) => item.category === categoryId),
+  };
 };
+
+export default useCompetencies;

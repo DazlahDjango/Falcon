@@ -1,0 +1,66 @@
+/* src/components/reviews/templates/edit/edit.css */
+
+.template-edit {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.template-edit-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.template-edit-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.template-edit-back:hover {
+  color: #1a1a2e;
+}
+
+.template-edit-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.template-edit-form {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.template-edit-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.template-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .template-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}

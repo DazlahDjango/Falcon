@@ -1,244 +1,233 @@
 // src/hooks/reviews/usePromotions.js
-// Hook for promotion recommendation operations
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useMemo } from 'react';
+import {
+  selectAllPromotions,
+  selectPromotionsLoading,
+  selectPromotionsError,
+  selectSelectedPromotion,
+  selectPromotionStats,
+  selectPendingPromotionsList,
+  selectApprovedPromotionsList,
+  selectCompletedPromotionsList,
+  selectGeneratedPromotion,
+  selectPendingPromotions,
+  selectApprovedPromotions,
+  selectCompletedPromotions,
+  selectRejectedPromotions,
+} from '../../store/reviews/selectors';
+import {
+  fetchPromotions,
+  fetchPromotion,
+  createPromotion,
+  updatePromotion,
+  patchPromotion,
+  deletePromotion,
+  approvePromotion,
+  rejectPromotion,
+  completePromotion,
+  holdPromotion,
+  fetchPendingPromotions,
+  fetchApprovedPromotions,
+  fetchCompletedPromotions,
+  fetchPromotionStats,
+  generatePromotionFromRating,
+  resetPromotionState,
+} from '../../store/reviews/slices/promotion.slice';
+import { useReviewsPermissions } from './';
 
-import { useState, useEffect, useCallback } from 'react';
-import { promotionService } from '@/services/reviews';
+const usePromotions = () => {
+  const dispatch = useDispatch();
+  const permissions = useReviewsPermissions();
 
-export const usePromotions = () => {
-    const [promotions, setPromotions] = useState([]);
-    const [myPromotions, setMyPromotions] = useState([]);
-    const [teamPromotions, setTeamPromotions] = useState([]);
-    const [pendingPromotions, setPendingPromotions] = useState([]);
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  // Selectors
+  const data = useSelector(selectAllPromotions);
+  const loading = useSelector(selectPromotionsLoading);
+  const error = useSelector(selectPromotionsError);
+  const selected = useSelector(selectSelectedPromotion);
+  const stats = useSelector(selectPromotionStats);
+  const pendingPromotions = useSelector(selectPendingPromotions);
+  const approvedPromotions = useSelector(selectApprovedPromotions);
+  const completedPromotions = useSelector(selectCompletedPromotions);
+  const rejectedPromotions = useSelector(selectRejectedPromotions);
+  const generatedPromotion = useSelector(selectGeneratedPromotion);
 
-    // Fetch all promotions
-    const fetchPromotions = useCallback(async (params = {}) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await promotionService.getAll(params);
-            setPromotions(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch promotions');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // Actions
+  const fetchAll = useCallback(
+    (params) => dispatch(fetchPromotions(params)),
+    [dispatch]
+  );
 
-    // Fetch my promotions
-    const fetchMyPromotions = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await promotionService.getMy();
-            setMyPromotions(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch my promotions');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchOne = useCallback(
+    (id) => dispatch(fetchPromotion(id)),
+    [dispatch]
+  );
 
-    // Fetch team promotions (managers only)
-    const fetchTeamPromotions = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await promotionService.getTeam();
-            setTeamPromotions(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch team promotions');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const create = useCallback(
+    (data) => {
+      if (!permissions.canCreatePromotion) {
+        throw new Error('You do not have permission to create promotions');
+      }
+      return dispatch(createPromotion(data));
+    },
+    [dispatch, permissions.canCreatePromotion]
+  );
 
-    // Fetch pending promotions (HR/Admin only)
-    const fetchPendingPromotions = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await promotionService.getPending();
-            setPendingPromotions(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch pending promotions');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const update = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdatePromotion) {
+        throw new Error('You do not have permission to update promotions');
+      }
+      return dispatch(updatePromotion({ id, data }));
+    },
+    [dispatch, permissions.canUpdatePromotion]
+  );
 
-    // Fetch promotion statistics
-    const fetchStats = useCallback(async (year = null) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await promotionService.getStats(year);
-            setStats(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch promotion stats');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const patch = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdatePromotion) {
+        throw new Error('You do not have permission to update promotions');
+      }
+      return dispatch(patchPromotion({ id, data }));
+    },
+    [dispatch, permissions.canUpdatePromotion]
+  );
 
-    // Get single promotion by ID
-    const getPromotion = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await promotionService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch promotion');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const remove = useCallback(
+    (id) => {
+      if (!permissions.canDeletePromotion) {
+        throw new Error('You do not have permission to delete promotions');
+      }
+      return dispatch(deletePromotion(id));
+    },
+    [dispatch, permissions.canDeletePromotion]
+  );
 
-    // Create promotion
-    const createPromotion = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await promotionService.create(data);
-            await fetchPromotions();
-            await fetchPendingPromotions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to create promotion');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchPromotions, fetchPendingPromotions]);
+  const approve = useCallback(
+    (id, notes, targetDate) => {
+      if (!permissions.canApprovePromotion) {
+        throw new Error('You do not have permission to approve promotions');
+      }
+      return dispatch(approvePromotion({ id, notes, targetDate }));
+    },
+    [dispatch, permissions.canApprovePromotion]
+  );
 
-    // Update promotion
-    const updatePromotion = useCallback(async (id, data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await promotionService.update(id, data);
-            await fetchPromotions();
-            await fetchPendingPromotions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to update promotion');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchPromotions, fetchPendingPromotions]);
+  const reject = useCallback(
+    (id, reason) => {
+      if (!permissions.canRejectPromotion) {
+        throw new Error('You do not have permission to reject promotions');
+      }
+      return dispatch(rejectPromotion({ id, reason }));
+    },
+    [dispatch, permissions.canRejectPromotion]
+  );
 
-    // Delete promotion
-    const deletePromotion = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await promotionService.delete(id);
-            await fetchPromotions();
-            await fetchPendingPromotions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to delete promotion');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchPromotions, fetchPendingPromotions]);
+  const complete = useCallback(
+    (id, actualDate, newSalary) => {
+      if (!permissions.canCompletePromotion) {
+        throw new Error('You do not have permission to complete promotions');
+      }
+      return dispatch(completePromotion({ id, actualDate, newSalary }));
+    },
+    [dispatch, permissions.canCompletePromotion]
+  );
 
-    // Approve promotion
-    const approvePromotion = useCallback(async (id, notes = '') => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await promotionService.approve(id, notes);
-            await fetchPromotions();
-            await fetchPendingPromotions();
-            await fetchStats();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to approve promotion');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchPromotions, fetchPendingPromotions, fetchStats]);
+  const hold = useCallback(
+    (id, reason) => {
+      if (!permissions.canHoldPromotion) {
+        throw new Error('You do not have permission to hold promotions');
+      }
+      return dispatch(holdPromotion({ id, reason }));
+    },
+    [dispatch, permissions.canHoldPromotion]
+  );
 
-    // Reject promotion
-    const rejectPromotion = useCallback(async (id, reason) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await promotionService.reject(id, reason);
-            await fetchPromotions();
-            await fetchPendingPromotions();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to reject promotion');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchPromotions, fetchPendingPromotions]);
+  const getPending = useCallback(
+    () => dispatch(fetchPendingPromotions()),
+    [dispatch]
+  );
 
-    // Complete promotion
-    const completePromotion = useCallback(async (id, actualDate, newSalary = null) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await promotionService.complete(id, actualDate, newSalary);
-            await fetchPromotions();
-            await fetchPendingPromotions();
-            await fetchStats();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to complete promotion');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchPromotions, fetchPendingPromotions, fetchStats]);
+  const getApproved = useCallback(
+    () => dispatch(fetchApprovedPromotions()),
+    [dispatch]
+  );
 
-    useEffect(() => {
-        fetchPromotions();
-        fetchMyPromotions();
-        fetchStats();
-    }, [fetchPromotions, fetchMyPromotions, fetchStats]);
+  const getCompleted = useCallback(
+    () => dispatch(fetchCompletedPromotions()),
+    [dispatch]
+  );
 
-    return {
-        // State
-        promotions,
-        myPromotions,
-        teamPromotions,
-        pendingPromotions,
-        stats,
-        loading,
-        error,
-        // Methods
-        fetchPromotions,
-        fetchMyPromotions,
-        fetchTeamPromotions,
-        fetchPendingPromotions,
-        fetchStats,
-        getPromotion,
-        createPromotion,
-        updatePromotion,
-        deletePromotion,
-        approvePromotion,
-        rejectPromotion,
-        completePromotion,
-    };
+  const getStats = useCallback(
+    (year) => dispatch(fetchPromotionStats(year)),
+    [dispatch]
+  );
+
+  const generateFromRating = useCallback(
+    (ratingId) => {
+      if (!permissions.canGeneratePromotionFromRating) {
+        throw new Error('You do not have permission to generate promotion from rating');
+      }
+      return dispatch(generatePromotionFromRating(ratingId));
+    },
+    [dispatch, permissions.canGeneratePromotionFromRating]
+  );
+
+  const reset = useCallback(
+    () => dispatch(resetPromotionState()),
+    [dispatch]
+  );
+
+  // Computed
+  const canManage = useMemo(
+    () => permissions.canManagePromotions,
+    [permissions.canManagePromotions]
+  );
+
+  return {
+    // Data
+    data,
+    loading,
+    error,
+    selected,
+    stats,
+    pendingPromotions,
+    approvedPromotions,
+    completedPromotions,
+    rejectedPromotions,
+    generatedPromotion,
+
+    // CRUD Operations
+    fetchAll,
+    fetchOne,
+    create,
+    update,
+    patch,
+    remove,
+
+    // Actions
+    approve,
+    reject,
+    complete,
+    hold,
+    getPending,
+    getApproved,
+    getCompleted,
+    getStats,
+    generateFromRating,
+    reset,
+
+    // Permissions
+    canManage,
+
+    // Utilities
+    isEmpty: data.length === 0,
+    totalCount: data.length,
+    getById: (id) => data.find((item) => item.id === id),
+    hasPending: pendingPromotions.length > 0,
+    pendingCount: pendingPromotions.length,
+    successRate: stats?.success_rate || 0,
+  };
 };
+
+export default usePromotions;

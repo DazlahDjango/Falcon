@@ -1,0 +1,59 @@
+/* src/components/reviews/rating-scales/edit/edit.css */
+
+.rating-scale-edit {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.rating-scale-edit-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.rating-scale-edit-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.rating-scale-edit-back:hover {
+  color: #1a1a2e;
+}
+
+.rating-scale-edit-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.rating-scale-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.rating-scale-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 1024px) {
+  .rating-scale-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,268 +1,297 @@
 // src/hooks/reviews/useFeedback.js
-// Hook for feedback operations
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useMemo } from 'react';
+import {
+  selectAllFeedbackRequests,
+  selectFeedbackRequestsLoading,
+  selectSelectedFeedbackRequest,
+  selectPendingFeedbackRequestsList,
+  selectOverdueFeedbackRequestsList,
+  selectAllFeedbackResponses,
+  selectFeedbackResponsesLoading,
+  selectSelectedFeedbackResponse,
+  selectAllFeedbackSummaries,
+  selectFeedbackSummariesLoading,
+  selectSelectedFeedbackSummary,
+  selectMyFeedbackSummary,
+} from '../../store/reviews/selectors';
+import {
+  fetchFeedbackRequests,
+  fetchFeedbackRequest,
+  createFeedbackRequest,
+  updateFeedbackRequest,
+  deleteFeedbackRequest,
+  remindFeedbackRequest,
+  cancelFeedbackRequest,
+  bulkCreateFeedbackRequests,
+  fetchPendingFeedbackRequests,
+  fetchOverdueFeedbackRequests,
+  resetRequestState,
+} from '../../store/reviews/slices/feedback.slice';
+import {
+  fetchFeedbackResponses,
+  fetchFeedbackResponse,
+  submitFeedbackResponse,
+  fetchFeedbackResponseForRequest,
+  resetResponseState,
+} from '../../store/reviews/slices/feedback.slice';
+import {
+  fetchFeedbackSummaries,
+  fetchFeedbackSummary,
+  shareFeedbackSummary,
+  regenerateFeedbackSummary,
+  fetchMyFeedbackSummary,
+  resetSummaryState,
+} from '../../store/reviews/slices/feedback.slice';
+import { useReviewsPermissions } from './';
 
-import { useState, useEffect, useCallback } from 'react';
-import { feedbackRequestService, feedbackResponseService, feedbackSummaryService } from '@/services/reviews';
+const useFeedback = () => {
+  const dispatch = useDispatch();
+  const permissions = useReviewsPermissions();
 
-export const useFeedback = () => {
-    const [requests, setRequests] = useState([]);
-    const [pendingRequests, setPendingRequests] = useState([]);
-    const [mySummary, setMySummary] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  // Request Selectors
+  const requestData = useSelector(selectAllFeedbackRequests);
+  const requestLoading = useSelector(selectFeedbackRequestsLoading);
+  const selectedRequest = useSelector(selectSelectedFeedbackRequest);
+  const pendingRequests = useSelector(selectPendingFeedbackRequestsList);
+  const overdueRequests = useSelector(selectOverdueFeedbackRequestsList);
 
-    // ========== Feedback Request Operations ==========
+  // Response Selectors
+  const responseData = useSelector(selectAllFeedbackResponses);
+  const responseLoading = useSelector(selectFeedbackResponsesLoading);
+  const selectedResponse = useSelector(selectSelectedFeedbackResponse);
 
-    // Fetch all feedback requests
-    const fetchRequests = useCallback(async (params = {}) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackRequestService.getAll(params);
-            setRequests(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch feedback requests');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // Summary Selectors
+  const summaryData = useSelector(selectAllFeedbackSummaries);
+  const summaryLoading = useSelector(selectFeedbackSummariesLoading);
+  const selectedSummary = useSelector(selectSelectedFeedbackSummary);
+  const mySummary = useSelector(selectMyFeedbackSummary);
 
-    // Fetch pending requests for current user
-    const fetchPendingRequests = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackRequestService.getPending();
-            setPendingRequests(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch pending requests');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // ===== Request Actions =====
+  const fetchRequests = useCallback(
+    (params) => dispatch(fetchFeedbackRequests(params)),
+    [dispatch]
+  );
 
-    // Get single request by ID
-    const getRequest = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackRequestService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch request');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchRequest = useCallback(
+    (id) => dispatch(fetchFeedbackRequest(id)),
+    [dispatch]
+  );
 
-    // Create feedback request
-    const createRequest = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await feedbackRequestService.create(data);
-            await fetchRequests();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to create feedback request');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchRequests]);
+  const createRequest = useCallback(
+    (data) => {
+      if (!permissions.canCreateFeedbackRequest) {
+        throw new Error('You do not have permission to create feedback requests');
+      }
+      return dispatch(createFeedbackRequest(data));
+    },
+    [dispatch, permissions.canCreateFeedbackRequest]
+  );
 
-    // Update feedback request
-    const updateRequest = useCallback(async (id, data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await feedbackRequestService.update(id, data);
-            await fetchRequests();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to update request');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchRequests]);
+  const updateRequest = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateFeedbackRequest) {
+        throw new Error('You do not have permission to update feedback requests');
+      }
+      return dispatch(updateFeedbackRequest({ id, data }));
+    },
+    [dispatch, permissions.canUpdateFeedbackRequest]
+  );
 
-    // Delete feedback request
-    const deleteRequest = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await feedbackRequestService.delete(id);
-            await fetchRequests();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to delete request');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchRequests]);
+  const deleteRequest = useCallback(
+    (id) => {
+      if (!permissions.canDeleteFeedbackRequest) {
+        throw new Error('You do not have permission to delete feedback requests');
+      }
+      return dispatch(deleteFeedbackRequest(id));
+    },
+    [dispatch, permissions.canDeleteFeedbackRequest]
+  );
 
-    // Send reminder
-    const sendReminder = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await feedbackRequestService.sendReminder(id);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to send reminder');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const remind = useCallback(
+    (id) => {
+      if (!permissions.canUpdateFeedbackRequest) {
+        throw new Error('You do not have permission to remind feedback requests');
+      }
+      return dispatch(remindFeedbackRequest(id));
+    },
+    [dispatch, permissions.canUpdateFeedbackRequest]
+  );
 
-    // Get requests for a subject
-    const getRequestsForSubject = useCallback(async (subjectId, cycleId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackRequestService.getForSubject(subjectId, cycleId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch subject requests');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const cancelRequest = useCallback(
+    (id) => {
+      if (!permissions.canDeleteFeedbackRequest) {
+        throw new Error('You do not have permission to cancel feedback requests');
+      }
+      return dispatch(cancelFeedbackRequest(id));
+    },
+    [dispatch, permissions.canDeleteFeedbackRequest]
+  );
 
-    // ========== Feedback Response Operations ==========
+  const bulkCreate = useCallback(
+    (reviewers, subjectId, cycleId, reviewerType, dueDate) => {
+      if (!permissions.canCreateFeedbackRequest) {
+        throw new Error('You do not have permission to create feedback requests');
+      }
+      return dispatch(bulkCreateFeedbackRequests({
+        reviewers,
+        subjectId,
+        cycleId,
+        reviewerType,
+        dueDate,
+      }));
+    },
+    [dispatch, permissions.canCreateFeedbackRequest]
+  );
 
-    // Submit feedback response
-    const submitResponse = useCallback(async (requestId, data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await feedbackResponseService.submit(requestId, data);
-            await fetchPendingRequests();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to submit response');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchPendingRequests]);
+  const fetchPending = useCallback(
+    () => dispatch(fetchPendingFeedbackRequests()),
+    [dispatch]
+  );
 
-    // Get response for a request
-    const getResponseForRequest = useCallback(async (requestId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackResponseService.getForRequest(requestId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch response');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchOverdue = useCallback(
+    () => dispatch(fetchOverdueFeedbackRequests()),
+    [dispatch]
+  );
 
-    // ========== Feedback Summary Operations ==========
+  const resetRequests = useCallback(
+    () => dispatch(resetRequestState()),
+    [dispatch]
+  );
 
-    // Get my feedback summary
-    const fetchMySummary = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackSummaryService.getMy();
-            setMySummary(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch feedback summary');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // ===== Response Actions =====
+  const fetchResponses = useCallback(
+    (params) => dispatch(fetchFeedbackResponses(params)),
+    [dispatch]
+  );
 
-    // Get summary by ID
-    const getSummary = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackSummaryService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch summary');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchResponse = useCallback(
+    (id) => dispatch(fetchFeedbackResponse(id)),
+    [dispatch]
+  );
 
-    // Share summary with subject (HR only)
-    const shareSummary = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await feedbackSummaryService.share(id);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to share summary');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const submitResponse = useCallback(
+    (requestId, data) => {
+      if (!permissions.canCreateComment) {
+        throw new Error('You do not have permission to submit feedback responses');
+      }
+      return dispatch(submitFeedbackResponse({ requestId, data }));
+    },
+    [dispatch, permissions.canCreateComment]
+  );
 
-    // Get summary for employee
-    const getSummaryForEmployee = useCallback(async (employeeId, cycleId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await feedbackSummaryService.getForEmployee(employeeId, cycleId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch employee summary');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchResponseForRequest = useCallback(
+    (requestId) => dispatch(fetchFeedbackResponseForRequest(requestId)),
+    [dispatch]
+  );
 
-    useEffect(() => {
-        fetchRequests();
-        fetchPendingRequests();
-        fetchMySummary();
-    }, [fetchRequests, fetchPendingRequests, fetchMySummary]);
+  const resetResponses = useCallback(
+    () => dispatch(resetResponseState()),
+    [dispatch]
+  );
 
-    return {
-        // State
-        requests,
-        pendingRequests,
-        mySummary,
-        loading,
-        error,
-        // Request Methods
-        fetchRequests,
-        fetchPendingRequests,
-        getRequest,
-        createRequest,
-        updateRequest,
-        deleteRequest,
-        sendReminder,
-        getRequestsForSubject,
-        // Response Methods
-        submitResponse,
-        getResponseForRequest,
-        // Summary Methods
-        fetchMySummary,
-        getSummary,
-        shareSummary,
-        getSummaryForEmployee,
-    };
+  // ===== Summary Actions =====
+  const fetchSummaries = useCallback(
+    (params) => dispatch(fetchFeedbackSummaries(params)),
+    [dispatch]
+  );
+
+  const fetchSummary = useCallback(
+    (id) => dispatch(fetchFeedbackSummary(id)),
+    [dispatch]
+  );
+
+  const shareSummary = useCallback(
+    (id) => {
+      if (!permissions.canShareFeedbackSummary) {
+        throw new Error('You do not have permission to share feedback summaries');
+      }
+      return dispatch(shareFeedbackSummary(id));
+    },
+    [dispatch, permissions.canShareFeedbackSummary]
+  );
+
+  const regenerateSummary = useCallback(
+    (id) => {
+      if (!permissions.canManageFeedback) {
+        throw new Error('You do not have permission to regenerate feedback summaries');
+      }
+      return dispatch(regenerateFeedbackSummary(id));
+    },
+    [dispatch, permissions.canManageFeedback]
+  );
+
+  const fetchMySummary = useCallback(
+    () => dispatch(fetchMyFeedbackSummary()),
+    [dispatch]
+  );
+
+  const resetSummaries = useCallback(
+    () => dispatch(resetSummaryState()),
+    [dispatch]
+  );
+
+  // Computed
+  const canManage = useMemo(
+    () => permissions.canManageFeedback,
+    [permissions.canManageFeedback]
+  );
+
+  return {
+    // Request Data
+    requestData,
+    requestLoading,
+    selectedRequest,
+    pendingRequests,
+    overdueRequests,
+
+    // Response Data
+    responseData,
+    responseLoading,
+    selectedResponse,
+
+    // Summary Data
+    summaryData,
+    summaryLoading,
+    selectedSummary,
+    mySummary,
+
+    // Request Actions
+    fetchRequests,
+    fetchRequest,
+    createRequest,
+    updateRequest,
+    deleteRequest,
+    remind,
+    cancelRequest,
+    bulkCreate,
+    fetchPending,
+    fetchOverdue,
+    resetRequests,
+
+    // Response Actions
+    fetchResponses,
+    fetchResponse,
+    submitResponse,
+    fetchResponseForRequest,
+    resetResponses,
+
+    // Summary Actions
+    fetchSummaries,
+    fetchSummary,
+    shareSummary,
+    regenerateSummary,
+    fetchMySummary,
+    resetSummaries,
+
+    // Permissions
+    canManage,
+
+    // Utilities
+    hasPendingRequests: pendingRequests.length > 0,
+    hasOverdueRequests: overdueRequests.length > 0,
+    hasSummary: !!mySummary,
+  };
 };
+
+export default useFeedback;

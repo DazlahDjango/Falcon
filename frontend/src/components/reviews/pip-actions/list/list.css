@@ -1,0 +1,221 @@
+/* src/components/reviews/pip-actions/list/list.css */
+
+.pip-action-list {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pip-action-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pip-action-list-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pip-action-list-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pip-action-list-count {
+  font-size: 14px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.pip-action-list-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pip-action-search {
+  max-width: 400px;
+}
+
+.pip-action-list-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pip-action-filter-select {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  color: #374151;
+  min-width: 120px;
+  cursor: pointer;
+}
+
+.pip-action-filter-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Table Styles */
+.pip-action-table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.pip-action-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.pip-action-table thead {
+  background: #f9fafb;
+}
+
+.pip-action-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pip-action-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #1a1a2e;
+}
+
+.pip-action-table-row {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pip-action-table-row:hover {
+  background: #f9fafb;
+}
+
+.pip-action-table-title-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pip-action-table-title-text {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.pip-action-table-overdue-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.pip-action-table-description {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.pip-action-table-priority {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.pip-action-table-due {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.pip-action-table-completed-date {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.pip-action-table-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.pip-action-table-verified {
+  color: #22c55e;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.pip-action-table-has-evidence {
+  color: #3b82f6;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.pip-action-table-no-evidence {
+  color: #ef4444;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.pip-action-table-not-required {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.pip-action-table-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-action-table-action-btn:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+@media (max-width: 768px) {
+  .pip-action-list-filters {
+    flex-direction: column;
+  }
+  
+  .pip-action-filter-select {
+    width: 100%;
+  }
+}

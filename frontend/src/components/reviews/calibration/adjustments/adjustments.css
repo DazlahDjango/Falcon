@@ -1,0 +1,165 @@
+/* src/components/reviews/calibration/adjustments/adjustments.css */
+
+.calibration-adjustment-form {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.calibration-adjustment-form-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.calibration-adjustment-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.calibration-adjustment-form-group {
+  margin-bottom: 12px;
+}
+
+.calibration-adjustment-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.calibration-adjustment-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.calibration-adjustment-form-input,
+.calibration-adjustment-form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.calibration-adjustment-form-input:focus,
+.calibration-adjustment-form-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.calibration-adjustment-form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.calibration-adjustment-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.calibration-adjustment-list-empty {
+  text-align: center;
+  padding: 20px;
+  color: #9ca3af;
+}
+
+.calibration-adjustment-list-header {
+  margin-bottom: 12px;
+}
+
+.calibration-adjustment-list-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.calibration-adjustment-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.calibration-adjustment-item {
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.calibration-adjustment-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.calibration-adjustment-item-employee {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.calibration-adjustment-item-scores {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.calibration-adjustment-item-before {
+  color: #6b7280;
+}
+
+.calibration-adjustment-item-arrow {
+  color: #9ca3af;
+}
+
+.calibration-adjustment-item-after {
+  font-weight: 600;
+}
+
+.calibration-adjustment-item-gap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.calibration-adjustment-item-reason {
+  font-size: 13px;
+  color: #374151;
+  margin: 4px 0 0 0;
+}
+
+.calibration-adjustment-item-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.calibration-adjustment-item-adjusted-by {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.calibration-adjustment-item-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

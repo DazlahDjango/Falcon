@@ -25,8 +25,31 @@ class BaseTenantSerializer(BaseReviewSerializer):
     Base serializer for tenant-aware models.
     """
     
-    tenant_name = serializers.CharField(source='tenant.name', read_only=True)
-    tenant_id = serializers.UUIDField(source='tenant.id', read_only=True)
+    tenant_name = serializers.SerializerMethodField(read_only=True)
+    tenant_id = serializers.SerializerMethodField(read_only=True)
+    
+    def get_tenant_name(self, obj):
+        from apps.tenant.models import Client
+        # Try to get tenant from obj.tenant first (ForeignKey)
+        if hasattr(obj, 'tenant') and obj.tenant:
+            return obj.tenant.name
+        # Then try to get from obj.tenant_id (UUIDField)
+        elif hasattr(obj, 'tenant_id') and obj.tenant_id:
+            try:
+                tenant = Client.objects.get(id=obj.tenant_id)
+                return tenant.name
+            except Client.DoesNotExist:
+                return None
+        return None
+    
+    def get_tenant_id(self, obj):
+        # Try to get from obj.tenant first (ForeignKey)
+        if hasattr(obj, 'tenant') and obj.tenant:
+            return obj.tenant.id
+        # Then try to get from obj.tenant_id (UUIDField)
+        elif hasattr(obj, 'tenant_id'):
+            return obj.tenant_id
+        return None
     
     class Meta:
         abstract = True

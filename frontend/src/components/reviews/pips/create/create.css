@@ -1,0 +1,251 @@
+/* src/components/reviews/pips/create/create.css */
+
+.pip-create {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pip-create-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pip-create-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.pip-create-back:hover {
+  color: #1a1a2e;
+}
+
+.pip-create-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pip-create-form {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.pip-create-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.pip-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+/* PIP Form */
+.pip-form-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.pip-form-group {
+  margin-bottom: 16px;
+}
+
+.pip-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.pip-form-input,
+.pip-form-textarea,
+.pip-form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background: white;
+}
+
+.pip-form-input:focus,
+.pip-form-textarea:focus,
+.pip-form-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Action Editor */
+.pip-action-editor {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pip-action-editor-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 4px 0;
+}
+
+.pip-action-editor-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.pip-action-editor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.pip-action-editor-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.pip-action-editor-drag {
+  color: #9ca3af;
+  cursor: grab;
+}
+
+.pip-action-editor-input {
+  flex: 1;
+  min-width: 100px;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.pip-action-editor-input.small {
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.pip-action-editor-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-action-editor-select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+}
+
+.pip-action-editor-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pip-action-editor-checkbox input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #2563eb;
+}
+
+.pip-action-editor-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-action-editor-remove:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pip-action-editor-add {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+}
+
+.pip-action-editor-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pip-action-editor-info {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+@media (max-width: 1024px) {
+  .pip-create-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pip-form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .pip-action-editor-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

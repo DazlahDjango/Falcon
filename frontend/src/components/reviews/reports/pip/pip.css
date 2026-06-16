@@ -1,0 +1,541 @@
+/* src/components/reviews/reports/pip/pip.css */
+
+.pip-report {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pip-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pip-report-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.pip-report-back:hover {
+  color: #1a1a2e;
+}
+
+.pip-report-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pip-report-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-report-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.pip-report-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.pip-report-header-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.pip-report-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.pip-report-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.pip-report-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+/* PIP Summary Report */
+.pip-summary-report-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.pip-summary-report-empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.pip-summary-report-stats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pip-summary-report-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.pip-summary-report-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pip-summary-report-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.pip-summary-report-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.pip-summary-report-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.pip-summary-report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pip-summary-report-card {
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.pip-summary-report-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.pip-summary-report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pip-summary-report-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.pip-summary-report-item-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 100px;
+}
+
+.pip-summary-report-item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pip-summary-report-item-label {
+  font-size: 13px;
+  color: #374151;
+}
+
+.pip-summary-report-item-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.pip-summary-report-item-bar {
+  flex: 1;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.pip-summary-report-item-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.pip-summary-report-item-count {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a2e;
+  min-width: 24px;
+  text-align: right;
+}
+
+.pip-summary-report-departments {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pip-summary-report-department {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pip-summary-report-department-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.pip-summary-report-department-name {
+  color: #374151;
+}
+
+.pip-summary-report-department-count {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.pip-summary-report-department-bar {
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.pip-summary-report-department-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* PIP Trends Report */
+.pip-trends-report-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.pip-trends-report-empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.pip-trends-report-controls {
+  margin-bottom: 16px;
+}
+
+.pip-trends-report-select {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+}
+
+.pip-trends-report-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-trends-report-chart {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.pip-trends-report-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pip-trends-report-chart-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.pip-trends-report-chart-legend {
+  display: flex;
+  gap: 12px;
+}
+
+.pip-trends-report-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.pip-trends-report-legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.pip-trends-report-legend-color.created {
+  background: #3b82f6;
+}
+
+.pip-trends-report-legend-color.completed {
+  background: #8b5cf6;
+}
+
+.pip-trends-report-legend-color.successful {
+  background: #22c55e;
+}
+
+.pip-trends-report-chart-body {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 180px;
+  gap: 8px;
+}
+
+.pip-trends-report-chart-bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 4px;
+}
+
+.pip-trends-report-chart-bar-wrapper {
+  display: flex;
+  align-items: flex-end;
+  height: 160px;
+  width: 100%;
+}
+
+.pip-trends-report-chart-bar-container {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  gap: 2px;
+}
+
+.pip-trends-report-chart-bar {
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 0.5s ease;
+}
+
+.pip-trends-report-chart-bar.created {
+  background: #3b82f6;
+}
+
+.pip-trends-report-chart-bar.completed {
+  background: #8b5cf6;
+}
+
+.pip-trends-report-chart-bar.successful {
+  background: #22c55e;
+}
+
+.pip-trends-report-chart-label {
+  font-size: 10px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.pip-trends-report-chart-trend {
+  font-size: 12px;
+}
+
+/* Table */
+.pip-trends-report-table-container {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.pip-trends-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.pip-trends-report-table thead {
+  background: #f9fafb;
+}
+
+.pip-trends-report-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pip-trends-report-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #1a1a2e;
+}
+
+.pip-trends-report-table-row:hover {
+  background: #f9fafb;
+}
+
+.pip-trends-report-table-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.pip-trends-report-table-badge.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pip-trends-report-table-badge.failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pip-trends-report-table-rate {
+  font-weight: 600;
+}
+
+/* Summary */
+.pip-trends-report-summary {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.pip-trends-report-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.pip-trends-report-summary-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.pip-trends-report-summary-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+@media (max-width: 1024px) {
+  .pip-summary-report-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .pip-trends-report-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .pip-summary-report-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pip-summary-report-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .pip-trends-report-chart-body {
+    height: 140px;
+  }
+  
+  .pip-trends-report-chart-bar-wrapper {
+    height: 120px;
+  }
+  
+  .pip-trends-report-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+}

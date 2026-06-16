@@ -31,7 +31,7 @@ export { default as AdminSubscriptionsPage } from '../../../pages/billing/Subscr
 
 // ——— Reviews (assessments, cycles) ———
 export { default as SelfAssessmentView } from '../../reviews/assessment/SelfAssessmentView';
-export { default as CycleDetail } from '../../reviews/cycle/CycleDetail';
+export { default as CycleDetail } from '../../reviews/cycles/CycleDetail';
 
 // ——— KPI (scores, validation — used by dashboard widgets/services) ———
 export { GlobalKpiBanner } from '../../kpi/common/GlobalKpiBanner';

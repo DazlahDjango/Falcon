@@ -1,0 +1,82 @@
+// src/components/reviews/coefficients/create/CoefficientCreate.jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Save } from 'lucide-react';
+import { useCoefficients } from '../../../../hooks/reviews';
+import { ReviewLoading } from '../../common';
+import CoefficientForm from './CoefficientForm';
+
+const CoefficientCreate = () => {
+  const navigate = useNavigate();
+  const { create, loading } = useCoefficients();
+  const [formData, setFormData] = useState({
+    coefficient_type: 'department',
+    department: '',
+    position: '',
+    user: '',
+    value: 1.0,
+    reason: '',
+    valid_from: '',
+    valid_to: '',
+    is_active: true,
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await create(formData);
+      navigate('/reviews/coefficients');
+    } catch (error) {
+      console.error('Failed to create coefficient:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (data) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+  };
+
+  if (loading) return <ReviewLoading size="lg" text="Creating coefficient..." />;
+
+  return (
+    <div className="coefficient-create">
+      <div className="coefficient-create-header">
+        <button className="coefficient-create-back" onClick={() => navigate('/reviews/coefficients')}>
+          <ArrowLeft size={20} />
+          Back to Coefficients
+        </button>
+        <h1 className="coefficient-create-title">Create Coefficient</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="coefficient-create-form">
+        <CoefficientForm
+          data={formData}
+          onChange={handleChange}
+        />
+
+        <div className="coefficient-create-actions">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => navigate('/reviews/coefficients')}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isSubmitting || !formData.coefficient_type || !formData.value || !formData.valid_from}
+          >
+            <Save size={18} />
+            {isSubmitting ? 'Creating...' : 'Create Coefficient'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default CoefficientCreate;

@@ -1,0 +1,66 @@
+/* src/components/reviews/pips/edit/edit.css */
+
+.pip-edit {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pip-edit-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pip-edit-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.pip-edit-back:hover {
+  color: #1a1a2e;
+}
+
+.pip-edit-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pip-edit-form {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.pip-edit-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.pip-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .pip-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}

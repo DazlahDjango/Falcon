@@ -1,109 +1,96 @@
 // src/services/reviews/feedback.service.js
-// Handles all feedback API calls (requests, responses, summaries)
+// 360 Feedback API service
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+import { BaseReviewsService } from './reviewsBase.service';
 
-// ========== Feedback Request Service ==========
-class FeedbackRequestService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEWS_API.FEEDBACK_REQUESTS);
-    }
+class FeedbackRequestService extends BaseReviewsService {
+  constructor() {
+    super('feedback-requests');
+  }
 
-    /**
-     * Get pending feedback requests for current user
-     * @returns {Promise<Array>} Pending requests
-     */
-    async getPending() {
-        const response = await apiClient.get(REVIEWS_API.FEEDBACK_REQUEST_PENDING);
-        return response.data;
-    }
+  async remind(id) {
+    return this.action(id, 'remind');
+  }
 
-    /**
-     * Send reminder for feedback request
-     * @param {string|number} id - Request ID
-     * @returns {Promise<Object>} Reminder status
-     */
-    async sendReminder(id) {
-        const response = await apiClient.post(REVIEWS_API.FEEDBACK_REQUEST_REMIND(id));
-        return response.data;
-    }
+  async cancel(id) {
+    return this.action(id, 'cancel');
+  }
 
-    /**
-     * Get feedback requests for a specific subject
-     * @param {string|number} subjectId - Subject (employee) ID
-     * @param {string|number} cycleId - Cycle ID
-     * @returns {Promise<Array>} Feedback requests
-     */
-    async getForSubject(subjectId, cycleId) {
-        const response = await apiClient.get(
-            `${REVIEWS_API.FEEDBACK_REQUESTS}?subject=${subjectId}&review_cycle=${cycleId}`
-        );
-        return response.data;
-    }
+  async bulkCreate(reviewers, subjectId, cycleId, reviewerType, dueDate) {
+    const response = await this.apiClient.post('/feedback-requests/bulk_create/', {
+      reviewers,
+      subject_id: subjectId,
+      cycle_id: cycleId,
+      reviewer_type: reviewerType,
+      due_date: dueDate,
+    });
+    return response.data;
+  }
+
+  async getPending() {
+    const response = await this.apiClient.get('/feedback-requests/pending/');
+    return response.data;
+  }
+
+  async getOverdue() {
+    const response = await this.apiClient.get('/feedback-requests/overdue/');
+    return response.data;
+  }
+
+  async getForSubject(subjectId) {
+    const response = await this.apiClient.get(`/feedback-requests/for-subject/${subjectId}/`);
+    return response.data;
+  }
+
+  async getForCycle(cycleId) {
+    const response = await this.apiClient.get(`/feedback-requests/for-cycle/${cycleId}/`);
+    return response.data;
+  }
 }
 
-// ========== Feedback Response Service ==========
-class FeedbackResponseService {
-    /**
-     * Submit feedback response
-     * @param {string|number} requestId - Feedback request ID
-     * @param {Object} data - Response data (ratings, comments)
-     * @returns {Promise<Object>} Submitted response
-     */
-    async submit(requestId, data) {
-        const response = await apiClient.post(REVIEWS_API.FEEDBACK_RESPONSE_SUBMIT(requestId), data);
-        return response.data;
-    }
+class FeedbackResponseService extends BaseReviewsService {
+  constructor() {
+    super('feedback-responses');
+  }
 
-    /**
-     * Get response for a specific request
-     * @param {string|number} requestId - Request ID
-     * @returns {Promise<Object>} Feedback response
-     */
-    async getForRequest(requestId) {
-        const response = await apiClient.get(REVIEWS_API.FEEDBACK_RESPONSE_FOR_REQUEST(requestId));
-        return response.data;
-    }
+  async submit(requestId, data) {
+    const response = await this.apiClient.post(`/feedback-responses/submit/${requestId}/`, data);
+    return response.data;
+  }
+
+  async getForRequest(requestId) {
+    const response = await this.apiClient.get(`/feedback-responses/for-request/${requestId}/`);
+    return response.data;
+  }
+
+  async getForSubject(subjectId) {
+    const response = await this.apiClient.get(`/feedback-responses/for-subject/${subjectId}/`);
+    return response.data;
+  }
 }
 
-// ========== Feedback Summary Service ==========
-class FeedbackSummaryService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEWS_API.FEEDBACK_SUMMARIES);
-    }
+class FeedbackSummaryService extends BaseReviewsService {
+  constructor() {
+    super('feedback-summaries');
+  }
 
-    /**
-     * Get my feedback summary for latest cycle
-     * @returns {Promise<Object>} My feedback summary
-     */
-    async getMy() {
-        const response = await apiClient.get(REVIEWS_API.FEEDBACK_SUMMARY_MY);
-        return response.data;
-    }
+  async share(id) {
+    return this.action(id, 'share', { share: true });
+  }
 
-    /**
-     * Share feedback summary with subject (HR only)
-     * @param {string|number} id - Summary ID
-     * @returns {Promise<Object>} Shared summary
-     */
-    async share(id) {
-        const response = await apiClient.post(REVIEWS_API.FEEDBACK_SUMMARY_SHARE(id));
-        return response.data;
-    }
+  async regenerate(id) {
+    return this.action(id, 'regenerate');
+  }
 
-    /**
-     * Get summary for specific employee and cycle
-     * @param {string|number} employeeId - Employee ID
-     * @param {string|number} cycleId - Cycle ID
-     * @returns {Promise<Object>} Employee summary
-     */
-    async getForEmployee(employeeId, cycleId) {
-        const response = await apiClient.get(
-            `${REVIEWS_API.FEEDBACK_SUMMARIES}?subject=${employeeId}&review_cycle=${cycleId}`
-        );
-        return response.data;
-    }
+  async getMy() {
+    const response = await this.apiClient.get('/feedback-summaries/my/');
+    return response.data;
+  }
+
+  async getForCycle(cycleId) {
+    const response = await this.apiClient.get(`/feedback-summaries/for-cycle/${cycleId}/`);
+    return response.data;
+  }
 }
 
 export const feedbackRequestService = new FeedbackRequestService();

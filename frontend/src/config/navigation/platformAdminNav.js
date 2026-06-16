@@ -1,3 +1,4 @@
+// src/config/constants/adminNavConfig.js
 import {
   FiHome,
   FiBarChart2,
@@ -37,6 +38,13 @@ import {
   FiEye,
   FiRotateCcw,
   FiTarget,
+  FiStar,
+  FiScale,
+  FiAward,
+  FiGavel,
+  FiUsers as FiUserGroup,
+  FiMessageSquare,
+  FiTrendingUp as FiUpward,
 } from 'react-icons/fi';
 import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
@@ -47,6 +55,7 @@ import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { BILLING_ROUTES } from '../constants/billingRouteConstants';
 import { ROUTES } from '../constants';
 import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../constants/kpiRouteConstants';
+import { REVIEW_ROUTES } from '../constants/reviewRouteConstants';
 
 // ============================================
 // MFA ROUTES
@@ -178,6 +187,96 @@ export const KPI_DASHBOARDS_NAV_ITEMS = [
 ];
 
 // ============================================
+// REVIEWS NAVIGATION ITEMS (Super Admin)
+// ============================================
+export const REVIEWS_NAV_ITEMS = [
+  // Dashboards
+  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_STAFF, name: 'Staff Dashboard', icon: FiHome },
+  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_SUPERVISOR, name: 'Supervisor Dashboard', icon: FiUserGroup },
+  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_EXECUTIVE, name: 'Executive Dashboard', icon: FiTrendingUp },
+  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_ADMIN, name: 'Admin Dashboard', icon: FiShield },
+  
+  // Core Features
+  { path: REVIEW_ROUTES.RATING_SCALES_LIST, name: 'Rating Scales', icon: FiScale },
+  { path: REVIEW_ROUTES.COMPETENCIES_LIST, name: 'Competencies', icon: FiTarget },
+  { path: REVIEW_ROUTES.COMPETENCY_CATEGORIES, name: 'Competency Categories', icon: FiFolder },
+  { path: REVIEW_ROUTES.REVIEW_CYCLES_LIST, name: 'Review Cycles', icon: FiCalendar },
+  
+  // Assessments
+  { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, name: 'Self Assessment', icon: FiCheckCircle },
+  { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_QUEUE, name: 'Review Queue', icon: FiActivity },
+  { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_PENDING_APPROVALS, name: 'Pending Approvals', icon: FiClock },
+  { path: REVIEW_ROUTES.FINAL_RATINGS_LIST, name: 'Final Ratings', icon: FiStar },
+  { path: REVIEW_ROUTES.RATING_DISTRIBUTION, name: 'Rating Distribution', icon: FiBarChart2 },
+  
+  // PIPs
+  { path: REVIEW_ROUTES.PIPS_LIST, name: 'PIPs', icon: FiFlag },
+  { path: REVIEW_ROUTES.PIPS_REPORT, name: 'PIP Reports', icon: FiFileText },
+  
+  // Feedback & Calibration
+  { path: REVIEW_ROUTES.FEEDBACK_REQUESTS, name: '360 Feedback', icon: FiMessageSquare },
+  { path: REVIEW_ROUTES.CALIBRATION_SESSIONS, name: 'Calibration Sessions', icon: FiGavel },
+  { path: REVIEW_ROUTES.CALIBRATION_OUTLIERS, name: 'Calibration Outliers', icon: FiAlertCircle },
+  
+  // Coefficients & Promotions
+  { path: REVIEW_ROUTES.COEFFICIENTS_LIST, name: 'Coefficients', icon: FiSliders },
+  { path: REVIEW_ROUTES.PROMOTIONS_LIST, name: 'Promotions', icon: FiAward },
+  { path: REVIEW_ROUTES.PROMOTIONS_STATS, name: 'Promotion Stats', icon: FiBarChart2 },
+  
+  // Templates
+  { path: REVIEW_ROUTES.REVIEW_TEMPLATES_LIST, name: 'Review Templates', icon: FiFileText },
+  
+  // Reports & Settings
+  { path: REVIEW_ROUTES.REPORTS, name: 'Reports', icon: FiDownload },
+  { path: REVIEW_ROUTES.REPORTS_EMPLOYEE, name: 'Employee Reports', icon: FiUsers },
+  { path: REVIEW_ROUTES.REPORTS_TEAM, name: 'Team Reports', icon: FiUserGroup },
+  { path: REVIEW_ROUTES.REPORTS_CYCLE, name: 'Cycle Reports', icon: FiCalendar },
+  { path: REVIEW_ROUTES.REPORTS_PIP, name: 'PIP Reports', icon: FiFlag },
+  { path: REVIEW_ROUTES.REPORTS_CALIBRATION, name: 'Calibration Reports', icon: FiGavel },
+  { path: REVIEW_ROUTES.REPORTS_EXPORT, name: 'Export Reports', icon: FiDownload },
+  
+  // Settings
+  { path: REVIEW_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+  { path: REVIEW_ROUTES.NOTIFICATION_PREFERENCES, name: 'Notification Preferences', icon: FiBell },
+  { path: REVIEW_ROUTES.AUDIT_SETTINGS, name: 'Audit Settings', icon: FiShield },
+  
+  // Audit & Notifications
+  { path: REVIEW_ROUTES.AUDIT_LOGS, name: 'Audit Logs', icon: FiList },
+  { path: REVIEW_ROUTES.NOTIFICATIONS, name: 'Notifications', icon: FiBell },
+];
+
+// ============================================
+// REVIEWS NAVIGATION ITEMS (Client Admin - limited)
+// ============================================
+export const CLIENT_ADMIN_REVIEWS_NAV_ITEMS = [
+  // Dashboards
+  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_STAFF, name: 'Staff Dashboard', icon: FiHome },
+  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_SUPERVISOR, name: 'Supervisor Dashboard', icon: FiUserGroup },
+  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_EXECUTIVE, name: 'Executive Dashboard', icon: FiTrendingUp },
+  
+  // Core Features
+  { path: REVIEW_ROUTES.RATING_SCALES_LIST, name: 'Rating Scales', icon: FiScale },
+  { path: REVIEW_ROUTES.COMPETENCIES_LIST, name: 'Competencies', icon: FiTarget },
+  { path: REVIEW_ROUTES.REVIEW_CYCLES_LIST, name: 'Review Cycles', icon: FiCalendar },
+  
+  // Assessments
+  { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, name: 'Self Assessment', icon: FiCheckCircle },
+  { path: REVIEW_ROUTES.FINAL_RATINGS_LIST, name: 'Final Ratings', icon: FiStar },
+  
+  // PIPs
+  { path: REVIEW_ROUTES.PIPS_LIST, name: 'PIPs', icon: FiFlag },
+  
+  // Feedback & Calibration
+  { path: REVIEW_ROUTES.FEEDBACK_REQUESTS, name: '360 Feedback', icon: FiMessageSquare },
+  
+  // Reports
+  { path: REVIEW_ROUTES.REPORTS, name: 'Reports', icon: FiDownload },
+  
+  // Settings
+  { path: REVIEW_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+];
+
+// ============================================
 // SUPER ADMIN NAVIGATION GROUPS
 // ============================================
 export const SUPER_ADMIN_NAV_GROUPS = {
@@ -218,17 +317,10 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/app/structure/team-hierarchies', name: 'Team Hierarchy', icon: FiGitBranch },
     { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase },
   ],
-  reviews: [
-    { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2 },
-    { path: '/reviews/cycles', name: 'Review Cycles', icon: FiCalendar },
-    { path: '/reviews/self-assessment', name: 'Self Assessment', icon: FiCheckCircle },
-    { path: '/reviews/review-queue', name: 'Review Queue', icon: FiActivity },
-    { path: '/reviews/final-ratings', name: 'Final Ratings', icon: FiBarChart2 },
-    { path: '/reviews/pips', name: 'Performance Plans', icon: FiFlag },
-    { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers },
-    { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders },
-    { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText },
-  ],
+  
+  // Reviews - Full access for Super Admin
+  reviews: REVIEWS_NAV_ITEMS,
+  
   accounts: [
     { path: '/users', name: 'All Users', icon: FiUsers },
     { path: '/roles', name: 'All Roles', icon: FiShield },
@@ -278,6 +370,10 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: ROUTES.USERS, name: 'User Directory', icon: FiUsers },
     { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
+  
+  // Reviews - Limited access for Client Admin
+  reviews: CLIENT_ADMIN_REVIEWS_NAV_ITEMS,
+  
   mfa: MFA_NAV_ITEMS,
   compliance: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },
@@ -300,13 +396,13 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   main: true,
   tenants: false,
   billing: false,
-  kpiAdmin: true,        // Expand KPI System Admin
-  kpiManagement: true,   // Expand KPI Management
+  kpiAdmin: true,
+  kpiManagement: true,
   kpiAnalytics: false,
   kpiOperations: false,
   kpiDashboards: false,
   structure: false,
-  reviews: false,
+  reviews: true,  // Reviews expanded by default for Super Admin
   accounts: false,
   mfa: false,
   config: false,
@@ -322,6 +418,7 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   kpiAnalytics: false,
   kpiOperations: false,
   management: true,
+  reviews: true,  // Reviews expanded by default for Client Admin
   mfa: false,
   compliance: false,
   config: false,
@@ -340,7 +437,7 @@ export const SUPER_ADMIN_GROUP_LABELS = {
   kpiOperations: '⚙️ Operations',
   kpiDashboards: '📺 Dashboards',
   structure: 'Organization Structure',
-  reviews: 'Performance Reviews',
+  reviews: '⭐ Performance Reviews',  // Reviews label for Super Admin
   accounts: 'Users & Platform Access',
   mfa: 'Multi-Factor Authentication',
   config: 'Configuration Manager',
@@ -356,6 +453,7 @@ export const CLIENT_ADMIN_GROUP_LABELS = {
   kpiAnalytics: '📈 Analytics & Reports',
   kpiOperations: '⚙️ Operations',
   management: 'Management',
+  reviews: '⭐ Performance Reviews',  // Reviews label for Client Admin
   mfa: 'Multi-Factor Authentication',
   compliance: 'Reports & Compliance',
   config: 'Configuration',

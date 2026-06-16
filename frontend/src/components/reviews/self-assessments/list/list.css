@@ -1,0 +1,178 @@
+/* src/components/reviews/self-assessments/list/list.css */
+
+.self-assessment-list {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.self-assessment-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.self-assessment-list-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.self-assessment-list-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.self-assessment-list-count {
+  font-size: 14px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.self-assessment-list-toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.self-assessment-search {
+  max-width: 400px;
+}
+
+.self-assessment-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.self-assessment-list-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.self-assessment-list-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+}
+
+.self-assessment-list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.self-assessment-list-card-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.self-assessment-list-card-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #dbeafe;
+  color: #2563eb;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.self-assessment-list-card-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.self-assessment-list-card-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.self-assessment-list-card-email {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.self-assessment-list-card-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #6b7280;
+  padding: 8px 0;
+  border-top: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.self-assessment-list-card-cycle {
+  font-weight: 500;
+  color: #374151;
+}
+
+.self-assessment-list-card-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fef3c7;
+  border-radius: 4px;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.self-assessment-list-card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.self-assessment-list-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+}
+
+.self-assessment-list-card-btn:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+@media (max-width: 640px) {
+  .self-assessment-list-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .self-assessment-list-card-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

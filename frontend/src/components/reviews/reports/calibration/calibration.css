@@ -1,0 +1,321 @@
+/* src/components/reviews/reports/calibration/calibration.css */
+
+.calibration-report {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.calibration-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.calibration-report-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.calibration-report-back:hover {
+  color: #1a1a2e;
+}
+
+.calibration-report-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.calibration-report-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calibration-report-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.calibration-report-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.calibration-report-header-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.calibration-report-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.calibration-report-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Calibration Summary Report */
+.calibration-summary-report-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.calibration-summary-report-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.calibration-summary-report-stats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.calibration-summary-report-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.calibration-summary-report-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.calibration-summary-report-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.calibration-summary-report-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.calibration-summary-report-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.calibration-summary-report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.calibration-summary-report-card {
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.calibration-summary-report-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.calibration-summary-report-sessions {
+  display: flex;
+  gap: 16px;
+}
+
+.calibration-summary-report-session {
+  display: flex;
+  flex-direction: column;
+}
+
+.calibration-summary-report-session-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.calibration-summary-report-session-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.calibration-summary-report-impact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+.calibration-summary-report-impact-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.calibration-summary-report-impact-label {
+  color: #6b7280;
+}
+
+.calibration-summary-report-impact-value {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.calibration-summary-report-adjustments {
+  display: flex;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.calibration-summary-report-adjustment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.calibration-summary-report-adjustment-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.calibration-summary-report-adjustment-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Recent Sessions */
+.calibration-summary-report-recent {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.calibration-summary-report-recent-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.calibration-summary-report-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calibration-summary-report-recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: white;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.calibration-summary-report-recent-name {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.calibration-summary-report-recent-date {
+  color: #6b7280;
+}
+
+.calibration-summary-report-recent-status {
+  text-transform: capitalize;
+  color: #6b7280;
+}
+
+.calibration-summary-report-recent-adjustments {
+  color: #6b7280;
+}
+
+@media (max-width: 1024px) {
+  .calibration-summary-report-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .calibration-summary-report-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .calibration-summary-report-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .calibration-summary-report-impact {
+    grid-template-columns: 1fr;
+  }
+  
+  .calibration-summary-report-sessions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .calibration-summary-report-adjustments {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .calibration-summary-report-recent-item {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
