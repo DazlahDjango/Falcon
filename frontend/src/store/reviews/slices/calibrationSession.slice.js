@@ -1,8 +1,7 @@
-// src/store/reviews/slices/calibration.slice.js
+// src/store/reviews/slices/calibrationSession.slice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
   calibrationSessionService,
-  calibrationRatingService,
 } from '../../../services/reviews';
 
 // ============ Calibration Session Thunks ============
@@ -179,41 +178,6 @@ export const fetchCalibrationSessionsForCycle = createAsyncThunk(
   }
 );
 
-// ============ Calibration Rating Thunks ============
-export const fetchCalibrationRatings = createAsyncThunk(
-  'calibrationRatings/fetchAll',
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const response = await calibrationRatingService.list(params);
-      return response.results || response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-export const fetchCalibrationRating = createAsyncThunk(
-  'calibrationRatings/fetchOne',
-  async (id, { rejectWithValue }) => {
-    try {
-      return await calibrationRatingService.get(id);
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-export const fetchCalibrationRatingsForSession = createAsyncThunk(
-  'calibrationRatings/fetchForSession',
-  async (sessionId, { rejectWithValue }) => {
-    try {
-      return await calibrationRatingService.getForSession(sessionId);
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
 // ============ Calibration Session Slice ============
 const calibrationSessionInitialState = {
   items: [],
@@ -237,7 +201,7 @@ const calibrationSessionSlice = createSlice({
   name: 'calibrationSessions',
   initialState: calibrationSessionInitialState,
   reducers: {
-    resetState: (state) => {
+    resetSessionState: (state) => {
       Object.assign(state, calibrationSessionInitialState);
     },
     setSessionFilters: (state, action) => {
@@ -261,9 +225,17 @@ const calibrationSessionSlice = createSlice({
     clearSessionErrors: (state) => {
       state.error = null;
     },
+    updateItem: (state, action) => {
+      const index = state.items.findIndex((item) => item.id === action.payload.id);
+      if (index !== -1) {
+        state.items[index] = action.payload;
+      }
+      if (state.selectedItem?.id === action.payload.id) {
+        state.selectedItem = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
-    // Fetch All
     builder
       .addCase(fetchCalibrationSessions.pending, (state) => {
         state.loading = true;
@@ -280,10 +252,7 @@ const calibrationSessionSlice = createSlice({
       .addCase(fetchCalibrationSessions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
-
-    // Fetch One
-    builder
+      })
       .addCase(fetchCalibrationSession.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -295,17 +264,11 @@ const calibrationSessionSlice = createSlice({
       .addCase(fetchCalibrationSession.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
-
-    // Create
-    builder
+      })
       .addCase(createCalibrationSession.fulfilled, (state, action) => {
         state.items = [action.payload, ...state.items];
         state.selectedItem = action.payload;
-      });
-
-    // Update
-    builder
+      })
       .addCase(updateCalibrationSession.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) {
@@ -314,19 +277,13 @@ const calibrationSessionSlice = createSlice({
         if (state.selectedItem?.id === action.payload.id) {
           state.selectedItem = action.payload;
         }
-      });
-
-    // Delete
-    builder
+      })
       .addCase(deleteCalibrationSession.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);
         if (state.selectedItem?.id === action.payload) {
           state.selectedItem = null;
         }
-      });
-
-    // Start
-    builder
+      })
       .addCase(startCalibrationSession.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) {
@@ -335,10 +292,7 @@ const calibrationSessionSlice = createSlice({
         if (state.selectedItem?.id === action.payload.id) {
           state.selectedItem = action.payload;
         }
-      });
-
-    // Complete
-    builder
+      })
       .addCase(completeCalibrationSession.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) {
@@ -347,10 +301,7 @@ const calibrationSessionSlice = createSlice({
         if (state.selectedItem?.id === action.payload.id) {
           state.selectedItem = action.payload;
         }
-      });
-
-    // Cancel
-    builder
+      })
       .addCase(cancelCalibrationSession.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) {
@@ -359,10 +310,7 @@ const calibrationSessionSlice = createSlice({
         if (state.selectedItem?.id === action.payload.id) {
           state.selectedItem = action.payload;
         }
-      });
-
-    // Add Rating
-    builder
+      })
       .addCase(addCalibrationRating.fulfilled, (state, action) => {
         if (state.selectedItem) {
           state.selectedItem.rating_adjustments = [
@@ -370,10 +318,7 @@ const calibrationSessionSlice = createSlice({
             action.payload,
           ];
         }
-      });
-
-    // Add Comment
-    builder
+      })
       .addCase(addCalibrationComment.fulfilled, (state, action) => {
         if (state.selectedItem) {
           state.selectedItem.comments = [
@@ -381,10 +326,7 @@ const calibrationSessionSlice = createSlice({
             action.payload,
           ];
         }
-      });
-
-    // Fetch Report
-    builder
+      })
       .addCase(fetchCalibrationReport.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -396,129 +338,26 @@ const calibrationSessionSlice = createSlice({
       .addCase(fetchCalibrationReport.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
-
-    // Fetch My
-    builder
+      })
       .addCase(fetchMyCalibrationSessions.fulfilled, (state, action) => {
         state.mySessions = action.payload;
-      });
-
-    // Fetch Outliers
-    builder
+      })
       .addCase(fetchCalibrationOutliers.fulfilled, (state, action) => {
         state.outliers = action.payload;
-      });
-
-    // Fetch Recommendations
-    builder
+      })
       .addCase(fetchCalibrationRecommendations.fulfilled, (state, action) => {
         state.recommendations = action.payload;
-      });
-
-    // Fetch For Cycle
-    builder
+      })
       .addCase(fetchCalibrationSessionsForCycle.fulfilled, (state, action) => {
         state.items = action.payload;
       });
   },
 });
 
-// ============ Calibration Rating Slice ============
-const calibrationRatingInitialState = {
-  items: [],
-  selectedItem: null,
-  loading: false,
-  error: null,
-  pagination: {
-    currentPage: 1,
-    pageSize: 20,
-    totalItems: 0,
-    totalPages: 0,
-  },
-};
-
-const calibrationRatingSlice = createSlice({
-  name: 'calibrationRatings',
-  initialState: calibrationRatingInitialState,
-  reducers: {
-    resetState: (state) => {
-      Object.assign(state, calibrationRatingInitialState);
-    },
-    setRatingPagination: (state, action) => {
-      state.pagination = { ...state.pagination, ...action.payload };
-    },
-    selectCalibrationRating: (state, action) => {
-      state.selectedItem = action.payload;
-    },
-    clearSelectedCalibrationRating: (state) => {
-      state.selectedItem = null;
-    },
-    clearRatingErrors: (state) => {
-      state.error = null;
-    },
-  },
-  extraReducers: (builder) => {
-    // Fetch All
-    builder
-      .addCase(fetchCalibrationRatings.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchCalibrationRatings.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = Array.isArray(action.payload) ? action.payload : action.payload.results || [];
-        state.pagination.totalItems = action.payload.count || state.items.length;
-        state.pagination.totalPages = Math.ceil(
-          (action.payload.count || state.items.length) / state.pagination.pageSize
-        );
-      })
-      .addCase(fetchCalibrationRatings.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
-
-    // Fetch One
-    builder
-      .addCase(fetchCalibrationRating.fulfilled, (state, action) => {
-        state.selectedItem = action.payload;
-      });
-
-    // Fetch For Session
-    builder
-      .addCase(fetchCalibrationRatingsForSession.fulfilled, (state, action) => {
-        state.items = action.payload;
-      });
-  },
-});
-
-// ============ Exports ============
-
-// Session exports
-export const {
-  resetState: resetSessionState,
-  setSessionFilters,
-  clearSessionFilters,
-  setSessionPagination,
-  selectSession,
-  clearSelectedSession,
-  clearSessionErrors,
-} = calibrationSessionSlice.actions;
-
 export const calibrationSessionReducer = calibrationSessionSlice.reducer;
 export const calibrationSessionActions = calibrationSessionSlice.actions;
-
-// Rating exports
-export const {
-  resetState: resetRatingState,
-  setRatingPagination,
-  selectCalibrationRating,
-  clearSelectedCalibrationRating,
-  clearRatingErrors,
-} = calibrationRatingSlice.actions;
-
-export const calibrationRatingReducer = calibrationRatingSlice.reducer;
-export const calibrationRatingActions = calibrationRatingSlice.actions;
-
-// ============ Default Exports ============
+export const resetSessionState = calibrationSessionSlice.actions.resetSessionState;
+export const setSessionFilters = calibrationSessionSlice.actions.setSessionFilters;
+export const clearSessionFilters = calibrationSessionSlice.actions.clearSessionFilters;
+export const setSessionPagination = calibrationSessionSlice.actions.setSessionPagination;
 export default calibrationSessionReducer;

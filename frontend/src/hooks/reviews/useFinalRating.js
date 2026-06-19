@@ -14,6 +14,8 @@ import {
   selectApprovedFinalRatings,
   selectPendingFinalRatings,
   selectAverageFinalScore,
+  selectFinalRatingsPagination,
+  selectFinalRatingsFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchFinalRatings,
@@ -30,6 +32,9 @@ import {
   fetchFinalRatingDistribution,
   fetchFinalRatingStats,
   resetFinalRatingState,
+  setFilters as setFinalRatingFilters,
+  clearFilters as clearFinalRatingFilters,
+  setPagination as setFinalRatingPagination,
 } from '../../store/reviews/slices/finalRating.slice';
 import { useReviewsPermissions } from './';
 
@@ -45,6 +50,8 @@ const useFinalRating = () => {
   const myFinalRating = useSelector(selectMyFinalRating);
   const distribution = useSelector(selectRatingDistribution);
   const stats = useSelector(selectFinalRatingStats);
+  const pagination = useSelector(selectFinalRatingsPagination);
+  const filters = useSelector(selectFinalRatingsFilters);
   const lockedRatings = useSelector(selectLockedFinalRatings);
   const calibratedRatings = useSelector(selectCalibratedFinalRatings);
   const approvedRatings = useSelector(selectApprovedFinalRatings);
@@ -157,6 +164,21 @@ const useFinalRating = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (payload) => dispatch(setFinalRatingFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearFinalRatingFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(setFinalRatingPagination(payload)),
+    [dispatch]
+  );
+
   const reset = useCallback(
     () => dispatch(resetFinalRatingState()),
     [dispatch]
@@ -208,6 +230,11 @@ const useFinalRating = () => {
     getDistribution,
     getStats,
     reset,
+    filters,
+    pagination,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

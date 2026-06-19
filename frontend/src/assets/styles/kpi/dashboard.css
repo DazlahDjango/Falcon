@@ -22,6 +22,24 @@
     margin-top: var(--kpi-spacing-xs);
 }
 
+.dashboard-empty {
+    background: var(--kpi-white);
+    border: 1px solid var(--kpi-gray-200);
+    border-radius: var(--kpi-radius-lg);
+    padding: var(--kpi-spacing-lg);
+    text-align: center;
+    box-shadow: var(--kpi-shadow-sm);
+}
+
+.dashboard-empty h2 {
+    margin-bottom: var(--kpi-spacing-sm);
+}
+
+.dashboard-empty p {
+    margin-bottom: var(--kpi-spacing-md);
+    color: var(--kpi-gray-600);
+}
+
 /* Score Section */
 .dashboard-score-section {
     display: grid;

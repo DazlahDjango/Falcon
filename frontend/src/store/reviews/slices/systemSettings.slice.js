@@ -110,5 +110,6 @@ const systemSettingsSlice = createSlice({
 });
 
 export const reviewsSystemSettingsReducer = systemSettingsSlice.reducer;
+export default reviewsSystemSettingsReducer;
 export const reviewsSystemSettingsActions = systemSettingsSlice.actions;
 export const resetSystemSettingsState = systemSettingsSlice.actions.resetState;

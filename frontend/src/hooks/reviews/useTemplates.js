@@ -10,6 +10,8 @@ import {
   selectActiveTemplatesList,
   selectDuplicatedTemplate,
   selectActiveTemplates,
+  selectTemplatesPagination,
+  selectTemplatesFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchTemplates,
@@ -25,6 +27,9 @@ import {
   fetchDefaultTemplate,
   fetchActiveTemplates,
   resetTemplateState,
+  setTemplateFilters,
+  clearTemplateFilters,
+  setTemplatePagination,
 } from '../../store/reviews/slices/template.slice';
 import { useReviewsPermissions } from './';
 
@@ -40,6 +45,8 @@ const useTemplates = () => {
   const defaultTemplate = useSelector(selectDefaultTemplate);
   const activeTemplates = useSelector(selectActiveTemplates);
   const duplicatedTemplate = useSelector(selectDuplicatedTemplate);
+  const pagination = useSelector(selectTemplatesPagination);
+  const filters = useSelector(selectTemplatesFilters);
 
   // Actions
   const fetchAll = useCallback(
@@ -147,6 +154,21 @@ const useTemplates = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (newFilters) => dispatch(setTemplateFilters(newFilters)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearTemplateFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (newPagination) => dispatch(setTemplatePagination(newPagination)),
+    [dispatch]
+  );
+
   // Computed
   const canManage = useMemo(
     () => permissions.canManageTemplates,
@@ -167,6 +189,8 @@ const useTemplates = () => {
     defaultTemplate,
     activeTemplates,
     duplicatedTemplate,
+    pagination,
+    filters,
 
     // CRUD Operations
     fetchAll,
@@ -184,6 +208,9 @@ const useTemplates = () => {
     getDefault,
     getActive,
     reset,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

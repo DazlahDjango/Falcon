@@ -29,6 +29,9 @@ import {
   fetchCompetenciesByType,
   fetchCompetencyUsageStats,
   resetCompetencyState,
+  setCompetencyFilters,
+  clearCompetencyFilters,
+  setCompetencyPagination,
 } from '../../store/reviews/slices/competency.slice';
 import { useReviewsPermissions } from './';
 
@@ -145,6 +148,21 @@ const useCompetencies = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (payload) => dispatch(setCompetencyFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearCompetencyFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(setCompetencyPagination(payload)),
+    [dispatch]
+  );
+
   // Computed
   const canManage = useMemo(
     () => permissions.canManageCompetencies,
@@ -186,6 +204,9 @@ const useCompetencies = () => {
     getByType,
     getUsageStats,
     reset,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

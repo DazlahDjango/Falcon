@@ -48,6 +48,17 @@ export const updateSupervisorReview = createAsyncThunk(
   }
 );
 
+export const patchSupervisorReview = createAsyncThunk(
+  'supervisorReviews/patch',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      return await supervisorReviewService.update(id, data, true);
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 export const deleteSupervisorReview = createAsyncThunk(
   'supervisorReviews/delete',
   async (id, { rejectWithValue }) => {
@@ -318,6 +329,27 @@ const supervisorReviewSlice = createSlice({
         state.error = action.payload;
       });
 
+    // Patch
+    builder
+      .addCase(patchSupervisorReview.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(patchSupervisorReview.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.selectedItem?.id === action.payload.id) {
+          state.selectedItem = action.payload;
+        }
+      })
+      .addCase(patchSupervisorReview.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
     // Delete
     builder
       .addCase(deleteSupervisorReview.pending, (state) => {
@@ -510,5 +542,6 @@ const supervisorReviewSlice = createSlice({
 });
 
 export const supervisorReviewReducer = supervisorReviewSlice.reducer;
+export default supervisorReviewReducer;
 export const supervisorReviewActions = supervisorReviewSlice.actions;
 export const resetSupervisorReviewState = supervisorReviewSlice.actions.resetState;

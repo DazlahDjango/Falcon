@@ -4,7 +4,7 @@ from apps.accounts.constants import UserRoles
 class CanViewReview(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
             return True
         if user.role == UserRoles.EXECUTIVE:
             return True
@@ -19,7 +19,7 @@ class CanEditReview(BasePermission):
         user = request.user
         if request.method in SAFE_METHODS:
             return True
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+        if user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
             return True
         if hasattr(obj, 'employee') and obj.employee_id == user.id and getattr(obj, 'status', '') in ['draft', 'rejected']:
             return True
@@ -30,26 +30,26 @@ class CanEditReview(BasePermission):
 class CanApproveReview(BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        return user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]
+        return user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]
 
 class CanSubmitSelfAssessment(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+        if user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
             return True
         return obj.employee_id == user.id
 
 class CanConductSupervisorReview(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+        if user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
             return True
         return hasattr(obj, 'supervisor') and obj.supervisor_id == user.id
 
 class CanViewFinalRating(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
             return True
         if user.role == UserRoles.EXECUTIVE:
             return True
@@ -62,6 +62,6 @@ class CanViewFinalRating(BasePermission):
 class CanViewTeamReviews(BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
+        if user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
             return True
         return user.role == UserRoles.SUPERVISOR

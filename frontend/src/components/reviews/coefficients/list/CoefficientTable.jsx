@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Eye, Calculator, Users, Building, User, Calendar } from 'lucide-react';
 import { ReviewStatusBadge } from '../../common';
-import { useCoefficients } from '../../../hooks/reviews';
+import { useCoefficients } from '../../../../hooks/reviews';
 
 const CoefficientTable = ({ data }) => {
   const navigate = useNavigate();

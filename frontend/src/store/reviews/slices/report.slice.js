@@ -234,5 +234,6 @@ const reportSlice = createSlice({
 });
 
 export const reviewsReportReducer = reportSlice.reducer;
+export default reviewsReportReducer;
 export const reviewsReportActions = reportSlice.actions;
 export const resetReportState = reportSlice.actions.resetState;

@@ -7,14 +7,13 @@ import {
   selectPromotionsError,
   selectSelectedPromotion,
   selectPromotionStats,
-  selectPendingPromotionsList,
-  selectApprovedPromotionsList,
-  selectCompletedPromotionsList,
   selectGeneratedPromotion,
   selectPendingPromotions,
   selectApprovedPromotions,
   selectCompletedPromotions,
   selectRejectedPromotions,
+  selectPromotionsPagination,
+  selectPromotionsFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchPromotions,
@@ -33,6 +32,9 @@ import {
   fetchPromotionStats,
   generatePromotionFromRating,
   resetPromotionState,
+  setPromotionFilters,
+  clearPromotionFilters,
+  setPromotionPagination,
 } from '../../store/reviews/slices/promotion.slice';
 import { useReviewsPermissions } from './';
 
@@ -51,6 +53,8 @@ const usePromotions = () => {
   const completedPromotions = useSelector(selectCompletedPromotions);
   const rejectedPromotions = useSelector(selectRejectedPromotions);
   const generatedPromotion = useSelector(selectGeneratedPromotion);
+  const pagination = useSelector(selectPromotionsPagination);
+  const filters = useSelector(selectPromotionsFilters);
 
   // Actions
   const fetchAll = useCallback(
@@ -178,6 +182,21 @@ const usePromotions = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (newFilters) => dispatch(setPromotionFilters(newFilters)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearPromotionFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (newPagination) => dispatch(setPromotionPagination(newPagination)),
+    [dispatch]
+  );
+
   // Computed
   const canManage = useMemo(
     () => permissions.canManagePromotions,
@@ -196,6 +215,8 @@ const usePromotions = () => {
     completedPromotions,
     rejectedPromotions,
     generatedPromotion,
+    pagination,
+    filters,
 
     // CRUD Operations
     fetchAll,
@@ -216,6 +237,9 @@ const usePromotions = () => {
     getStats,
     generateFromRating,
     reset,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

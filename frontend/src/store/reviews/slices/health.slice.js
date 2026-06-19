@@ -85,5 +85,6 @@ const healthSlice = createSlice({
 });
 
 export const reviewsHealthReducer = healthSlice.reducer;
+export default reviewsHealthReducer;
 export const reviewsHealthActions = healthSlice.actions;
 export const resetHealthState = healthSlice.actions.resetState;

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, RefreshCw, Filter } from 'lucide-react';
 import { useReviewsNotifications } from '../../../hooks/reviews';
-import { ReviewLoading, ReviewError, ReviewPagination } from '../../common';
+import { ReviewLoading, ReviewError, ReviewPagination } from '../common';
 import NotificationItem from './NotificationItem';
 
 const NotificationList = () => {

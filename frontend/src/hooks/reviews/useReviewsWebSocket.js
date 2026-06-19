@@ -1,7 +1,7 @@
 // src/hooks/reviews/useReviewsWebSocket.js
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { websocketActions } from '../../store/middleware/websocket.middleware';
+import { websocketActions } from '../../store/reviews/middleware/websocketMiddleware';
 
 const useReviewsWebSocket = (options = {}) => {
   const {

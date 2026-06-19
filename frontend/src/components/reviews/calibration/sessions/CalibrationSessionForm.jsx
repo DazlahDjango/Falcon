@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useCycles } from '../../../../hooks/reviews';
 import { useEmployees } from '../../../../hooks/accounts';
-import { useStructure } from '../../../../hooks/structure';
+import { useDepartments } from '../../../../hooks/structure';
 
 const CalibrationSessionForm = ({ data, onChange }) => {
   const { data: cycles, loading: cyclesLoading } = useCycles();
   const { data: employees, loading: employeesLoading } = useEmployees();
-  const { departments } = useStructure();
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results;
   const [formData, setFormData] = useState(data);
 
   const handleChange = (field, value) => {

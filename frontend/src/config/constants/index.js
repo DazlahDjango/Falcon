@@ -572,3 +572,15 @@ export * from './reviewRouteConstants';
 export * from './reviewConstants';
 export * from './reviewStatusConstants';
 
+// Resolve conflicting exports by exporting them explicitly from the preferred module
+export {
+  REVIEW_CYCLE_STATUS,
+  REVIEW_CYCLE_STATUS_LABELS,
+  REVIEW_CYCLE_TYPES,
+  REVIEW_CYCLE_TYPE_LABELS,
+  REVIEW_PIP_SEVERITY,
+  REVIEW_PIP_SEVERITY_LABELS,
+  REVIEW_PIP_ACTION_STATUS,
+  REVIEW_PIP_ACTION_STATUS_LABELS,
+} from './reviewStatusConstants';
+

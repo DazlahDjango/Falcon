@@ -22,6 +22,9 @@ import {
   deactivateRatingScale,
   setDefaultRatingScale,
   resetRatingScaleState,
+  setRatingScaleFilters,
+  clearRatingScaleFilters,
+  setRatingScalePagination,
 } from '../../store/reviews/slices/ratingScale.slice';
 import { useReviewsPermissions } from './';
 
@@ -125,6 +128,21 @@ const useRatingScales = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (payload) => dispatch(setRatingScaleFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearRatingScaleFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(setRatingScalePagination(payload)),
+    [dispatch]
+  );
+
   // Computed values
   const canManage = useMemo(
     () => permissions.canManageRatingScales,
@@ -160,6 +178,9 @@ const useRatingScales = () => {
     deactivate,
     setDefault,
     reset,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

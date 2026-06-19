@@ -12,7 +12,7 @@ class IsAdminOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
-        return request.user and request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+        return request.user and (request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN])
 
 class IsOwnerOrReadOnly(BasePermission):
     message = _('You must be the owner to modify this resource')
@@ -37,10 +37,10 @@ class IsAdminOrManager(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.MANAGER]
+        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.MANAGER]
 
 class IsAdminOnly(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]

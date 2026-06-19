@@ -324,5 +324,6 @@ const pipActionSlice = createSlice({
 });
 
 export const pipActionReducer = pipActionSlice.reducer;
+export default pipActionReducer;
 export const pipActionActions = pipActionSlice.actions;
-export const resetPipActionState = pipActionSlice.actions.resetState;
+export const resetPIPActionState = pipActionSlice.actions.resetState;

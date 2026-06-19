@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, RefreshCw } from 'lucide-react';
-import { useReviewsReports } from '../../../../hooks/reports';
+import { useReviewsReports } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError } from '../../common';
 import CalibrationSummary from './CalibrationSummary';
 

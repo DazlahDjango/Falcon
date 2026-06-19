@@ -8,6 +8,8 @@ import {
   selectSelectedCoefficient,
   selectActiveCoefficientsList,
   selectApplyResult,
+  selectCoefficientsPagination,
+  selectCoefficientsFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchCoefficients,
@@ -21,104 +23,244 @@ import {
   fetchActiveCoefficients,
   applyCoefficient,
   resetCoefficientState,
+  setCoefficientFilters,
+  clearCoefficientFilters,
+  setCoefficientPagination,
 } from '../../store/reviews/slices/coefficient.slice';
 import { useReviewsPermissions } from './';
 
 const useCoefficients = () => {
   const dispatch = useDispatch();
   const permissions = useReviewsPermissions();
+  
+  // Debug logs
+  console.log('[useCoefficients] permissions:', {
+    isSuperAdmin: permissions.isSuperAdmin,
+    canCreateCoefficient: permissions.canCreateCoefficient,
+    permissions: permissions.permissions
+  });
 
+  // Debug entire Redux state!
+  const entireReviewsState = useSelector((state) => state.reviews);
+  console.log('[useCoefficients] entireReviewsState:', entireReviewsState);
+  const coefficientsState = useSelector((state) => state.reviews?.coefficients);
+  console.log('[useCoefficients] coefficientsState:', coefficientsState);
+  
   // Selectors
   const data = useSelector(selectAllCoefficients);
+  console.log('[useCoefficients] selectAllCoefficients returned:', data);
+  console.log('[useCoefficients] data length:', data?.length || 0);
+  console.log('[useCoefficients] data is array?:', Array.isArray(data));
+  
   const loading = useSelector(selectCoefficientsLoading);
   const error = useSelector(selectCoefficientsError);
   const selected = useSelector(selectSelectedCoefficient);
   const activeCoefficients = useSelector(selectActiveCoefficientsList);
   const applyResult = useSelector(selectApplyResult);
+  const pagination = useSelector(selectCoefficientsPagination);
+  const filters = useSelector(selectCoefficientsFilters);
 
   // Actions
   const fetchAll = useCallback(
-    (params) => dispatch(fetchCoefficients(params)),
+    async (params) => {
+      console.log('[useCoefficients] fetchAll called with params:', params);
+      try {
+        const result = await dispatch(fetchCoefficients(params)).unwrap();
+        console.log('[useCoefficients] fetchAll successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] fetchAll failed:', error);
+        throw error;
+      }
+    },
     [dispatch]
   );
 
   const fetchOne = useCallback(
-    (id) => dispatch(fetchCoefficient(id)),
+    async (id) => {
+      console.log('[useCoefficients] fetchOne called with id:', id);
+      try {
+        const result = await dispatch(fetchCoefficient(id)).unwrap();
+        console.log('[useCoefficients] fetchOne successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] fetchOne failed:', error);
+        throw error;
+      }
+    },
     [dispatch]
   );
 
   const create = useCallback(
-    (data) => {
+    async (data) => {
+      console.log('[useCoefficients] create called with data:', data);
       if (!permissions.canCreateCoefficient) {
-        throw new Error('You do not have permission to create coefficients');
+        const err = new Error('You do not have permission to create coefficients');
+        console.error('[useCoefficients] create permission denied:', err);
+        throw err;
       }
-      return dispatch(createCoefficient(data));
+      try {
+        const result = await dispatch(createCoefficient(data)).unwrap();
+        console.log('[useCoefficients] create successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] create failed:', error);
+        throw error;
+      }
     },
     [dispatch, permissions.canCreateCoefficient]
   );
 
   const update = useCallback(
-    (id, data) => {
+    async (id, data) => {
+      console.log('[useCoefficients] update called with id:', id, 'data:', data);
       if (!permissions.canUpdateCoefficient) {
-        throw new Error('You do not have permission to update coefficients');
+        const err = new Error('You do not have permission to update coefficients');
+        console.error('[useCoefficients] update permission denied:', err);
+        throw err;
       }
-      return dispatch(updateCoefficient({ id, data }));
+      try {
+        const result = await dispatch(updateCoefficient({ id, data })).unwrap();
+        console.log('[useCoefficients] update successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] update failed:', error);
+        throw error;
+      }
     },
     [dispatch, permissions.canUpdateCoefficient]
   );
 
   const patch = useCallback(
-    (id, data) => {
+    async (id, data) => {
+      console.log('[useCoefficients] patch called with id:', id, 'data:', data);
       if (!permissions.canUpdateCoefficient) {
-        throw new Error('You do not have permission to update coefficients');
+        const err = new Error('You do not have permission to update coefficients');
+        console.error('[useCoefficients] patch permission denied:', err);
+        throw err;
       }
-      return dispatch(patchCoefficient({ id, data }));
+      try {
+        const result = await dispatch(patchCoefficient({ id, data })).unwrap();
+        console.log('[useCoefficients] patch successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] patch failed:', error);
+        throw error;
+      }
     },
     [dispatch, permissions.canUpdateCoefficient]
   );
 
   const remove = useCallback(
-    (id) => {
+    async (id) => {
+      console.log('[useCoefficients] remove called with id:', id);
       if (!permissions.canDeleteCoefficient) {
-        throw new Error('You do not have permission to delete coefficients');
+        const err = new Error('You do not have permission to delete coefficients');
+        console.error('[useCoefficients] remove permission denied:', err);
+        throw err;
       }
-      return dispatch(deleteCoefficient(id));
+      try {
+        const result = await dispatch(deleteCoefficient(id)).unwrap();
+        console.log('[useCoefficients] remove successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] remove failed:', error);
+        throw error;
+      }
     },
     [dispatch, permissions.canDeleteCoefficient]
   );
 
   const activate = useCallback(
-    (id) => {
+    async (id) => {
+      console.log('[useCoefficients] activate called with id:', id);
       if (!permissions.canCreateCoefficient) {
-        throw new Error('You do not have permission to activate coefficients');
+        const err = new Error('You do not have permission to activate coefficients');
+        console.error('[useCoefficients] activate permission denied:', err);
+        throw err;
       }
-      return dispatch(activateCoefficient(id));
+      try {
+        const result = await dispatch(activateCoefficient(id)).unwrap();
+        console.log('[useCoefficients] activate successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] activate failed:', error);
+        throw error;
+      }
     },
     [dispatch, permissions.canCreateCoefficient]
   );
 
   const deactivate = useCallback(
-    (id) => {
+    async (id) => {
+      console.log('[useCoefficients] deactivate called with id:', id);
       if (!permissions.canCreateCoefficient) {
-        throw new Error('You do not have permission to deactivate coefficients');
+        const err = new Error('You do not have permission to deactivate coefficients');
+        console.error('[useCoefficients] deactivate permission denied:', err);
+        throw err;
       }
-      return dispatch(deactivateCoefficient(id));
+      try {
+        const result = await dispatch(deactivateCoefficient(id)).unwrap();
+        console.log('[useCoefficients] deactivate successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] deactivate failed:', error);
+        throw error;
+      }
     },
     [dispatch, permissions.canCreateCoefficient]
   );
 
   const getActive = useCallback(
-    () => dispatch(fetchActiveCoefficients()),
+    async () => {
+      console.log('[useCoefficients] getActive called');
+      try {
+        const result = await dispatch(fetchActiveCoefficients()).unwrap();
+        console.log('[useCoefficients] getActive successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] getActive failed:', error);
+        throw error;
+      }
+    },
     [dispatch]
   );
 
   const apply = useCallback(
-    (score, coefficientValue) => dispatch(applyCoefficient({ score, coefficientValue })),
+    async (score, coefficientValue) => {
+      console.log('[useCoefficients] apply called with score:', score, 'coefficientValue:', coefficientValue);
+      try {
+        const result = await dispatch(applyCoefficient({ score, coefficientValue })).unwrap();
+        console.log('[useCoefficients] apply successful:', result);
+        return result;
+      } catch (error) {
+        console.error('[useCoefficients] apply failed:', error);
+        throw error;
+      }
+    },
     [dispatch]
   );
 
   const reset = useCallback(
-    () => dispatch(resetCoefficientState()),
+    () => {
+      console.log('[useCoefficients] reset called');
+      dispatch(resetCoefficientState());
+    },
+    [dispatch]
+  );
+
+  const setFilters = useCallback(
+    (newFilters) => dispatch(setCoefficientFilters(newFilters)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearCoefficientFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (newPagination) => dispatch(setCoefficientPagination(newPagination)),
     [dispatch]
   );
 
@@ -141,6 +283,8 @@ const useCoefficients = () => {
     selected,
     activeCoefficients,
     applyResult,
+    pagination,
+    filters,
 
     // CRUD Operations
     fetchAll,
@@ -156,6 +300,9 @@ const useCoefficients = () => {
     getActive,
     apply,
     reset,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

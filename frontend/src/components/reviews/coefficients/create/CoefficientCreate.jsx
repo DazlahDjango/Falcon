@@ -22,14 +22,18 @@ const CoefficientCreate = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  console.log('[CoefficientCreate] rendering:', { formData, loading, isSubmitting });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('[CoefficientCreate] handleSubmit called with formData:', formData);
     setIsSubmitting(true);
     try {
-      await create(formData);
+      const result = await create(formData);
+      console.log('[CoefficientCreate] create successful:', result);
       navigate('/reviews/coefficients');
     } catch (error) {
-      console.error('Failed to create coefficient:', error);
+      console.error('[CoefficientCreate] Failed to create coefficient:', error);
     } finally {
       setIsSubmitting(false);
     }

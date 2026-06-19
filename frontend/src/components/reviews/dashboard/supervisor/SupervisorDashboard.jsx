@@ -21,7 +21,7 @@ const SupervisorDashboard = () => {
 
   if (!canViewSupervisor) {
     return (
-      <div className="supervisor-dashboard">
+      <div className="dashboard supervisor-dashboard">
         <div className="supervisor-dashboard-unauthorized">
           <h2>Access Denied</h2>
           <p>You do not have permission to view the supervisor dashboard.</p>
@@ -32,20 +32,32 @@ const SupervisorDashboard = () => {
 
   if (loading) return <ReviewLoading size="lg" text="Loading supervisor dashboard..." />;
   if (error) return <ReviewError error={error} onRetry={getSupervisorDashboard} />;
-  if (!supervisor) return null;
+  if (!supervisor) {
+    return (
+      <div className="dashboard supervisor-dashboard">
+        <div className="dashboard-empty">
+          <h2>Supervisor dashboard data unavailable</h2>
+          <p>We could not load your team dashboard right now.</p>
+          <button className="btn btn-outline" onClick={getSupervisorDashboard}>
+            Reload Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="supervisor-dashboard">
-      <div className="supervisor-dashboard-header">
-        <h1 className="supervisor-dashboard-title">Team Dashboard</h1>
-        <span className="supervisor-dashboard-welcome">
+    <div className="dashboard supervisor-dashboard">
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Team Dashboard</h1>
+        <span className="dashboard-subtitle">
           Welcome, {supervisor.supervisor?.name || 'Supervisor'}!
         </span>
       </div>
 
       <SupervisorAlerts alerts={supervisor.alerts} />
 
-      <div className="supervisor-dashboard-grid">
+      <div className="dashboard-grid">
         <div className="supervisor-dashboard-main">
           <TeamSummary summary={supervisor.team_summary} />
           <ReviewQueueCard reviews={supervisor.pending_reviews} />

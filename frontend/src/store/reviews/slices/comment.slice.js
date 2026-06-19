@@ -436,3 +436,4 @@ const commentSlice = createSlice({
 export const reviewCommentReducer = commentSlice.reducer;
 export const reviewCommentActions = commentSlice.actions;
 export const resetCommentState = commentSlice.actions.resetState;
+export default reviewCommentReducer;

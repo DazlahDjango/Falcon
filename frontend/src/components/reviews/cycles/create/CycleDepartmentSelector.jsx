@@ -1,10 +1,11 @@
 // src/components/reviews/cycles/create/CycleDepartmentSelector.jsx
 import React from 'react';
-import { useStructure } from '../../../../hooks/structure';
+import { useDepartments } from '../../../../hooks/structure';
 import { CheckSquare, Square } from 'lucide-react';
 
 const CycleDepartmentSelector = ({ selected = [], includeAll = true, onChange }) => {
-  const { departments } = useStructure();
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results;
 
   const handleIncludeAll = () => {
     onChange({ include_all_departments: !includeAll });

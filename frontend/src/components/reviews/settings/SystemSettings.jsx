@@ -1,7 +1,7 @@
 // src/components/reviews/settings/SystemSettings.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, RefreshCw, Shield, Bell, Database, Activity } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, Shield, Bell, Database, Activity, Settings } from 'lucide-react';
 import { useReviewsSystemSettings } from '../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewStatusBadge } from '../common';
 import SettingsForm from './SettingsForm';

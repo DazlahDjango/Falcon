@@ -11,16 +11,23 @@ const useReviewsPermissions = () => {
     const { user, isAuthenticated } = useAuthContext();
 
     const permissionsData = useMemo(() => {
+        console.log('=== useReviewsPermissions DEBUG ===');
+        console.log('  user:', user);
+        console.log('  user.role:', user?.role);
+        console.log('  user.is_superuser:', user?.is_superuser);
+        console.log('  isAuthenticated:', isAuthenticated);
+
         const role = user?.role || 'staff';
-        const isSuperAdmin = role === 'super_admin' || user?.is_superuser === true;
+        // If user has is_superuser set, treat as super admin regardless of role
+        const isSuperAdmin = user?.is_superuser || role === 'super_admin' || role === 'superadmin';
         const isClientAdmin = isSuperAdmin || role === 'client_admin';
         const isExecutive = isClientAdmin || role === 'executive';
         const isDashboardChampion = isClientAdmin || role === 'dashboard_champion';
-        const isSupervisor = isClientAdmin || role === 'supervisor' || user?.get_direct_reports?.length > 0;
+        const isSupervisor = isClientAdmin || role === 'supervisor' || (user?.get_direct_reports?.length > 0);
         const isStaff = role === 'staff' || isSuperAdmin;
 
         // Reviews-specific permissions
-        const permissions = {
+        let permissions = {
             // ========== View Permissions ==========
             canViewReviews: isAuthenticated,
             canViewRatingScales: isAuthenticated,
@@ -126,6 +133,22 @@ const useReviewsPermissions = () => {
             canManageNotifications: isAuthenticated,
         };
 
+        // If super admin, override all permissions to true
+        console.log('Before super admin override:', {
+            isSuperAdmin,
+            canCreateCoefficient: permissions.canCreateCoefficient
+        });
+        
+        if (isSuperAdmin) {
+            permissions = Object.fromEntries(
+                Object.keys(permissions).map(key => [key, true])
+            );
+            
+            console.log('After super admin override:', {
+                canCreateCoefficient: permissions.canCreateCoefficient
+            });
+        }
+
         return {
             user,
             role,
@@ -137,6 +160,7 @@ const useReviewsPermissions = () => {
             isSupervisor,
             isStaff,
             permissions,
+            ...permissions, // Spread all permissions as top-level properties
 
             // ========== Direct Permission Access ==========
             canManageRatingScales: permissions.canCreateRatingScale,

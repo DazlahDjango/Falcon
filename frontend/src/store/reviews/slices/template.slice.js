@@ -446,4 +446,9 @@ const templateSlice = createSlice({
 });
 
 export const reviewTemplateReducer = templateSlice.reducer;
+export default reviewTemplateReducer;
 export const reviewTemplateActions = templateSlice.actions;
+export const resetTemplateState = templateSlice.actions.resetState;
+export const setTemplateFilters = templateSlice.actions.setFilters;
+export const clearTemplateFilters = templateSlice.actions.clearFilters;
+export const setTemplatePagination = templateSlice.actions.setPagination;

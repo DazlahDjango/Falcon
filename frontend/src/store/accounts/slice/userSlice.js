@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import * as usersApi from '../../../services/accounts/api/users';
 import * as authApi from '../../../services/accounts/api/auth';
 
@@ -360,17 +360,77 @@ export const {
 } = userSlice.actions;
 
 // ============================================================
+// Constants for default values (to preserve references)
+// ============================================================
+
+const DEFAULT_EMPTY_ARRAY = [];
+const DEFAULT_EMPTY_OBJECT = {};
+const DEFAULT_PAGINATION = {
+    current_page: 1,
+    total_pages: 1,
+    total_items: 0,
+    page_size: 20
+};
+const DEFAULT_USER_FILTERS = {
+    search: '',
+    role: '',
+    is_active: undefined,
+    is_verified: undefined,
+    mfa_enabled: undefined,
+    department_id: '',
+    joined_after: '',
+    joined_before: ''
+};
+
+// ============================================================
 // Selectors
 // ============================================================
 
-export const selectUsers = (state) => state.users;
-export const selectUsersList = (state) => state.users.users;
-export const selectSelectedUser = (state) => state.users.selectedUser;
-export const selectUsersPagination = (state) => state.users.pagination;
-export const selectUsersFilters = (state) => state.users.filters;
-export const selectUsersLoading = (state) => state.users.isLoading;
-export const selectUsersError = (state) => state.users.error;
-export const selectUserInvitations = (state) => state.users.invitations;
-export const selectUserInvitationLoading = (state) => state.users.invitationLoading;
+const selectUsersState = (state) => state.users;
+
+export const selectUsers = createSelector(
+    [selectUsersState],
+    (state) => state || DEFAULT_EMPTY_OBJECT
+);
+
+export const selectUsersList = createSelector(
+    [selectUsersState],
+    (state) => state?.users || DEFAULT_EMPTY_ARRAY
+);
+
+export const selectSelectedUser = createSelector(
+    [selectUsersState],
+    (state) => state?.selectedUser || null
+);
+
+export const selectUsersPagination = createSelector(
+    [selectUsersState],
+    (state) => state?.pagination || DEFAULT_PAGINATION
+);
+
+export const selectUsersFilters = createSelector(
+    [selectUsersState],
+    (state) => state?.filters || DEFAULT_USER_FILTERS
+);
+
+export const selectUsersLoading = createSelector(
+    [selectUsersState],
+    (state) => state?.isLoading || false
+);
+
+export const selectUsersError = createSelector(
+    [selectUsersState],
+    (state) => state?.error || null
+);
+
+export const selectUserInvitations = createSelector(
+    [selectUsersState],
+    (state) => state?.invitations || DEFAULT_EMPTY_ARRAY
+);
+
+export const selectUserInvitationLoading = createSelector(
+    [selectUsersState],
+    (state) => state?.invitationLoading || false
+);
 
 export default userSlice.reducer;

@@ -3,13 +3,22 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { reviewsDashboardService } from '../../../services/reviews';
 
 // Async Thunks
+const normalizeApiError = (error) => {
+  const payload = error.response?.data;
+  if (typeof payload === 'string') return payload;
+  if (payload?.message) return payload.message;
+  if (payload?.error) return payload.error;
+  if (payload?.detail) return payload.detail;
+  return error.message || 'An unexpected error occurred';
+};
+
 export const fetchStaffDashboard = createAsyncThunk(
   'reviewsDashboard/fetchStaff',
   async (_, { rejectWithValue }) => {
     try {
       return await reviewsDashboardService.getStaffDashboard();
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   }
 );
@@ -20,7 +29,7 @@ export const fetchSupervisorDashboard = createAsyncThunk(
     try {
       return await reviewsDashboardService.getSupervisorDashboard();
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   }
 );
@@ -31,7 +40,7 @@ export const fetchExecutiveDashboard = createAsyncThunk(
     try {
       return await reviewsDashboardService.getExecutiveDashboard(departmentId);
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   }
 );
@@ -42,7 +51,7 @@ export const fetchAdminDashboard = createAsyncThunk(
     try {
       return await reviewsDashboardService.getAdminDashboard();
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   }
 );
@@ -53,7 +62,7 @@ export const fetchDashboardMetrics = createAsyncThunk(
     try {
       return await reviewsDashboardService.getMetrics();
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   }
 );
@@ -73,6 +82,9 @@ const dashboardSlice = createSlice({
   name: 'reviewsDashboard',
   initialState,
   reducers: {
+    resetState: (state) => {
+      Object.assign(state, initialState);
+    },
     clearDashboards: (state) => {
       state.staff = null;
       state.supervisor = null;
@@ -82,6 +94,9 @@ const dashboardSlice = createSlice({
     },
     setSelectedDashboard: (state, action) => {
       state.selectedDashboard = action.payload;
+    },
+    setMetrics: (state, action) => {
+      state.metrics = action.payload;
     },
     clearErrors: (state) => {
       state.error = null;
@@ -165,5 +180,15 @@ const dashboardSlice = createSlice({
   },
 });
 
+// ===== Exports =====
+export const {
+  resetState: resetDashboardState,
+  clearDashboards,
+  setSelectedDashboard,
+  setMetrics,
+  clearErrors,
+} = dashboardSlice.actions;
+
 export const dashboardReducer = dashboardSlice.reducer;
 export const dashboardActions = dashboardSlice.actions;
+export default dashboardReducer;

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, X, CheckCheck, ChevronRight } from 'lucide-react';
 import { useReviewsNotifications } from '../../../hooks/reviews';
-import { ReviewLoading } from '../../common';
+import { ReviewLoading } from '../common';
 import NotificationItem from './NotificationItem';
 
 const NotificationPanel = ({ isOpen, onClose }) => {

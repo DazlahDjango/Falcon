@@ -213,5 +213,6 @@ const referenceDataSlice = createSlice({
 });
 
 export const reviewsReferenceDataReducer = referenceDataSlice.reducer;
+export default reviewsReferenceDataReducer;
 export const reviewsReferenceDataActions = referenceDataSlice.actions;
 export const resetReferenceDataState = referenceDataSlice.actions.resetState;

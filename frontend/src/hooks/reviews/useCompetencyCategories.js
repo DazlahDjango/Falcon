@@ -7,6 +7,8 @@ import {
   selectSelectedCompetencyCategory,
   selectCategoryCompetencies,
   selectActiveCompetencyCategories,
+  selectCompetencyCategoryPagination,
+  selectCompetencyCategoryFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchCompetencyCategories,
@@ -18,7 +20,10 @@ import {
   deactivateCompetencyCategory,
   fetchCategoryCompetencies,
   resetCategoryState,
-} from '../../store/reviews/slices/competency.slice';
+  setCategoryFilters,
+  clearCategoryFilters,
+  setCategoryPagination,
+} from '../../store/reviews/slices/competencyCategory.slice';
 import { useReviewsPermissions } from './';
 
 const useCompetencyCategories = () => {
@@ -31,6 +36,8 @@ const useCompetencyCategories = () => {
   const selected = useSelector(selectSelectedCompetencyCategory);
   const categoryCompetencies = useSelector(selectCategoryCompetencies);
   const activeCategories = useSelector(selectActiveCompetencyCategories);
+  const pagination = useSelector(selectCompetencyCategoryPagination);
+  const filters = useSelector(selectCompetencyCategoryFilters);
 
   // Actions
   const fetchAll = useCallback(
@@ -98,6 +105,21 @@ const useCompetencyCategories = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (payload) => dispatch(setCategoryFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearCategoryFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(setCategoryPagination(payload)),
+    [dispatch]
+  );
+
   const reset = useCallback(
     () => dispatch(resetCategoryState()),
     [dispatch]
@@ -116,6 +138,8 @@ const useCompetencyCategories = () => {
     selected,
     categoryCompetencies,
     activeCategories,
+    pagination,
+    filters,
 
     // CRUD Operations
     fetchAll,
@@ -129,6 +153,9 @@ const useCompetencyCategories = () => {
     deactivate,
     getCompetencies,
     reset,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

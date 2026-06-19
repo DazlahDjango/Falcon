@@ -12,10 +12,23 @@ const CoefficientList = () => {
   const { data, loading, error, fetchAll, getActive, pagination, setPagination, filters, setFilters, clearFilters, canManage } = useCoefficients();
   const [showActive, setShowActive] = useState(false);
 
+  console.log('[CoefficientList] rendering:', { 
+    data, 
+    dataLength: data.length,
+    loading, 
+    error, 
+    pagination, 
+    filters, 
+    canManage 
+  });
+
   useEffect(() => {
+    console.log('[CoefficientList] useEffect triggered:', { showActive, pagination, filters });
     if (showActive) {
+      console.log('[CoefficientList] calling getActive()');
       getActive();
     } else {
+      console.log('[CoefficientList] calling fetchAll()');
       fetchAll({
         page: pagination.currentPage,
         page_size: pagination.pageSize,

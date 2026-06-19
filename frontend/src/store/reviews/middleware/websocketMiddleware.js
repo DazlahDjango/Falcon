@@ -1,8 +1,8 @@
 // src/store/middleware/websocketMiddleware.js
-import { notificationActions } from '../reviews/slices/notification.slice';
-import { dashboardActions } from '../reviews/slices/dashboard.slice';
-import { cycleActions } from '../reviews/slices/cycle.slice';
-import { finalRatingActions } from '../reviews/slices/finalRating.slice';
+import { notificationActions } from '../slices/notification.slice';
+import { dashboardActions } from '../slices/dashboard.slice';
+import { cycleActions } from '../slices/cycle.slice';
+import { finalRatingActions } from '../slices/finalRating.slice';
 
 // WebSocket event handlers mapping
 const WS_EVENT_HANDLERS = {

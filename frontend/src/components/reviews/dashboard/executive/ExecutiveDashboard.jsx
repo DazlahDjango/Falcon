@@ -1,6 +1,6 @@
 // src/components/reviews/dashboard/executive/ExecutiveDashboard.jsx
 import React, { useEffect, useState } from 'react';
-import { useReviewsDashboard } from '../../../hooks/reviews';
+import { useReviewsDashboard } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError } from '../../common';
 import TenantOverview from './TenantOverview';
 import CyclePerformanceCard from './CyclePerformanceCard';
@@ -24,7 +24,7 @@ const ExecutiveDashboard = () => {
 
   if (!canViewExecutive) {
     return (
-      <div className="executive-dashboard">
+      <div className="dashboard executive-dashboard">
         <div className="executive-dashboard-unauthorized">
           <h2>Access Denied</h2>
           <p>You do not have permission to view the executive dashboard.</p>
@@ -35,14 +35,26 @@ const ExecutiveDashboard = () => {
 
   if (loading) return <ReviewLoading size="lg" text="Loading executive dashboard..." />;
   if (error) return <ReviewError error={error} onRetry={() => getExecutiveDashboard(selectedDepartment)} />;
-  if (!executive) return null;
+  if (!executive) {
+    return (
+      <div className="dashboard executive-dashboard">
+        <div className="dashboard-empty">
+          <h2>Executive dashboard data unavailable</h2>
+          <p>We could not load your executive dashboard right now.</p>
+          <button className="btn btn-outline" onClick={() => getExecutiveDashboard(selectedDepartment)}>
+            Reload Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="executive-dashboard">
-      <div className="executive-dashboard-header">
+    <div className="dashboard executive-dashboard">
+      <div className="dashboard-header">
         <div>
-          <h1 className="executive-dashboard-title">Executive Dashboard</h1>
-          <span className="executive-dashboard-subtitle">Organization Performance Overview</span>
+          <h1 className="dashboard-title">Executive Dashboard</h1>
+          <span className="dashboard-subtitle">Organization Performance Overview</span>
         </div>
         <div className="executive-dashboard-filters">
           <select
@@ -56,7 +68,7 @@ const ExecutiveDashboard = () => {
         </div>
       </div>
 
-      <div className="executive-dashboard-grid">
+      <div className="dashboard-grid">
         <div className="executive-dashboard-main">
           <div className="executive-dashboard-stats">
             <TenantOverview overview={executive.tenant_overview} />

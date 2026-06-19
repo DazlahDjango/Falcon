@@ -20,7 +20,7 @@ const StaffDashboard = () => {
 
   if (!canViewStaff) {
     return (
-      <div className="staff-dashboard">
+      <div className="dashboard staff-dashboard">
         <div className="staff-dashboard-unauthorized">
           <h2>Access Denied</h2>
           <p>You do not have permission to view the staff dashboard.</p>
@@ -31,16 +31,28 @@ const StaffDashboard = () => {
 
   if (loading) return <ReviewLoading size="lg" text="Loading dashboard..." />;
   if (error) return <ReviewError error={error} onRetry={getStaffDashboard} />;
-  if (!staff) return null;
+  if (!staff) {
+    return (
+      <div className="dashboard staff-dashboard">
+        <div className="dashboard-empty">
+          <h2>Staff dashboard data unavailable</h2>
+          <p>We could not load your dashboard data right now.</p>
+          <button className="btn btn-outline" onClick={getStaffDashboard}>
+            Reload Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="staff-dashboard">
-      <div className="staff-dashboard-header">
-        <h1 className="staff-dashboard-title">My Dashboard</h1>
-        <span className="staff-dashboard-welcome">Welcome back, {staff.employee?.name || 'Employee'}!</span>
+    <div className="dashboard staff-dashboard">
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">My Dashboard</h1>
+        <span className="dashboard-subtitle">Welcome back, {staff.employee?.name || 'Employee'}!</span>
       </div>
 
-      <div className="staff-dashboard-grid">
+      <div className="dashboard-grid">
         <div className="staff-dashboard-main">
           <StaffOverview employee={staff.employee} />
           <StaffDeadlines deadlines={staff.upcoming_deadlines} />

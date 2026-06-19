@@ -4,6 +4,9 @@ import { useCallback, useMemo } from 'react';
 import {
   selectAllFeedbackRequests,
   selectFeedbackRequestsLoading,
+  selectFeedbackRequestsError,
+  selectFeedbackRequestsPagination,
+  selectFeedbackRequestsFilters,
   selectSelectedFeedbackRequest,
   selectPendingFeedbackRequestsList,
   selectOverdueFeedbackRequestsList,
@@ -27,14 +30,17 @@ import {
   fetchPendingFeedbackRequests,
   fetchOverdueFeedbackRequests,
   resetRequestState,
-} from '../../store/reviews/slices/feedback.slice';
+  setRequestFilters,
+  clearRequestFilters,
+  setRequestPagination,
+} from '../../store/reviews/slices/feedbackRequest.slice';
 import {
   fetchFeedbackResponses,
   fetchFeedbackResponse,
   submitFeedbackResponse,
   fetchFeedbackResponseForRequest,
   resetResponseState,
-} from '../../store/reviews/slices/feedback.slice';
+} from '../../store/reviews/slices/feedbackResponse.slice';
 import {
   fetchFeedbackSummaries,
   fetchFeedbackSummary,
@@ -42,7 +48,7 @@ import {
   regenerateFeedbackSummary,
   fetchMyFeedbackSummary,
   resetSummaryState,
-} from '../../store/reviews/slices/feedback.slice';
+} from '../../store/reviews/slices/feedbackSummary.slice';
 import { useReviewsPermissions } from './';
 
 const useFeedback = () => {
@@ -52,6 +58,9 @@ const useFeedback = () => {
   // Request Selectors
   const requestData = useSelector(selectAllFeedbackRequests);
   const requestLoading = useSelector(selectFeedbackRequestsLoading);
+  const requestError = useSelector(selectFeedbackRequestsError);
+  const pagination = useSelector(selectFeedbackRequestsPagination);
+  const filters = useSelector(selectFeedbackRequestsFilters);
   const selectedRequest = useSelector(selectSelectedFeedbackRequest);
   const pendingRequests = useSelector(selectPendingFeedbackRequestsList);
   const overdueRequests = useSelector(selectOverdueFeedbackRequestsList);
@@ -159,6 +168,21 @@ const useFeedback = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (newFilters) => dispatch(setRequestFilters(newFilters)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearRequestFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (newPagination) => dispatch(setRequestPagination(newPagination)),
+    [dispatch]
+  );
+
   // ===== Response Actions =====
   const fetchResponses = useCallback(
     (params) => dispatch(fetchFeedbackResponses(params)),
@@ -241,6 +265,9 @@ const useFeedback = () => {
     // Request Data
     requestData,
     requestLoading,
+    requestError,
+    pagination,
+    filters,
     selectedRequest,
     pendingRequests,
     overdueRequests,
@@ -268,6 +295,9 @@ const useFeedback = () => {
     fetchPending,
     fetchOverdue,
     resetRequests,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Response Actions
     fetchResponses,

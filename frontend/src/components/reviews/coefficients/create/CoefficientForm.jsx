@@ -1,11 +1,14 @@
 // src/components/reviews/coefficients/create/CoefficientForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useEmployees } from '../../../../hooks/accounts';
-import { useStructure } from '../../../../hooks/structure';
+import { useDepartments, usePositions } from '../../../../hooks/structure';
 
 const CoefficientForm = ({ data, onChange }) => {
   const { data: employees, loading: employeesLoading } = useEmployees();
-  const { departments, positions } = useStructure();
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const { data: positionsPage } = usePositions({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results;
+  const positions = positionsPage?.results;
   const [formData, setFormData] = useState(data);
 
   const handleChange = (field, value) => {

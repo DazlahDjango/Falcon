@@ -13,6 +13,8 @@ import {
   selectUpcomingCalibrationSessions,
   selectCompletedCalibrationSessions,
   selectInProgressCalibrationSessions,
+  selectCalibrationSessionsPagination,
+  selectCalibrationSessionsFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchCalibrationSessions,
@@ -30,13 +32,16 @@ import {
   fetchCalibrationOutliers,
   fetchCalibrationRecommendations,
   resetSessionState,
-} from '../../store/reviews/slices/calibration.slice';
+  setSessionFilters,
+  clearSessionFilters,
+  setSessionPagination,
+} from '../../store/reviews/slices/calibrationSession.slice';
 import {
   fetchCalibrationRatings,
   fetchCalibrationRating,
   fetchCalibrationRatingsForSession,
   resetRatingState,
-} from '../../store/reviews/slices/calibration.slice';
+} from '../../store/reviews/slices/calibrationRating.slice';
 import { useReviewsPermissions } from './';
 
 const useCalibration = () => {
@@ -55,10 +60,12 @@ const useCalibration = () => {
   const upcomingSessions = useSelector(selectUpcomingCalibrationSessions);
   const completedSessions = useSelector(selectCompletedCalibrationSessions);
   const inProgressSessions = useSelector(selectInProgressCalibrationSessions);
+  const pagination = useSelector(selectCalibrationSessionsPagination);
+  const filters = useSelector(selectCalibrationSessionsFilters);
 
   // Rating Selectors
-  const ratingData = useSelector((state) => state.reviews.calibrationRatings.items);
-  const ratingLoading = useSelector((state) => state.reviews.calibrationRatings.loading);
+  const ratingData = useSelector((state) => state.reviews?.calibrationRatings?.items ?? []);
+  const ratingLoading = useSelector((state) => state.reviews?.calibrationRatings?.loading);
 
   // ===== Session Actions =====
   const fetchSessions = useCallback(
@@ -182,6 +189,21 @@ const useCalibration = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (newFilters) => dispatch(setSessionFilters(newFilters)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearSessionFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (newPagination) => dispatch(setSessionPagination(newPagination)),
+    [dispatch]
+  );
+
   // ===== Rating Actions =====
   const fetchRatings = useCallback(
     (params) => dispatch(fetchCalibrationRatings(params)),
@@ -227,6 +249,8 @@ const useCalibration = () => {
     upcomingSessions,
     completedSessions,
     inProgressSessions,
+    pagination,
+    filters,
 
     // Rating Data
     ratingData,
@@ -248,6 +272,9 @@ const useCalibration = () => {
     getOutliers,
     getRecommendations,
     resetSessions,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Rating Actions
     fetchRatings,

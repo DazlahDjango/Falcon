@@ -9,6 +9,8 @@ import {
   selectPIPProgress,
   selectPIPStats,
   selectPIPTrends,
+  selectPIPsPagination,
+  selectPIPsFilters,
   selectMyPIPs,
   selectManagingPIPs,
   selectActivePIPs,
@@ -41,6 +43,9 @@ import {
   fetchPIPTrends,
   generatePIPFromRating,
   resetPIPState,
+  setPIPFilters,
+  clearPIPFilters,
+  setPIPPagination,
 } from '../../store/reviews/slices/pip.slice';
 import { useReviewsPermissions } from './';
 
@@ -56,7 +61,16 @@ const usePIP = () => {
   const progress = useSelector(selectPIPProgress);
   const stats = useSelector(selectPIPStats);
   const trends = useSelector(selectPIPTrends);
+  const pagination = useSelector(selectPIPsPagination);
+  const filters = useSelector(selectPIPsFilters);
   const myPIPs = useSelector(selectMyPIPs);
+  const normalizedPagination = pagination ?? {
+    currentPage: 1,
+    pageSize: 20,
+    totalItems: 0,
+    totalPages: 0,
+  };
+  const normalizedFilters = filters ?? {};
   const managingPIPs = useSelector(selectManagingPIPs);
   const activePIPs = useSelector(selectActivePIPs);
   const overduePIPs = useSelector(selectOverduePIPs);
@@ -235,6 +249,21 @@ const usePIP = () => {
     [dispatch, permissions.canGeneratePIPFromRating]
   );
 
+  const setFilters = useCallback(
+    (payload) => dispatch(setPIPFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearPIPFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(setPIPPagination(payload)),
+    [dispatch]
+  );
+
   const reset = useCallback(
     () => dispatch(resetPIPState()),
     [dispatch]
@@ -262,6 +291,8 @@ const usePIP = () => {
     completedPIPs,
     successfulPIPs,
     failedPIPs,
+    pagination: normalizedPagination,
+    filters: normalizedFilters,
 
     // CRUD Operations
     fetchAll,
@@ -288,6 +319,9 @@ const usePIP = () => {
     getReport,
     getTrends,
     generateFromRating,
+    setFilters,
+    clearFilters,
+    setPagination,
     reset,
 
     // Permissions

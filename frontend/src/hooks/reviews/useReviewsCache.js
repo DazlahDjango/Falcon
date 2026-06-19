@@ -1,6 +1,6 @@
 // src/hooks/reviews/useReviewsCache.js
 import { useCallback, useMemo } from 'react';
-import { cacheUtils } from '../../store/middleware/cache.middleware';
+import { cacheUtils } from '../../store/reviews/middleware/reviewMiddleware';
 
 const useReviewsCache = () => {
   const clearCache = useCallback(() => {

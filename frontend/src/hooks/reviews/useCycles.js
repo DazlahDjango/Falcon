@@ -36,6 +36,9 @@ import {
   fetchCycleSummary,
   fetchActiveCycle,
   resetCycleState,
+  setCycleFilters,
+  clearCycleFilters,
+  setCyclePagination,
 } from '../../store/reviews/slices/cycle.slice';
 import { useReviewsPermissions } from './';
 
@@ -204,6 +207,21 @@ const useCycles = () => {
     [dispatch]
   );
 
+  const setFilters = useCallback(
+    (payload) => dispatch(setCycleFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearCycleFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(setCyclePagination(payload)),
+    [dispatch]
+  );
+
   // Computed
   const canManage = useMemo(
     () => permissions.canManageCycles,
@@ -252,6 +270,9 @@ const useCycles = () => {
     getSummary,
     getActive,
     reset,
+    setFilters,
+    clearFilters,
+    setPagination,
 
     // Permissions
     canManage,

@@ -153,4 +153,18 @@ const roleSlice = createSlice({
 });
 export const { clearError, clearSelectedRole } = roleSlice.actions;
 
+// Selectors with defaults
+export const selectRoles = (state) => state.roles || {};
+export const selectRolesList = (state) => state.roles?.roles || [];
+export const selectSelectedRole = (state) => state.roles?.selectedRole || null;
+export const selectAssignableRoles = (state) => state.roles?.assignableRoles || [];
+export const selectRolesPagination = (state) => state.roles?.pagination || {
+    current_page: 1,
+    total_pages: 1,
+    total_items: 0,
+    page_size: 20
+};
+export const selectRolesLoading = (state) => state.roles?.isLoading || false;
+export const selectRolesError = (state) => state.roles?.error || null;
+
 export default roleSlice.reducer;

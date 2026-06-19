@@ -176,3 +176,4 @@ const auditLogSlice = createSlice({
 export const auditLogReducer = auditLogSlice.reducer;
 export const auditLogActions = auditLogSlice.actions;
 export const resetAuditLogState = auditLogSlice.actions.resetState;
+export default auditLogReducer;

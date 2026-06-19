@@ -172,6 +172,11 @@ const useSupervisorReview = () => {
     [dispatch]
   );
 
+  const fetchPendingApprovalsAction = useCallback(
+    () => dispatch(fetchPendingApprovals()),
+    [dispatch]
+  );
+
   const getStats = useCallback(
     (cycleId) => dispatch(fetchSupervisorReviewStats(cycleId)),
     [dispatch]
@@ -222,6 +227,7 @@ const useSupervisorReview = () => {
     compare,
     fetchQueue,
     fetchApprovals,
+    fetchPendingApprovals,
     getStats,
     reset,
 

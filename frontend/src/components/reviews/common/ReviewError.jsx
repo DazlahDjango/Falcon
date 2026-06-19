@@ -9,7 +9,16 @@ const ReviewError = ({
   showRetry = true,
   variant = 'default',
 }) => {
-  const errorMessage = typeof error === 'string' ? error : error?.message || 'An unexpected error occurred';
+  const getErrorMessage = (errorValue) => {
+    if (typeof errorValue === 'string') return errorValue;
+    if (!errorValue) return 'An unexpected error occurred';
+    if (typeof errorValue === 'object') {
+      return errorValue.message || errorValue.error || errorValue.detail || JSON.stringify(errorValue);
+    }
+    return String(errorValue);
+  };
+
+  const errorMessage = getErrorMessage(error);
 
   return (
     <div className={`review-error review-error-${variant}`}>

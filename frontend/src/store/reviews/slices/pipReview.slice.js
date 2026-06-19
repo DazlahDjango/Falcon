@@ -234,5 +234,6 @@ const pipReviewSlice = createSlice({
 });
 
 export const pipReviewReducer = pipReviewSlice.reducer;
+export default pipReviewReducer;
 export const pipReviewActions = pipReviewSlice.actions;
 export const resetPipReviewState = pipReviewSlice.actions.resetState;

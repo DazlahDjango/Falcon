@@ -23,7 +23,7 @@ const AdminDashboard = () => {
 
   if (!canViewAdmin) {
     return (
-      <div className="admin-dashboard">
+      <div className="dashboard admin-dashboard">
         <div className="admin-dashboard-unauthorized">
           <h2>Access Denied</h2>
           <p>You do not have permission to view the admin dashboard.</p>
@@ -32,18 +32,32 @@ const AdminDashboard = () => {
     );
   }
 
+  const hasAdminData = admin && Object.keys(admin).length > 0;
+
   if (loading) return <ReviewLoading size="lg" text="Loading admin dashboard..." />;
   if (error) return <ReviewError error={error} onRetry={getAdminDashboard} />;
-  if (!admin) return null;
+  if (!hasAdminData) {
+    return (
+      <div className="dashboard admin-dashboard">
+        <div className="dashboard-empty">
+          <h2>Admin dashboard data unavailable</h2>
+          <p>We could not load your admin dashboard right now.</p>
+          <button className="btn btn-outline" onClick={getAdminDashboard}>
+            Reload Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-dashboard-header">
-        <h1 className="admin-dashboard-title">Admin Dashboard</h1>
-        <span className="admin-dashboard-subtitle">System Overview & Management</span>
+    <div className="dashboard admin-dashboard">
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Admin Dashboard</h1>
+        <span className="dashboard-subtitle">System Overview & Management</span>
       </div>
 
-      <div className="admin-dashboard-grid">
+      <div className="dashboard-grid">
         <div className="admin-dashboard-main">
           <SystemHealth health={admin.system_health} />
           <div className="admin-dashboard-cycles-queue">

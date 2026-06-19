@@ -551,5 +551,9 @@ const promotionSlice = createSlice({
 });
 
 export const promotionReducer = promotionSlice.reducer;
+export default promotionReducer;
 export const promotionActions = promotionSlice.actions;
 export const resetPromotionState = promotionSlice.actions.resetState;
+export const setPromotionFilters = promotionSlice.actions.setFilters;
+export const clearPromotionFilters = promotionSlice.actions.clearFilters;
+export const setPromotionPagination = promotionSlice.actions.setPagination;
