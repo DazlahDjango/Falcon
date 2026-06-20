@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { logout as logoutAction, fetchCurrentUser, login as loginAction, verifyMfa as verifyMfaAction } from '../../store/accounts/slice/authSlice';
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../../services/accounts/storage/secureStorage';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout as logoutAction, fetchCurrentUser, login as loginAction, verifyMfa as verifyMfaAction, selectUser, selectIsAuthenticated, selectAuth } from '../../store/accounts/slice/authSlice';
+import { getAccessToken, getRefreshToken, setTokens, clearTokens, getTenantId } from '../../services/accounts/storage/secureStorage';
 import { logout as logoutApi, refreshToken as refreshTokenApi } from '../../services/accounts/api/auth';
+import { persistor } from '../../store';
 
 const AuthContext = createContext(null);
+
 export const useAuthContext = () => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -13,25 +15,45 @@ export const useAuthContext = () => {
     }
     return context;
 };
+
 export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [user, setUser] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    
+    // Use Redux selectors for single source of truth
+    const reduxUser = useSelector(selectUser);
+    const reduxIsAuthenticated = useSelector(selectIsAuthenticated);
+    const authState = useSelector(selectAuth);
+    
+    const [localUser, setLocalUser] = useState(null);
+    const [localIsAuthenticated, setLocalIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // Sync with Redux state
+    useEffect(() => {
+        if (reduxUser !== localUser) {
+            setLocalUser(reduxUser);
+        }
+        if (reduxIsAuthenticated !== localIsAuthenticated) {
+            setLocalIsAuthenticated(reduxIsAuthenticated);
+        }
+    }, [reduxUser, reduxIsAuthenticated, localUser, localIsAuthenticated]);
+    
     useEffect(() => {
         const loadUser = async () => {
             const token = await getAccessToken();
-            if (token) {
+            // If we have a token OR a persisted user, try to fetch user to verify
+            if (token || reduxUser) {
                 try {
-                    const result = await dispatch(fetchCurrentUser()).unwrap();
-                    setUser(result);
-                    setIsAuthenticated(true);
-                } catch {
+                    await dispatch(fetchCurrentUser()).unwrap();
+                } catch (err) {
+                    // If fetch fails, log out completely
+                    console.error("Failed to fetch user, logging out:", err);
                     await clearTokens();
-                    setIsAuthenticated(false);
-                    setUser(null);
+                    sessionStorage.removeItem('current_session_id');
+                    await persistor.purge(); // Clear persisted Redux state completely
+                    dispatch(logoutAction());
                 }
             }
             setIsLoading(false);
@@ -39,8 +61,8 @@ export const AuthProvider = ({ children }) => {
         loadUser();
 
         const handleLogoutEvent = () => {
-            setIsAuthenticated(false);
-            setUser(null);
+            setLocalIsAuthenticated(false);
+            setLocalUser(null);
             sessionStorage.removeItem('current_session_id');
             dispatch(logoutAction());
         };
@@ -50,6 +72,7 @@ export const AuthProvider = ({ children }) => {
             window.removeEventListener('auth:logout', handleLogoutEvent);
         };
     }, [dispatch]);
+    
     const login = useCallback(async (credentials) => {
         setError(null);
         try {
@@ -60,8 +83,7 @@ export const AuthProvider = ({ children }) => {
             if (result.session_id) {
                 sessionStorage.setItem('current_session_id', result.session_id);
             }
-            setUser(result.user);
-            setIsAuthenticated(true);
+            // Redux will update, which will sync to local state via useEffect
             return { success: true };
         } catch (err) {
             setError(err || 'Login failed');
@@ -76,14 +98,13 @@ export const AuthProvider = ({ children }) => {
             if (result.session_id) {
                 sessionStorage.setItem('current_session_id', result.session_id);
             }
-            setUser(result.user);
-            setIsAuthenticated(true);
             return { success: true };
         } catch (err) {
             setError(err || 'MFA verification failed');
             return { success: false, error: err };
         }
     }, [dispatch]);
+    
     const logout = useCallback(async () => {
         try {
             const refreshToken = await getRefreshToken();
@@ -91,15 +112,16 @@ export const AuthProvider = ({ children }) => {
                 await logoutApi(refreshToken);
             }
         } catch {
-            /* proceed with local logout */
+            // proceed with local logout
         } finally {
             await clearTokens();
             sessionStorage.removeItem('current_session_id');
-            setUser(null);
-            setIsAuthenticated(false);
-            navigate('/login');
+            await persistor.purge(); // Clear persisted Redux state completely
+            dispatch(logoutAction());
+            navigate('/login', { replace: true });
         }
-    }, [navigate]);
+    }, [navigate, dispatch]);
+    
     const refreshAuth = useCallback(async () => {
         try {
             const refreshToken = await getRefreshToken();
@@ -113,21 +135,76 @@ export const AuthProvider = ({ children }) => {
             return false;
         }
     }, [logout]);
+    
     const updateUser = useCallback((updatedUser) => {
-        setUser(prev => ({ ...prev, ...updatedUser }));
+        setLocalUser(prev => ({ ...prev, ...updatedUser }));
     }, []);
+    
+    // ✅ Helper methods for permissions (used by billing, kpi, etc.)
+    const hasRole = useCallback((role) => {
+        const userRole = localUser?.role || reduxUser?.role;
+        if (Array.isArray(role)) {
+            return role.includes(userRole);
+        }
+        return userRole === role;
+    }, [localUser, reduxUser]);
+    
+    const hasAnyRole = useCallback((roles) => {
+        const userRole = localUser?.role || reduxUser?.role;
+        return roles.includes(userRole);
+    }, [localUser, reduxUser]);
+    
+    const isAdmin = useCallback(() => {
+        const userRole = localUser?.role || reduxUser?.role;
+        return userRole === 'super_admin' || userRole === 'client_admin';
+    }, [localUser, reduxUser]);
+    
+    const isSuperAdmin = useCallback(() => {
+        const userRole = localUser?.role || reduxUser?.role;
+        return userRole === 'super_admin';
+    }, [localUser, reduxUser]);
+    
+    const getTenant = useCallback(async () => {
+        return await getTenantId();
+    }, []);
+    
     const value = useMemo(() => ({
-        user,
-        isAuthenticated,
+        // User info
+        user: localUser || reduxUser,
+        isAuthenticated: localIsAuthenticated || reduxIsAuthenticated,
         isLoading,
         error,
+        
+        // User details
+        userId: localUser?.id || reduxUser?.id,
+        email: localUser?.email || reduxUser?.email,
+        role: localUser?.role || reduxUser?.role,
+        tenantId: localUser?.tenant_id || reduxUser?.tenant_id,
+        
+        // Permissions methods (for billing, kpi, etc.)
+        hasRole,
+        hasAnyRole,
+        isAdmin,
+        isSuperAdmin,
+        getTenant,
+        
+        // Auth actions
         login,
         verifyMfa,
         logout,
         refreshAuth,
         updateUser,
-    }), [user, isAuthenticated, isLoading, error, login, verifyMfa, logout, refreshAuth, updateUser]);
+    }), [
+        localUser, reduxUser,
+        localIsAuthenticated, reduxIsAuthenticated,
+        isLoading, error,
+        hasRole, hasAnyRole, isAdmin, isSuperAdmin, getTenant,
+        login, verifyMfa, logout, refreshAuth, updateUser
+    ]);
+    
     return (
-        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
     );
 };

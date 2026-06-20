@@ -15,6 +15,7 @@ import { getDefaultRouteByRole } from "../config/constants/dashboardRouteConstan
 
 // Layouts
 const AuthLayout = React.lazy(() => import("../components/dashboard/Layout/AuthLayout"));
+const RoleBasedAppLayout = React.lazy(() => import("../components/dashboard/Layout/RoleBasedAppLayout"));
 // Auth pages
 const Login = React.lazy(() => import('../components/accounts/auth/Login'));
 const Register = React.lazy(() => import('../components/accounts/auth/Register'));
@@ -64,7 +65,7 @@ const AppRouter = () => {
                 ))}
                 
                 {/* Legacy app routes */}
-                <Route element={<AuthLayout />}>
+                <Route element={<RoleBasedAppLayout />}>
                     {/* Account routes */}
                     {renderRoutes(accountsRoutes)}
                     {/* Tenants routes */}

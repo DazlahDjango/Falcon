@@ -1,9 +1,19 @@
-import api from '../api';
+import { BillingBaseService } from './BillingBaseService';
+import { SYSTEM_ENDPOINTS } from '../../config/constants/billingApiConstants';
 
-const BASE = '/billing/system-settings';
+class BillingSettingsServiceClass extends BillingBaseService {
+    constructor() { super('system-settings'); }
 
-export const getBillingSystemSettings = () => api.get(`${BASE}/`);
+    async getSettings() {
+        return this.withRetry(() => this.apiClient.get(''));
+    }
+    async updateSettings(settings) {
+        return this.withRetry(() => this.apiClient.patch('', settings));
+    }
+    async resetSettings() {
+        return this.withRetry(() => this.apiClient.post('', { action: 'reset' }));
+    }
+}
 
-export const updateBillingSystemSettings = (settings) => api.patch(`${BASE}/`, { settings });
-
-export const resetBillingSystemSettings = () => api.post(`${BASE}/reset/`);
+export const billingSettingsService = new BillingSettingsServiceClass();
+export default billingSettingsService;

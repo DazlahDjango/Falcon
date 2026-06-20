@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .base import BaseKPIModel
 from .framework import KPIFramework, KPICategory, Sector
+from ..managers import KPIManager
 
 
 class KPI(BaseKPIModel):
@@ -43,6 +44,7 @@ class KPI(BaseKPIModel):
     deactivation_date = models.DateField(null=True, blank=True)
     strategic_objective = models.CharField(max_length=255, blank=True, help_text="Linked strategic objective")
     metadata = models.JSONField(default=dict, blank=True)
+    objects = KPIManager()
     class Meta:
         db_table = 'kpi_definitions'
         ordering = ['name']

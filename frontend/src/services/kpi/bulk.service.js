@@ -1,53 +1,73 @@
-import api from '../api';
-import { API_ENDPOINTS } from '../api/endpoints';
+import { BaseKPIService, withRetry } from './kpiBase.service';
+import { BULK_ENDPOINTS } from '../api/endpoints';
 
-class BulkService {
-    async uploadKPIs(file, frameworkId, dryRun = false) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('framework_id', frameworkId);
-        if (dryRun) formData.append('dry_run', 'true');
-        const response = await api.post(API_ENDPOINTS.BULK.KPI_UPLOAD, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-    }
-    async uploadActuals(file, year, month, dryRun = false) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('year', year);
-        formData.append('month', month);
-        if (dryRun) formData.append('dry_run', 'true');
-        
-        const response = await api.post(API_ENDPOINTS.BULK.ACTUAL_UPLOAD, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-    }
-    async uploadTargets(file, year, dryRun = false) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('year', year);
-        if (dryRun) formData.append('dry_run', 'true');
-        const response = await api.post(API_ENDPOINTS.BULK.TARGET_UPLOAD, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-    }
-    async downloadTemplate(type) {
-        const response = await api.get(`/bulk/templates/${type}/`, {
-            responseType: 'blob'
-        });
-        return response.data;
-    }
-    async validateUpload(file, type) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', type);
-        const response = await api.post('/bulk/validate/', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-    }
+class BulkService extends BaseKPIService {
+  constructor() {
+    super('bulk');
+  }
+
+  async uploadKPIs(file, frameworkId, dryRun = false) {
+    if (!file) throw new Error('File is required');
+    if (!frameworkId) throw new Error('Framework ID is required');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('framework_id', frameworkId);
+    if (dryRun) formData.append('dry_run', 'true');
+    
+    return withRetry(async () => {
+      const response = await this.apiClient.post(BULK_ENDPOINTS.KPI_UPLOAD, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response;
+    });
+  }
+
+  async uploadActuals(file, year, month, dryRun = false) {
+    if (!file) throw new Error('File is required');
+    if (!year) throw new Error('Year is required');
+    if (!month) throw new Error('Month is required');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('year', year);
+    formData.append('month', month);
+    if (dryRun) formData.append('dry_run', 'true');
+    
+    return withRetry(async () => {
+      const response = await this.apiClient.post(BULK_ENDPOINTS.ACTUAL_UPLOAD, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response;
+    });
+  }
+
+  async uploadTargets(file, year, dryRun = false) {
+    if (!file) throw new Error('File is required');
+    if (!year) throw new Error('Year is required');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('year', year);
+    if (dryRun) formData.append('dry_run', 'true');
+    
+    return withRetry(async () => {
+      const response = await this.apiClient.post(BULK_ENDPOINTS.TARGET_UPLOAD, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response;
+    });
+  }
+
+  async downloadTemplate(type) {
+    if (!type) throw new Error('Template type is required (kpi, actual, target)');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(BULK_ENDPOINTS.TEMPLATE(type), {
+        responseType: 'blob',
+      });
+      return response;
+    });
+  }
 }
-export default new BulkService();
+
+export const bulkService = new BulkService();

@@ -15,10 +15,32 @@ class ErrorBoundary extends React.Component {
     }
 
     static getDerivedStateFromError(error) {
+        // Ignore DOM manipulation errors caused by browser extensions
+        // (Grammarly, Google Translate, LastPass, etc. inject DOM nodes
+        //  that React then tries to remove, causing removeChild errors)
+        const msg = error?.message || '';
+        const isDomExtensionError = (
+            msg.includes('removeChild') ||
+            msg.includes('insertBefore') ||
+            msg.includes('is not a child of this node') ||
+            msg.includes('Node to be removed is not a child')
+        );
+        if (isDomExtensionError) {
+            // Don't show error screen — just reset silently
+            return { hasError: false, error: null, errorInfo: null };
+        }
         return { hasError: true, error };
     }
 
     componentDidCatch(error, errorInfo) {
+        const msg = error?.message || '';
+        const isDomExtensionError = (
+            msg.includes('removeChild') ||
+            msg.includes('insertBefore') ||
+            msg.includes('is not a child of this node')
+        );
+        if (isDomExtensionError) return; // Silently ignore browser extension DOM errors
+
         this.setState({ errorInfo });
         errorHandler.handleError(error, {
             component: this.props.componentName || 'Unknown',

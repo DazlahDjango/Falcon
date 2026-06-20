@@ -1,126 +1,61 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { useSubscription } from '../../../hooks/billing';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import { FiX, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
+import { useSubscription } from '../../../hooks/billing/useSubscription';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './subscription.css';
 
-export const CancelSubscriptionModal = ({ isOpen, onClose, subscription, onSuccess }) => {
-    const [reason, setReason] = useState('');
+export const CancelSubscriptionModal = ({ subscription, onClose, onSuccess }) => {
+    const { cancel, loading } = useSubscription();
     const [atPeriodEnd, setAtPeriodEnd] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const { cancelSubscription } = useSubscription();
-
-    if (!isOpen) return null;
+    const [reason, setReason] = useState('');
+    const [step, setStep] = useState('confirm');
 
     const handleCancel = async () => {
-        setLoading(true);
-        try {
-            await cancelSubscription(subscription.id, { 
-                at_period_end: atPeriodEnd, 
-                reason 
-            });
-            onSuccess?.();
-        } catch (error) {
-            console.error('[CancelSubscriptionModal] Error:', error);
-            alert('Failed to cancel subscription. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+        await cancel(subscription.id, atPeriodEnd, reason);
+        if (onSuccess) onSuccess();
+        setStep('success');
+        setTimeout(() => { onClose(); }, 2000);
     };
 
-    const handleBackdropClick = (e) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
-    };
+    if (step === 'success') {
+        return (
+            <div className="cancel-modal-overlay" onClick={onClose}>
+                <div className="cancel-modal success" onClick={(e) => e.stopPropagation()}>
+                    <div className="success-icon"><FiCheckCircle /></div>
+                    <h3>Subscription Cancelled</h3>
+                    <p>Your subscription has been successfully cancelled.</p>
+                    {atPeriodEnd && <p>You will have access until {new Date(subscription.current_period_end).toLocaleDateString()}.</p>}
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
-            <div className="modal cancel-modal">
-                <div className="modal-header">
-                    <h3 className="modal-title">Cancel Subscription</h3>
-                    <button className="modal-close" onClick={onClose}>×</button>
+        <div className="cancel-modal-overlay" onClick={onClose}>
+            <div className="cancel-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="cancel-modal-header">
+                    <FiAlertTriangle className="warning-icon" />
+                    <h3>Cancel Subscription</h3>
+                    <button className="close-btn" onClick={onClose}><FiX /></button>
                 </div>
 
-                <div className="modal-body">
-                    <div className="cancel-modal-warning">
-                        <span className="cancel-modal-warning-icon">{renderBillingIcon('warning', { size: 18 })}</span>
-                        <p>
-                            Are you sure you want to cancel your {subscription?.plan?.name} subscription?
-                        </p>
+                <div className="cancel-modal-body">
+                    <p>Are you sure you want to cancel your <strong>{subscription.plan?.name}</strong> subscription?</p>
+                    <div className="cancel-options">
+                        <label className="radio-label"><input type="radio" checked={atPeriodEnd} onChange={() => setAtPeriodEnd(true)} /> Cancel at end of billing period<span className="radio-desc">You'll keep access until {new Date(subscription.current_period_end).toLocaleDateString()}</span></label>
+                        <label className="radio-label"><input type="radio" checked={!atPeriodEnd} onChange={() => setAtPeriodEnd(false)} /> Cancel immediately<span className="radio-desc">Your access will end right away</span></label>
                     </div>
-
-                    <div className="cancel-modal-options">
-                        <label className="cancel-modal-option">
-                            <input
-                                type="radio"
-                                checked={atPeriodEnd}
-                                onChange={() => setAtPeriodEnd(true)}
-                            />
-                            <div>
-                                <strong>Cancel at end of billing period</strong>
-                                <p>You'll have access until {new Date(subscription?.current_period_end).toLocaleDateString()}</p>
-                            </div>
-                        </label>
-                        <label className="cancel-modal-option">
-                            <input
-                                type="radio"
-                                checked={!atPeriodEnd}
-                                onChange={() => setAtPeriodEnd(false)}
-                            />
-                            <div>
-                                <strong>Cancel immediately</strong>
-                                <p>Your access will end right away (no refund for unused time)</p>
-                            </div>
-                        </label>
-                    </div>
-
-                    <div className="cancel-modal-reason">
-                        <label className="cancel-modal-label">Reason for cancelling (optional)</label>
-                        <select 
-                            className="cancel-modal-select"
-                            value={reason}
-                            onChange={(e) => setReason(e.target.value)}
-                        >
-                            <option value="">Select a reason...</option>
-                            <option value="too_expensive">Too expensive</option>
-                            <option value="missing_features">Missing features</option>
-                            <option value="not_using">Not using enough</option>
-                            <option value="switching">Switching to competitor</option>
-                            <option value="other">Other</option>
-                        </select>
-                        {reason === 'other' && (
-                            <textarea
-                                className="cancel-modal-textarea"
-                                placeholder="Please tell us why..."
-                                value={reason === 'other' ? reason : ''}
-                                onChange={(e) => setReason(e.target.value)}
-                            />
-                        )}
-                    </div>
+                    <div className="cancel-reason"><label>Reason for cancelling (optional)</label><textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="We'd love to know why you're leaving..." rows={3} /></div>
+                    <div className="warning-message"><FiAlertTriangle /> Cancelling will remove access to premium features. Your data will be retained for 30 days.</div>
                 </div>
 
-                <div className="modal-footer">
-                    <button className="modal-btn-secondary" onClick={onClose}>
-                        Keep Subscription
-                    </button>
-                    <button 
-                        className="modal-btn-danger"
-                        onClick={handleCancel}
-                        disabled={loading}
-                    >
-                        {loading ? 'Processing...' : 'Yes, Cancel Subscription'}
-                    </button>
+                <div className="cancel-modal-footer">
+                    <button className="cancel-btn" onClick={onClose}>Keep Subscription</button>
+                    <button className="confirm-cancel-btn" onClick={handleCancel} disabled={loading}>{loading ? 'Processing...' : 'Yes, Cancel Subscription'}</button>
                 </div>
             </div>
         </div>
     );
-};
-
-CancelSubscriptionModal.propTypes = {
-    isOpen: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    subscription: PropTypes.object.isRequired,
-    onSuccess: PropTypes.func,
 };
 
 export default CancelSubscriptionModal;

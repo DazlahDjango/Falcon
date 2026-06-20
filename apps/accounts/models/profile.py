@@ -9,6 +9,7 @@ class Profile(BaseModel):
     avatar = models.ImageField(_('avatar'), upload_to='avatars/%Y/%m/', blank=True, null=True)
     bio = models.TextField(_('bio'), blank=True, max_length=500)
     date_of_birth = models.DateField(_('date of birth'), null=True, blank=True)
+    title = models.CharField(_('job title'), max_length=100, blank=True)
     # Contact info
     alternative_email = models.EmailField(_('alternative email'), blank=True)
     work_phone = models.CharField(_('work phone'), max_length=20, blank=True)

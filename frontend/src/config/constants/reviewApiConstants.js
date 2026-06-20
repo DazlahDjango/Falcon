@@ -140,6 +140,7 @@ export const REVIEW_API_ENDPOINTS = {
   REPORTS_PIP_SUMMARY: '/reports/pip-summary/',
   REPORTS_CALIBRATION_SUMMARY: '/reports/calibration-summary/',
   REPORTS_RATING_DISTRIBUTION: '/reports/rating-distribution/',
+  REPORTS_ORGANIZATION_SUMMARY: '/reports/organization-summary/',
   REPORTS_EXPORT: '/reports/export/',
 };
 

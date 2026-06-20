@@ -1,27 +1,16 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import './shared.css';
 
-export const BillingLayout = ({ children, title, subtitle, actions }) => {
+export const BillingLayout = ({ children, sidebar, header, className = '' }) => {
     return (
-        <div className="billing-layout">
-            <div className="billing-layout-header">
-                <div className="billing-layout-title-section">
-                    {title && <h1 className="billing-layout-title">{title}</h1>}
-                    {subtitle && <p className="billing-layout-subtitle">{subtitle}</p>}
-                </div>
-                {actions && <div className="billing-layout-actions">{actions}</div>}
-            </div>
-            <div className="billing-layout-content">
-                {children}
+        <div className={`billing-layout ${className}`}>
+            {header && <div className="billing-layout-header">{header}</div>}
+            <div className="billing-layout-container">
+                {sidebar && <aside className="billing-layout-sidebar">{sidebar}</aside>}
+                <main className="billing-layout-content">{children}</main>
             </div>
         </div>
     );
-};
-BillingLayout.propTypes = {
-    children: PropTypes.node.isRequired,
-    title: PropTypes.string,
-    subtitle: PropTypes.string,
-    actions: PropTypes.node,
 };
 
 export default BillingLayout;

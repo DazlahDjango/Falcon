@@ -1,16 +1,19 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useAuthContext } from '../../contexts/accounts/AuthContext';
 
 export const useConfigPermissions = () => {
-  const userRole = useSelector((state) => state.auth?.user?.role);
-  const isAuthenticated = useSelector((state) => state.auth?.isAuthenticated);
+  // Get user from AuthContext
+  const { user, isAuthenticated } = useAuthContext();
 
   const permissions = useMemo(() => {
     if (!isAuthenticated) {
       return {
-        canAccessConfig: false,
+        user,
+        role: null,
+        isAuthenticated,
         isSuperAdmin: false,
         isClientAdmin: false,
+        canAccessConfig: false,
         canTriggerBackup: false,
         canCancelBackup: false,
         canRestoreBackup: false,
@@ -34,13 +37,17 @@ export const useConfigPermissions = () => {
       };
     }
 
-    const isSuperAdmin = userRole === 'super_admin';
-    const isClientAdmin = userRole === 'client_admin';
+    const role = user?.role || 'staff';
+    const isSuperAdmin = role === 'super_admin' || user?.is_superuser === true;
+    const isClientAdmin = isSuperAdmin || role === 'client_admin';
 
     return {
-      canAccessConfig: isSuperAdmin || isClientAdmin,
+      user,
+      role,
+      isAuthenticated,
       isSuperAdmin,
       isClientAdmin,
+      canAccessConfig: isSuperAdmin || isClientAdmin,
       canModifySystemSettings: isSuperAdmin,
       canManageRegistry: isSuperAdmin,
       canSyncRegistry: isSuperAdmin,
@@ -60,9 +67,18 @@ export const useConfigPermissions = () => {
       canRotateKeys: isSuperAdmin,
       canViewAuditLogs: isSuperAdmin,
       canFullMaintenance: isSuperAdmin,
-      canPartialMaintenance: isSuperAdmin || isClientAdmin
+      canPartialMaintenance: isSuperAdmin || isClientAdmin,
     };
-  }, [userRole, isAuthenticated]);
+  }, [user, isAuthenticated]);
+
+  // Debug logs
+  if (import.meta.env.DEV && user) {
+    console.log('[Config Permissions]', {
+      role: permissions.role,
+      isSuperAdmin: permissions.isSuperAdmin,
+      isClientAdmin: permissions.isClientAdmin,
+    });
+  }
 
   return permissions;
 };

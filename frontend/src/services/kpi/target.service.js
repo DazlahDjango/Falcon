@@ -1,90 +1,206 @@
-import api from '../api';
-import { API_ENDPOINTS } from '../api/endpoints';
+import { BaseKPIService, withRetry } from './kpiBase.service';
+import {
+  TARGET_ENDPOINTS,
+  MONTHLY_PHASING_ENDPOINTS,
+  CASCADE_ENDPOINTS,
+} from '../api/endpoints';
 
-class TargetService {
-    async getTargets(params = {}) {
-        const response = await api.get(API_ENDPOINTS.TARGET.LIST, { params });
-        return response.data;
-    }
-    async getTarget(id) {
-        const response = await api.get(API_ENDPOINTS.TARGET.DETAIL(id));
-        return response.data;
-    }
-    async createTarget(data) {
-        const response = await api.post(API_ENDPOINTS.TARGET.CREATE, data);
-        return response.data;
-    }
-    async updateTarget(id, data) {
-        const response = await api.put(API_ENDPOINTS.TARGET.UPDATE(id), data);
-        return response.data;
-    }
-    async deleteTarget(id) {
-        await api.delete(API_ENDPOINTS.TARGET.DELETE(id));
-    }
-    async phaseTarget(id, strategy, strategyParams = {}) {
-        const response = await api.post(API_ENDPOINTS.TARGET.PHASE(id), {
-            strategy,
-            strategy_params: strategyParams
-        });
-        return response.data;
-    }
-    async getPhasing(id) {
-        const response = await api.get(API_ENDPOINTS.TARGET.PHASING(id));
-        return response.data;
-    }
-    async validateTarget(id) {
-        const response = await api.get(API_ENDPOINTS.TARGET.VALIDATE(id));
-        return response.data;
-    }
-    async lockPhasingCycle(cycle) {
-        const response = await api.post(API_ENDPOINTS.TARGET.LOCK_CYCLE, {
-            performance_cycle: cycle
-        });
-        return response.data;
-    }
-    async lockPhasing(id) {
-        const response = await api.post(`${API_ENDPOINTS.TARGET.MONTHLY_PHASING}${id}/lock/`);
-        return response.data;
-    }
-    async getCascadeMaps(targetId) {
-        const response = await api.get(API_ENDPOINTS.CASCADE.MAPS, {
-            params: { organization_target: targetId }
-        });
-        return response.data;
-    }
-    async createCascade(orgTargetId, ruleId, targets) {
-        const response = await api.post(API_ENDPOINTS.CASCADE.MAPS, {
-            organization_target: orgTargetId,
-            cascade_rule: ruleId,
-            targets
-        });
-        return response.data;
-    }
-    async cascadeDepartment(deptTargetId, ruleId, userIds, weights = {}) {
-        const response = await api.post(API_ENDPOINTS.CASCADE.CASCADE_DEPARTMENT, {
-            department_target: deptTargetId,
-            cascade_rule: ruleId,
-            user_ids: userIds,
-            weights
-        });
-        return response.data;
-    }
-    async getCascadeTree(orgTargetId) {
-        const response = await api.get(API_ENDPOINTS.CASCADE.TREE, {
-            params: { organization_target: orgTargetId }
-        });
-        return response.data;
-    }
-    async rollbackCascade(cascadeMapId) {
-        await api.delete(API_ENDPOINTS.CASCADE.ROLLBACK(cascadeMapId));
-    }
-    async getCascadeRules(params = {}) {
-        const response = await api.get(API_ENDPOINTS.CASCADE.RULES, { params });
-        return response.data;
-    }
-    async getCascadeRule(id) {
-        const response = await api.get(API_ENDPOINTS.CASCADE.RULE_DETAIL(id));
-        return response.data;
-    }
+class TargetService extends BaseKPIService {
+  constructor() {
+    super('targets');
+  }
+
+  // ============ Annual Targets ============
+  async getTargets(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(TARGET_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
+
+  async getTarget(id) {
+    if (!id) throw new Error('Target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(TARGET_ENDPOINTS.DETAIL(id));
+      return response;
+    });
+  }
+
+  async createTarget(data) {
+    if (!data) throw new Error('Target data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(TARGET_ENDPOINTS.CREATE, data);
+      return response;
+    });
+  }
+
+  async updateTarget(id, data) {
+    if (!id) throw new Error('Target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(TARGET_ENDPOINTS.UPDATE(id), data);
+      return response;
+    });
+  }
+
+  async deleteTarget(id) {
+    if (!id) throw new Error('Target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(TARGET_ENDPOINTS.DELETE(id));
+      return response;
+    });
+  }
+
+  async phaseTarget(id, strategy = 'equal_split', strategyParams = {}) {
+    if (!id) throw new Error('Target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(TARGET_ENDPOINTS.PHASE(id), {
+        strategy,
+        strategy_params: strategyParams,
+      });
+      return response;
+    });
+  }
+
+  async getPhasing(id) {
+    if (!id) throw new Error('Target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(TARGET_ENDPOINTS.PHASING(id));
+      return response;
+    });
+  }
+
+  async validateTarget(id) {
+    if (!id) throw new Error('Target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(TARGET_ENDPOINTS.VALIDATE(id));
+      return response;
+    });
+  }
+
+  // ============ Monthly Phasing ============
+  async getMonthlyPhasing(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(MONTHLY_PHASING_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
+
+  async updateMonthlyPhasing(id, data) {
+    if (!id) throw new Error('Phasing ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(MONTHLY_PHASING_ENDPOINTS.UPDATE(id), data);
+      return response;
+    });
+  }
+
+  async lockPhasing(id) {
+    if (!id) throw new Error('Phasing ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(MONTHLY_PHASING_ENDPOINTS.LOCK(id));
+      return response;
+    });
+  }
+
+  async lockPhasingCycle(performanceCycle) {
+    if (!performanceCycle) throw new Error('Performance cycle is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(MONTHLY_PHASING_ENDPOINTS.LOCK_CYCLE, { performance_cycle: performanceCycle });
+      return response;
+    });
+  }
+
+  // ============ Cascade Rules & Maps ============
+  async getCascadeRules(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.RULES, { params });
+      return response;
+    });
+  }
+
+  async getCascadeRule(id) {
+    if (!id) throw new Error('Rule ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.RULE_DETAIL(id));
+      return response;
+    });
+  }
+
+  async createCascadeRule(data) {
+    if (!data) throw new Error('Rule data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.RULE_CREATE, data);
+      return response;
+    });
+  }
+
+  async updateCascadeRule(id, data) {
+    if (!id) throw new Error('Rule ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(CASCADE_ENDPOINTS.RULE_UPDATE(id), data);
+      return response;
+    });
+  }
+
+  async deleteCascadeRule(id) {
+    if (!id) throw new Error('Rule ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(CASCADE_ENDPOINTS.RULE_DELETE(id));
+      return response;
+    });
+  }
+
+  async setDefaultCascadeRule(id) {
+    if (!id) throw new Error('Rule ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.SET_DEFAULT_RULE(id));
+      return response;
+    });
+  }
+
+  async getCascadeMaps(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.MAPS, { params });
+      return response;
+    });
+  }
+
+  async createCascadeMap(data) {
+    if (!data) throw new Error('Cascade map data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.MAP_CREATE, data);
+      return response;
+    });
+  }
+
+  async cascadeDepartment(deptTargetId, ruleId, userIds = [], weights = {}) {
+    if (!deptTargetId) throw new Error('Department target ID is required');
+    if (!ruleId) throw new Error('Rule ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.CASCADE_DEPARTMENT, {
+        department_target: deptTargetId,
+        cascade_rule: ruleId,
+        user_ids: userIds,
+        weights,
+      });
+      return response;
+    });
+  }
+
+  async getCascadeTree(orgTargetId) {
+    if (!orgTargetId) throw new Error('Organization target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.TREE, { params: { organization_target: orgTargetId } });
+      return response;
+    });
+  }
+
+  async rollbackCascadeMap(mapId) {
+    if (!mapId) throw new Error('Cascade map ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(CASCADE_ENDPOINTS.ROLLBACK(mapId));
+      return response;
+    });
+  }
 }
-export default new TargetService();
+
+export const targetService = new TargetService();

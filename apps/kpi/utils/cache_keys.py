@@ -1,5 +1,7 @@
 from typing import Optional, Union
 from django.core.cache import cache
+import logging
+logger = logging.getLogger(__name__)
 
 class CacheKeyGenerator:
     PREFIX = "kpi"
@@ -62,20 +64,45 @@ def get_kpi_cache_key(kpi_id: str) -> str:
 def get_target_cache_key(kpi_id: str, user_id: str, year: int) -> str:
     return CacheKeyGenerator.target(kpi_id, user_id, year)
 
+
+def _safe_delete_pattern(pattern: str) -> None:
+    try:
+        if hasattr(cache, 'delete_pattern'):
+            cache.delete_pattern(pattern)
+        else:
+            # Log that we're skipping - not critical for functionality
+            logger.debug(f"Cache delete_pattern not available, skipping: {pattern}")
+    except AttributeError:
+        logger.debug(f"Cache delete_pattern not available, skipping: {pattern}")
+    except Exception as e:
+        logger.warning(f"Error deleting cache pattern {pattern}: {e}")
+
+
 def invalidate_kpi_cache(kpi_id: str, user_ids: Optional[list] = None) -> None:
+    """Invalidate all cache keys related to a KPI"""
+    # Delete exact keys (always works)
     cache.delete(CacheKeyGenerator.kpi(kpi_id))
-    cache.delete_pattern(f"kpi:score:{kpi_id}:*")
-    cache.delete_pattern(f"kpi:target:{kpi_id}:*")
+    
+    # Try pattern deletion (only works with Redis)
+    _safe_delete_pattern(f"kpi:score:{kpi_id}:*")
+    _safe_delete_pattern(f"kpi:target:{kpi_id}:*")
+    
     if user_ids:
         for user_id in user_ids:
             invalidate_user_dashboards(user_id)
 
+
 def invalidate_user_dashboards(user_id: str) -> None:
-    cache.delete_pattern(f"kpi:dashboard:individual:{user_id}:*")
-    cache.delete_pattern(f"kpi:dashboard:manager:{user_id}:*")
+    """Invalidate all dashboard caches for a user"""
+    _safe_delete_pattern(f"kpi:dashboard:individual:{user_id}:*")
+    _safe_delete_pattern(f"kpi:dashboard:manager:{user_id}:*")
+
 
 def invalidate_tenant_dashboards(tenant_id: str) -> None:
-    cache.delete_pattern(f"kpi:dashboard:executive:{tenant_id}:*")
+    """Invalidate executive dashboards for a tenant"""
+    _safe_delete_pattern(f"kpi:dashboard:executive:{tenant_id}:*")
+
 
 def invalidate_aggregation_cache(level: str, entity_id: str) -> None:
-    cache.delete_pattern(f"kpi:aggregation:{level}:{entity_id}:*")
+    """Invalidate aggregation cache for an entity"""
+    _safe_delete_pattern(f"kpi:aggregation:{level}:{entity_id}:*")

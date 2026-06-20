@@ -123,16 +123,21 @@ const PositionForm = () => {
       max_incumbents: formData.max_incumbents === '' ? null : formData.max_incumbents,
       requires_supervisor_approval: formData.requires_supervisor_approval,
     };
+    console.log('[Position Form] Form data:', formData);
+    console.log('[Position Form] Submitting data:', submitData);
     try {
       if (isEditMode) {
+        console.log('[Position Form] Updating existing position with ID:', id);
         await dispatch(updatePosition({ id, data: submitData })).unwrap();
         dispatch(showToast({ message: 'Position updated successfully', type: 'success' }));
       } else {
+        console.log('[Position Form] Creating new position');
         await dispatch(createPosition(submitData)).unwrap();
         dispatch(showToast({ message: 'Position created successfully', type: 'success' }));
       }
       navigate(STRUCTURE_ROUTES.POSITIONS);
     } catch (error) {
+      console.error('[Position Form] Submit error:', error);
       setErrors({ submit: error.message || 'Failed to save position' });
     } finally {
       setIsSubmitting(false);

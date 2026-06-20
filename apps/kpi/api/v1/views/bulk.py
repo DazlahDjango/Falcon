@@ -1,3 +1,4 @@
+# bulk.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,17 +17,18 @@ from ..permissions import IsAuthenticatedAndActive, IsDashboardChampion
 class BulkKPIUploadView(APIView):
     permission_classes = [IsAuthenticatedAndActive, IsDashboardChampion]
     throttle_classes = [BulkUploadThrottle]
+
     def post(self, request):
         serializer = BulkKPIUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
         file = serializer.validated_data['file']
-        framework_id = serializer.validated_data['framework_id']
+        framework_id = str(serializer.validated_data['framework_id'])
         dry_run = serializer.validated_data.get('dry_run', False)
-        # Read file content
+        
         if file.name.endswith('.csv'):
             content = file.read().decode('utf-8')
         else:
-            # Handle Excel files
             import openpyxl
             workbook = openpyxl.load_workbook(file)
             sheet = workbook.active
@@ -35,7 +37,7 @@ class BulkKPIUploadView(APIView):
             for row in sheet.iter_rows(values_only=True):
                 writer.writerow(row)
             content = output.getvalue()
-        # Process upload
+        
         import_export = KPIImportExport()
         result = import_export.import_from_csv(
             content,
@@ -44,6 +46,7 @@ class BulkKPIUploadView(APIView):
             request.user,
             dry_run=dry_run
         )
+        
         result_serializer = BulkUploadResultSerializer({
             'total_rows': result.get('total', len(result.get('created', [])) + len(result.get('errors', []))),
             'created': len(result.get('created', [])),
@@ -51,13 +54,15 @@ class BulkKPIUploadView(APIView):
             'errors': result.get('errors', []),
             'dry_run': dry_run
         })
+        
         return Response(result_serializer.data, status=status.HTTP_202_ACCEPTED if not dry_run else status.HTTP_200_OK)
+
 
 class BulkActualUploadView(APIView):
     permission_classes = [IsAuthenticatedAndActive, IsDashboardChampion]
     throttle_classes = [BulkUploadThrottle]
+
     def post(self, request):
-        """Upload actual data from CSV/Excel"""
         serializer = BulkActualUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -66,7 +71,6 @@ class BulkActualUploadView(APIView):
         month = serializer.validated_data['month']
         dry_run = serializer.validated_data.get('dry_run', False)
         
-        # Read file content
         if file.name.endswith('.csv'):
             content = file.read().decode('utf-8')
         else:
@@ -78,7 +82,7 @@ class BulkActualUploadView(APIView):
             for row in sheet.iter_rows(values_only=True):
                 writer.writerow(row)
             content = output.getvalue()
-        # Process upload
+        
         batch_upload = ActualBatchUpload()
         result = batch_upload.upload_from_csv(
             content,
@@ -101,12 +105,15 @@ class BulkActualUploadView(APIView):
 class BulkTargetUploadView(APIView):
     permission_classes = [IsAuthenticatedAndActive, IsDashboardChampion]
     throttle_classes = [BulkUploadThrottle]
+
     def post(self, request):
         serializer = BulkTargetUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
         file = serializer.validated_data['file']
         year = serializer.validated_data['year']
         dry_run = serializer.validated_data.get('dry_run', False)
+        
         if file.name.endswith('.csv'):
             content = file.read().decode('utf-8')
         else:
@@ -118,10 +125,12 @@ class BulkTargetUploadView(APIView):
             for row in sheet.iter_rows(values_only=True):
                 writer.writerow(row)
             content = output.getvalue()
+        
         reader = csv.DictReader(io.StringIO(content))
         created = 0
         errors = []
         target_setter = TargetSetter()
+        
         for row_num, row in enumerate(reader, start=2):
             try:
                 with transaction.atomic():
@@ -137,6 +146,7 @@ class BulkTargetUploadView(APIView):
                         transaction.set_rollback(True)
             except Exception as e:
                 errors.append({'row': row_num, 'error': str(e)})
+        
         result_serializer = BulkUploadResultSerializer({
             'total_rows': created + len(errors),
             'created': created,
@@ -144,4 +154,5 @@ class BulkTargetUploadView(APIView):
             'errors': errors,
             'dry_run': dry_run
         })
+        
         return Response(result_serializer.data, status=status.HTTP_202_ACCEPTED if not dry_run else status.HTTP_200_OK)

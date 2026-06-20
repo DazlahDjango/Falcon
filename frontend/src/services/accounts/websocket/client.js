@@ -1,6 +1,8 @@
 import { getAccessToken } from '../storage/secureStorage';
 import { handleMessage } from './handlers';
 import { reconnect } from './reconnection';
+import { websocketBase, ACCOUNT_WS } from '../../../config/constants/websocketApiConstants';
+import { websocketService } from '../../websocket';
 
 class WebSocketClient {
     constructor() {
@@ -35,48 +37,57 @@ class WebSocketClient {
             }
             this.isConnecting = true;
             try {
-                // Await the async token retrieval
                 const token = await getAccessToken();
                 if (!token) {
-                    reject(new Error("No authentication token"));
+                    reject(new Error('No authentication token'));
                     this.isConnecting = false;
                     return;
                 }
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const host = window.location.host;
-                this.url = `${protocol}//${host}/ws/${namespace}/?token=${token}`;
-                this.ws = new WebSocket(this.url);
-                this.ws.onopen = () => {
-                    console.log(`WebSocket connected to ${namespace}`);
-                    this.isConnected = true;
-                    this.isConnecting = false;
-                    this.reconnectAttempts = 0;
-                    this._startHeartbeat();
-                    this._flushMessageQueue();
-                    resolve();
-                };
-                this.ws.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        handleMessage(data, this.listeners);
-                    } catch (error) {
-                        console.error('WebSocket message parse error:', error);
-                    }
-                };
-                this.ws.onclose = (event) => {
-                    console.log(`Websocket disconnected: ${event.code} - ${event.reason}`);
-                    this.isConnected = false;
-                    this.isConnecting = false;
-                    this._stopHeartbeat();
-                    if (event.code !== 1000) {
-                        reconnect(this);
-                    }
-                };
-                this.ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
-                    this.isConnecting = false;
-                    reject(error);
-                };
+
+                const namespacePath = ACCOUNT_WS[namespace?.toUpperCase()] || `/ws/${namespace}/`;
+                this.url = `${websocketBase}${namespacePath}`;
+
+                websocketService.init(websocketBase, token);
+                const key = `accounts_${namespace}`;
+
+                const ws = websocketService.connect(
+                    key,
+                    namespacePath,
+                    (data) => {
+                        try {
+                            handleMessage(data, this.listeners);
+                        } catch (err) {
+                            console.error('WebSocket message handler error:', err);
+                        }
+                    },
+                    () => {
+                        console.log(`WebSocket connected to ${namespace}`);
+                        this.isConnected = true;
+                        this.isConnecting = false;
+                        this.reconnectAttempts = 0;
+                        this._startHeartbeat();
+                        // flush queued messages
+                        while (this.messageQueue.length > 0) {
+                            const message = this.messageQueue.shift();
+                            websocketService.send(key, JSON.parse(message));
+                        }
+                        resolve();
+                    },
+                    (error) => {
+                        console.error('WebSocket error:', error);
+                        this.isConnecting = false;
+                        reject(error);
+                    },
+                    (event) => {
+                        console.log(`Websocket disconnected: ${event?.code} - ${event?.reason}`);
+                        this.isConnected = false;
+                        this.isConnecting = false;
+                        this._stopHeartbeat();
+                        // Let websocketService handle reconnection when appropriate
+                    },
+                    { shouldReconnect: true }
+                );
+                this.ws = ws;
             } catch (error) {
                 console.error('Failed to get authentication token:', error);
                 this.isConnecting = false;
@@ -86,8 +97,9 @@ class WebSocketClient {
     }
     disconnect() {
         this._stopHeartbeat();
-        if (this.ws && this.isConnected) {
-            this.ws.close(1000, 'Normal closure');
+        if (this.ws) {
+            // The websocketService disconnect will close the underlying socket
+            websocketService.disconnect(this.ws?.key || this.url);
         }
         this.ws = null;
         this.isConnected = false;
@@ -96,9 +108,10 @@ class WebSocketClient {
     }
     send(data) {
         const message = JSON.stringify(data);
-        if (this.isConnected && this.ws?.readyState === WebSocket.OPEN) {
-            this.ws.send(message);
-        } else {
+        // Try to send via websocketService; if not connected queue it
+        const key = this.ws?.key || `accounts_notifications`;
+        const sent = websocketService.send(key, data);
+        if (!sent) {
             this.messageQueue.push(message);
         }
     }

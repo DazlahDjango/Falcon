@@ -122,23 +122,54 @@
                 }
             }
 
-            // Prepare data for creation (matches TenantCreateSerializer fields)
-            const createData = {
-                name: data.name,
-                slug: data.slug.toLowerCase().replace(/\s+/g, '-'),
-                contact_email: data.contact_email.toLowerCase(),
-                subscription_plan: data.subscription_plan,
-            };
+            // Check if we have files (logo or favicon)
+            const hasFiles = data.logo || data.favicon;
 
-            // Add optional fields (only if provided)
-            const optionalFields = [
-                'domain', 'contact_phone', 'address', 'city', 'country',
-                'primary_color', 'secondary_color', 'settings', 'features'
-            ];
-            
-            for (const field of optionalFields) {
-                if (data[field]) {
-                    createData[field] = data[field];
+            let createData;
+            if (hasFiles) {
+                // Use FormData for file uploads
+                createData = new FormData();
+                createData.append('name', data.name);
+                createData.append('slug', data.slug.toLowerCase().replace(/\s+/g, '-'));
+                createData.append('contact_email', data.contact_email.toLowerCase());
+                createData.append('subscription_plan', data.subscription_plan);
+
+                const optionalFields = [
+                    'domain', 'contact_phone', 'address', 'city', 'country',
+                    'primary_color', 'secondary_color', 'settings', 'features'
+                ];
+                
+                for (const field of optionalFields) {
+                    if (data[field]) {
+                        if (typeof data[field] === 'object') {
+                            createData.append(field, JSON.stringify(data[field]));
+                        } else {
+                            createData.append(field, data[field]);
+                        }
+                    }
+                }
+
+                // Add files
+                if (data.logo) createData.append('logo', data.logo);
+                if (data.favicon) createData.append('favicon', data.favicon);
+            } else {
+                // Regular JSON payload
+                createData = {
+                    name: data.name,
+                    slug: data.slug.toLowerCase().replace(/\s+/g, '-'),
+                    contact_email: data.contact_email.toLowerCase(),
+                    subscription_plan: data.subscription_plan,
+                };
+
+                const optionalFields = [
+                    'domain', 'contact_phone', 'address', 'city', 'country',
+                    'primary_color', 'secondary_color', 'settings', 'features'
+                ];
+                
+                for (const field of optionalFields) {
+                    if (data[field]) {
+                        createData[field] = data[field];
+                    }
                 }
             }
 
@@ -154,7 +185,7 @@
                 await this.logAudit('tenant.create', 'tenant', response.data?.id, {
                     tenant_name: data.name,
                     plan: data.subscription_plan,
-                    slug: createData.slug,
+                    slug: hasFiles ? data.slug : createData.slug,
                 });
             }
             
@@ -165,11 +196,33 @@
          * Update tenant information
          */
         async updateTenant(id, data, partial = true) {
-            if (data.settings) {
-                data.settings = this.encryptSensitiveData(data.settings);
+            // Check if we have files (logo or favicon)
+            const hasFiles = data.logo || data.favicon;
+
+            let updateData;
+            if (hasFiles) {
+                // Use FormData for file uploads
+                updateData = new FormData();
+                
+                // Add all fields
+                Object.keys(data).forEach(key => {
+                    if (data[key] !== null && data[key] !== undefined) {
+                        if (key === 'settings' || (typeof data[key] === 'object' && !(data[key] instanceof File))) {
+                            updateData.append(key, JSON.stringify(this.encryptSensitiveData(data[key])));
+                        } else {
+                            updateData.append(key, data[key]);
+                        }
+                    }
+                });
+            } else {
+                // Regular JSON payload
+                updateData = { ...data };
+                if (updateData.settings) {
+                    updateData.settings = this.encryptSensitiveData(updateData.settings);
+                }
             }
 
-            const response = await this.update(id, data, partial, true);
+            const response = await this.update(id, updateData, partial, true);
             
             if (response.success) {
                 store.dispatch(showToast({
@@ -272,6 +325,24 @@
         }
 
         /**
+         * Reconcile/sync tenant resources in real-time
+         */
+        async syncTenantResources(id) {
+            const response = await this.apiClient.post(
+                this.getEndpoint(`${id}/sync-resources/`)
+            );
+            
+            if (response.success) {
+                store.dispatch(showToast({
+                    message: 'Tenant resources synced successfully',
+                    type: 'success',
+                }));
+            }
+            
+            return response;
+        }
+
+        /**
          * Get tenant provisioning status
          */
         async getProvisioningStatus(id) {
@@ -330,10 +401,53 @@
         // ==================== Analytics & Audit ====================
 
         /**
-         * Get tenant statistics
+         * Get tenant statistics (accepts tenant id or gets global dashboard stats if null)
          */
-        async getTenantStats(id) {
-            return this.getStats({ tenant_id: id });
+        async getTenantStats(id = null) {
+            if (id) {
+                return this.getStats({ tenant_id: id });
+            }
+            return this.apiClient.get(this.getEndpoint('stats/'));
+        }
+
+        /**
+         * Get recent tenants (Super Admin only)
+         */
+        async getRecentTenants() {
+            return this.list({ limit: 5, ordering: '-created_at' });
+        }
+
+        /**
+         * Get dashboard alerts (Super Admin only)
+         */
+        async getDashboardAlerts() {
+            const response = await this.getTenantStats();
+            return {
+                ...response,
+                data: response.data?.alerts || []
+            };
+        }
+
+        /**
+         * Get activity data (Super Admin only)
+         */
+        async getActivityData() {
+            const response = await this.getTenantStats();
+            return {
+                ...response,
+                data: response.data?.activity || []
+            };
+        }
+
+        /**
+         * Get health data (Super Admin only)
+         */
+        async getHealthData() {
+            const response = await this.getTenantStats();
+            return {
+                ...response,
+                data: response.data?.health || { status: 'healthy', database: 'healthy', cache: 'healthy', worker: 'healthy', storage: 'Optimal' }
+            };
         }
 
         /**

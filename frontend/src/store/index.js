@@ -4,17 +4,15 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import rootReducer from './rootReducer';
+import kpiModuleReducer from './kpi/index';
 // Accounts Middlewares
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
-import { loggerMiddleware } from './accounts/middlewares/loggerMiddleware';
+import { loggerMiddleware } from './middleware';
 // Tenant Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
 // Billing
-import { 
-    billingMiddlewareFn, 
-    webhookMiddlewareFn, 
-    analyticsMiddlewareFn 
-} from './billing/middleware';
+import { billingMiddlewares } from './billing/middleware';
+
 import { backupMiddleware, maintenanceMiddleware } from './config';
 const persistConfig = {
     key: 'root',
@@ -48,8 +46,23 @@ const persistConfig = {
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+const appReducer = (state, action) => {
+  // If we are on a KPI page, we want to make sure the KPI reducer is active
+  const newState = persistedReducer(state, action);
+  
+  // Force injection of KPI reducer if it's missing but we have a kpiModuleReducer
+  if (state && !newState.kpi && kpiModuleReducer) {
+    return {
+      ...newState,
+      kpi: kpiModuleReducer(state.kpi, action)
+    };
+  }
+  
+  return newState;
+};
+
 export const store = configureStore({
-    reducer: persistedReducer,
+    reducer: appReducer,
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
@@ -89,9 +102,7 @@ export const store = configureStore({
             ...tenantMiddlewares,
             backupMiddleware,
             maintenanceMiddleware,
-            billingMiddlewareFn,
-            webhookMiddlewareFn,
-            analyticsMiddlewareFn
+            ...billingMiddlewares
         ),
     devTools: import.meta.env.MODE !== 'production'
 });

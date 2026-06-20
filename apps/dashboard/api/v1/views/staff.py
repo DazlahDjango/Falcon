@@ -2,9 +2,8 @@
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
-
+from apps.accounts.api.v1.permissions import IsStaff, IsTenantMember, IsAuthenticated
 from apps.dashboard.services.staff_service import StaffService
 from apps.dashboard.api.v1.serializers import StaffDashboardDataSerializer, SubmitKPISerializer
 
@@ -13,7 +12,7 @@ class StaffDashboardView(APIView):
     """
     Staff Dashboard API.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaff, IsTenantMember]
     
     @swagger_auto_schema(
         responses={200: StaffDashboardDataSerializer()},

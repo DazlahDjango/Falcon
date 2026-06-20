@@ -50,9 +50,11 @@ export const updateTenant = (tenantId, data) => {
 export const deleteTenant = (tenantId) => {
     return request.delete(`/admin/tenants/${tenantId}/`);
 };
-export const suspendTenant = (tenantId) => {
-    return request.post(`/admin/tenants/${tenantId}/suspend/`);
+
+export const suspendTenant = (tenantId, reason) => {
+    return request.post(`/admin/tenants/${tenantId}/suspend/`, { reason });
 };
+
 export const activateTenant = (tenantId) => {
     return request.post(`/admin/tenants/${tenantId}/activate/`);
 };

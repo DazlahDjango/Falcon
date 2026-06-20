@@ -154,6 +154,10 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
         setBreadcrumbs(breadcrumbItems);
     }, [location.pathname, user?.role]);
 
+    const statusText = user?.is_active != null ? (user.is_active ? 'Active' : 'Inactive') : (wsConnected ? 'Live' : 'Offline');
+    const statusTitle = user?.is_active != null ? (user.is_active ? 'User active' : 'User inactive') : (wsConnected ? 'Dashboard live' : 'Dashboard offline');
+    const statusClassNames = `dashboard-header-live ${(user?.is_active != null ? user.is_active : wsConnected) ? 'dashboard-header-live--on' : ''}`.trim();
+
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
@@ -234,11 +238,11 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
             
             <div className="header-right">
                 <span
-                  className={`dashboard-header-live ${wsConnected ? 'dashboard-header-live--on' : ''}`}
-                  title={wsConnected ? 'Dashboard live' : 'Dashboard offline'}
+                  className={statusClassNames}
+                  title={statusTitle}
                 >
                   <FiRadio size={14} />
-                  {wsConnected ? 'Live' : 'Offline'}
+                  {statusText}
                 </span>
                 <button 
                     className="dashboard-quick-btn"
@@ -321,7 +325,6 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                         </div>
                         <div className="user-info">
                             <span className="user-name">{user?.first_name || user?.username}</span>
-                            <span className="user-role">{user?.role_display || user?.role}</span>
                         </div>
                         <FiChevronDown size={16} className="user-menu-arrow" />
                     </button>

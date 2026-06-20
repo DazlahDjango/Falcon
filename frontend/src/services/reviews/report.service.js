@@ -2,7 +2,7 @@
 // Handles all report generation API calls
 
 import { apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants/reviewApiConstants';
 
 class ReportService {
     /**
@@ -73,6 +73,18 @@ class ReportService {
      */
     async getRatingDistribution(cycleId) {
         const response = await apiClient.post(REVIEWS_API.REPORTS_RATING_DISTRIBUTION, {
+            cycle_id: cycleId,
+        });
+        return response.data;
+    }
+
+    /**
+     * Get organization-wide strategic summary report
+     * @param {string|number} cycleId - Review cycle ID
+     * @returns {Promise<Object>} Organization strategic summary report
+     */
+    async getOrganizationSummary(cycleId) {
+        const response = await apiClient.post(REVIEWS_API.REPORTS_ORGANIZATION_SUMMARY, {
             cycle_id: cycleId,
         });
         return response.data;

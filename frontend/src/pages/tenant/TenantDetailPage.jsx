@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
     FiEdit3, FiTrash2, FiSlash, FiCheckCircle, 
     FiArrowLeft, FiActivity, FiDatabase, FiUsers,
-    FiSettings, FiShield, FiAlertCircle, FiClock
+    FiSettings, FiShield, FiAlertCircle, FiClock,
+    FiRefreshCw
 } from 'react-icons/fi';
 import {
     TenantDetailHeader,
@@ -20,6 +21,7 @@ import {
     deleteTenant,
     suspendTenant,
     activateTenant,
+    syncTenantResources,
     selectCurrentTenant,
     selectTenantLoading,
     selectTenantError,
@@ -36,6 +38,7 @@ export const TenantDetailPage = () => {
     const tenant = useSelector(selectCurrentTenant);
     const loading = useSelector(selectTenantLoading);
     const error = useSelector(selectTenantError);
+    const [syncing, setSyncing] = useState(false);
 
     const deleteModalOpen = useSelector((state) => selectModalState(state, 'deleteTenant'));
     const suspendModalOpen = useSelector((state) => selectModalState(state, 'suspendTenant'));
@@ -48,8 +51,29 @@ export const TenantDetailPage = () => {
         }
     }, [dispatch, tenantId]);
 
+    useEffect(() => {
+        if (tenantId) {
+            dispatch({ type: 'tenant/initializeWebSocket', payload: { tenantId } });
+        }
+        return () => {
+            dispatch({ type: 'tenant/closeWebSocket' });
+        };
+    }, [dispatch, tenantId]);
+
     const handleEdit = () => {
         navigate(`/tenants/${tenantId}/edit`);
+    };
+
+    const handleSync = async () => {
+        setSyncing(true);
+        try {
+            await dispatch(syncTenantResources(tenantId));
+            await dispatch(fetchTenantById(tenantId));
+        } catch (err) {
+            console.error('Failed to sync tenant resources:', err);
+        } finally {
+            setSyncing(false);
+        }
     };
 
     const handleDelete = () => {
@@ -144,6 +168,13 @@ export const TenantDetailPage = () => {
                     </div>
 
                     <div className="flex flex-wrap gap-3">
+                        <button 
+                            onClick={handleSync}
+                            disabled={syncing}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-100 transition-all border border-blue-200 disabled:opacity-50"
+                        >
+                            <FiRefreshCw className={syncing ? 'animate-spin' : ''} /> Sync Data
+                        </button>
                         <button 
                             onClick={handleEdit}
                             className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg"

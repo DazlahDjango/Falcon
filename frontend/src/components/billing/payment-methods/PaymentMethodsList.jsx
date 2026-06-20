@@ -1,133 +1,75 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { PaymentMethodCard } from './PaymentMethodCard';
-import { AddPaymentMethodForm } from './AddPaymentMethodForm';
+import React, { useState, useCallback } from 'react';
+import { FiPlus, FiCreditCard, FiDollarSign, FiSmartphone, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import { BillingShell } from '../common/BillingShell';
+import { BillingCard } from '../shared/BillingCard';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
-import { renderBillingIcon } from '../shared/BillingIcons';
-import { usePaymentMethods } from '../../../hooks/billing';
+import { usePaymentMethods } from '../../../hooks/billing/usePaymentMethods';
+import { useBillingPermissions } from '../../../hooks/billing/useBillingPermissions';
+import { PaymentMethodCard } from './PaymentMethodCard';
+import { AddPaymentMethodForm } from './AddPaymentMethodForm';
+import { DeletePaymentMethodModal } from './DeletePaymentMethodModal';
+import './payment-methods.css';
 
-export const PaymentMethodsList = ({ 
-    showAddForm = true,
-    onMethodAdded,
-    onMethodDeleted,
-    onDefaultChanged,
-    className = '' 
-}) => {
-    const {
-        paymentMethods,
-        loading,
-        error,
-        defaultMethod,
-        deletePaymentMethod,
-        setDefaultPaymentMethod,
-        fetchPaymentMethods,
-    } = usePaymentMethods();
+export const PaymentMethodsList = () => {
+    const { permissions } = useBillingPermissions();
+    const { paymentMethods, loading, fetchAll, remove, setDefault, defaultMethod } = usePaymentMethods({ autoFetch: true });
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [deletingMethod, setDeletingMethod] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
-    const [deletingId, setDeletingId] = useState(null);
-    const [settingDefaultId, setSettingDefaultId] = useState(null);
-    const [showAddFormState, setShowAddFormState] = useState(false);
+    const handleRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await fetchAll();
+        setRefreshing(false);
+    }, [fetchAll]);
 
-    const handleDelete = async (methodId) => {
-        if (!confirm('Are you sure you want to remove this payment method?')) return;
-        
-        setDeletingId(methodId);
-        try {
-            await deletePaymentMethod(methodId);
-            onMethodDeleted?.();
-        } finally {
-            setDeletingId(null);
-        }
-    };
+    const handleDelete = async (id) => { await remove(id); setDeletingMethod(null); };
+    const handleSetDefault = async (id) => { await setDefault(id); };
 
-    const handleSetDefault = async (methodId) => {
-        setSettingDefaultId(methodId);
-        try {
-            await setDefaultPaymentMethod(methodId);
-            onDefaultChanged?.();
-        } finally {
-            setSettingDefaultId(null);
-        }
-    };
+    const cardMethods = paymentMethods.filter(m => m.payment_type === 'card');
+    const bankMethods = paymentMethods.filter(m => m.payment_type === 'bank');
+    const mobileMethods = paymentMethods.filter(m => m.payment_type === 'mobile_money');
 
-    const handleMethodAdded = () => {
-        setShowAddFormState(false);
-        onMethodAdded?.();
-    };
-
-    if (loading && paymentMethods.length === 0) {
-        return <LoadingSkeleton type="list" count={2} />;
-    }
+    if (loading && paymentMethods.length === 0) return <LoadingSkeleton type="card" count={3} />;
 
     return (
-        <div className={`payment-methods-container ${className}`}>
-            <div className="payment-methods-header">
-                <h3 className="payment-methods-title">Payment Methods</h3>
-                {showAddForm && !showAddFormState && (
-                    <button 
-                        className="payment-methods-add-btn"
-                        onClick={() => setShowAddFormState(true)}
-                    >
-                        + Add Payment Method
-                    </button>
+        <BillingShell title="Payment Methods" subtitle="Manage your saved payment methods for automatic billing">
+            <div className="payment-methods-container">
+                <div className="payment-methods-header">
+                    <div className="payment-methods-stats">
+                        <div className="stat-badge"><FiCreditCard /> {cardMethods.length} Cards</div>
+                        <div className="stat-badge"><FiDollarSign /> {bankMethods.length} Banks</div>
+                        <div className="stat-badge"><FiSmartphone /> {mobileMethods.length} Mobile</div>
+                    </div>
+                    <div className="payment-methods-actions">
+                        <button className="refresh-btn" onClick={handleRefresh} disabled={refreshing}><FiRefreshCw className={refreshing ? 'spin' : ''} /> Refresh</button>
+                        {permissions.canManagePaymentMethods && <button className="add-method-btn" onClick={() => setShowAddForm(true)}><FiPlus /> Add Payment Method</button>}
+                    </div>
+                </div>
+
+                {paymentMethods.length === 0 ? (
+                    <EmptyState type="payment_methods" actionText="Add your first payment method" onAction={() => setShowAddForm(true)} />
+                ) : (
+                    <div className="payment-methods-grid">
+                        {paymentMethods.map(method => (
+                            <PaymentMethodCard
+                                key={method.id}
+                                method={method}
+                                isDefault={defaultMethod?.id === method.id}
+                                onSetDefault={() => handleSetDefault(method.id)}
+                                onDelete={() => setDeletingMethod(method)}
+                                canManage={permissions.canManagePaymentMethods}
+                            />
+                        ))}
+                    </div>
                 )}
+
+                {showAddForm && <AddPaymentMethodForm onClose={() => setShowAddForm(false)} onSuccess={() => { setShowAddForm(false); handleRefresh(); }} />}
+                {deletingMethod && <DeletePaymentMethodModal method={deletingMethod} onConfirm={() => handleDelete(deletingMethod.id)} onClose={() => setDeletingMethod(null)} />}
             </div>
-
-            {error && (
-                <div className="payment-methods-error">
-                    <span>{renderBillingIcon('warning', { size: 16 })}</span>
-                    <span>{error}</span>
-                </div>
-            )}
-
-            {showAddFormState && (
-                <div className="payment-methods-add-form-container">
-                    <AddPaymentMethodForm 
-                        onSuccess={handleMethodAdded}
-                        onCancel={() => setShowAddFormState(false)}
-                    />
-                </div>
-            )}
-
-            {paymentMethods.length === 0 && !showAddFormState ? (
-                <EmptyState 
-                    title="No payment methods"
-                    message="Add a payment method to enable automatic billing"
-                    icon={renderBillingIcon('paymentMethods', { size: 40 })}
-                    action={
-                        <button 
-                            className="empty-state-btn"
-                            onClick={() => setShowAddFormState(true)}
-                        >
-                            Add Payment Method
-                        </button>
-                    }
-                />
-            ) : (
-                <div className="payment-methods-list">
-                    {paymentMethods.map((method) => (
-                        <PaymentMethodCard
-                            key={method.id}
-                            method={method}
-                            isDefault={method.id === defaultMethod?.id}
-                            onSetDefault={() => handleSetDefault(method.id)}
-                            onDelete={() => handleDelete(method.id)}
-                            deleting={deletingId === method.id}
-                            settingDefault={settingDefaultId === method.id}
-                        />
-                    ))}
-                </div>
-            )}
-        </div>
+        </BillingShell>
     );
-};
-
-PaymentMethodsList.propTypes = {
-    showAddForm: PropTypes.bool,
-    onMethodAdded: PropTypes.func,
-    onMethodDeleted: PropTypes.func,
-    onDefaultChanged: PropTypes.func,
-    className: PropTypes.string,
 };
 
 export default PaymentMethodsList;

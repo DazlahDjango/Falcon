@@ -48,6 +48,7 @@ export const DASHBOARD_ROUTES = {
   SUPER_ADMIN: {
     BASE: '/dashboard/super-admin',
     OVERVIEW: '/dashboard/super-admin/overview',
+    CUSTOM_OVERVIEW: '/dashboard/super-admin/custom-overview',
     TENANTS: '/dashboard/super-admin/tenants',
     SYSTEM_HEALTH: '/dashboard/super-admin/system-health',
     SUBSCRIPTIONS: '/dashboard/super-admin/subscriptions',
@@ -142,6 +143,7 @@ export const DASHBOARD_BREADCRUMBS = {
   
   // Super Admin
   [DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW]: ['Dashboard', 'Super Admin', 'Overview'],
+  [DASHBOARD_ROUTES.SUPER_ADMIN.CUSTOM_OVERVIEW]: ['Dashboard', 'Super Admin', 'Custom Overview'],
   [DASHBOARD_ROUTES.SUPER_ADMIN.TENANTS]: ['Dashboard', 'Super Admin', 'Tenants'],
   [DASHBOARD_ROUTES.SUPER_ADMIN.SYSTEM_HEALTH]: ['Dashboard', 'Super Admin', 'System Health'],
   [DASHBOARD_ROUTES.SUPER_ADMIN.BILLING]: ['Dashboard', 'Super Admin', 'Billing'],
@@ -194,6 +196,7 @@ export const DASHBOARD_NAV_ITEMS = {
   
   SUPER_ADMIN: [
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW, label: 'Overview', icon: 'DashboardIcon', end: true },
+    { path: DASHBOARD_ROUTES.SUPER_ADMIN.CUSTOM_OVERVIEW, label: 'Custom Overview', icon: 'DashboardIcon' },
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.TENANTS, label: 'Tenants', icon: 'TenantsIcon' },
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SYSTEM_HEALTH, label: 'System Health', icon: 'HealthIcon' },
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SUBSCRIPTIONS, label: 'Subscriptions', icon: 'SubscriptionIcon' },

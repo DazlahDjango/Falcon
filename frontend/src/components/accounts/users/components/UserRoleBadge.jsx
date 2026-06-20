@@ -1,34 +1,27 @@
-import React from "react";
+import React from 'react';
 
 const UserRoleBadge = ({ role }) => {
-    const getRoleClass = () => {
-        switch (role) {
-            case 'super_admin': return 'role-super-admin';
-            case 'client_admin': return 'role-client-admin';
-            case 'executive': return 'role-executive';
-            case 'supervisor': return 'role-supervisor';
-            case 'dashboard-champion': return 'role-dashboard-champion';
-            case 'staff': return 'role-staff';
-            case 'read_only': return 'role-read-only';
-            default: return 'role-staff';
-        }
+    const getRoleConfig = () => {
+        const configs = {
+            super_admin: { class: 'role-super-admin', label: 'Super Admin', icon: '👑' },
+            client_admin: { class: 'role-client-admin', label: 'Organization Admin', icon: '🏢' },
+            executive: { class: 'role-executive', label: 'Executive', icon: '⭐' },
+            supervisor: { class: 'role-supervisor', label: 'Supervisor', icon: '👥' },
+            dashboard_champion: { class: 'role-dashboard-champion', label: 'Dashboard Champion', icon: '📊' },
+            staff: { class: 'role-staff', label: 'Staff', icon: '👤' },
+            read_only: { class: 'role-read-only', label: 'Read Only', icon: '👁️' },
+        };
+        return configs[role] || { class: 'role-staff', label: role, icon: '👤' };
     };
-    const getRoleDisplay = () => {
-        switch (role) {
-            case 'super_admin': return 'Super Admin';
-            case 'client_admin': return 'Admin';
-            case 'executive': return 'Executive';
-            case 'supervisor': return 'Supervisor';
-            case 'dashboard_champion': return 'Dashboard Champion';
-            case 'staff': return 'Staff';
-            case 'read_only': return 'Read Only';
-            default: return role;
-        }
-    };
+
+    const config = getRoleConfig();
+
     return (
-        <span className={`role-badge ${getRoleClass()}`}>
-            {getRoleDisplay()}
+        <span className={`role-badge ${config.class}`}>
+            <span className="role-icon">{config.icon}</span>
+            <span className="role-label">{config.label}</span>
         </span>
     );
 };
+
 export default UserRoleBadge;

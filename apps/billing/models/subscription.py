@@ -48,6 +48,15 @@ class Subscription(BaseBillingModel):
     auto_renew = models.BooleanField(_('auto renew'), default=True)
     next_payment_date = models.DateTimeField(_('next payment date'), null=True, blank=True)
     last_payment_date = models.DateTimeField(_('last payment date'), null=True, blank=True)
+    grace_period_ends_at = models.DateTimeField(_('grace period ends at'), null=True, blank=True)
+    suspension_reason = models.CharField(_('suspension reason'), max_length=100, blank=True, choices=[('payment_failed', 'Payment Failed'), ('manual', 'Manual Suspension'), ('compliance', 'Compliance Issue')])
+    suspended_at = models.DateTimeField(_('suspended at'), null=True, blank=True)
+    soft_limit_warning_sent_at = models.DateTimeField(_('soft limit warning sent at'), null=True, blank=True)
+    hard_limit_warning_sent_at = models.DateTimeField(_('hard limit warning sent at'), null=True, blank=True)
+    custom_limits = models.JSONField(_('custom limits'), default=dict, blank=True)
+    custom_pricing = models.JSONField(_('custom pricing'), default=dict, blank=True)
+    negotiated_by = models.UUIDField(_('negotiated by'), null=True, blank=True)
+    negotiation_date = models.DateTimeField(_('negotiation date'), null=True, blank=True)
     metadata = models.JSONField(_('metadata'), default=dict, blank=True)
     class Meta:
         db_table = 'billing_subscription'
@@ -147,3 +156,72 @@ class Subscription(BaseBillingModel):
         if self.status == self.STATUS_TRIALING:
             self.trial_end_date = timezone.now() + timedelta(days=extra_days)
             self.save(update_fields=['trial_end_date', 'updated_at'])
+    
+    def start_grace_period(self, days=7):
+        """Start grace period for failed payment."""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        self.status = self.STATUS_PAST_DUE
+        self.grace_period_ends_at = timezone.now() + timedelta(days=days)
+        self.save(update_fields=['status', 'grace_period_ends_at', 'updated_at'])
+        
+        # Log audit
+        from apps.billing.models import BillingAuditLog
+        BillingAuditLog.log_action(
+            user=None,  # System action
+            tenant_id=self.tenant_id,
+            action=BillingAuditLog.ACTION_UPDATE,
+            resource_type=BillingAuditLog.RESOURCE_SUBSCRIPTION,
+            resource_id=self.id,
+            after={'status': self.STATUS_PAST_DUE, 'grace_period_ends_at': str(self.grace_period_ends_at)}
+        )
+    
+    def suspend(self, reason='payment_failed'):
+        """Suspend subscription after grace period."""
+        from django.utils import timezone
+        
+        self.status = self.STATUS_EXPIRED
+        self.suspended_at = timezone.now()
+        self.suspension_reason = reason
+        self.ended_at = timezone.now()
+        self.save(update_fields=['status', 'suspended_at', 'suspension_reason', 'ended_at', 'updated_at'])
+    
+    def check_usage_limits(self, usage_type, current_value):
+        """Check if usage exceeds soft/hard limits."""
+        plan_features = self.plan.feature_dict
+        
+        limit_map = {
+            'users': self.plan.max_users,
+            'kpis': self.plan.max_kpis,
+            'departments': self.plan.max_departments,
+            'storage_mb': self.plan.max_storage_mb,
+        }
+        
+        limit = limit_map.get(usage_type, 0)
+        if limit == -1:  # Unlimited
+            return {'exceeded': False, 'type': None}
+        
+        percentage = (current_value / limit) * 100 if limit > 0 else 0
+        
+        if percentage >= 110:
+            return {'exceeded': True, 'type': 'hard', 'percentage': percentage}
+        elif percentage >= 100:
+            return {'exceeded': True, 'type': 'soft', 'percentage': percentage}
+        
+        return {'exceeded': False, 'type': None}
+    
+    def apply_enterprise_override(self, override_data):
+        """Apply enterprise overrides to subscription."""
+        if 'custom_limits' in override_data:
+            self.custom_limits = override_data['custom_limits']
+        if 'custom_pricing' in override_data:
+            self.custom_pricing = override_data['custom_pricing']
+            # Update amount if custom pricing provided
+            if 'monthly_price' in override_data['custom_pricing']:
+                self.amount = override_data['custom_pricing']['monthly_price']
+        if 'negotiated_by' in override_data:
+            self.negotiated_by = override_data['negotiated_by']
+            self.negotiation_date = timezone.now()
+        
+        self.save()

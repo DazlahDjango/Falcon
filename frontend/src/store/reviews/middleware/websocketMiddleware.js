@@ -25,32 +25,14 @@ import {
     setUnreadCount,
 } from '../slices/notificationSlice';
 
+// Use shared websocket service and constants
+import { websocketService } from '../../../services/websocket';
+import { REVIEWS_WS, websocketBase } from '../../../config/constants/websocketApiConstants';
+import { getAccessToken } from '../../../services/accounts/storage/secureStorage';
+
 // ========== WebSocket Connection State ==========
-let socket = null;
-let reconnectAttempts = 0;
-let reconnectTimeout = null;
-let currentCycleId = null;
 let currentUserId = null;
-
-const MAX_RECONNECT_ATTEMPTS = 5;
-const RECONNECT_DELAY = 3000;
-const PING_INTERVAL = 30000; // 30 seconds
-
-// ========== WebSocket URL Builder ==========
-const getWebSocketUrl = (type, cycleId = null) => {
-    const wsBaseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
-    
-    switch (type) {
-        case 'notifications':
-            return `${wsBaseUrl}/ws/reviews/notifications/`;
-        case 'review_status':
-            return `${wsBaseUrl}/ws/reviews/status/${cycleId}/`;
-        case 'calibration':
-            return `${wsBaseUrl}/ws/reviews/calibration/${cycleId}/`;
-        default:
-            return `${wsBaseUrl}/ws/reviews/notifications/`;
-    }
-};
+const connections = new Map();
 
 // ========== WebSocket Message Handlers ==========
 const messageHandlers = {
@@ -191,168 +173,50 @@ const processMessage = (store, data) => {
 };
 
 // ========== WebSocket Connection Management ==========
-export const connectWebSocket = (store, type = 'notifications', id = null) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        console.log('WebSocket already connected');
-        return;
-    }
-    
-    if (socket && socket.readyState === WebSocket.CONNECTING) {
-        console.log('WebSocket connecting, please wait');
-        return;
-    }
-    
-    const url = getWebSocketUrl(type, id);
-    socket = new WebSocket(url);
-    
-    socket.onopen = () => {
-        console.log(`WebSocket connected to ${type}`);
-        reconnectAttempts = 0;
-        
-        // Send authentication
-        const token = localStorage.getItem('access_token');
-        if (token && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({
-                type: 'auth',
-                token: token,
-            }));
+export const connectWebSocket = async (store, type = 'notifications', id = null) => {
+    // initialize token-aware base
+    const token = await getAccessToken();
+    websocketService.init(websocketBase, token);
+
+    const key = type === 'notifications' ? 'reviews_notifications' : type === 'review_status' ? `reviews_status_${id}` : `reviews_calibration_${id}`;
+    if (connections.has(key) && websocketService.isConnected(key)) return;
+
+    const endpoint = type === 'notifications' ? REVIEWS_WS.NOTIFICATIONS : type === 'review_status' ? REVIEWS_WS.STATUS(id) : REVIEWS_WS.CALIBRATION(id);
+
+    websocketService.connect(
+        key,
+        endpoint,
+        (data) => processMessage(store, data),
+        () => processMessage(store, { type: 'connected' }),
+        (error) => processMessage(store, { type: 'error', message: error?.message || 'WebSocket error' }),
+        () => {
+            // onClose handled by service reconnection logic
         }
-        
-        // Start ping interval
-        if (window.pingInterval) clearInterval(window.pingInterval);
-        window.pingInterval = setInterval(() => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ type: 'ping' }));
-            }
-        }, PING_INTERVAL);
-        
-        // Dispatch connection event
-        processMessage(store, { type: 'connected' });
-    };
-    
-    socket.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            processMessage(store, data);
-        } catch (error) {
-            console.error('Failed to parse WebSocket message:', error);
-        }
-    };
-    
-    socket.onclose = (event) => {
-        console.log(`WebSocket disconnected: ${event.code} - ${event.reason}`);
-        
-        // Clear ping interval
-        if (window.pingInterval) {
-            clearInterval(window.pingInterval);
-            window.pingInterval = null;
-        }
-        
-        // Attempt reconnection
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-            if (reconnectTimeout) clearTimeout(reconnectTimeout);
-            reconnectTimeout = setTimeout(() => {
-                reconnectAttempts++;
-                console.log(`Reconnecting WebSocket... Attempt ${reconnectAttempts}`);
-                connectWebSocket(store, type, id);
-            }, RECONNECT_DELAY * reconnectAttempts);
-        } else {
-            console.error('Max reconnection attempts reached');
-            processMessage(store, {
-                type: 'error',
-                message: 'Unable to connect to real-time server',
-            });
-        }
-    };
-    
-    socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        processMessage(store, {
-            type: 'error',
-            message: 'WebSocket connection error',
-        });
-    };
+    );
+
+    connections.set(key, true);
 };
 
 // ========== Disconnect WebSocket ==========
 export const disconnectWebSocket = () => {
-    if (window.pingInterval) {
-        clearInterval(window.pingInterval);
-        window.pingInterval = null;
-    }
-    
-    if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-        reconnectTimeout = null;
-    }
-    
-    if (socket) {
-        socket.close();
-        socket = null;
-    }
-    
-    reconnectAttempts = 0;
-    console.log('WebSocket disconnected');
+    connections.forEach((_, key) => websocketService.disconnect(key));
+    connections.clear();
 };
 
 // ========== Send Message through WebSocket ==========
-export const sendWebSocketMessage = (data) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(data));
-        return true;
-    }
-    return false;
-};
+export const sendWebSocketMessage = (key, data) => websocketService.send(key, data);
 
 // ========== Subscribe to Review Cycle Updates ==========
-export const subscribeToCycle = (cycleId) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'subscribe_cycle',
-            cycle_id: cycleId,
-        }));
-        currentCycleId = cycleId;
-        return true;
-    }
-    return false;
-};
+export const subscribeToCycle = (cycleId) => sendWebSocketMessage(`reviews_status_${cycleId}`, { type: 'subscribe_cycle', cycle_id: cycleId });
 
 // ========== Unsubscribe from Review Cycle Updates ==========
-export const unsubscribeFromCycle = () => {
-    if (socket && socket.readyState === WebSocket.OPEN && currentCycleId) {
-        socket.send(JSON.stringify({
-            type: 'unsubscribe_cycle',
-            cycle_id: currentCycleId,
-        }));
-        currentCycleId = null;
-        return true;
-    }
-    return false;
-};
+export const unsubscribeFromCycle = (cycleId) => sendWebSocketMessage(`reviews_status_${cycleId}`, { type: 'unsubscribe_cycle', cycle_id: cycleId });
 
 // ========== Join Calibration Session ==========
-export const joinCalibrationSession = (sessionId) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'join_session',
-            session_id: sessionId,
-        }));
-        return true;
-    }
-    return false;
-};
+export const joinCalibrationSession = (sessionId) => sendWebSocketMessage(`reviews_calibration_${sessionId}`, { type: 'join_session', session_id: sessionId });
 
 // ========== Leave Calibration Session ==========
-export const leaveCalibrationSession = (sessionId) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'leave_session',
-            session_id: sessionId,
-        }));
-        return true;
-    }
-    return false;
-};
+export const leaveCalibrationSession = (sessionId) => sendWebSocketMessage(`reviews_calibration_${sessionId}`, { type: 'leave_session', session_id: sessionId });
 
 // ========== WebSocket Middleware ==========
 export const websocketMiddleware = (store) => (next) => (action) => {

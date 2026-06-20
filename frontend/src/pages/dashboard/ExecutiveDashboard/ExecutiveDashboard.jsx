@@ -5,7 +5,6 @@ import { ExecutiveDepartments } from './ExecutiveDepartments';
 import { ExecutiveTrends } from './ExecutiveTrends';
 import { ExecutiveAlerts } from './ExecutiveAlerts';
 import { useExecutiveDashboard } from '../../../hooks/dashboard/useExecutiveDashboard';
-<<<<<<< HEAD
 import {
   fetchExecutiveDashboard,
   fetchExecutiveDepartments,
@@ -13,8 +12,6 @@ import {
   fetchExecutiveIssues,
 } from '../../../store/dashboard/slices/dashboardSlice';
 import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
-=======
->>>>>>> 5f1485efe72578f098c861e800fe246c25520289
 
 const ExecutiveDashboard = () => {
   const {

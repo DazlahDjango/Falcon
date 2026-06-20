@@ -15,7 +15,7 @@ class IsTenantMember(BasePermission):
         return True
     
     def has_object_permission(self, request, view, obj):
-        if not request.user or request.user.is_authenticated:
+        if not request.user or not request.user.is_authenticated:
             return False
         if request.user.role == UserRoles.SUPER_ADMIN:
             return True

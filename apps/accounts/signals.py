@@ -6,12 +6,23 @@ from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.utils import timezone
 
-from .models import User, Profile, UserPreference, AuditLog, LoginAttempt, UserSession
+from .models import User, Profile, UserPreference, AuditLog, LoginAttempt, UserSession, MFADevice
 from .services import AuditService
-from .constants import AuditActionTypes, LoginResult, LoginFailureReason
+from .constants import AuditActionTypes
 
 logger = logging.getLogger(__name__)
 audit_service = AuditService()
+
+
+def get_client_ip(request):
+    """Extract client IP from request."""
+    if not request:
+        return ''
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0]
+    return request.META.get('REMOTE_ADDR', '')
+
 
 # User Model Signals
 # ===================
@@ -27,18 +38,18 @@ def user_pre_save(sender, instance, **kwargs):
                 'is_verified': old.is_verified,
                 'is_staff': old.is_staff,
                 'is_superuser': old.is_superuser,
-                'password': old.password,  # For password change detection
+                'password': old.password,
             }
         except sender.DoesNotExist:
             instance._old_data = {}
     else:
         instance._old_data = {}
 
+
 @receiver(post_save, sender=User, dispatch_uid='user_post_save_unique')
 def user_post_save(sender, instance, created, **kwargs):
     try:
         if created:
-            # Create related records
             Profile.objects.get_or_create(
                 user=instance,
                 defaults={'tenant_id': instance.tenant_id}
@@ -66,7 +77,6 @@ def user_post_save(sender, instance, created, **kwargs):
             except Exception:
                 pass
         else:
-            # Detect changes
             changes = {}
             old_data = getattr(instance, '_old_data', {})
             
@@ -94,6 +104,7 @@ def user_post_save(sender, instance, created, **kwargs):
     except Exception as e:
         logger.error(f"Error in user_post_save signal: {e}", exc_info=True)
 
+
 @receiver(pre_delete, sender=User, dispatch_uid='user_pre_delete_unique')
 def user_pre_delete(sender, instance, **kwargs):
     try:
@@ -113,6 +124,7 @@ def user_pre_delete(sender, instance, **kwargs):
     except Exception as e:
         logger.error(f"Error in user_pre_delete signal: {e}", exc_info=True)
 
+
 # Profile Model Signals
 # ======================
 @receiver(post_save, sender=Profile, dispatch_uid='profile_post_save_unique')
@@ -131,6 +143,7 @@ def profile_post_save(sender, instance, created, **kwargs):
                 )
     except Exception as e:
         logger.error(f"Error in profile_post_save signal: {e}", exc_info=True)
+
 
 # UserPreference Signals
 # =======================
@@ -153,6 +166,7 @@ def user_preference_post_save(sender, instance, created, **kwargs):
     except Exception as e:
         logger.error(f"Error in user_preference_post_save signal: {e}", exc_info=True)
 
+
 # UserSession Signals
 # ====================
 @receiver(pre_save, sender=UserSession, dispatch_uid='user_session_pre_save_unique')
@@ -164,6 +178,7 @@ def user_session_pre_save(sender, instance, **kwargs):
             instance._old_status = old.status
         except sender.DoesNotExist:
             instance._old_status = None
+
 
 @receiver(post_save, sender=UserSession, dispatch_uid='user_session_post_save_unique')
 def user_session_post_save(sender, instance, created, **kwargs):
@@ -188,9 +203,10 @@ def user_session_post_save(sender, instance, created, **kwargs):
     except Exception as e:
         logger.error(f"Error in user_session_post_save signal: {e}", exc_info=True)
 
+
 # MFA Device Signals
 # ==================
-@receiver(post_save, sender='accounts.MFADevice', dispatch_uid='mfa_device_post_save_unique')
+@receiver(post_save, sender=MFADevice, dispatch_uid='mfa_device_post_save_unique')  # ✅ FIXED: Use direct import
 def mfa_device_post_save(sender, instance, created, **kwargs):
     try:
         if created:
@@ -214,29 +230,31 @@ def mfa_device_post_save(sender, instance, created, **kwargs):
     except Exception as e:
         logger.error(f"Error in mfa_device_post_save signal: {e}", exc_info=True)
 
+
 # Login/Logout Signals (Django Auth)
 # ==================================
 @receiver(user_logged_in)
 def user_logged_in_handler(sender, request, user, **kwargs):
     try:
         ip_address = get_client_ip(request)
-        user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]   
-        # Update user last login info
+        user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+        
         user.last_login_ip = ip_address
         user.last_login_agent = user_agent
-        user.save(update_fields=['last_login_ip', 'last_login_agent'])  
+        user.save(update_fields=['last_login_ip', 'last_login_agent'])
+        
         # Record login attempt
         LoginAttempt.record_attempt(
             identifier=user.email,
             user=user,
-            result=LoginResult.SUCCESS,
+            result='success',
             ip_address=ip_address,
             user_agent=user_agent,
             request=request
-        )    
-        # Reset failed login attempts
-        user.reset_login_attempts()    
-        # Audit log
+        )
+        
+        user.reset_login_attempts()
+        
         audit_service.log(
             user=user,
             action='user.login',
@@ -244,10 +262,12 @@ def user_logged_in_handler(sender, request, user, **kwargs):
             request=request,
             severity='info',
             metadata={'ip_address': ip_address}
-        )       
+        )
+        
         logger.info(f"User logged in: {user.email} from {ip_address}")
     except Exception as e:
         logger.error(f"Error in user_logged_in_handler: {e}", exc_info=True)
+
 
 @receiver(user_logged_out)
 def user_logged_out_handler(sender, request, user, **kwargs):
@@ -271,28 +291,30 @@ def user_logged_out_handler(sender, request, user, **kwargs):
     except Exception as e:
         logger.error(f"Error in user_logged_out_handler: {e}", exc_info=True)
 
-# @receiver(user_login_failed)
+
+# ✅ FIXED: Added the missing @receiver decorator
+@receiver(user_login_failed)
 def user_login_failed_handler(sender, credentials, request, **kwargs):
     try:
         email = credentials.get('email', credentials.get('username', 'unknown'))
         ip_address = get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
-        # Find user if exists
+        
         user = User.objects.filter(email__iexact=email).first()
-        # Record failed attempt
+        
         LoginAttempt.record_attempt(
             identifier=email,
             user=user,
-            result=LoginResult.FAILURE,
-            failure_reason=LoginFailureReason.WRONG_PASSWORD,
+            result='failure',
+            failure_reason='wrong_password',
             ip_address=ip_address,
             user_agent=user_agent,
             request=request
         )
-        # Increment user login attempts
+        
         if user:
             user.increment_login_attempts()
-        # Audit log
+        
         audit_service.log(
             user=user,
             action='user.login_failed',
@@ -304,10 +326,3 @@ def user_login_failed_handler(sender, credentials, request, **kwargs):
         logger.warning(f"Failed login attempt for {email} from {ip_address}")
     except Exception as e:
         logger.error(f"Error in user_login_failed_handler: {e}", exc_info=True)
-
-def get_client_ip(request):
-    """Extract client IP from request."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        return x_forwarded_for.split(',')[0]
-    return request.META.get('REMOTE_ADDR', '')

@@ -54,12 +54,14 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     locked_until = models.DateTimeField(_('locked until'), null=True, blank=True)
     password_last_changed = models.DateTimeField(default=timezone.now)
     
-    # MFA fields
-    mfa_devices = models.ManyToManyField('accounts.MFADevice', related_name='users', blank=True)
+    # MFA fields - ForeignKey relationship exists in MFADevice model (related_name='auth_devices')
+    # REMOVED: mfa_devices = models.ManyToManyField(...) - duplicate relationship
     mfa_enabled = models.BooleanField(_('MFA enabled'), default=False)
     mfa_secret = models.CharField(_('MFA secret'), max_length=32, blank=True)
     mfa_backup_codes = models.JSONField(_('backup codes'), default=list, blank=True)
     mfa_verified_at = models.DateTimeField(_('MFA verified at'), null=True, blank=True)
+    mfa_required = models.BooleanField(_('MFA required'), null=True, blank=True, help_text='Override role-based MFA policy. If set, this takes precedence.')
+    
     current_session_key = models.CharField(_('current session key'), max_length=300, blank=True, null=True)
     session_expires_at = models.DateTimeField(_('session expires at'), null=True, blank=True)
     
@@ -82,6 +84,9 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
             models.Index(fields=['role', 'tenant_id']),
             models.Index(fields=['manager', 'tenant_id']),
             models.Index(fields=['is_active', 'tenant_id']),
+            # Additional indexes for performance
+            models.Index(fields=['tenant_id', 'is_active', 'role']),
+            models.Index(fields=['tenant_id', 'manager_id']),
         ]
 
     def __str__(self):
@@ -142,11 +147,10 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
                 team.extend(member.get_team_members(visited=visited))
         
         if include_self:
-            # Only add self if we are at the top level of recursion
             if len(visited) == 1:
                 team.insert(0, self)
                 
-        return list(dict.fromkeys(team))  # Remove duplicates while preserving order
+        return list(dict.fromkeys(team))
 
     def get_team_ids(self):
         """Get IDs of all team members"""
@@ -173,11 +177,9 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         if not user or not user.manager_id:
             return False
         
-        # Direct check
         if user.manager_id == self.id:
             return True
             
-        # Recursive check
         team_ids = self.get_team_ids()
         return user.id in team_ids
 

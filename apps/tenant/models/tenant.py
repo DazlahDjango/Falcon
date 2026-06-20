@@ -6,6 +6,70 @@ from django.core.validators import RegexValidator
 from apps.tenant.constants import SchemaType, TenantStatus
 from .base import BaseModel
 import uuid
+import os
+from PIL import Image
+
+
+def tenant_favicon_path(instance, filename):
+    return f"tenants/{instance.slug}/branding/favicon_{filename}"
+
+
+def tenant_logo_path(instance, filename):
+    return f"tenants/{instance.slug}/branding/logo_{filename}"
+
+
+def validate_image_type(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    valid_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
+    if ext not in valid_extensions:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(_("Unsupported file extension. Allowed: PNG, JPG, JPEG, GIF, WEBP, SVG"))
+
+
+def validate_file_size(value):
+    limit = 5 * 1024 * 1024  # 5MB
+    if value.size > limit:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(_("File too large. Size should not exceed 5MB."))
+
+
+def validate_favicon_size(value):
+    limit = 1 * 1024 * 1024  # 1MB
+    if value.size > limit:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(_("Favicon too large. Size should not exceed 1MB."))
+
+
+def validate_favicon_dimensions(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext == '.svg':
+        return
+    try:
+        value.seek(0)
+        with Image.open(value) as img:
+            width, height = img.size
+            if width < 16 or width > 512 or height < 16 or height > 512:
+                from django.core.exceptions import ValidationError
+                raise ValidationError(_("Favicon dimensions must be between 16x16 and 512x512 pixels."))
+        value.seek(0)
+    except Exception:
+        pass
+
+
+def validate_logo_dimensions(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext == '.svg':
+        return
+    try:
+        value.seek(0)
+        with Image.open(value) as img:
+            width, height = img.size
+            if width < 50 or width > 2000 or height < 50 or height > 2000:
+                from django.core.exceptions import ValidationError
+                raise ValidationError(_("Logo dimensions must be between 50x50 and 2000x2000 pixels."))
+        value.seek(0)
+    except Exception:
+        pass
 
 
 class Client(BaseModel):

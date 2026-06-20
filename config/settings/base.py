@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import environ
 from django.utils import timezone
+from django.core.exceptions import ImproperlyConfigured
 from datetime import datetime, timedelta
 import logging
 import json
@@ -195,6 +196,11 @@ MIDDLEWARE = [
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
     'apps.accounts.middleware.TenantAccessMiddleware',
+    # KPI
+    'apps.kpi.middleware.KPIContextMiddleware',
+    'apps.kpi.middleware.KPIRequestAuditMiddleware',
+    'apps.kpi.middleware.KPIThrottleMiddleware',
+    'apps.kpi.middleware.CalculationCacheMiddleware',
     # Tenant
     'apps.tenant.middleware.connection.ConnectionManagementMiddleware',
     'apps.tenant.middleware.connection.TenantConnectionHealthCheckMiddleware',
@@ -203,11 +209,7 @@ MIDDLEWARE = [
     'apps.structure.middleware.StructureCacheMiddleware',
     'apps.structure.middleware.StructureAccessEnforcerMiddleware',
     'apps.structure.middleware.StructureRateLimitMiddleware',
-    # KPI
-    'apps.kpi.middleware.ContextMiddleware',
-    'apps.kpi.middleware.AuditMiddleware',
-    'apps.kpi.middleware.ThrottleMiddleware',
-    'apps.kpi.middleware.CacheMiddleware',
+    
     # # Reviews app middleware (order matters!)
     # 'apps.reviews.middleware.ReviewContextMiddleware',           # Sets current cycle
     # 'apps.reviews.middleware.ReviewCycleHeaderMiddleware',       # Processes cycle header
@@ -234,7 +236,11 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',
+            # Include frontend templates (email templates, etc.)
+            BASE_DIR / 'frontend' / 'src' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -697,6 +703,7 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 10,  # 10 MB
             'backupCount': 5,
             'formatter': 'json',
+            'delay': True,
         },
         'audit': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -704,6 +711,7 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 10,
             'backupCount': 5,
             'formatter': 'json',
+            'delay': True,
         },
     },
     'root': {
@@ -755,12 +763,42 @@ AXES_LOCKOUT_PARAMETERS = [
 # AXES_ONLY_USER_FAILURES = False  # Track by username AND IP
 # AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
 
-# ----------------------------------------------------------------------------
-# DJANGO OTP (MFA) CONFIGURATION
-# ----------------------------------------------------------------------------
+# ============================================================
+# MFA (Multi-Factor Authentication) Configuration
+# ============================================================
+
+MFA_ENCRYPTION_KEY = env('MFA_ENCRYPTION_KEY', default=None)
+if not MFA_ENCRYPTION_KEY and not DEBUG:
+    raise ImproperlyConfigured(
+        "MFA_ENCRYPTION_KEY must be set in production for MFA to work"
+    )
+
+# MFA Security Limits
+MFA_MAX_FAILURES = env.int('MFA_MAX_FAILURES', default=5)
+MFA_LOCKOUT_MINUTES = env.int('MFA_LOCKOUT_MINUTES', default=15)
+MFA_RATE_LIMIT_ATTEMPTS = env.int('MFA_RATE_LIMIT_ATTEMPTS', default=10)
+MFA_RATE_LIMIT_WINDOW_MINUTES = env.int('MFA_RATE_LIMIT_WINDOW_MINUTES', default=5)
+
+# TOTP Settings (already in your settings, but ensure they exist)
 OTP_TOTP_ISSUER = env('OTP_TOTP_ISSUER', default='FalconPMS')
-OTP_TOTP_DIGITS = 6
-OTP_TOTP_INTERVAL = 30  # 30 seconds
+OTP_TOTP_DIGITS = env.int('OTP_TOTP_DIGITS', default=6)
+OTP_TOTP_INTERVAL = env.int('OTP_TOTP_INTERVAL', default=30)
+
+# Backup Code Settings
+MFA_BACKUP_CODE_COUNT = env.int('MFA_BACKUP_CODE_COUNT', default=10)
+MFA_BACKUP_CODE_EXPIRY_DAYS = env.int('MFA_BACKUP_CODE_EXPIRY_DAYS', default=90)
+
+# Session & Trust Settings
+MFA_SESSION_TIMEOUT_MINUTES = env.int('MFA_SESSION_TIMEOUT_MINUTES', default=15)
+MFA_REMEMBER_DEVICE_DAYS = env.int('MFA_REMEMBER_DEVICE_DAYS', default=30)
+
+# Feature flags
+MFA_ALLOW_MULTIPLE_DEVICES = env.bool('MFA_ALLOW_MULTIPLE_DEVICES', default=True)
+MFA_REQUIRE_FOR_ADMIN = env.bool('MFA_REQUIRE_FOR_ADMIN', default=True)
+MFA_REQUIRE_FOR_EXECUTIVE = env.bool('MFA_REQUIRE_FOR_EXECUTIVE', default=True)
+
+# Audit retention
+MFA_AUDIT_LOG_RETENTION_DAYS = env.int('MFA_AUDIT_LOG_RETENTION_DAYS', default=90)
 
 # ----------------------------------------------------------------------------
 # AUDITLOG CONFIGURATION

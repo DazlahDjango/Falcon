@@ -4,9 +4,6 @@
 
 import axios from 'axios';
 import { getAccessToken, getRefreshToken, getTenantId, clearTenantId, clearTokens } from '../accounts/storage/secureStorage';
-import { store } from '../../store';
-import { logout } from '../../store/accounts/slice/authSlice';
-import { showToast } from '../../store/ui/slices/uiSlice';
 // ========== API Configuration ==========
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const REVIEWS_API_BASE = `${API_BASE_URL}/reviews`;

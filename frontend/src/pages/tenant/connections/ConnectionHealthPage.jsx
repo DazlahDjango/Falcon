@@ -1,188 +1,241 @@
-import React, { useEffect } from 'react';
-import { 
-    FiHeart, FiCheckCircle, FiShield, FiAlertTriangle, 
-    FiActivity, FiRefreshCw, FiAlertCircle, FiClock 
+import React, { useEffect, useCallback, useMemo } from 'react';
+import {
+    FiHeart, FiCheckCircle, FiAlertTriangle,
+    FiActivity, FiRefreshCw, FiAlertCircle, FiClock
 } from 'react-icons/fi';
 import { useHealthDashboard } from '../../../hooks/tenant';
 import { useTenants } from '../../../hooks/tenant';
 
 export const ConnectionHealthPage = () => {
-    const { 
-        healthStatus, 
-        healthSummary, 
-        loading, 
+    const {
+        healthStatus,
+        healthSummary,
+        loading,
         checkAllTenants,
-        checkTenant
+        checkTenant,
+        getUnhealthyTenants,
+        healthyCount,
+        unhealthyCount
     } = useHealthDashboard();
 
-    const { tenants, refetch: fetchAllTenants } = useTenants();
+    const { tenants, refetch: fetchAllTenants, isLoading: tenantsLoading } = useTenants();
 
+    // Fetch tenants on mount
     useEffect(() => {
         if (fetchAllTenants) {
             fetchAllTenants();
         }
     }, [fetchAllTenants]);
 
-    const handleRunScan = async () => {
-        const tenantIds = tenants.map(t => t.id);
-        await checkAllTenants(tenantIds);
-    };
+    // Handle batch scan
+    const handleRunScan = useCallback(async () => {
+        if (tenants && tenants.length > 0) {
+            const tenantIds = tenants.map(t => t.id);
+            await checkAllTenants(tenantIds);
+        }
+    }, [tenants, checkAllTenants]);
 
-    const handleCheckSingle = async (tenantId) => {
+    // Handle single tenant check
+    const handleCheckSingle = useCallback(async (tenantId) => {
         await checkTenant(tenantId);
-    };
+    }, [checkTenant]);
 
-    if (loading && Object.keys(healthStatus).length === 0) {
+    // Memoized summary stats
+    const summaryStats = useMemo(() => [
+        {
+            label: 'Healthy Tenants',
+            value: healthyCount,
+            icon: FiCheckCircle,
+            color: 'green'
+        },
+        {
+            label: 'Unhealthy',
+            value: unhealthyCount,
+            icon: FiAlertTriangle,
+            color: 'red'
+        },
+        {
+            label: 'Avg Latency',
+            value: `${Math.round(healthSummary?.average_response_ms || healthSummary?.avg_response_time || 0)}ms`,
+            icon: FiActivity,
+            color: 'blue'
+        },
+    ], [healthyCount, unhealthyCount, healthSummary]);
+
+    // Get unhealthy tenants list
+    const unhealthyTenants = useMemo(() => getUnhealthyTenants(), [getUnhealthyTenants]);
+
+    // Loading state
+    if ((loading || tenantsLoading) && (!healthStatus || Object.keys(healthStatus).length === 0)) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <div className="kpi-spinner" />
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <p className="text-slate-600">Loading health dashboard...</p>
+                </div>
             </div>
         );
     }
 
-    const summaryStats = [
-        { 
-            label: 'Healthy Tenants', 
-            value: healthSummary?.healthy || 0, 
-            icon: FiCheckCircle, 
-            color: 'green' 
-        },
-        { 
-            label: 'Unhealthy', 
-            value: healthSummary?.unhealthy || 0, 
-            icon: FiAlertTriangle, 
-            color: 'red' 
-        },
-        { 
-            label: 'Avg Latency', 
-            value: `${healthSummary?.avg_response_time || 0}ms`, 
-            icon: FiActivity, 
-            color: 'blue' 
-        },
-    ];
-
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
-            <div className="flex items-center justify-between">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="p-4 bg-green-50 rounded-3xl">
-                        <FiHeart className={`h-8 w-8 text-green-600 ${healthSummary?.unhealthy === 0 ? 'animate-pulse' : ''}`} />
+                    <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl">
+                        <FiHeart className={`h-8 w-8 ${unhealthyCount === 0 ? 'text-green-600 animate-pulse' : 'text-green-600'}`} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">System Health</h1>
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">System Health</h1>
                         <p className="text-slate-500 mt-1">Verification of database stability and integrity</p>
                     </div>
                 </div>
-                <button 
+                <button
                     onClick={handleRunScan}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all disabled:opacity-50"
+                    disabled={loading || tenantsLoading}
+                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
-                    <FiRefreshCw className={loading ? 'animate-spin' : ''} />
+                    <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                     Run Deep Scan
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {summaryStats.map((stat, i) => (
-                    <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm transition-all">
-                        <div className={`h-12 w-12 bg-${stat.color}-50 rounded-2xl flex items-center justify-center mb-4`}>
-                            <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {summaryStats.map((stat, i) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                            <div className={`h-12 w-12 bg-${stat.color}-100 rounded-xl flex items-center justify-center mb-4`}>
+                                <Icon className={`h-6 w-6 text-${stat.color}-600`} />
+                            </div>
+                            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{stat.label}</h4>
+                            <p className="text-3xl font-bold mt-2 text-slate-900">{stat.value}</p>
                         </div>
-                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</h4>
-                        <p className={`text-2xl font-black mt-1 text-slate-900`}>{stat.value}</p>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
-            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
-                <div className="p-8 border-b border-slate-50 bg-slate-50/30">
-                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Tenant Connectivity Matrix</h3>
+            {/* Tenants Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 className="text-lg font-semibold text-slate-900">Tenant Connectivity Matrix</h3>
+                    <p className="text-sm text-slate-500 mt-1">Real-time health status of all tenant databases</p>
                 </div>
+
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50/10">
-                                <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Tenant</th>
-                                <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Latency</th>
-                                <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Last Check</th>
-                                <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                    <table className="w-full">
+                        <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Tenant</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Latency</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Last Check</th>
+                                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {tenants.map((tenant) => {
-                                const status = healthStatus[tenant.id];
-                                return (
-                                    <tr key={tenant.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-8 py-5">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 bg-slate-100 rounded-lg flex items-center justify-center text-xs font-bold text-slate-500">
-                                                    {tenant.name.substring(0, 2).toUpperCase()}
+                        <tbody className="divide-y divide-slate-100">
+                            {tenants && tenants.length > 0 ? (
+                                tenants.map((tenant) => {
+                                    const status = healthStatus?.[tenant.id];
+                                    return (
+                                        <tr key={tenant.id} className="hover:bg-slate-50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-9 w-9 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center text-sm font-bold text-slate-600">
+                                                        {tenant.name?.substring(0, 2).toUpperCase() || 'TN'}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-slate-900">{tenant.name}</p>
+                                                        <p className="text-xs text-slate-500">{tenant.schema_name || tenant.slug}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-900">{tenant.name}</p>
-                                                    <p className="text-xs text-slate-400 font-medium">{tenant.schema_name}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            {status ? (
-                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${status.is_healthy ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                                                    <div className={`h-1.5 w-1.5 rounded-full ${status.is_healthy ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
-                                                    {status.is_healthy ? 'Healthy' : 'Error'}
-                                                </div>
-                                            ) : (
-                                                <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Not Checked</span>
-                                            )}
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="flex items-center gap-2">
-                                                <FiActivity className="text-slate-300" />
-                                                <span className="text-sm font-bold text-slate-600">
-                                                    {status?.response_time_ms ? `${status.response_time_ms}ms` : '--'}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                                                <FiClock />
-                                                {status?.last_successful_check ? new Date(status.last_successful_check).toLocaleTimeString() : 'Never'}
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5 text-right">
-                                            <button 
-                                                onClick={() => handleCheckSingle(tenant.id)}
-                                                className="p-2 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
-                                                title="Check Connection"
-                                            >
-                                                <FiRefreshCw className={loading ? 'animate-spin' : ''} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {status ? (
+                                                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${status.is_healthy ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                        <span className={`h-2 w-2 rounded-full ${status.is_healthy ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+                                                        {status.is_healthy ? 'Healthy' : 'Unhealthy'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-slate-400">Not checked</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {status?.response_time_ms ? (
+                                                    <span className="text-sm text-slate-600">
+                                                        {status.response_time_ms}ms
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm text-slate-400">--</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {status?.last_successful_check ? (
+                                                    <span className="text-xs text-slate-500">
+                                                        {new Date(status.last_successful_check).toLocaleString()}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-slate-400">Never</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button
+                                                    onClick={() => handleCheckSingle(tenant.id)}
+                                                    disabled={loading}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50"
+                                                    title="Check health"
+                                                >
+                                                    <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                                        No tenants found
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
 
             {/* Error Details Section */}
-            {Object.values(healthStatus).some(h => !h.is_healthy) && (
-                <div className="bg-red-50 border border-red-100 rounded-[2.5rem] p-8">
-                    <div className="flex items-center gap-3 mb-6">
-                        <FiAlertCircle className="h-6 w-6 text-red-600" />
-                        <h3 className="text-xl font-bold text-red-900">Health Issues Detected</h3>
+            {unhealthyTenants.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-red-100 rounded-lg">
+                            <FiAlertCircle className="h-5 w-5 text-red-600" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-red-800">Health Issues Detected</h3>
+                            <p className="text-sm text-red-600">
+                                {unhealthyTenants.length} tenant(s) require attention
+                            </p>
+                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.values(healthStatus).filter(h => !h.is_healthy).map((issue, i) => (
-                            <div key={i} className="bg-white/50 border border-red-200 p-4 rounded-2xl flex gap-4">
-                                <div className="p-2 bg-red-100 rounded-xl h-fit">
-                                    <FiAlertTriangle className="text-red-600" />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-red-900">Tenant: {issue.tenant_id}</p>
-                                    <p className="text-sm text-red-700/80 mt-1">{issue.error_message || 'Database connection timeout'}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {unhealthyTenants.map((issue, i) => (
+                            <div key={i} className="bg-white rounded-lg p-4 border border-red-100">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-1.5 bg-red-100 rounded-lg">
+                                        <FiAlertTriangle className="h-4 w-4 text-red-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-red-800 text-sm">Tenant: {issue.tenant_id}</p>
+                                        <p className="text-sm text-red-600 mt-1">
+                                            {issue.error_message || 'Connection failed or timeout occurred'}
+                                        </p>
+                                        {issue.response_time_ms && (
+                                            <p className="text-xs text-red-500 mt-2">
+                                                Response time: {issue.response_time_ms}ms
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -194,4 +247,3 @@ export const ConnectionHealthPage = () => {
 };
 
 export default ConnectionHealthPage;
-

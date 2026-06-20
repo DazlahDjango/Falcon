@@ -1,0 +1,134 @@
+.enterprise-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.enterprise-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.add-override-btn,
+.refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+}
+
+.add-override-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+.refresh-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.overrides-table-container {
+    overflow-x: auto;
+}
+
+.overrides-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.overrides-table th,
+.overrides-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.overrides-table th {
+    background: #f9fafb;
+    font-weight: 600;
+}
+
+.mono {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 6px;
+    border-radius: 6px;
+}
+
+.action-btn:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+}
+
+.action-btn.danger:hover {
+    color: #dc2626;
+}
+
+.enterprise-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.enterprise-modal {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.enterprise-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.enterprise-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.enterprise-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}

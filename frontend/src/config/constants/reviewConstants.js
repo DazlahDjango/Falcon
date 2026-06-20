@@ -1,5 +1,23 @@
 // src/config/constants/reviewConstants.js
 
+// Analytics Periods
+export const ANALYTICS_PERIODS = {
+  WEEK: 'week',
+  MONTH: 'month',
+  QUARTER: 'quarter',
+  YEAR: 'year',
+  CUSTOM: 'custom',
+};
+
+// Analytics Period Labels
+export const ANALYTICS_PERIOD_LABELS = {
+  week: 'This Week',
+  month: 'This Month',
+  quarter: 'This Quarter',
+  year: 'This Year',
+  custom: 'Custom Range',
+};
+
 // Scoring Thresholds
 export const REVIEW_SCORE_THRESHOLDS = {
   GREEN_MIN: 80,
@@ -203,4 +221,99 @@ export const REVIEW_WS_EVENTS = {
   CALIBRATION_ADJUSTMENT: 'calibration_adjustment',
   CALIBRATION_CHAT: 'calibration_chat',
   NOTIFICATION: 'notification',
+};
+
+// Insight Types
+export const INSIGHT_TYPES = {
+  POSITIVE: 'positive',
+  WARNING: 'warning',
+  NEGATIVE: 'negative',
+  INFO: 'info',
+};
+
+// Risk Levels
+export const RISK_LEVELS = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  CRITICAL: 'critical',
+};
+
+// Risk Level Labels
+export const RISK_LEVEL_LABELS = {
+  [RISK_LEVELS.LOW]: 'Low',
+  [RISK_LEVELS.MEDIUM]: 'Medium',
+  [RISK_LEVELS.HIGH]: 'High',
+  [RISK_LEVELS.CRITICAL]: 'Critical',
+};
+
+// Risk Level Colors
+export const RISK_LEVEL_COLORS = {
+  [RISK_LEVELS.LOW]: '#10b981',   // green
+  [RISK_LEVELS.MEDIUM]: '#f59e0b', // amber
+  [RISK_LEVELS.HIGH]: '#ef4444',   // red
+  [RISK_LEVELS.CRITICAL]: '#dc2626', // dark red
+};
+
+// Widget Types
+export const WIDGET_TYPES = {
+  SCORE_TREND: 'score_trend',
+  RATING_DISTRIBUTION: 'rating_distribution',
+  HIGH_RISK_EMPLOYEES: 'high_risk_employees',
+  INSIGHTS: 'insights',
+  COMPLETION_RATE: 'completion_rate',
+  DEPARTMENT_RANKING: 'department_ranking',
+};
+
+// Widget Type Labels
+export const WIDGET_TYPE_LABELS = {
+  [WIDGET_TYPES.SCORE_TREND]: 'Score Trend',
+  [WIDGET_TYPES.RATING_DISTRIBUTION]: 'Rating Distribution',
+  [WIDGET_TYPES.HIGH_RISK_EMPLOYEES]: 'High Risk Employees',
+  [WIDGET_TYPES.INSIGHTS]: 'AI Insights',
+  [WIDGET_TYPES.COMPLETION_RATE]: 'Cycle Completion Rate',
+  [WIDGET_TYPES.DEPARTMENT_RANKING]: 'Department Ranking',
+};
+
+// Widget Sizes
+export const WIDGET_SIZES = {
+  SMALL: 'small',
+  MEDIUM: 'medium',
+  LARGE: 'large',
+};
+
+// Report Formats
+export const REPORT_FORMATS = {
+  CSV: 'csv',
+  EXCEL: 'excel',
+  PDF: 'pdf',
+};
+
+// Report Format Labels
+export const REPORT_FORMAT_LABELS = {
+  [REPORT_FORMATS.CSV]: 'CSV',
+  [REPORT_FORMATS.EXCEL]: 'Excel',
+  [REPORT_FORMATS.PDF]: 'PDF',
+};
+
+// Report Types
+export const REPORT_TYPES = {
+  COMPANY: 'company',
+  CYCLE: 'cycle',
+  DEPARTMENT: 'department',
+  TEAM: 'team',
+  EMPLOYEE: 'employee',
+  PIP: 'pip',
+  CALIBRATION: 'calibration',
+};
+
+// Report Type Labels
+export const REPORT_TYPE_LABELS = {
+  [REPORT_TYPES.COMPANY]: 'Organization Report',
+  [REPORT_TYPES.CYCLE]: 'Cycle Summary',
+  [REPORT_TYPES.DEPARTMENT]: 'Department Report',
+  [REPORT_TYPES.TEAM]: 'Team Report',
+  [REPORT_TYPES.EMPLOYEE]: 'Employee Report',
+  [REPORT_TYPES.PIP]: 'PIP Summary',
+  [REPORT_TYPES.CALIBRATION]: 'Calibration Report',
 };

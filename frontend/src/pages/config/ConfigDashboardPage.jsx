@@ -36,3 +36,4 @@ export const ConfigDashboardPage = () => {
     </div>
   );
 };
+export default ConfigDashboardPage;

@@ -3,11 +3,8 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
 import { useReadOnlyDashboard } from '../../../hooks/dashboard/useReadOnlyDashboard';
-<<<<<<< HEAD
 import { fetchReadOnlyDashboard } from '../../../store/dashboard/slices/readOnlyDashboardSlice';
 import { setActiveDashboard } from '../../../store/dashboard/slices/dashboardSlice';
-=======
->>>>>>> 5f1485efe72578f098c861e800fe246c25520289
 
 const ReadOnlyDashboard = () => {
   const [currentView, setCurrentView] = useState('executive');

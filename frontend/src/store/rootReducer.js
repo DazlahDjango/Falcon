@@ -19,39 +19,31 @@ import preferenceReducer from './accounts/slice/preferenceSlice';
 import accountsTeamReducer from './accounts/slice/teamSlice';
 import accountsUiReducer from './accounts/slice/uiSlice';
 import accountsSecurityReducer from './accounts/slice/securitySlice';
-
+import mfaReducer from './accounts/slice/mfaSlice';
+import profileReducer from './accounts/slice/profileSlice';
+import adminMfaReducer from './accounts/slice/adminMfaSlice';
 // =============================================
 // Structure Reducers
 // =============================================
 import structNotificationReducer from './structure/notificationSlice';
 import uiReducer from './ui/slices/uiSlice'
 import {
-  departmentReducer,
-  teamReducer,
-  positionReducer,
-  employmentReducer,
-  reportingReducer,
-  hierarchyReducer,
-  orgChartReducer,
-  costCenterReducer,
-  locationReducer,
-  structureUiReducer,
+    departmentReducer,
+    teamReducer,
+    positionReducer,
+    employmentReducer,
+    reportingReducer,
+    hierarchyReducer,
+    orgChartReducer,
+    costCenterReducer,
+    locationReducer,
+    structureUiReducer,
 } from './structure';
 
 // ==========================================
 // KPI Reducers
 // ==========================================
-import kpiReducer from './kpi/slice/kpi';
-import targetReducer from './kpi/slice/kpi/targetSlice';
-import actualReducer from './kpi/slice/kpi/actualSlice';
-import scoreReducer from './kpi/slice/kpi/scoreSlice';
-import validationReducer from './kpi/slice/kpi/validationSlice';
-import frameworkReducer from './kpi/slice/kpi/frameworkSlice';
-import kpiDashboardReducer from './kpi/slice/kpi/dashboardSlice';
-import kpiRealtimeReducer from './kpi/slice/kpiRealtimeSlice';
-import kpiUiReducer from './kpi/slice/ui';
-import kpiNotificationReducer from './kpi/notificationSlice';
-import kpiAnalyticsReducer from './kpi/analyticsSlice';
+import kpiModuleReducer from './kpi/index';
 
 // ==========================================
 // TENANT APP REDUCERS (ADD THIS)
@@ -95,6 +87,9 @@ const rootReducer = combineReducers({
     executive: executiveReducer,
     preferences: preferenceReducer,
     accTeam: accountsTeamReducer,
+    mfa: mfaReducer,
+    adminMfa: adminMfaReducer,
+    profile: profileReducer,
     ui: accountsUiReducer,
     accountsSecurity: accountsSecurityReducer,
 
@@ -125,19 +120,10 @@ const rootReducer = combineReducers({
         locations: locationReducer,
         ui: structureUiReducer,
     }),
-    
+
     // KPI State
-    kpi: kpiReducer,
-    target: targetReducer,
-    actual: actualReducer,
-    score: scoreReducer,
-    validation: validationReducer,
-    framework: frameworkReducer,
-    kpiDashboard: kpiDashboardReducer,
-    kpiRealtime: kpiRealtimeReducer,
-    kpiUi: kpiUiReducer,
-    kpiNotifications: kpiNotificationReducer,
-    kpiAnalytics: kpiAnalyticsReducer,
+    kpi: kpiModuleReducer,
+    kpis: kpiModuleReducer, // Add alias for redundancy
 
     // Billing State
     billing: billingReducer,

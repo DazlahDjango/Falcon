@@ -1,110 +1,110 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { PlanSelector } from '../plans/PlanSelector';
-import { usePlans, useSubscription } from '../../../hooks/billing';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import React, { useState, useEffect } from 'react';
+import { FiX, FiArrowUp, FiArrowDown, FiCheck, FiAlertCircle } from 'react-icons/fi';
+import { useSubscription } from '../../../hooks/billing/useSubscription';
+import { usePlans } from '../../../hooks/billing/usePlans';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import { PriceDisplay } from '../shared/PriceDisplay';
+import './subscription.css';
 
-export const UpgradeDowngradeModal = ({ isOpen, onClose, subscription, changeType, onSuccess }) => {
-    const [loading, setLoading] = useState(false);
-    const { plans, loading: plansLoading } = usePlans();
-    const { upgradePlan, downgradePlan } = useSubscription();
+export const UpgradeDowngradeModal = ({ subscription, direction, onClose, onSuccess }) => {
+    const { upgrade, downgrade, loading } = useSubscription();
+    const { plans, fetchAllPlans } = usePlans({ autoFetch: true });
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [immediate, setImmediate] = useState(true);
+    const [step, setStep] = useState('select');
 
-    if (!isOpen) return null;
+    useEffect(() => { if (!plans.length) fetchAllPlans({}); }, [plans.length, fetchAllPlans]);
 
-    const isUpgrade = changeType === 'upgrade';
-    const title = isUpgrade ? 'Upgrade Plan' : 'Downgrade Plan';
-    const subtitle = isUpgrade 
-        ? 'Choose a higher-tier plan to unlock more features'
-        : 'Choose a lower-tier plan (changes apply at next billing cycle)';
-
-    const handleSelectPlan = async (plan, billingCycle) => {
-        setLoading(true);
-        try {
-            if (isUpgrade) {
-                await upgradePlan(plan.id, false);
-            } else {
-                await downgradePlan(plan.id, false);
-            }
-            onSuccess?.();
-        } catch (error) {
-            console.error('[UpgradeDowngradeModal] Error:', error);
-            alert(`Failed to ${isUpgrade ? 'upgrade' : 'downgrade'} plan. Please try again.`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const filteredPlans = plans.filter(p => {
-        if (isUpgrade) {
-            // Show higher-tier plans only
-            const upgradeOrder = { basic: 'professional', professional: 'enterprise' };
-            return p.plan_type === upgradeOrder[subscription?.plan?.plan_type];
+    const availablePlans = plans.filter(p => {
+        if (direction === 'upgrade') {
+            if (subscription.plan?.plan_type === 'basic') return p.plan_type === 'professional' || p.plan_type === 'enterprise';
+            if (subscription.plan?.plan_type === 'professional') return p.plan_type === 'enterprise';
+            return false;
         } else {
-            // Show lower-tier plans only
-            const downgradeOrder = { enterprise: 'professional', professional: 'basic' };
-            return p.plan_type === downgradeOrder[subscription?.plan?.plan_type];
+            if (subscription.plan?.plan_type === 'enterprise') return p.plan_type === 'professional' || p.plan_type === 'basic';
+            if (subscription.plan?.plan_type === 'professional') return p.plan_type === 'basic';
+            return false;
         }
     });
 
-    const handleBackdropClick = (e) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
+    const handleProceed = async () => {
+        if (!selectedPlan) return;
+        setStep('processing');
+        try {
+            if (direction === 'upgrade') await upgrade(subscription.id, selectedPlan.id, immediate);
+            else await downgrade(subscription.id, selectedPlan.id, immediate);
+            if (onSuccess) onSuccess();
+            setStep('success');
+            setTimeout(() => onClose(), 2000);
+        } catch (error) { setStep('error'); }
     };
 
+    const getProrationInfo = () => {
+        if (!selectedPlan || !immediate) return null;
+        const daysRemaining = subscription.days_until_expiry;
+        const totalDays = 30;
+        const remainingValue = (subscription.amount / totalDays) * daysRemaining;
+        const newPlanCost = (selectedPlan.price / totalDays) * daysRemaining;
+        const additional = newPlanCost - remainingValue;
+        if (additional > 0) return { additional, message: `You'll pay an additional ${CurrencyFormatter({ amount: additional, currency: subscription.currency })} for the remaining ${daysRemaining} days.` };
+        if (additional < 0) return { additional, message: `You'll receive a credit of ${CurrencyFormatter({ amount: Math.abs(additional), currency: subscription.currency })}.` };
+        return { additional: 0, message: 'No additional charge for this upgrade.' };
+    };
+
+    const proration = getProrationInfo();
+
+    if (step === 'success') {
+        return (<div className="upgrade-modal-overlay" onClick={onClose}><div className="upgrade-modal success" onClick={(e) => e.stopPropagation()}><div className="success-icon"><FiCheck /></div><h3>{direction === 'upgrade' ? 'Upgrade' : 'Downgrade'} Successful!</h3><p>Your plan has been successfully {direction === 'upgrade' ? 'upgraded' : 'downgraded'}.</p></div></div>);
+    }
+
+    if (step === 'error') {
+        return (<div className="upgrade-modal-overlay" onClick={onClose}><div className="upgrade-modal error" onClick={(e) => e.stopPropagation()}><div className="error-icon"><FiAlertCircle /></div><h3>{direction === 'upgrade' ? 'Upgrade' : 'Downgrade'} Failed</h3><p>Something went wrong. Please try again or contact support.</p><button onClick={() => setStep('select')}>Try Again</button></div></div>);
+    }
+
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
-            <div className="modal upgrade-modal">
-                <div className="modal-header">
-                    <h3 className="modal-title">{title}</h3>
-                    <button className="modal-close" onClick={onClose}>×</button>
+        <div className="upgrade-modal-overlay" onClick={onClose}>
+            <div className="upgrade-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="upgrade-modal-header">
+                    <h3>{direction === 'upgrade' ? <><FiArrowUp /> Upgrade Plan</> : <><FiArrowDown /> Downgrade Plan</>}</h3>
+                    <button className="close-btn" onClick={onClose}><FiX /></button>
                 </div>
 
-                <div className="modal-body">
-                    <div className="upgrade-modal-current">
-                        <span>Current Plan:</span>
-                        <strong>{subscription?.plan?.name}</strong>
-                    </div>
+                <div className="upgrade-modal-body">
+                    <div className="current-plan-badge">Current: {subscription.plan?.name} ({CurrencyFormatter({ amount: subscription.amount, currency: subscription.currency })}/{subscription.billing_interval})</div>
 
-                    {plansLoading ? (
-                        <div className="upgrade-modal-loading">Loading plans...</div>
-                    ) : (
-                        <PlanSelector
-                            plans={filteredPlans}
-                            onSelect={handleSelectPlan}
-                            title={title}
-                            subtitle={subtitle}
-                        />
-                    )}
-
-                    {!isUpgrade && (
-                        <div className="upgrade-modal-note">
-                            <span>{renderBillingIcon('info', { size: 18 })}</span>
-                            <p>
-                                Downgrades take effect at the start of your next billing cycle.
-                                You'll keep access to current features until then.
-                            </p>
+                    <div className="plan-selector">
+                        <h4>Select New Plan</h4>
+                        <div className="plan-options">
+                            {availablePlans.map(plan => (
+                                <div key={plan.id} className={`plan-option ${selectedPlan?.id === plan.id ? 'selected' : ''}`} onClick={() => setSelectedPlan(plan)}>
+                                    <div className="plan-option-name">{plan.name}</div>
+                                    <PriceDisplay price={plan.price} yearlyPrice={plan.yearly_price} currency={plan.currency} showYearly={false} />
+                                    <div className="plan-option-features">{plan.max_users === -1 ? 'Unlimited users' : `Up to ${plan.max_users} users`}</div>
+                                    {selectedPlan?.id === plan.id && <FiCheck className="check-icon" />}
+                                </div>
+                            ))}
                         </div>
-                    )}
+                    </div>
+
+                    <div className="upgrade-timing">
+                        <label className="radio-label"><input type="radio" checked={immediate} onChange={() => setImmediate(true)} /> Apply immediately<span className="radio-desc">{proration?.message || 'Changes will take effect right away.'}</span></label>
+                        <label className="radio-label"><input type="radio" checked={!immediate} onChange={() => setImmediate(false)} /> Apply at next billing cycle<span className="radio-desc">Changes will take effect on {new Date(subscription.current_period_end).toLocaleDateString()}</span></label>
+                    </div>
+
+                    <div className="upgrade-summary">
+                        <div className="summary-row"><span>Current monthly price</span><span><CurrencyFormatter amount={subscription.amount} currency={subscription.currency} /></span></div>
+                        <div className="summary-row"><span>New monthly price</span><span><CurrencyFormatter amount={selectedPlan?.price || 0} currency={subscription.currency} /></span></div>
+                        {immediate && proration && proration.additional !== 0 && (<div className={`summary-row highlight ${proration.additional > 0 ? 'positive' : 'negative'}`}><span>Today's charge</span><span>{proration.additional > 0 ? '+' : ''}<CurrencyFormatter amount={Math.abs(proration.additional)} currency={subscription.currency} /></span></div>)}
+                    </div>
                 </div>
 
-                {loading && (
-                    <div className="modal-loading-overlay">
-                        <div className="modal-loading-spinner"></div>
-                        <p>Processing your request...</p>
-                    </div>
-                )}
+                <div className="upgrade-modal-footer">
+                    <button className="cancel-btn" onClick={onClose}>Cancel</button>
+                    <button className="confirm-btn" onClick={handleProceed} disabled={!selectedPlan || loading}>{loading ? 'Processing...' : `${direction === 'upgrade' ? 'Upgrade' : 'Downgrade'} Now`}</button>
+                </div>
             </div>
         </div>
     );
-};
-
-UpgradeDowngradeModal.propTypes = {
-    isOpen: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    subscription: PropTypes.object.isRequired,
-    changeType: PropTypes.oneOf(['upgrade', 'downgrade']),
-    onSuccess: PropTypes.func,
 };
 
 export default UpgradeDowngradeModal;

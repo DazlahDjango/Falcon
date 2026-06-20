@@ -1,15 +1,22 @@
 import React from 'react';
 import { FiCreditCard } from 'react-icons/fi';
+import { FaCcVisa, FaCcMastercard, FaCcAmex, FaCcDiscover } from 'react-icons/fa';
+import './shared.css';
 
-export const CardBrandIcon = ({ brand, size = 24 }) => {
-    const brandLower = brand?.toLowerCase();
-    const colors = {
-        visa: '#1A1F71',
-        mastercard: '#EB001B',
-        'american express': '#2E77BC',
-        amex: '#2E77BC',
-        discover: '#FF6000',
-    };
-
-    return <FiCreditCard size={size} color={colors[brandLower] || '#6B7280'} />;
+const BRAND_ICONS = {
+    visa: FaCcVisa,
+    mastercard: FaCcMastercard,
+    'american express': FaCcAmex,
+    amex: FaCcAmex,
+    discover: FaCcDiscover,
 };
+
+export const CardBrandIcon = ({ brand, size = 24, className = '' }) => {
+    const IconComponent = BRAND_ICONS[brand?.toLowerCase()];
+    if (!IconComponent) {
+        return <FiCreditCard size={size} className={`card-brand-icon card-brand-default ${className}`} />;
+    }
+    return <IconComponent size={size} className={`card-brand-icon card-brand-${brand?.toLowerCase().replace(' ', '-')} ${className}`} />;
+};
+
+export default CardBrandIcon;

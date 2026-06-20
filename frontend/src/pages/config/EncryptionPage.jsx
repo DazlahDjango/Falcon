@@ -22,3 +22,4 @@ export const EncryptionPage = () => {
     </div>
   );
 };
+export default EncryptionPage;

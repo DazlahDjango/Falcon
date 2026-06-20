@@ -16,7 +16,6 @@ class UserFilter(BaseFilter, SearchFilter):
     last_login_after = django_filters.DateTimeFilter(field_name='last_login', lookup_expr='gte')
     last_login_before = django_filters.DateTimeFilter(field_name='last_login', lookup_expr='lte')
     manager_id = django_filters.UUIDFilter(field_name='manager__id')
-    # department_id = django_filters.UUIDFilter(field_name='department__id')
     tenant_id = django_filters.UUIDFilter(field_name='tenant_id')
     is_locked = django_filters.BooleanFilter(method='filter_is_locked')
     is_manager = django_filters.BooleanFilter(method='filter_is_manager')
@@ -27,11 +26,12 @@ class UserFilter(BaseFilter, SearchFilter):
             'email', 'username', 'first_name', 'last_name', 'role', 'created_at', 'last_login', 'joined_at'
         )
     )
+    
     class Meta:
         model = User
         fields = [
             'role', 'is_active', 'is_verified', 'is_onboarded',
-            'mfa_enabled', 'manager_id', 'tenant_id' # department_id
+            'mfa_enabled', 'manager_id', 'tenant_id'
         ]
 
     def filter_is_locked(self, queryset, name, value):
@@ -53,6 +53,37 @@ class UserFilter(BaseFilter, SearchFilter):
         return queryset.filter(
             models.Q(email__icontains=value) |
             models.Q(username__icontains=value) |
-            models.Q(first_name__icontains = value) |
+            models.Q(first_name__icontains=value) |
             models.Q(last_name__icontains=value)
         )
+    
+    # ✅ Added helper methods for role-specific filtering (consistent naming)
+    def super_admins(self, queryset, name, value):
+        if value:
+            return queryset.filter(role='super_admin')
+        return queryset.exclude(role='super_admin')
+    
+    def client_admins(self, queryset, name, value):  # FIXED: was 'client_admin'
+        if value:
+            return queryset.filter(role='client_admin')
+        return queryset.exclude(role='client_admin')
+    
+    def executives(self, queryset, name, value):
+        if value:
+            return queryset.filter(role='executive')
+        return queryset.exclude(role='executive')
+    
+    def supervisors(self, queryset, name, value):
+        if value:
+            return queryset.filter(role='supervisor')
+        return queryset.exclude(role='supervisor')
+    
+    def staff(self, queryset, name, value):
+        if value:
+            return queryset.filter(role='staff')
+        return queryset.exclude(role='staff')
+    
+    def read_only(self, queryset, name, value):
+        if value:
+            return queryset.filter(role='read_only')
+        return queryset.exclude(role='read_only')

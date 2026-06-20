@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getCurrentUser } from '../../services/accounts/api/users';
+import { useAuth } from '../accounts/useAuth';
 import { resolveDashboardRole } from '../../utils/dashboard/resolveDashboardRole';
 
 const normalizeProfile = (raw) => {
@@ -31,6 +31,7 @@ const normalizeProfile = (raw) => {
  */
 export const useDashboardProfile = (options = {}) => {
   const { autoFetch = true } = options;
+  const { user, isLoading: authLoading, isAuthenticated, loadCurrentUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState(null);
@@ -39,10 +40,17 @@ export const useDashboardProfile = (options = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getCurrentUser();
-      const normalized = normalizeProfile(response.data);
-      setProfile(normalized);
-      return normalized;
+      if (isAuthenticated && user) {
+        const normalized = normalizeProfile(user);
+        setProfile(normalized);
+        return normalized;
+      } else if (isAuthenticated) {
+        await loadCurrentUser();
+        return null;
+      } else {
+        setProfile(null);
+        return null;
+      }
     } catch (err) {
       const message = err?.response?.data?.detail
         || err?.message
@@ -52,17 +60,28 @@ export const useDashboardProfile = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, user, loadCurrentUser]);
 
   useEffect(() => {
-    if (autoFetch) {
+    if (autoFetch && isAuthenticated) {
       refresh();
+    } else {
+      setLoading(authLoading);
+      if (!isAuthenticated) {
+        setProfile(null);
+      }
     }
-  }, [autoFetch, refresh]);
+  }, [autoFetch, refresh, isAuthenticated, authLoading]);
+
+  useEffect(() => {
+    if (user) {
+      setProfile(normalizeProfile(user));
+    }
+  }, [user]);
 
   return {
     profile,
-    loading,
+    loading: loading || authLoading,
     error,
     refresh,
     dashboardRole: profile?.dashboardRole,

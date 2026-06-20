@@ -1,84 +1,96 @@
+# report.py
 import csv
 import io
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Dict
-from django.db.models import Q, Avg
+from typing import List, Dict, Optional, Any
+from django.db.models import Q, Avg, Count
 from django.utils import timezone
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied, ValidationError
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill
-from ..models import (
-    KPI, Score, KPISummary, TrafficLight
-)
-from .analytics import get_department_rollups, get_organization_health
+from openpyxl.styles import Font, PatternFill, Alignment
+from ..models import KPI, Score, KPISummary, TrafficLight, MonthlyActual
+from .analytics import get_department_rollups, get_organization_health, get_kpi_summaries
 
 logger = logging.getLogger(__name__)
 
+CACHE_TTL = 3600
+CACHE_PREFIX = "kpi_report"
+
 
 class ReportGenerator:
-    """Complete report generation service"""
-
     def __init__(self):
         self.styles = getSampleStyleSheet()
 
-    def generate_pdf_report(self, tenant_id: str, year: int = None, month: int = None) -> bytes:
-        """Generate a complete PDF performance report"""
+    def _check_tenant_access(self, tenant_id: str, user_tenant_id: str) -> None:
+        if str(tenant_id) != str(user_tenant_id):
+            raise PermissionDenied("Access denied to this tenant's data")
+
+    def generate_pdf_report(
+        self,
+        tenant_id: str,
+        user_tenant_id: str,
+        year: int = None,
+        month: int = None
+    ) -> bytes:
+        self._check_tenant_access(tenant_id, user_tenant_id)
+
+        if not year:
+            year = timezone.now().year
+        if not month:
+            month = timezone.now().month
+
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4, title="KPI Performance Report")
         story = []
 
-        # Title
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=self.styles['Heading1'],
             fontSize=16,
             spaceAfter=30,
-            alignment=1  # Center
+            alignment=1
         )
         title = Paragraph("KPI Performance Report", title_style)
         story.append(title)
 
-        # Date range
-        if year and month:
-            date_str = f"{datetime(year, month, 1).strftime('%B %Y')}"
-        else:
-            now = timezone.now()
-            year = now.year
-            month = now.month
-            date_str = f"{now.strftime('%B %Y')}"
-
+        date_str = f"{datetime(year, month, 1).strftime('%B %Y')}"
         date_para = Paragraph(f"Report Period: {date_str}", self.styles['Normal'])
         story.append(date_para)
         story.append(Spacer(1, 20))
 
-        # Executive Summary
         self._add_executive_summary(story, tenant_id, year, month)
-
-        # KPI Performance Table
         self._add_kpi_performance_table(story, tenant_id, year, month)
-
-        # Department Summary
         self._add_department_summary(story, tenant_id, year, month)
-
-        # Red Alerts
         self._add_red_alerts_table(story, tenant_id, year, month)
 
         doc.build(story)
         buffer.seek(0)
         return buffer.getvalue()
 
-    def generate_excel_report(self, tenant_id: str, year: int = None, month: int = None) -> bytes:
-        """Generate a complete Excel performance report with charts"""
+    def generate_excel_report(
+        self,
+        tenant_id: str,
+        user_tenant_id: str,
+        year: int = None,
+        month: int = None
+    ) -> bytes:
+        self._check_tenant_access(tenant_id, user_tenant_id)
+
+        if not year:
+            year = timezone.now().year
+        if not month:
+            month = timezone.now().month
+
         buffer = io.BytesIO()
         wb = Workbook()
 
-        # Create worksheets
         ws_summary = wb.active
         ws_summary.title = "Executive Summary"
 
@@ -86,7 +98,6 @@ class ReportGenerator:
         ws_departments = wb.create_sheet("Department Details")
         ws_alerts = wb.create_sheet("Red Alerts")
 
-        # Add content to each sheet
         self._add_excel_executive_summary(ws_summary, tenant_id, year, month)
         self._add_excel_kpi_details(ws_kpis, tenant_id, year, month)
         self._add_excel_department_details(ws_departments, tenant_id, year, month)
@@ -96,16 +107,30 @@ class ReportGenerator:
         buffer.seek(0)
         return buffer.getvalue()
 
-    def generate_kpi_performance_report(self, tenant_id: str, kpi_ids: List[str],
-                                         year: int = None, month: int = None,
-                                         format_type: str = 'pdf') -> Dict:
-        """Generate KPI performance report for specific KPIs"""
+    def generate_kpi_performance_report(
+        self,
+        tenant_id: str,
+        user_tenant_id: str,
+        kpi_ids: List[str] = None,
+        year: int = None,
+        month: int = None,
+        format_type: str = 'pdf'
+    ) -> Dict:
+        self._check_tenant_access(tenant_id, user_tenant_id)
+
         if not year:
             year = timezone.now().year
         if not month:
             month = timezone.now().month
 
-        kpis = KPI.objects.filter(tenant_id=tenant_id, id__in=kpi_ids) if kpi_ids else KPI.objects.filter(tenant_id=tenant_id)
+        cache_key = f"{CACHE_PREFIX}:kpi_perf:{tenant_id}:{year}:{month}:{hash(str(kpi_ids))}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
+        kpis = KPI.objects.filter(tenant_id=tenant_id)
+        if kpi_ids:
+            kpis = kpis.filter(id__in=kpi_ids)
 
         data = []
         for kpi in kpis:
@@ -116,7 +141,7 @@ class ReportGenerator:
                 'kpi_id': str(kpi.id),
                 'kpi_name': kpi.name,
                 'kpi_code': kpi.code,
-                'average_score': avg_score,
+                'average_score': float(avg_score),
                 'green_count': scores.filter(score__gte=90).count(),
                 'yellow_count': scores.filter(score__gte=50, score__lt=90).count(),
                 'red_count': scores.filter(score__lt=50).count(),
@@ -124,36 +149,63 @@ class ReportGenerator:
             })
 
         if format_type == 'pdf':
-            return {'type': 'pdf', 'data': self._generate_kpi_pdf_report(data, year, month)}
+            result = {'type': 'pdf', 'data': self._generate_kpi_pdf_report(data, year, month)}
         elif format_type == 'excel':
-            return {'type': 'excel', 'data': self._generate_kpi_excel_report(data, year, month)}
+            result = {'type': 'excel', 'data': self._generate_kpi_excel_report(data, year, month)}
         else:
-            return {'type': 'csv', 'data': self._generate_kpi_csv_report(data, year, month)}
+            result = {'type': 'csv', 'data': self._generate_kpi_csv_report(data, year, month)}
 
-    def generate_department_comparison_report(self, tenant_id: str, year: int = None,
-                                               month: int = None, format_type: str = 'pdf') -> Dict:
-        """Generate department comparison report"""
+        cache.set(cache_key, result, CACHE_TTL)
+        return result
+
+    def generate_department_comparison_report(
+        self,
+        tenant_id: str,
+        user_tenant_id: str,
+        year: int = None,
+        month: int = None,
+        format_type: str = 'pdf'
+    ) -> Dict:
+        self._check_tenant_access(tenant_id, user_tenant_id)
+
         if not year:
             year = timezone.now().year
         if not month:
             month = timezone.now().month
 
+        cache_key = f"{CACHE_PREFIX}:dept_comp:{tenant_id}:{year}:{month}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
         rollups = get_department_rollups(str(tenant_id), year, month)
 
         if format_type == 'pdf':
-            return {'type': 'pdf', 'data': self._generate_department_pdf_report(rollups, year, month)}
+            result = {'type': 'pdf', 'data': self._generate_department_pdf_report(rollups, year, month)}
         elif format_type == 'excel':
-            return {'type': 'excel', 'data': self._generate_department_excel_report(rollups, year, month)}
+            result = {'type': 'excel', 'data': self._generate_department_excel_report(rollups, year, month)}
         else:
-            return {'type': 'csv', 'data': self._generate_department_csv_report(rollups, year, month)}
+            result = {'type': 'csv', 'data': self._generate_department_csv_report(rollups, year, month)}
 
-    def generate_trend_analysis_report(self, tenant_id: str, kpi_ids: List[str],
-                                         months: int = 12, format_type: str = 'pdf') -> Dict:
-        """Generate trend analysis report for KPIs"""
+        cache.set(cache_key, result, CACHE_TTL)
+        return result
+
+    def generate_trend_analysis_report(
+        self,
+        tenant_id: str,
+        user_tenant_id: str,
+        kpi_ids: List[str] = None,
+        months: int = 12,
+        format_type: str = 'pdf'
+    ) -> Dict:
+        self._check_tenant_access(tenant_id, user_tenant_id)
+
         end_date = timezone.now()
         start_date = end_date - timezone.timedelta(days=30 * months)
 
-        kpis = KPI.objects.filter(tenant_id=tenant_id, id__in=kpi_ids) if kpi_ids else KPI.objects.filter(tenant_id=tenant_id)
+        kpis = KPI.objects.filter(tenant_id=tenant_id)
+        if kpi_ids:
+            kpis = kpis.filter(id__in=kpi_ids)
 
         trends = []
         for kpi in kpis:
@@ -167,14 +219,16 @@ class ReportGenerator:
             for score in scores:
                 monthly_scores.append({
                     'period': f"{score.year}-{score.month:02d}",
-                    'score': score.score
+                    'score': float(score.score)
                 })
+
+            avg_score = sum(s['score'] for s in monthly_scores) / len(monthly_scores) if monthly_scores else 0
 
             trends.append({
                 'kpi_id': str(kpi.id),
                 'kpi_name': kpi.name,
                 'scores': monthly_scores,
-                'average': sum(s['score'] for s in monthly_scores) / len(monthly_scores) if monthly_scores else 0,
+                'average': round(avg_score, 2),
                 'trend': self._calculate_trend([s['score'] for s in monthly_scores])
             })
 
@@ -184,7 +238,6 @@ class ReportGenerator:
             return {'type': 'csv', 'data': self._generate_trend_csv_report(trends, months)}
 
     def generate_monthly_report(self, tenant_id: str, year: int, month: int) -> Dict:
-        """Generate a monthly performance report"""
         health = get_organization_health(str(tenant_id), year, month)
 
         return {
@@ -197,7 +250,6 @@ class ReportGenerator:
         }
 
     def generate_quarterly_report(self, tenant_id: str, year: int, quarter: int) -> Dict:
-        """Generate a quarterly performance report"""
         months = {
             1: [1, 2, 3],
             2: [4, 5, 6],
@@ -210,27 +262,27 @@ class ReportGenerator:
             report = self.generate_monthly_report(tenant_id, year, month)
             monthly_reports.append(report)
 
-        # Calculate quarterly averages
-        avg_health = sum(r['organization_health'].get('overall_health_score', 0) for r in monthly_reports) / len(monthly_reports)
+        avg_health = sum(
+            r['organization_health'].get('overall_health_score', 0)
+            for r in monthly_reports
+        ) / len(monthly_reports) if monthly_reports else 0
 
         return {
             'id': f"quarterly_{year}_Q{quarter}",
             'tenant_id': tenant_id,
             'period': f"Q{quarter} {year}",
             'generated_at': timezone.now().isoformat(),
-            'average_health': avg_health,
+            'average_health': round(avg_health, 2),
             'monthly_reports': monthly_reports,
             'status': 'COMPLETED'
         }
 
     def generate_annual_report(self, tenant_id: str, year: int) -> Dict:
-        """Generate an annual performance report"""
         quarterly_reports = []
         for q in range(1, 5):
             report = self.generate_quarterly_report(tenant_id, year, q)
             quarterly_reports.append(report)
 
-        # Calculate annual averages
         avg_health = sum(q['average_health'] for q in quarterly_reports) / len(quarterly_reports) if quarterly_reports else 0
 
         return {
@@ -238,13 +290,19 @@ class ReportGenerator:
             'tenant_id': tenant_id,
             'period': str(year),
             'generated_at': timezone.now().isoformat(),
-            'average_health': avg_health,
+            'average_health': round(avg_health, 2),
             'quarterly_reports': quarterly_reports,
             'status': 'COMPLETED'
         }
 
-    def generate_custom_report(self, tenant_id: str, report_data: Dict, user_id: str) -> Dict:
-        """Generate a custom report based on user parameters"""
+    def generate_custom_report(
+        self,
+        tenant_id: str,
+        report_data: Dict,
+        user_tenant_id: str
+    ) -> Dict:
+        self._check_tenant_access(tenant_id, user_tenant_id)
+
         report_type = report_data.get('report_type')
         filters = report_data.get('filters', {})
         format_type = report_data.get('format', 'pdf')
@@ -252,6 +310,7 @@ class ReportGenerator:
         if report_type == 'kpi_performance':
             return self.generate_kpi_performance_report(
                 tenant_id,
+                user_tenant_id,
                 filters.get('kpi_ids', []),
                 filters.get('year'),
                 filters.get('month'),
@@ -260,6 +319,7 @@ class ReportGenerator:
         elif report_type == 'department_comparison':
             return self.generate_department_comparison_report(
                 tenant_id,
+                user_tenant_id,
                 filters.get('year'),
                 filters.get('month'),
                 format_type
@@ -267,17 +327,15 @@ class ReportGenerator:
         elif report_type == 'trend_analysis':
             return self.generate_trend_analysis_report(
                 tenant_id,
+                user_tenant_id,
                 filters.get('kpi_ids', []),
                 filters.get('months', 12),
                 format_type
             )
         else:
-            raise ValueError(f"Unknown report type: {report_type}")
-
-    # ============ Private Helper Methods ============
+            raise ValidationError(f"Unknown report type: {report_type}")
 
     def _add_executive_summary(self, story, tenant_id, year, month):
-        """Add executive summary section to PDF"""
         heading = Paragraph("Executive Summary", self.styles['Heading2'])
         story.append(heading)
 
@@ -294,32 +352,26 @@ class ReportGenerator:
             summary = Paragraph(summary_text, self.styles['Normal'])
             story.append(summary)
         else:
-            summary = Paragraph("No health data available for the selected period.", self.styles['Normal'])
-            story.append(summary)
+            story.append(Paragraph("No health data available.", self.styles['Normal']))
 
         story.append(Spacer(1, 20))
 
     def _add_kpi_performance_table(self, story, tenant_id, year, month):
-        """Add KPI performance table to PDF"""
         heading = Paragraph("KPI Performance Details", self.styles['Heading2'])
         story.append(heading)
 
-        summaries = KPISummary.objects.filter(
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).select_related('kpi')[:20]
+        summaries = get_kpi_summaries(tenant_id, year, month, prefer_mv=True)
 
-        if summaries.exists():
+        if summaries:
             data = [['KPI Name', 'Avg Score', 'Green', 'Yellow', 'Red', 'Users']]
-            for summary in summaries:
+            for summary in summaries[:20]:
                 data.append([
-                    summary.kpi.name[:40] + '...' if len(summary.kpi.name) > 40 else summary.kpi.name,
-                    f"{summary.average_score:.1f}%",
-                    summary.green_count,
-                    summary.yellow_count,
-                    summary.red_count,
-                    summary.total_users
+                    summary.get('kpi_name', 'Unknown')[:40],
+                    f"{summary.get('average_score', 0):.1f}%",
+                    summary.get('green_count', 0),
+                    summary.get('yellow_count', 0),
+                    summary.get('red_count', 0),
+                    summary.get('total_users', 0)
                 ])
 
             table = Table(data)
@@ -329,20 +381,16 @@ class ReportGenerator:
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
                 ('FONTSIZE', (0, 1), (-1, -1), 8),
             ]))
             story.append(table)
         else:
-            no_data = Paragraph("No KPI performance data available.", self.styles['Normal'])
-            story.append(no_data)
+            story.append(Paragraph("No KPI performance data available.", self.styles['Normal']))
 
         story.append(Spacer(1, 20))
 
     def _add_department_summary(self, story, tenant_id, year, month):
-        """Add department summary to PDF"""
         heading = Paragraph("Department Performance Summary", self.styles['Heading2'])
         story.append(heading)
 
@@ -352,12 +400,12 @@ class ReportGenerator:
             data = [['Department', 'Score', 'Green %', 'Yellow %', 'Red %', 'Employees']]
             for rollup in rollups[:15]:
                 data.append([
-                    rollup['department_name'][:30] + '...' if len(rollup['department_name']) > 30 else rollup['department_name'],
-                    f"{rollup['overall_score']:.1f}%",
-                    f"{rollup['green_percentage']:.1f}%",
-                    f"{rollup['yellow_percentage']:.1f}%",
-                    f"{rollup['red_percentage']:.1f}%",
-                    rollup['employee_count']
+                    rollup.get('department_name', 'Unknown')[:30],
+                    f"{rollup.get('overall_score', 0):.1f}%",
+                    f"{rollup.get('green_percentage', 0):.1f}%",
+                    f"{rollup.get('yellow_percentage', 0):.1f}%",
+                    f"{rollup.get('red_percentage', 0):.1f}%",
+                    rollup.get('employee_count', 0)
                 ])
 
             table = Table(data)
@@ -366,18 +414,15 @@ class ReportGenerator:
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ]))
             story.append(table)
         else:
-            no_data = Paragraph("No department performance data available.", self.styles['Normal'])
-            story.append(no_data)
+            story.append(Paragraph("No department performance data available.", self.styles['Normal']))
 
         story.append(Spacer(1, 20))
 
     def _add_red_alerts_table(self, story, tenant_id, year, month):
-        """Add red alerts to PDF"""
         heading = Paragraph("Red Alerts (2+ Consecutive Red Months)", self.styles['Heading2'])
         story.append(heading)
 
@@ -387,7 +432,7 @@ class ReportGenerator:
             score__month=month,
             status='RED',
             consecutive_red_count__gte=2
-        ).select_related('score__kpi', 'score__user')
+        ).select_related('score__kpi', 'score__user')[:50]
 
         if red_alerts.exists():
             data = [['KPI', 'User', 'Score', 'Consecutive Months']]
@@ -409,11 +454,9 @@ class ReportGenerator:
             ]))
             story.append(table)
         else:
-            no_data = Paragraph("No red alerts for this period.", self.styles['Normal'])
-            story.append(no_data)
+            story.append(Paragraph("No red alerts for this period.", self.styles['Normal']))
 
     def _add_excel_executive_summary(self, ws, tenant_id, year, month):
-        """Add executive summary to Excel"""
         ws['A1'] = "KPI Performance Report"
         ws['A1'].font = Font(size=16, bold=True)
 
@@ -433,7 +476,6 @@ class ReportGenerator:
             ws['A9'] = f"Active Employees: {health.get('active_employees', 0)}"
 
     def _add_excel_kpi_details(self, ws, tenant_id, year, month):
-        """Add KPI details to Excel"""
         ws['A1'] = "KPI Performance Details"
         ws['A1'].font = Font(size=14, bold=True)
 
@@ -442,23 +484,22 @@ class ReportGenerator:
             cell = ws.cell(row=2, column=col, value=header)
             cell.font = Font(bold=True)
             cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+            cell.alignment = Alignment(horizontal='center')
 
-        summaries = KPISummary.objects.filter(
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).select_related('kpi')
+        summaries = get_kpi_summaries(tenant_id, year, month, prefer_mv=True)
 
         for row, summary in enumerate(summaries, 3):
-            ws.cell(row=row, column=1, value=summary.kpi.name)
-            ws.cell(row=row, column=2, value=f"{summary.average_score:.1f}%")
-            ws.cell(row=row, column=3, value=summary.green_count)
-            ws.cell(row=row, column=4, value=summary.yellow_count)
-            ws.cell(row=row, column=5, value=summary.red_count)
-            ws.cell(row=row, column=6, value=summary.total_users)
+            ws.cell(row=row, column=1, value=summary.get('kpi_name', 'Unknown'))
+            ws.cell(row=row, column=2, value=f"{summary.get('average_score', 0):.1f}%")
+            ws.cell(row=row, column=3, value=summary.get('green_count', 0))
+            ws.cell(row=row, column=4, value=summary.get('yellow_count', 0))
+            ws.cell(row=row, column=5, value=summary.get('red_count', 0))
+            ws.cell(row=row, column=6, value=summary.get('total_users', 0))
+
+        for col in range(1, 7):
+            ws.column_dimensions[chr(64 + col)].width = 20
 
     def _add_excel_department_details(self, ws, tenant_id, year, month):
-        """Add department details to Excel"""
         ws['A1'] = "Department Performance Summary"
         ws['A1'].font = Font(size=14, bold=True)
 
@@ -467,19 +508,19 @@ class ReportGenerator:
             cell = ws.cell(row=2, column=col, value=header)
             cell.font = Font(bold=True)
             cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+            cell.alignment = Alignment(horizontal='center')
 
         rollups = get_department_rollups(str(tenant_id), year, month)
 
         for row, rollup in enumerate(rollups, 3):
-            ws.cell(row=row, column=1, value=rollup['department_name'])
-            ws.cell(row=row, column=2, value=f"{rollup['overall_score']:.1f}%")
-            ws.cell(row=row, column=3, value=f"{rollup['green_percentage']:.1f}%")
-            ws.cell(row=row, column=4, value=f"{rollup['yellow_percentage']:.1f}%")
-            ws.cell(row=row, column=5, value=f"{rollup['red_percentage']:.1f}%")
-            ws.cell(row=row, column=6, value=rollup['employee_count'])
+            ws.cell(row=row, column=1, value=rollup.get('department_name', 'Unknown'))
+            ws.cell(row=row, column=2, value=f"{rollup.get('overall_score', 0):.1f}%")
+            ws.cell(row=row, column=3, value=f"{rollup.get('green_percentage', 0):.1f}%")
+            ws.cell(row=row, column=4, value=f"{rollup.get('yellow_percentage', 0):.1f}%")
+            ws.cell(row=row, column=5, value=f"{rollup.get('red_percentage', 0):.1f}%")
+            ws.cell(row=row, column=6, value=rollup.get('employee_count', 0))
 
     def _add_excel_red_alerts(self, ws, tenant_id, year, month):
-        """Add red alerts to Excel"""
         ws['A1'] = "Red Alerts (2+ Consecutive Red Months)"
         ws['A1'].font = Font(size=14, bold=True)
 
@@ -488,6 +529,7 @@ class ReportGenerator:
             cell = ws.cell(row=2, column=col, value=header)
             cell.font = Font(bold=True)
             cell.fill = PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid")
+            cell.alignment = Alignment(horizontal='center')
 
         red_alerts = TrafficLight.objects.filter(
             score__tenant_id=tenant_id,
@@ -495,7 +537,7 @@ class ReportGenerator:
             score__month=month,
             status='RED',
             consecutive_red_count__gte=2
-        ).select_related('score__kpi', 'score__user')
+        ).select_related('score__kpi', 'score__user')[:100]
 
         for row, alert in enumerate(red_alerts, 3):
             ws.cell(row=row, column=1, value=alert.score.kpi.name)
@@ -504,13 +546,14 @@ class ReportGenerator:
             ws.cell(row=row, column=4, value=alert.consecutive_red_count)
 
     def _generate_kpi_pdf_report(self, data: List[Dict], year: int, month: int) -> bytes:
-        """Generate PDF for KPI performance report"""
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         story = []
 
-        title = Paragraph(f"KPI Performance Report - {datetime(year, month, 1).strftime('%B %Y')}",
-                         ParagraphStyle('Title', parent=self.styles['Heading1'], fontSize=14))
+        title = Paragraph(
+            f"KPI Performance Report - {datetime(year, month, 1).strftime('%B %Y')}",
+            ParagraphStyle('Title', parent=self.styles['Heading1'], fontSize=14)
+        )
         story.append(title)
         story.append(Spacer(1, 20))
 
@@ -542,7 +585,6 @@ class ReportGenerator:
         return buffer.getvalue()
 
     def _generate_kpi_excel_report(self, data: List[Dict], year: int, month: int) -> bytes:
-        """Generate Excel for KPI performance report"""
         buffer = io.BytesIO()
         wb = Workbook()
         ws = wb.active
@@ -570,7 +612,6 @@ class ReportGenerator:
         return buffer.getvalue()
 
     def _generate_kpi_csv_report(self, data: List[Dict], year: int, month: int) -> str:
-        """Generate CSV for KPI performance report"""
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(['KPI Name', 'Average Score', 'Green', 'Yellow', 'Red', 'Total Users'])
@@ -586,13 +627,14 @@ class ReportGenerator:
         return output.getvalue()
 
     def _generate_department_pdf_report(self, rollups: List[Dict], year: int, month: int) -> bytes:
-        """Generate PDF for department comparison report"""
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
         story = []
 
-        title = Paragraph(f"Department Comparison Report - {datetime(year, month, 1).strftime('%B %Y')}",
-                         ParagraphStyle('Title', parent=self.styles['Heading1'], fontSize=14))
+        title = Paragraph(
+            f"Department Comparison Report - {datetime(year, month, 1).strftime('%B %Y')}",
+            ParagraphStyle('Title', parent=self.styles['Heading1'], fontSize=14)
+        )
         story.append(title)
         story.append(Spacer(1, 20))
 
@@ -600,12 +642,12 @@ class ReportGenerator:
             table_data = [['Department', 'Score', 'Green %', 'Yellow %', 'Red %', 'Employees']]
             for rollup in rollups:
                 table_data.append([
-                    rollup['department_name'][:30],
-                    f"{rollup['overall_score']:.1f}%",
-                    f"{rollup['green_percentage']:.1f}%",
-                    f"{rollup['yellow_percentage']:.1f}%",
-                    f"{rollup['red_percentage']:.1f}%",
-                    rollup['employee_count']
+                    rollup.get('department_name', 'Unknown')[:30],
+                    f"{rollup.get('overall_score', 0):.1f}%",
+                    f"{rollup.get('green_percentage', 0):.1f}%",
+                    f"{rollup.get('yellow_percentage', 0):.1f}%",
+                    f"{rollup.get('red_percentage', 0):.1f}%",
+                    rollup.get('employee_count', 0)
                 ])
 
             table = Table(table_data)
@@ -624,7 +666,6 @@ class ReportGenerator:
         return buffer.getvalue()
 
     def _generate_department_excel_report(self, rollups: List[Dict], year: int, month: int) -> bytes:
-        """Generate Excel for department comparison report"""
         buffer = io.BytesIO()
         wb = Workbook()
         ws = wb.active
@@ -640,48 +681,50 @@ class ReportGenerator:
             cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
 
         for row, rollup in enumerate(rollups, 4):
-            ws.cell(row=row, column=1, value=rollup['department_name'])
-            ws.cell(row=row, column=2, value=f"{rollup['overall_score']:.1f}%")
-            ws.cell(row=row, column=3, value=f"{rollup['green_percentage']:.1f}%")
-            ws.cell(row=row, column=4, value=f"{rollup['yellow_percentage']:.1f}%")
-            ws.cell(row=row, column=5, value=f"{rollup['red_percentage']:.1f}%")
-            ws.cell(row=row, column=6, value=rollup['employee_count'])
+            ws.cell(row=row, column=1, value=rollup.get('department_name', 'Unknown'))
+            ws.cell(row=row, column=2, value=f"{rollup.get('overall_score', 0):.1f}%")
+            ws.cell(row=row, column=3, value=f"{rollup.get('green_percentage', 0):.1f}%")
+            ws.cell(row=row, column=4, value=f"{rollup.get('yellow_percentage', 0):.1f}%")
+            ws.cell(row=row, column=5, value=f"{rollup.get('red_percentage', 0):.1f}%")
+            ws.cell(row=row, column=6, value=rollup.get('employee_count', 0))
 
         wb.save(buffer)
         buffer.seek(0)
         return buffer.getvalue()
 
     def _generate_department_csv_report(self, rollups: List[Dict], year: int, month: int) -> str:
-        """Generate CSV for department comparison report"""
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(['Department', 'Overall Score', 'Green %', 'Yellow %', 'Red %', 'Employees'])
         for rollup in rollups:
             writer.writerow([
-                rollup['department_name'],
-                f"{rollup['overall_score']:.1f}%",
-                f"{rollup['green_percentage']:.1f}%",
-                f"{rollup['yellow_percentage']:.1f}%",
-                f"{rollup['red_percentage']:.1f}%",
-                rollup['employee_count']
+                rollup.get('department_name', 'Unknown'),
+                f"{rollup.get('overall_score', 0):.1f}%",
+                f"{rollup.get('green_percentage', 0):.1f}%",
+                f"{rollup.get('yellow_percentage', 0):.1f}%",
+                f"{rollup.get('red_percentage', 0):.1f}%",
+                rollup.get('employee_count', 0)
             ])
         return output.getvalue()
 
     def _generate_trend_pdf_report(self, trends: List[Dict], months: int) -> bytes:
-        """Generate PDF for trend analysis report"""
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         story = []
 
-        title = Paragraph(f"Trend Analysis Report - Last {months} Months",
-                         ParagraphStyle('Title', parent=self.styles['Heading1'], fontSize=14))
+        title = Paragraph(
+            f"Trend Analysis Report - Last {months} Months",
+            ParagraphStyle('Title', parent=self.styles['Heading1'], fontSize=14)
+        )
         story.append(title)
         story.append(Spacer(1, 20))
 
         for trend in trends:
             story.append(Paragraph(f"<b>{trend['kpi_name']}</b>", self.styles['Normal']))
-            story.append(Paragraph(f"Average Score: {trend['average']:.1f}% | Trend: {trend['trend']['direction']}",
-                                  self.styles['Normal']))
+            story.append(Paragraph(
+                f"Average Score: {trend['average']:.1f}% | Trend: {trend['trend']['direction']}",
+                self.styles['Normal']
+            ))
             story.append(Spacer(1, 10))
 
         doc.build(story)
@@ -689,7 +732,6 @@ class ReportGenerator:
         return buffer.getvalue()
 
     def _generate_trend_csv_report(self, trends: List[Dict], months: int) -> str:
-        """Generate CSV for trend analysis report"""
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(['KPI Name', 'Average Score', 'Trend Direction', 'Trend Confidence'])
@@ -703,13 +745,12 @@ class ReportGenerator:
             ])
         return output.getvalue()
 
-    def _calculate_trend(self, scores: List[Decimal]) -> Dict:
-        """Calculate trend direction from scores"""
+    def _calculate_trend(self, scores: List[float]) -> Dict:
         if len(scores) < 2:
-            return {'direction': 'STABLE', 'confidence': 0}
+            return {'direction': 'STABLE', 'confidence': 0.0}
 
-        first = float(scores[0])
-        last = float(scores[-1])
+        first = scores[0]
+        last = scores[-1]
         change = ((last - first) / first) * 100 if first > 0 else 0
 
         if change > 5:
@@ -721,4 +762,4 @@ class ReportGenerator:
 
         confidence = min(0.9, abs(change) / 20)
 
-        return {'direction': direction, 'confidence': confidence}
+        return {'direction': direction, 'confidence': round(confidence, 2)}

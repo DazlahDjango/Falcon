@@ -3,6 +3,8 @@ from django.db import models
 from typing import Dict, List, Optional, Any
 from django.db import transaction
 from django.utils import timezone
+from apps.accounts.exceptions import ValidationError
+from apps.configs.exceptions import ValidationError
 from apps.kpi.models import AnnualTarget, MonthlyPhasing, PhasingLock
 
 class PhasingEngine:
@@ -21,6 +23,9 @@ class PhasingEngine:
         }
     def phase_target(self, annual_target_id: str, strategy: str = 'equal_split', strategy_params: Optional[Dict] = None) -> List[MonthlyPhasing]:
         annual_target = AnnualTarget.objects.get(id=annual_target_id)
+        # Validate strategy_params
+        if strategy_params:
+            self._validate_strategy_params(strategy, strategy_params)
         # Check if phasing is locked
         if self._is_phasing_locked(annual_target.tenant_id, annual_target.year):
             raise Exception(f"Phasing is locked for performance cycle {annual_target.year}")
@@ -50,6 +55,23 @@ class PhasingEngine:
                 )
                 monthly_phasing.append(phasing)
         return monthly_phasing
+    def _validate_strategy_params(self, strategy: str, params: Dict):
+        if strategy == 'custom_pattern':
+            if 'pattern' not in params:
+                raise ValidationError("custom_pattern requires 'pattern'")
+            pattern = params['pattern']
+            if len(pattern) != 12:
+                raise ValidationError("Pattern must have exactly 12 values")
+            if not all(isinstance(v, (int, float)) and v >= 0 for v in pattern):
+                raise ValidationError("Pattern values must be non-negative numbers")
+        
+        if strategy == 'seasonal':
+            if 'weights' in params:
+                weights = params['weights']
+                if not all(1 <= m <= 12 for m in weights.keys()):
+                    raise ValidationError("Month keys must be 1-12")
+                if not all(isinstance(w, (int, float)) and 0 <= w <= 1 for w in weights.values()):
+                    raise ValidationError("Weights must be between 0 and 1")
     def lock_phasing(self, tenant_id: str, performance_cycle: str, user_id: str) -> bool:
         # Create lock record
         PhasingLock.objects.create(

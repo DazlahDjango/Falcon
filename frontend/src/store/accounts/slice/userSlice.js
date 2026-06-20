@@ -2,19 +2,22 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as usersApi from '../../../services/accounts/api/users';
 import * as authApi from '../../../services/accounts/api/auth';
 
+// ============================================================
 // Async Thunks
-// =============
+// ============================================================
+
 export const fetchUsers = createAsyncThunk(
     'users/fetchUsers',
-    async (params, { rejectWithValue }) => {
+    async (params = {}, { rejectWithValue }) => {
         try {
             const response = await usersApi.getUsers(params);
-            return response.data; 
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to fetch users');
         }
     }
 );
+
 export const fetchUserById = createAsyncThunk(
     'users/fetchUserById',
     async (userId, { rejectWithValue }) => {
@@ -26,6 +29,7 @@ export const fetchUserById = createAsyncThunk(
         }
     }
 );
+
 export const createUser = createAsyncThunk(
     'users/createUser',
     async (userData, { rejectWithValue }) => {
@@ -37,6 +41,7 @@ export const createUser = createAsyncThunk(
         }
     }
 );
+
 export const updateUser = createAsyncThunk(
     'users/updateUser',
     async ({ id, ...data }, { rejectWithValue }) => {
@@ -48,6 +53,7 @@ export const updateUser = createAsyncThunk(
         }
     }
 );
+
 export const deleteUser = createAsyncThunk(
     'users/deleteUser',
     async (userId, { rejectWithValue }) => {
@@ -59,6 +65,7 @@ export const deleteUser = createAsyncThunk(
         }
     }
 );
+
 export const activateUser = createAsyncThunk(
     'users/activateUser',
     async (userId, { rejectWithValue }) => {
@@ -70,6 +77,7 @@ export const activateUser = createAsyncThunk(
         }
     }
 );
+
 export const deactivateUser = createAsyncThunk(
     'users/deactivateUser',
     async (userId, { rejectWithValue }) => {
@@ -81,6 +89,7 @@ export const deactivateUser = createAsyncThunk(
         }
     }
 );
+
 export const unlockUser = createAsyncThunk(
     'users/unlockUser',
     async (userId, { rejectWithValue }) => {
@@ -92,6 +101,7 @@ export const unlockUser = createAsyncThunk(
         }
     }
 );
+
 export const assignRole = createAsyncThunk(
     'users/assignRole',
     async ({ userId, role }, { rejectWithValue }) => {
@@ -103,11 +113,24 @@ export const assignRole = createAsyncThunk(
         }
     }
 );
+
+export const changeUserPassword = createAsyncThunk(
+    'users/changeUserPassword',
+    async ({ userId, oldPassword, newPassword }, { rejectWithValue }) => {
+        try {
+            const response = await usersApi.changeUserPassword(userId, oldPassword, newPassword);
+            return { userId, data: response.data };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to change password');
+        }
+    }
+);
+
 export const inviteUser = createAsyncThunk(
     'users/inviteUser',
     async (inviteData, { rejectWithValue }) => {
         try {
-            const response = await authApi.inviteUser(inviteData);
+            const response = await usersApi.inviteUser(inviteData);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to send invitation');
@@ -115,8 +138,35 @@ export const inviteUser = createAsyncThunk(
     }
 );
 
+// ✅ ADD MISSING THUNKS
+export const resendInvitation = createAsyncThunk(
+    'users/resendInvitation',
+    async (invitationId, { rejectWithValue }) => {
+        try {
+            const response = await authApi.resendInvitation(invitationId);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to resend invitation');
+        }
+    }
+);
+
+export const cancelInvitation = createAsyncThunk(
+    'users/cancelInvitation',
+    async (invitationId, { rejectWithValue }) => {
+        try {
+            await authApi.cancelInvitation(invitationId);
+            return invitationId;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to cancel invitation');
+        }
+    }
+);
+
+// ============================================================
 // Initial State
-// ===============
+// ============================================================
+
 const initialState = {
     users: [],
     selectedUser: null,
@@ -142,10 +192,14 @@ const initialState = {
     invitationLoading: false
 };
 
+// ============================================================
+// Slice
+// ============================================================
+
 const userSlice = createSlice({
     name: 'users',
     initialState,
-    reducers : {
+    reducers: {
         setFilters: (state, action) => {
             state.filters = { ...state.filters, ...action.payload };
             state.pagination.current_page = 1;
@@ -153,6 +207,9 @@ const userSlice = createSlice({
         resetFilters: (state) => {
             state.filters = initialState.filters;
             state.pagination.current_page = 1;
+        },
+        setPage: (state, action) => {
+            state.pagination.current_page = action.payload;
         },
         clearSelectedUser: (state) => {
             state.selectedUser = null;
@@ -170,12 +227,12 @@ const userSlice = createSlice({
             })
             .addCase(fetchUsers.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.users = action.payload.results;
+                state.users = action.payload.results || action.payload || [];
                 state.pagination = {
-                    current_page: action.payload.current_page,
-                    total_pages: action.payload.total_pages,
-                    total_items: action.payload.count,
-                    page_size: action.payload.page_size
+                    current_page: action.payload.current_page || 1,
+                    total_pages: action.payload.total_pages || 1,
+                    total_items: action.payload.count || state.users.length,
+                    page_size: action.payload.page_size || 20
                 };
             })
             .addCase(fetchUsers.rejected, (state, action) => {
@@ -195,7 +252,7 @@ const userSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload;
             })
-            // Create user
+            // Create User
             .addCase(createUser.fulfilled, (state, action) => {
                 state.users.unshift(action.payload);
                 state.pagination.total_items += 1;
@@ -218,7 +275,7 @@ const userSlice = createSlice({
                     state.selectedUser = null;
                 }
             })
-            // Activate & Deactivate user
+            // Activate/Deactivate User
             .addCase(activateUser.fulfilled, (state, action) => {
                 const user = state.users.find(u => u.id === action.payload.userId);
                 if (user) user.is_active = true;
@@ -259,12 +316,61 @@ const userSlice = createSlice({
             .addCase(inviteUser.rejected, (state, action) => {
                 state.invitationLoading = false;
                 state.error = action.payload;
+            })
+            // ✅ ADD RESEND INVITATION CASES
+            .addCase(resendInvitation.pending, (state) => {
+                state.invitationLoading = true;
+            })
+            .addCase(resendInvitation.fulfilled, (state, action) => {
+                state.invitationLoading = false;
+                const index = state.invitations.findIndex(i => i.id === action.payload.id);
+                if (index !== -1) {
+                    state.invitations[index] = action.payload;
+                }
+            })
+            .addCase(resendInvitation.rejected, (state, action) => {
+                state.invitationLoading = false;
+                state.error = action.payload;
+            })
+            // ✅ ADD CANCEL INVITATION CASES
+            .addCase(cancelInvitation.pending, (state) => {
+                state.invitationLoading = true;
+            })
+            .addCase(cancelInvitation.fulfilled, (state, action) => {
+                state.invitationLoading = false;
+                state.invitations = state.invitations.filter(i => i.id !== action.payload);
+            })
+            .addCase(cancelInvitation.rejected, (state, action) => {
+                state.invitationLoading = false;
+                state.error = action.payload;
             });
     }
 });
-export const { setFilters, resetFilters, clearSelectedUser, clearError } = userSlice.actions;
+
+// ============================================================
+// Actions
+// ============================================================
+
+export const { 
+    setFilters, 
+    resetFilters, 
+    setPage, 
+    clearSelectedUser, 
+    clearError 
+} = userSlice.actions;
+
+// ============================================================
 // Selectors
+// ============================================================
+
 export const selectUsers = (state) => state.users;
+export const selectUsersList = (state) => state.users.users;
 export const selectSelectedUser = (state) => state.users.selectedUser;
+export const selectUsersPagination = (state) => state.users.pagination;
+export const selectUsersFilters = (state) => state.users.filters;
+export const selectUsersLoading = (state) => state.users.isLoading;
+export const selectUsersError = (state) => state.users.error;
+export const selectUserInvitations = (state) => state.users.invitations;
+export const selectUserInvitationLoading = (state) => state.users.invitationLoading;
 
 export default userSlice.reducer;

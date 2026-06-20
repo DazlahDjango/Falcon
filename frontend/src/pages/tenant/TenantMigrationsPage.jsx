@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { MigrationListTable, MigrationSummaryCard, MigrationFilterBar, MigrationDetailsModal } from '../../components/tenant/migrations';
-import { fetchMigrations, runMigrations, selectMigrations, selectMigrationSummary, selectMigrationsRunning, selectTenantLoading } from '../../store/tenant/slice';
+import { fetchMigrations, runMigrations, selectMigrations, selectMigrationSummary, selectMigrationsRunning, selectMigrationLoading } from '../../store/tenant/slice';
 
 export const TenantMigrationsPage = () => {
     const { tenantId } = useParams();
@@ -11,7 +11,7 @@ export const TenantMigrationsPage = () => {
     const migrations = useSelector(selectMigrations);
     const summary = useSelector(selectMigrationSummary);
     const running = useSelector(selectMigrationsRunning);
-    const loading = useSelector(selectTenantLoading);
+    const loading = useSelector(selectMigrationLoading);
     const [selectedMigration, setSelectedMigration] = useState(null);
     const [filters, setFilters] = useState({});
 

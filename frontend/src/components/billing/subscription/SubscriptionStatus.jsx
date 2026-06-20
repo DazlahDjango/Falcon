@@ -1,103 +1,40 @@
-/**
- * SubscriptionStatus Component
- * Displays current subscription status with details
- */
-
 import React from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
-import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
-import { StatusBadge } from '../shared/StatusBadge';
-import { PriceDisplay } from '../shared/PriceDisplay';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import { FiCheckCircle, FiClock, FiAlertTriangle, FiXCircle, FiMinusCircle } from 'react-icons/fi';
+import './subscription.css';
 
-export const SubscriptionStatus = ({ subscription, loading }) => {
-    if (loading) {
-        return <div className="subscription-status-skeleton">Loading subscription...</div>;
-    }
+const STATUS_CONFIG = {
+    active: { icon: FiCheckCircle, color: '#22c55e', bg: '#dcfce7', label: 'Active' },
+    trialing: { icon: FiClock, color: '#3b82f6', bg: '#dbeafe', label: 'Trial' },
+    past_due: { icon: FiAlertTriangle, color: '#f59e0b', bg: '#fef3c7', label: 'Past Due' },
+    cancelled: { icon: FiXCircle, color: '#6b7280', bg: '#f3f4f6', label: 'Cancelled' },
+    expired: { icon: FiXCircle, color: '#dc2626', bg: '#fee2e2', label: 'Expired' },
+    pending_cancellation: { icon: FiMinusCircle, color: '#f59e0b', bg: '#fef3c7', label: 'Pending Cancellation' }
+};
 
-    if (!subscription) {
+export const SubscriptionStatus = ({ status, size = 'md', showIcon = true, showText = true, showDetails = false, subscription = null }) => {
+    const config = STATUS_CONFIG[status] || STATUS_CONFIG.active;
+    const IconComponent = config.icon;
+    const sizeClass = size === 'sm' ? 'status-sm' : size === 'lg' ? 'status-lg' : 'status-md';
+
+    if (showDetails && subscription) {
         return (
-            <div className="subscription-status-empty">
-                <p>No active subscription</p>
-                <Link to={BILLING_ROUTES.PLANS} className="subscription-status-link">View Plans</Link>
+            <div className="subscription-status-details">
+                <div className="status-main" style={{ background: config.bg, color: config.color }}>
+                    {showIcon && <IconComponent />}
+                    {showText && <span>{config.label}</span>}
+                </div>
+                {subscription.is_on_trial && <div className="status-trial-info">Trial ends in {subscription.trial_days_remaining} days</div>}
+                {subscription.days_until_expiry <= 7 && subscription.status === 'active' && <div className="status-expiry-warning">Expires in {subscription.days_until_expiry} days</div>}
             </div>
         );
     }
 
-    const isActive = subscription.is_active_status?.is_active;
-    const isOnTrial = subscription.is_active_status?.is_on_trial;
-    const daysUntilExpiry = subscription.is_active_status?.days_until_expiry;
-    const trialDaysRemaining = subscription.is_active_status?.trial_days_remaining;
-
     return (
-        <div className="subscription-status">
-            <div className="subscription-status-header">
-                <h3 className="subscription-status-title">Current Subscription</h3>
-                <StatusBadge status={subscription.status} />
-            </div>
-
-            <div className="subscription-status-plan">
-                <span className="subscription-status-plan-name">{subscription.plan?.name}</span>
-                <PriceDisplay 
-                    amount={subscription.amount} 
-                    period={subscription.billing_interval}
-                />
-            </div>
-
-            {isOnTrial && (
-                <div className="subscription-status-trial">
-                    <span className="subscription-status-trial-icon">{renderBillingIcon('pending', { size: 16 })}</span>
-                    <span>
-                        Trial ends in {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''}
-                    </span>
-                </div>
-            )}
-
-            {isActive && !isOnTrial && (
-                <div className="subscription-status-renewal">
-                    <span className="subscription-status-renewal-icon">{renderBillingIcon('renewal', { size: 16 })}</span>
-                    <span>
-                        Next billing: {new Date(subscription.current_period_end).toLocaleDateString()}
-                        {daysUntilExpiry <= 7 && daysUntilExpiry > 0 && (
-                            <span className="subscription-status-renewal-warning">
-                                (Renews in {daysUntilExpiry} days)
-                            </span>
-                        )}
-                    </span>
-                </div>
-            )}
-
-            <div className="subscription-status-features">
-                <h4>Included Features</h4>
-                <ul>
-                    <li>{renderBillingIcon('success', { size: 14 })} Up to {subscription.plan?.max_users === -1 ? 'unlimited' : subscription.plan?.max_users} users</li>
-                    <li>{renderBillingIcon('success', { size: 14 })} Up to {subscription.plan?.max_kpis === -1 ? 'unlimited' : subscription.plan?.max_kpis} KPIs</li>
-                    {subscription.plan?.custom_branding && <li>{renderBillingIcon('success', { size: 14 })} Custom branding</li>}
-                    {subscription.plan?.api_access && <li>{renderBillingIcon('success', { size: 14 })} API access</li>}
-                    {subscription.plan?.advanced_analytics && <li>{renderBillingIcon('success', { size: 14 })} Advanced analytics</li>}
-                </ul>
-            </div>
-
-            <div className="subscription-status-actions">
-                {subscription.auto_renew && !subscription.cancel_at_period_end && (
-                    <button className="subscription-status-cancel">
-                        Cancel Subscription
-                    </button>
-                )}
-                {!subscription.auto_renew && isActive && (
-                    <button className="subscription-status-renew">
-                        Renew Now
-                    </button>
-                )}
-            </div>
-        </div>
+        <span className={`subscription-status-badge ${sizeClass}`} style={{ background: config.bg, color: config.color }}>
+            {showIcon && <IconComponent className="status-icon" />}
+            {showText && <span>{config.label}</span>}
+        </span>
     );
-};
-
-SubscriptionStatus.propTypes = {
-    subscription: PropTypes.object,
-    loading: PropTypes.bool,
 };
 
 export default SubscriptionStatus;

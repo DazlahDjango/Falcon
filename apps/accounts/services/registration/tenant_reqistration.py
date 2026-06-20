@@ -9,6 +9,7 @@ from apps.accounts.models import User, TenantPreference, Profile, UserPreference
 from apps.accounts.managers import TenantPreferencesManager
 from apps.accounts.services.registration.user_registration import UserRegistrationService
 from apps.accounts.services.audit.logger import AuditService
+
 logger = logging.getLogger(__name__)
 
 class TenantRegistrationService:
@@ -25,7 +26,8 @@ class TenantRegistrationService:
                 client_id=tenant_id,
                 tenant_id=tenant_id,
                 features=self._get_default_features(subscription_plan),
-                default_langauage='en',
+                # FIXED: was 'default_langauage'
+                default_language='en',
                 default_timezone='Africa/Nairobi'
             )
             admin_user = User.objects.create_user(
@@ -61,7 +63,7 @@ class TenantRegistrationService:
                 'subscription_plan': subscription_plan
             }, None
         except Exception as e:
-            logger.error(f"Tenant registration error")
+            logger.error(f"Tenant registration error: {str(e)}")
             return None, 'Unable to create organization. Please try again'
         
     def _get_default_features(self, plan: str) -> Dict:

@@ -1,79 +1,114 @@
-import api from '../api';
-import { API_ENDPOINTS } from '../api/endpoints';
+import { BaseKPIService, withRetry } from './kpiBase.service';
+import {
+  VALIDATION_ENDPOINTS,
+  REJECTION_REASON_ENDPOINTS,
+  ESCALATION_ENDPOINTS,
+} from '../api/endpoints';
 
-class ValidationService {
-    async getValidations(params = {}) {
-        const response = await api.get(API_ENDPOINTS.VALIDATION.LIST, { params });
-        return response.data;
-    }
-    async getPendingValidations(supervisorId) {
-        const response = await api.get(API_ENDPOINTS.VALIDATION.PENDING, {
-            params: { supervisor: supervisorId },
-        });
-        const data = response.data;
-        if (Array.isArray(data)) {
-            return { results: data, count: data.length };
-        }
-        return {
-            results: data.results || [],
-            count: data.count ?? (data.results || []).length,
-        };
-    }
-    async approveValidation(id, comment = '') {
-        const response = await api.post(API_ENDPOINTS.ACTUAL.APPROVE(id), { comment });
-        return response.data;
-    }
-    async rejectValidation(id, reasonId, comment = '') {
-        const response = await api.post(API_ENDPOINTS.ACTUAL.REJECT(id), {
-            reason_id: reasonId,
-            comment
-        });
-        return response.data;
-    }
-    async getRejectionReasons() {
-        const response = await api.get(API_ENDPOINTS.VALIDATION.REJECTION_REASONS);
-        return response.data;
-    }
-    async createEscalation(actualId, escalatedToId, reason) {
-        const response  = await api.post(API_ENDPOINTS.VALIDATION.ESCALATIONS, {
-            actual: actualId,
-            escalated_to: escalatedToId,
-            reason
-        });
-        return response.data;
-    }
-    async getEscalations(params = {}) {
-        const response = await api.get(API_ENDPOINTS.VALIDATION.ESCALATIONS, { params });
-        return response.data;
-    }
-    async getMyEscalations() {
-        const response = await api.get(API_ENDPOINTS.VALIDATION.MY_ESCALATIONS);
-        return response.data;
-    }
-    async resolveEscalation(id, resolution) {
-        const response = await api.post(API_ENDPOINTS.VALIDATION.RESOLVE_ESCALATION(id), {
-            resolution
-        });
-        return response.data;
-    }
-    async getValidationHistory(actualId) {
-        const response = await api.get(API_ENDPOINTS.ACTUAL.VALIDATIONS(actualId));
-        return response.data;
-    }
-    async batchApprove(actualIds, comment = '') {
-        const response = await api.post('/validations/batch-approve/', {
-            actual_ids: actualIds,
-            comment
-        });
-        return response.data;
-    }
-    async batchReject(actualIds, reasonId, comment = '') {
-        const response = await api.post('/validations/batch-reject/', {
-            actual_ids: actualIds,
-            reason_id: reasonId,
-            comment
-        });
-        return response.data;
-    }
+class ValidationService extends BaseKPIService {
+  constructor() {
+    super('validations');
+  }
+
+  // ============ Validations ============
+  async getValidations(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(VALIDATION_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
+
+  async getPendingValidations(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(VALIDATION_ENDPOINTS.PENDING, { params });
+      return response;
+    });
+  }
+
+  async getPendingSummary(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(VALIDATION_ENDPOINTS.PENDING_SUMMARY, { params });
+      return response;
+    });
+  }
+
+  // ============ Rejection Reasons ============
+  async getRejectionReasons(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(REJECTION_REASON_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
+
+  async createRejectionReason(data) {
+    if (!data) throw new Error('Rejection reason data is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(REJECTION_REASON_ENDPOINTS.CREATE, data);
+      return response;
+    });
+  }
+
+  async updateRejectionReason(id, data) {
+    if (!id) throw new Error('Rejection reason ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.patch(REJECTION_REASON_ENDPOINTS.UPDATE(id), data);
+      return response;
+    });
+  }
+
+  async deleteRejectionReason(id) {
+    if (!id) throw new Error('Rejection reason ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.delete(REJECTION_REASON_ENDPOINTS.DELETE(id));
+      return response;
+    });
+  }
+
+  // ============ Escalations ============
+  async getEscalations(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(ESCALATION_ENDPOINTS.LIST, { params });
+      return response;
+    });
+  }
+
+  async getEscalation(id) {
+    if (!id) throw new Error('Escalation ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(ESCALATION_ENDPOINTS.DETAIL(id));
+      return response;
+    });
+  }
+
+  async createEscalation(actualId, escalatedToId, reason) {
+    if (!actualId) throw new Error('Actual ID is required');
+    if (!escalatedToId) throw new Error('Escalated to user ID is required');
+    if (!reason) throw new Error('Reason is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(ESCALATION_ENDPOINTS.CREATE, {
+        actual: actualId,
+        escalated_to: escalatedToId,
+        reason,
+      });
+      return response;
+    });
+  }
+
+  async resolveEscalation(id, resolution) {
+    if (!id) throw new Error('Escalation ID is required');
+    if (!resolution) throw new Error('Resolution is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(ESCALATION_ENDPOINTS.RESOLVE(id), { resolution });
+      return response;
+    });
+  }
+
+  async getMyEscalations(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(ESCALATION_ENDPOINTS.MY_ESCALATIONS, { params });
+      return response;
+    });
+  }
 }
-export default new ValidationService();
+
+export const validationService = new ValidationService();

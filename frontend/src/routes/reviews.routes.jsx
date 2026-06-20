@@ -33,6 +33,10 @@ const CalibrationSessionForm = React.lazy(() => import('../pages/reviews/Calibra
 
 const Reports = React.lazy(() => import('../pages/reviews/ReportsPage'));
 const Settings = React.lazy(() => import('../pages/reviews/SettingsPage'));
+const AnalyticsPage = React.lazy(() => import('../pages/reviews/AnalyticsPage'));
+const AnalyticsDashboardPage = React.lazy(() => import('../pages/reviews/AnalyticsDashboardPage'));
+const InsightsPage = React.lazy(() => import('../pages/reviews/InsightsPage'));
+const PredictionsPage = React.lazy(() => import('../pages/reviews/PredictionsPage'));
 
 // ============================================
 // EXPORT REVIEWS_ROUTES CONSTANTS
@@ -109,6 +113,12 @@ export const REVIEWS_ROUTES = {
     
     // Settings
     SETTINGS: '/reviews/settings',
+    
+    // Analytics & Insights
+    ANALYTICS: '/reviews/analytics',
+    ANALYTICS_DASHBOARD: '/reviews/analytics/dashboard',
+    INSIGHTS: '/reviews/insights',
+    PREDICTIONS: '/reviews/predictions',
 };
 
 // Simple flat routes array
@@ -184,6 +194,12 @@ const reviewsRoutes = [
     
     // Settings
     { path: REVIEWS_ROUTES.SETTINGS, element: <Settings /> },
+    
+    // Analytics & Insights
+    { path: REVIEWS_ROUTES.ANALYTICS, element: <AnalyticsPage /> },
+    { path: REVIEWS_ROUTES.ANALYTICS_DASHBOARD, element: <AnalyticsDashboardPage /> },
+    { path: REVIEWS_ROUTES.INSIGHTS, element: <InsightsPage /> },
+    { path: REVIEWS_ROUTES.PREDICTIONS, element: <PredictionsPage /> },
 ];
 
 // Helper function to build dynamic paths (for use in components)

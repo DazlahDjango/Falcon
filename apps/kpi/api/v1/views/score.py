@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Avg, Count, Q, Min, Max
-from .base import  ReadOnlyKPIViewset
+from .base import ReadOnlyKPIViewset
 from ..serializers import ScoreSerializer, AggregatedScoreSerializer, TrafficLightSerializer
 from ....models import Score, AggregatedScore, TrafficLight
 from ..filters import ScoreListFilter, AggregatedScoreListFilter
@@ -18,39 +18,46 @@ class ScoreViewSet(ReadOnlyKPIViewset):
     ordering_fields = ['score', 'year', 'month', 'calculated_at']
     ordering = ['-year', '-month', '-score']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related('kpi', 'user')
+
     @action(detail=False, methods=['get'])
     def my_scores(self, request):
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        scores = self.queryset.filter(user=request.user)
+        scores = self.get_queryset().filter(user=request.user)
         if year:
             scores = scores.filter(year=year)
         if month:
             scores = scores.filter(month=month)
         serializer = self.get_serializer(scores, many=True)
         return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def team_scores(self, request):
         manager_id = request.user.id
         direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        scores = self.queryset.filter(user_id__in=direct_reports)
+        scores = self.get_queryset().filter(user_id__in=direct_reports)
         if year:
             scores = scores.filter(year=year)
         if month:
             scores = scores.filter(month=month)
         serializer = self.get_serializer(scores, many=True)
         return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        queryset = self.queryset
+        queryset = self.get_queryset()
         if year:
             queryset = queryset.filter(year=year)
         if month:
             queryset = queryset.filter(month=month)
+
         stats = queryset.aggregate(
             avg_score=Avg('score'),
             min_score=Min('score'),
@@ -60,7 +67,17 @@ class ScoreViewSet(ReadOnlyKPIViewset):
             yellow_count=Count('id', filter=Q(score__gte=50, score__lt=90)),
             red_count=Count('id', filter=Q(score__lt=50))
         )
-        return Response(stats)
+
+        return Response({
+            'avg_score': float(stats['avg_score']) if stats['avg_score'] else 0,
+            'min_score': float(stats['min_score']) if stats['min_score'] else 0,
+            'max_score': float(stats['max_score']) if stats['max_score'] else 0,
+            'total_count': stats['total_count'],
+            'green_count': stats['green_count'],
+            'yellow_count': stats['yellow_count'],
+            'red_count': stats['red_count']
+        })
+
 
 class AggregatedScoreViewSet(ReadOnlyKPIViewset):
     queryset = AggregatedScore.objects.all()
@@ -70,42 +87,43 @@ class AggregatedScoreViewSet(ReadOnlyKPIViewset):
     search_fields = ['entity_name']
     ordering_fields = ['aggregated_score', 'year', 'month']
     ordering = ['-year', '-month', '-aggregated_score']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            return queryset.filter(tenant_id=tenant_id)
+        return queryset
+
     @action(detail=False, methods=['get'])
     def organization(self, request):
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        scores = self.queryset.filter(
-            level='ORGANIZATION',
-            tenant_id=request.tenant.id
-        )
+        scores = self.get_queryset().filter(level='ORGANIZATION')
         if year:
             scores = scores.filter(year=year)
         if month:
             scores = scores.filter(month=month)
         serializer = self.get_serializer(scores, many=True)
         return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def departments(self, request):
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        scores = self.queryset.filter(
-            level='DEPARTMENT',
-            tenant_id=request.tenant.id
-        )
+        scores = self.get_queryset().filter(level='DEPARTMENT')
         if year:
             scores = scores.filter(year=year)
         if month:
             scores = scores.filter(month=month)
         serializer = self.get_serializer(scores, many=True)
         return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def ranking(self, request):
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        scores = self.queryset.filter(
-            level='DEPARTMENT',
-            tenant_id=request.tenant.id
-        )
+        scores = self.get_queryset().filter(level='DEPARTMENT')
         if year:
             scores = scores.filter(year=year)
         if month:
@@ -113,7 +131,8 @@ class AggregatedScoreViewSet(ReadOnlyKPIViewset):
         scores = scores.order_by('-aggregated_score')
         serializer = self.get_serializer(scores, many=True)
         return Response(serializer.data)
-    
+
+
 class TrafficLightViewSet(ReadOnlyKPIViewset):
     queryset = TrafficLight.objects.all()
     serializer_class = TrafficLightSerializer
@@ -122,12 +141,16 @@ class TrafficLightViewSet(ReadOnlyKPIViewset):
     search_fields = ['score__kpi__name', 'score__user__email']
     ordering_fields = ['score_value', 'consecutive_red_count', 'calculated_at']
     ordering = ['-calculated_at']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related('score__kpi', 'score__user')
+
     @action(detail=False, methods=['get'])
     def red_alerts(self, request):
-        """Get red alerts (2+ consecutive red months)"""
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        red_alerts = self.queryset.filter(
+        red_alerts = self.get_queryset().filter(
             status='RED',
             consecutive_red_count__gte=2
         )
@@ -137,14 +160,13 @@ class TrafficLightViewSet(ReadOnlyKPIViewset):
             red_alerts = red_alerts.filter(score__month=month)
         serializer = self.get_serializer(red_alerts, many=True)
         return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def my_red_alerts(self, request):
-        """Get red alerts for current user"""
-        red_alerts = self.queryset.filter(
+        red_alerts = self.get_queryset().filter(
             status='RED',
             score__user=request.user,
             consecutive_red_count__gte=2
         )
         serializer = self.get_serializer(red_alerts, many=True)
         return Response(serializer.data)
-    

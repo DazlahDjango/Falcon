@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FiRefreshCw, FiShield, FiRadio } from 'react-icons/fi';
+import { useSelector } from 'react-redux';
+import { FiShield, FiRadio } from 'react-icons/fi';
 import { useDashboardPage } from '../../../hooks/dashboard';
 import { RefreshButton } from '../common/RefreshButton';
 import { LoadingSkeleton } from '../common/LoadingSkeleton';
@@ -27,6 +28,18 @@ export const DashboardPageShell = ({
     onRealtimeMessage,
     onRefresh,
   });
+  const currentUser = useSelector((state) => state.auth?.user);
+  const isActiveStatus = currentUser?.is_active;
+
+  const statusText = isActiveStatus != null
+    ? (isActiveStatus ? 'Active' : 'Inactive')
+    : (connected ? 'Live' : 'Offline');
+
+  const statusTitle = isActiveStatus != null
+    ? (isActiveStatus ? 'User active' : 'User inactive')
+    : (connected ? 'Live updates active' : 'Reconnecting…');
+
+  const statusClassNames = `dashboard-page__live ${((isActiveStatus != null && isActiveStatus) || (!currentUser?.is_active && connected)) ? 'dashboard-page__live--on' : ''}`.trim();
 
   const handleRefresh = () => {
     refresh();
@@ -44,11 +57,11 @@ export const DashboardPageShell = ({
         <div className="dashboard-page__actions">
           {showLiveBadge && (
             <span
-              className={`dashboard-page__live ${connected ? 'dashboard-page__live--on' : ''}`}
-              title={connected ? 'Live updates active' : 'Reconnecting…'}
+              className={statusClassNames}
+              title={statusTitle}
             >
               <FiRadio size={14} />
-              {connected ? 'Live' : 'Offline'}
+              {statusText}
             </span>
           )}
           <span className="dashboard-page__secure" title="RBAC-scoped data · audited drill-down">

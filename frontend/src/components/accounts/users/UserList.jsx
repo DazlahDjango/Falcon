@@ -1,70 +1,142 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiPlus, FiSearch, FiFilter, FiDownload } from 'react-icons/fi';
-import { fetchUsers, deleteUser, setFilters, resetFilters } from '../../../store/accounts/slice/userSlice';
+import { FiPlus, FiSearch, FiFilter, FiDownload, FiRefreshCw, FiUpload } from 'react-icons/fi';
+import { useUsers } from '../../../hooks/accounts/useUsers';
+import { useAuth } from '../../../hooks/accounts/useAuth';
 import UserCard from './components/UserCard';
 import UserFilters from './components/UserFilters';
 import InviteUserModal from './components/InviteUserModal';
-import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
-import EmptyState from '../../common/Feedback/EmptyState';
+import UserExport from './components/UserExport';
+import BulkInviteModal from './components/BulkInviteModal';
+import Spinner from '../../common/UI/Spinner';
 
 const UserList = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const { users, pagination, filters, isLoading } = useSelector((state) => state.users);
-    const { user: currentUser } = useSelector((state) => state.auth);
+    const { user: currentUser } = useAuth();
+    const {
+        users,
+        pagination,
+        filters,
+        isLoading,
+        loadUsers,
+        deleteUser,
+        updateFilters,
+        clearAllFilters,
+        goToPage,
+    } = useUsers();
+
     const [showFilters, setShowFilters] = useState(false);
     const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [showBulkInviteModal, setShowBulkInviteModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const canManageUsers = currentUser?.role === 'client_admin' || currentUser?.role === 'super_admin';
+
+    const loadUserList = useCallback(() => {
+        const params = {
+            ...filters,
+            search: searchTerm,
+            page: pagination.current_page,
+            page_size: pagination.page_size,
+        };
+        loadUsers(params);
+    }, [filters, searchTerm, pagination.current_page, pagination.page_size, loadUsers]);
+
     useEffect(() => {
-        dispatch(fetchUsers({ ...filters, search: searchTerm}));
-    }, [dispatch, filters, searchTerm]);
+        loadUserList();
+    }, [loadUserList]);
+
     const handleSearch = (e) => {
         e.preventDefault();
-        dispatch(fetchUsers({ ...filters, search: searchTerm }));
+        loadUserList();
     };
+
     const handleFilterChange = (newFilters) => {
-        dispatch(setFilters(newFilters));
+        updateFilters(newFilters);
     };
+
     const handleResetFilters = () => {
-        dispatch(resetFilters());
+        clearAllFilters();
         setSearchTerm('');
     };
-    const handleDeleteUser = async (userId) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
-            await dispatch(deleteUser(userId));
+
+    const handleDeleteUser = async (userId, userName) => {
+        if (window.confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
+            await deleteUser(userId);
+            loadUserList();
         }
     };
-    const canManageUsers = currentUser?.role === 'client_admin' || currentUser?.role === 'super_admin';
+
+    const handleRefresh = () => {
+        loadUserList();
+    };
+
     if (isLoading && !users.length) {
         return (
             <div className="users-page">
                 <div className="page-header">
-                    <h1>Users</h1>
+                    <h1>Team Members</h1>
+                    <p>Loading team members...</p>
                 </div>
-                <SkeletonLoader type="list" count={5} />
+                <div className="users-loading">
+                    <Spinner size="lg" />
+                </div>
             </div>
         );
     }
+
     return (
         <div className="users-page">
             {/* Page Header */}
             <div className="page-header">
-                <div>
-                    <h1>Users</h1>
-                    <p>Manage and invite team members</p>
+                <div className="header-title-section">
+                    <h1>Team Members</h1>
+                    <p>Manage and invite team members to your organization</p>
                 </div>
-                {canManageUsers && (
-                    <button 
-                        className="btn btn-primary"
-                        onClick={() => setShowInviteModal(true)}
-                    >
-                        <FiPlus size={16} />
-                        Invite User
+                <div className="header-actions">
+                    <button className="btn-icon" onClick={handleRefresh} title="Refresh">
+                        <FiRefreshCw size={18} />
                     </button>
-                )}
+                    {canManageUsers && (
+                        <>
+                            <button className="btn btn-secondary" onClick={() => setShowExportModal(true)}>
+                                <FiDownload size={16} />
+                                Export
+                            </button>
+                            <button className="btn btn-secondary" onClick={() => setShowBulkInviteModal(true)}>
+                                <FiUpload size={16} />
+                                Bulk Invite
+                            </button>
+                            <button className="btn btn-primary" onClick={() => setShowInviteModal(true)}>
+                                <FiPlus size={16} />
+                                Invite User
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
+
+            {/* Stats Summary */}
+            <div className="users-stats">
+                <div className="stat-card">
+                    <div className="stat-value">{pagination.total_items}</div>
+                    <div className="stat-label">Total Users</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">{users.filter(u => u.is_active).length}</div>
+                    <div className="stat-label">Active</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">{users.filter(u => u.mfa_enabled).length}</div>
+                    <div className="stat-label">MFA Enabled</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">{users.filter(u => u.is_verified).length}</div>
+                    <div className="stat-label">Verified</div>
+                </div>
+            </div>
+
             {/* Search and Filters Bar */}
             <div className="search-filters-bar">
                 <form onSubmit={handleSearch} className="search-form">
@@ -76,78 +148,102 @@ const UserList = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
                     />
+                    <button type="submit" className="search-btn">Search</button>
                 </form>
-                <button 
-                    className={`filter-btn ${showFilters ? 'active' : ''}`}
-                    onClick={() => setShowFilters(!showFilters)}
-                >
-                    <FiFilter size={16} />
-                    Filters
-                </button>
-                <button className="export-btn" onClick={() => {}}>
-                    <FiDownload size={16} />
-                    Export
-                </button>
+                <div className="filter-actions">
+                    <button
+                        className={`filter-btn ${showFilters ? 'active' : ''}`}
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        <FiFilter size={16} />
+                        Filters
+                    </button>
+                </div>
             </div>
+
             {/* Filters Panel */}
             {showFilters && (
-                <UserFilters 
+                <UserFilters
                     filters={filters}
                     onFilterChange={handleFilterChange}
                     onReset={handleResetFilters}
                 />
             )}
+
             {/* Users Grid */}
             {users.length === 0 ? (
-                <EmptyState 
-                    title="No users found"
-                    description="Try adjusting your search or filters"
-                    action={canManageUsers}
-                    actionText="Invite User"
-                    onAction={() => setShowInviteModal(true)}
-                />
+                <div className="empty-state">
+                    <div className="empty-icon">👥</div>
+                    <h3>No users found</h3>
+                    <p>Try adjusting your search or filters to find what you're looking for.</p>
+                    {canManageUsers && (
+                        <button className="btn btn-primary" onClick={() => setShowInviteModal(true)}>
+                            <FiPlus size={16} />
+                            Invite your first team member
+                        </button>
+                    )}
+                </div>
             ) : (
-                <div className="users-grid">
-                    {users.map((user) => (
-                        <UserCard 
-                            key={user.id}
-                            user={user}
-                            onEdit={() => navigate(`/users/${user.id}/edit`)}
-                            onDelete={() => handleDeleteUser(user.id)}
-                            showActions={canManageUsers}
-                        />
-                    ))}
-                </div>
+                <>
+                    <div className="users-grid">
+                        {users.map((user) => (
+                            <UserCard
+                                key={user.id}
+                                user={user}
+                                onEdit={() => navigate(`/users/${user.id}/edit`)}
+                                onDelete={() => handleDeleteUser(user.id, user.full_name || user.email)}
+                                showActions={canManageUsers}
+                                currentUserId={currentUser?.id}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Pagination */}
+                    {pagination.total_pages > 1 && (
+                        <div className="pagination">
+                            <button
+                                className="pagination-btn"
+                                disabled={pagination.current_page === 1}
+                                onClick={() => goToPage(pagination.current_page - 1)}
+                            >
+                                Previous
+                            </button>
+                            <span className="pagination-info">
+                                Page {pagination.current_page} of {pagination.total_pages}
+                            </span>
+                            <button
+                                className="pagination-btn"
+                                disabled={pagination.current_page === pagination.total_pages}
+                                onClick={() => goToPage(pagination.current_page + 1)}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
+                </>
             )}
-            {/* Pagination */}
-            {pagination.total_pages > 1 && (
-                <div className="pagination">
-                    <button 
-                        className="pagination-btn"
-                        disabled={pagination.current_page === 1}
-                        onClick={() => dispatch(fetchUsers({ ...filters, page: pagination.current_page - 1 }))}
-                    >
-                        Previous
-                    </button>
-                    <span className="pagination-info">
-                        Page {pagination.current_page} of {pagination.total_pages}
-                    </span>
-                    <button 
-                        className="pagination-btn"
-                        disabled={pagination.current_page === pagination.total_pages}
-                        onClick={() => dispatch(fetchUsers({ ...filters, page: pagination.current_page + 1 }))}
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
-            {/* Invite Modal */}
-            <InviteUserModal 
+
+            {/* Modals */}
+            <InviteUserModal
                 isOpen={showInviteModal}
                 onClose={() => setShowInviteModal(false)}
-                onSuccess={() => dispatch(fetchUsers(filters))}
+                onSuccess={() => loadUserList()}
+            />
+
+            <UserExport
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                users={users}
+                totalCount={pagination.total_items}
+            />
+
+            <BulkInviteModal
+                isOpen={showBulkInviteModal}
+                onClose={() => setShowBulkInviteModal(false)}
+                onSuccess={() => loadUserList()}
             />
         </div>
     );
 };
+
 export default UserList;

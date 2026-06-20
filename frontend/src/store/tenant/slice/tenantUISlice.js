@@ -334,7 +334,9 @@ export const {
 } = tenantUISlice.actions;
 
 // Selectors
-export const selectModalState = (state, modalName) => state.tenantUI.modals[modalName];
+export const selectModalState = (state, modalName) => {
+    return state?.tenantUI?.modals?.[modalName] ?? false;
+}
 export const selectSelectedTenantId = (state) => state.tenantUI.selected.tenantId;
 export const selectSelectedDomainId = (state) => state.tenantUI.selected.domainId;
 export const selectSelectedBackupId = (state) => state.tenantUI.selected.backupId;

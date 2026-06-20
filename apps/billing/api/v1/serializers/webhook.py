@@ -1,9 +1,6 @@
 from rest_framework import serializers
-from django.utils.translation import gettext_lazy as _
 
 class WebhookAuthorizationSerializer(serializers.Serializer):
-    """PayStack authorization data serializer."""
-    
     authorization_code = serializers.CharField(allow_blank=True)
     card_type = serializers.CharField(allow_blank=True)
     last4 = serializers.CharField(allow_blank=True)
@@ -16,10 +13,7 @@ class WebhookAuthorizationSerializer(serializers.Serializer):
     reusable = serializers.BooleanField(default=True)
     country_code = serializers.CharField(allow_blank=True)
 
-
 class WebhookCustomerSerializer(serializers.Serializer):
-    """PayStack customer data serializer."""
-    
     id = serializers.IntegerField()
     first_name = serializers.CharField(allow_blank=True)
     last_name = serializers.CharField(allow_blank=True)
@@ -29,10 +23,7 @@ class WebhookCustomerSerializer(serializers.Serializer):
     metadata = serializers.JSONField(required=False, default=dict)
     risk_action = serializers.CharField(allow_blank=True)
 
-
 class WebhookDataSerializer(serializers.Serializer):
-    """PayStack webhook data serializer."""
-    
     id = serializers.IntegerField()
     domain = serializers.CharField()
     status = serializers.CharField()
@@ -54,32 +45,17 @@ class WebhookDataSerializer(serializers.Serializer):
     plan = serializers.JSONField(required=False, default=dict)
     subscription = serializers.JSONField(required=False, default=dict)
 
-
 class WebhookPayloadSerializer(serializers.Serializer):
-    """Complete PayStack webhook payload serializer."""
-    
-    event = serializers.CharField(help_text="Webhook event type")
-    data = WebhookDataSerializer(help_text="Webhook data payload")
-    
+    event = serializers.CharField()
+    data = WebhookDataSerializer()
     def validate_event(self, value):
-        """Validate event type is supported."""
-        supported_events = [
-            'charge.success', 'charge.dispute.create', 'charge.dispute.remind',
-            'charge.dispute.resolve', 'subscription.create', 'subscription.disable',
-            'subscription.enable', 'invoice.create', 'invoice.update',
-            'invoice.payment_failed', 'paymentrequest.success'
-        ]
-        
+        supported_events = ['charge.success', 'charge.dispute.create', 'charge.dispute.remind', 'charge.dispute.resolve', 'subscription.create', 'subscription.disable', 'subscription.enable', 'invoice.create', 'invoice.update', 'invoice.payment_failed', 'paymentrequest.success']
         if value not in supported_events:
             raise serializers.ValidationError(f"Unsupported event type: {value}")
-        
         return value
 
-
 class WebhookResponseSerializer(serializers.Serializer):
-    """Webhook processing response serializer."""
-    
-    status = serializers.CharField(help_text="Processing status")
-    message = serializers.CharField(help_text="Response message")
-    event_type = serializers.CharField(help_text="Processed event type")
-    processed_at = serializers.DateTimeField(help_text="Processing timestamp")
+    status = serializers.CharField()
+    message = serializers.CharField()
+    event_type = serializers.CharField()
+    processed_at = serializers.DateTimeField()

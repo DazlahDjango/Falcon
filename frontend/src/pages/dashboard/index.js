@@ -21,6 +21,7 @@ export { default as SettingsPanel } from './ClientAdminDashboard/SettingsPanel';
 
 // ==================== SUPER ADMIN DASHBOARD ====================
 export { default as SuperAdminDashboard } from './SuperAdminDashboard/SuperAdminDashboard';
+export { default as SuperAdminDashboardCustom } from './SuperAdminDashboard/SuperAdminDashboardCustom';
 export { default as PlatformOverview } from './SuperAdminDashboard/PlatformOverview';
 export { default as TenantsTable } from './SuperAdminDashboard/TenantsTable';
 export { default as TenantDetailModal } from './SuperAdminDashboard/TenantDetailModal';

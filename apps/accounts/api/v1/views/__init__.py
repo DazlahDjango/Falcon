@@ -9,31 +9,54 @@ from .mfa import MFADeviceViewSet, MFAAuditLogViewSet
 from .preference import UserPreferenceViewSet, TenantPreferenceViewSet
 from .audit import AuditLogViewSet
 from .admin import AdminUserViewSet, AdminRoleViewSet, AdminTenantViewSet, AdminPermissionViewSet, AdminSystemView
-from .system_settings_views import AccountsSystemSettingsView, AccountsSystemSettingsResetView, AccountsSyncPolicyView
+from .system_settings_views import AccountsSystemSettingsView, AccountsSystemSettingsResetView, AccountsSyncPolicyView, TenantMFAPolicyView, UserMFAPolicyView, UserMFAStatusView
 from .security_views import LoginAttemptViewSet, TenantPolicyView, LockoutSummaryView
+from .admin_mfa_views import AdminMfaResetView, AdminMfaDeviceClearView, AdminMFAStatusView
+from .step_up_views import StepUpVerifyView
 
 __all__ = [
-    # Base
-    'BaseModelViewset', 'BaseViewset', 'BaseReadOnlyViewset',
-    # Auth
-    'AuthViewSet', 'LoginView', 'MFAAuthView', 'MFASetupView', 'MFADeviceView', 'MFABackupCodesView', 'RefreshTokenView', 'LogoutView',
-    # User
-    'UserViewSet', 'UserProfileView', 'CurrentUserView', 'UserChangePasswordView', 'UserInvitationsView',
-    # Profiles
+    'BaseModelViewset',
+    'BaseViewset',
+    'BaseReadOnlyViewset',
+    'AuthViewSet',
+    'LoginView',
+    'MFAAuthView',
+    'MFASetupView',
+    'MFADeviceView',
+    'MFABackupCodesView',
+    'RefreshTokenView',
+    'LogoutView',
+    'UserViewSet',
+    'UserProfileView',
+    'CurrentUserView',
+    'UserChangePasswordView',
+    'UserInvitationsView',
+    'InvitationAcceptView',
     'ProfileViewSet',
-    # Roles and Permissions
-    'RoleViewSet', 'PermissionViewSet',
-    # Session
+    'RoleViewSet',
+    'PermissionViewSet',
     'SessionViewSet',
-    # MFA
-    'MFADeviceViewSet', 'MFAAuditLogViewSet',
-    # Preferences
-    'UserPreferenceViewSet', 'TenantPreferenceViewSet',
-    # Audit
+    'MFADeviceViewSet',
+    'MFAAuditLogViewSet',
+    'UserPreferenceViewSet',
+    'TenantPreferenceViewSet',
     'AuditLogViewSet',
-    # Admin
-    'AdminUserViewSet', 'AdminRoleViewSet', 'AdminTenantViewSet',
-    'AdminPermissionViewSet', 'AdminSystemView',
-    'AccountsSystemSettingsView', 'AccountsSystemSettingsResetView', 'AccountsSyncPolicyView',
-    'LoginAttemptViewSet', 'TenantPolicyView', 'LockoutSummaryView',
+    'AdminUserViewSet',
+    'AdminRoleViewSet',
+    'AdminTenantViewSet',
+    'AdminPermissionViewSet',
+    'AdminSystemView',
+    'AccountsSystemSettingsView',
+    'AccountsSystemSettingsResetView',
+    'AccountsSyncPolicyView',
+    'LoginAttemptViewSet',
+    'TenantPolicyView',
+    'LockoutSummaryView',
+    'TenantMFAPolicyView',
+    'UserMFAPolicyView',
+    'UserMFAStatusView',
+    'AdminMfaResetView',
+    'AdminMfaDeviceClearView',
+    'AdminMFAStatusView',
+    'StepUpVerifyView',
 ]

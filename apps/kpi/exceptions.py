@@ -1,3 +1,4 @@
+# exceptions.py
 from django.core.exceptions import ValidationError
 
 class KPIException(Exception):
@@ -54,10 +55,8 @@ class ApprovalError(KPIException):
 class EscalationError(KPIException):
     pass
 
-
 class AggregationError(CalculationError):
     pass
-
 
 class MaterializedViewError(KPIException):
     pass
@@ -66,6 +65,10 @@ class TenantIsolationError(KPIException):
     pass
 
 class PermissionDeniedError(KPIException):
+    pass
+
+class PermissionDenied(KPIException):
+    """Raised when a user lacks permission for an operation"""
     pass
 
 class InvalidFrameworkError(KPIException):
@@ -131,8 +134,6 @@ class TrendAnalysisError(CalculationError):
 class RiskPredictionError(CalculationError):
     pass
 
-# Add to existing exceptions.py
-
 # ============================================================================
 # Budget & Cascade Exceptions
 # ============================================================================
@@ -141,21 +142,17 @@ class BudgetAllocationError(KPIException):
     """Raised when budget allocation is invalid"""
     pass
 
-
 class CascadeWeightError(KPIException):
     """Raised when cascade weights are invalid"""
     pass
-
 
 class DepartmentBudgetError(KPIException):
     """Raised when department budget is invalid"""
     pass
 
-
 class CascadeValidationError(KPIException):
     """Raised when cascade validation fails"""
     pass
-
 
 # ============================================================================
 # Data Sync Exceptions
@@ -165,45 +162,33 @@ class DataSyncError(KPIException):
     """Raised when data synchronization fails"""
     pass
 
-
 class ExternalSourceError(DataSyncError):
     """Raised when external source connection fails"""
     pass
-
 
 class DataMappingError(DataSyncError):
     """Raised when data mapping fails"""
     pass
 
-
 class SyncConflictError(DataSyncError):
     """Raised when sync conflict occurs"""
     pass
-
 
 # ============================================================================
 # Report Exceptions
 # ============================================================================
 
-class ReportGenerationError(KPIException):
-    """Raised when report generation fails"""
-    pass
-
-
 class ReportNotFoundError(ReportGenerationError):
     """Raised when report is not found"""
     pass
-
 
 class ExportError(ReportGenerationError):
     """Raised when export fails"""
     pass
 
-
 class UnsupportedFormatError(ExportError):
     """Raised when export format is not supported"""
     pass
-
 
 # ============================================================================
 # Notification Exceptions
@@ -213,16 +198,13 @@ class NotificationError(KPIException):
     """Raised when notification fails"""
     pass
 
-
 class NotificationDeliveryError(NotificationError):
     """Raised when notification delivery fails"""
     pass
 
-
 class NotificationTemplateError(NotificationError):
     """Raised when notification template is invalid"""
     pass
-
 
 # ============================================================================
 # Validation Exceptions
@@ -232,26 +214,21 @@ class ValidationRuleError(KPIException):
     """Raised when validation rule is violated"""
     pass
 
-
 class ThresholdValidationError(ValidationRuleError):
     """Raised when threshold validation fails"""
     pass
-
 
 class CrossModelValidationError(ValidationRuleError):
     """Raised when cross-model validation fails"""
     pass
 
-
 class ReferentialIntegrityError(ValidationRuleError):
     """Raised when referential integrity is violated"""
     pass
 
-
 class UniqueConstraintError(ValidationRuleError):
     """Raised when unique constraint is violated"""
     pass
-
 
 # ============================================================================
 # Import/Export Exceptions
@@ -261,31 +238,21 @@ class ImportError(KPIException):
     """Raised when data import fails"""
     pass
 
-
-class ExportError(KPIException):
-    """Raised when data export fails"""
-    pass
-
-
 class CSVFormatError(ImportError):
     """Raised when CSV format is invalid"""
     pass
-
 
 class ExcelFormatError(ImportError):
     """Raised when Excel format is invalid"""
     pass
 
-
 class MissingHeadersError(ImportError):
     """Raised when required headers are missing"""
     pass
 
-
 class DataValidationError(ImportError):
     """Raised when imported data fails validation"""
     pass
-
 
 # ============================================================================
 # Weight & Score Exceptions
@@ -295,21 +262,17 @@ class WeightDistributionError(KPIException):
     """Raised when weight distribution is invalid"""
     pass
 
-
 class ScoreCalculationError(KPIException):
     """Raised when score calculation fails"""
     pass
-
 
 class InvalidFormulaError(ScoreCalculationError):
     """Raised when formula is invalid"""
     pass
 
-
 class DivisionByZeroError(ScoreCalculationError):
     """Raised when division by zero occurs"""
     pass
-
 
 # ============================================================================
 # Performance Exceptions
@@ -319,16 +282,13 @@ class PerformanceThresholdError(KPIException):
     """Raised when performance thresholds are invalid"""
     pass
 
-
 class TargetRangeError(PerformanceThresholdError):
     """Raised when target range is invalid"""
     pass
 
-
 class ConsecutiveRedError(PerformanceThresholdError):
     """Raised when consecutive red threshold is exceeded"""
     pass
-
 
 # ============================================================================
 # Batch Operation Exceptions
@@ -338,16 +298,13 @@ class BatchOperationError(KPIException):
     """Raised when batch operation fails"""
     pass
 
-
 class BatchSizeExceededError(BatchOperationError):
     """Raised when batch size exceeds limit"""
     pass
 
-
 class PartialBatchError(BatchOperationError):
     """Raised when only part of batch succeeds"""
     pass
-
 
 # ============================================================================
 # WebSocket Exceptions
@@ -357,16 +314,13 @@ class WebSocketError(KPIException):
     """Raised when WebSocket connection fails"""
     pass
 
-
 class WebSocketAuthError(WebSocketError):
     """Raised when WebSocket authentication fails"""
     pass
 
-
 class WebSocketConnectionError(WebSocketError):
     """Raised when WebSocket connection fails"""
     pass
-
 
 # ============================================================================
 # Task Exceptions
@@ -376,17 +330,19 @@ class TaskExecutionError(KPIException):
     """Raised when Celery task execution fails"""
     pass
 
-
 class TaskTimeoutError(TaskExecutionError):
     """Raised when task times out"""
     pass
-
 
 class TaskRetryExhaustedError(TaskExecutionError):
     """Raised when task retries are exhausted"""
     pass
 
-# Exception to HTTP status mapping for API responses
+
+# ============================================================================
+# Exception to HTTP Status Mapping
+# ============================================================================
+
 EXCEPTION_STATUS_MAP = {
     KPIValidationError: 400,
     InvalidPeriodError: 400,
@@ -404,6 +360,7 @@ EXCEPTION_STATUS_MAP = {
     ApprovalError: 403,
     EscalationError: 403,
     PermissionDeniedError: 403,
+    PermissionDenied: 403,
     TenantIsolationError: 403,
     CalculationError: 500,
     ConcurrentCalculationError: 409,
@@ -423,55 +380,43 @@ EXCEPTION_STATUS_MAP = {
     EvidenceUploadError: 500,
     ReportGenerationError: 500,
     MaterializedViewError: 500,
-        # New mappings
     BudgetAllocationError: 400,
     CascadeWeightError: 400,
     DepartmentBudgetError: 400,
     CascadeValidationError: 400,
-    
     DataSyncError: 500,
     ExternalSourceError: 502,
     DataMappingError: 400,
     SyncConflictError: 409,
-    
-    ReportGenerationError: 500,
     ReportNotFoundError: 404,
     ExportError: 500,
     UnsupportedFormatError: 400,
-    
     NotificationError: 500,
     NotificationDeliveryError: 500,
     NotificationTemplateError: 400,
-    
     ValidationRuleError: 400,
     ThresholdValidationError: 400,
     CrossModelValidationError: 400,
     ReferentialIntegrityError: 400,
     UniqueConstraintError: 409,
-    
     ImportError: 400,
     CSVFormatError: 400,
     ExcelFormatError: 400,
     MissingHeadersError: 400,
     DataValidationError: 400,
-    
     WeightDistributionError: 400,
     ScoreCalculationError: 400,
     InvalidFormulaError: 400,
     DivisionByZeroError: 400,
-    
     PerformanceThresholdError: 400,
     TargetRangeError: 400,
     ConsecutiveRedError: 400,
-    
     BatchOperationError: 400,
     BatchSizeExceededError: 400,
     PartialBatchError: 207,
-    
     WebSocketError: 500,
     WebSocketAuthError: 401,
     WebSocketConnectionError: 500,
-    
     TaskExecutionError: 500,
     TaskTimeoutError: 504,
     TaskRetryExhaustedError: 500,

@@ -9,16 +9,19 @@ const Register = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
+
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/dashboard');
         }
     }, [isAuthenticated, navigate]);
+
     useEffect(() => {
         return () => {
             if (error) dispatch(clearError());
         };
     }, [dispatch, error]);
+
     const handleSubmit = async (values) => {
         try {
             await dispatch(register(values)).unwrap();
@@ -26,11 +29,12 @@ const Register = () => {
                 type: 'success', 
                 message: 'Registration successful! Please check your email to verify your account.'
             }));
-            navigate('/login', {state: { registered: true }});
+            navigate('/login', { state: { registered: true } });
         } catch (err) {
-            dispatch(showAlert({ type: 'error', message: err.message || 'Registration  failed' }));
+            dispatch(showAlert({ type: 'error', message: err || 'Registration failed' }));
         }
     };
+
     return (
         <div className="auth-page">
             <div className="auth-header-text">
@@ -45,4 +49,5 @@ const Register = () => {
         </div>
     );
 };
+
 export default Register;

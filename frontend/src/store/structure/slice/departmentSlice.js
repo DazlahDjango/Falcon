@@ -12,7 +12,8 @@ export const fetchDepartments = createAsyncThunk(
       const response = await departmentService.list(params);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch departments');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch departments';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -24,7 +25,8 @@ export const fetchDepartmentById = createAsyncThunk(
       const response = await departmentService.getById(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch department');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch department';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -36,7 +38,8 @@ export const fetchDepartmentTree = createAsyncThunk(
       const response = await departmentService.getTree({ include_inactive: includeInactive });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch department tree');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch department tree';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -48,7 +51,8 @@ export const fetchDepartmentStats = createAsyncThunk(
       const response = await departmentService.getStats();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch department stats');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch department stats';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -63,8 +67,23 @@ export const createDepartment = createAsyncThunk(
       dispatch(fetchDepartmentTree({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to create department', type: 'error' }));
-      return rejectWithValue(error.message);
+      console.log('Full error object in createDepartment:', error);
+      console.log('Raw error response data:', error?.rawResponse);
+      // For envelope-style errors from structureApiClient
+      let errorMessage = 'Failed to create department';
+      if (error?.message && error.message !== 'An error occurred') {
+        errorMessage = error.message;
+      } else if (error?.errors && Object.keys(error.errors).length > 0) {
+        const firstKey = Object.keys(error.errors)[0];
+        const firstError = error.errors[firstKey];
+        errorMessage = `${firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+      } else if (error?.rawResponse) {
+        const firstKey = Object.keys(error.rawResponse)[0];
+        const firstError = error.rawResponse[firstKey];
+        errorMessage = `${firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+      }
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -80,8 +99,9 @@ export const updateDepartment = createAsyncThunk(
       dispatch(fetchDepartmentTree({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to update department', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to update department';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -96,8 +116,9 @@ export const deleteDepartment = createAsyncThunk(
       dispatch(fetchDepartmentTree({}));
       return id;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to delete department', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to delete department';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -112,8 +133,9 @@ export const moveDepartment = createAsyncThunk(
       dispatch(fetchDepartmentTree({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to move department', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to move department';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -131,8 +153,9 @@ export const bulkCreateDepartments = createAsyncThunk(
       dispatch(fetchDepartmentTree({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Bulk create failed', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Bulk create failed';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );

@@ -7,15 +7,18 @@ from django.conf import settings
 from celery import shared_task
 from .models import User, UserSession, AuditLog, LoginAttempt, SessionBlacklist
 from .services import PasswordService
+
 logger = logging.getLogger(__name__)
 password_service = PasswordService()
+
 
 # Email tasks
 # ===========
 @shared_task(name='accounts.send_welcome_email')
 def send_welcome_email(user_id, tenant_name=None):
     try:
-        user = User.objects.get(id=user_id, is_deleted=None)
+        # ✅ FIXED: Use is_deleted=False instead of is_deleted=None
+        user = User.objects.get(id=user_id, is_deleted=False)
         subject = f"Welcome to Falcon PMS"
         context = {
             'user': user,
@@ -41,6 +44,7 @@ def send_welcome_email(user_id, tenant_name=None):
     except Exception as e:
         logger.error(f"Failed to send welcome email to {user_id}: {str(e)}")
         return False
+
 
 @shared_task(name='accounts.send_password_reset_email')
 def send_password_reset_email(user_id, token):
@@ -72,6 +76,7 @@ def send_password_reset_email(user_id, token):
         logger.error(f"Failed to send password reset email to {user_id}: {str(e)}")
         return False
     
+
 @shared_task(name='accounts.send_invitation_email')
 def send_invitation_email(email, token, invited_by_name, role, message):
     try:
@@ -101,6 +106,7 @@ def send_invitation_email(email, token, invited_by_name, role, message):
         logger.error(f"Failed to send invitation email to {email}: {str(e)}")
         return False
     
+
 @shared_task(name='accounts.send_mfa_setup_email')
 def send_mfa_setup_email(user_id, device_name, provisioning_uri):
     try:
@@ -109,7 +115,7 @@ def send_mfa_setup_email(user_id, device_name, provisioning_uri):
         context = {
             'user': user,
             'device_name': device_name,
-            'provissioning_uri': provisioning_uri,
+            'provisioning_uri': provisioning_uri,  # ✅ FIXED: was 'provissioning_uri'
             'setup_guide_url': f"{settings.FRONTEND_URL}/docs/mfa-setup"
         }
         html_content = render_to_string('accounts/email/mfa_setup.html', context)
@@ -131,22 +137,29 @@ def send_mfa_setup_email(user_id, device_name, provisioning_uri):
         logger.error(f"Failed to send to MFA setup email to {user_id}: {str(e)}")
         return False
 
+
 # Cleanup Tasks
 # =============
 @shared_task(name='accounts.cleanup_expired_sessions')
 def cleanup_expired_sessions():
     try:
-        cutoff = timezone.now() - timedelta(days=90)
+        now = timezone.now()
+        # Mark expired sessions
         expired_sessions = UserSession.objects.filter(
-            expires_at__lt=timezone.now()
+            expires_at__lt=now
         ).exclude(status='expired')
         count = expired_sessions.count()
         expired_sessions.update(status='expired')
-        old_sessions = UserSession.objects.filter(
+        
+        # Delete sessions older than 90 days
+        cutoff = now - timedelta(days=90)
+        delete_result = UserSession.objects.filter(
             login_time__lt=cutoff
         ).delete()
-        logger.info(f"Cleaned up {count} expired sessions, deleted {old_sessions[0]} old sessions")
-        return {'expired': count, 'deleted': old_sessions[0] if old_sessions else 0}
+        deleted_count = delete_result[0] if delete_result else 0
+        
+        logger.info(f"Cleaned up {count} expired sessions, deleted {deleted_count} old sessions")
+        return {'expired': count, 'deleted': deleted_count}
     except Exception as e:
         logger.error(f"Failed to cleanup expired sessions: {str(e)}")
         return {'error': str(e)}
@@ -167,9 +180,10 @@ def cleanup_expired_blacklist():
 def cleanup_old_audit_logs(retention_days=365):
     try:
         cutoff = timezone.now() - timedelta(days=retention_days)
-        deleted = AuditLog.objects.filter(timestamp__lt=cutoff).delete()
-        logger.info(f"Cleaned up {deleted[0]} old audit logs")
-        return {'deleted': deleted[0]}
+        delete_result = AuditLog.objects.filter(timestamp__lt=cutoff).delete()
+        deleted_count = delete_result[0] if delete_result else 0
+        logger.info(f"Cleaned up {deleted_count} old audit logs")
+        return {'deleted': deleted_count}
     except Exception as e:
         logger.error(f"Failed to cleanup old audit logs: {str(e)}")
         return {'error': str(e)}
@@ -179,12 +193,14 @@ def cleanup_old_audit_logs(retention_days=365):
 def cleanup_old_login_attempts(retention_days=90):
     try:
         cutoff = timezone.now() - timedelta(days=retention_days)
-        deleted = LoginAttempt.objects.filter(attempted_at__lt=cutoff).delete()
-        logger.info(f"Cleaned up {deleted[0]} old login attempts")
-        return {'deleted': deleted[0]}
+        delete_result = LoginAttempt.objects.filter(attempted_at__lt=cutoff).delete()
+        deleted_count = delete_result[0] if delete_result else 0
+        logger.info(f"Cleaned up {deleted_count} old login attempts")
+        return {'deleted': deleted_count}
     except Exception as e:
         logger.error(f"Failed to cleanup old login attempts: {str(e)}")
         return {'error': str(e)}
+
 
 # User Management Tasks
 # ======================
@@ -206,6 +222,7 @@ def unlock_locked_accounts():
         logger.error(f"Failed to unlock locked accounts: {str(e)}")
         return {'error': str(e)}
 
+
 @shared_task(name='accounts.remind_inactive_users')
 def remind_inactive_users(days_inactive=30):
     try:
@@ -217,7 +234,6 @@ def remind_inactive_users(days_inactive=30):
         ).exclude(role='super_admin')
         count = 0
         for user in inactive_users:
-            # Send reminder email
             subject = 'We Miss You!'
             context = {
                 'user': user,
@@ -240,6 +256,7 @@ def remind_inactive_users(days_inactive=30):
         logger.error(f"Failed to send inactive reminders: {str(e)}")
         return {'error': str(e)}
 
+
 @shared_task(name='accounts.check_password_expiry')
 def check_password_expiry(expiry_days=90):
     try:
@@ -252,7 +269,6 @@ def check_password_expiry(expiry_days=90):
         
         notified = 0
         for user in expired_users:
-            # Send password expiry notification
             send_password_expiry_notification.delay(str(user.id))
             notified += 1
         
@@ -262,6 +278,7 @@ def check_password_expiry(expiry_days=90):
         logger.error(f"Failed to check password expiry: {str(e)}")
         return {'error': str(e)}
     
+
 @shared_task(name='accounts.send_password_expiry_notification')
 def send_password_expiry_notification(user_id):
     try:
@@ -269,7 +286,7 @@ def send_password_expiry_notification(user_id):
         
         context = {
             'user': user,
-            'expiry_days': 90,  # Or configurable
+            'expiry_days': 90,
             'change_password_url': f"{settings.FRONTEND_URL}/change-password"
         }
         
@@ -292,7 +309,8 @@ def send_password_expiry_notification(user_id):
     except Exception as e:
         logger.error(f"Failed to send password expiry notification: {str(e)}")
         return False
-    
+
+
 # MFA Tasks
 # ==========
 @shared_task(name='accounts.send_mfa_verification_sms')
@@ -304,6 +322,7 @@ def send_mfa_verification_sms(phone, code):
     except Exception as e:
         logger.error(f"Failed to send MFA SMS: {str(e)}")
         return False
+
 
 @shared_task(name='accounts.send_login_alert_email')
 def send_login_alert_email(user_id, ip_address, user_agent, location=None):
@@ -337,4 +356,3 @@ def send_login_alert_email(user_id, ip_address, user_agent, location=None):
     except Exception as e:
         logger.error(f"Failed to send login alert to {user_id}: {str(e)}")
         return False
-

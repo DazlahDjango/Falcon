@@ -12,9 +12,11 @@ const VerifyEmail = () => {
     const dispatch = useDispatch();
     const token = searchParams.get('token');
     const email = searchParams.get('email');
+    
     const [status, setStatus] = useState('verifying');
     const [message, setMessage] = useState('');
     const [resending, setResending] = useState(false);
+
     useEffect(() => {
         if (token) {
             verifyEmailToken();
@@ -24,6 +26,7 @@ const VerifyEmail = () => {
             navigate('/login');
         }
     }, [token, email, navigate]);
+
     const verifyEmailToken = async () => {
         try {
             await dispatch(verifyEmail(token)).unwrap();
@@ -31,25 +34,27 @@ const VerifyEmail = () => {
             setMessage('Your email has been verified successfully!');
         } catch (err) {
             setStatus('error');
-            setMessage(err.message || 'Invalid or expired verification link');
+            setMessage(err || 'Invalid or expired verification link');
         }
     };
+
     const handleResend = async () => {
         if (!email) return;
         setResending(true);
         try {
             await dispatch(resendVerification(email)).unwrap();
-            setStatus('recent');
+            setStatus('resent');
             setMessage('Verification email sent! Please check your inbox.');
             dispatch(showAlert({ type: 'success', message: 'Verification email sent' }));
         } catch (err) {
             setStatus('error');
-            setMessage(err.message || 'Failed to send verification email');
+            setMessage(err || 'Failed to send verification email');
         } finally {
             setResending(false);
         }
     };
-    if (status=== 'verifying') {
+
+    if (status === 'verifying') {
         return (
             <div className="auth-page">
                 <div className="auth-header-text">
@@ -57,11 +62,12 @@ const VerifyEmail = () => {
                     <p>Please wait while we verify your email</p>
                 </div>
                 <div className="auth-loading">
-                    <Spinner size='lg' />
+                    <Spinner size="lg" />
                 </div>
             </div>
         );
     }
+
     return (
         <div className="auth-page">
             <div className="auth-header-text">
@@ -145,4 +151,5 @@ const VerifyEmail = () => {
         </div>
     );
 };
+
 export default VerifyEmail;

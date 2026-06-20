@@ -1,113 +1,28 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
+import { FiX, FiFilter } from 'react-icons/fi';
+import './transactions.css';
 
-export const TransactionFilter = ({ filters, onFilterChange, onClear }) => {
-    const [localFilters, setLocalFilters] = useState({
-        status: filters.status || '',
-        type: filters.transaction_type || '',
-        startDate: filters.start_date || '',
-        endDate: filters.end_date || '',
-    });
+export const TransactionFilter = ({ filters, onChange, onApply, onClear, show }) => {
+    if (!show) return null;
 
-    const handleChange = (key, value) => {
-        const newFilters = { ...localFilters, [key]: value };
-        setLocalFilters(newFilters);
-    };
+    const handleChange = (key, value) => { onChange({ ...filters, [key]: value }); };
 
-    const handleApply = () => {
-        const appliedFilters = {};
-        if (localFilters.status) appliedFilters.status = localFilters.status;
-        if (localFilters.type) appliedFilters.transaction_type = localFilters.type;
-        if (localFilters.startDate) appliedFilters.start_date = localFilters.startDate;
-        if (localFilters.endDate) appliedFilters.end_date = localFilters.endDate;
-        onFilterChange(appliedFilters);
-    };
-
-    const handleClear = () => {
-        setLocalFilters({
-            status: '',
-            type: '',
-            startDate: '',
-            endDate: '',
-        });
-        onClear();
-    };
-
-    const hasActiveFilters = localFilters.status || localFilters.type || 
-                             localFilters.startDate || localFilters.endDate;
+    const statusOptions = [{ value: '', label: 'All Status' }, { value: 'success', label: 'Success' }, { value: 'pending', label: 'Pending' }, { value: 'failed', label: 'Failed' }, { value: 'refunded', label: 'Refunded' }, { value: 'disputed', label: 'Disputed' }];
+    const typeOptions = [{ value: '', label: 'All Types' }, { value: 'subscription', label: 'Subscription' }, { value: 'renewal', label: 'Renewal' }, { value: 'upgrade', label: 'Upgrade' }, { value: 'downgrade', label: 'Downgrade' }, { value: 'refund', label: 'Refund' }, { value: 'one_time', label: 'One Time' }];
 
     return (
-        <div className="transaction-filter">
-            <div className="transaction-filter-group">
-                <label className="transaction-filter-label">Status</label>
-                <select
-                    className="transaction-filter-select"
-                    value={localFilters.status}
-                    onChange={(e) => handleChange('status', e.target.value)}
-                >
-                    <option value="">All</option>
-                    <option value="success">Success</option>
-                    <option value="pending">Pending</option>
-                    <option value="failed">Failed</option>
-                    <option value="refunded">Refunded</option>
-                </select>
-            </div>
-
-            <div className="transaction-filter-group">
-                <label className="transaction-filter-label">Type</label>
-                <select
-                    className="transaction-filter-select"
-                    value={localFilters.type}
-                    onChange={(e) => handleChange('type', e.target.value)}
-                >
-                    <option value="">All</option>
-                    <option value="subscription">Subscription</option>
-                    <option value="renewal">Renewal</option>
-                    <option value="upgrade">Upgrade</option>
-                    <option value="downgrade">Downgrade</option>
-                    <option value="refund">Refund</option>
-                    <option value="one_time">One-time</option>
-                </select>
-            </div>
-
-            <div className="transaction-filter-group">
-                <label className="transaction-filter-label">From Date</label>
-                <input
-                    type="date"
-                    className="transaction-filter-input"
-                    value={localFilters.startDate}
-                    onChange={(e) => handleChange('startDate', e.target.value)}
-                />
-            </div>
-
-            <div className="transaction-filter-group">
-                <label className="transaction-filter-label">To Date</label>
-                <input
-                    type="date"
-                    className="transaction-filter-input"
-                    value={localFilters.endDate}
-                    onChange={(e) => handleChange('endDate', e.target.value)}
-                />
-            </div>
-
-            <div className="transaction-filter-actions">
-                <button className="transaction-filter-apply" onClick={handleApply}>
-                    Apply
-                </button>
-                {hasActiveFilters && (
-                    <button className="transaction-filter-clear" onClick={handleClear}>
-                        Clear
-                    </button>
-                )}
+        <div className="transaction-filter-panel">
+            <div className="filter-header"><FiFilter /> Filter Transactions <button className="filter-close" onClick={onClear}><FiX /></button></div>
+            <div className="filter-row">
+                <div className="filter-group"><label>Status</label><select value={filters.status || ''} onChange={(e) => handleChange('status', e.target.value || null)}>{statusOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}</select></div>
+                <div className="filter-group"><label>Type</label><select value={filters.type || ''} onChange={(e) => handleChange('type', e.target.value || null)}>{typeOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}</select></div>
+                <div className="filter-group"><label>Reference</label><input type="text" placeholder="Search by reference" value={filters.reference || ''} onChange={(e) => handleChange('reference', e.target.value || null)} /></div>
+                <div className="filter-group"><label>From Date</label><input type="date" value={filters.startDate || ''} onChange={(e) => handleChange('startDate', e.target.value || null)} /></div>
+                <div className="filter-group"><label>To Date</label><input type="date" value={filters.endDate || ''} onChange={(e) => handleChange('endDate', e.target.value || null)} /></div>
+                <div className="filter-actions"><button className="filter-apply" onClick={onApply}>Apply Filters</button><button className="filter-clear" onClick={onClear}>Clear All</button></div>
             </div>
         </div>
     );
-};
-
-TransactionFilter.propTypes = {
-    filters: PropTypes.object,
-    onFilterChange: PropTypes.func.isRequired,
-    onClear: PropTypes.func.isRequired,
 };
 
 export default TransactionFilter;

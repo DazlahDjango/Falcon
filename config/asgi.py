@@ -6,6 +6,7 @@ import os
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
-from config.routing import application  # noqa: E402
+# Import the application from routing (which handles the ordering correctly)
+from config.routing import application
 
 __all__ = ['application']

@@ -1,91 +1,47 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
+import { FiEye, FiDownload, FiMail } from 'react-icons/fi';
 import { StatusBadge } from '../shared/StatusBadge';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
 import { InvoiceDownloadButton } from './InvoiceDownloadButton';
 import { InvoicePaymentButton } from './InvoicePaymentButton';
+import './invoices.css';
 
-export const InvoiceTable = ({ 
-    invoices, 
-    onRowClick, 
-    onDownload, 
-    onPay,
-    downloadingId,
-    payingId 
-}) => {
-    const formatDate = (dateString) => {
-        if (!dateString) return '—';
-        return new Date(dateString).toLocaleDateString();
-    };
+export const InvoiceTable = ({ invoices, onRefresh, loading }) => {
+    const navigate = useNavigate();
 
-    const isOverdue = (invoice) => {
-        return invoice.status === 'overdue' || 
-               (invoice.status === 'pending' && new Date(invoice.due_date) < new Date());
-    };
+    if (loading) return <div className="invoice-table-loading"><div className="skeleton skeleton-line"></div><div className="skeleton skeleton-line"></div><div className="skeleton skeleton-line"></div></div>;
+    if (!invoices?.length) return <div className="invoice-table-empty">No invoices found</div>;
 
     return (
         <div className="invoice-table-container">
             <table className="invoice-table">
                 <thead>
-                    <tr>
-                        <th>Invoice #</th>
-                        <th>Date</th>
-                        <th>Due Date</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
+                    <tr><th>Invoice #</th><th>Date</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                    {invoices.map((invoice) => (
-                        <tr 
-                            key={invoice.id} 
-                            className={`invoice-table-row ${isOverdue(invoice) ? 'invoice-table-row-overdue' : ''}`}
-                            onClick={() => onRowClick?.(invoice.id)}
-                        >
-                            <td className="invoice-table-number">{invoice.invoice_number}</td>
-                            <td>{formatDate(invoice.invoice_date)}</td>
-                            <td className={isOverdue(invoice) ? 'text-error' : ''}>
-                                {formatDate(invoice.due_date)}
-                            </td>
-                            <td className="invoice-table-amount">
-                                KES {((invoice.total_amount || 0) / 100).toLocaleString()}
-                            </td>
-                            <td>
-                                <StatusBadge status={invoice.status} size="small" />
-                            </td>
-                            <td className="invoice-table-actions" onClick={(e) => e.stopPropagation()}>
-                                {(invoice.status === 'pending' || invoice.status === 'overdue') && (
-                                    <InvoicePaymentButton 
-                                        invoice={invoice}
-                                        onPay={onPay}
-                                        paying={payingId === invoice.id}
-                                        size="small"
-                                        variant="primary"
-                                    />
-                                )}
-                                <InvoiceDownloadButton 
-                                    invoice={invoice}
-                                    onDownload={onDownload}
-                                    downloading={downloadingId === invoice.id}
-                                    size="small"
-                                    variant="outline"
-                                />
-                            </td>
-                        </tr>
-                    ))}
+                    {invoices.map(invoice => {
+                        const isOverdue = invoice.status === 'overdue' || (invoice.status === 'pending' && new Date(invoice.due_date) < new Date());
+                        return (
+                            <tr key={invoice.id} className={isOverdue ? 'overdue-row' : ''}>
+                                <td className="invoice-number-cell">{invoice.invoice_number}</td>
+                                <td>{new Date(invoice.invoice_date).toLocaleDateString()}</td>
+                                <td className={isOverdue ? 'overdue-date' : ''}>{new Date(invoice.due_date).toLocaleDateString()}</td>
+                                <td><CurrencyFormatter amount={invoice.total_amount} currency={invoice.currency} /></td>
+                                <td><StatusBadge type="invoice" status={isOverdue ? 'overdue' : invoice.status} size="sm" /></td>
+                                <td className="invoice-actions-cell">
+                                    <button className="invoice-action-icon" onClick={() => navigate(`/billing/invoices/${invoice.id}`)}><FiEye /></button>
+                                    <InvoiceDownloadButton invoiceId={invoice.id} />
+                                    <button className="invoice-action-icon" onClick={() => { }}><FiMail /></button>
+                                    {(invoice.status === 'pending' || isOverdue) && <InvoicePaymentButton invoiceId={invoice.id} amount={invoice.total_amount} currency={invoice.currency} onSuccess={onRefresh} />}
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>
     );
-};
-
-InvoiceTable.propTypes = {
-    invoices: PropTypes.array.isRequired,
-    onRowClick: PropTypes.func,
-    onDownload: PropTypes.func,
-    onPay: PropTypes.func,
-    downloadingId: PropTypes.string,
-    payingId: PropTypes.string,
 };
 
 export default InvoiceTable;

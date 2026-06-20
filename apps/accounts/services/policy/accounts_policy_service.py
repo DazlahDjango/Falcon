@@ -177,3 +177,11 @@ class AccountsPolicyService:
                 cls.sync_tenant(str(cid))
                 synced.append(str(cid))
         return synced
+
+    @classmethod
+    def user_requires_mfa(cls, user) -> bool:
+        if not user:
+            return False
+        if user.mfa_required is not None:
+            return user.mfa_required
+        return cls.tenant_requires_mfa(user)

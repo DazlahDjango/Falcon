@@ -45,3 +45,4 @@ export const DisasterRecoveryPage = () => {
     </div>
   );
 };
+export default DisasterRecoveryPage;

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Building2, Users, Briefcase, TrendingUp, AlertTriangle, 
+import {
+  Building2, Users, Briefcase, TrendingUp, AlertTriangle,
   CheckCircle, Activity, GitBranch, Calendar, Download,
   ChevronRight, Home, PieChart, BarChart3, MapPin, DollarSign,
   History
 } from 'lucide-react';
-import { 
-  DepartmentBreakdown, 
-  HeadcountTrend, 
+import {
+  DepartmentBreakdown,
+  HeadcountTrend,
   ManagerRatioChart,
   SpanOfControlChart,
   LevelDistribution,
@@ -19,9 +19,9 @@ import {
 import { DepartmentCard } from '../../components/structure/department';
 import { TeamCard } from '../../components/structure/team';
 import { EmploymentCard } from '../../components/structure/employment';
-import { 
-  useStructureStats, 
-  useHierarchyHealth, 
+import {
+  useStructureStats,
+  useHierarchyHealth,
   useDepartments,
   useTeams,
   useEmployments,
@@ -118,11 +118,7 @@ const StructureDashboard = () => {
         <div className="lg:col-span-1">
           <HierarchyHealthGauge score={healthScore} height={200} />
           <div className="mt-3 text-center">
-            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-              healthStatus === 'healthy' ? 'bg-green-100 text-green-700' :
-              healthStatus === 'warning' ? 'bg-yellow-100 text-yellow-700' :
-              'bg-red-100 text-red-700'
-            }`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${healthStatus === 'healthy' ? 'bg-green-100 text-green-700' : healthStatus === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
               {healthStatus === 'healthy' ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
               {healthStatus === 'healthy' ? 'Healthy' : healthStatus === 'warning' ? 'Needs Attention' : 'Critical'}
             </span>

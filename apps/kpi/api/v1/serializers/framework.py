@@ -1,9 +1,12 @@
+# framework.py
 from rest_framework import serializers
-from ....models import KPIFramework, KPICategory, Sector, KPITemplate 
+from ....models import KPIFramework, KPICategory, Sector, KPITemplate
 from .base import TenantAwareSerializer
+
 
 class SectorSerializer(TenantAwareSerializer):
     sector_type_display = serializers.CharField(source='get_sector_type_display', read_only=True)
+
     class Meta:
         model = Sector
         fields = [
@@ -11,13 +14,14 @@ class SectorSerializer(TenantAwareSerializer):
             'description', 'icon', 'is_active', 'metadata',
             'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'tenant_id']
 
 class KPICategorySerializer(TenantAwareSerializer):
     category_type_display = serializers.CharField(source='get_category_type_display', read_only=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True)
-    framework_name = serializers.CharField(source='framework.name', read_only=True)
+    parent_name = serializers.CharField(source='parent.name', read_only=True, default=None)
+    framework_name = serializers.CharField(source='framework.name', read_only=True, default=None)
     children_count = serializers.SerializerMethodField()
+
     class Meta:
         model = KPICategory
         fields = [
@@ -26,14 +30,17 @@ class KPICategorySerializer(TenantAwareSerializer):
             'description', 'color', 'icon', 'display_order', 'is_active',
             'children_count', 'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'tenant_id']
+
     def get_children_count(self, obj):
         return obj.children.count()
-    
+
+
 class KPIFrameworkSerializer(TenantAwareSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     sector_name = serializers.CharField(source='sector.name', read_only=True)
-    kpi_count = serializers.IntegerField(read_only=True)
+    kpi_count = serializers.IntegerField(read_only=True, default=0)
+
     class Meta:
         model = KPIFramework
         fields = [
@@ -44,10 +51,12 @@ class KPIFrameworkSerializer(TenantAwareSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
+
 class KPITemplateSerializer(TenantAwareSerializer):
     difficulty_display = serializers.CharField(source='get_difficulty_display', read_only=True)
     sector_name = serializers.CharField(source='sector.name', read_only=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True, default=None)
+
     class Meta:
         model = KPITemplate
         fields = [

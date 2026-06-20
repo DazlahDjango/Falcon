@@ -2,17 +2,6 @@
  * Accounts app HTTP helpers — thin wrapper over shared accountsApiClient.
  */
 import { accountsApiClient } from './clients';
-import { isAuthUrl } from './constants';
-
-accountsApiClient.interceptors.request.use(
-  async (config) => {
-    if (isAuthUrl(config.url || '')) {
-      delete config.headers.Authorization;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
 
 export const request = {
   get: (url, config = {}) => accountsApiClient.get(url, config),

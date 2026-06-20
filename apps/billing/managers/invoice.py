@@ -4,14 +4,6 @@ from datetime import timedelta
 from .base import BaseBillingManager, TenantAwareManager
 
 class InvoiceManager(TenantAwareManager):
-    """
-    Custom manager for Invoice model.
-    Provides invoice-specific queryset methods.
-    """
-    
-    def __init__(self, tenant_id=None, *args, **kwargs):
-        super().__init__(tenant_id, *args, **kwargs)
-    
     def draft(self):
         """Return draft invoices."""
         return self.get_queryset().filter(status='draft')

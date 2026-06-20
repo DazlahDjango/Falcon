@@ -23,3 +23,4 @@ export const BackupDetailsPage = () => {
     </div>
   );
 };
+export default BackupDetailsPage;

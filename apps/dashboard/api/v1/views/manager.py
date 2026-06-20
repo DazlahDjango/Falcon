@@ -2,9 +2,8 @@
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
-
+from apps.accounts.api.v1.permissions import IsSupervisor, IsTenantMember, IsAuthenticated
 from apps.dashboard.services.manager_service import ManagerService
 from apps.dashboard.api.v1.serializers import ManagerDashboardDataSerializer, ApprovalActionSerializer
 
@@ -13,7 +12,7 @@ class ManagerDashboardView(APIView):
     """
     Manager/Supervisor Dashboard API.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSupervisor, IsTenantMember]
     
     @swagger_auto_schema(
         responses={200: ManagerDashboardDataSerializer()},

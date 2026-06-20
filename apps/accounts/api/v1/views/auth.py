@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _ 
 from apps.accounts.models import User
 from apps.accounts.services import AuthenticationService, MFAService, JWTServices
@@ -77,21 +78,47 @@ class LoginView(APIView):
 class MFAAuthView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [MFARateThrottle]
+    
     def post(self, request):
         serializer = MFAAuthSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
         mfa_token = serializer.validated_data['mfa_token']
         otp = serializer.validated_data['otp']
         ip_address = self._get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+        
         jwt_service = JWTServices()
         payload = jwt_service.verify_token(mfa_token)
-        if not payload or not payload.get('mfa_pending'):
-            return Response({'error': 'Invalid MFA token'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # ✅ Better error message
+        if not payload:
+            return Response(
+                {'error': 'Invalid or expired MFA token'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        if not payload.get('mfa_pending'):
+            return Response(
+                {'error': 'Token not intended for MFA verification'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        user_id = payload.get('user_id')
+        if not user_id:
+            return Response(
+                {'error': 'Invalid token payload'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
         try:
-            user = User.objects.get(id=payload.get('user_id'), is_active=True)
+            user = User.objects.get(id=user_id, is_active=True)
         except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'error': 'User not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
         auth_service = AuthenticationService()
         user, result, error = auth_service.verify_mfa(
             user=user,
@@ -101,8 +128,10 @@ class MFAAuthView(APIView):
             user_agent=user_agent,
             request=request
         )
+        
         if error:
             return Response({'error': error}, status=status.HTTP_401_UNAUTHORIZED)
+        
         response_serializer = MFAResponseSerializer({
             'user': user,
             **result
@@ -112,11 +141,12 @@ class MFAAuthView(APIView):
     def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            return x_forwarded_for.split(',')[0]
+            return x_forwarded_for.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR', '')
     
 class MFASetupView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [MFARateThrottle]
     def post(self, request):
         serializer = MFASetupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -155,10 +185,16 @@ class MFABackupCodesView(APIView):
     
 class RefreshTokenView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle] 
     def post(self, request):
         serializer = RefreshTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         refresh_token = serializer.validated_data['refresh']
+        if not refresh_token:
+            return Response(
+                {'error': 'Refresh token is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
         ip_address = self._get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
         auth_service = AuthenticationService()
@@ -169,7 +205,7 @@ class RefreshTokenView(APIView):
     def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            return x_forwarded_for.split(',')[0]
+            return x_forwarded_for.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR', '')
     
 class LogoutView(APIView):

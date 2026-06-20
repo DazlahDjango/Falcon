@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import renderBillingIcon from '../shared/BillingIcons';
 
 export const WebhookStats = ({ stats, loading }) => {
     if (loading) {

@@ -1,91 +1,63 @@
-import api from '../api';
-import { API_ENDPOINTS } from '../api/endpoints';
+/**
+ * Export Service - Export KPIs, Scores, Reports
+ */
+import { BaseKPIService, withRetry } from './kpiBase.service';
+import { EXPORT_ENDPOINTS } from '../api/endpoints';
 
-const reportFilename = (report, format, year, month) => {
-    const period = year && month
-        ? `${year}_${String(month).padStart(2, '0')}`
-        : 'current';
+class ExportService extends BaseKPIService {
+  constructor() {
+    super('export');
+  }
 
-    const ext =
-        format === 'excel' || format === 'xlsx'
-            ? 'xlsx'
-            : format === 'pdf'
-                ? 'pdf'
-                : 'csv';
+  async exportKPIs(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(EXPORT_ENDPOINTS.KPIS, {
+        params,
+        responseType: 'blob',
+      });
+      return response;
+    });
+  }
 
-    return `kpi_${report}_${period}.${ext}`;
-};
+  async exportScores(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(EXPORT_ENDPOINTS.SCORES, {
+        params,
+        responseType: 'blob',
+      });
+      return response;
+    });
+  }
 
-class ExportService {
-    async downloadKpiReport({
-        format = 'pdf',
-        report = 'performance',
-        year,
-        month,
-    }) {
-        const type = format === 'xlsx' ? 'excel' : format;
+  async exportReport(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(EXPORT_ENDPOINTS.REPORTS, {
+        params,
+        responseType: 'blob',
+      });
+      return response;
+    });
+  }
 
-        const response = await api.get(API_ENDPOINTS.EXPORT.REPORTS, {
-            params: {
-                type,
-                report,
-                year,
-                month,
-            },
-            responseType: 'blob',
-        });
+  async exportDepartmentReport(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(EXPORT_ENDPOINTS.DEPARTMENT_REPORT, {
+        params,
+        responseType: 'blob',
+      });
+      return response;
+    });
+  }
 
-        const blob = new Blob([response.data]);
-
-        const url = window.URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-
-        link.href = url;
-        link.download = reportFilename(report, type, year, month);
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        link.remove();
-
-        window.URL.revokeObjectURL(url);
-
-        return true;
-    }
-
-    async downloadScoreExport(year, month) {
-        const response = await api.get(API_ENDPOINTS.EXPORT.SCORES, {
-            params: { year, month },
-            responseType: 'blob',
-        });
-
-        const blob = new Blob([response.data], {
-            type: 'text/csv',
-        });
-
-        const url = window.URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-
-        link.href = url;
-
-        link.download = `scores_${year}_${String(month).padStart(2, '0')}.csv`;
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        link.remove();
-
-        window.URL.revokeObjectURL(url);
-
-        return true;
-    }
+  async exportKPIDetail(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(EXPORT_ENDPOINTS.KPI_DETAIL, {
+        params,
+        responseType: 'blob',
+      });
+      return response;
+    });
+  }
 }
 
-const exportService = new ExportService();
-export const downloadKpiReport = (params) => exportService.downloadKpiReport(params);
-export const downloadScoreExport = (year, month) => exportService.downloadScoreExport(year, month);
-export default exportService;
+export const exportService = new ExportService();

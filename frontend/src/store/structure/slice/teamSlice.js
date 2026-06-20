@@ -12,7 +12,8 @@ export const fetchTeams = createAsyncThunk(
       const response = await teamService.list(params);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch teams');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch teams';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -24,7 +25,8 @@ export const fetchTeamById = createAsyncThunk(
       const response = await teamService.getById(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch team');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch team';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -36,7 +38,8 @@ export const fetchTeamHierarchy = createAsyncThunk(
       const response = await teamService.getHierarchy(departmentId, { include_inactive: includeInactive });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch team hierarchy');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch team hierarchy';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -50,8 +53,9 @@ export const createTeam = createAsyncThunk(
       dispatch(fetchTeams({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to create team', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to create team';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -66,8 +70,9 @@ export const updateTeam = createAsyncThunk(
       dispatch(fetchTeams({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to update team', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to update team';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -81,8 +86,9 @@ export const deleteTeam = createAsyncThunk(
       dispatch(fetchTeams({}));
       return id;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to delete team', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to delete team';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -96,8 +102,9 @@ export const addTeamMember = createAsyncThunk(
       dispatch(fetchTeamById(id));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to add member', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to add member';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -111,8 +118,9 @@ export const removeTeamMember = createAsyncThunk(
       dispatch(fetchTeamById(id));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to remove member', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to remove member';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
