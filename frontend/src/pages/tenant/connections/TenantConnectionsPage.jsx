@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FiRefreshCw, FiActivity, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiRefreshCw, FiActivity, FiCheckCircle, FiXCircle, FiClock } from 'react-icons/fi';
 import ConnectionTable from '../../../components/tenant/connection/ConnectionTable';
 import { useConnections } from '../../../hooks/tenant';
 

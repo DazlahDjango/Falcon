@@ -12,7 +12,8 @@ export const fetchLocations = createAsyncThunk(
       const response = await locationService.list(params);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch locations');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch locations';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -24,7 +25,8 @@ export const fetchLocationById = createAsyncThunk(
       const response = await locationService.getById(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch location');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch location';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -36,7 +38,8 @@ export const fetchLocationTree = createAsyncThunk(
       const response = await locationService.getTree(includeInactive);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch location tree');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch location tree';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -48,7 +51,8 @@ export const fetchHeadquarters = createAsyncThunk(
       const response = await locationService.getHeadquarters();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch headquarters');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch headquarters';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -63,8 +67,9 @@ export const createLocation = createAsyncThunk(
       dispatch(fetchLocationTree());
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to create location', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to create location';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -79,8 +84,9 @@ export const updateLocation = createAsyncThunk(
       dispatch(fetchLocations({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to update location', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to update location';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -95,8 +101,9 @@ export const deleteLocation = createAsyncThunk(
       dispatch(fetchLocationTree());
       return id;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to delete location', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to delete location';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -110,8 +117,9 @@ export const updateLocationOccupancy = createAsyncThunk(
       dispatch(fetchLocationById(id));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to update occupancy', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to update occupancy';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );

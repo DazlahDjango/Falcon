@@ -12,7 +12,8 @@ export const fetchEmployments = createAsyncThunk(
       const response = await employmentService.list(params);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch employments');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch employments';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -24,7 +25,8 @@ export const fetchCurrentEmployments = createAsyncThunk(
       const response = await employmentService.getCurrent(filters);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch current employments');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch current employments';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -36,7 +38,8 @@ export const fetchEmploymentById = createAsyncThunk(
       const response = await employmentService.getById(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch employment');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch employment';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -48,7 +51,8 @@ export const fetchEmploymentsByUser = createAsyncThunk(
       const response = await employmentService.getByUser(userId, includeHistory);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch user employments');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch user employments';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -60,7 +64,8 @@ export const fetchMyEmployment = createAsyncThunk(
       const response = await employmentService.getMyEmployment();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch current employment');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch current employment';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -75,8 +80,9 @@ export const createEmployment = createAsyncThunk(
       dispatch(fetchCurrentEmployments({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to create employment', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to create employment';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -91,8 +97,9 @@ export const updateEmployment = createAsyncThunk(
       dispatch(fetchEmployments({}));
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to update employment', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to update employment';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -107,8 +114,9 @@ export const deleteEmployment = createAsyncThunk(
       dispatch(fetchMyEmployment());
       return id;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to delete employment', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to delete employment';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -123,8 +131,9 @@ export const transferEmployee = createAsyncThunk(
       dispatch(fetchMyEmployment());
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to transfer employee', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to transfer employee';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );

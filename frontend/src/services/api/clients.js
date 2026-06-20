@@ -1,5 +1,6 @@
 import { createApiClient, createRootClient, createAccountsClient } from './createClient';
 import { resetCircuitBreaker } from './circuitBreaker';
+import { isAuthUrl } from './constants';
 
 export const rootApiClient = createRootClient();
 export const accountsApiClient = createAccountsClient();

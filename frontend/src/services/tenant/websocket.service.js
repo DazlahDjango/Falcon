@@ -59,6 +59,27 @@ class TenantWebSocketService {
             case 'quota_warning':
                 if (this.listeners.onQuotaWarning) this.listeners.onQuotaWarning(data);
                 break;
+            case 'audit_log_created':
+                if (this.listeners.onAuditLogCreated) this.listeners.onAuditLogCreated(data);
+                break;
+            case 'provisioning_progress':
+                if (this.listeners.onProvisioningProgress) this.listeners.onProvisioningProgress(data);
+                break;
+            case 'provisioning_complete':
+                if (this.listeners.onProvisioningComplete) this.listeners.onProvisioningComplete(data);
+                break;
+            case 'provisioning_failed':
+                if (this.listeners.onProvisioningFailed) this.listeners.onProvisioningFailed(data);
+                break;
+            case 'backup_progress':
+                if (this.listeners.onBackupProgress) this.listeners.onBackupProgress(data);
+                break;
+            case 'backup_complete':
+                if (this.listeners.onBackupComplete) this.listeners.onBackupComplete(data);
+                break;
+            case 'backup_failed':
+                if (this.listeners.onBackupFailed) this.listeners.onBackupFailed(data);
+                break;
             default:
                 if (this.listeners.onMessage) this.listeners.onMessage(data);
         }

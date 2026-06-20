@@ -267,6 +267,9 @@ const authSlice = createSlice({
                 state.requiresMfa = false;
                 state.mfaToken = null;
                 state.user = action.payload.user;
+                if (state.user?.role) {
+                    localStorage.setItem('user_role', state.user.role);
+                }
                 
                 if (action.payload.access && action.payload.refresh) {
                     setTokens(action.payload.access, action.payload.refresh).catch(err => {
@@ -300,6 +303,9 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.user = action.payload;
                 state.isAuthenticated = true;
+                if (state.user?.role) {
+                    localStorage.setItem('user_role', state.user.role);
+                }
             })
             .addCase(fetchCurrentUser.rejected, (state) => {
                 state.isLoading = false;
@@ -309,6 +315,9 @@ const authSlice = createSlice({
             // Update Profile
             .addCase(updateProfile.fulfilled, (state, action) => {
                 state.user = { ...state.user, ...action.payload };
+                if (state.user?.role) {
+                    localStorage.setItem('user_role', state.user.role);
+                }
             })
             // Change Password
             .addCase(changePassword.fulfilled, (state) => {

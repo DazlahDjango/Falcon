@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AuditLogTable, AuditLogFilter, AuditLogDetailModal } from '../../components/tenant/audit';
-import { fetchAuditLogs, exportAuditLogs, setAuditPage, setAuditPageSize, setAuditFilters, clearAuditFilters, setSelectedLog, selectAuditLogs, selectAuditTotal, selectAuditPage, selectAuditPageSize, selectAuditFilters, selectSelectedAuditLog, selectTenantLoading } from '../../store/tenant/slice';
+import { fetchAuditLogs, exportAuditLogs, setAuditPage, setAuditPageSize, setAuditFilters, clearAuditFilters, setSelectedLog, selectAuditLogs, selectAuditTotal, selectAuditPage, selectAuditPageSize, selectAuditFilters, selectSelectedAuditLog, selectAuditLoading, selectTenantLoading } from '../../store/tenant/slice';
 
 export const TenantAuditPage = () => {
     const { tenantId } = useParams();
@@ -23,6 +23,15 @@ export const TenantAuditPage = () => {
             dispatch(fetchAuditLogs({ tenantId, params: { page, page_size: pageSize, ...filters } }));
         }
     }, [dispatch, tenantId, page, pageSize, filters]);
+
+    useEffect(() => {
+        if (tenantId) {
+            dispatch({ type: 'tenant/initializeWebSocket', payload: { tenantId } });
+        }
+        return () => {
+            dispatch({ type: 'tenant/closeWebSocket' });
+        };
+    }, [dispatch, tenantId]);
 
     const handlePageChange = (newPage) => {
         dispatch(setAuditPage(newPage));
@@ -60,7 +69,7 @@ export const TenantAuditPage = () => {
             <AuditLogFilter
                 filters={filters}
                 onFilterChange={handleFilterChange}
-                onClearFilters={handleClearFilters}
+                onReset={handleClearFilters}
                 onExport={handleExport}
                 loading={loading}
             />

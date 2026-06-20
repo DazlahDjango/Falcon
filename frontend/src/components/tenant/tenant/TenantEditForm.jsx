@@ -9,9 +9,20 @@ const TenantEditForm = ({ tenant, onSubmit, onCancel, loading, error }) => {
         domain: '',
         subscription_plan: '',
         contact_email: '',
+        contact_phone: '',
+        address: '',
+        city: '',
+        country: '',
+        primary_color: '#2563eb',
+        secondary_color: '#7c3aed',
+        schema_type: 'shared_schema',
+        database_name: '',
         is_active: true,
-        is_verified: false
+        is_verified: false,
     });
+
+    const [logoPreview, setLogoPreview] = useState(null);
+    const [faviconPreview, setFaviconPreview] = useState(null);
 
     const [errors, setErrors] = useState({});
 
@@ -23,15 +34,41 @@ const TenantEditForm = ({ tenant, onSubmit, onCancel, loading, error }) => {
                 domain: tenant.domain || '',
                 subscription_plan: tenant.subscription_plan || 'trial',
                 contact_email: tenant.contact_email || '',
+                contact_phone: tenant.contact_phone || '',
+                address: tenant.address || '',
+                city: tenant.city || '',
+                country: tenant.country || '',
+                primary_color: tenant.primary_color || '#2563eb',
+                secondary_color: tenant.secondary_color || '#7c3aed',
+                schema_type: tenant.schema_type || 'shared_schema',
+                database_name: tenant.database_name || '',
                 is_active: tenant.is_active ?? true,
-                is_verified: tenant.is_verified ?? false
+                is_verified: tenant.is_verified ?? false,
             });
+            if (tenant.logo) setLogoPreview(tenant.logo);
+            if (tenant.favicon) setFaviconPreview(tenant.favicon);
         }
     }, [tenant]);
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        const val = type === 'checkbox' ? checked : value;
+        const { name, value, type, checked, files } = e.target;
+        let val;
+        if (type === 'file') {
+            val = files[0];
+            if (val) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (name === 'logo') setLogoPreview(e.target.result);
+                    if (name === 'favicon') setFaviconPreview(e.target.result);
+                };
+                reader.readAsDataURL(val);
+            } else {
+                if (name === 'logo') setLogoPreview(null);
+                if (name === 'favicon') setFaviconPreview(null);
+            }
+        } else {
+            val = type === 'checkbox' ? checked : value;
+        }
         
         setFormData(prev => ({ ...prev, [name]: val }));
         
@@ -57,7 +94,14 @@ const TenantEditForm = ({ tenant, onSubmit, onCancel, loading, error }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validateForm()) {
-            onSubmit(formData);
+            // Create FormData for file upload
+            const formDataToSubmit = new FormData();
+            for (const key in formData) {
+                if (formData[key] !== null && formData[key] !== undefined) {
+                    formDataToSubmit.append(key, formData[key]);
+                }
+            }
+            onSubmit(formDataToSubmit);
         }
     };
 
@@ -118,7 +162,7 @@ const TenantEditForm = ({ tenant, onSubmit, onCancel, loading, error }) => {
                         {errors.contact_email && <p className="tenant-error-message">{errors.contact_email}</p>}
                     </div>
 
-                    {/* Domain */}
+                    {/* Custom Domain */}
                     <div className="tenant-form-group">
                         <label className="tenant-label">Custom Domain</label>
                         <div className="tenant-domain-group">
@@ -133,6 +177,184 @@ const TenantEditForm = ({ tenant, onSubmit, onCancel, loading, error }) => {
                             />
                         </div>
                     </div>
+
+                    {/* Contact Phone */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">Contact Phone</label>
+                        <input
+                            type="text"
+                            name="contact_phone"
+                            value={formData.contact_phone}
+                            onChange={handleChange}
+                            className="tenant-input"
+                            placeholder="+1 555-123-4567"
+                        />
+                    </div>
+
+                    {/* Address */}
+                    <div className="tenant-form-group col-span-2">
+                        <label className="tenant-label">Address</label>
+                        <input
+                            type="text"
+                            name="address"
+                            value={formData.address}
+                            onChange={handleChange}
+                            className="tenant-input"
+                            placeholder="123 Main Street"
+                        />
+                    </div>
+
+                    {/* City */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">City</label>
+                        <input
+                            type="text"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            className="tenant-input"
+                            placeholder="New York"
+                        />
+                    </div>
+
+                    {/* Country */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">Country</label>
+                        <input
+                            type="text"
+                            name="country"
+                            value={formData.country}
+                            onChange={handleChange}
+                            className="tenant-input"
+                            placeholder="USA"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="tenant-form-section">
+                <h4 className="tenant-section-title">Branding</h4>
+                <div className="tenant-form-grid">
+                    {/* Primary Color */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">Primary Color</label>
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="color"
+                                name="primary_color"
+                                value={formData.primary_color}
+                                onChange={handleChange}
+                                className="w-12 h-10 rounded border cursor-pointer"
+                            />
+                            <input
+                                type="text"
+                                name="primary_color"
+                                value={formData.primary_color}
+                                onChange={handleChange}
+                                className="tenant-input flex-1"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Secondary Color */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">Secondary Color</label>
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="color"
+                                name="secondary_color"
+                                value={formData.secondary_color}
+                                onChange={handleChange}
+                                className="w-12 h-10 rounded border cursor-pointer"
+                            />
+                            <input
+                                type="text"
+                                name="secondary_color"
+                                value={formData.secondary_color}
+                                onChange={handleChange}
+                                className="tenant-input flex-1"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Logo Upload */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">Logo</label>
+                        <input
+                            type="file"
+                            name="logo"
+                            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                            onChange={handleChange}
+                            className="tenant-input"
+                        />
+                        {logoPreview && (
+                            <div className="mt-3 p-3 border rounded">
+                                <img 
+                                    src={logoPreview} 
+                                    alt="Logo Preview" 
+                                    className="max-h-32 object-contain"
+                                />
+                            </div>
+                        )}
+                        <p className="tenant-hint">Max 5MB, 50x50 to 2000x2000 pixels</p>
+                    </div>
+
+                    {/* Favicon Upload */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">Favicon</label>
+                        <input
+                            type="file"
+                            name="favicon"
+                            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                            onChange={handleChange}
+                            className="tenant-input"
+                        />
+                        {faviconPreview && (
+                            <div className="mt-3 p-3 border rounded">
+                                <img 
+                                    src={faviconPreview} 
+                                    alt="Favicon Preview" 
+                                    className="w-16 h-16 object-contain"
+                                />
+                            </div>
+                        )}
+                        <p className="tenant-hint">Max 1MB, 16x16 to 512x512 pixels</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="tenant-form-section">
+                <h4 className="tenant-section-title">Infrastructure</h4>
+                <div className="tenant-form-grid">
+                    {/* Schema Type */}
+                    <div className="tenant-form-group">
+                        <label className="tenant-label">Schema Type</label>
+                        <select
+                            name="schema_type"
+                            value={formData.schema_type}
+                            onChange={handleChange}
+                            className="tenant-select"
+                        >
+                            <option value="shared_schema">Shared Schema</option>
+                            <option value="separate_schema">Separate Schema</option>
+                            <option value="separate_database">Separate Database</option>
+                        </select>
+                    </div>
+
+                    {/* Database Name (only if separate database) */}
+                    {formData.schema_type === 'separate_database' && (
+                        <div className="tenant-form-group">
+                            <label className="tenant-label">Database Name</label>
+                            <input
+                                type="text"
+                                name="database_name"
+                                value={formData.database_name}
+                                onChange={handleChange}
+                                className="tenant-input"
+                                placeholder="acme_corp_db"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

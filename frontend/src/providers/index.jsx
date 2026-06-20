@@ -22,29 +22,29 @@ const Providers = ({ children }) => {
                     <ThemeProvider>
                         <ToastProvider>
                             <AuthProvider>
-                                <AccountsSecurityProvider>
                                 <PermissionProvider>
-                                <KPIRealtimeProvider>
-                                    <TenantProvider>
-                                        <TenantRealtimeProvider>
-                                        <ConfigProvider>
-                                            <BackupProvider>
-                                                <MaintenanceProvider>
-                                                    <DRProvider>
-                                                        <ConfigAlertProvider>
-                                                            <BillingProviders>
-                                                                {children}
-                                                            </BillingProviders>
-                                                        </ConfigAlertProvider>
-                                                    </DRProvider>
-                                                </MaintenanceProvider>
-                                            </BackupProvider>
-                                        </ConfigProvider>
-                                        </TenantRealtimeProvider>
-                                    </TenantProvider>
-                                </KPIRealtimeProvider>
+                                    <AccountsSecurityProvider>
+                                        <KPIRealtimeProvider>
+                                            <TenantProvider>
+                                                <TenantRealtimeProvider>
+                                                    <ConfigProvider>
+                                                        <BackupProvider>
+                                                            <MaintenanceProvider>
+                                                                <DRProvider>
+                                                                    <ConfigAlertProvider>
+                                                                        <BillingProviders>
+                                                                            {children}
+                                                                        </BillingProviders>
+                                                                    </ConfigAlertProvider>
+                                                                </DRProvider>
+                                                            </MaintenanceProvider>
+                                                        </BackupProvider>
+                                                    </ConfigProvider>
+                                                </TenantRealtimeProvider>
+                                            </TenantProvider>
+                                        </KPIRealtimeProvider>
+                                    </AccountsSecurityProvider>
                                 </PermissionProvider>
-                                </AccountsSecurityProvider>
                             </AuthProvider>
                         </ToastProvider>
                     </ThemeProvider>

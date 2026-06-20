@@ -11,7 +11,7 @@ class Department(BaseStructureModel):
         ('restricted', 'Restricted'),
     ]
     name = models.CharField(_('name'), max_length=255, db_index=True)
-    code = models.CharField(_('code'), max_length=50, unique=True, db_index=True)
+    code = models.CharField(_('code'), max_length=50, db_index=True)
     description = models.TextField(_('description'), blank=True)
     parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='children', verbose_name=_('parent department'))
     path = models.CharField(_('materialized path'), max_length=255, db_index=True, blank=True)
@@ -26,7 +26,13 @@ class Department(BaseStructureModel):
         db_table = 'structure_department'
         verbose_name = _('department')
         verbose_name_plural = _('departments')
-        unique_together = [['tenant_id', 'code']]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant_id', 'code'],
+                condition=models.Q(is_deleted=False),
+                name='unique_tenant_department_code'
+            )
+        ]
         indexes = [
             models.Index(fields=['path']),
             models.Index(fields=['tenant_id', 'parent', 'is_active']),

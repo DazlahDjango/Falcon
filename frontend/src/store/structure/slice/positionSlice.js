@@ -12,7 +12,8 @@ export const fetchPositions = createAsyncThunk(
       const response = await positionService.list(params);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch positions');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch positions';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -24,7 +25,8 @@ export const fetchPositionById = createAsyncThunk(
       const response = await positionService.getById(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch position');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch position';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -36,7 +38,8 @@ export const fetchVacantPositions = createAsyncThunk(
       const response = await positionService.getVacant(filters);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch vacant positions');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch vacant positions';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -48,7 +51,8 @@ export const fetchPositionStats = createAsyncThunk(
       const response = await positionService.getStats();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch position stats');
+      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch position stats';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -56,15 +60,32 @@ export const fetchPositionStats = createAsyncThunk(
 export const createPosition = createAsyncThunk(
   'structure/positions/create',
   async (data, { dispatch, rejectWithValue }) => {
+    console.log('[Position Create] Submitting data:', data);
     try {
       const response = await positionService.create(data);
+      console.log('[Position Create] Success! Response:', response);
       dispatch(showToast({ message: 'Position created successfully', type: 'success' }));
       dispatch(fetchPositions({}));
       dispatch(fetchPositionStats());
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to create position', type: 'error' }));
-      return rejectWithValue(error.message);
+      console.error('[Position Create] Full error object:', error);
+      console.error('[Position Create] Error rawResponse:', error?.rawResponse);
+      console.error('[Position Create] Error response data:', error?.response?.data);
+      let errorMessage = 'Failed to create position';
+      if (error?.message && error?.message !== 'An error occurred') {
+        errorMessage = error?.message;
+      } else if (error?.errors && Object.keys(error.errors).length > 0) {
+        const firstKey = Object.keys(error.errors)[0];
+        const firstError = error.errors[firstKey];
+        errorMessage = `${firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+      } else if (error?.rawResponse) {
+        const firstKey = Object.keys(error.rawResponse)[0];
+        const firstError = error.rawResponse[firstKey];
+        errorMessage = `${firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+      }
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -80,8 +101,9 @@ export const updatePosition = createAsyncThunk(
       dispatch(fetchPositionStats());
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to update position', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to update position';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -97,8 +119,9 @@ export const deletePosition = createAsyncThunk(
       dispatch(fetchPositionStats());
       return id;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to delete position', type: 'error' }));
-      return rejectWithValue(error.message);
+      const errorMessage = error?.message || error?.data?.message || 'Failed to delete position';
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
+      return rejectWithValue(errorMessage);
     }
   }
 );

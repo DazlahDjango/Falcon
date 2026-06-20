@@ -1,6 +1,16 @@
 // frontend/src/store/tenant/slice/tenantSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { tenantService } from '../../../services/tenant/tenant.service';
+import { deleteTenant as deleteTenantAdmin, suspendTenant as suspendTenantAdmin, activateTenant as activateTenantAdmin } from '../../../services/accounts/api/admin';
+
+// Helper to format API errors
+const formatError = (error) => {
+    return error.response?.data
+        ? (typeof error.response.data === 'object'
+            ? Object.values(error.response.data).flat().join(', ')
+            : error.response.data)
+        : error.message;
+};
 
 // Async Thunks
 export const fetchTenants = createAsyncThunk(
@@ -10,7 +20,7 @@ export const fetchTenants = createAsyncThunk(
             const response = await tenantService.getTenants(params);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
@@ -23,7 +33,7 @@ export const fetchTenantById = createAsyncThunk(
             const response = await tenantService.getTenant(id);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
@@ -36,7 +46,7 @@ export const fetchTenantDetails = createAsyncThunk(
             const response = await tenantService.getTenantDetails(id);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
@@ -45,10 +55,10 @@ export const createTenant = createAsyncThunk(
     'appTenant/createTenant',
     async (data, { rejectWithValue }) => {
         try {
-            const response = await tenantService.createTenant(data);
+            const response = await tenantService.create(data);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
@@ -57,10 +67,10 @@ export const updateTenant = createAsyncThunk(
     'appTenant/updateTenant',
     async ({ id, data }, { rejectWithValue }) => {
         try {
-            const response = await tenantService.updateTenant(id, data);
+            const response = await tenantService.update(id, data);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
@@ -69,22 +79,37 @@ export const deleteTenant = createAsyncThunk(
     'appTenant/deleteTenant',
     async (id, { rejectWithValue }) => {
         try {
-            await tenantService.deleteTenant(id);
+            // ✅ FIX: Use admin API endpoint instead of tenantService
+            await deleteTenantAdmin(id);
             return id;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
+export const bulkDeleteTenants = createAsyncThunk(
+    'appTenant/bulkDeleteTenants',
+    async (ids, { rejectWithValue }) => {
+        try {
+            await tenantService.bulkDeleteTenants(ids);
+            return ids;
+        } catch (error) {
+            return rejectWithValue(formatError(error));
+        }
+    }
+);
+
+
 
 export const suspendTenant = createAsyncThunk(
     'appTenant/suspendTenant',
     async ({ id, reason }, { rejectWithValue }) => {
         try {
-            const response = await tenantService.suspendTenant(id, reason);
+            // ✅ FIX: Use admin API endpoint instead of tenantService
+            const response = await suspendTenantAdmin(id, reason);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
@@ -93,10 +118,11 @@ export const activateTenant = createAsyncThunk(
     'appTenant/activateTenant',
     async (id, { rejectWithValue }) => {
         try {
-            const response = await tenantService.activateTenant(id);
+            // ✅ FIX: Use admin API endpoint instead of tenantService
+            const response = await activateTenantAdmin(id);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.message);
+            return rejectWithValue(formatError(error));
         }
     }
 );
@@ -139,12 +165,10 @@ const tenantSlice = createSlice({
         clearCurrentTenant: (state) => {
             state.currentTenant = null;
         },
-        // ✅ Add this reducer for direct tenant updates (for compatibility with tenant.service.js)
         setCurrentTenant: (state, action) => {
             state.currentTenant = action.payload;
         },
         updateTenantStats: (state, action) => {
-            // This can be used to update stats in the UI slice
             state.stats = action.payload;
         },
     },
@@ -222,12 +246,41 @@ const tenantSlice = createSlice({
                 state.error = action.payload;
             })
             // Delete Tenant
+            .addCase(deleteTenant.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
             .addCase(deleteTenant.fulfilled, (state, action) => {
+                state.loading = false;
                 state.tenants = state.tenants.filter(t => t.id !== action.payload);
                 state.total -= 1;
             })
+            .addCase(deleteTenant.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Bulk Delete Tenants
+            .addCase(bulkDeleteTenants.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(bulkDeleteTenants.fulfilled, (state, action) => {
+                state.loading = false;
+                const deletedIds = action.payload;
+                state.tenants = state.tenants.filter(t => !deletedIds.includes(t.id));
+                state.total -= deletedIds.length;
+            })
+            .addCase(bulkDeleteTenants.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
             // Suspend Tenant
+            .addCase(suspendTenant.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
             .addCase(suspendTenant.fulfilled, (state, action) => {
+                state.loading = false;
                 if (state.currentTenant?.id === action.payload.id) {
                     state.currentTenant = action.payload;
                 }
@@ -236,8 +289,17 @@ const tenantSlice = createSlice({
                     state.tenants[index] = action.payload;
                 }
             })
+            .addCase(suspendTenant.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
             // Activate Tenant
+            .addCase(activateTenant.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
             .addCase(activateTenant.fulfilled, (state, action) => {
+                state.loading = false;
                 if (state.currentTenant?.id === action.payload.id) {
                     state.currentTenant = action.payload;
                 }
@@ -245,6 +307,10 @@ const tenantSlice = createSlice({
                 if (index !== -1) {
                     state.tenants[index] = action.payload;
                 }
+            })
+            .addCase(activateTenant.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
     },
 });

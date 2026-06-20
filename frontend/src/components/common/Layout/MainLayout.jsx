@@ -31,7 +31,13 @@ const MainLayout = () => {
             setSidebarCollapsed(false);
         }
     }, [isMobile]);
-    
+
+    useEffect(() => {
+        if (user?.role) {
+            localStorage.setItem('user_role', user.role);
+        }
+    }, [user]);
+        
     useEffect(() => {
         if (isMobile) {
             setSidebarOpen(false);

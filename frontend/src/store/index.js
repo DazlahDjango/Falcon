@@ -7,7 +7,7 @@ import rootReducer from './rootReducer';
 import kpiModuleReducer from './kpi/index';
 // Accounts Middlewares
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
-import { loggerMiddleware } from './accounts/middlewares/loggerMiddleware';
+import { loggerMiddleware } from './middleware';
 // Tenant Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
 // Billing

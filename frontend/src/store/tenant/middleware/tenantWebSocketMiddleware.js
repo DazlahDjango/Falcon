@@ -2,7 +2,8 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit';
 import TenantWebSocketService from '../../../services/tenant/websocket.service';
 import { fetchTenants, fetchTenantById } from '../slice/tenantSlice';
-import { fetchQuotaWarnings } from '../slice/tenantResourceSlice';
+import { fetchTenantResources } from '../slice/tenantResourceSlice';
+import { appendAuditLog } from '../slice/tenantAuditSlice';
 import { showToast } from '../slice/tenantUISlice';
 
 const webSocketMiddleware = createListenerMiddleware();
@@ -29,10 +30,17 @@ webSocketMiddleware.startListening({
                 }));
             },
             onQuotaWarning: (data) => {
-                listenerApi.dispatch(fetchQuotaWarnings(tenantId));
+                listenerApi.dispatch(fetchTenantResources({ tenantId }));
                 listenerApi.dispatch(showToast({
                     message: `Quota warning: ${data.resource_type} at ${data.percentage}%`,
                     type: 'warning',
+                }));
+            },
+            onAuditLogCreated: (data) => {
+                listenerApi.dispatch(appendAuditLog(data.log));
+                listenerApi.dispatch(showToast({
+                    message: `New activity: ${data.log.action}`,
+                    type: 'info',
                 }));
             },
             onProvisioningProgress: (data) => {
@@ -51,9 +59,9 @@ webSocketMiddleware.startListening({
     },
 });
 
-// Disconnect WebSocket on logout
+// Disconnect WebSocket on logout or switching/leaving dynamic tenant context
 webSocketMiddleware.startListening({
-    predicate: (action) => action.type === 'auth/logout',
+    predicate: (action) => action.type === 'auth/logout' || action.type === 'tenant/closeWebSocket',
     effect: () => {
         if (wsService) {
             wsService.disconnect();

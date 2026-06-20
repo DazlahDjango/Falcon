@@ -1,7 +1,6 @@
 /**
  * Shared axios interceptors — auth, tenant header, refresh, rate limits, envelopes.
  */
-import { store } from '../../store';
 import { logout } from '../../store/accounts/slice/authSlice';
 import { showToast } from '../../store/ui/slices/uiSlice';
 import {
@@ -27,11 +26,16 @@ const MIN_REDIRECT_INTERVAL = 30000; // 30 seconds minimum between redirects
 async function resolveTenantId() {
   let tenantId = await getTenantId();
   if (!tenantId) {
-    const state = store.getState();
-    tenantId =
-      state?.auth?.user?.tenant_id ||
-      state?.tenant?.currentTenant?.id ||
-      state?.appTenant?.currentTenant?.id;
+    try {
+      const { store } = await import('../../store');
+      const state = store.getState();
+      tenantId =
+        state?.auth?.user?.tenant_id ||
+        state?.tenant?.currentTenant?.id ||
+        state?.appTenant?.currentTenant?.id;
+    } catch (err) {
+      console.error('Failed to load store dynamically in request interceptor:', err);
+    }
   }
   return tenantId;
 }
@@ -142,7 +146,12 @@ export function attachInterceptors(client, options = {}) {
         try {
           return await retryRequestAfterRefresh(originalRequest, (cfg) => client(cfg));
         } catch (refreshError) {
-          store.dispatch(logout());
+          try {
+            const { store } = await import('../../store');
+            store.dispatch(logout());
+          } catch (err) {
+            console.error('Failed to load store in 401 handler:', err);
+          }
           await clearTenantId();
           if (redirectOnSessionExpiry) {
             // Prevent rapid successive redirects
@@ -161,7 +170,12 @@ export function attachInterceptors(client, options = {}) {
       }
 
       if (status === 403 && forbiddenMessage) {
-        store.dispatch(showToast({ message: forbiddenMessage, type: 'error' }));
+        try {
+          const { store } = await import('../../store');
+          store.dispatch(showToast({ message: forbiddenMessage, type: 'error' }));
+        } catch (err) {
+          console.error('Failed to load store in 403 handler:', err);
+        }
       } else if (status === 429 && originalRequest && !originalRequest._rateLimitRetry) {
         originalRequest._rateLimitRetry = true;
         const raw = parseInt(error.response?.headers?.['retry-after'], 10) || 2;
@@ -169,22 +183,56 @@ export function attachInterceptors(client, options = {}) {
         await new Promise((resolve) => setTimeout(resolve, waitSec * 1000));
         return client(originalRequest);
       } else if (status >= 500 && forbiddenMessage) {
-        store.dispatch(
-          showToast({ message: `${module} server error. Please try again.`, type: 'error' }),
-        );
+        try {
+          const { store } = await import('../../store');
+          store.dispatch(
+            showToast({ message: `${module} server error. Please try again.`, type: 'error' }),
+          );
+        } catch (err) {
+          console.error('Failed to load store in 500 handler:', err);
+        }
       }
 
       if (responseStyle === 'envelope') {
-        const message =
-          error.response?.data?.message ||
-          error.response?.data?.detail ||
-          error.message ||
-          'An error occurred';
+        console.log('[Envelope Error] Full error response:', error.response);
+        console.log('[Envelope Error] Response data:', error.response?.data);
+        
+        // Handle both { errors: ... } and direct field errors like { code: [...], name: [...] }
+        let errors = null;
+        let message = 'An error occurred';
+        
+        if (error.response?.data?.message || error.response?.data?.detail) {
+          message = error.response?.data?.message || error.response?.data?.detail;
+        }
+        
+        if (error.response?.data?.errors) {
+          errors = error.response.data.errors;
+        } else if (error.response?.data && typeof error.response.data === 'object') {
+          // If it's a direct validation error object
+          errors = {};
+          for (const [key, value] of Object.entries(error.response.data)) {
+            if (Array.isArray(value) || typeof value === 'string') {
+              errors[key] = value;
+            }
+          }
+          // Set message from first error if no message exists
+          if (!message && Object.keys(errors).length > 0) {
+            const firstKey = Object.keys(errors)[0];
+            const firstError = errors[firstKey];
+            message = `${firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+          }
+        }
+        
+        if (!message) {
+          message = error.message || 'An error occurred';
+        }
+        
         return Promise.reject({
           success: false,
           status: status || 0,
           message,
-          errors: error.response?.data?.errors || null,
+          errors,
+          rawResponse: error.response?.data,
           timestamp: new Date().toISOString(),
         });
       }

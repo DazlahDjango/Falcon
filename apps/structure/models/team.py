@@ -17,7 +17,13 @@ class Team(BaseStructureModel):
         db_table = 'structure_team'
         verbose_name = _('team')
         verbose_name_plural = _('teams')
-        unique_together = [['tenant_id', 'department', 'code']]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant_id', 'department', 'code'],
+                condition=models.Q(is_deleted=False),
+                name='unique_tenant_department_team_code'
+            )
+        ]
         indexes = [
             models.Index(fields=['tenant_id', 'department', 'is_active']),
             models.Index(fields=['tenant_id', 'team_lead']),

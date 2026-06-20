@@ -136,7 +136,9 @@ class BaseTenantService {
 
     async create(data, encrypt = true) {
         if (!data || typeof data !== 'object') throw new Error('Valid data object is required');
-        const processedData = encrypt ? encryptSensitiveData(data) : data;
+        // Don't encrypt FormData (for file uploads)
+        const isFormData = data instanceof FormData;
+        const processedData = encrypt && !isFormData ? encryptSensitiveData(data) : data;
         return this.withRetry(() => this.apiClient.post(this.getEndpoint(), processedData));
     }
 
@@ -152,7 +154,9 @@ class BaseTenantService {
     async update(id, data, partial = true, encrypt = true) {
         if (!id) throw new Error('Resource ID is required');
         if (!data || typeof data !== 'object') throw new Error('Valid data object is required');
-        const processedData = encrypt ? encryptSensitiveData(data) : data;
+        // Don't encrypt FormData (for file uploads)
+        const isFormData = data instanceof FormData;
+        const processedData = encrypt && !isFormData ? encryptSensitiveData(data) : data;
         const method = partial ? 'patch' : 'put';
         return this.withRetry(() =>
             this.apiClient[method](this.getEndpoint(`${id}/`), processedData),

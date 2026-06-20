@@ -105,6 +105,22 @@ export const useReports = () => {
         }
     }, []);
 
+    // Get organization strategic report
+    const getOrganizationStrategicReport = useCallback(async (cycleId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await reportService.getOrganizationSummary(cycleId);
+            setReportData(data);
+            return data;
+        } catch (err) {
+            setError(err.message || 'Failed to generate organization strategic report');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     // Export report
     const exportReport = useCallback(async (reportType, cycleId, format = 'csv') => {
         setLoading(true);
@@ -130,6 +146,7 @@ export const useReports = () => {
         getPIPSummary,
         getCalibrationSummary,
         getRatingDistribution,
+        getOrganizationStrategicReport,
         exportReport,
     };
 };

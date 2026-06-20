@@ -13,7 +13,7 @@ class CostCenter(BaseStructureModel):
         ('shared', 'Shared Service'),
     ]
     name = models.CharField(_('name'), max_length=255, db_index=True)
-    code = models.CharField(_('code'), max_length=50, unique=True, db_index=True)
+    code = models.CharField(_('code'), max_length=50, db_index=True)
     description = models.TextField(_('description'), blank=True)
     parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='children', verbose_name=_('parent cost center'))
     category = models.CharField(_('category'), max_length=20, choices=CATEGORY_CHOICES, default='operational')
@@ -29,6 +29,13 @@ class CostCenter(BaseStructureModel):
         db_table = 'structure_cost_center'
         verbose_name = _('cost center')
         verbose_name_plural = _('cost centers')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant_id', 'code'],
+                condition=models.Q(is_deleted=False),
+                name='unique_tenant_cost_center_code'
+            )
+        ]
         indexes = [
             models.Index(fields=['tenant_id', 'code']),
             models.Index(fields=['tenant_id', 'fiscal_year', 'is_active']),

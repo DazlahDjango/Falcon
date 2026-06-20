@@ -6,6 +6,7 @@ import { TenantCreateButton } from '../../components/tenant/tenant';
 import {
     fetchTenants,
     deleteTenant,
+    bulkDeleteTenants,
     suspendTenant,
     activateTenant,
     setPage,
@@ -21,15 +22,36 @@ import {
     selectTenantFilters,
     openModal,
     closeModal,
+    selectModalState,
 } from '../../store/tenant/slice';
 import '../../components/tenant/tenant/tenant.css';
 
-// Simple table component
-const TenantTable = ({ tenants, onView, onEdit, onDelete, onSuspend, onActivate }) => {
+// Simple table component with checkbox selection support
+const TenantTable = ({ 
+    tenants, 
+    onView, 
+    onEdit, 
+    onDelete, 
+    onSuspend, 
+    onActivate,
+    selectedTenantIds = [],
+    onSelectTenant,
+    onSelectAllTenants 
+}) => {
+    const isAllSelected = tenants.length > 0 && selectedTenantIds.length === tenants.length;
+    
     return (
         <table className="tenant-table">
             <thead>
                 <tr>
+                    <th className="tenant-table-checkbox-col">
+                        <input
+                            type="checkbox"
+                            checked={isAllSelected}
+                            onChange={(e) => onSelectAllTenants(e.target.checked)}
+                            className="tenant-checkbox"
+                        />
+                    </th>
                     <th>Name</th>
                     <th>Slug</th>
                     <th>Plan</th>
@@ -40,7 +62,15 @@ const TenantTable = ({ tenants, onView, onEdit, onDelete, onSuspend, onActivate 
             </thead>
             <tbody>
                 {tenants.map((tenant) => (
-                    <tr key={tenant.id}>
+                    <tr key={tenant.id} className={selectedTenantIds.includes(tenant.id) ? 'row-selected' : ''}>
+                        <td className="tenant-table-checkbox-col">
+                            <input
+                                type="checkbox"
+                                checked={selectedTenantIds.includes(tenant.id)}
+                                onChange={(e) => onSelectTenant(tenant.id, e.target.checked)}
+                                className="tenant-checkbox"
+                            />
+                        </td>
                         <td>{tenant.name}</td>
                         <td><code>{tenant.slug}</code></td>
                         <td className="capitalize">{tenant.subscription_plan}</td>
@@ -103,15 +133,21 @@ export const TenantListPage = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTenant, setSelectedTenant] = useState(null);
+    const [selectedTenantIds, setSelectedTenantIds] = useState([]);
 
-    // FIXED: Safe selectors with optional chaining
-    const deleteModalOpen = useSelector(state => state?.tenantUI?.modals?.deleteTenant || false);
-    const suspendModalOpen = useSelector(state => state?.tenantUI?.modals?.suspendTenant || false);
-    const activateModalOpen = useSelector(state => state?.tenantUI?.modals?.activateTenant || false);
+    const deleteModalOpen = useSelector((state) => selectModalState(state, 'deleteTenant'));
+    const bulkDeleteModalOpen = useSelector((state) => selectModalState(state, 'bulkDeleteTenants'));
+    const suspendModalOpen = useSelector((state) => selectModalState(state, 'suspendTenant'));
+    const activateModalOpen = useSelector((state) => selectModalState(state, 'activateTenant'));
 
     useEffect(() => {
         dispatch(fetchTenants({ page, page_size: pageSize, ...filters }));
     }, [dispatch, page, pageSize, filters]);
+
+    // Clear selection when filters or pagination changes
+    useEffect(() => {
+        setSelectedTenantIds([]);
+    }, [page, pageSize, filters]);
 
     const handleSearch = () => {
         dispatch(setFilters({ search: searchTerm }));
@@ -144,6 +180,24 @@ export const TenantListPage = () => {
         }
     };
 
+    const handleSelectTenant = (id, checked) => {
+        setSelectedTenantIds(prev => 
+            checked ? [...prev, id] : prev.filter(item => item !== id)
+        );
+    };
+
+    const handleSelectAllTenants = (checked) => {
+        setSelectedTenantIds(checked ? tenants.map(t => t.id) : []);
+    };
+
+    const handleConfirmBulkDelete = async () => {
+        if (selectedTenantIds.length > 0) {
+            await dispatch(bulkDeleteTenants(selectedTenantIds));
+            dispatch(closeModal('bulkDeleteTenants'));
+            setSelectedTenantIds([]);
+        }
+    };
+
     const handleSuspendClick = (tenant) => {
         setSelectedTenant(tenant);
         dispatch(openModal({ modalName: 'suspendTenant', data: { id: tenant.id } }));
@@ -157,17 +211,17 @@ export const TenantListPage = () => {
         }
     };
 
-    const handleActivateClick = (tenant) => {
-        setSelectedTenant(tenant);
-        dispatch(openModal({ modalName: 'activateTenant', data: { id: tenant.id } }));
-    };
-
     const handleConfirmActivate = async () => {
         if (selectedTenant) {
             await dispatch(activateTenant(selectedTenant.id));
             dispatch(closeModal('activateTenant'));
             setSelectedTenant(null);
         }
+    };
+
+    const handleActivateClick = (tenant) => {
+        setSelectedTenant(tenant);
+        dispatch(openModal({ modalName: 'activateTenant', data: { id: tenant.id } }));
     };
 
     const handleCreateClick = () => {
@@ -216,6 +270,9 @@ export const TenantListPage = () => {
                 onDelete={handleDeleteClick}
                 onSuspend={handleSuspendClick}
                 onActivate={handleActivateClick}
+                selectedTenantIds={selectedTenantIds}
+                onSelectTenant={handleSelectTenant}
+                onSelectAllTenants={handleSelectAllTenants}
             />
 
             {tenants.length === 0 && !loading && (
@@ -236,6 +293,30 @@ export const TenantListPage = () => {
                 />
             )}
 
+            {/* Floating Bulk Action Bar */}
+            {selectedTenantIds.length > 0 && (
+                <div className="tenant-bulk-action-bar">
+                    <div className="tenant-bulk-info">
+                        <span className="bulk-count-badge">{selectedTenantIds.length}</span>
+                        <span>{selectedTenantIds.length === 1 ? 'tenant selected' : 'tenants selected'}</span>
+                    </div>
+                    <div className="tenant-bulk-actions">
+                        <button 
+                            onClick={() => dispatch(openModal({ modalName: 'bulkDeleteTenants' }))} 
+                            className="tenant-btn tenant-btn-danger"
+                        >
+                            Delete Selected
+                        </button>
+                        <button 
+                            onClick={() => setSelectedTenantIds([])} 
+                            className="tenant-btn tenant-btn-secondary"
+                        >
+                            Deselect All
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Modals */}
             {deleteModalOpen && (
                 <div className="tenant-modal-overlay">
@@ -251,6 +332,25 @@ export const TenantListPage = () => {
                         <div className="tenant-modal-footer">
                             <button onClick={() => dispatch(closeModal('deleteTenant'))} className="tenant-btn-secondary">Cancel</button>
                             <button onClick={handleConfirmDelete} className="tenant-btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {bulkDeleteModalOpen && (
+                <div className="tenant-modal-overlay">
+                    <div className="tenant-modal">
+                        <div className="tenant-modal-header">
+                            <h3>Bulk Delete Tenants</h3>
+                            <button onClick={() => dispatch(closeModal('bulkDeleteTenants'))}>×</button>
+                        </div>
+                        <div className="tenant-modal-body">
+                            <p>Are you sure you want to delete the <strong>{selectedTenantIds.length}</strong> selected tenants?</p>
+                            <p className="text-red-600">This action will soft-delete all selected tenants.</p>
+                        </div>
+                        <div className="tenant-modal-footer">
+                            <button onClick={() => dispatch(closeModal('bulkDeleteTenants'))} className="tenant-btn-secondary">Cancel</button>
+                            <button onClick={handleConfirmBulkDelete} className="tenant-btn-danger">Delete Selected</button>
                         </div>
                     </div>
                 </div>
@@ -274,11 +374,11 @@ export const TenantListPage = () => {
                         </div>
                         <div className="tenant-modal-footer">
                             <button onClick={() => dispatch(closeModal('suspendTenant'))} className="tenant-btn-secondary">Cancel</button>
-                            <button
+                            <button 
                                 onClick={() => {
                                     const reason = document.getElementById('suspend-reason').value;
                                     handleConfirmSuspend(reason);
-                                }}
+                                }} 
                                 className="tenant-btn-warning"
                             >
                                 Suspend
