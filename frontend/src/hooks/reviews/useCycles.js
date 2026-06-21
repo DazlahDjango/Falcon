@@ -118,7 +118,8 @@ export const useCycles = () => {
             await fetchUpcomingCycles();
             return result;
         } catch (err) {
-            setError(err.message || 'Failed to create cycle');
+            console.error('[createCycle API Error]:', err.response?.data || err);
+            setError(err.response?.data || err.message || 'Failed to create cycle');
             throw err;
         } finally {
             setLoading(false);
@@ -135,7 +136,8 @@ export const useCycles = () => {
             if (activeCycle?.id === id) await fetchActiveCycle();
             return result;
         } catch (err) {
-            setError(err.message || 'Failed to update cycle');
+            console.error('[updateCycle API Error]:', err.response?.data || err);
+            setError(err.response?.data || err.message || 'Failed to update cycle');
             throw err;
         } finally {
             setLoading(false);

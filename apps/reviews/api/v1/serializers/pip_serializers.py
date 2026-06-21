@@ -132,7 +132,7 @@ class PIPSerializer(BaseTenantSerializer, BaseStatusSerializer):
     class Meta:
         model = PIP
         fields = [
-            'id', 'title', 'description', 'tenant', 'tenant_name',
+            'id', 'title', 'description', 'tenant_id', 'tenant_name',
             'employee', 'employee_name', 'employee_email',
             'owner', 'owner_name', 'review_cycle', 'review_cycle_name',
             'severity', 'severity_display', 'status', 'status_display',

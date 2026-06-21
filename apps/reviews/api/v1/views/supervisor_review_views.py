@@ -19,9 +19,12 @@ from ..serializers import (
 from .base_views import BaseReviewViewSet
 from ..permissions import CanConductSupervisorReview, CanViewReview, CanApproveReview
 from ..filters.assessment_filters import SupervisorReviewFilter
+from ..throttles.reviews_api_throttle import ReviewsAPIThrottle
+from ..throttles.review_throttles import ReviewSubmissionThrottle
 
 
 class SupervisorReviewViewSet(BaseReviewViewSet):
+    throttle_classes = [ReviewsAPIThrottle, ReviewSubmissionThrottle]
     """
     ViewSet for Supervisor Reviews.
     

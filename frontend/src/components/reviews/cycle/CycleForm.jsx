@@ -1,9 +1,11 @@
 // src/components/reviews/cycle/CycleForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './cycle.css';
 import { REVIEW_CYCLE_TYPES, REVIEW_CYCLE_TYPE_LABELS } from '@/config/constants';
+import { useRatingScales } from '@/hooks/reviews';
 
-const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false }) => {
+const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false, error }) => {
+    const { ratingScales } = useRatingScales();
     const [formData, setFormData] = useState({
         name: initialData.name || '',
         description: initialData.description || '',
@@ -22,6 +24,38 @@ const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false }) 
     });
 
     const [errors, setErrors] = useState({});
+
+    // Auto-select standard default rating scale if available
+    useEffect(() => {
+        if (!formData.rating_scale && ratingScales.length > 0) {
+            const defaultScale = ratingScales.find(s => s.is_default) || ratingScales[0];
+            if (defaultScale) {
+                setFormData(prev => ({ ...prev, rating_scale: defaultScale.id }));
+            }
+        }
+    }, [ratingScales, formData.rating_scale]);
+
+    const renderApiError = () => {
+        if (!error) return null;
+        if (typeof error === 'string') {
+            return <div className="api-error-banner">{error}</div>;
+        }
+        if (typeof error === 'object') {
+            return (
+                <div className="api-error-banner">
+                    <strong>Validation failed:</strong>
+                    <ul>
+                        {Object.entries(error).map(([field, messages]) => (
+                            <li key={field}>
+                                <strong>{field.replace('_', ' ')}:</strong> {Array.isArray(messages) ? messages.join(', ') : String(messages)}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+        return null;
+    };
 
     const cycleTypes = Object.entries(REVIEW_CYCLE_TYPES).map(([key, value]) => ({
         value,
@@ -50,6 +84,9 @@ const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false }) 
         if (formData.start_date && formData.end_date && formData.start_date > formData.end_date) {
             newErrors.end_date = 'End date must be after start date';
         }
+        if (!formData.rating_scale) {
+            newErrors.rating_scale = 'Rating scale is required';
+        }
         
         const totalWeight = (formData.kpi_weight || 0) + 
                            (formData.competency_weight || 0) + 
@@ -72,6 +109,8 @@ const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false }) 
 
     return (
         <form className="cycle-form" onSubmit={handleSubmit}>
+            {renderApiError()}
+            
             <div className="form-group">
                 <label className="form-label required">Cycle Name</label>
                 <input
@@ -95,17 +134,34 @@ const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false }) 
                 />
             </div>
 
-            <div className="form-group">
-                <label className="form-label required">Cycle Type</label>
-                <select
-                    className="form-select"
-                    value={formData.cycle_type}
-                    onChange={(e) => handleChange('cycle_type', e.target.value)}
-                >
-                    {cycleTypes.map(type => (
-                        <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                </select>
+            <div className="form-row">
+                <div className="form-group">
+                    <label className="form-label required">Cycle Type</label>
+                    <select
+                        className="form-select"
+                        value={formData.cycle_type}
+                        onChange={(e) => handleChange('cycle_type', e.target.value)}
+                    >
+                        {cycleTypes.map(type => (
+                            <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label required">Rating Scale</label>
+                    <select
+                        className={`form-select ${errors.rating_scale ? 'error' : ''}`}
+                        value={formData.rating_scale}
+                        onChange={(e) => handleChange('rating_scale', e.target.value)}
+                    >
+                        <option value="">Select Rating Scale</option>
+                        {ratingScales.map(scale => (
+                            <option key={scale.id} value={scale.id}>{scale.name}</option>
+                        ))}
+                    </select>
+                    {errors.rating_scale && <div className="form-error">{errors.rating_scale}</div>}
+                </div>
             </div>
 
             <div className="form-row">

@@ -206,16 +206,30 @@ class TenantDatabaseRouter:
 
         self._thread_local.is_resolving = True
         try:
-            deferred_fields = obj.get_deferred_fields() if hasattr(obj, 'get_deferred_fields') else set()
-            
-            if 'tenant_id' not in deferred_fields and hasattr(obj, 'tenant_id'):
-                val = getattr(obj, 'tenant_id', None)
-                if val:
-                    return val
-            if 'tenant' not in deferred_fields and hasattr(obj, 'tenant'):
-                val = getattr(obj, 'tenant_id', None)
-                if val:
-                    return val
+            try:
+                # Safe check via __dict__ first to avoid triggering descriptors on unsaved/mid-constructor objects
+                if hasattr(obj, '__dict__'):
+                    for key in ['tenant_id', '_tenant_id']:
+                        if key in obj.__dict__ and obj.__dict__[key]:
+                            return obj.__dict__[key]
+                
+                deferred_fields = obj.get_deferred_fields() if hasattr(obj, 'get_deferred_fields') else set()
+                
+                if 'tenant_id' not in deferred_fields and hasattr(obj, 'tenant_id'):
+                    val = getattr(obj, 'tenant_id', None)
+                    if val:
+                        return val
+                if 'tenant' not in deferred_fields and hasattr(obj, 'tenant'):
+                    if hasattr(obj, '_state') and hasattr(obj._state, 'fields_cache'):
+                        if 'tenant' in obj._state.fields_cache:
+                            cached_tenant = obj._state.fields_cache['tenant']
+                            if cached_tenant and hasattr(cached_tenant, 'id'):
+                                return cached_tenant.id
+                    val = getattr(obj, 'tenant_id', None)
+                    if val:
+                        return val
+            except Exception:
+                return None
         finally:
             self._thread_local.is_resolving = False
 

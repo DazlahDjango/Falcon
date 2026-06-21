@@ -7,7 +7,7 @@ import { REVIEW_ROUTES } from '../../config/constants';
 
 const CyclesPage = () => {
     const navigate = useNavigate();
-    const { cycles, loading, createCycle, updateCycle, activateCycle, closeCycle, archiveCycle, fetchCycles } = useCycles();
+    const { cycles, loading, error, createCycle, updateCycle, activateCycle, closeCycle, archiveCycle, fetchCycles } = useCycles();
     const [showForm, setShowForm] = useState(false);
     const [editingCycle, setEditingCycle] = useState(null);
     const [userRole, setUserRole] = useState('staff');
@@ -31,13 +31,18 @@ const CyclesPage = () => {
     };
 
     const handleSubmit = async (data) => {
-        if (editingCycle) {
-            await updateCycle(editingCycle.id, data);
-        } else {
-            await createCycle(data);
+        try {
+            if (editingCycle) {
+                await updateCycle(editingCycle.id, data);
+            } else {
+                await createCycle(data);
+            }
+            setShowForm(false);
+            setEditingCycle(null);
+        } catch (err) {
+            // Keep the form open to show error feedback
+            console.error('Failed to submit cycle form:', err);
         }
-        setShowForm(false);
-        setEditingCycle(null);
     };
 
     const handleCancel = () => {
@@ -55,7 +60,7 @@ const CyclesPage = () => {
                 <div style={{ marginBottom: '1.5rem' }}>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1f2937', margin: 0 }}>{editingCycle ? 'Edit Review Cycle' : 'Create New Review Cycle'}</h1>
                 </div>
-                <CycleForm initialData={editingCycle || {}} onSubmit={handleSubmit} onCancel={handleCancel} />
+                <CycleForm initialData={editingCycle || {}} onSubmit={handleSubmit} onCancel={handleCancel} error={error} />
             </div>
         );
     }

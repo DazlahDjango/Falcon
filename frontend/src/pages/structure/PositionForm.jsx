@@ -102,11 +102,19 @@ const PositionForm = () => {
     if (formData.max_incumbents !== '' && formData.max_incumbents < 1) {
       newErrors.max_incumbents = 'Max incumbents must be at least 1';
     }
+    // Frontend validation for grade format
+    if (formData.grade.trim()) {
+      const gradePattern = /^[A-Z][0-9]{1,2}[A-Z]?$/;
+      if (!gradePattern.test(formData.grade.toUpperCase())) {
+        newErrors.grade = 'Grade format: letter followed by numbers (e.g., P4, M2)';
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // First run our basic frontend validation
     if (!validateForm()) return;
     setIsSubmitting(true);
     const submitData = {
@@ -138,7 +146,27 @@ const PositionForm = () => {
       navigate(STRUCTURE_ROUTES.POSITIONS);
     } catch (error) {
       console.error('[Position Form] Submit error:', error);
-      setErrors({ submit: error.message || 'Failed to save position' });
+      // Handle backend validation errors
+      const newErrors = {};
+      // Check if error.response.data has field-specific errors
+      if (error?.response?.data) {
+        const errorData = error.response.data;
+        // Iterate over all keys in the error data
+        Object.keys(errorData).forEach((field) => {
+          // For each field, get the first error message
+          const messages = errorData[field];
+          if (Array.isArray(messages) && messages.length > 0) {
+            newErrors[field] = messages[0];
+          } else if (typeof messages === 'string') {
+            newErrors[field] = messages;
+          }
+        });
+      }
+      // If no field-specific errors, set a generic submit error
+      if (Object.keys(newErrors).length === 0) {
+        newErrors.submit = error.message || 'Failed to save position';
+      }
+      setErrors(newErrors);
     } finally {
       setIsSubmitting(false);
     }
@@ -219,8 +247,11 @@ const PositionForm = () => {
                 value={formData.grade}
                 onChange={handleChange}
                 placeholder="e.g., P4, M2"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${
+                  errors.grade ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              {errors.grade && <p className="mt-1 text-sm text-red-500">{errors.grade}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

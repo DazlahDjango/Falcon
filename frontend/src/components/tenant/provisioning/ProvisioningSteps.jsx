@@ -2,12 +2,19 @@
 import React from 'react';
 import './provisioning.css';
 
-export const ProvisioningSteps = ({ currentStep, steps, status }) => {
+export const ProvisioningSteps = ({ currentStep = 0, steps = {}, status = 'idle' }) => {
     const getStepStatus = (stepIndex, stepName) => {
+        // Guard against undefined steps or missing step
+        if (!steps || !steps[stepName]) {
+            return 'pending';
+        }
+
+        const step = steps[stepName];
+
         // Check if this step is completed
-        if (steps[stepName]?.completed) return 'completed';
+        if (step.completed) return 'completed';
         // Check if this step failed
-        if (steps[stepName]?.failed) return 'failed';
+        if (step.failed) return 'failed';
         // Check if this is the current step
         if (stepIndex === currentStep && status === 'provisioning') return 'active';
         // Otherwise pending
@@ -35,6 +42,28 @@ export const ProvisioningSteps = ({ currentStep, steps, status }) => {
         { key: 'activation', title: 'Activating Tenant', description: 'Finalizing setup' },
     ];
 
+    // If steps is empty or undefined, show loading state
+    if (!steps || Object.keys(steps).length === 0) {
+        return (
+            <div className="provisioning-steps">
+                {stepList.map((step) => (
+                    <div key={step.key} className="provisioning-step provisioning-step-pending">
+                        <div className="provisioning-step-icon provisioning-step-icon-pending">
+                            ○
+                        </div>
+                        <div className="provisioning-step-content">
+                            <div className="provisioning-step-title">{step.title}</div>
+                            <div className="provisioning-step-description">{step.description}</div>
+                        </div>
+                        <div className="provisioning-step-status provisioning-step-status-pending">
+                            Pending
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
     return (
         <div className="provisioning-steps">
             {stepList.map((step, index) => {
@@ -60,4 +89,39 @@ export const ProvisioningSteps = ({ currentStep, steps, status }) => {
             })}
         </div>
     );
+};
+
+// PropTypes for better type checking (optional but recommended)
+ProvisioningSteps.propTypes = {
+    currentStep: React.PropTypes.number,
+    steps: React.PropTypes.shape({
+        schema: React.PropTypes.shape({
+            completed: React.PropTypes.bool,
+            failed: React.PropTypes.bool
+        }),
+        migrations: React.PropTypes.shape({
+            completed: React.PropTypes.bool,
+            failed: React.PropTypes.bool
+        }),
+        data: React.PropTypes.shape({
+            completed: React.PropTypes.bool,
+            failed: React.PropTypes.bool
+        }),
+        resources: React.PropTypes.shape({
+            completed: React.PropTypes.bool,
+            failed: React.PropTypes.bool
+        }),
+        activation: React.PropTypes.shape({
+            completed: React.PropTypes.bool,
+            failed: React.PropTypes.bool
+        })
+    }),
+    status: React.PropTypes.oneOf(['idle', 'provisioning', 'completed', 'failed'])
+};
+
+// Default props
+ProvisioningSteps.defaultProps = {
+    currentStep: 0,
+    steps: {},
+    status: 'idle'
 };

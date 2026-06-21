@@ -52,7 +52,7 @@ class ReviewCycleSerializer(BaseTenantSerializer, BaseStatusSerializer):
     class Meta:
         model = ReviewCycle
         fields = [
-            'id', 'name', 'description', 'tenant', 'tenant_name',
+            'id', 'name', 'description', 'tenant_id', 'tenant_name',
             'cycle_type', 'cycle_type_display', 'status', 'status_display',
             'start_date', 'end_date', 'self_assessment_deadline',
             'supervisor_review_deadline', 'calibration_date',
@@ -116,10 +116,11 @@ class ReviewCycleCreateUpdateSerializer(ReviewCycleSerializer):
     Serializer for create/update operations.
     """
     
-    competencies = CycleCompetencySerializer(many=True, required=False)
+    competencies = CycleCompetencySerializer(many=True, read_only=True)
     
     class Meta(ReviewCycleSerializer.Meta):
-        read_only_fields = ['id', 'created_at', 'updated_at', 'status', 'tenant']
+        fields = ReviewCycleSerializer.Meta.fields + ['competencies']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'status', 'tenant_id']
 
 
 class CycleProgressSerializer(serializers.Serializer):

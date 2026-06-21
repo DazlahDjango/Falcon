@@ -19,9 +19,12 @@ from ..serializers import (
 from .base_views import BaseReviewViewSet
 from ..permissions import CanSubmitSelfAssessment, CanViewReview, CanEditReview
 from ..filters.assessment_filters import SelfAssessmentFilter
+from ..throttles.reviews_api_throttle import ReviewsAPIThrottle
+from ..throttles.review_throttles import ReviewSubmissionThrottle
 
 
 class SelfAssessmentViewSet(BaseReviewViewSet):
+    throttle_classes = [ReviewsAPIThrottle, ReviewSubmissionThrottle]
     """
     ViewSet for Self Assessments.
     

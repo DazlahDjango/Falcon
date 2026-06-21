@@ -16,7 +16,7 @@ class CompetencyCategorySerializer(BaseTenantSerializer):
     class Meta:
         model = CompetencyCategory
         fields = [
-            'id', 'name', 'description', 'tenant', 'tenant_name',
+            'id', 'name', 'description', 'tenant_id', 'tenant_name',
             'order', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -33,7 +33,7 @@ class CompetencySerializer(BaseTenantSerializer):
     class Meta:
         model = Competency
         fields = [
-            'id', 'name', 'description', 'tenant', 'tenant_name',
+            'id', 'name', 'description', 'tenant_id', 'tenant_name',
             'category', 'category_name', 'competency_type',
             'default_weight', 'rating_scale', 'rating_scale_name',
             'is_active', 'is_required', 'display_order',

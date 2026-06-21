@@ -63,6 +63,10 @@ class TenantAwareModel(models.Model):
         except Client.DoesNotExist:
             return None
 
+    @property
+    def tenant(self):
+        return self.get_tenant()
+
 class AuditModel(models.Model):
     created_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='%(class)s_created', editable=False, verbose_name=_('created_by'))
     modified_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='%(class)s_modified', editable=False, verbose_name=_('modified_by'))

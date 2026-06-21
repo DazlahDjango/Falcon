@@ -4,11 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from ..permissions import IsTenantUser
 from ..throttles.reviews_api_throttle import ReviewsAPIThrottle
-from ..throttles.review_throttles import ReviewSubmissionThrottle
 
 class BaseReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsTenantUser]
-    throttle_classes = [ReviewsAPIThrottle, ReviewSubmissionThrottle]
+    throttle_classes = [ReviewsAPIThrottle]
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -32,15 +31,40 @@ class BaseReviewViewSet(viewsets.ModelViewSet):
         """
         Set created_by or tenant automatically.
         """
-        if hasattr(serializer, 'created_by'):
-            serializer.save(created_by=self.request.user)
-        else:
-            serializer.save()
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"perform_create called for model: {serializer.Meta.model}")
+        logger.error(f"Serializer data: {serializer.validated_data}")
+        logger.error(f"Request user: {self.request.user}")
+        logger.error(f"User has tenant: {hasattr(self.request.user, 'tenant')}")
+        logger.error(f"User tenant: {self.request.user.tenant if hasattr(self.request.user, 'tenant') else None}")
+        
+        save_kwargs = {}
+        # Add created_by if model has it
+        if hasattr(serializer.Meta.model, 'created_by'):
+            save_kwargs['created_by'] = self.request.user
+            logger.error(f"Adding created_by: {self.request.user}")
+        # Add tenant if model has it and user has tenant
+        if hasattr(serializer.Meta.model, 'tenant') and hasattr(self.request.user, 'tenant'):
+            save_kwargs['tenant'] = self.request.user.tenant
+            logger.error(f"Adding tenant: {self.request.user.tenant}")
+        
+        try:
+            instance = serializer.save(**save_kwargs)
+            logger.error(f"Instance created successfully: {instance}")
+            return instance
+        except Exception as e:
+            logger.exception(f"Error in serializer.save: {e}")
+            raise
     
     def handle_exception(self, exc):
         """
         Handle exceptions with consistent response format.
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.exception(f"Caught exception: {exc}")
+        
         if isinstance(exc, PermissionDenied):
             return Response(
                 {'error': 'Permission denied', 'detail': str(exc)},

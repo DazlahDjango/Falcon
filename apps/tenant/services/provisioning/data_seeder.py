@@ -51,6 +51,7 @@ class DataSeeder:
             self.seed_default_settings()
             self.seed_default_categories()
             self.seed_notification_templates()
+            self.seed_default_rating_scales()
 
             self.logger.info(
                 f"Data seeding completed for tenant: {self.tenant.name}")
@@ -231,3 +232,38 @@ class DataSeeder:
         except Exception as e:
             self.logger.warning(
                 f"Failed to load fixture {fixture_name}: {str(e)}")
+
+    def seed_default_rating_scales(self):
+        """
+        Seed default 1-5 rating scale for tenant.
+        """
+        self.logger.info("Seeding default rating scales")
+        try:
+            RatingScale = apps.get_model('reviews', 'RatingScale')
+            
+            levels_data = [
+                {"value": 1, "label": "Needs Improvement", "color": "#ef4444", "min_pct": 0},
+                {"value": 2, "label": "Below Expectations", "color": "#f59e0b", "min_pct": 25},
+                {"value": 3, "label": "Meets Expectations", "color": "#3b82f6", "min_pct": 50},
+                {"value": 4, "label": "Exceeds Expectations", "color": "#10b981", "min_pct": 75},
+                {"value": 5, "label": "Outstanding", "color": "#8b5cf6", "min_pct": 90}
+            ]
+            
+            RatingScale.objects.get_or_create(
+                tenant_id=self.tenant.id,
+                name="Standard Scale (1-5)",
+                defaults={
+                    'description': "Default 1 to 5 rating scale",
+                    'levels': levels_data,
+                    'min_value': 1.00,
+                    'max_value': 5.00,
+                    'allow_decimal': True,
+                    'reverse_scoring': False,
+                    'is_active': True,
+                    'is_default': True
+                }
+            )
+        except LookupError:
+            self.logger.warning("RatingScale model not found - skipping rating scale seeding")
+        except Exception as e:
+            self.logger.warning(f"Failed to seed rating scales: {str(e)}")

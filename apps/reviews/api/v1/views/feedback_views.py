@@ -148,7 +148,12 @@ class FeedbackRequestViewSet(BaseReviewViewSet):
         return Response({'message': 'Reminder sent successfully'})
 
 
+from ..throttles.reviews_api_throttle import ReviewsAPIThrottle
+from ..throttles.review_throttles import FeedbackSubmissionThrottle
+
+
 class FeedbackResponseViewSet(BaseReviewViewSet):
+    throttle_classes = [ReviewsAPIThrottle, FeedbackSubmissionThrottle]
     """
     ViewSet for Feedback Responses.
     

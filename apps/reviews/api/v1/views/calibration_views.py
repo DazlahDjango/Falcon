@@ -31,9 +31,12 @@ from ..permissions import (
     CanAdjustRating,
 )
 from ..filters.calibration_filters import CalibrationSessionFilter
+from ..throttles.reviews_api_throttle import ReviewsAPIThrottle
+from ..throttles.review_throttles import CalibrationActionThrottle
 
 
 class CalibrationSessionViewSet(BaseReviewViewSet):
+    throttle_classes = [ReviewsAPIThrottle, CalibrationActionThrottle]
     """
     ViewSet for Calibration Sessions.
     

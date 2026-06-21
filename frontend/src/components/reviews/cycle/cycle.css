@@ -485,3 +485,24 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ========== API Error Banner ========== */
+.api-error-banner {
+    background-color: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-left: 4px solid #ef4444;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: #991b1b;
+    font-size: 0.875rem;
+}
+
+.api-error-banner ul {
+    margin: 0.5rem 0 0 1.25rem;
+    padding: 0;
+}
+
+.api-error-banner li {
+    margin-bottom: 0.25rem;
+}

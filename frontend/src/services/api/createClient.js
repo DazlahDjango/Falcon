@@ -81,3 +81,15 @@ export function createAccountsClient(overrides = {}) {
     ...overrides,
   });
 }
+
+/** Admin client — no tenant header, for fetching all users/tenants across system */
+export function createAdminClient(overrides = {}) {
+  return createApiClient({
+    module: 'admin',
+    basePath: '',
+    responseStyle: 'raw',
+    attachTenantHeader: false,
+    redirectOnSessionExpiry: false,
+    ...overrides,
+  });
+}

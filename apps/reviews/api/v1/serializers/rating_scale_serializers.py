@@ -16,9 +16,9 @@ class RatingScaleSerializer(BaseTenantSerializer):
     class Meta:
         model = RatingScale
         fields = [
-            'id', 'name', 'description', 'tenant', 'tenant_name',
+            'id', 'name', 'description', 'tenant_id', 'tenant_name',
             'levels', 'min_value', 'max_value', 'allow_decimal',
-            'reverse_scoring', 'scoring_type', 'is_active', 'is_default',
+            'reverse_scoring', 'is_active', 'is_default',
             'created_by', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']

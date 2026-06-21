@@ -1,7 +1,7 @@
 /**
  * Pre-configured HTTP clients per Django app — import these from base services.
  */
-import { createApiClient, createRootClient, createAccountsClient } from './createClient';
+import { createApiClient, createRootClient, createAccountsClient, createAdminClient } from './createClient';
 import { resetCircuitBreaker } from './circuitBreaker';
 import { isAuthUrl } from './constants';
 
@@ -10,6 +10,9 @@ export const rootApiClient = createRootClient();
 
 // —— Accounts (auth, users, admin) — raw ——
 export const accountsApiClient = createAccountsClient();
+
+// —— Admin (all users, all tenants, no tenant header) — raw ——
+export const adminApiClient = createAdminClient();
 
 // Add the accounts-specific interceptor here instead of in accountsClient.js
 accountsApiClient.interceptors.request.use(
