@@ -1,0 +1,33 @@
+{% extends "email/base.html" %}
+
+{% block title %}Welcome to Falcon PMS{% endblock %}
+
+{% block header %}Welcome to Falcon PMS!{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ user.first_name|default:user.username }},</h2>
+
+<p>Thank you for choosing <strong>Falcon PMS</strong> for your organization, <strong>{{ company_name }}</strong>!</p>
+
+<p>You've been set up as the administrator. Here's how to get started:</p>
+
+<ol style="margin: 16px 0; padding-left: 20px;">
+    <li><strong>Complete your profile</strong> - Add your details and preferences</li>
+    <li><strong>Invite team members</strong> - Go to Users → Invite to add colleagues</li>
+    <li><strong>Set up KPIs</strong> - Create performance indicators for your team</li>
+    <li><strong>Configure organization settings</strong> - Customize branding and preferences</li>
+</ol>
+
+<div style="text-align: center;">
+    <a href="{{ dashboard_url }}" class="button">Go to Admin Dashboard</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">Need help? Check out our <a href="{{ setup_guide_url }}" style="color: #2563eb;">Setup Guide</a> or contact our support team.</p>
+
+<p class="text-muted">
+    Best regards,<br>
+    The Falcon PMS Team
+</p>
+{% endblock %}

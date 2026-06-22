@@ -9,6 +9,8 @@ import staffDashboardReducer from './slices/staffDashboardSlice';
 import championDashboardReducer from './slices/championDashboardSlice';
 import readOnlyDashboardReducer from './slices/readOnlyDashboardSlice';
 
+import kpiModuleReducer from '../kpi/index';
+
 /**
  * PMS dashboard state — mounted only via DashboardStoreProvider (not app rootReducer).
  */
@@ -22,6 +24,9 @@ const dashboardRootReducer = combineReducers({
   staffDashboard: staffDashboardReducer,
   championDashboard: championDashboardReducer,
   readOnlyDashboard: readOnlyDashboardReducer,
+  // KPI State
+  kpi: kpiModuleReducer,
+  kpis: kpiModuleReducer,
 });
 
 export default dashboardRootReducer;

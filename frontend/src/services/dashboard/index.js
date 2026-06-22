@@ -1,23 +1,19 @@
-// frontend/src/services/dashboard/index.js
-
 export { BaseDashboardService, apiClient, withRetry } from './dashboard.service';
-
 export { executiveDashboardService } from './executive.service';
 export { clientAdminDashboardService } from './clientAdmin.service';
 export { superAdminDashboardService } from './superAdmin.service';
 export { managerService } from './manager.service';
-export { default as staffService } from './staff.service';
-export { default as championService } from './champion.service';
-export { default as readOnlyService } from './readOnly.service';
-
-export { default as hierarchyService } from './hierarchy.service';
-export { default as configService } from './config.service';
-export { default as widgetService } from './widget.service';
-export { default as favoriteService } from './favorite.service';
-export { default as alertService } from './alert.service';
-export { default as exportService } from './export.service';
-export { default as comparisonService } from './comparison.service';
-export { default as viewPresetService } from './viewpreset.service';
+export { staffService } from './staff.service';
+export { championService } from './champion.service';
+export { readOnlyService } from './readOnly.service';
+export { hierarchyService } from './hierarchy.service';
+export { dashboardConfigService } from './config.service';
+export { widgetService } from './widget.service';
+export { favoriteService } from './favorite.service';
+export { dashboardAlertService } from './alert.service';
+export { exportService } from './export.service';
+export { comparisonService } from './comparison.service';
+export { viewPresetService } from './viewpreset.service';
 export { dashboardWebSocket } from './websocket.service';
 
 export const getDashboardService = (dashboardType) => {

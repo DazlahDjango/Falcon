@@ -53,3 +53,4 @@ KpiBreakdownPanel.propTypes = {
   data: PropTypes.object,
   loading: PropTypes.bool
 };
+export default KpiBreakdownPanel;

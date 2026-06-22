@@ -2,9 +2,8 @@
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
-
+from apps.accounts.api.v1.permissions import IsDashboardChampion, IsTenantMember, IsAuthenticated
 from apps.dashboard.services.champion_service import ChampionService
 from apps.dashboard.api.v1.serializers import ChampionDashboardDataSerializer, UpdateConfigSerializer
 
@@ -13,7 +12,7 @@ class ChampionDashboardView(APIView):
     """
     Dashboard Champion API.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsDashboardChampion, IsTenantMember]
     
     @swagger_auto_schema(
         responses={200: ChampionDashboardDataSerializer()},

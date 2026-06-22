@@ -1,71 +1,64 @@
 // src/services/reviews/selfAssessment.service.js
-// Handles all self assessment API calls
+// Self Assessment API service
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+import { BaseReviewsService } from './reviewsBase.service';
 
-class SelfAssessmentService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEWS_API.SELF_ASSESSMENTS);
-    }
+class SelfAssessmentService extends BaseReviewsService {
+  constructor() {
+    super('self-assessments');
+  }
 
-    /**
-     * Get my self assessment for current active cycle
-     * @returns {Promise<Object>} My self assessment
-     */
-    async getMy() {
-        const response = await apiClient.get(REVIEWS_API.SELF_ASSESSMENT_MY);
-        return response.data;
-    }
+  async submit(id) {
+    return this.action(id, 'submit', { confirm_submit: true });
+  }
 
-    /**
-     * Submit self assessment for review
-     * @param {string|number} id - Assessment ID
-     * @returns {Promise<Object>} Submitted assessment
-     */
-    async submit(id) {
-        const response = await apiClient.post(REVIEWS_API.SELF_ASSESSMENT_SUBMIT(id));
-        return response.data;
-    }
+  async saveDraft(id, data) {
+    return this.action(id, 'save_draft', data);
+  }
 
-    /**
-     * Get team self assessments (for managers)
-     * @returns {Promise<Array>} Team assessments
-     */
-    async getTeam() {
-        const response = await apiClient.get(REVIEWS_API.SELF_ASSESSMENT_TEAM);
-        return response.data;
-    }
+  async resetToDraft(id) {
+    return this.action(id, 'reset_to_draft');
+  }
 
-    /**
-     * Get pending self assessments
-     * @returns {Promise<Array>} Pending assessments
-     */
-    async getPending() {
-        const response = await apiClient.get(REVIEWS_API.SELF_ASSESSMENT_PENDING);
-        return response.data;
-    }
+  async softDelete(id) {
+    return this.action(id, 'soft_delete');
+  }
 
-    /**
-     * Get all self assessments for a cycle
-     * @param {string|number} cycleId - Cycle ID
-     * @returns {Promise<Array>} Cycle assessments
-     */
-    async getForCycle(cycleId) {
-        const response = await apiClient.get(`${REVIEWS_API.SELF_ASSESSMENTS}?review_cycle=${cycleId}`);
-        return response.data;
-    }
+  async restore(id) {
+    return this.action(id, 'restore');
+  }
 
-    /**
-     * Save competency ratings for self assessment
-     * @param {string|number} id - Assessment ID
-     * @param {Array} ratings - Array of {competency_id, rating, comment}
-     * @returns {Promise<Object>} Updated assessment
-     */
-    async saveRatings(id, ratings) {
-        const response = await apiClient.post(`${REVIEWS_API.SELF_ASSESSMENT_DETAIL(id)}/ratings/`, { ratings });
-        return response.data;
-    }
+  async getMy() {
+    const response = await this.apiClient.get('/self-assessments/my/');
+    return response.data;
+  }
+
+  async getTeam() {
+    const response = await this.apiClient.get('/self-assessments/team/');
+    return response.data;
+  }
+
+  async getPending() {
+    const response = await this.apiClient.get('/self-assessments/pending/');
+    return response.data;
+  }
+
+  async getSubmitted() {
+    const response = await this.apiClient.get('/self-assessments/submitted/');
+    return response.data;
+  }
+
+  async getStats(cycleId) {
+    const response = await this.apiClient.get('/self-assessments/stats/', {
+      params: { cycle_id: cycleId },
+    });
+    return response.data;
+  }
+
+  async getForCycle(cycleId) {
+    return this.list({ review_cycle: cycleId });
+  }
 }
 
 export const selfAssessmentService = new SelfAssessmentService();
+export default selfAssessmentService;

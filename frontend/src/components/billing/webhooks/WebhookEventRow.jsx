@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { StatusBadge } from '../shared/StatusBadge';
 import { WebhookRetryButton } from './WebhookRetryButton';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import renderBillingIcon from '../shared/BillingIcons';
 
 export const WebhookEventRow = ({ log, onRetry }) => {
     const [expanded, setExpanded] = useState(false);

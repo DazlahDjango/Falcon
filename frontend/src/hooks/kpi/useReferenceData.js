@@ -1,31 +1,65 @@
-import { useCallback, useEffect, useState } from 'react';
-import api from '../../services/api';
+import { useEffect, useState, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchReferenceData, selectReferenceData, selectSettingsLoading } from '../../store/kpi';
 
-export const useKpiReferenceData = (include = 'users,departments') => {
-    const [users, setUsers] = useState([]);
-    const [departments, setDepartments] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+const useReferenceData = (include = ['users', 'departments'], autoFetch = true) => {
+    const dispatch = useDispatch();
+    const [data, setData] = useState({ users: [], departments: [] });
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    const load = useCallback(async () => {
-        setIsLoading(true);
+    
+    const cachedData = useSelector(selectReferenceData);
+    const globalLoading = useSelector(selectSettingsLoading);
+    
+    const fetchData = useCallback(async (includeParams = include) => {
+        setLoading(true);
         setError(null);
         try {
-            const res = await api.get('/kpis/reference-data/', {
-                params: { include },
-            });
-            setUsers(res.data?.users ?? []);
-            setDepartments(res.data?.departments ?? []);
+            const result = await dispatch(fetchReferenceData(includeParams)).unwrap();
+            setData(result);
+            return result;
         } catch (err) {
-            setError(err.response?.data?.error || err.message || 'Failed to load reference data');
+            setError(err.message || 'Failed to fetch reference data');
+            throw err;
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
-    }, [include]);
-
+    }, [dispatch, include]);
+    
     useEffect(() => {
-        load();
-    }, [load]);
-
-    return { users, departments, isLoading, error, reload: load };
+        if (autoFetch && cachedData && (cachedData.users?.length > 0 || cachedData.departments?.length > 0)) {
+            setData(cachedData);
+        } else if (autoFetch) {
+            fetchData();
+        }
+    }, [autoFetch, cachedData, fetchData]);
+    
+    // Helper to get user by ID
+    const getUserById = useCallback((userId) => {
+        return data.users.find(u => u.id === userId);
+    }, [data.users]);
+    
+    // Helper to get department by ID
+    const getDepartmentById = useCallback((deptId) => {
+        return data.departments.find(d => d.id === deptId);
+    }, [data.departments]);
+    
+    // Helper to get users by role
+    const getUsersByRole = useCallback((role) => {
+        return data.users.filter(u => u.role === role);
+    }, [data.users]);
+    
+    return {
+        users: data.users,
+        departments: data.departments,
+        referenceData: data,
+        loading: loading || globalLoading,
+        error,
+        refetch: fetchData,
+        getUserById,
+        getDepartmentById,
+        getUsersByRole,
+    };
 };
+
+export default useReferenceData;

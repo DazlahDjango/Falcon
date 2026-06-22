@@ -41,3 +41,4 @@ PlatformOverview.propTypes = {
   data: PropTypes.object,
   loading: PropTypes.bool
 };
+export default PlatformOverview;

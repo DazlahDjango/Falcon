@@ -1,52 +1,26 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { useSubscription } from '../../../hooks/billing';
-import { usePaymentMethods } from '../../../hooks/billing';
+import { FiRefreshCw } from 'react-icons/fi';
+import { useSubscription } from '../../../hooks/billing/useSubscription';
+import './subscription.css';
 
-export const RenewSubscriptionButton = ({ subscription, onSuccess, variant = 'primary' }) => {
-    const [loading, setLoading] = useState(false);
-    const { renewSubscription } = useSubscription();
-    const { paymentMethods, fetchPaymentMethods } = usePaymentMethods();
+export const RenewSubscriptionButton = ({ subscriptionId, onSuccess, variant = 'primary' }) => {
+    const { renew, loading } = useSubscription();
+    const [renewing, setRenewing] = useState(false);
 
     const handleRenew = async () => {
-        setLoading(true);
-        try {
-            // Fetch latest payment methods
-            await fetchPaymentMethods();
-            
-            const defaultMethod = paymentMethods.find(m => m.is_default);
-            
-            await renewSubscription(subscription.id, defaultMethod?.id);
-            onSuccess?.();
-        } catch (error) {
-            console.error('[RenewSubscriptionButton] Error:', error);
-            alert('Failed to renew subscription. Please add a payment method.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const variants = {
-        primary: 'renew-btn-primary',
-        secondary: 'renew-btn-secondary',
-        outline: 'renew-btn-outline',
+        if (!window.confirm('Are you sure you want to renew your subscription now? This will charge your saved payment method.')) return;
+        setRenewing(true);
+        await renew(subscriptionId);
+        if (onSuccess) onSuccess();
+        setRenewing(false);
     };
 
     return (
-        <button
-            className={`renew-btn ${variants[variant]} ${loading ? 'renew-btn-loading' : ''}`}
-            onClick={handleRenew}
-            disabled={loading}
-        >
-            {loading ? 'Processing...' : 'Renew Now'}
+        <button className={`renew-btn ${variant}`} onClick={handleRenew} disabled={renewing}>
+            {renewing ? <FiRefreshCw className="spin" /> : <FiRefreshCw />}
+            {renewing ? 'Processing...' : 'Renew Now'}
         </button>
     );
-};
-
-RenewSubscriptionButton.propTypes = {
-    subscription: PropTypes.object.isRequired,
-    onSuccess: PropTypes.func,
-    variant: PropTypes.oneOf(['primary', 'secondary', 'outline']),
 };
 
 export default RenewSubscriptionButton;

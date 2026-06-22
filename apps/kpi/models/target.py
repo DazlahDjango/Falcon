@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .base import BaseKPIModel
 from .definition import KPI
+from ..managers import AnnualTargetManager, MonthlyPhasingManager
 
 class AnnualTarget(BaseKPIModel):
     kpi = models.ForeignKey(KPI, on_delete=models.CASCADE, related_name='annual_targets')
@@ -12,6 +13,7 @@ class AnnualTarget(BaseKPIModel):
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_targets')
     notes = models.TextField(blank=True)
+    objects = AnnualTargetManager()
     class Meta:
         db_table = 'kpi_annual_targets'
         unique_together = [['tenant_id', 'kpi', 'user', 'year']]
@@ -34,6 +36,7 @@ class MonthlyPhasing(BaseKPIModel):
     is_locked = models.BooleanField(default=False, help_text='Locked after cycle start')
     locked_at = models.DateTimeField(null=True, blank=True)
     locked_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='locked_phasing')
+    objects = MonthlyPhasingManager()
     class Meta:
         db_table = 'kpi_monthly_phasing'
         unique_together = [['tenant_id', 'annual_target', 'month']]

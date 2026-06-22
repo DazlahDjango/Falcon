@@ -17,26 +17,30 @@ export const BillingProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(null);
     
-    const { summary, loading: analyticsLoading, refresh } = useBillingAnalytics();
+    // FIX: Get the correct functions from useBillingAnalytics
+    const { summary, loading: analyticsLoading, fetchSummary, fetchRevenue, fetchSubscriptions } = useBillingAnalytics();
 
     // Update last updated timestamp
     const updateTimestamp = useCallback(() => {
         setLastUpdated(new Date());
     }, []);
 
-    // Refresh billing data
+    // Refresh billing data - FIX: use fetchSummary instead of refresh
     const refreshBillingData = useCallback(async () => {
         setLoading(true);
         try {
-            await refresh();
+            await fetchSummary();
+            await fetchRevenue({});
+            await fetchSubscriptions();
             updateTimestamp();
         } finally {
             setLoading(false);
         }
-    }, [refresh, updateTimestamp]);
+    }, [fetchSummary, fetchRevenue, fetchSubscriptions, updateTimestamp]);
 
     // Auto-refresh every 5 minutes
     useEffect(() => {
+        refreshBillingData();
         const interval = setInterval(() => {
             refreshBillingData();
         }, 5 * 60 * 1000);
@@ -90,6 +94,7 @@ export const BillingProvider = ({ children }) => {
         // Actions
         setCurrency,
         setTaxRate,
+        refresh: refreshBillingData,  // ADD THIS - alias for refreshBillingData
         refreshBillingData,
         updateTimestamp,
         

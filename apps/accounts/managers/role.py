@@ -4,20 +4,29 @@ from .base import SoftDeleteManager, TenantAwareQuerySet
 class RoleQuery(TenantAwareQuerySet):
     def system_roles(self):
         return self.filter(is_system=True)
+    
     def custom_roles(self):
-        return self.filter(is_system=True)
+        # FIXED: Changed from is_system=True to is_system=False
+        return self.filter(is_system=False)
+    
     def assignable(self):
         return self.filter(is_assignable=True)
+    
     def non_assignable(self):
         return self.filter(is_assignable=False)
+    
     def with_code(self, code):
         return self.filter(code=code)
+    
     def with_codes(self, *codes):
         return self.filter(code__in=codes)
+    
     def hierarchical(self):
         return self.extra(select={'level': 'WITH RECURSIVE role_tree AS (SELECT id, 0 as level FROM accounts_role WHERE parent_id IS NULL UNION ALL SELECT r.id, rt.level + 1 FROM accounts_role r INNER JOIN role_tree rt ON r.parent_id = rt.id) SELECT level FROM role_tree WHERE id = accounts_role.id'}).order_by('level')
+    
     def with_permission(self, permission_codename):
         return self.filter(permissions_codename=permission_codename).distinct()
+    
     def get_hierarchy(self, role_id):
         from django.db import connection
         with connection.cursor() as cursor:
@@ -39,14 +48,19 @@ class RoleQuery(TenantAwareQuerySet):
 class RoleManager(SoftDeleteManager):
     def get_queryset(self):
         return RoleQuery(self.model, using=self._db)
+    
     def get_system_role(self, code):
         return self.filter(code=code, is_system=True, is_deleted=False).first()
+    
     def get_default_role(self):
         return self.get_system_role('staff')
+    
     def get_highest_role(self):
         return self.filter(is_system=True).order_by('parent_id').first()
+    
     def get_roles_by_hierarchy(self):
         return self.get_queryset().hierarchical()
+    
     def create_system_roles(self):
         from apps.accounts.constants import SYSTEM_ROLES_DATA
         roles = []

@@ -1,0 +1,191 @@
+/* src/components/reviews/self-assessments/detail/detail.css */
+
+.self-assessment-detail {
+  padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.self-assessment-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.self-assessment-detail-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.self-assessment-detail-back:hover {
+  color: #1a1a2e;
+}
+
+.self-assessment-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.self-assessment-detail-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.self-assessment-detail-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.self-assessment-detail-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+/* View Component */
+.self-assessment-view-empty {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.self-assessment-view-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.self-assessment-view-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.self-assessment-view-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.self-assessment-view-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.self-assessment-view-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+}
+
+.self-assessment-view-section-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 4px 0;
+}
+
+.self-assessment-view-section-value {
+  font-size: 14px;
+  color: #1a1a2e;
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.self-assessment-view-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.self-assessment-view-rating-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.self-assessment-view-rating-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.self-assessment-view-rating-score {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.self-assessment-view-star {
+  font-size: 18px;
+  color: #d1d5db;
+}
+
+.self-assessment-view-star.filled {
+  color: #f59e0b;
+}
+
+.self-assessment-view-rating-value {
+  font-size: 13px;
+  color: #6b7280;
+  margin-left: 8px;
+}
+
+.self-assessment-view-rating-comment {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
+
+.self-assessment-view-integrity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #22c55e;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  margin-top: 16px;
+}
+
+.self-assessment-view-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 640px) {
+  .self-assessment-view-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

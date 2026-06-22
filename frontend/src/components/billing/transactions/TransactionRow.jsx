@@ -1,89 +1,38 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { TransactionStatusBadge } from './TransactionStatusBadge';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import { FiEye } from 'react-icons/fi';
+import { StatusBadge } from '../shared/StatusBadge';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './transactions.css';
 
-export const TransactionRow = ({ transaction, onClick, onVerify, verifying }) => {
-    const formatDate = (dateString) => {
-        if (!dateString) return '—';
-        return new Date(dateString).toLocaleDateString() + ' ' + 
-               new Date(dateString).toLocaleTimeString();
+export const TransactionRow = ({ transaction, onViewDetails }) => {
+    const getTypeDisplay = (type) => {
+        const types = { subscription: 'Subscription', renewal: 'Renewal', upgrade: 'Upgrade', downgrade: 'Downgrade', refund: 'Refund', one_time: 'One Time' };
+        return types[type] || type;
     };
 
-    const getAmountClass = () => {
-        if (transaction.transaction_type === 'refund') return 'transaction-amount-refund';
-        if (transaction.status === 'success') return 'transaction-amount-success';
-        if (transaction.status === 'failed') return 'transaction-amount-failed';
-        return '';
+    const getMethodDisplay = (method) => {
+        if (method === 'card') return '💳 Card';
+        if (method === 'bank') return '🏦 Bank';
+        if (method === 'mobile_money') return '📱 Mobile Money';
+        return method || 'N/A';
     };
-
-    const getTypeIcon = () => {
-        const icons = {
-            subscription: renderBillingIcon('subscriptionCreate', { size: 16 }),
-            renewal: renderBillingIcon('renewal', { size: 16 }),
-            upgrade: renderBillingIcon('upgrade', { size: 16 }),
-            downgrade: renderBillingIcon('downgrade', { size: 16 }),
-            refund: renderBillingIcon('refund', { size: 16 }),
-            one_time: renderBillingIcon('card', { size: 16 }),
-        };
-        return icons[transaction.transaction_type] || renderBillingIcon('card', { size: 16 });
-    };
-
-    const getTypeLabel = () => {
-        const labels = {
-            subscription: 'Subscription',
-            renewal: 'Renewal',
-            upgrade: 'Upgrade',
-            downgrade: 'Downgrade',
-            refund: 'Refund',
-            one_time: 'One-time',
-        };
-        return labels[transaction.transaction_type] || transaction.transaction_type;
-    };
-
-    const isPending = transaction.status === 'pending';
 
     return (
-        <div className={`transaction-row ${onClick ? 'transaction-row-clickable' : ''}`} onClick={onClick}>
-            <div className="transaction-cell-reference">
-                <span className="transaction-reference">{transaction.reference}</span>
-                <span className="transaction-type">
-                    <span className="transaction-type-icon">{getTypeIcon()}</span>
-                    {getTypeLabel()}
-                </span>
-            </div>
-            <div className="transaction-cell-date">
-                {formatDate(transaction.payment_date || transaction.created_at)}
-            </div>
-            <div className="transaction-cell-amount">
-                <span className={`transaction-amount ${getAmountClass()}`}>
-                    {transaction.transaction_type === 'refund' ? '-' : ''}
-                    KES {((transaction.total_amount || transaction.amount || 0) / 100).toLocaleString()}
-                </span>
-            </div>
-            <div className="transaction-cell-status">
-                <TransactionStatusBadge status={transaction.status} />
-            </div>
-            <div className="transaction-cell-actions" onClick={(e) => e.stopPropagation()}>
-                {isPending && (
-                    <button 
-                        className="transaction-verify-btn"
-                        onClick={onVerify}
-                        disabled={verifying}
-                    >
-                        {verifying ? '...' : 'Verify'}
-                    </button>
-                )}
-            </div>
-        </div>
+        <tr className={`transaction-row ${transaction.status}`}>
+            <td className="transaction-reference-cell">
+                <span className="reference">{transaction.reference?.slice(-12)}</span>
+                <span className="reference-full" title={transaction.reference}>{transaction.reference}</span>
+            </td>
+            <td>{new Date(transaction.created_at).toLocaleDateString()}</td>
+            <td><span className="transaction-type">{getTypeDisplay(transaction.transaction_type)}</span></td>
+            <td className="transaction-amount-cell"><CurrencyFormatter amount={transaction.total_amount} currency={transaction.currency} /></td>
+            <td><StatusBadge type="transaction" status={transaction.status} size="sm" /></td>
+            <td className="transaction-method">{getMethodDisplay(transaction.payment_method)}</td>
+            <td className="transaction-actions-cell">
+                <button className="view-details-btn" onClick={onViewDetails} title="View Details"><FiEye /></button>
+            </td>
+        </tr>
     );
-};
-
-TransactionRow.propTypes = {
-    transaction: PropTypes.object.isRequired,
-    onClick: PropTypes.func,
-    onVerify: PropTypes.func,
-    verifying: PropTypes.bool,
 };
 
 export default TransactionRow;

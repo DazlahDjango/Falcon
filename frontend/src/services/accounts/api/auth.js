@@ -1,82 +1,69 @@
 import { request } from "./client";
 
-// Authentications
-// ================
+// ============================================================
+// AUTHENTICATION
+// ============================================================
 export const login = (data) => {
     return request.post('/auth/login/', data);
 };
-export const verifyMfa = (data) => {
-    return request.post('/auth/mfa/verify/', data);
-};
+
 export const refreshToken = (refreshToken) => {
     return request.post('/auth/refresh/', { refresh: refreshToken });
 };
-export const logout = (refreshToken) => {
-    return request.post('/auth/logout/', { refresh: refreshToken });
+
+export const logout = () => {
+    return request.post('/auth/logout/');
 };
 
-// Registration
-// =============
+export const verifyMfa = (mfaToken, otp) => {
+    return request.post('/auth/mfa-verify/', { mfa_token: mfaToken, otp });
+};
+
+// ============================================================
+// REGISTRATION & VERIFICATION
+// ============================================================
 export const register = (data) => {
     return request.post('/auth/register/', data);
 };
+
 export const verifyEmail = (token) => {
     return request.post('/auth/verify-email/', { token });
 };
+
 export const resendVerification = (email) => {
     return request.post('/auth/resend-verification/', { email });
 };
 
-// Password Management
-// ====================
+// ============================================================
+// PASSWORD MANAGEMENT
+// ============================================================
 export const forgotPassword = (email) => {
-    return request.post('/auth/password-reset/', {email});
+    return request.post('/auth/password-reset/', { email });
 };
+
 export const resetPassword = (data) => {
     return request.post('/auth/password-reset/confirm/', data);
 };
+
 export const changePassword = (data) => {
     return request.post('/auth/change-password/', data);
 };
 
-// MFA Management
-// ==================
-export const setupMfa = (data = { device_name: 'Authenticator' }) => {
-    return request.post('/auth/mfa/setup/', data);
-};
-export const verifyMfaSetup = (data) => {
-    return request.post('/auth/mfa/verify-setup/', data);
-};
-export const disableMfa = () => {
-    return request.post('/auth/mfa/disable/');
-};
-export const getMfaDevices = () => {
-    return request.get('/auth/mfa/devices/');
-};
-export const removeMfaDevice = (deviceId) => {
-    return request.delete(`/auth/mfa/devices/${deviceId}/`);
-};
-export const setPrimaryMfaDevice = (deviceId) => {
-    return request.post(`/auth/mfa/devices/${deviceId}/set-primary/`);
-};
-export const getBackupCodes = () => {
-    return request.get('/auth/mfa/backup-codes/');
-};
-export const regenerateBackupCodes = () => {
-    return request.post('/auth/mfa/backup-codes/regenerate/');
-}
-
-// Invitations
-// ============
-export const inviteUser = (data) => {
-    return request.post('/auth/invitations/', data);
-};
+// ============================================================
+// INVITATIONS
+// ============================================================
 export const acceptInvitation = (data) => {
-    return request.post('/auth/invitations/accept/', data);
+    return request.post('/auth/invitation/accept/', data);
 };
+
 export const getPendingInvitations = () => {
     return request.get('/auth/invitations/');
 };
+
 export const cancelInvitation = (invitationId) => {
     return request.delete(`/auth/invitations/${invitationId}/`);
+};
+
+export const resendInvitation = (invitationId) => {
+    return request.post(`/auth/invitations/${invitationId}/resend/`);
 };

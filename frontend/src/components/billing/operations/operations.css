@@ -1,0 +1,289 @@
+.operations-console {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.operations-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.operations-refresh-btn,
+.operations-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.operations-refresh-btn {
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+.operations-refresh-btn:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.operations-refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.operations-export-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+.operations-export-btn:hover {
+    background: #2563eb;
+}
+
+.operations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+}
+
+.operations-card {
+    height: 100%;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.subscription-status-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.subscription-status-badge {
+    text-align: center;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.subscription-plan-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.plan-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.plan-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.plan-interval {
+    font-size: 14px;
+    font-weight: 400;
+    color: #6b7280;
+}
+
+.subscription-period {
+    padding-top: 8px;
+    font-size: 14px;
+}
+
+.trial-warning,
+.expiry-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #fef3c7;
+    color: #d97706;
+    border-radius: 20px;
+}
+
+.expiry-info {
+    color: #6b7280;
+}
+
+.cancellation-notice {
+    padding: 8px 12px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.past-due-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.financial-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.summary-label {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.summary-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.summary-value.pending {
+    color: #f59e0b;
+}
+
+.summary-value.overdue {
+    color: #dc2626;
+}
+
+.summary-value.active {
+    color: #22c55e;
+}
+
+.summary-value.inactive {
+    color: #6b7280;
+}
+
+.transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.transaction-item:hover {
+    background: #f3f4f6;
+}
+
+.transaction-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.transaction-reference {
+    font-family: monospace;
+    font-size: 12px;
+    color: #6b7280;
+    background: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.transaction-amount {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.quick-action-btn {
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.quick-action-btn:hover:not(.danger) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.quick-action-btn.danger {
+    border-color: #fee2e2;
+    color: #dc2626;
+}
+
+.quick-action-btn.danger:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+
+@media (max-width: 768px) {
+    .operations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .operations-header-actions {
+        justify-content: stretch;
+    }
+
+    .operations-refresh-btn,
+    .operations-export-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,330 @@
+src/components/kpi/
+├── index.css                          # Main KPI CSS import file
+│
+├── dashboard/
+│   ├── admin/
+│   │   ├── AdminDashboard.jsx
+│   │   ├── AdminOverview.jsx
+│   │   ├── SystemHealth.jsx
+│   │   ├── CacheManager.jsx
+│   │   └── admin.css
+│   │
+│   ├── individual/
+│   │   ├── IndividualDashboard.jsx
+│   │   ├── MyKPIScores.jsx
+│   │   ├── RecentActivity.jsx
+│   │   ├── Achievements.jsx
+│   │   ├── PerformanceTrend.jsx
+│   │   └── individual.css
+│   │
+│   ├── manager/
+│   │   ├── ManagerDashboard.jsx
+│   │   ├── TeamPerformance.jsx
+│   │   ├── TeamMembersTable.jsx
+│   │   ├── StatusDistribution.jsx
+│   │   ├── PendingValidationsCard.jsx
+│   │   ├── MissingSubmissionsCard.jsx
+│   │   └── manager.css
+│   │
+│   ├── executive/
+│   │   ├── ExecutiveDashboard.jsx
+│   │   ├── OrganizationHealth.jsx
+│   │   ├── DepartmentRankings.jsx
+│   │   ├── RedAlertKPIs.jsx
+│   │   ├── TrendAnalysis.jsx
+│   │   ├── RiskIndicators.jsx
+│   │   └── executive.css
+│   │
+│   └── champion/
+│       ├── ChampionDashboard.jsx
+│       ├── ComplianceOverview.jsx
+│       ├── OrganizationSubmissionRate.jsx
+│       ├── PendingEscalations.jsx
+│       ├── RedKPIAlerts.jsx
+│       ├── DepartmentCompliance.jsx
+│       └── champion.css
+│
+├── kpi-management/
+│   ├── list/
+│   │   ├── KPIList.jsx
+│   │   ├── KPICard.jsx
+│   │   ├── KPITable.jsx
+│   │   ├── KPIListItem.jsx
+│   │   ├── KPIFilters.jsx
+│   │   ├── KPISearch.jsx
+│   │   └── list.css
+│   │
+│   ├── create/
+│   │   ├── KPICreate.jsx                 # Main wizard container
+│   │   ├── KPICreateStep1.jsx            # Basic Info (name, code, description)
+│   │   ├── KPICreateStep2.jsx            # Configuration (type, logic, targets)
+│   │   ├── KPICreateStep3.jsx            # Assignment (framework, category, owner)
+│   │   ├── KPICreateReview.jsx           # Review & Submit
+│   │   ├── KPICreateSuccess.jsx          # Success screen
+│   │   └── create.css
+│   │
+│   ├── detail/
+│   │   ├── KPIDetail.jsx
+│   │   ├── KPIInfo.jsx
+│   │   ├── KPIStats.jsx
+│   │   ├── KPITargets.jsx
+│   │   ├── KPIScores.jsx
+│   │   ├── KPIWeights.jsx
+│   │   ├── KPIDependencies.jsx
+│   │   ├── KPIStrategicLinkages.jsx
+│   │   ├── KPIValidation.jsx
+│   │   ├── KPIHistory.jsx
+│   │   └── detail.css
+│   │
+│   ├── edit/
+│   │   ├── KPIEdit.jsx
+│   │   ├── KPIEditBasic.jsx
+│   │   ├── KPIEditConfig.jsx
+│   │   ├── KPIEditAssignments.jsx
+│   │   ├── KPIActivateDeactivate.jsx     # Activate/Deactivate buttons
+│   │   ├── KPIArchive.jsx
+│   │   └── edit.css
+│   │
+│   └── weights/
+│       ├── KPIWeightManager.jsx
+│       ├── KPIWeightForm.jsx
+│       ├── KPIWeightList.jsx
+│       ├── KPIWeightValidation.jsx
+│       └── weights.css
+│
+├── framework/
+│   ├── sectors/
+│   │   ├── SectorList.jsx
+│   │   ├── SectorCard.jsx
+│   │   ├── SectorForm.jsx
+│   │   ├── SectorDetail.jsx
+│   │   ├── SectorDeleteConfirm.jsx
+│   │   └── sectors.css
+│   │
+│   ├── frameworks/
+│   │   ├── FrameworkList.jsx
+│   │   ├── FrameworkCard.jsx
+│   │   ├── FrameworkForm.jsx
+│   │   ├── FrameworkDetail.jsx
+│   │   ├── FrameworkWizard.jsx
+│   │   ├── FrameworkPublish.jsx
+│   │   ├── FrameworkDuplicate.jsx
+│   │   ├── FrameworkArchive.jsx
+│   │   └── frameworks.css
+│   │
+│   ├── categories/
+│   │   ├── CategoryList.jsx
+│   │   ├── CategoryTree.jsx
+│   │   ├── CategoryTreeNode.jsx
+│   │   ├── CategoryForm.jsx
+│   │   ├── CategoryEdit.jsx
+│   │   ├── CategoryMove.jsx
+│   │   ├── CategoryReorder.jsx
+│   │   ├── CategoryDeleteConfirm.jsx
+│   │   └── categories.css
+│   │
+│   └── templates/
+│       ├── TemplateList.jsx
+│       ├── TemplateCard.jsx
+│       ├── TemplateForm.jsx
+│       ├── TemplateDetail.jsx
+│       ├── TemplateStudio.jsx
+│       ├── TemplatePreview.jsx
+│       ├── TemplatePublish.jsx
+│       ├── TemplateUseConfirm.jsx
+│       └── templates.css
+│
+├── targets/
+│   ├── list/
+│   │   ├── TargetList.jsx
+│   │   ├── TargetCard.jsx
+│   │   ├── TargetTable.jsx
+│   │   ├── TargetFilters.jsx
+│   │   └── list.css
+│   │
+│   ├── create/
+│   │   ├── TargetCreate.jsx
+│   │   ├── TargetCreateForm.jsx
+│   │   └── create.css
+│   │
+│   ├── phasing/
+│   │   ├── MonthlyPhasing.jsx
+│   │   ├── MonthlyPhasingTable.jsx
+│   │   ├── MonthlyPhasingChart.jsx
+│   │   ├── PhasingStrategySelect.jsx
+│   │   ├── PhasingLockCycle.jsx
+│   │   └── phasing.css
+│   │
+│   └── cascade/
+│       ├── CascadeRules.jsx
+│       ├── CascadeRuleForm.jsx
+│       ├── CascadeRuleList.jsx
+│       ├── CascadeMapping.jsx
+│       ├── CascadeDepartment.jsx
+│       ├── CascadeTree.jsx
+│       ├── CascadeRollback.jsx
+│       └── cascade.css
+│
+├── actuals/
+│   ├── submission/
+│   │   ├── ActualSubmit.jsx
+│   │   ├── ActualForm.jsx
+│   │   ├── ActualValueInput.jsx
+│   │   ├── EvidenceUpload.jsx
+│   │   ├── EvidencePreview.jsx
+│   │   └── submission.css
+│   │
+│   ├── list/
+│   │   ├── ActualList.jsx
+│   │   ├── ActualTable.jsx
+│   │   ├── ActualFilters.jsx
+│   │   ├── ActualStatusBadge.jsx
+│   │   └── list.css
+│   │
+│   ├── detail/
+│   │   ├── ActualDetail.jsx
+│   │   ├── ActualInfo.jsx
+│   │   ├── ActualEvidence.jsx
+│   │   ├── ActualValidations.jsx
+│   │   └── detail.css
+│   │
+│   └── adjustments/
+│       ├── ActualAdjustmentList.jsx
+│       ├── ActualAdjustmentForm.jsx
+│       ├── ActualAdjustmentApprove.jsx
+│       └── adjustments.css
+│
+├── scores/
+│   ├── ScoreCard.jsx
+│   ├── ScoreList.jsx
+│   ├── ScoreTable.jsx
+│   ├── ScoreFilters.jsx
+│   ├── ScoreStatistics.jsx
+│   ├── TrafficLight.jsx
+│   ├── TrafficLightIcon.jsx
+│   ├── AggregatedScores.jsx
+│   ├── DepartmentRanking.jsx
+│   ├── RedAlertsList.jsx
+│   ├── RedAlertCard.jsx
+│   └── scores.css
+│
+├── validations/
+│   ├── PendingValidations.jsx
+│   ├── ValidationModal.jsx
+│   ├── ValidationCard.jsx
+│   ├── ValidationList.jsx
+│   ├── ValidationApprove.jsx
+│   ├── ValidationReject.jsx
+│   ├── RejectionReasonSelect.jsx
+│   ├── EscalationPanel.jsx
+│   ├── EscalationForm.jsx
+│   ├── EscalationList.jsx
+│   ├── EscalationDetail.jsx
+│   ├── PendingSummaryCard.jsx
+│   └── validations.css
+│
+├── analytics/
+│   ├── reports/
+│   │   ├── ReportGenerator.jsx
+│   │   ├── ReportFilters.jsx
+│   │   ├── ReportPreview.jsx
+│   │   ├── ExportOptions.jsx
+│   │   ├── CustomReportBuilder.jsx
+│   │   └── reports.css
+│   │
+│   ├── summaries/
+│   │   ├── KPISummaryTable.jsx
+│   │   ├── KPISummaryCard.jsx
+│   │   ├── KPISummaryFilters.jsx
+│   │   ├── DepartmentRollupTable.jsx
+│   │   └── summaries.css
+│   │
+│   ├── insights/
+│   │   ├── AnalyticsInsights.jsx
+│   │   ├── InsightsOverview.jsx
+│   │   ├── TrendAnalysis.jsx
+│   │   ├── TopDepartments.jsx
+│   │   ├── AreasForImprovement.jsx
+│   │   ├── RiskPredictions.jsx
+│   │   ├── PerformanceHeatmap.jsx
+│   │   └── insights.css
+│   │
+│   └── health/
+│       ├── OrganizationHealth.jsx
+│       ├── HealthScoreCard.jsx
+│       ├── HealthHistoryChart.jsx
+│       ├── KPIGauge.jsx
+│       └── health.css
+│
+├── bulk/
+│   ├── BulkUpload.jsx
+│   ├── BulkKPIUpload.jsx
+│   ├── BulkActualUpload.jsx
+│   ├── BulkTargetUpload.jsx
+│   ├── UploadPreview.jsx
+│   ├── UploadResults.jsx
+│   ├── UploadErrors.jsx
+│   ├── TemplateDownload.jsx
+│   └── bulk.css
+│
+├── calculations/
+│   ├── CalculationTrigger.jsx
+│   ├── CalculationStatus.jsx
+│   ├── CalculationProgress.jsx
+│   ├── CalculationHistory.jsx
+│   └── calculations.css
+│
+├── exports/
+│   ├── ExportButton.jsx
+│   ├── ExportModal.jsx
+│   ├── ExportOptions.jsx
+│   ├── ExportProgress.jsx
+│   └── exports.css
+│
+├── settings/
+│   ├── SystemSettings.jsx
+│   ├── SettingsForm.jsx
+│   ├── SettingsReset.jsx
+│   ├── ReferenceData.jsx
+│   ├── ReferenceDataTable.jsx
+│   ├── NotificationPreferences.jsx
+│   ├── NotificationTypes.jsx
+│   └── settings.css
+│
+├── history/
+│   ├── AuditLogs.jsx
+│   ├── KPIHistoryTable.jsx
+│   ├── ActualHistoryTable.jsx
+│   ├── TargetHistoryTable.jsx
+│   ├── HistoryFilters.jsx
+│   ├── HistoryDetail.jsx
+│   └── history.css
+│
+├── users/
+│   ├── UserKPIs.jsx
+│   ├── UserTargets.jsx
+│   ├── UserScores.jsx
+│   ├── UserActuals.jsx
+│   ├── UserProfileKPISection.jsx
+│   └── users.css
+│
+├── common/
+│   ├── KPILayout.jsx
+│   ├── KPISidebar.jsx
+│   ├── KPINavbar.jsx
+│   ├── KPIHeader.jsx
+│   ├── KPIBreadcrumb.jsx
+│   ├── KPILoading.jsx
+│   ├── KPIError.jsx
+│   ├── KPIEmptyState.jsx
+│   ├── KPISuccess.jsx
+│   ├── KPIConfirmDialog.jsx
+│   ├── KPIFilterBar.jsx
+│   ├── KPIPagination.jsx
+│   ├── KPISearchBar.jsx
+│   ├── KPIDateRangePicker.jsx
+│   ├── KPIStatusBadge.jsx
+│   ├── KPIScoreGauge.jsx
+│   └── common.css
+│
+└── index.css                                 # Main KPI CSS import file

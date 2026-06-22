@@ -1,69 +1,83 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { PriceDisplay } from '../shared/PriceDisplay';
-import { BillingCycleSelector } from '../subscription/BillingCycleSelector';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiCheck, FiArrowRight, FiUsers, FiDatabase, FiTrendingUp, FiShield } from 'react-icons/fi';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './plans.css';
 
-export const PricingTiers = ({ plans, onSelect }) => {
-    const [billingCycle, setBillingCycle] = useState('monthly');
+export const PricingTiers = ({ plans, onSelectPlan }) => {
+    const navigate = useNavigate();
 
-    const getPrice = (plan) => {
-        if (billingCycle === 'yearly' && plan.yearly_price) {
-            return plan.yearly_price;
+    const getTierIcon = (planType) => {
+        switch (planType) {
+            case 'basic': return <FiUsers />;
+            case 'professional': return <FiTrendingUp />;
+            case 'enterprise': return <FiShield />;
+            default: return <FiDatabase />;
         }
-        return plan.price;
     };
 
-    const getSavings = (plan) => {
-        if (billingCycle === 'yearly' && plan.yearly_price) {
-            const monthlyTotal = plan.price * 12;
-            const savings = monthlyTotal - plan.yearly_price;
-            const percent = Math.round((savings / monthlyTotal) * 100);
-            return percent;
+    const getTierColor = (planType) => {
+        switch (planType) {
+            case 'basic': return '#3b82f6';
+            case 'professional': return '#8b5cf6';
+            case 'enterprise': return '#10b981';
+            default: return '#6b7280';
         }
-        return 0;
     };
 
-    const paidPlans = plans.filter(p => p.plan_type !== 'trial');
+    const handleSelect = (plan) => {
+        if (plan.plan_type === 'enterprise') {
+            window.location.href = '/contact-sales';
+        } else if (onSelectPlan) {
+            onSelectPlan(plan.id);
+        } else {
+            navigate(`/billing/checkout?plan=${plan.id}`);
+        }
+    };
+
+    const nonTrialPlans = plans.filter(p => p.plan_type !== 'trial');
 
     return (
         <div className="pricing-tiers">
-            <BillingCycleSelector 
-                value={billingCycle}
-                onChange={setBillingCycle}
-            />
-
+            <div className="pricing-tiers-header">
+                <h3>Pricing Plans</h3>
+                <p>Simple, transparent pricing that grows with you</p>
+            </div>
             <div className="pricing-tiers-grid">
-                {paidPlans.map((plan) => (
-                    <div key={plan.id} className="pricing-tier">
-                        <div className="pricing-tier-header">
-                            <h3 className="pricing-tier-name">{plan.name}</h3>
-                            <PriceDisplay 
-                                amount={getPrice(plan)} 
-                                period={billingCycle === 'yearly' ? 'year' : 'month'}
-                                size="large"
-                            />
-                            {getSavings(plan) > 0 && (
-                                <div className="pricing-tier-savings">
-                                    Save {getSavings(plan)}% with yearly billing
-                                </div>
-                            )}
+                {nonTrialPlans.map(plan => (
+                    <div key={plan.id} className={`pricing-tier ${plan.plan_type}`}>
+                        <div className="tier-header" style={{ borderBottomColor: getTierColor(plan.plan_type) }}>
+                            <div className="tier-icon" style={{ background: `${getTierColor(plan.plan_type)}15`, color: getTierColor(plan.plan_type) }}>{getTierIcon(plan.plan_type)}</div>
+                            <h3 className="tier-name">{plan.name}</h3>
+                            <div className="tier-price">
+                                <CurrencyFormatter amount={plan.price} currency={plan.currency} />
+                                <span className="tier-period">/month</span>
+                            </div>
+                            {plan.yearly_price && <div className="tier-yearly">or <CurrencyFormatter amount={plan.yearly_price} currency={plan.currency} showCents={false} />/year</div>}
                         </div>
-                        <button 
-                            className="pricing-tier-button"
-                            onClick={() => onSelect(plan, billingCycle)}
-                        >
-                            Get Started
+                        <div className="tier-features">
+                            <ul>
+                                <li><FiCheck /> Up to {plan.max_users === -1 ? 'unlimited' : plan.max_users} users</li>
+                                <li><FiCheck /> Up to {plan.max_kpis === -1 ? 'unlimited' : plan.max_kpis} KPIs</li>
+                                {plan.custom_branding && <li><FiCheck /> Custom branding</li>}
+                                {plan.api_access && <li><FiCheck /> API access</li>}
+                                {plan.advanced_analytics && <li><FiCheck /> Advanced analytics</li>}
+                                {plan.priority_support && <li><FiCheck /> Priority support</li>}
+                            </ul>
+                        </div>
+                        <button className="tier-select-btn" onClick={() => handleSelect(plan)}>
+                            {plan.plan_type === 'enterprise' ? 'Contact Sales' : 'Get Started'}
+                            <FiArrowRight />
                         </button>
                     </div>
                 ))}
             </div>
+            <div className="pricing-footer">
+                <p>All plans include a 14-day free trial. No credit card required.</p>
+                <p className="pricing-tax-note">* Plus applicable taxes</p>
+            </div>
         </div>
     );
-};
-
-PricingTiers.propTypes = {
-    plans: PropTypes.array.isRequired,
-    onSelect: PropTypes.func.isRequired,
 };
 
 export default PricingTiers;

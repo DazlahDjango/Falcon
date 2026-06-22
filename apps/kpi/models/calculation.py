@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .base import BaseKPIModel
 from .definition import KPI
+from ..managers import ScoreManager, AggregatedScoreManager
 
 class Score(BaseKPIModel):
     kpi = models.ForeignKey(KPI, on_delete=models.CASCADE, related_name='scores')
@@ -15,6 +16,7 @@ class Score(BaseKPIModel):
     formula_used = models.CharField(max_length=50)
     calculated_at = models.DateTimeField(auto_now_add=True)
     calculated_by = models.CharField(max_length=255, default='system')
+    objects = ScoreManager()
     class Meta:
         db_table = 'kpi_scores'
         unique_together = [['tenant_id', 'kpi', 'user', 'year', 'month']]
@@ -41,6 +43,7 @@ class AggregatedScore(BaseKPIModel):
     member_count = models.PositiveIntegerField()
     kpi_count = models.PositiveIntegerField()
     calculation_method = models.CharField(max_length=50, default='weighted_average')
+    objects = AggregatedScoreManager()
     class Meta:
         db_table = 'kpi_aggregated_scores'
         unique_together = [['tenant_id', 'level', 'entity_id', 'year', 'month']]

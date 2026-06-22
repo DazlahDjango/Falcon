@@ -2,6 +2,7 @@
 // Hook for WebSocket connection for real-time updates
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { websocketService } from '../../services/websocket';
 
 export const useWebSocket = (url, options = {}) => {
     const {
@@ -17,75 +18,53 @@ export const useWebSocket = (url, options = {}) => {
     const [isConnected, setIsConnected] = useState(false);
     const [lastMessage, setLastMessage] = useState(null);
     const [reconnectAttempts, setReconnectAttempts] = useState(0);
-    const wsRef = useRef(null);
+    const wsKeyRef = useRef(null);
     const reconnectTimeoutRef = useRef(null);
 
-    const connect = useCallback(() => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-            return;
-        }
+    const connect = useCallback(async () => {
+        const key = options.key || url.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 64);
+        wsKeyRef.current = key;
 
         try {
-            const ws = new WebSocket(url);
-            
-            ws.onopen = () => {
-                setIsConnected(true);
-                setReconnectAttempts(0);
-                if (onOpen) onOpen();
-            };
-
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
+            await websocketService.connect(
+                key,
+                url,
+                (data) => {
                     setLastMessage(data);
                     if (onMessage) onMessage(data);
-                } catch (err) {
-                    console.error('Failed to parse WebSocket message:', err);
-                }
-            };
-
-            ws.onclose = () => {
-                setIsConnected(false);
-                if (onClose) onClose();
-                
-                // Auto reconnect
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    reconnectTimeoutRef.current = setTimeout(() => {
-                        setReconnectAttempts(prev => prev + 1);
-                        connect();
-                    }, reconnectInterval);
-                }
-            };
-
-            ws.onerror = (error) => {
-                if (onError) onError(error);
-            };
-
-            wsRef.current = ws;
+                },
+                () => {
+                    setIsConnected(true);
+                    setReconnectAttempts(0);
+                    if (onOpen) onOpen();
+                },
+                (err) => {
+                    if (onError) onError(err);
+                },
+                (event) => {
+                    setIsConnected(false);
+                    if (onClose) onClose();
+                    // websocketService will handle reconnection if enabled
+                },
+                { shouldReconnect: options.shouldReconnect !== false }
+            );
         } catch (err) {
             console.error('WebSocket connection error:', err);
         }
-    }, [url, onMessage, onOpen, onClose, onError, reconnectInterval, maxReconnectAttempts, reconnectAttempts]);
+    }, [url, onMessage, onOpen, onClose, onError, reconnectInterval, maxReconnectAttempts, options.key, options.shouldReconnect]);
 
     const disconnect = useCallback(() => {
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
         }
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
+        if (wsKeyRef.current) {
+            websocketService.disconnect(wsKeyRef.current);
+            wsKeyRef.current = null;
         }
         setIsConnected(false);
     }, []);
 
-    const sendMessage = useCallback((data) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-            const message = typeof data === 'string' ? data : JSON.stringify(data);
-            wsRef.current.send(message);
-            return true;
-        }
-        return false;
-    }, []);
+    const sendMessage = useCallback((data) => websocketService.send(wsKeyRef.current, data), []);
 
     const sendPing = useCallback(() => {
         return sendMessage({ type: 'ping' });

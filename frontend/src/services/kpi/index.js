@@ -1,11 +1,17 @@
-// KPI Services Export
-export { default as kpiService } from './kpi.service';
-export { default as targetService } from './target.service';
-export { default as actualService } from './actual.service';
-export { default as scoreService } from './score.service';
-export { default as validationService } from './validation.service';
-export { default as dashboardService } from './dashboard.service';
-export { default as analyticsService } from './analytics.service';
-export { default as exportService } from './export.service';
-export { default as bulkService } from './bulk.service';
-export { default as frameworkService } from './framework.service';
+export { frameworkService } from './framework.service';
+export { kpiService } from './kpi.service';
+export { targetService } from './target.service';
+export { actualService } from './actual.service';
+export { scoreService } from './score.service';
+export { validationService } from './validation.service';
+export { dashboardService } from './dashboard.service';
+export { analyticsService } from './analytics.service';
+export { bulkService } from './bulk.service';
+export { calculationService } from './calculation.service';
+export { exportService } from './export.service';
+export { historyService } from './history.service';
+export { settingsService } from './settings.service';
+
+export { BaseKPIService, withRetry } from './kpiBase.service';
+
+export * from './types';

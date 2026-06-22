@@ -1,4 +1,3 @@
-# apps/reviews/models/calibration_session.py
 """
 Calibration Session Model
 Managers meet to ensure fair and consistent ratings across departments
@@ -30,12 +29,7 @@ class CalibrationSession(ReviewBaseModel, ReviewStatusMixin):
         CANCELLED = 'cancelled', 'Cancelled'
     
     # ========== Basic Information ==========
-    review_cycle = models.ForeignKey(
-        'reviews.ReviewCycle',
-        on_delete=models.CASCADE,
-        related_name='calibration_sessions'
-    )
-    
+    review_cycle = models.ForeignKey('reviews.ReviewCycle', on_delete=models.CASCADE, related_name='calibration_sessions')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     session_type = models.CharField(max_length=20, choices=SessionType.choices, default=SessionType.FINAL)
@@ -44,23 +38,14 @@ class CalibrationSession(ReviewBaseModel, ReviewStatusMixin):
     scheduled_date = models.DateTimeField()
     actual_start_time = models.DateTimeField(null=True, blank=True)
     actual_end_time = models.DateTimeField(null=True, blank=True)
+    agreed_by = models.ManyToManyField('accounts.User', related_name='calibration_sessions_agreed', blank=True)
     
     # ========== Participants ==========
-    facilitator = models.ForeignKey(
-        'accounts.User',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='facilitated_sessions'
-    )
-    
+    facilitator = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, related_name='facilitated_sessions')
     participants = models.ManyToManyField('accounts.User', related_name='calibration_sessions')
     
     # ========== Departments ==========
-    departments_included = models.ManyToManyField(
-        'structure.Department',
-        related_name='calibration_sessions',
-        blank=True
-    )
+    departments_included = models.ManyToManyField('structure.Department', related_name='calibration_sessions', blank=True)
     
     # ========== Session Details ==========
     agenda = models.TextField(blank=True)
@@ -77,11 +62,7 @@ class CalibrationSession(ReviewBaseModel, ReviewStatusMixin):
     class Meta:
         db_table = 'reviews_calibration_sessions'
         ordering = ['-scheduled_date']
-        indexes = [
-            models.Index(fields=['review_cycle', 'status']),
-            models.Index(fields=['session_type']),
-            models.Index(fields=['scheduled_date']),
-        ]
+        indexes = [models.Index(fields=['review_cycle', 'status']), models.Index(fields=['session_type']), models.Index(fields=['scheduled_date'])]
     
     def __str__(self):
         return f"{self.name} - {self.review_cycle.name}"
@@ -110,6 +91,7 @@ class CalibrationAgendaItem(models.Model):
     duration_minutes = models.IntegerField(default=30)
     order = models.IntegerField(default=0)
     status = models.CharField(max_length=20, choices=ItemStatus.choices, default=ItemStatus.PENDING)
+    agreed_by = models.ManyToManyField('accounts.User', related_name='calibration_agenda_items_agreed', blank=True)
     notes = models.TextField(blank=True)
     
     class Meta:
@@ -126,24 +108,9 @@ class CalibrationRating(models.Model):
     Stores BEFORE and AFTER values - NO calculations.
     """
     
-    calibration_session = models.ForeignKey(
-        CalibrationSession,
-        on_delete=models.CASCADE,
-        related_name='rating_adjustments'
-    )
-    
-    final_rating = models.ForeignKey(
-        'reviews.FinalRating',
-        on_delete=models.CASCADE,
-        related_name='calibration_adjustments'
-    )
-    
-    adjusted_by = models.ForeignKey(
-        'accounts.User',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='calibration_adjustments_made'
-    )
+    calibration_session = models.ForeignKey(CalibrationSession, on_delete=models.CASCADE, related_name='rating_adjustments')
+    final_rating = models.ForeignKey('reviews.FinalRating', on_delete=models.CASCADE, related_name='calibration_adjustments')
+    adjusted_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, related_name='calibration_adjustments_made')
     
     # Rating Values (Before/After) - Stored as entered, no calculation
     before_score = models.DecimalField(max_digits=5, decimal_places=2)
@@ -156,7 +123,7 @@ class CalibrationRating(models.Model):
     supporting_evidence = models.TextField(blank=True)
     
     # Who agreed (many-to-many for consensus tracking)
-    agreed_by = models.ManyToManyField('accounts.User', related_name='agreed_calibrations', blank=True)
+    agreed_by = models.ManyToManyField('accounts.User', related_name='calibration_ratings_agreed', blank=True)
     
     # Timestamp
     adjusted_at = models.DateTimeField(auto_now_add=True)
@@ -164,10 +131,7 @@ class CalibrationRating(models.Model):
     class Meta:
         db_table = 'reviews_calibration_ratings'
         ordering = ['-adjusted_at']
-        indexes = [
-            models.Index(fields=['calibration_session']),
-            models.Index(fields=['final_rating']),
-        ]
+        indexes = [models.Index(fields=['calibration_session']), models.Index(fields=['final_rating'])]
     
     def __str__(self):
         return f"Rating adj for {self.final_rating.employee.email}"
@@ -175,7 +139,6 @@ class CalibrationRating(models.Model):
     def clean(self):
         super().clean()
         if self.before_score is not None and self.after_score is not None:
-            # No calculation here - just basic validation
             pass
 
 
@@ -184,44 +147,17 @@ class CalibrationComment(models.Model):
     Comments and discussion notes from calibration session.
     """
     
-    calibration_session = models.ForeignKey(
-        CalibrationSession,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    
-    author = models.ForeignKey(
-        'accounts.User',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='calibration_comments'
-    )
-    
-    calibration_rating = models.ForeignKey(
-        CalibrationRating,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='comments'
-    )
-    
+    calibration_session = models.ForeignKey(CalibrationSession, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, related_name='calibration_comments')
+    calibration_rating = models.ForeignKey(CalibrationRating, on_delete=models.CASCADE, null=True, blank=True, related_name='comments')
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    parent_comment = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='replies'
-    )
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     
     class Meta:
         db_table = 'reviews_calibration_comments'
         ordering = ['created_at']
-        indexes = [
-            models.Index(fields=['calibration_session', 'created_at']),
-        ]
+        indexes = [models.Index(fields=['calibration_session', 'created_at'])]
     
     def __str__(self):
         author = self.author.email if self.author else "Anonymous"

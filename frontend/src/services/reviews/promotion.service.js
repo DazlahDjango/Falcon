@@ -1,88 +1,61 @@
 // src/services/reviews/promotion.service.js
-// Handles all promotion recommendation API calls
+// Promotion Recommendation API service
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+import { BaseReviewsService } from './reviewsBase.service';
 
-class PromotionService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEWS_API.PROMOTIONS);
-    }
+class PromotionService extends BaseReviewsService {
+  constructor() {
+    super('promotions');
+  }
 
-    /**
-     * Get my promotion recommendations (employee view)
-     * @returns {Promise<Array>} My promotions
-     */
-    async getMy() {
-        const response = await apiClient.get(`${REVIEWS_API.PROMOTIONS}?employee=me`);
-        return response.data;
-    }
+  async approve(id, notes = '', targetDate = null) {
+    return this.action(id, 'approve', { approve: true, notes, target_date: targetDate });
+  }
 
-    /**
-     * Get team promotion recommendations (manager view)
-     * @returns {Promise<Array>} Team promotions
-     */
-    async getTeam() {
-        const response = await apiClient.get(`${REVIEWS_API.PROMOTIONS}?team=true`);
-        return response.data;
-    }
+  async reject(id, reason) {
+    return this.action(id, 'reject', { reason });
+  }
 
-    /**
-     * Get pending promotions (HR/Admin view)
-     * @returns {Promise<Array>} Pending promotions
-     */
-    async getPending() {
-        const response = await apiClient.get(`${REVIEWS_API.PROMOTIONS}?status=pending`);
-        return response.data;
-    }
+  async complete(id, actualDate = null, newSalary = null) {
+    return this.action(id, 'complete', { actual_date: actualDate, new_salary: newSalary });
+  }
 
-    /**
-     * Approve a promotion recommendation
-     * @param {string|number} id - Promotion ID
-     * @param {string} notes - Approval notes
-     * @returns {Promise<Object>} Approved promotion
-     */
-    async approve(id, notes = '') {
-        const response = await apiClient.post(`${REVIEWS_API.PROMOTIONS}${id}/approve/`, { notes });
-        return response.data;
-    }
+  async hold(id, reason = '') {
+    return this.action(id, 'hold', { reason });
+  }
 
-    /**
-     * Reject a promotion recommendation
-     * @param {string|number} id - Promotion ID
-     * @param {string} reason - Rejection reason
-     * @returns {Promise<Object>} Rejected promotion
-     */
-    async reject(id, reason) {
-        const response = await apiClient.post(`${REVIEWS_API.PROMOTIONS}${id}/reject/`, { reason });
-        return response.data;
-    }
+  async getPending() {
+    const response = await this.apiClient.get('/promotions/pending/');
+    return response.data;
+  }
 
-    /**
-     * Mark promotion as completed (employee was promoted)
-     * @param {string|number} id - Promotion ID
-     * @param {string} actualDate - Actual promotion date (YYYY-MM-DD)
-     * @param {number} newSalary - New salary after promotion
-     * @returns {Promise<Object>} Completed promotion
-     */
-    async complete(id, actualDate, newSalary = null) {
-        const response = await apiClient.post(`${REVIEWS_API.PROMOTIONS}${id}/complete/`, {
-            actual_date: actualDate,
-            new_salary: newSalary,
-        });
-        return response.data;
-    }
+  async getApproved() {
+    const response = await this.apiClient.get('/promotions/approved/');
+    return response.data;
+  }
 
-    /**
-     * Get promotion statistics for the organization
-     * @param {number} year - Year to filter
-     * @returns {Promise<Object>} Promotion statistics
-     */
-    async getStats(year = null) {
-        const params = year ? { year } : {};
-        const response = await apiClient.get(`${REVIEWS_API.PROMOTIONS}stats/`, { params });
-        return response.data;
-    }
+  async getCompleted() {
+    const response = await this.apiClient.get('/promotions/completed/');
+    return response.data;
+  }
+
+  async getStats(year = null) {
+    const response = await this.apiClient.get('/promotions/stats/', {
+      params: year ? { year } : {},
+    });
+    return response.data;
+  }
+
+  async getForEmployee(employeeId) {
+    const response = await this.apiClient.get(`/promotions/for-employee/${employeeId}/`);
+    return response.data;
+  }
+
+  async generateFromRating(ratingId) {
+    const response = await this.apiClient.post(`/promotions/generate-from-rating/${ratingId}/`);
+    return response.data;
+  }
 }
 
 export const promotionService = new PromotionService();
+export default promotionService;

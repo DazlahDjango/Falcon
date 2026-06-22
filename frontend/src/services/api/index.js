@@ -27,10 +27,12 @@ export {
   structureApiClient,
   reviewsApiClient,
   tenantApiClient,
+  kpiApiClient,
   resetConfigCircuitBreaker,
   resetDashboardCircuitBreaker,
   resetBillingCircuitBreaker,
   resetStructureCircuitBreaker,
+  resetKPICircuitBreaker,
 } from './clients';
 
 export { createApiClient, createRootClient, createAccountsClient } from './createClient';

@@ -53,6 +53,12 @@ const offlineMiddleware = (store) => (next) => (action) => {
 
 // Listen to online/offline events
 export const initOfflineListeners = (store) => {
+  // In development mode, force online
+  if (import.meta.env.DEV) {
+    store.dispatch(setOnlineStatus(true));
+    return;
+  }
+  
   window.addEventListener('online', () => {
     store.dispatch(setOnlineStatus(true));
     store.dispatch(addToast({

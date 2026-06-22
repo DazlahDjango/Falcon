@@ -1,13 +1,26 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    wsConnected: { dashboard: false, validation: false, notifications: false },
+    wsConnected: { 
+        dashboard: false, 
+        validation: false, 
+        notifications: false,
+        team: false,
+        executive: false,
+        scores: false,
+        analytics: false,
+        alerts: false
+    },
     banner: null,
     pendingValidationCount: 0,
     latestScore: null,
     latestValidation: null,
     validationRefreshToken: 0,
     lastRedAlert: null,
+    teamUpdates: null,
+    executiveMetrics: null,
+    analyticsData: null,
+    alerts: []
 };
 
 const kpiRealtimeSlice = createSlice({
@@ -39,6 +52,21 @@ const kpiRealtimeSlice = createSlice({
         bumpValidationRefresh(state) {
             state.validationRefreshToken += 1;
         },
+        setTeamUpdates(state, action) {
+            state.teamUpdates = action.payload;
+        },
+        setExecutiveMetrics(state, action) {
+            state.executiveMetrics = action.payload;
+        },
+        setAnalyticsData(state, action) {
+            state.analyticsData = action.payload;
+        },
+        addAlert(state, action) {
+            state.alerts = [action.payload, ...state.alerts].slice(0, 50);
+        },
+        clearAlerts(state) {
+            state.alerts = [];
+        }
     },
 });
 
@@ -51,6 +79,11 @@ export const {
     setLatestValidation,
     setLastRedAlert,
     bumpValidationRefresh,
+    setTeamUpdates,
+    setExecutiveMetrics,
+    setAnalyticsData,
+    addAlert,
+    clearAlerts,
 } = kpiRealtimeSlice.actions;
 
 export default kpiRealtimeSlice.reducer;

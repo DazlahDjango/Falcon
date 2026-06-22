@@ -1,20 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FiSearch, FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiChevronDown, FiChevronRight, FiShield, FiCheck } from 'react-icons/fi';
 import { fetchPermissions } from '../../../../store/accounts/slice/permissionSlice';
+import Spinner from '../../../common/UI/Spinner';
 
 const PermissionList = ({ selectedPermissions = [], onChange, readOnly = false }) => {
     const dispatch = useDispatch();
     const { permissions, isLoading } = useSelector((state) => state.permissions);
     const [searchTerm, setSearchTerm] = useState('');
-    const [expandedCategories, setExpandedCategories] = useState({});
+    const [expandedCategories, setExpandedCategories] = useState(() => {
+        const initial = {};
+        if (permissions) {
+            Object.keys(groupPermissionsByCategory(permissions)).forEach(cat => {
+                initial[cat] = true;
+            });
+        }
+        return initial;
+    });
     const [localSelected, setLocalSelected] = useState(selectedPermissions);
+
     useEffect(() => {
         dispatch(fetchPermissions());
     }, [dispatch]);
+
     useEffect(() => {
         setLocalSelected(selectedPermissions);
     }, [selectedPermissions]);
+
     const handlePermissionToggle = (permissionId) => {
         if (readOnly) return;
         const newSelected = localSelected.includes(permissionId)
@@ -25,6 +37,7 @@ const PermissionList = ({ selectedPermissions = [], onChange, readOnly = false }
             onChange(newSelected);
         }
     };
+
     const handleSelectAll = (categoryPermissions) => {
         const categoryIds = categoryPermissions.map(p => p.id);
         const allSelected = categoryIds.every(id => localSelected.includes(id));
@@ -40,29 +53,34 @@ const PermissionList = ({ selectedPermissions = [], onChange, readOnly = false }
             onChange(newSelected);
         }
     };
+
     const toggleCategory = (category) => {
         setExpandedCategories(prev => ({
             ...prev,
             [category]: !prev[category]
         }));
     };
-    const groupPermissionsByCategory = () => {
+
+    const groupPermissionsByCategory = (perms) => {
         const grouped = {};
-        permissions.forEach(perm => {
-            if (!grouped[perm.category]) {
-                grouped[perm.category] = [];
+        perms.forEach(perm => {
+            const category = perm.category || 'other';
+            if (!grouped[category]) {
+                grouped[category] = [];
             }
-            grouped[perm.category].push(perm);
+            grouped[category].push(perm);
         });
         return grouped;
     };
+
     const filterPermissions = (perms) => {
         if (!searchTerm) return perms;
         return perms.filter(p => 
-            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.codename.toLowerCase().includes(searchTerm.toLowerCase())
+            p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.codename?.toLowerCase().includes(searchTerm.toLowerCase())
         );
     };
+
     const getCategoryDisplay = (category) => {
         const categories = {
             kpi: 'KPI Management',
@@ -73,12 +91,29 @@ const PermissionList = ({ selectedPermissions = [], onChange, readOnly = false }
             workflow: 'Workflow',
             admin: 'Administration'
         };
-        return categories[category] || category;
+        return categories[category] || category.charAt(0).toUpperCase() + category.slice(1);
     };
+
     if (isLoading) {
-        return <div className="permission-list-loading">Loading permissions...</div>;
+        return (
+            <div className="permission-list-loading">
+                <Spinner size="md" />
+                <p>Loading permissions...</p>
+            </div>
+        );
     }
-    const groupedPermissions = groupPermissionsByCategory();
+
+    if (!permissions || permissions.length === 0) {
+        return (
+            <div className="permission-list-empty">
+                <FiShield size={32} />
+                <p>No permissions found</p>
+            </div>
+        );
+    }
+
+    const groupedPermissions = groupPermissionsByCategory(permissions);
+
     return (
         <div className="permission-list">
             <div className="permission-search">
@@ -106,6 +141,7 @@ const PermissionList = ({ selectedPermissions = [], onChange, readOnly = false }
                                 <button 
                                     className="category-toggle"
                                     onClick={() => toggleCategory(category)}
+                                    type="button"
                                 >
                                     {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
                                 </button>
@@ -150,4 +186,5 @@ const PermissionList = ({ selectedPermissions = [], onChange, readOnly = false }
         </div>
     );
 };
+
 export default PermissionList;

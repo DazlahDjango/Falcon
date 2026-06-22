@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from ..managers import MonthlyActualManager, ActualHistoryManager
 from .base import BaseKPIModel
 from .definition import KPI
 from .validation import ValidationRecord
@@ -22,6 +23,7 @@ class MonthlyActual(BaseKPIModel):
     submitted_at = models.DateTimeField(auto_now_add=True)
     submitted_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, related_name='submitted_actuals')
     notes = models.TextField(blank=True)
+    objects = MonthlyActualManager()
     class Meta:
         db_table = 'kpi_monthly_actuals'
         unique_together = [['tenant_id', 'kpi', 'user', 'year', 'month']]
@@ -70,6 +72,7 @@ class ActualHistory(BaseKPIModel):
     performed_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True)
     performed_at = models.DateTimeField(auto_now_add=True)
     reason = models.TextField(blank=True)
+    objects = ActualHistoryManager()
     class Meta:
         db_table = 'kpi_actual_history'
         ordering = ['-performed_at']

@@ -1,0 +1,829 @@
+/* src/components/reviews/pips/detail/detail.css */
+
+.pip-detail {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pip-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pip-detail-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.pip-detail-back:hover {
+  color: #1a1a2e;
+}
+
+.pip-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pip-detail-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-detail-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.pip-detail-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.pip-detail-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.pip-detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pip-detail-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pip-detail-severity {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pip-detail-description {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+}
+
+.pip-detail-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.pip-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pip-detail-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* PIP Info */
+.pip-info {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pip-info-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.pip-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pip-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pip-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 8px;
+  color: #6b7280;
+}
+
+.pip-info-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.pip-info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.pip-info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.pip-info-section {
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pip-info-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.pip-info-section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 4px 0;
+}
+
+.pip-info-section-content {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* PIP Progress */
+.pip-progress {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pip-progress-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.pip-progress-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pip-progress-stat {
+  text-align: center;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+}
+
+.pip-progress-stat-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.pip-progress-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.pip-progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.pip-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.pip-progress-status-items {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.pip-progress-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: white;
+  border-radius: 6px;
+}
+
+.pip-progress-status-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.pip-progress-status-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.pip-progress-status-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.pip-progress-attention {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fef3c7;
+  border-radius: 6px;
+  color: #92400e;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.pip-progress-ontrack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  color: #166534;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+/* PIP Actions */
+.pip-actions {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pip-actions-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+}
+
+.pip-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pip-actions-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.pip-actions-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 12px 0;
+}
+
+.pip-actions-extend {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+}
+
+.pip-actions-extend-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+}
+
+.pip-actions-extend-group {
+  margin-bottom: 12px;
+}
+
+.pip-actions-extend-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.pip-actions-extend-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.pip-actions-extend-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-actions-extend-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.pip-actions-extend-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-actions-extend-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* PIP Reviews */
+.pip-reviews {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pip-reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pip-reviews-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pip-reviews-empty {
+  text-align: center;
+  padding: 20px;
+  color: #9ca3af;
+}
+
+.pip-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.pip-reviews-item {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.pip-reviews-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pip-reviews-item-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pip-reviews-item-reviewer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.pip-reviews-item-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.pip-reviews-item-attended {
+  font-size: 12px;
+  color: #22c55e;
+}
+
+.pip-reviews-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pip-reviews-item-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pip-reviews-item-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.pip-reviews-item-text {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* PIP Reviews Form */
+.pip-reviews-form {
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.pip-reviews-form-group {
+  margin-bottom: 12px;
+}
+
+.pip-reviews-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.pip-reviews-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.pip-reviews-form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.pip-reviews-form-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-reviews-form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.pip-reviews-form-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-reviews-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pip-reviews-form-label-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  padding-top: 24px;
+}
+
+.pip-reviews-form-label-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+}
+
+.pip-reviews-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* PIP Actions List */
+.pip-actions-list {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pip-actions-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pip-actions-list-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pip-actions-list-count {
+  font-size: 12px;
+  color: #6b7280;
+  background: white;
+  padding: 2px 10px;
+  border-radius: 10px;
+}
+
+.pip-actions-list-empty {
+  text-align: center;
+  padding: 20px;
+  color: #9ca3af;
+}
+
+.pip-actions-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.pip-actions-list-item {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.pip-actions-list-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pip-actions-list-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pip-actions-list-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.pip-actions-list-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.pip-actions-list-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pip-actions-list-item-priority {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.pip-actions-list-item-due {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.pip-actions-list-item-overdue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.pip-actions-list-item-right {
+  display: flex;
+  gap: 4px;
+}
+
+.pip-actions-list-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-actions-list-item-btn.complete {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pip-actions-list-item-btn.complete:hover {
+  background: #a7f3d0;
+}
+
+.pip-actions-list-item-btn.verify {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.pip-actions-list-item-btn.verify:hover {
+  background: #bfdbfe;
+}
+
+.pip-actions-list-item-btn.view {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.pip-actions-list-item-btn.view:hover {
+  background: #e5e7eb;
+}
+
+.pip-actions-list-item-detail {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pip-actions-list-item-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pip-actions-list-item-detail-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.pip-actions-list-item-detail-text {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.pip-actions-list-item-detail-link {
+  font-size: 14px;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.pip-actions-list-item-detail-link:hover {
+  text-decoration: underline;
+}
+
+.pip-actions-list-item-detail-verified {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: #22c55e;
+}
+
+@media (max-width: 1024px) {
+  .pip-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .pip-progress-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .pip-progress-status-items {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .pip-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pip-reviews-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pip-detail-title-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

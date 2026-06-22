@@ -1,68 +1,55 @@
-import { useQuery } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
-import { featureService } from '../../services/billing';
-import { FEATURE_FLAGS } from '../../config/constants/billingConstants';
+import { useAuthContext } from '../../contexts/accounts/AuthContext';
 
 export const useBillingPermissions = () => {
-    const user = useSelector(state => state.auth.user);
-    const userRole = user?.role;
-    const canViewBilling = React.useMemo(() => {
-        const allowedRoles = ['super_admin', 'client_admin', 'executive', 'dashboard_champion'];
-        return allowedRoles.includes(userRole);
-    }, [userRole]);
-    const canManageBilling = React.useMemo(() => {
-        const allowedRoles = ['super_admin', 'client_admin'];
-        return allowedRoles.includes(userRole);
-    }, [userRole]);
-    const canViewInvoices = React.useMemo(() => {
-        const allowedRoles = ['super_admin', 'client_admin', 'executive', 'dashboard_champion'];
-        return allowedRoles.includes(userRole);
-    }, [userRole]);
-    const canManagePaymentMethods = React.useMemo(() => {
-        const allowedRoles = ['super_admin', 'client_admin'];
-        return allowedRoles.includes(userRole);
-    }, [userRole]);
-    const canViewQuota = React.useMemo(() => {
-        const allowedRoles = ['super_admin', 'client_admin', 'executive', 'dashboard_champion'];
-        return allowedRoles.includes(userRole);
-    }, [userRole]);
-    const isSuperAdmin = userRole === 'super_admin';
-    const isClientAdmin = userRole === 'client_admin';
-    const isExecutive = userRole === 'executive';
-    const isDashboardChampion = userRole === 'dashboard_champion';
+    // Get user from AuthContext instead of Redux
+    const { user, isAuthenticated } = useAuthContext();
+    
+    console.log('=== PERMISSION DEBUG ===');
+    console.log('user from AuthContext:', user);
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('========================');
+    
+    const role = user?.role || 'staff';
+    const isSuperAdmin = role === 'super_admin' || user?.is_superuser === true;
+    const isClientAdmin = isSuperAdmin || role === 'client_admin';
+    const isDashboardChampion = isClientAdmin || role === 'dashboard_champion';
+    const isExecutive = isClientAdmin || role === 'executive';
+    const isSupervisor = role === 'supervisor' || isSuperAdmin;
+    const isStaff = role === 'staff' || isSuperAdmin;
+
+    const permissions = {
+        canViewBilling: isSuperAdmin || isClientAdmin || isExecutive || isDashboardChampion,
+        canManageSubscriptions: isSuperAdmin || isClientAdmin,
+        canCancelSubscriptions: isSuperAdmin || isClientAdmin,
+        canUpgradeDowngrade: isSuperAdmin || isClientAdmin,
+        canViewInvoices: isSuperAdmin || isClientAdmin || isExecutive || isDashboardChampion,
+        canPayInvoices: !!user,
+        canDownloadInvoices: isSuperAdmin || isClientAdmin || isExecutive || isDashboardChampion || isSupervisor,
+        canViewTransactions: isSuperAdmin || isClientAdmin || isExecutive || isDashboardChampion,
+        canRefundTransactions: isSuperAdmin,
+        canManagePaymentMethods: !!user,
+        canViewAnalytics: isSuperAdmin || isClientAdmin || isExecutive,
+        canAccessAdminPanel: isSuperAdmin,
+        canManagePlans: isSuperAdmin,
+        canViewWebhookLogs: isSuperAdmin || isClientAdmin,
+        canRetryWebhooks: isSuperAdmin,
+        canManageEnterpriseOverrides: isSuperAdmin,
+    };
+
+    console.log('isSuperAdmin:', isSuperAdmin);
+    console.log('permissions.canAccessAdminPanel:', permissions.canAccessAdminPanel);
+
     return {
-        canViewBilling,
-        canManageBilling,
-        canViewInvoices,
-        canManagePaymentMethods,
-        canViewQuota,
+        user,
+        role,
         isSuperAdmin,
         isClientAdmin,
-        isExecutive,
         isDashboardChampion,
-        userRole,
+        isExecutive,
+        isSupervisor,
+        isStaff,
+        permissions,
     };
 };
-export const useBillingFeatures = () => {
-    const { data: features, isLoading } = useQuery({
-        queryKey: ['billing-features'],
-        queryFn: async () => {
-            const response = await featureService.getAvailableFeatures();
-            return response.data || {};
-        },
-        staleTime: 5 * 60 * 1000,
-        enabled: false, // Only fetch if needed in production
-    });
-    const hasFeature = (featureName) => {
-        return features?.[featureName]?.available || false;
-    };
-    const getRequiredPlan = (featureName) => {
-        return features?.[featureName]?.min_plan || null;
-    };
-    return {
-        features,
-        hasFeature,
-        getRequiredPlan,
-        isLoading,
-    };
-};
+
+export default useBillingPermissions;

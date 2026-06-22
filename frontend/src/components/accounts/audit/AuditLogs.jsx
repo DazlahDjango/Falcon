@@ -1,76 +1,151 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiRefreshCw, FiDownload, FiFilter } from 'react-icons/fi';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FiRefreshCw, FiDownload, FiFilter, FiCalendar } from 'react-icons/fi';
+import { useAudit } from '../../../hooks/accounts/useAudit';
 import AuditTable from './components/AuditTable';
 import AuditFilters from './components/AuditFilters';
 import AuditExport from './components/AuditExport';
-import { fetchAuditLogs, resetFilters } from '../../../store/accounts/slice/auditSlice';
-import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
+import AuditStats from './components/AuditStats';
+import Spinner from '../../common/UI/Spinner';
 
 const AuditLogs = () => {
-    const dispatch = useDispatch();
-    const { logs, pagination, filters, isLoading } = useSelector((state) => state.auditLogs);
+    const {
+        logs,
+        pagination,
+        filters,
+        isLoading,
+        loadAuditLogs,
+        clearAuditFilters,
+        goToAuditPage,
+        getLastNDays,
+        securityEvents,
+        loadSecurityEvents,
+    } = useAudit();
+
     const [showFilters, setShowFilters] = useState(false);
     const [showExport, setShowExport] = useState(false);
+    const [activeTimeRange, setActiveTimeRange] = useState('7d');
+
+    const timeRanges = [
+        { label: 'Today', value: 'today', days: 0 },
+        { label: 'Last 7 Days', value: '7d', days: 7 },
+        { label: 'Last 30 Days', value: '30d', days: 30 },
+        { label: 'Last 90 Days', value: '90d', days: 90 },
+    ];
+
+    const loadData = useCallback(() => {
+        loadAuditLogs({ ...filters, page: pagination.current_page });
+        loadSecurityEvents(30);
+    }, [loadAuditLogs, loadSecurityEvents, filters, pagination.current_page]);
+
     useEffect(() => {
-        dispatch(fetchAuditLogs(filters));
-    }, [dispatch, filters]);
+        loadData();
+    }, [loadData]);
+
     const handleRefresh = () => {
-        dispatch(fetchAuditLogs(filters));
+        loadData();
     };
+
     const handlePageChange = (page) => {
-        dispatch(fetchAuditLogs({ ...filters, page }));
+        goToAuditPage(page);
+        loadAuditLogs({ ...filters, page });
     };
+
     const handleResetFilters = () => {
-        dispatch(resetFilters());
+        clearAuditFilters();
+        setActiveTimeRange('7d');
+        getLastNDays(7);
     };
+
+    const handleTimeRangeChange = (range) => {
+        setActiveTimeRange(range.value);
+        if (range.value === 'today') {
+            const today = new Date().toISOString().split('T')[0];
+            loadAuditLogs({ ...filters, start_date: today, end_date: today });
+        } else {
+            getLastNDays(range.days);
+        }
+    };
+
     return (
         <div className="audit-logs-page">
+            {/* Header */}
             <div className="page-header">
                 <div>
                     <h1>Audit Logs</h1>
-                    <p>View system activity and user actions</p>
+                    <p>Track system activity, user actions, and security events</p>
                 </div>
                 <div className="header-actions">
-                    <button className="btn btn-secondary" onClick={handleRefresh}>
-                        <FiRefreshCw size={16} />
-                        Refresh
+                    <button className="btn-icon" onClick={handleRefresh} title="Refresh">
+                        <FiRefreshCw size={18} />
                     </button>
                     <button className="btn btn-secondary" onClick={() => setShowExport(true)}>
                         <FiDownload size={16} />
                         Export
                     </button>
-                    <button className={`btn ${showFilters ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setShowFilters(!showFilters)}>
+                    <button
+                        className={`btn ${showFilters ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
                         <FiFilter size={16} />
                         Filters
                     </button>
                 </div>
             </div>
-            
+
+            {/* Stats Cards */}
+            <AuditStats
+                totalLogs={pagination.total_items}
+                securityEvents={securityEvents?.length || 0}
+                periodDays={filters.days || 30}
+            />
+
+            {/* Time Range Quick Filters */}
+            <div className="time-range-filters">
+                {timeRanges.map(range => (
+                    <button
+                        key={range.value}
+                        className={`time-btn ${activeTimeRange === range.value ? 'active' : ''}`}
+                        onClick={() => handleTimeRangeChange(range)}
+                    >
+                        <FiCalendar size={14} />
+                        {range.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Filters Panel */}
             {showFilters && (
-                <AuditFilters 
+                <AuditFilters
                     filters={filters}
-                    onFilterChange={(newFilters) => dispatch(fetchAuditLogs(newFilters))}
+                    onFilterChange={(newFilters) => loadAuditLogs({ ...newFilters, page: 1 })}
                     onReset={handleResetFilters}
                 />
             )}
-            
+
+            {/* Audit Table */}
             {isLoading && !logs.length ? (
-                <SkeletonLoader type="table" />
+                <div className="audit-loading">
+                    <Spinner size="lg" />
+                    <p>Loading audit logs...</p>
+                </div>
             ) : (
-                <AuditTable 
+                <AuditTable
                     logs={logs}
                     pagination={pagination}
                     onPageChange={handlePageChange}
+                    onRefresh={handleRefresh}
                 />
             )}
-            
-            <AuditExport 
+
+            {/* Export Modal */}
+            <AuditExport
                 isOpen={showExport}
                 onClose={() => setShowExport(false)}
                 filters={filters}
+                totalCount={pagination.total_items}
             />
         </div>
     );
 };
+
 export default AuditLogs;

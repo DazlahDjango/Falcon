@@ -261,6 +261,29 @@ export const clearCacheForAction = (actionType) => {
     }
 };
 
+export const cacheUtils = {
+    clearCache: () => {
+        cache.clear();
+    },
+    clearResourceCache: (resourceType) => {
+        const target = resourceType.toLowerCase();
+        for (const key of cache.keys()) {
+            if (key.toLowerCase().includes(target)) {
+                cache.delete(key);
+            }
+        }
+    },
+    getCacheSize: () => {
+        return cache.size;
+    },
+    getCacheStats: () => {
+        return {
+            size: cache.size,
+            keys: Array.from(cache.keys()),
+        };
+    }
+};
+
 // ========== Export Loading State Getter ==========
 export const getLoadingState = () => ({ ...loadingState });
 export const isGlobalLoading = () => activeRequests > 0;

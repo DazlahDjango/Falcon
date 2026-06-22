@@ -14,22 +14,23 @@ export const ExecutiveAlerts = () => {
         <h1>Alerts & Notifications</h1>
         <p>Critical issues requiring immediate attention</p>
       </div>
-      
+
       <div className="alerts-grid">
         <RedAlertWidget
           data={issues}
           loading={loading}
           title="Critical Alerts"
-          onRefresh={() => {}}
+          onRefresh={() => { }}
         />
-        
+
         <AlertList
           alerts={issues}
           loading={loading}
           title="All Alerts"
-          onRefresh={() => {}}
+          onRefresh={() => { }}
         />
       </div>
     </div>
   );
 };
+export default ExecutiveAlerts;

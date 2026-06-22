@@ -1,278 +1,289 @@
 // src/hooks/reviews/useCycles.js
-// Hook for review cycle operations
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useMemo } from 'react';
+import {
+  selectAllCycles,
+  selectCyclesLoading,
+  selectCyclesError,
+  selectActiveCycle,
+  selectSelectedCycle,
+  selectCycleProgress,
+  selectCycleParticipants,
+  selectCycleSummary,
+  selectCyclesPagination,
+  selectCyclesFilters,
+  selectActiveCycles,
+  selectCompletedCycles,
+  selectUpcomingCycles,
+} from '../../store/reviews/selectors';
+import {
+  
+  fetchCycles,
+  fetchCycle,
+  createCycle,
+  updateCycle,
+  patchCycle,
+  deleteCycle,
+  activateCycle,
+  freezeCycle,
+  completeCycle,
+  forceCompleteCycle,
+  archiveCycle,
+  unarchiveCycle,
+  extendCycle,
+  fetchCycleProgress,
+  fetchCycleParticipants,
+  fetchCycleSummary,
+  fetchActiveCycle,
+  resetCycleState,
+  setCycleFilters,
+  clearCycleFilters,
+  setCyclePagination,
+} from '../../store/reviews/slices/cycle.slice';
+import { useReviewsPermissions } from './';
 
-import { useState, useEffect, useCallback } from 'react';
-import { cycleService } from '@/services/reviews';
+const useCycles = () => {
+  const dispatch = useDispatch();
+  const permissions = useReviewsPermissions();
 
-export const useCycles = () => {
-    const [cycles, setCycles] = useState([]);
-    const [activeCycle, setActiveCycle] = useState(null);
-    const [upcomingCycles, setUpcomingCycles] = useState([]);
-    const [myCycles, setMyCycles] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [progress, setProgress] = useState(null);
+  // Selectors
+  const data = useSelector(selectAllCycles);
+  const loading = useSelector(selectCyclesLoading);
+  const error = useSelector(selectCyclesError);
+  const selected = useSelector(selectSelectedCycle);
+  const activeCycle = useSelector(selectActiveCycle);
+  const progress = useSelector(selectCycleProgress);
+  const participants = useSelector(selectCycleParticipants);
+  const summary = useSelector(selectCycleSummary);
+  const pagination = useSelector(selectCyclesPagination);
+  const filters = useSelector(selectCyclesFilters);
+  const activeCycles = useSelector(selectActiveCycles);
+  const completedCycles = useSelector(selectCompletedCycles);
+  const upcomingCycles = useSelector(selectUpcomingCycles);
 
-    // Fetch all cycles
-    const fetchCycles = useCallback(async (params = {}) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await cycleService.getAll(params);
-            setCycles(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch cycles');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // Actions
+  const fetchAll = useCallback(
+    (params) => dispatch(fetchCycles(params)),
+    [dispatch]
+  );
 
-    // Fetch active cycle
-    const fetchActiveCycle = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await cycleService.getActive();
-            setActiveCycle(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch active cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchOne = useCallback(
+    (id) => dispatch(fetchCycle(id)),
+    [dispatch]
+  );
 
-    // Fetch upcoming cycles
-    const fetchUpcomingCycles = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await cycleService.getUpcoming();
-            setUpcomingCycles(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch upcoming cycles');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const create = useCallback(
+    (data) => {
+      if (!permissions.canCreateCycle) {
+        throw new Error('You do not have permission to create review cycles');
+      }
+      return dispatch(createCycle(data));
+    },
+    [dispatch, permissions.canCreateCycle]
+  );
 
-    // Fetch my cycles
-    const fetchMyCycles = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await cycleService.getMyCycles();
-            setMyCycles(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch my cycles');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const update = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateCycle) {
+        throw new Error('You do not have permission to update review cycles');
+      }
+      return dispatch(updateCycle({ id, data }));
+    },
+    [dispatch, permissions.canUpdateCycle]
+  );
 
-    // Get single cycle by ID
-    const getCycle = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await cycleService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const patch = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateCycle) {
+        throw new Error('You do not have permission to update review cycles');
+      }
+      return dispatch(patchCycle({ id, data }));
+    },
+    [dispatch, permissions.canUpdateCycle]
+  );
 
-    // Get cycle progress
-    const fetchCycleProgress = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await cycleService.getProgress(id);
-            setProgress(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch cycle progress');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const remove = useCallback(
+    (id) => {
+      if (!permissions.canDeleteCycle) {
+        throw new Error('You do not have permission to delete review cycles');
+      }
+      return dispatch(deleteCycle(id));
+    },
+    [dispatch, permissions.canDeleteCycle]
+  );
 
-    // Create cycle
-    const createCycle = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.create(data);
-            await fetchCycles();
-            await fetchUpcomingCycles();
-            return result;
-        } catch (err) {
-            console.error('[createCycle API Error]:', err.response?.data || err);
-            setError(err.response?.data || err.message || 'Failed to create cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCycles, fetchUpcomingCycles]);
+  const activate = useCallback(
+    (id) => {
+      if (!permissions.canActivateCycle) {
+        throw new Error('You do not have permission to activate review cycles');
+      }
+      return dispatch(activateCycle(id));
+    },
+    [dispatch, permissions.canActivateCycle]
+  );
 
-    // Update cycle
-    const updateCycle = useCallback(async (id, data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.update(id, data);
-            await fetchCycles();
-            if (activeCycle?.id === id) await fetchActiveCycle();
-            return result;
-        } catch (err) {
-            console.error('[updateCycle API Error]:', err.response?.data || err);
-            setError(err.response?.data || err.message || 'Failed to update cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCycles, fetchActiveCycle, activeCycle]);
+  const freeze = useCallback(
+    (id) => {
+      if (!permissions.canUpdateCycle) {
+        throw new Error('You do not have permission to freeze review cycles');
+      }
+      return dispatch(freezeCycle(id));
+    },
+    [dispatch, permissions.canUpdateCycle]
+  );
 
-    // Delete cycle
-    const deleteCycle = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.delete(id);
-            await fetchCycles();
-            await fetchUpcomingCycles();
-            if (activeCycle?.id === id) await fetchActiveCycle();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to delete cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCycles, fetchUpcomingCycles, fetchActiveCycle, activeCycle]);
+  const complete = useCallback(
+    (id) => {
+      if (!permissions.canCompleteCycle) {
+        throw new Error('You do not have permission to complete review cycles');
+      }
+      return dispatch(completeCycle(id));
+    },
+    [dispatch, permissions.canCompleteCycle]
+  );
 
-    // Activate cycle
-    const activateCycle = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.activate(id);
-            await fetchCycles();
-            await fetchActiveCycle();
-            await fetchUpcomingCycles();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to activate cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCycles, fetchActiveCycle, fetchUpcomingCycles]);
+  const forceComplete = useCallback(
+    (id) => {
+      if (!permissions.canCompleteCycle) {
+        throw new Error('You do not have permission to force complete review cycles');
+      }
+      return dispatch(forceCompleteCycle(id));
+    },
+    [dispatch, permissions.canCompleteCycle]
+  );
 
-    // Close cycle
-    const closeCycle = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.close(id);
-            await fetchCycles();
-            await fetchActiveCycle();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to close cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCycles, fetchActiveCycle]);
+  const archive = useCallback(
+    (id) => {
+      if (!permissions.canArchiveCycle) {
+        throw new Error('You do not have permission to archive review cycles');
+      }
+      return dispatch(archiveCycle(id));
+    },
+    [dispatch, permissions.canArchiveCycle]
+  );
 
-    // Archive cycle
-    const archiveCycle = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.archive(id);
-            await fetchCycles();
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to archive cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchCycles]);
+  const unarchive = useCallback(
+    (id) => {
+      if (!permissions.canArchiveCycle) {
+        throw new Error('You do not have permission to unarchive review cycles');
+      }
+      return dispatch(unarchiveCycle(id));
+    },
+    [dispatch, permissions.canArchiveCycle]
+  );
 
-    // Add competencies to cycle
-    const addCompetenciesToCycle = useCallback(async (id, competencies) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.addCompetencies(id, competencies);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to add competencies to cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const extend = useCallback(
+    (id, newEndDate, reason) => {
+      if (!permissions.canExtendCycle) {
+        throw new Error('You do not have permission to extend review cycles');
+      }
+      return dispatch(extendCycle({ id, newEndDate, reason }));
+    },
+    [dispatch, permissions.canExtendCycle]
+  );
 
-    // Remove competency from cycle
-    const removeCompetencyFromCycle = useCallback(async (cycleId, competencyId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await cycleService.removeCompetency(cycleId, competencyId);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to remove competency from cycle');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const getProgress = useCallback(
+    (id) => dispatch(fetchCycleProgress(id)),
+    [dispatch]
+  );
 
-    useEffect(() => {
-        fetchCycles();
-        fetchActiveCycle();
-        fetchUpcomingCycles();
-        fetchMyCycles();
-    }, [fetchCycles, fetchActiveCycle, fetchUpcomingCycles, fetchMyCycles]);
+  const getParticipants = useCallback(
+    (id) => dispatch(fetchCycleParticipants(id)),
+    [dispatch]
+  );
 
-    return {
-        // State
-        cycles,
-        activeCycle,
-        upcomingCycles,
-        myCycles,
-        loading,
-        error,
-        progress,
-        // Methods
-        fetchCycles,
-        fetchActiveCycle,
-        fetchUpcomingCycles,
-        fetchMyCycles,
-        getCycle,
-        fetchCycleProgress,
-        createCycle,
-        updateCycle,
-        deleteCycle,
-        activateCycle,
-        closeCycle,
-        archiveCycle,
-        addCompetenciesToCycle,
-        removeCompetencyFromCycle,
-    };
+  const getSummary = useCallback(
+    (id) => dispatch(fetchCycleSummary(id)),
+    [dispatch]
+  );
+
+  const getActive = useCallback(
+    () => dispatch(fetchActiveCycle()),
+    [dispatch]
+  );
+
+  const reset = useCallback(
+    () => dispatch(resetCycleState()),
+    [dispatch]
+  );
+
+  const setFilters = useCallback(
+    (payload) => dispatch(setCycleFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(clearCycleFilters()),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(setCyclePagination(payload)),
+    [dispatch]
+  );
+
+  // Computed
+  const canManage = useMemo(
+    () => permissions.canManageCycles,
+    [permissions.canManageCycles]
+  );
+
+  const canView = useMemo(
+    () => permissions.canViewCycles,
+    [permissions.canViewCycles]
+  );
+
+  return {
+    // Data
+    data,
+    loading,
+    error,
+    selected,
+    activeCycle,
+    progress,
+    participants,
+    summary,
+    pagination,
+    filters,
+    activeCycles,
+    completedCycles,
+    upcomingCycles,
+
+    // CRUD Operations
+    fetchAll,
+    fetchOne,
+    create,
+    update,
+    patch,
+    remove,
+
+    // Actions
+    activate,
+    freeze,
+    complete,
+    forceComplete,
+    archive,
+    unarchive,
+    extend,
+    getProgress,
+    getParticipants,
+    getSummary,
+    getActive,
+    reset,
+    setFilters,
+    clearFilters,
+    setPagination,
+
+    // Permissions
+    canManage,
+    canView,
+
+    // Utilities
+    isEmpty: data.length === 0,
+    totalCount: data.length,
+    getById: (id) => data.find((item) => item.id === id),
+    getByType: (type) => data.filter((item) => item.cycle_type === type),
+  };
 };
+
+export default useCycles;

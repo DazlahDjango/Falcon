@@ -1,85 +1,36 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { useCheckout } from '../../../hooks/billing';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import React, { useState } from 'react';
+import { FiCreditCard, FiLoader } from 'react-icons/fi';
+import { useCheckout } from '../../../hooks/billing/useCheckout';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './invoices.css';
 
-export const InvoicePaymentButton = ({ 
-    invoice, 
-    onPay, 
-    paying = false,
-    variant = 'primary',
-    size = 'medium',
-    children 
-}) => {
-    const { initOneTimeCheckout, redirectToPayment } = useCheckout();
+export const InvoicePaymentButton = ({ invoiceId, amount, currency = 'KES', variant = 'icon', onSuccess }) => {
+    const { initOneTime, loading } = useCheckout();
+    const [processing, setProcessing] = useState(false);
 
-    const handlePay = async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (onPay) {
-            onPay(invoice.id);
-        } else {
-            // Default payment flow
-            try {
-                const result = await initOneTimeCheckout({
-                    amount: invoice.total_amount,
-                    description: `Payment for invoice ${invoice.invoice_number}`,
-                    metadata: {
-                        invoice_id: invoice.id,
-                        invoice_number: invoice.invoice_number,
-                    },
-                });
-                
-                if (result?.authorization_url) {
-                    redirectToPayment(result.authorization_url);
-                }
-            } catch (error) {
-                console.error('[InvoicePaymentButton] Error:', error);
-                alert('Failed to initialize payment. Please try again.');
-            }
-        }
+    const handlePay = async () => {
+        setProcessing(true);
+        try {
+            const result = await initOneTime({ amount, description: `Invoice Payment ${invoiceId}`, successUrl: window.location.origin + `/billing/invoices/${invoiceId}`, cancelUrl: window.location.origin + `/billing/invoices/${invoiceId}`, metadata: { invoice_id: invoiceId, source: 'invoice_payment' } });
+            if (result?.authorization_url) window.location.href = result.authorization_url;
+            else if (onSuccess) onSuccess();
+        } catch (error) { console.error('Payment failed:', error); }
+        finally { setProcessing(false); }
     };
 
-    const variants = {
-        primary: 'invoice-pay-btn-primary',
-        secondary: 'invoice-pay-btn-secondary',
-        outline: 'invoice-pay-btn-outline',
-    };
-
-    const sizes = {
-        small: 'invoice-pay-btn-small',
-        medium: 'invoice-pay-btn-medium',
-        large: 'invoice-pay-btn-large',
-    };
+    if (variant === 'text') {
+        return (
+            <button className="invoice-pay-text" onClick={handlePay} disabled={processing}>
+                {processing ? <FiLoader className="spin" /> : <FiCreditCard />} Pay <CurrencyFormatter amount={amount} currency={currency} showCents={false} />
+            </button>
+        );
+    }
 
     return (
-        <button
-            className={`invoice-pay-btn ${variants[variant]} ${sizes[size]} ${paying ? 'invoice-pay-btn-loading' : ''}`}
-            onClick={handlePay}
-            disabled={paying}
-        >
-            {paying ? (
-                <span className="invoice-pay-spinner"></span>
-            ) : (
-                children || (
-                    <>
-                        <span className="invoice-pay-icon">{renderBillingIcon('invoicePay', { size: 18 })}</span>
-                        <span>Pay Now</span>
-                    </>
-                )
-            )}
+        <button className="invoice-pay-btn" onClick={handlePay} disabled={processing} title={`Pay ${CurrencyFormatter({ amount, currency, showSymbol: true })}`}>
+            {processing ? <FiLoader className="spin" /> : <FiCreditCard />}
         </button>
     );
-};
-
-InvoicePaymentButton.propTypes = {
-    invoice: PropTypes.object.isRequired,
-    onPay: PropTypes.func,
-    paying: PropTypes.bool,
-    variant: PropTypes.oneOf(['primary', 'secondary', 'outline']),
-    size: PropTypes.oneOf(['small', 'medium', 'large']),
-    children: PropTypes.node,
 };
 
 export default InvoicePaymentButton;

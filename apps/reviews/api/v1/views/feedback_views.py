@@ -1,422 +1,185 @@
-# apps/reviews/api/v1/views/feedback_views.py
-"""
-Views for FeedbackRequest, FeedbackResponse, and FeedbackSummary models
-"""
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from django.db import models
-
 from apps.reviews.models import FeedbackRequest, FeedbackResponse, FeedbackSummary, ReviewCycle
 from apps.reviews.services.feedback.feedback_service import FeedbackService
 from apps.reviews.services.feedback.summary_service import SummaryService
-from ..serializers import (
-    FeedbackRequestSerializer,
-    FeedbackRequestCreateSerializer,
-    FeedbackResponseSerializer,
-    FeedbackResponseSubmitSerializer,
-    FeedbackSummarySerializer,
-    FeedbackSummaryShareSerializer,
-)
-from .base_views import BaseReviewViewSet, BaseReviewViewSet
-from ..permissions import (
-    CanRequestFeedback,
-    CanProvideFeedback,
-    CanViewFeedbackSummary,
-    CanManageFeedbackRequests,
-)
-from ..filters.feedback_filters import (
-    FeedbackRequestFilter,
-    FeedbackResponseFilter,
-    FeedbackSummaryFilter,
-)
-
+from apps.reviews.api.v1.serializers import FeedbackRequestSerializer, FeedbackRequestCreateSerializer, FeedbackResponseSerializer, FeedbackResponseSubmitSerializer, FeedbackSummarySerializer, FeedbackSummaryShareSerializer
+from .base_views import BaseReviewViewSet, BaseReadOnlyReviewViewSet
+from apps.accounts.constants import UserRoles
 
 class FeedbackRequestViewSet(BaseReviewViewSet):
-    """
-    ViewSet for Feedback Requests.
-    
-    Actions:
-    - GET /feedback-requests/ - List feedback requests
-    - POST /feedback-requests/ - Create new feedback request
-    - GET /feedback-requests/{id}/ - Get request details
-    - PUT /feedback-requests/{id}/ - Update request
-    - DELETE /feedback-requests/{id}/ - Delete request
-    - GET /feedback-requests/pending/ - Get pending requests for current user
-    - GET /feedback-requests/for-subject/{subject_id}/ - Get requests for a subject
-    - GET /feedback-requests/for-cycle/{cycle_id}/ - Get by cycle
-    - POST /feedback-requests/{id}/remind/ - Send reminder
-    """
-    
     queryset = FeedbackRequest.objects.all()
-    filterset_class = FeedbackRequestFilter
-    
     def get_serializer_class(self):
-        if self.action == 'create':
-            return FeedbackRequestCreateSerializer
-        return FeedbackRequestSerializer
-    
+        return FeedbackRequestCreateSerializer if self.action == 'create' else FeedbackRequestSerializer
     def get_permissions(self):
         if self.action == 'create':
-            self.permission_classes = [CanRequestFeedback]
-        elif self.action in ['update', 'partial_update', 'destroy', 'remind']:
-            self.permission_classes = [CanManageFeedbackRequests]
-        else:
-            self.permission_classes = [CanProvideFeedback]
+            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+        elif self.action in ['update', 'partial_update', 'destroy', 'remind', 'cancel']:
+            self.permission_classes = [lambda: self.request.user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
         return super().get_permissions()
-    
-    @action(detail=False, methods=['get'])
-    def pending(self, request):
-        """
-        Get pending feedback requests for the current user (as reviewer).
-        """
-        reviewer = request.user
-        
-        requests = self.get_queryset().filter(
-            reviewer=reviewer,
-            status='pending'
-        ).select_related('subject', 'review_cycle')
-        
-        serializer = self.get_serializer(requests, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'], url_path='for-subject/(?P<subject_id>[^/.]+)')
-    def for_subject(self, request, subject_id=None):
-        """
-        Get all feedback requests for a specific subject (employee).
-        """
-        from apps.accounts.models import User
-        
-        try:
-            subject = User.objects.get(id=subject_id)
-        except User.DoesNotExist:
-            return Response(
-                {'error': 'Subject not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check permission
-        if request.user.role not in ['admin', 'hr'] and request.user != subject.manager:
-            return Response(
-                {'error': 'You do not have permission to view these requests'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        requests = self.get_queryset().filter(subject=subject)
-        serializer = self.get_serializer(requests, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'], url_path='for-cycle/(?P<cycle_id>[^/.]+)')
-    def for_cycle(self, request, cycle_id=None):
-        """
-        Get all feedback requests for a specific cycle.
-        """
-        try:
-            cycle = ReviewCycle.objects.get(id=cycle_id)
-        except ReviewCycle.DoesNotExist:
-            return Response(
-                {'error': 'Review cycle not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        requests = self.get_queryset().filter(review_cycle=cycle)
-        serializer = self.get_serializer(requests, many=True)
-        return Response(serializer.data)
-    
+    def perform_create(self, serializer):
+        serializer.save(requested_by=self.request.user, tenant_id=self.request.user.tenant_id)
     @action(detail=True, methods=['post'])
     def remind(self, request, pk=None):
-        """
-        Send a reminder for a pending feedback request.
-        """
-        feedback_request = self.get_object()
-        
-        if feedback_request.status != 'pending':
-            return Response(
-                {'error': f'Cannot remind: request status is {feedback_request.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Send reminder via notification service
+        req = self.get_object()
+        if req.status != 'draft':
+            return Response({'error': f'Cannot remind: status is {req.status}'}, status=status.HTTP_400_BAD_REQUEST)
         from apps.reviews.services.notification.notification_service import NotificationService
-        NotificationService.notify_feedback_reminder(feedback_request)
-        
-        feedback_request.reminder_sent_at = timezone.now()
-        feedback_request.save()
-        
-        return Response({'message': 'Reminder sent successfully'})
-
-
-from ..throttles.reviews_api_throttle import ReviewsAPIThrottle
-from ..throttles.review_throttles import FeedbackSubmissionThrottle
-
-
-class FeedbackResponseViewSet(BaseReviewViewSet):
-    throttle_classes = [ReviewsAPIThrottle, FeedbackSubmissionThrottle]
-    """
-    ViewSet for Feedback Responses.
-    
-    Actions:
-    - GET /feedback-responses/ - List responses
-    - GET /feedback-responses/{id}/ - Get response details
-    - POST /feedback-responses/submit/{request_id}/ - Submit response
-    - GET /feedback-responses/for-request/{request_id}/ - Get by request
-    - GET /feedback-responses/for-subject/{subject_id}/ - Get by subject
-    """
-    
-    queryset = FeedbackResponse.objects.all()
-    filterset_class = FeedbackResponseFilter
-    serializer_class = FeedbackResponseSerializer
-    
-    def get_permissions(self):
-        if self.action == 'submit':
-            self.permission_classes = [CanProvideFeedback]
-        else:
-            self.permission_classes = [CanViewFeedbackSummary]
-        return super().get_permissions()
-    
-    @action(detail=False, methods=['post'], url_path='submit/(?P<request_id>[^/.]+)')
-    def submit(self, request, request_id=None):
-        """
-        Submit feedback response for a request.
-        """
-        try:
-            feedback_request = FeedbackRequest.objects.get(id=request_id)
-        except FeedbackRequest.DoesNotExist:
-            return Response(
-                {'error': 'Feedback request not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check if user is the reviewer
-        if feedback_request.reviewer != request.user:
-            return Response(
-                {'error': 'You are not authorized to respond to this feedback request'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        # Check if already submitted
-        if feedback_request.status == 'completed':
-            return Response(
-                {'error': 'Feedback already submitted for this request'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Check deadline
-        if feedback_request.due_date and feedback_request.due_date < timezone.now().date():
-            return Response(
-                {'error': 'Feedback deadline has passed'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        serializer = FeedbackResponseSubmitSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        data = serializer.validated_data
-        
-        # Create response
-        response = FeedbackResponse.objects.create(
-            feedback_request=feedback_request,
-            overall_rating=data.get('overall_rating'),
-            strengths=data.get('strengths', ''),
-            areas_for_improvement=data.get('areas_for_improvement', ''),
-            specific_examples=data.get('specific_examples', ''),
-            suggestions=data.get('suggestions', ''),
-            additional_comments=data.get('additional_comments', ''),
-            ratings=data.get('ratings', {}),
-            is_anonymous=feedback_request.is_anonymous
-        )
-        
-        # Update request status
-        feedback_request.status = 'completed'
-        feedback_request.completed_at = timezone.now()
-        feedback_request.save()
-        
-        # Generate summary if all required feedback is collected
-        pending = FeedbackRequest.objects.filter(
-            review_cycle=feedback_request.review_cycle,
-            subject=feedback_request.subject,
-            is_required=True,
-            status='pending'
-        ).count()
-        
-        if pending == 0:
-            SummaryService.generate_summary(
-                feedback_request.review_cycle.id,
-                feedback_request.subject.id
-            )
-        
-        result_serializer = self.get_serializer(response)
-        return Response(result_serializer.data, status=status.HTTP_201_CREATED)
-    
-    @action(detail=False, methods=['get'], url_path='for-request/(?P<request_id>[^/.]+)')
-    def for_request(self, request, request_id=None):
-        """
-        Get response for a specific feedback request.
-        """
-        try:
-            feedback_request = FeedbackRequest.objects.get(id=request_id)
-        except FeedbackRequest.DoesNotExist:
-            return Response(
-                {'error': 'Feedback request not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check permission
-        if request.user.role not in ['admin', 'hr'] and request.user != feedback_request.reviewer:
-            return Response(
-                {'error': 'You do not have permission to view this response'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        response = self.get_queryset().filter(feedback_request=feedback_request).first()
-        
-        if not response:
-            return Response(
-                {'message': 'No response found for this request'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        serializer = self.get_serializer(response)
-        return Response(serializer.data)
-    
+        NotificationService.notify_feedback_reminder(req)
+        req.reminder_sent_at = timezone.now()
+        req.save()
+        return Response({'message': 'Reminder sent'})
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        req = self.get_object()
+        if req.status != 'draft':
+            return Response({'error': f'Cannot cancel: status is {req.status}'}, status=status.HTTP_400_BAD_REQUEST)
+        req.status = 'cancelled'
+        req.save()
+        return Response(self.get_serializer(req).data)
+    @action(detail=False, methods=['get'])
+    def pending(self, request):
+        requests = self.get_queryset().filter(reviewer=request.user, status='draft').select_related('subject', 'review_cycle')
+        return Response(self.get_serializer(requests, many=True).data)
+    @action(detail=False, methods=['get'])
+    def overdue(self, request):
+        requests = self.get_queryset().filter(reviewer=request.user, status='draft', due_date__lt=timezone.now().date())
+        return Response(self.get_serializer(requests, many=True).data)
     @action(detail=False, methods=['get'], url_path='for-subject/(?P<subject_id>[^/.]+)')
     def for_subject(self, request, subject_id=None):
-        """
-        Get all responses for a subject (anonymized for non-HR).
-        """
         from apps.accounts.models import User
-        
         try:
             subject = User.objects.get(id=subject_id)
+            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != subject.manager:
+                return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+            requests = self.get_queryset().filter(subject=subject)
+            return Response(self.get_serializer(requests, many=True).data)
         except User.DoesNotExist:
-            return Response(
-                {'error': 'Subject not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check permission
-        is_hr_or_admin = request.user.role in ['admin', 'hr']
-        
-        responses = self.get_queryset().filter(
-            feedback_request__subject=subject
-        ).select_related('feedback_request')
-        
-        if not is_hr_or_admin:
-            # Anonymize responses for non-HR users
-            anonymized = []
-            for response in responses:
-                anonymized.append({
-                    'reviewer_type': response.feedback_request.get_reviewer_type_display(),
-                    'overall_rating': response.overall_rating,
-                    'strengths': response.strengths,
-                    'areas_for_improvement': response.areas_for_improvement,
-                    'suggestions': response.suggestions
-                })
-            return Response({'responses': anonymized})
-        
-        serializer = self.get_serializer(responses, many=True)
-        return Response(serializer.data)
-
-
-class FeedbackSummaryViewSet(BaseReviewViewSet):
-    """
-    ViewSet for Feedback Summaries (read-only).
-    
-    Actions:
-    - GET /feedback-summaries/ - List summaries
-    - GET /feedback-summaries/{id}/ - Get summary details
-    - GET /feedback-summaries/my/ - Get my summary
-    - GET /feedback-summaries/for-cycle/{cycle_id}/ - Get by cycle
-    - POST /feedback-summaries/{id}/share/ - Share summary with subject
-    """
-    
-    queryset = FeedbackSummary.objects.all()
-    filterset_class = FeedbackSummaryFilter
-    serializer_class = FeedbackSummarySerializer
-    
-    def get_permissions(self):
-        if self.action == 'share':
-            self.permission_classes = [CanManageFeedbackRequests]
-        else:
-            self.permission_classes = [CanViewFeedbackSummary]
-        return super().get_permissions()
-    
-    @action(detail=False, methods=['get'])
-    def my(self, request):
-        """
-        Get feedback summary for the current user.
-        """
-        employee = request.user
-        
-        # Find the most recent completed cycle
-        cycle = ReviewCycle.objects.filter(
-            tenant=employee.tenant,
-            status__in=['completed', 'archived']
-        ).order_by('-end_date').first()
-        
-        if not cycle:
-            return Response(
-                {'message': 'No completed review cycle found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        summary = self.get_queryset().filter(
-            review_cycle=cycle,
-            subject=employee
-        ).first()
-        
-        if not summary:
-            return Response(
-                {'message': 'No feedback summary found for the latest cycle'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        serializer = self.get_serializer(summary)
-        return Response(serializer.data)
-    
+            return Response({'error': 'Subject not found'}, status=status.HTTP_404_NOT_FOUND)
     @action(detail=False, methods=['get'], url_path='for-cycle/(?P<cycle_id>[^/.]+)')
     def for_cycle(self, request, cycle_id=None):
-        """
-        Get all feedback summaries for a specific cycle.
-        """
         try:
             cycle = ReviewCycle.objects.get(id=cycle_id)
+            requests = self.get_queryset().filter(review_cycle=cycle)
+            return Response(self.get_serializer(requests, many=True).data)
         except ReviewCycle.DoesNotExist:
-            return Response(
-                {'error': 'Review cycle not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        summaries = self.get_queryset().filter(review_cycle=cycle)
-        serializer = self.get_serializer(summaries, many=True)
-        return Response(serializer.data)
-    
+            return Response({'error': 'Cycle not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        reviewers = request.data.get('reviewers', [])
+        subject_id = request.data.get('subject_id')
+        cycle_id = request.data.get('cycle_id')
+        reviewer_type = request.data.get('reviewer_type', 'peer')
+        due_date = request.data.get('due_date')
+        if not reviewers or not subject_id or not cycle_id:
+            return Response({'error': 'reviewers, subject_id, and cycle_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        from apps.accounts.models import User
+        try:
+            subject = User.objects.get(id=subject_id)
+            cycle = ReviewCycle.objects.get(id=cycle_id)
+            created = []
+            for reviewer_id in reviewers:
+                reviewer = User.objects.get(id=reviewer_id)
+                req, created_flag = FeedbackRequest.objects.get_or_create(review_cycle=cycle, subject=subject, reviewer=reviewer, defaults={'requested_by': request.user, 'reviewer_type': reviewer_type, 'due_date': due_date, 'tenant_id': request.user.tenant_id})
+                if created_flag:
+                    created.append(req)
+            return Response(self.get_serializer(created, many=True).data, status=status.HTTP_201_CREATED)
+        except (User.DoesNotExist, ReviewCycle.DoesNotExist) as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+class FeedbackResponseViewSet(BaseReviewViewSet):
+    queryset = FeedbackResponse.objects.all()
+    serializer_class = FeedbackResponseSerializer
+    def get_permissions(self):
+        if self.action == 'submit':
+            self.permission_classes = [lambda: self.request.user.role in [UserRoles.STAFF, UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+        return super().get_permissions()
+    @action(detail=False, methods=['post'], url_path='submit/(?P<request_id>[^/.]+)')
+    def submit(self, request, request_id=None):
+        try:
+            feedback_request = FeedbackRequest.objects.get(id=request_id)
+            if feedback_request.reviewer_id != request.user.id:
+                return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+            if feedback_request.status != 'draft':
+                return Response({'error': 'Already submitted'}, status=status.HTTP_400_BAD_REQUEST)
+            if feedback_request.due_date and feedback_request.due_date < timezone.now().date():
+                return Response({'error': 'Deadline passed'}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = FeedbackResponseSubmitSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+            response = FeedbackResponse.objects.create(feedback_request=feedback_request, overall_rating=data.get('overall_rating'), strengths=data.get('strengths', ''), areas_for_improvement=data.get('areas_for_improvement', ''), specific_examples=data.get('specific_examples', ''), suggestions=data.get('suggestions', ''), additional_comments=data.get('additional_comments', ''), ratings=data.get('ratings', {}), is_anonymous=feedback_request.is_anonymous, tenant_id=request.user.tenant_id)
+            feedback_request.status = 'submitted'
+            feedback_request.completed_at = timezone.now()
+            feedback_request.save()
+            pending = FeedbackRequest.objects.filter(review_cycle=feedback_request.review_cycle, subject=feedback_request.subject, is_required=True, status='draft').count()
+            if pending == 0:
+                SummaryService.generate_summary(feedback_request.review_cycle.id, feedback_request.subject.id)
+            return Response(self.get_serializer(response).data, status=status.HTTP_201_CREATED)
+        except FeedbackRequest.DoesNotExist:
+            return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=['get'], url_path='for-request/(?P<request_id>[^/.]+)')
+    def for_request(self, request, request_id=None):
+        try:
+            feedback_request = FeedbackRequest.objects.get(id=request_id)
+            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != feedback_request.reviewer and request.user != feedback_request.subject.manager:
+                return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+            response = self.get_queryset().filter(feedback_request=feedback_request).first()
+            return Response(self.get_serializer(response).data if response else {'message': 'No response yet'})
+        except FeedbackRequest.DoesNotExist:
+            return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=['get'], url_path='for-subject/(?P<subject_id>[^/.]+)')
+    def for_subject(self, request, subject_id=None):
+        from apps.accounts.models import User
+        try:
+            subject = User.objects.get(id=subject_id)
+            is_hr = request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+            responses = self.get_queryset().filter(feedback_request__subject=subject).select_related('feedback_request')
+            if not is_hr:
+                anonymized = [{'reviewer_type': r.feedback_request.get_reviewer_type_display(), 'overall_rating': r.overall_rating, 'strengths': r.strengths, 'areas_for_improvement': r.areas_for_improvement, 'suggestions': r.suggestions} for r in responses]
+                return Response({'responses': anonymized})
+            return Response(self.get_serializer(responses, many=True).data)
+        except User.DoesNotExist:
+            return Response({'error': 'Subject not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class FeedbackSummaryViewSet(BaseReadOnlyReviewViewSet):
+    queryset = FeedbackSummary.objects.all()
+    serializer_class = FeedbackSummarySerializer
+    def get_permissions(self):
+        if self.action == 'share':
+            self.permission_classes = [lambda: self.request.user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+        return super().get_permissions()
+    @action(detail=False, methods=['get'])
+    def my(self, request):
+        cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status__in=['completed', 'archived']).order_by('-end_date').first()
+        if not cycle:
+            return Response({'message': 'No completed cycle found'}, status=status.HTTP_200_OK)
+        summary = self.get_queryset().filter(review_cycle=cycle, subject=request.user).first()
+        return Response(self.get_serializer(summary).data if summary else {'message': 'No summary available'})
+    @action(detail=False, methods=['get'], url_path='for-cycle/(?P<cycle_id>[^/.]+)')
+    def for_cycle(self, request, cycle_id=None):
+        try:
+            cycle = ReviewCycle.objects.get(id=cycle_id)
+            summaries = self.get_queryset().filter(review_cycle=cycle)
+            return Response(self.get_serializer(summaries, many=True).data)
+        except ReviewCycle.DoesNotExist:
+            return Response({'error': 'Cycle not found'}, status=status.HTTP_404_NOT_FOUND)
     @action(detail=True, methods=['post'])
     def share(self, request, pk=None):
-        """
-        Share feedback summary with the subject.
-        """
         summary = self.get_object()
-        
         if summary.is_shared_with_subject:
-            return Response(
-                {'error': 'Summary has already been shared'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+            return Response({'error': 'Already shared'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = FeedbackSummaryShareSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
         summary.is_shared_with_subject = True
         summary.shared_at = timezone.now()
         summary.shared_by = request.user
         summary.save()
-        
-        # Notify subject
-        from apps.reviews.services.notification.notification_service import NotificationService
-        NotificationService.notify_feedback_summary_shared(summary)
-        
-        result_serializer = self.get_serializer(summary)
-        return Response(result_serializer.data)
+        return Response(self.get_serializer(summary).data)
+    @action(detail=True, methods=['post'])
+    def regenerate(self, request, pk=None):
+        summary = self.get_object()
+        SummaryService.generate_summary(summary.review_cycle.id, summary.subject.id)
+        return Response({'message': 'Summary regenerated'})

@@ -1,97 +1,69 @@
 // src/services/reviews/supervisorReview.service.js
-// Handles all supervisor review API calls
+// Supervisor Review API service
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+import { BaseReviewsService } from './reviewsBase.service';
 
-class SupervisorReviewService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEWS_API.SUPERVISOR_REVIEWS);
-    }
+class SupervisorReviewService extends BaseReviewsService {
+  constructor() {
+    super('supervisor-reviews');
+  }
 
-    /**
-     * Get manager's review queue
-     * @returns {Promise<Array>} Review queue
-     */
-    async getQueue() {
-        const response = await apiClient.get(REVIEWS_API.SUPERVISOR_REVIEW_QUEUE);
-        return response.data;
-    }
+  async submit(id) {
+    return this.action(id, 'submit', { confirm_submit: true });
+  }
 
-    /**
-     * Submit supervisor review
-     * @param {string|number} id - Review ID
-     * @returns {Promise<Object>} Submitted review
-     */
-    async submit(id) {
-        const response = await apiClient.post(REVIEWS_API.SUPERVISOR_REVIEW_SUBMIT(id));
-        return response.data;
-    }
+  async saveDraft(id, data) {
+    return this.action(id, 'save_draft', data);
+  }
 
-    /**
-     * Approve supervisor review (HR only)
-     * @param {string|number} id - Review ID
-     * @returns {Promise<Object>} Approved review
-     */
-    async approve(id) {
-        const response = await apiClient.post(REVIEWS_API.SUPERVISOR_REVIEW_APPROVE(id));
-        return response.data;
-    }
+  async approve(id, comments = '') {
+    return this.action(id, 'approve', { approve: true, comments });
+  }
 
-    /**
-     * Reject supervisor review (HR only)
-     * @param {string|number} id - Review ID
-     * @param {string} reason - Rejection reason
-     * @returns {Promise<Object>} Rejected review
-     */
-    async reject(id, reason) {
-        const response = await apiClient.post(REVIEWS_API.SUPERVISOR_REVIEW_REJECT(id), { reason });
-        return response.data;
-    }
+  async reject(id, reason) {
+    return this.action(id, 'reject', { reason });
+  }
 
-    /**
-     * Get supervisor review for specific employee
-     * @param {string|number} employeeId - Employee ID
-     * @param {string|number} cycleId - Cycle ID
-     * @returns {Promise<Object>} Employee review
-     */
-    async getForEmployee(employeeId, cycleId) {
-        const response = await apiClient.get(
-            `${REVIEWS_API.SUPERVISOR_REVIEWS}?employee=${employeeId}&review_cycle=${cycleId}`
-        );
-        return response.data;
-    }
+  async requestChanges(id, feedback) {
+    return this.action(id, 'request_changes', { feedback });
+  }
 
-    /**
-     * Get all supervisor reviews for a cycle
-     * @param {string|number} cycleId - Cycle ID
-     * @returns {Promise<Array>} Cycle reviews
-     */
-    async getForCycle(cycleId) {
-        const response = await apiClient.get(`${REVIEWS_API.SUPERVISOR_REVIEWS}?review_cycle=${cycleId}`);
-        return response.data;
-    }
+  async resetToDraft(id) {
+    return this.action(id, 'reset_to_draft');
+  }
 
-    /**
-     * Save competency ratings for supervisor review
-     * @param {string|number} id - Review ID
-     * @param {Array} ratings - Array of {competency_id, rating, comment}
-     * @returns {Promise<Object>} Updated review
-     */
-    async saveRatings(id, ratings) {
-        const response = await apiClient.post(`${REVIEWS_API.SUPERVISOR_REVIEW_DETAIL(id)}/ratings/`, { ratings });
-        return response.data;
-    }
+  async compareWithSelf(id) {
+    const response = await this.apiClient.get(`/supervisor-reviews/${id}/compare/`);
+    return response.data;
+  }
 
-    /**
-     * Get comparison between self assessment and supervisor review
-     * @param {string|number} id - Review ID
-     * @returns {Promise<Object>} Comparison data
-     */
-    async getComparison(id) {
-        const response = await apiClient.get(`${REVIEWS_API.SUPERVISOR_REVIEW_DETAIL(id)}/compare/`);
-        return response.data;
-    }
+  async getMyQueue() {
+    const response = await this.apiClient.get('/supervisor-reviews/my-queue/');
+    return response.data;
+  }
+
+  async getPendingApprovals() {
+    const response = await this.apiClient.get('/supervisor-reviews/pending_approvals/');
+    return response.data;
+  }
+
+  async getStats(cycleId) {
+    const response = await this.apiClient.get('/supervisor-reviews/stats/', {
+      params: { cycle_id: cycleId },
+    });
+    return response.data;
+  }
+
+  async getForCycle(cycleId) {
+    return this.list({ review_cycle: cycleId });
+  }
+
+  async getForEmployee(employeeId, cycleId = null) {
+    const params = cycleId ? { cycle_id: cycleId } : {};
+    const response = await this.apiClient.get(`/supervisor-reviews/for-employee/${employeeId}/`, { params });
+    return response.data;
+  }
 }
 
 export const supervisorReviewService = new SupervisorReviewService();
+export default supervisorReviewService;

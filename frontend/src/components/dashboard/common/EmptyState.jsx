@@ -9,11 +9,17 @@ export const EmptyState = ({
   onAction = null,
   className = ''
 }) => {
+  const displayMessage = message instanceof Error 
+    ? message.message 
+    : (typeof message === 'object' && message !== null 
+        ? JSON.stringify(message) 
+        : String(message));
+
   return (
     <div className={`empty-state ${className}`} style={{ textAlign: 'center', padding: '48px 24px' }}>
       <div style={{ fontSize: '64px', marginBottom: '16px' }}>{icon}</div>
       <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>{title}</h3>
-      <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px' }}>{message}</p>
+      <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px' }}>{displayMessage}</p>
       {actionLabel && onAction && (
         <button
           onClick={onAction}

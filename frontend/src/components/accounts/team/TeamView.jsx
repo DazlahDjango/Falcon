@@ -11,17 +11,21 @@ import InviteUserModal from '../users/components/InviteUserModal';
 
 const TeamView = () => {
     const dispatch = useDispatch();
-    const { hierarchy, stats, isLoading } = useSelector((state) => state.accTeam);
+    // ✅ FIXED: Use state.team (not state.accTeam)
+    const { hierarchy, stats, isLoading } = useSelector((state) => state.team);
     const { user } = useSelector((state) => state.auth);
     const [viewMode, setViewMode] = useState('tree');
     const [searchTerm, setSearchTerm] = useState('');
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [selectedMember, setSelectedMember] = useState(null);
+    
     useEffect(() => {
         dispatch(fetchTeamHierarchy());
         dispatch(fetchTeamStats());
     }, [dispatch]);
+    
     const canInvite = user?.role === 'client_admin' || user?.role === 'super_admin' || user?.role === 'supervisor';
+    
     if (isLoading && !hierarchy) {
         return (
             <div className="team-view">
@@ -29,6 +33,7 @@ const TeamView = () => {
             </div>
         );
     }
+    
     return (
         <div className="team-view">
             {/* Header */}
@@ -90,8 +95,8 @@ const TeamView = () => {
             ) : (
                 <div className="team-grid">
                     {hierarchy?.members?.filter(member => 
-                        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        member.email.toLowerCase().includes(searchTerm.toLowerCase())
+                        member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        member.email?.toLowerCase().includes(searchTerm.toLowerCase())
                     ).map(member => (
                         <TeamMemberCard 
                             key={member.id} 
@@ -138,4 +143,5 @@ const TeamView = () => {
         </div>
     );
 };
+
 export default TeamView;

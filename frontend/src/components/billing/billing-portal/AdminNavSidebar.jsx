@@ -1,12 +1,7 @@
-/**
- * AdminNavSidebar Component
- * Navigation sidebar for admin billing section
- */
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BILLING_ROUTES } from '../../../config/constants/billingRouteConstants';
-import { renderBillingIcon } from '../shared/BillingIcons';
+import renderBillingIcon from '../shared/BillingIcons';
 
 const ADMIN_NAV_ITEMS = [
     { path: BILLING_ROUTES.ADMIN_BASE, label: 'Dashboard', icon: renderBillingIcon('overview') },

@@ -1,198 +1,54 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { TransactionService } from '../../services/billing';
-import { TRANSACTION_STATUS, TRANSACTION_TYPES, BILLING_PAGINATION } from '../../config/constants/billingConstants';
+import { useCallback, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchTransactions, fetchTransactionById, fetchTransactionSummary,
+    verifyTransaction, refundTransaction, fetchAdminTransactionStats,
+    setFilters, clearFilters, setPagination, clearSelectedTransaction, clearError,
+} from '../../store/billing/slices/transactionSlice';
+import {
+    selectAllTransactions, selectSelectedTransaction, selectTransactionSummary,
+    selectTransactionFilters, selectTransactionPagination, selectTransactionsLoading,
+    selectTransactionsError, selectAdminTransactionStats,
+} from '../../store/billing/selectors';
 
-export const useTransactions = (options = {}) => {
-    const {
-        autoFetch = true,
-        pageSize = BILLING_PAGINATION.DEFAULT_PAGE_SIZE,
-        initialFilters = {},
-    } = options;
+export const useTransactions = (options = { autoFetch: false }) => {
+    const dispatch = useDispatch();
+    const hasFetched = useRef(false);
+    const transactions = useSelector(selectAllTransactions);
+    const selectedTransaction = useSelector(selectSelectedTransaction);
+    const summary = useSelector(selectTransactionSummary);
+    const filters = useSelector(selectTransactionFilters);
+    const pagination = useSelector(selectTransactionPagination) || { page: 1, pageSize: 20, total: 0 };
+    const loading = useSelector(selectTransactionsLoading);
+    const error = useSelector(selectTransactionsError);
+    const adminStats = useSelector(selectAdminTransactionStats);
 
-    const [transactions, setTransactions] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [totalCount, setTotalCount] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [filters, setFilters] = useState(initialFilters);
-    const [summary, setSummary] = useState(null);
-    const [verifying, setVerifying] = useState(false);
+    const fetchAll = useCallback((params) => dispatch(fetchTransactions(params)), [dispatch]);
+    const fetchById = useCallback((id) => dispatch(fetchTransactionById(id)), [dispatch]);
+    const fetchSummary = useCallback(() => dispatch(fetchTransactionSummary()), [dispatch]);
+    const verify = useCallback((reference) => dispatch(verifyTransaction(reference)), [dispatch]);
+    const refund = useCallback((id, amount = null) => dispatch(refundTransaction({ id, amount })), [dispatch]);
+    const fetchAdminStats = useCallback((year = null) => dispatch(fetchAdminTransactionStats(year)), [dispatch]);
+    const applyFilters = useCallback((newFilters) => dispatch(setFilters(newFilters)), [dispatch]);
+    const resetFilters = useCallback(() => dispatch(clearFilters()), [dispatch]);
+    const setPage = useCallback((page) => dispatch(setPagination({ page })), [dispatch]);
+    const setPageSize = useCallback((pageSize) => dispatch(setPagination({ pageSize, page: 1 })), [dispatch]);
+    const clearSelected = useCallback(() => dispatch(clearSelectedTransaction()), [dispatch]);
+    const clearTransactionsError = useCallback(() => dispatch(clearError()), [dispatch]);
 
-    // Fetch transactions
-    const fetchTransactions = useCallback(async (page = currentPage, newFilters = filters) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const params = {
-                page,
-                page_size: pageSize,
-                ...newFilters,
-            };
-
-            const response = await TransactionService.getTransactions(params);
-            const data = response?.data || [];
-            
-            setTransactions(data);
-            setTotalCount(response?.count || data.length);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch transactions');
-            console.error('[useTransactions] Error:', err);
-            return [];
-        } finally {
-            setLoading(false);
+    useEffect(() => { 
+        if (options.autoFetch && !hasFetched.current) {
+            hasFetched.current = true;
+            const page = pagination?.page || 1;
+            const pageSize = pagination?.pageSize || 20;
+            fetchAll({ page, pageSize, filters });
         }
-    }, [currentPage, pageSize, filters]);
-
-    // Fetch transaction summary
-    const fetchSummary = useCallback(async () => {
-        try {
-            const summaryData = await TransactionService.getTransactionSummary();
-            setSummary(summaryData);
-            return summaryData;
-        } catch (err) {
-            console.error('[useTransactions] Error fetching summary:', err);
-            return null;
-        }
-    }, []);
-
-    // Verify a transaction
-    const verifyTransaction = useCallback(async (reference) => {
-        setVerifying(true);
-        setError(null);
-
-        try {
-            const response = await TransactionService.verifyTransaction(reference);
-            const result = response?.data;
-            
-            // Refresh list if verification changed status
-            if (result?.verified) {
-                await fetchTransactions();
-                await fetchSummary();
-            }
-            
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to verify transaction');
-            console.error('[useTransactions] Verification error:', err);
-            throw err;
-        } finally {
-            setVerifying(false);
-        }
-    }, [fetchTransactions, fetchSummary]);
-
-    // Update filters
-    const updateFilters = useCallback((newFilters) => {
-        setFilters(prev => ({ ...prev, ...newFilters }));
-        setCurrentPage(1);
-    }, []);
-
-    // Clear filters
-    const clearFilters = useCallback(() => {
-        setFilters({});
-        setCurrentPage(1);
-    }, []);
-
-    // Change page
-    const goToPage = useCallback((page) => {
-        setCurrentPage(page);
-    }, []);
-
-    // Get transaction by reference
-    const getByReference = useCallback((reference) => {
-        return transactions.find(t => t.reference === reference);
-    }, [transactions]);
-
-    // Get transactions by status
-    const getByStatus = useCallback((status) => {
-        return transactions.filter(t => t.status === status);
-    }, [transactions]);
-
-    // Get transactions by type
-    const getByType = useCallback((type) => {
-        return transactions.filter(t => t.transaction_type === type);
-    }, [transactions]);
-
-    // Auto-fetch
-    useEffect(() => {
-        if (autoFetch) {
-            fetchTransactions();
-            fetchSummary();
-        }
-    }, [autoFetch, currentPage, filters, fetchTransactions, fetchSummary]);
-
-    // Memoized values
-    const totalPages = useMemo(() => Math.ceil(totalCount / pageSize), [totalCount, pageSize]);
-    
-    const successfulTransactions = useMemo(() => {
-        return transactions.filter(t => t.status === TRANSACTION_STATUS.SUCCESS);
-    }, [transactions]);
-    
-    const failedTransactions = useMemo(() => {
-        return transactions.filter(t => t.status === TRANSACTION_STATUS.FAILED);
-    }, [transactions]);
-    
-    const pendingTransactions = useMemo(() => {
-        return transactions.filter(t => t.status === TRANSACTION_STATUS.PENDING);
-    }, [transactions]);
-    
-    const refundedTransactions = useMemo(() => {
-        return transactions.filter(t => t.status === TRANSACTION_STATUS.REFUNDED);
-    }, [transactions]);
-    
-    const subscriptionTransactions = useMemo(() => {
-        return transactions.filter(t => t.transaction_type === TRANSACTION_TYPES.SUBSCRIPTION || 
-                                        t.transaction_type === TRANSACTION_TYPES.RENEWAL);
-    }, [transactions]);
-    
-    const totalRevenue = useMemo(() => {
-        return successfulTransactions.reduce((sum, t) => sum + (t.total_amount || 0), 0);
-    }, [successfulTransactions]);
-    
-    const totalRevenueDisplay = useMemo(() => {
-        if (!totalRevenue) return 'KES 0.00';
-        return `KES ${(totalRevenue / 100).toFixed(2)}`;
-    }, [totalRevenue]);
-
-    const successRate = useMemo(() => {
-        if (transactions.length === 0) return 0;
-        return (successfulTransactions.length / transactions.length) * 100;
-    }, [transactions, successfulTransactions]);
+    }, [options.autoFetch]);
 
     return {
-        // State
-        transactions,
-        loading,
-        error,
-        summary,
-        totalCount,
-        currentPage,
-        totalPages,
-        filters,
-        verifying,
-        
-        // Computed
-        successfulTransactions,
-        failedTransactions,
-        pendingTransactions,
-        refundedTransactions,
-        subscriptionTransactions,
-        totalRevenue,
-        totalRevenueDisplay,
-        successRate,
-        hasTransactions: transactions.length > 0,
-        
-        // Actions
-        fetchTransactions,
-        fetchSummary,
-        verifyTransaction,
-        updateFilters,
-        clearFilters,
-        goToPage,
-        getByReference,
-        getByStatus,
-        getByType,
+        transactions, selectedTransaction, summary, filters, pagination, loading, error, adminStats,
+        fetchAll, fetchById, fetchSummary, verify, refund, fetchAdminStats,
+        applyFilters, resetFilters, setPage, setPageSize, clearSelected, clearTransactionsError,
     };
 };
 

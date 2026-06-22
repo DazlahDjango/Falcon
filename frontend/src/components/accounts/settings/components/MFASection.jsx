@@ -2,47 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FiCheck, FiX, FiShield, FiSmartphone } from 'react-icons/fi';
-import { disableMfa } from '../../../../store/accounts/slice/authSlice';
 import { showAlert } from '../../../../store/accounts/slice/uiSlice';
 import ConfirmationDialog from '../../../common/Feedback/ConfirmationDialog';
+import { useMfa } from '../../../../hooks/accounts/useMfa';
 
 const MFASection = ({ user }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [mfaEnabled, setMfaEnabled] = useState(user?.mfa_enabled || false);
-    cosnt [showDisableConfirm, setShowDisableConfirm] = useState(false);
-    useEffect(() => {
-        setMfaEnabled(user?.mfa_enabled || false);
-    }, [user]);
+    const { isMfaEnabled, disableAllMfa } = useMfa();
+    const [showDisableConfirm, setShowDisableConfirm] = useState(false);
+
     const handleEnable = () => {
         navigate('/mfa-setup');
     };
+
     const handleDisable = async () => {
         try {
-            await dispatch(disableMfa()).unwrap();
-            setMfaEnabled(false)
+            await disableAllMfa();
             dispatch(showAlert({ type: 'success', message: 'MFA disabled' }));
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error.message || 'Failed to disable MFA'}));
+            dispatch(showAlert({ type: 'error', message: error.message || 'Failed to disable MFA' }));
         }
         setShowDisableConfirm(false);
     };
+
     return (
         <div className="mfa-section">
             <div className="mfa-status">
-                <div className={`status-indicator ${mfaEnabled ? 'enabled' : 'disabled'}`}>
-                    {mfaEnabled ? <FiCheck size={16} /> : <FiX size={16} />}
+                <div className={`status-indicator ${isMfaEnabled ? 'enabled' : 'disabled'}`}>
+                    {isMfaEnabled ? <FiCheck size={16} /> : <FiX size={16} />}
                 </div>
                 <div className="status-text">
-                    <strong>{mfaEnabled ? 'Enabled' : 'Disabled'}</strong>
-                    <p>{mfaEnabled 
+                    <strong>{isMfaEnabled ? 'Enabled' : 'Disabled'}</strong>
+                    <p>{isMfaEnabled 
                         ? 'Your account is protected with two-factor authentication' 
                         : 'Two-factor authentication adds an extra layer of security'}</p>
                 </div>
             </div>
             
             <div className="mfa-actions">
-                {!mfaEnabled ? (
+                {!isMfaEnabled ? (
                     <button className="btn btn-primary" onClick={handleEnable}>
                         <FiShield size={16} />
                         Enable MFA

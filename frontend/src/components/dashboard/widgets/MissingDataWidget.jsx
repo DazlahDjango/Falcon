@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { DashboardCard } from '../common/DashboardCard';
 import { LoadingSkeleton } from '../common/LoadingSkeleton';
 import { EmptyState } from '../common/EmptyState';
+import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 
 export const MissingDataWidget = ({ 
   data, 
@@ -29,7 +30,7 @@ export const MissingDataWidget = ({
     return (
       <DashboardCard title={title} onRefresh={onRefresh}>
         <EmptyState 
-          icon="✅" 
+          icon={<FiCheckCircle size={48} style={{ color: '#10b981' }} />} 
           title="Complete Data" 
           message="All data entries are up to date." 
         />
@@ -41,8 +42,9 @@ export const MissingDataWidget = ({
 
   return (
     <DashboardCard title={title} onRefresh={onRefresh}>
-      <div style={{ marginBottom: '12px', padding: '8px', background: '#fef3c7', borderRadius: '8px', fontSize: '13px', color: '#92400e' }}>
-        ⚠️ {data.length} entries missing for the current period
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', padding: '8px', background: '#fef3c7', borderRadius: '8px', fontSize: '13px', color: '#92400e' }}>
+        <FiAlertTriangle size={14} style={{ flexShrink: 0 }} />
+        <span>{data.length} entries missing for the current period</span>
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

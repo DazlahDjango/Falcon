@@ -11,22 +11,25 @@ const ForgotPassword = () => {
     const [submitted, setSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email) {
             dispatch(showAlert({ type: 'error', message: 'Please enter your email address' }));
             return;
         }
+        
         setIsLoading(true);
         try {
             await dispatch(forgotPassword(email)).unwrap();
             setSubmitted(true);
         } catch (err) {
-            dispatch(showAlert({ type: 'error', message: err.message || 'Failed to send reset email' }));
+            dispatch(showAlert({ type: 'error', message: err || 'Failed to send reset email' }));
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     };
+
     if (submitted) {
         return (
             <div className="auth-page">
@@ -48,6 +51,7 @@ const ForgotPassword = () => {
             </div>
         );
     }
+
     return (
         <div className="auth-page">
             <div className="auth-header-text">
@@ -83,4 +87,5 @@ const ForgotPassword = () => {
         </div>
     );
 };
+
 export default ForgotPassword;

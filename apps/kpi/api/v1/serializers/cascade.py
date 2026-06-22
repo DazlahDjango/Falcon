@@ -13,6 +13,7 @@ class CascadeRuleSerializer(TenantAwareSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
+
 class CascadeMapSerializer(TenantAwareSerializer):
     rule_name = serializers.CharField(source='cascade_rule.name', read_only=True)
     organization_target_value = serializers.DecimalField(
@@ -25,6 +26,7 @@ class CascadeMapSerializer(TenantAwareSerializer):
         source='individual_target.target_value', max_digits=20, decimal_places=2, read_only=True
     )
     kpi_name = serializers.CharField(source='organization_target.kpi.name', read_only=True)
+
     class Meta:
         model = CascadeMap
         fields = [

@@ -1,50 +1,52 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { renderBillingIcon } from './BillingIcons';
+import { FiCheckCircle, FiAlertTriangle, FiXCircle, FiClock, FiMinusCircle, FiGift, FiRefreshCw } from 'react-icons/fi';
+import './shared.css';
 
 const STATUS_CONFIG = {
-    // Subscription statuses
-    active: { color: 'success', icon: renderBillingIcon('success'), label: 'Active' },
-    trialing: { color: 'info', icon: renderBillingIcon('pending'), label: 'Trial' },
-    past_due: { color: 'warning', icon: renderBillingIcon('warning'), label: 'Past Due' },
-    cancelled: { color: 'secondary', icon: renderBillingIcon('cancelled'), label: 'Cancelled' },
-    expired: { color: 'error', icon: renderBillingIcon('expired'), label: 'Expired' },
-    pending_cancellation: { color: 'warning', icon: renderBillingIcon('pending_cancellation'), label: 'Pending Cancellation' },
-    
-    // Transaction statuses
-    success: { color: 'success', icon: renderBillingIcon('success'), label: 'Success' },
-    failed: { color: 'error', icon: renderBillingIcon('failed'), label: 'Failed' },
-    pending: { color: 'warning', icon: renderBillingIcon('pending'), label: 'Pending' },
-    refunded: { color: 'info', icon: renderBillingIcon('refunded'), label: 'Refunded' },
-    disputed: { color: 'error', icon: renderBillingIcon('disputed'), label: 'Disputed' },
-    
-    // Invoice statuses
-    paid: { color: 'success', icon: renderBillingIcon('success'), label: 'Paid' },
-    overdue: { color: 'error', icon: renderBillingIcon('failed'), label: 'Overdue' },
-    draft: { color: 'secondary', icon: renderBillingIcon('draft'), label: 'Draft' },
+    subscription: {
+        active: { icon: FiCheckCircle, color: 'success', text: 'Active' },
+        trialing: { icon: FiGift, color: 'info', text: 'Trial' },
+        past_due: { icon: FiAlertTriangle, color: 'warning', text: 'Past Due' },
+        cancelled: { icon: FiXCircle, color: 'secondary', text: 'Cancelled' },
+        expired: { icon: FiClock, color: 'error', text: 'Expired' },
+        pending_cancellation: { icon: FiMinusCircle, color: 'warning', text: 'Pending Cancellation' },
+    },
+    transaction: {
+        success: { icon: FiCheckCircle, color: 'success', text: 'Success' },
+        pending: { icon: FiClock, color: 'warning', text: 'Pending' },
+        failed: { icon: FiAlertTriangle, color: 'error', text: 'Failed' },
+        refunded: { icon: FiRefreshCw, color: 'info', text: 'Refunded' },
+        disputed: { icon: FiAlertTriangle, color: 'error', text: 'Disputed' },
+    },
+    invoice: {
+        paid: { icon: FiCheckCircle, color: 'success', text: 'Paid' },
+        pending: { icon: FiClock, color: 'warning', text: 'Pending' },
+        overdue: { icon: FiAlertTriangle, color: 'error', text: 'Overdue' },
+        draft: { icon: FiMinusCircle, color: 'secondary', text: 'Draft' },
+        cancelled: { icon: FiXCircle, color: 'secondary', text: 'Cancelled' },
+        refunded: { icon: FiRefreshCw, color: 'info', text: 'Refunded' },
+    },
+    payment_method: {
+        active: { icon: FiCheckCircle, color: 'success', text: 'Active' },
+        default: { icon: FiCheckCircle, color: 'success', text: 'Default' },
+        expired: { icon: FiClock, color: 'error', text: 'Expired' },
+        removed: { icon: FiXCircle, color: 'secondary', text: 'Removed' },
+    },
 };
 
-export const StatusBadge = ({ status, customLabel = null, size = 'medium', showIcon = true }) => {
-    const config = STATUS_CONFIG[status] || { color: 'default', icon: '●', label: status };
-    const sizes = {
-        small: 'status-badge-small',
-        medium: 'status-badge-medium',
-        large: 'status-badge-large',
-    };
+export const StatusBadge = ({ type, status, size = 'md', showIcon = true, showText = true, className = '' }) => {
+    const config = STATUS_CONFIG[type]?.[status];
+    if (!config) return <span className={`status-badge status-badge-unknown ${className}`}>Unknown</span>;
+
+    const IconComponent = config.icon;
+    const colorClass = `status-badge status-badge-${config.color} status-badge-${size}`;
 
     return (
-        <span className={`status-badge status-badge-${config.color} ${sizes[size]}`}>
-            {showIcon && <span className="status-badge-icon">{config.icon}</span>}
-            <span className="status-badge-label">{customLabel || config.label}</span>
+        <span className={`${colorClass} ${className}`}>
+            {showIcon && <IconComponent className="status-badge-icon" />}
+            {showText && <span className="status-badge-text">{config.text}</span>}
         </span>
     );
-};
-
-StatusBadge.propTypes = {
-    status: PropTypes.string.isRequired,
-    customLabel: PropTypes.string,
-    size: PropTypes.oneOf(['small', 'medium', 'large']),
-    showIcon: PropTypes.bool,
 };
 
 export default StatusBadge;

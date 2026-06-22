@@ -1,3 +1,4 @@
+# history.py
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +10,7 @@ from ..serializers import KPIHistorySerializer, ActualHistorySerializer, TargetH
 from ....models import KPIHistory, ActualHistory, TargetHistory
 from ..permissions import IsAuthenticatedAndActive, CanViewAuditLogs
 
+
 class KPIHistoryViewSet(ReadOnlyKPIViewset):
     queryset = KPIHistory.objects.all()
     serializer_class = KPIHistorySerializer
@@ -19,6 +21,10 @@ class KPIHistoryViewSet(ReadOnlyKPIViewset):
     ordering = ['-performed_at']
     permission_classes = [IsAuthenticatedAndActive, CanViewAuditLogs]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(tenant_id=getattr(self.request, 'current_tenant_id', None))
+
     @action(detail=False, methods=['get'])
     def for_kpi(self, request):
         kpi_id = request.query_params.get('kpi_id')
@@ -27,9 +33,10 @@ class KPIHistoryViewSet(ReadOnlyKPIViewset):
                 {'error': 'kpi_id parameter is required'},
                 status=400
             )
-        history = self.queryset.filter(kpi_id=kpi_id)
-        serializer = self.get_serializer(history, many=True)
+        queryset = self.get_queryset().filter(kpi_id=kpi_id)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
 
 class ActualHistoryViewSet(ReadOnlyKPIViewset):
     queryset = ActualHistory.objects.all()
@@ -41,6 +48,10 @@ class ActualHistoryViewSet(ReadOnlyKPIViewset):
     ordering = ['-performed_at']
     permission_classes = [IsAuthenticatedAndActive, CanViewAuditLogs]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(tenant_id=getattr(self.request, 'current_tenant_id', None))
+
     @action(detail=False, methods=['get'])
     def for_actual(self, request):
         actual_id = request.query_params.get('actual_id')
@@ -49,9 +60,10 @@ class ActualHistoryViewSet(ReadOnlyKPIViewset):
                 {'error': 'actual_id parameter is required'},
                 status=400
             )
-        history = self.queryset.filter(actual_id=actual_id)
-        serializer = self.get_serializer(history, many=True)
+        queryset = self.get_queryset().filter(actual_id=actual_id)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
 
 class TargetHistoryViewSet(ReadOnlyKPIViewset):
     queryset = TargetHistory.objects.all()
@@ -63,6 +75,10 @@ class TargetHistoryViewSet(ReadOnlyKPIViewset):
     ordering = ['-performed_at']
     permission_classes = [IsAuthenticatedAndActive, CanViewAuditLogs]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(tenant_id=getattr(self.request, 'current_tenant_id', None))
+
     @action(detail=False, methods=['get'])
     def for_target(self, request):
         target_id = request.query_params.get('target_id')
@@ -71,6 +87,6 @@ class TargetHistoryViewSet(ReadOnlyKPIViewset):
                 {'error': 'target_id parameter is required'},
                 status=400
             )
-        history = self.queryset.filter(annual_target_id=target_id)
-        serializer = self.get_serializer(history, many=True)
+        queryset = self.get_queryset().filter(annual_target_id=target_id)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

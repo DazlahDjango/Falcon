@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.cache import cache
 from apps.accounts.models import User, AuditLog
 from apps.accounts.services.registration.user_registration import UserRegistrationService
 from apps.accounts.services.audit.logger import AuditService
@@ -22,7 +23,9 @@ class InvitationService:
         existing_user = User.objects.filter(email__iexact=email, tenant_id=tenant_id).first()
         if existing_user:
             return False, 'A user with this email already exists in your organization.'
-        token = self._generate_invitation_token(email, tenant_id, role, department_id)
+        
+        token = self._generate_invitation_token(email, tenant_id, role, department_id, invited_by, message)
+        
         try:
             self._send_invitation_email(email, token, invited_by, role, message)
             self.audit_service.log(
@@ -39,11 +42,14 @@ class InvitationService:
         invitation_data = self._validate_invitation_token(token)
         if not invitation_data:
             return None, 'Invalid or expired invitation.'
+        
         email = invitation_data['email']
         tenant_id = invitation_data['tenant_id']
-        role = invitation_data['role']  
+        role = invitation_data['role']
+        
         if User.objects.filter(email__iexact=email, tenant_id=tenant_id).exists():
             return None, 'An account with this email already exists.'
+        
         user, error = self.user_registration.register_user(
             email=email,
             username=email.split('@')[0],
@@ -56,6 +62,10 @@ class InvitationService:
         )
         if error:
             return None, error
+        
+        # Clean up invitation after successful acceptance
+        self._delete_invitation_token(token)
+        
         self.audit_service.log(
             user=user, action='user.invitation_accepted', action_type='create',
             request=request, severity='info'
@@ -76,55 +86,96 @@ class InvitationService:
         )
     
     def cancel_invitation(self, invitation_id: str, request=None) -> Tuple[bool, str]:
-        from django.core.cache import cache
-        cache_key = f'invitation:{invitation_id}'
-        invitation_data = cache.get(cache_key)
-        if not invitation_data:
-            return False, 'Invitation not found.'
-        cache.delete(cache_key)
-        if 'invited_by' in invitation_data:
-            self.audit_service.log(
-                user=invitation_data['invited_by'],
-                action='user.invitation_cancelled',
-                action_type='delete',
-                request=request,
-                severity='info',
-                metadata={'email': invitation_data['email']}
-            )
+        self._delete_invitation_token(invitation_id)
         return True, 'Invitation cancelled.'
     
+    # ✅ IMPLEMENTED: Get pending invitations for tenant
     def get_pending_invitations(self, tenant_id: str) -> List[Dict]:
-        from django.core.cache import cache
-        from django.core.cache.backends.base import DEFAULT_TIMEOUT
+        """
+        Get all pending invitations for a tenant.
+        
+        Note: Since Django's cache doesn't support pattern matching natively,
+        we maintain a tenant-specific list of invitation IDs.
+        """
         pending = []
+        tenant_cache_key = f'invitations:tenant:{tenant_id}'
+        invitation_ids = cache.get(tenant_cache_key, [])
+        
+        for invitation_id in invitation_ids:
+            cache_key = f'invitation:{invitation_id}'
+            invitation_data = cache.get(cache_key)
+            if invitation_data:
+                # Add the invitation ID to the response
+                invitation_data['invitation_id'] = invitation_id
+                pending.append(invitation_data)
+            else:
+                # Clean up stale reference
+                invitation_ids.remove(invitation_id)
+                cache.set(tenant_cache_key, invitation_ids, timeout=604800)
+        
         return pending
     
-    def _generate_invitation_token(self, email: str, tenant_id: str, role: str, department_id: str = None) -> str:
+    def _generate_invitation_token(self, email: str, tenant_id: str, role: str, department_id: str = None, invited_by: User = None, message: str = '') -> str:
         import json
-        from django.core.cache import cache
         token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         cache_key = f'invitation:{token_hash}'
+        
         invitation_data = {
             'email': email,
             'tenant_id': str(tenant_id),
             'role': role,
             'department_id': department_id,
+            'message': message,
             'created_at': timezone.now().isoformat(),
         }
+        
+        if invited_by:
+            invitation_data['invited_by'] = {
+                'id': str(invited_by.id),
+                'email': invited_by.email,
+                'name': invited_by.get_full_name()
+            }
+        
         cache.set(cache_key, invitation_data, timeout=604800)  # 7 days expiry
+        
+        # Store in tenant's invitation list for lookup
+        tenant_cache_key = f'invitations:tenant:{tenant_id}'
+        invitation_ids = cache.get(tenant_cache_key, [])
+        if token_hash not in invitation_ids:
+            invitation_ids.append(token_hash)
+            cache.set(tenant_cache_key, invitation_ids, timeout=604800)
+        
         return token
     
     def _validate_invitation_token(self, token: str) -> Optional[Dict]:
-        from django.core.cache import cache
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         cache_key = f'invitation:{token_hash}'
         return cache.get(cache_key)
     
     def _get_invitation_data(self, invitation_id: str) -> Optional[Dict]:
-        from django.core.cache import cache
         cache_key = f'invitation:{invitation_id}'
         return cache.get(cache_key)
+    
+    def _delete_invitation_token(self, token: str) -> None:
+        """Delete invitation token and clean up tenant reference."""
+        token_hash = token if len(token) == 64 else hashlib.sha256(token.encode()).hexdigest()
+        
+        # Get invitation data first to know tenant_id
+        cache_key = f'invitation:{token_hash}'
+        invitation_data = cache.get(cache_key)
+        
+        if invitation_data:
+            tenant_id = invitation_data.get('tenant_id')
+            if tenant_id:
+                tenant_cache_key = f'invitations:tenant:{tenant_id}'
+                invitation_ids = cache.get(tenant_cache_key, [])
+                if token_hash in invitation_ids:
+                    invitation_ids.remove(token_hash)
+                    cache.set(tenant_cache_key, invitation_ids, timeout=604800)
+        
+        # Delete the invitation
+        cache.delete(cache_key)
     
     def _send_invitation_email(self, email: str, token: str, invited_by: User, role: str, message: str):
         subject = f'Invitation to Join Falcon PMS'

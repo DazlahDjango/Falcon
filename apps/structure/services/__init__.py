@@ -33,6 +33,8 @@ from .audit.change_logger import ChangeLoggerService
 from .audit.diff_calculator import DiffCalculatorService
 from .audit.compliance_reporter import ComplianceReporterService
 
+from .position import PositionService
+
 __all__ = [
     'TreeBuilder',
     'PathResolver',
@@ -63,4 +65,5 @@ __all__ = [
     'ChangeLoggerService',
     'DiffCalculatorService',
     'ComplianceReporterService',
+    'PositionService'
 ]

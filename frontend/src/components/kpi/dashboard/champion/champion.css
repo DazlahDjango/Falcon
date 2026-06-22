@@ -1,0 +1,233 @@
+/* Champion Dashboard Styles */
+.kpi-champion-dashboard {
+    padding: var(--kpi-space-6);
+    background: var(--kpi-gray-50);
+    min-height: 100vh;
+}
+
+/* Submission Rate Card */
+.submission-rate-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--kpi-space-6);
+    flex-wrap: wrap;
+}
+
+.rate-circle {
+    flex-shrink: 0;
+}
+
+.submission-stats {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--kpi-space-4);
+}
+
+.submission-stats .stat {
+    text-align: center;
+    padding: var(--kpi-space-3);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-lg);
+}
+
+.submission-stats .stat-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+    margin-bottom: var(--kpi-space-1);
+}
+
+.submission-stats .stat-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--kpi-gray-900);
+}
+
+/* Compliance List */
+.compliance-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-3);
+}
+
+.compliance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--kpi-space-3);
+    background: var(--kpi-gray-50);
+    border-radius: var(--kpi-radius-lg);
+    transition: var(--kpi-transition-base);
+}
+
+.compliance-item:hover {
+    background: var(--kpi-gray-100);
+}
+
+.compliance-info {
+    flex: 1;
+}
+
+.compliance-name {
+    font-weight: 500;
+    margin-bottom: var(--kpi-space-1);
+}
+
+.compliance-stats {
+    font-size: 0.7rem;
+    color: var(--kpi-gray-500);
+}
+
+.compliance-rate {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+}
+
+.rate-value {
+    font-weight: 700;
+    font-size: 1rem;
+    min-width: 45px;
+    text-align: right;
+}
+
+.rate-value.high {
+    color: var(--kpi-success);
+}
+
+.rate-value.medium {
+    color: var(--kpi-warning);
+}
+
+.rate-value.low {
+    color: var(--kpi-danger);
+}
+
+/* Escalations List */
+.escalations-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kpi-space-3);
+}
+
+.escalation-item {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    padding: var(--kpi-space-3);
+    background: var(--kpi-warning-bg);
+    border-radius: var(--kpi-radius-lg);
+    border-left: 3px solid var(--kpi-warning);
+}
+
+.escalation-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.escalation-info {
+    flex: 1;
+}
+
+.escalation-title {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: var(--kpi-space-1);
+}
+
+.escalation-details {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-3);
+    font-size: 0.7rem;
+    color: var(--kpi-gray-600);
+}
+
+.escalation-details span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.escalation-status {
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 2px 6px;
+    background: white;
+    border-radius: var(--kpi-radius-full);
+    color: var(--kpi-warning-dark);
+}
+
+/* Badge */
+.badge {
+    padding: 2px 8px;
+    border-radius: var(--kpi-radius-full);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.badge.success {
+    background: var(--kpi-success-bg);
+    color: var(--kpi-success-dark);
+}
+
+.badge.warning {
+    background: var(--kpi-warning-bg);
+    color: var(--kpi-warning-dark);
+}
+
+.badge.danger {
+    background: var(--kpi-danger-bg);
+    color: var(--kpi-danger-dark);
+}
+
+.view-more {
+    text-align: center;
+    padding: var(--kpi-space-2);
+    font-size: 0.75rem;
+    color: var(--kpi-primary);
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-two-col {
+        grid-template-columns: 1fr;
+    }
+    
+    .submission-rate-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .submission-stats {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .submission-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .compliance-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--kpi-space-2);
+    }
+    
+    .compliance-rate {
+        justify-content: center;
+    }
+}

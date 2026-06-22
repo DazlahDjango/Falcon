@@ -19,6 +19,10 @@ class AnnualTargetViewSet(BaseKpiViewset):
     ordering_fields = ['year', 'target_value', 'created_at']
     ordering = ['-year', 'kpi__name']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related('kpi', 'user')
+
     def create(self, request, *args, **kwargs):
         setter = TargetSetter()
         try:
@@ -36,6 +40,7 @@ class AnnualTargetViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['post'])
     def phase(self, request, pk=None):
         target = self.get_object()
@@ -43,25 +48,27 @@ class AnnualTargetViewSet(BaseKpiViewset):
         strategy = request.data.get('strategy', 'equal_split')
         strategy_params = request.data.get('strategy_params', {})
         try:
-            monthly_target = phaser.phase_target(
+            monthly_targets = phaser.phase_target(
                 str(target.id),
                 strategy,
                 strategy_params,
                 request.user
             )
-            serializer = MonthlyPhasingSerializer(monthly_target, many=True)
+            serializer = MonthlyPhasingSerializer(monthly_targets, many=True)
             return Response(serializer.data)
         except (PhasingLockedError, DuplicatePhasingError) as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['get'])
     def phasing(self, request, pk=None):
         target = self.get_object()
         phasing = target.monthly_phasing.all().order_by('month')
         serializer = MonthlyPhasingSerializer(phasing, many=True)
         return Response(serializer.data)
+
     @action(detail=True, methods=['get'])
     def validate(self, request, pk=None):
         target = self.get_object()
@@ -73,7 +80,8 @@ class AnnualTargetViewSet(BaseKpiViewset):
             'phasing_summary': phasing_validation,
             'monthly_validation': monthly_validation
         })
-    
+
+
 class MonthlyPhasingViewSet(BaseKpiViewset):
     queryset = MonthlyPhasing.objects.all()
     serializer_class = MonthlyPhasingSerializer
@@ -81,6 +89,10 @@ class MonthlyPhasingViewSet(BaseKpiViewset):
     filterset_class = MonthlyPhasingListFilter
     ordering_fields = ['month', 'target_value', 'is_locked']
     ordering = ['annual_target', 'month']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related('annual_target__kpi', 'annual_target__user', 'locked_by')
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -90,25 +102,37 @@ class MonthlyPhasingViewSet(BaseKpiViewset):
                 status=status.HTTP_403_FORBIDDEN
             )
         return super().update(request, *args, **kwargs)
+
     @action(detail=False, methods=['post'])
     def lock_cycle(self, request):
         locker = TargetLocker()
-        tenant_id = request.tenant.id
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+        if not tenant_id:
+            return Response(
+                {'error': 'Unable to determine tenant'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         performance_cycle = request.data.get('performance_cycle')
         if not performance_cycle:
             return Response(
                 {'error': 'performance_cycle is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         updated = locker.lock_phasing_for_cycle(
             str(tenant_id),
             performance_cycle,
             request.user
         )
+        
         return Response({
             'message': f'Locked {updated} phasing records',
             'updated_count': updated
         })
+
     @action(detail=True, methods=['post'])
     def lock(self, request, pk=None):
         phasing = self.get_object()

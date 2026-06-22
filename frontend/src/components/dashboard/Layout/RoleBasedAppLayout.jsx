@@ -3,9 +3,9 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 import { resolveDashboardRole } from '../../../utils/dashboard/resolveDashboardRole';
 import { DASHBOARD_TYPES } from '../../../config/constants/dashboardConstants';
-import DashboardShell from '../common/DashboardShell';
-
-const CommonMainLayout = React.lazy(() => import('../../common/Layout/MainLayout'));
+import { DashboardProviders } from '../../../providers/DashboardProviders';
+import MainLayout from '../Layout/MainLayout';
+import '../../layout.css';
 
 const ADMIN_PLATFORM_ROLES = new Set([
   DASHBOARD_TYPES.SUPER_ADMIN,
@@ -13,8 +13,9 @@ const ADMIN_PLATFORM_ROLES = new Set([
 ]);
 
 /**
- * Super/client admins use the PMS dashboard shell for all routes (config, billing, tenant, etc.).
- * Other roles use the legacy app layout unless they are on a /dashboard/* path.
+ * Role-based layout that provides DashboardProviders and MainLayout for all routes.
+ * Super/client admins and dashboard routes get the full dashboard experience.
+ * Other roles (KPI, etc.) still get the same layout but with role-specific sidebars.
  */
 const RoleBasedAppLayout = () => {
   const { user } = useAuth();
@@ -26,14 +27,12 @@ const RoleBasedAppLayout = () => {
     !isKpiRoute &&
     (ADMIN_PLATFORM_ROLES.has(dashboardRole) || pathname.startsWith('/dashboard'));
 
-  if (useDashboardShell) {
-    return <DashboardShell />;
-  }
-
+  // Both paths now use DashboardProviders + MainLayout
+  // The difference is purely in the routing logic above for future extensibility
   return (
-    <React.Suspense fallback={<div className="layout-loading">Loading…</div>}>
-      <CommonMainLayout />
-    </React.Suspense>
+    <DashboardProviders>
+      <MainLayout />
+    </DashboardProviders>
   );
 };
 

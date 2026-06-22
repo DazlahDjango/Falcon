@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://falcon-pms.com/api/v1
+        - VITE_WS_URL=wss://falcon-pms.com/ws
+    container_name: falcon-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - falcon-prod-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: falcon-backend-prod
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=falcon_pms
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-falconprodsecretpass}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-prod-secret-django-key}
+    volumes:
+      - falcon-static-vol:/app/staticfiles
+      - falcon-media-vol:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - falcon-prod-net
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: falcon-celery-worker-prod
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "worker", "--loglevel=info"]
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=falcon_pms
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-falconprodsecretpass}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-prod-secret-django-key}
+    depends_on:
+      - backend
+    networks:
+      - falcon-prod-net
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: falcon-celery-beat-prod
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=falcon_pms
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-falconprodsecretpass}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-prod-secret-django-key}
+    depends_on:
+      - backend
+    networks:
+      - falcon-prod-net
+
+  db:
+    image: postgres:15-alpine
+    container_name: falcon-db-prod
+    restart: unless-stopped
+    volumes:
+      - falcon-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: falcon_pms
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-falconprodsecretpass}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d falcon_pms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - falcon-prod-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: falcon-redis-prod
+    restart: unless-stopped
+    volumes:
+      - falcon-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - falcon-prod-net
+
+volumes:
+  falcon-static-vol:
+  falcon-media-vol:
+  falcon-db-data:
+  falcon-redis-data:
+
+networks:
+  falcon-prod-net:
+    driver: bridge

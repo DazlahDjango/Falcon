@@ -1,205 +1,99 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from apps.accounts.api.v1.permissions import IsAuthenticated
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_headers
-
+from django.core.cache import cache
 from ....models import SubscriptionPlan
-from ....services.audit.logger import audit_logger
-from ..serializers import (
-    PlanSerializer,
-    PlanListSerializer,
-    PlanDetailSerializer,
-    PlanCreateSerializer,
-    PlanUpdateSerializer,
-)
-from ..permissions import IsSuperAdmin, CanViewPlans
-from ..throttles import BillingReportThrottle
-
+from ..serializers import PlanSerializer, PlanListSerializer, PlanDetailSerializer, PlanCreateSerializer, PlanUpdateSerializer
+from ....services import DynamicPlanManagementService
+from ....services.decorators import circuit_breaker, idempotent
+from ..permissions import IsSuperAdmin, IsAuthenticated
 
 class PlanViewSet(viewsets.ModelViewSet):
-    """
-    Plan ViewSet for subscription plans.
-    
-    Actions:
-    - list: Get all active plans (public)
-    - retrieve: Get plan details (public)
-    - create: Create new plan (admin only)
-    - update: Update plan (admin only)
-    - partial_update: Partial update plan (admin only)
-    - destroy: Delete plan (admin only)
-    - popular: Get popular plan
-    - compare: Compare multiple plans
-    """
-    
-    queryset = SubscriptionPlan.objects.all()
+    queryset = SubscriptionPlan.objects.filter(is_deleted=False)
+    serializer_class = PlanSerializer
     permission_classes = [IsAuthenticated]
     
     def get_permissions(self):
-        """Set permissions based on action."""
-        if self.action in ['list', 'retrieve', 'popular', 'compare']:
-            permission_classes = [CanViewPlans]
-        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsSuperAdmin]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'sync_to_paystack']:
+            self.permission_classes = [IsSuperAdmin]
+        elif self.action in ['list', 'retrieve']:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
     
     def get_serializer_class(self):
-        """Return appropriate serializer based on action."""
         if self.action == 'list':
             return PlanListSerializer
-        elif self.action == 'retrieve':
+        if self.action == 'retrieve':
             return PlanDetailSerializer
-        elif self.action == 'create':
+        if self.action == 'create':
             return PlanCreateSerializer
-        elif self.action in ['update', 'partial_update']:
+        if self.action in ['update', 'partial_update']:
             return PlanUpdateSerializer
         return PlanSerializer
     
     def get_queryset(self):
-        """Filter queryset based on user role and query params."""
-        queryset = SubscriptionPlan.objects.all()
-        
-        # Only show active plans to non-admin users
-        if not self.request.user.role == 'super_admin':
-            queryset = queryset.filter(is_active=True)
-        
-        # Filter by plan type
-        plan_type = self.request.query_params.get('plan_type')
-        if plan_type:
-            queryset = queryset.filter(plan_type=plan_type)
-        
-        # Filter by billing interval
-        billing_interval = self.request.query_params.get('billing_interval')
-        if billing_interval:
-            queryset = queryset.filter(billing_interval=billing_interval)
-        
-        # Exclude trial from list by default
-        exclude_trial = self.request.query_params.get('exclude_trial', 'true').lower() == 'true'
-        if exclude_trial and not self.request.user.role == 'super_admin':
-            queryset = queryset.exclude(plan_type='trial')
-        
-        return queryset.order_by('display_order', 'price')
+        user = self.request.user
+        queryset = super().get_queryset()
+        if user and (user.is_superuser or user.role == 'super_admin'):
+            return queryset
+        return queryset.filter(is_active=True)
     
-    @method_decorator(cache_page(3600))  # Cache for 1 hour
-    @method_decorator(vary_on_headers('Authorization'))
-    @action(detail=False, methods=['get'])
-    def popular(self, request):
-        """Get the most popular plan (professional)."""
-        popular_plan = SubscriptionPlan.objects.filter(
-            plan_type='professional',
-            is_active=True
-        ).first()
-        
-        if not popular_plan:
-            return Response(
-                {'error': 'Popular plan not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        serializer = PlanDetailSerializer(popular_plan, context={'request': request})
+    def list(self, request, *args, **kwargs):
+        cache_key = f"plans_list_{request.user.id}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, 300)
+        return response
+    
+    @action(detail=True, methods=['post'], url_path='sync-to-paystack')
+    def sync_to_paystack(self, request, pk=None):
+        plan = self.get_object()
+        service = DynamicPlanManagementService()
+        service._sync_to_paystack(plan)
+        return Response({'status': 'synced', 'plan_code': plan.paystack_plan_code})
+    
+    @action(detail=False, methods=['get'], url_path='public')
+    def public_plans(self, request):
+        cache_key = 'public_plans_v2'
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+        plans = SubscriptionPlan.objects.filter(is_active=True, is_deleted=False).exclude(plan_type='trial').order_by('display_order', 'price')
+        serializer = PlanDetailSerializer(plans, many=True)
+        cache.set(cache_key, serializer.data, 3600)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['post'])
-    def compare(self, request):
-        """
-        Compare multiple plans.
-        Expected payload: {"plan_ids": ["id1", "id2", ...]}
-        """
-        plan_ids = request.data.get('plan_ids', [])
-        
-        if not plan_ids:
-            return Response(
-                {'error': 'plan_ids required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if len(plan_ids) > 5:
-            return Response(
-                {'error': 'Cannot compare more than 5 plans at once'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        plans = SubscriptionPlan.objects.filter(id__in=plan_ids, is_active=True)
-        
-        if len(plans) != len(plan_ids):
-            return Response(
-                {'error': 'One or more plans not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        serializer = PlanSerializer(plans, many=True, context={'request': request})
-        
-        # Generate comparison data
-        comparison = {
-            'plans': serializer.data,
-            'features_matrix': self._build_features_matrix(plans)
-        }
-        
-        return Response(comparison)
-    
-    def _build_features_matrix(self, plans):
-        """Build feature comparison matrix."""
-        features = [
-            'max_users', 'max_kpis', 'custom_branding', 'api_access',
-            'sso_enabled', 'advanced_analytics', 'audit_logs',
-            'custom_reports', 'priority_support'
-        ]
-        
-        matrix = []
-        for feature in features:
-            row = {
-                'feature': feature,
-                'label': feature.replace('_', ' ').title(),
-                'plans': {}
-            }
+    @action(detail=False, methods=['get'], url_path='comparison')
+    def plan_comparison(self, request):
+        try:
+            plans = SubscriptionPlan.objects.filter(is_active=True, is_deleted=False).exclude(plan_type='trial').order_by('display_order', 'price')
+            result = []
             for plan in plans:
-                if feature in ['max_users', 'max_kpis']:
-                    value = getattr(plan, feature)
-                    row['plans'][str(plan.id)] = 'Unlimited' if value == -1 else value
+                # Get features safely
+                if hasattr(plan, 'features_list_display'):
+                    features = plan.features_list_display
+                elif plan.features_list:
+                    features = plan.features_list
                 else:
-                    row['plans'][str(plan.id)] = getattr(plan, feature, False)
-            matrix.append(row)
-        
-        return matrix
-    
-    def perform_create(self, serializer):
-        """Create plan with audit logging."""
-        instance = serializer.save()
-        audit_logger.log(
-            user=self.request.user,
-            tenant_id=self.request.user.tenant_id,
-            action='create',
-            resource_type='plan',
-            resource_id=instance.id,
-            after={'name': instance.name, 'plan_type': instance.plan_type},
-            request=self.request
-        )
-    
-    def perform_update(self, serializer):
-        """Update plan with audit logging."""
-        before = self.get_object()
-        instance = serializer.save()
-        audit_logger.log_model_change(
-            user=self.request.user,
-            instance=instance,
-            action='update',
-            before_state={'name': before.name, 'price': before.price},
-            request=self.request
-        )
-    
-    def perform_destroy(self, instance):
-        """Delete plan with audit logging."""
-        audit_logger.log(
-            user=self.request.user,
-            tenant_id=self.request.user.tenant_id,
-            action='delete',
-            resource_type='plan',
-            resource_id=instance.id,
-            before={'name': instance.name, 'plan_type': instance.plan_type},
-            request=self.request
-        )
-        instance.soft_delete()
+                    features = []
+                
+                result.append({
+                    'id': str(plan.id),
+                    'name': plan.name,
+                    'plan_type': plan.plan_type,
+                    'price_monthly': plan.price,
+                    'price_monthly_display': f"{plan.currency} {plan.price/100:.2f}",
+                    'price_yearly': plan.yearly_price,
+                    'price_yearly_display': f"{plan.currency} {plan.yearly_price/100:.2f}" if plan.yearly_price else None,
+                    'max_users': plan.max_users,
+                    'max_kpis': plan.max_kpis,
+                    'features': features,
+                    'is_popular': plan.plan_type == 'professional'
+                })
+            return Response(result)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e), 'traceback': traceback.format_exc()}, status=500)

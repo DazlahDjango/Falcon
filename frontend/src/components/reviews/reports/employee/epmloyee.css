@@ -1,0 +1,423 @@
+/* src/components/reviews/reports/employee/employee.css */
+
+.employee-report {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.employee-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.employee-report-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.employee-report-back:hover {
+  color: #1a1a2e;
+}
+
+.employee-report-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.employee-report-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.employee-report-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.employee-report-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.employee-report-header-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.employee-report-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.employee-report-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.employee-report-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.employee-report-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.employee-report-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Employee Summary */
+.employee-summary-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.employee-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.employee-summary-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.employee-summary-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+}
+
+.employee-summary-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-summary-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.employee-summary-stat-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.employee-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.employee-summary-section {
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.employee-summary-section.full {
+  grid-column: 1 / -1;
+}
+
+.employee-summary-section-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.employee-summary-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.employee-summary-section-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.employee-summary-section-date {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.employee-summary-section-text {
+  font-size: 14px;
+  color: #374151;
+  margin: 4px 0;
+  white-space: pre-wrap;
+}
+
+.employee-summary-section-empty {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.employee-summary-section-rating {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+}
+
+.employee-summary-section-recommendation {
+  font-size: 13px;
+  font-weight: 500;
+  color: #8b5cf6;
+}
+
+.employee-summary-section-scores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.employee-summary-section-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  background: white;
+  border-radius: 4px;
+}
+
+.employee-summary-section-score.highlight {
+  background: #dbeafe;
+}
+
+.employee-summary-section-score-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.employee-summary-section-score-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.employee-summary-section-promotion {
+  font-size: 13px;
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.employee-summary-section-pip {
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* Employee Review Timeline */
+.employee-review-timeline-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.employee-review-timeline-empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.employee-review-timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.employee-review-timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.employee-review-timeline-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.employee-review-timeline-item-content {
+  flex: 1;
+}
+
+.employee-review-timeline-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.employee-review-timeline-item-event {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.employee-review-timeline-item-date {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.employee-review-timeline-item-status {
+  margin-top: 4px;
+}
+
+/* Employee Competency Comparison */
+.employee-competency-comparison-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.employee-competency-comparison-empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.employee-competency-comparison-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fef3c7;
+  border-radius: 6px;
+  color: #92400e;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.employee-competency-comparison-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.employee-competency-comparison-item {
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.employee-competency-comparison-item.needs-discussion {
+  background: #fef3c7;
+}
+
+.employee-competency-comparison-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.employee-competency-comparison-item-name {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.employee-competency-comparison-item-gap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.employee-competency-comparison-item-scores {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.employee-competency-comparison-item-discussion {
+  font-size: 12px;
+  color: #92400e;
+  margin-top: 2px;
+}
+
+@media (max-width: 1024px) {
+  .employee-report-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .employee-summary-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .employee-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .employee-summary-section-scores {
+    grid-template-columns: 1fr;
+  }
+}

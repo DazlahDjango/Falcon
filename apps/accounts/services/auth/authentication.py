@@ -57,7 +57,14 @@ class AuthenticationService:
                     ip_address=ip_address, user_agent=user_agent
                 )
                 return None, None, 'Account is inactive. Please contact administrator.'
-            if AccountsPolicyService.tenant_requires_mfa(user) and not user.mfa_enabled:
+            if user.mfa_enabled:
+                LoginAttempt.record_attempt(
+                    identifier=email, user=user, result='success',
+                    request=request, ip_address=ip_address, user_agent=user_agent
+                )
+                partial_token = self.jwt_service.create_mfa_token(user)
+                return user, {'requires_mfa': True, 'mfa_token': partial_token}, None
+            if AccountsPolicyService.user_requires_mfa(user):
                 LoginAttempt.record_attempt(
                     identifier=email, user=user, result='failure',
                     failure_reason='mfa_required', request=request,
@@ -67,13 +74,10 @@ class AuthenticationService:
                     'Multi-factor authentication is required for your role. '
                     'Please enroll MFA before signing in.'
                 )
-            if user.mfa_enabled or AccountsPolicyService.tenant_requires_mfa(user):
-                LoginAttempt.record_attempt(
-                    identifier=email, user=user, result='success',
-                    request=request, ip_address=ip_address, user_agent=user_agent
-                )
-                partial_token = self.jwt_service.create_mfa_token(user)
-                return user, {'requires_mfa': True, 'mfa_token': partial_token}, None
+            LoginAttempt.record_attempt(
+                identifier=email, user=user, result='success',
+                request=request, ip_address=ip_address, user_agent=user_agent
+            )
             return self._complete_authentication(user, ip_address, user_agent, request)
         except Exception as e:
             logger.error(f"Authentication error for {email}: {str(e)}", exc_info=True)

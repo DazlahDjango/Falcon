@@ -1,10 +1,11 @@
 import React from 'react';
+import { FiStar } from 'react-icons/fi';
+import './payment-methods.css';
 
 export const DefaultPaymentMethodBadge = () => {
     return (
-        <span className="default-payment-badge">
-            <span className="default-payment-icon">⭐</span>
-            Default
+        <span className="default-badge">
+            <FiStar /> Default
         </span>
     );
 };

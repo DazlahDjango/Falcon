@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCycles } from '../../hooks/reviews';
-import { CycleList, CycleForm } from '../../components/reviews/cycle';
+import { CycleList, CycleForm } from '../../components/reviews/cycles';
 import { REVIEW_ROUTES } from '../../config/constants';
 
 const CyclesPage = () => {

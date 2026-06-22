@@ -1,36 +1,59 @@
 // src/services/reviews/index.js
-// Export all review services
+// Main exports for all Reviews services
 
 // Base
-export { ReviewsBaseService, apiClient } from './reviewsBase.service';
+export { BaseReviewsService, reviewsApiClient, withRetry } from './reviewsBase.service';
 
-// Core Services
+// Rating Scales
 export { ratingScaleService } from './ratingScale.service';
-export { competencyService, competencyCategoryService, competencyRatingService } from './competency.service';
-export { coefficientService } from './coefficient.service';
-export { reviewTemplateService } from './reviewTemplate.service';
-export { cycleService } from './cycle.service';
+
+// Competencies
+export { competencyCategoryService, competencyService, competencyRatingService } from './competency.service';
+
+// Review Cycles
+export { reviewCycleService } from './cycle.service';
+
+// Self Assessments
 export { selfAssessmentService } from './selfAssessment.service';
+
+// Supervisor Reviews
 export { supervisorReviewService } from './supervisorReview.service';
+
+// Final Ratings
 export { finalRatingService } from './finalRating.service';
 
-// PIP Services
+// PIPs
 export { pipService, pipActionService, pipReviewService } from './pip.service';
 
-// Feedback Services
+// 360 Feedback
 export { feedbackRequestService, feedbackResponseService, feedbackSummaryService } from './feedback.service';
 
-// Calibration Services
-export { calibrationSessionService, calibrationRatingService, calibrationCommentService } from './calibration.service';
+// Calibration
+export { calibrationSessionService, calibrationRatingService } from './calibration.service';
 
-// Utility Services
-export { reviewCommentService } from './reviewComment.service';
+// Coefficients
+export { coefficientService } from './coefficient.service';
+
+// Comments
+export { reviewCommentService } from './comment.service';
+
+// Promotions
 export { promotionService } from './promotion.service';
-export { reportService } from './report.service';
 
-// Analytics & Prediction Services
-export { analyticsService } from './analytics.service';
-export { analyticsDashboardService } from './analyticsDashboard.service';
-export { analyticsExportService } from './analyticsExport.service';
-export { insightService } from './insight.service';
-export { predictionService } from './prediction.service';
+// Templates
+export { reviewTemplateService } from './template.service';
+
+// Dashboards
+export { reviewsDashboardService } from './dashboard.service';
+
+// Reports
+export { reviewsReportService } from './report.service';
+
+// Health & System
+export { reviewsHealthService } from './health.service';
+
+// System Settings
+export { reviewsSystemSettingsService } from './systemSettings.service';
+
+// Reference Data
+export { reviewsReferenceDataService } from './referenceData.service';

@@ -19,7 +19,7 @@ const initialState = {
     },
   },
   // Network status
-  isOnline: navigator.onLine,
+  isOnline: import.meta.env.DEV ? true : navigator.onLine,
   // Last activity timestamp
   lastActivity: Date.now(),
 };

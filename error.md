@@ -1,8 +1,9 @@
-Hello
-Look at those picture
-1. Help me to style that kpi page/file
-2. There's a middleware I don't know its which one but its so guarded or I don't know it's not a middleware.
-Yesterday we bypassed viewing when you're super_admin, and it passed, I could see all the dashboards, but now all the actions that were working they need payment now, I don't know its billing middlewares, contexts or what are those, please help me with that, make sure in all middleware, the following bypasses everythin
-a. Any role with super_admin
-b. Any is_superuser=True
-those two they need to bypass all the limits, either in backend middleware or frontend both context, middleware and any file that is limiting this
+Hello theya, I want you to help me with fixing something here.
+
+my reviews app slice files, I'm not sure they are okay. i wanted to export them as default like the other app's slices. I've been trying to work on it and I changed some, but you can get one file we that has more than one func/class slices
+
+# Requirements 
+1. Read the hooks/reviews/** to see how they imported the slices
+2. Read the store/reviews/index.js
+4. Read the store/reviews/slices/index.js
+5. Read the store/reviews/slices/**

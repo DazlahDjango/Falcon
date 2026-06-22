@@ -15,6 +15,11 @@ class PartialMaintenanceBlockerMiddleware(MiddlewareMixin):
     }
     
     def process_request(self, request):
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+                return None
+
         mode = MaintenanceMode()
         if mode.is_active() and mode.get_type() == 'partial':
             affected_apps = mode.get_affected_apps()

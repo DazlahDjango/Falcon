@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -22,6 +23,7 @@ from apps.accounts.constants import PREDEFINED_PERMISSIONS_DATA
 from apps.accounts.services import TenantRegistrationService, AuditService, JWTServices, PasswordService
 from apps.accounts.tasks import send_password_reset_email
 from .base import BaseModelViewset
+logger = logging.getLogger(__name__)
 
 class AdminUserViewSet(BaseModelViewset):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -260,10 +262,43 @@ class AdminSystemView(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='health')
     def health(self, request):
+        """Get system health status - FIXED without external dependency"""
         try:
-            from apps.tenant.services.monitoring.health_check import HealthCheck
-            checker = HealthCheck()
-            health_data = checker.check_system_health()
-            return Response(health_data, status=status.HTTP_200_OK)
+            import platform
+            import sys
+            from django.db import connections
+            from django.core.cache import cache
+            
+            # Check database
+            db_status = 'healthy'
+            try:
+                connections['default'].cursor()
+            except Exception as e:
+                db_status = f'unhealthy: {str(e)}'
+            
+            # Check cache
+            cache_status = 'healthy'
+            try:
+                cache.set('health_check', 'ok', 5)
+                if cache.get('health_check') != 'ok':
+                    cache_status = 'unhealthy'
+            except Exception as e:
+                cache_status = f'unhealthy: {str(e)}'
+            
+            return Response({
+                'status': 'healthy' if db_status == 'healthy' and cache_status == 'healthy' else 'degraded',
+                'timestamp': timezone.now().isoformat(),
+                'database': db_status,
+                'cache': cache_status,
+                'python_version': sys.version,
+                'platform': platform.platform(),
+                'uptime': 'unknown'
+            }, status=status.HTTP_200_OK)
+            
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"Health check failed: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'unhealthy',
+                'error': str(e),
+                'timestamp': timezone.now().isoformat()
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

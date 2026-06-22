@@ -1,102 +1,96 @@
 // src/services/reviews/cycle.service.js
-// Handles all review cycle API calls
+// Review Cycle API service
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+import { BaseReviewsService } from './reviewsBase.service';
 
-class CycleService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEWS_API.CYCLES);
-    }
+class ReviewCycleService extends BaseReviewsService {
+  constructor() {
+    super('cycles');
+  }
 
-    /**
-     * Activate a review cycle
-     * @param {string|number} id - Cycle ID
-     * @returns {Promise<Object>} Activated cycle
-     */
-    async activate(id) {
-        const response = await apiClient.post(REVIEWS_API.CYCLE_ACTIVATE(id));
-        return response.data;
-    }
+  async activate(id) {
+    return this.action(id, 'activate');
+  }
 
-    /**
-     * Close a review cycle
-     * @param {string|number} id - Cycle ID
-     * @returns {Promise<Object>} Closed cycle
-     */
-    async close(id) {
-        const response = await apiClient.post(REVIEWS_API.CYCLE_CLOSE(id));
-        return response.data;
-    }
+  async freeze(id) {
+    return this.action(id, 'freeze');
+  }
 
-    /**
-     * Archive a review cycle
-     * @param {string|number} id - Cycle ID
-     * @returns {Promise<Object>} Archived cycle
-     */
-    async archive(id) {
-        const response = await apiClient.post(REVIEWS_API.CYCLE_ARCHIVE(id));
-        return response.data;
-    }
+  async complete(id) {
+    return this.action(id, 'complete');
+  }
 
-    /**
-     * Get cycle progress statistics
-     * @param {string|number} id - Cycle ID
-     * @returns {Promise<Object>} Progress stats
-     */
-    async getProgress(id) {
-        const response = await apiClient.get(REVIEWS_API.CYCLE_PROGRESS(id));
-        return response.data;
-    }
+  async forceComplete(id) {
+    return this.action(id, 'force_complete');
+  }
 
-    /**
-     * Get current active cycle
-     * @returns {Promise<Object>} Active cycle
-     */
-    async getActive() {
-        const response = await apiClient.get(REVIEWS_API.CYCLES_ACTIVE);
-        return response.data;
-    }
+  async archive(id) {
+    return this.action(id, 'archive');
+  }
 
-    /**
-     * Get upcoming cycles
-     * @returns {Promise<Array>} List of upcoming cycles
-     */
-    async getUpcoming() {
-        const response = await apiClient.get(REVIEWS_API.CYCLES_UPCOMING);
-        return response.data;
-    }
+  async unarchive(id) {
+    return this.action(id, 'unarchive');
+  }
 
-    /**
-     * Get cycles the current user participates in
-     * @returns {Promise<Array>} List of user's cycles
-     */
-    async getMyCycles() {
-        const response = await apiClient.get(REVIEWS_API.CYCLES_MY);
-        return response.data;
-    }
+  async extend(id, newEndDate, reason) {
+    return this.action(id, 'extend', { new_end_date: newEndDate, reason });
+  }
 
-    /**
-     * Add competencies to a cycle with weights
-     * @param {string|number} id - Cycle ID
-     * @param {Array} competencies - Array of {competency_id, weight}
-     * @returns {Promise<Object>} Updated cycle
-     */
-    async addCompetencies(id, competencies) {
-        const response = await apiClient.post(`${REVIEWS_API.CYCLE_DETAIL(id)}/competencies/`, { competencies });
-        return response.data;
-    }
+  async getProgress(id) {
+    const response = await this.apiClient.get(`/cycles/${id}/progress/`);
+    return response.data;
+  }
 
-    /**
-     * Remove a competency from a cycle
-     * @param {string|number} cycleId - Cycle ID
-     * @param {string|number} competencyId - Competency ID
-     * @returns {Promise<Object>} Deletion confirmation
-     */
-    async removeCompetency(cycleId, competencyId) {
-        const response = await apiClient.delete(`${REVIEWS_API.CYCLE_DETAIL(cycleId)}/competencies/${competencyId}/`);
-        return response.data;
-    }
+  async getParticipants(id) {
+    const response = await this.apiClient.get(`/cycles/${id}/participants/`);
+    return response.data;
+  }
+
+  async getSummary(id) {
+    const response = await this.apiClient.get(`/cycles/${id}/summary/`);
+    return response.data;
+  }
+
+  async getActive() {
+    const response = await this.apiClient.get('/cycles/active/');
+    return response.data;
+  }
+
+  async getUpcoming() {
+    const response = await this.apiClient.get('/cycles/upcoming/');
+    return response.data;
+  }
+
+  async getCompleted() {
+    const response = await this.apiClient.get('/cycles/completed/');
+    return response.data;
+  }
+
+  async getArchived() {
+    const response = await this.apiClient.get('/cycles/archived/');
+    return response.data;
+  }
+
+  async getMyCycles() {
+    const response = await this.apiClient.get('/cycles/my_cycles/');
+    return response.data;
+  }
+
+  async getByYear(year) {
+    const response = await this.apiClient.get(`/cycles/by-year/${year}/`);
+    return response.data;
+  }
+
+  async filterByDateRange(dateFrom, dateTo, cycleType, status) {
+    const response = await this.apiClient.post('/cycles/date_range/', {
+      date_from: dateFrom,
+      date_to: dateTo,
+      cycle_type: cycleType,
+      status,
+    });
+    return response.data;
+  }
 }
 
-export const cycleService = new CycleService();
+export const reviewCycleService = new ReviewCycleService();
+export default reviewCycleService;

@@ -10,6 +10,8 @@ from .audit import AuditLogger, AuditReporter, ComplianceChecker
 from .report import ReportGenerator
 from .settings import KpiSettingsService
 from .realtime import KPIEventBroadcaster
+from .validator import ValidationService
+from .sync import DataSyncService
 
 __all__ = [
     'KPICreator', 'KPIUpdater', 'KPIActivator', 'KPIValidator', 'KPIImportExport',
@@ -24,4 +26,6 @@ __all__ = [
     'ReportGenerator',
     'KpiSettingsService',
     'KPIEventBroadcaster',
+    'ValidationService',
+    'DataSyncService'
 ]

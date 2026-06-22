@@ -8,25 +8,19 @@ from .calculation import Score, AggregatedScore, TrafficLight, Trend, Calculatio
 from .cascade import CascadeMap, CascadeRule, CascadeHistory
 from .analytics import KPISummary, DepartmentRollup, OrganizationHealth, RefreshTracker
 from .system_settings import KpiSystemSettings
+from .report import ReportTask
+from .backup import BackupRecord
+from .notification import NotificationPreference
 
 __all__ = [
-    # Base
     'BaseKPIModel', 'TimeStampedModel', 'SoftDeleteModel',
-    # Framework
     'Sector', 'KPIFramework', 'KPICategory', 'KPITemplate',
-    # Definition
     'KPI', 'KPIHistory', 'KPIWeight', 'StrategicLinkage', 'KPIDependency',
-    # Target
     'AnnualTarget', 'MonthlyPhasing', 'PhasingLock', 'TargetHistory',
-    # Actual
     'MonthlyActual', 'ActualHistory', 'ActualAdjustment', 'Evidence',
-    # Validation
     'ValidationRecord', 'ValidationComment', 'RejectionReason', 'Escalation',
-    # Calculation
     'Score', 'AggregatedScore', 'TrafficLight', 'Trend', 'CalculationLog',
-    # Cascade
     'CascadeMap', 'CascadeRule', 'CascadeHistory',
-    # Analytics
     'KPISummary', 'DepartmentRollup', 'OrganizationHealth', 'RefreshTracker',
-    'KpiSystemSettings',
+    'KpiSystemSettings', 'ReportTask', 'BackupRecord', 'NotificationPreference',
 ]

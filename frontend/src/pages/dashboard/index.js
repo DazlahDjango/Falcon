@@ -2,65 +2,75 @@
 
 // ==================== EXECUTIVE DASHBOARD ====================
 export { default as ExecutiveDashboard } from './ExecutiveDashboard/ExecutiveDashboard';
-export { ExecutiveDashboardHeader } from './ExecutiveDashboard/ExecutiveDashboardHeader';
-export { ExecutiveOverview } from './ExecutiveDashboard/ExecutiveOverview';
-export { ExecutiveDepartments } from './ExecutiveDashboard/ExecutiveDepartments';
-export { ExecutiveTrends } from './ExecutiveDashboard/ExecutiveTrends';
-export { ExecutiveAlerts } from './ExecutiveDashboard/ExecutiveAlerts';
-export { ExecutiveReports } from './ExecutiveDashboard/ExecutiveReports';
+export { default as ExecutiveDashboardHeader } from './ExecutiveDashboard/ExecutiveDashboardHeader';
+export { default as ExecutiveOverview } from './ExecutiveDashboard/ExecutiveOverview';
+export { default as ExecutiveDepartments } from './ExecutiveDashboard/ExecutiveDepartments';
+export { default as ExecutiveTrends } from './ExecutiveDashboard/ExecutiveTrends';
+export { default as ExecutiveAlerts } from './ExecutiveDashboard/ExecutiveAlerts';
+export { default as ExecutiveReports } from './ExecutiveDashboard/ExecutiveReports';
 
 // ==================== CLIENT ADMIN DASHBOARD ====================
 export { default as ClientAdminDashboard } from './ClientAdminDashboard/ClientAdminDashboard';
-export { TenantOverview } from './ClientAdminDashboard/TenantOverview';
-export { CompliancePanel } from './ClientAdminDashboard/CompliancePanel';
-export { PendingApprovalsPanel } from './ClientAdminDashboard/PendingApprovalsPanel';
-export { MissingDataPanel } from './ClientAdminDashboard/MissingDataPanel';
-export { KpiBreakdownPanel } from './ClientAdminDashboard/KpiBreakdownPanel';
-export { UserActivityPanel } from './ClientAdminDashboard/UserActivityPanel';
-export { SettingsPanel } from './ClientAdminDashboard/SettingsPanel';
+export { default as TenantOverview } from './ClientAdminDashboard/TenantOverview';
+export { default as CompliancePanel } from './ClientAdminDashboard/CompliancePanel';
+export { default as PendingApprovalsPanel } from './ClientAdminDashboard/PendingApprovalsPanel';
+export { default as MissingDataPanel } from './ClientAdminDashboard/MissingDataPanel';
+export { default as KpiBreakdownPanel } from './ClientAdminDashboard/KpiBreakdownPanel';
+export { default as UserActivityPanel } from './ClientAdminDashboard/UserActivityPanel';
+export { default as SettingsPanel } from './ClientAdminDashboard/SettingsPanel';
 
 // ==================== SUPER ADMIN DASHBOARD ====================
 export { default as SuperAdminDashboard } from './SuperAdminDashboard/SuperAdminDashboard';
-export { PlatformOverview } from './SuperAdminDashboard/PlatformOverview';
-export { TenantsTable } from './SuperAdminDashboard/TenantsTable';
-export { TenantDetailModal } from './SuperAdminDashboard/TenantDetailModal';
-export { SystemHealthPanel } from './SuperAdminDashboard/SystemHealthPanel';
-export { SubscriptionAlerts } from './SuperAdminDashboard/SubscriptionAlerts';
-export { PlatformMetrics } from './SuperAdminDashboard/PlatformMetrics';
-export { BillingOverview } from './SuperAdminDashboard/BillingOverview';
+export { default as SuperAdminDashboardCustom } from './SuperAdminDashboard/SuperAdminDashboardCustom';
+export { default as PlatformOverview } from './SuperAdminDashboard/PlatformOverview';
+export { default as TenantsTable } from './SuperAdminDashboard/TenantsTable';
+export { default as TenantDetailModal } from './SuperAdminDashboard/TenantDetailModal';
+export { default as SystemHealthPanel } from './SuperAdminDashboard/SystemHealthPanel';
+export { default as SubscriptionAlerts } from './SuperAdminDashboard/SubscriptionAlerts';
+export { default as PlatformMetrics } from './SuperAdminDashboard/PlatformMetrics';
+export { default as BillingOverview } from './SuperAdminDashboard/BillingOverview';
+export { default as SuperAdminTenants } from './SuperAdminDashboard/SuperAdminTenants';
+export { default as SuperAdminSystemHealth } from './SuperAdminDashboard/SuperAdminSystemHealth';
+export { default as SuperAdminSubscriptions } from './SuperAdminDashboard/SuperAdminSubscriptions';
+export { default as SuperAdminBilling } from './SuperAdminDashboard/SuperAdminBilling';
+export { default as SuperAdminPlatformMetrics } from './SuperAdminDashboard/SuperAdminPlatformMetrics';
+export { default as SuperAdminAuditLogs } from './SuperAdminDashboard/SuperAdminAuditLogs';
+export { default as SuperAdminReports } from './SuperAdminDashboard/SuperAdminReports';
+export { default as SuperAdminExports } from './SuperAdminDashboard/SuperAdminExports';
+export { default as SuperAdminSettings } from './SuperAdminDashboard/SuperAdminSettings';
 
 // ==================== MANAGER DASHBOARD ====================
 export { default as ManagerDashboard } from './ManagerDashboard/ManagerDashboard';
-export { ManagerDashboardHeader } from './ManagerDashboard/ManagerDashboardHeader';
-export { TeamOverview } from './ManagerDashboard/TeamOverview';
-export { TeamMembersTable } from './ManagerDashboard/TeamMembersTable';
-export { PendingApprovalsPanel as ManagerPendingApprovalsPanel } from './ManagerDashboard/PendingApprovalsPanel';
-export { TeamPerformanceChart } from './ManagerDashboard/TeamPerformanceChart';
-export { ApprovalsHistory } from './ManagerDashboard/ApprovalsHistory';
+export { default as ManagerDashboardHeader } from './ManagerDashboard/ManagerDashboardHeader';
+export { default as TeamOverview } from './ManagerDashboard/TeamOverview';
+export { default as TeamMembersTable } from './ManagerDashboard/TeamMembersTable';
+export { default as ManagerPendingApprovalsPanel } from './ManagerDashboard/PendingApprovalsPanel';
+export { default as TeamPerformanceChart } from './ManagerDashboard/TeamPerformanceChart';
+export { default as ApprovalsHistory } from './ManagerDashboard/ApprovalsHistory';
 
 // ==================== STAFF DASHBOARD ====================
 export { default as StaffDashboard } from './StaffDashboard/StaffDashboard';
-export { StaffDashboardHeader } from './StaffDashboard/StaffDashboardHeader';
-export { MyKPIsPanel } from './StaffDashboard/MyKPIsPanel';
-export { MissionStatusPanel } from './StaffDashboard/MissionStatusPanel';
-export { PendingTasksPanel } from './StaffDashboard/PendingTasksPanel';
-export { SubmissionHistory } from './StaffDashboard/SubmissionHistory';
-export { PerformanceTrends } from './StaffDashboard/PerformanceTrends';
+export { default as StaffDashboardHeader } from './StaffDashboard/StaffDashboardHeader';
+export { default as MyKPIsPanel } from './StaffDashboard/MyKPIsPanel';
+export { default as MissionStatusPanel } from './StaffDashboard/MissionStatusPanel';
+export { default as PendingTasksPanel } from './StaffDashboard/PendingTasksPanel';
+export { default as SubmissionHistory } from './StaffDashboard/SubmissionHistory';
+export { default as PerformanceTrends } from './StaffDashboard/PerformanceTrends';
 
 // ==================== CHAMPION DASHBOARD ====================
 export { default as ChampionDashboard } from './ChampionDashboard/ChampionDashboard';
-export { ChampionDashboardHeader } from './ChampionDashboard/ChampionDashboardHeader';
-export { DashboardConfigPanel } from './ChampionDashboard/DashboardConfigPanel';
-export { KPIAssignmentPanel } from './ChampionDashboard/KPIAssignmentPanel';
-export { TargetSettingsPanel } from './ChampionDashboard/TargetSettingsPanel';
-export { TemplateLibrary } from './ChampionDashboard/TemplateLibrary';
-export { BulkAssignPanel } from './ChampionDashboard/BulkAssignPanel';
+export { default as ChampionDashboardHeader } from './ChampionDashboard/ChampionDashboardHeader';
+export { default as DashboardConfigPanel } from './ChampionDashboard/DashboardConfigPanel';
+export { default as KPIAssignmentPanel } from './ChampionDashboard/KPIAssignmentPanel';
+export { default as TargetSettingsPanel } from './ChampionDashboard/TargetSettingsPanel';
+export { default as TemplateLibrary } from './ChampionDashboard/TemplateLibrary';
+export { default as BulkAssignPanel } from './ChampionDashboard/BulkAssignPanel';
 
 // ==================== READ-ONLY DASHBOARD ====================
 export { default as ReadOnlyDashboard } from './ReadOnlyDashboard/ReadOnlyDashboard';
-export { ReadOnlyDashboardHeader } from './ReadOnlyDashboard/ReadOnlyDashboardHeader';
-export { ViewSelector } from './ReadOnlyDashboard/ViewSelector';
-export { ExecutiveViewPanel } from './ReadOnlyDashboard/ExecutiveViewPanel';
-export { ManagerViewPanel } from './ReadOnlyDashboard/ManagerViewPanel';
-export { StaffViewPanel } from './ReadOnlyDashboard/StaffViewPanel';
-export { ExportPanel } from './ReadOnlyDashboard/ExportPanel';
+export { default as ReadOnlyDashboardHeader } from './ReadOnlyDashboard/ReadOnlyDashboardHeader';
+export { default as ViewSelector } from './ReadOnlyDashboard/ViewSelector';
+export { default as ExecutiveViewPanel } from './ReadOnlyDashboard/ExecutiveViewPanel';
+export { default as ManagerViewPanel } from './ReadOnlyDashboard/ManagerViewPanel';
+export { default as StaffViewPanel } from './ReadOnlyDashboard/StaffViewPanel';
+export { default as ExportPanel } from './ReadOnlyDashboard/ExportPanel';

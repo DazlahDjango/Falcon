@@ -1,29 +1,43 @@
-import React, { useState, useRef, useEffect  } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Spinner from '../../../common/UI/Spinner';
 
 const MFASetupForm = ({ onSubmit, isLoading }) => {
-    const [otp ,setOtp] = useState(['', '', '', '', '', '']);
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const inputRefs = useRef([]);
+
     useEffect(() => {
         if (inputRefs.current[0]) {
             inputRefs.current[0].focus();
         }
     }, []);
+
     const handleChange = (index, value) => {
         if (value.length > 1) return;
         if (!/^\d*$/.test(value)) return;
+        
         const newOtp = [...otp];
         newOtp[index] = value;
         setOtp(newOtp);
+        
         if (value && index < 5) {
             inputRefs.current[index + 1].focus();
         }
     };
+
     const handleKeyDown = (index, e) => {
         if (e.key === 'Backspace' && !otp[index] && index > 0) {
             inputRefs.current[index - 1].focus();
         }
     };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const code = otp.join('');
+        if (code.length === 6) {
+            onSubmit(code);
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit} className="mfa-verify-form">
             <h4>Verify Setup</h4>
@@ -45,10 +59,15 @@ const MFASetupForm = ({ onSubmit, isLoading }) => {
                 ))}
             </div>
             
-            <button type="submit" className="btn btn-primary" disabled={isLoading || otp.join('').length !== 6}>
+            <button 
+                type="submit" 
+                className="btn btn-primary" 
+                disabled={isLoading || otp.join('').length !== 6}
+            >
                 {isLoading ? <Spinner size="sm" /> : 'Verify and Enable'}
             </button>
         </form>
     );
 };
+
 export default MFASetupForm;

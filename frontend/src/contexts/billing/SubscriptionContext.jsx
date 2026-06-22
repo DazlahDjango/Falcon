@@ -12,6 +12,7 @@ export const useSubscriptionContext = () => {
 };
 
 export const SubscriptionProvider = ({ children }) => {
+    // FIX: Get the correct functions from useSubscription
     const {
         subscription,
         loading,
@@ -20,85 +21,87 @@ export const SubscriptionProvider = ({ children }) => {
         isOnTrial,
         trialDaysRemaining,
         daysUntilExpiry,
-        canUpgrade,
-        canDowngrade,
-        canCancel,
-        canRenew,
-        status,
-        plan,
+        planType,
         autoRenew,
         cancelAtPeriodEnd,
         currentPeriodEnd,
-        fetchSubscription,
-        cancelSubscription,
-        renewSubscription,
-        upgradePlan,
-        downgradePlan,
-        updateAutoRenew,
+        fetchCurrent,        // ← This is the correct function name
+        cancel,
+        renew,
+        upgrade,
+        downgrade,
+        updateSettings,
+        fetchUsage,
     } = useSubscription();
 
     const [lastRefresh, setLastRefresh] = useState(null);
     const [pendingAction, setPendingAction] = useState(null);
 
-    // Refresh subscription data
+    // Refresh subscription data - FIX: use fetchCurrent
     const refresh = useCallback(async () => {
-        await fetchSubscription(true);
+        await fetchCurrent();
         setLastRefresh(new Date());
-    }, [fetchSubscription]);
+    }, [fetchCurrent]);
+
+    // Can upgrade/downgrade based on plan type
+    const canUpgrade = planType === 'basic' || planType === 'professional';
+    const canDowngrade = planType === 'professional' || planType === 'enterprise';
+    const canCancel = isActive && !cancelAtPeriodEnd;
+    const canRenew = !autoRenew && isActive && daysUntilExpiry <= 7;
 
     // Handle upgrade with loading state
     const handleUpgrade = useCallback(async (planId, immediate = true) => {
         setPendingAction('upgrade');
         try {
-            await upgradePlan(planId, immediate);
+            await upgrade(planId, immediate);
             await refresh();
             return true;
         } finally {
             setPendingAction(null);
         }
-    }, [upgradePlan, refresh]);
+    }, [upgrade, refresh]);
 
     // Handle downgrade with loading state
     const handleDowngrade = useCallback(async (planId, immediate = false) => {
         setPendingAction('downgrade');
         try {
-            await downgradePlan(planId, immediate);
+            await downgrade(planId, immediate);
             await refresh();
             return true;
         } finally {
             setPendingAction(null);
         }
-    }, [downgradePlan, refresh]);
+    }, [downgrade, refresh]);
 
     // Handle cancellation with loading state
     const handleCancel = useCallback(async (atPeriodEnd = true, reason = '') => {
         setPendingAction('cancel');
         try {
-            await cancelSubscription(atPeriodEnd, reason);
+            await cancel(atPeriodEnd, reason);
             await refresh();
             return true;
         } finally {
             setPendingAction(null);
         }
-    }, [cancelSubscription, refresh]);
+    }, [cancel, refresh]);
 
     // Handle renewal
     const handleRenew = useCallback(async (paymentMethodId = null) => {
         setPendingAction('renew');
         try {
-            await renewSubscription(paymentMethodId);
+            await renew(paymentMethodId);
             await refresh();
             return true;
         } finally {
             setPendingAction(null);
         }
-    }, [renewSubscription, refresh]);
+    }, [renew, refresh]);
 
     // Handle auto-renew toggle
     const handleAutoRenewToggle = useCallback(async (value) => {
-        await updateAutoRenew(value);
+        await updateSettings(value);
         await refresh();
-    }, [updateAutoRenew, refresh]);
+    }, [updateSettings, refresh]);
 
     // Auto-refresh on mount and periodically
     useEffect(() => {
@@ -128,19 +131,25 @@ export const SubscriptionProvider = ({ children }) => {
         canDowngrade,
         canCancel,
         canRenew,
-        status,
-        plan,
+        status: subscription?.status,
+        plan: subscription?.plan,
         autoRenew,
         cancelAtPeriodEnd,
         currentPeriodEnd,
         
         // Actions
         refresh,
+        fetchSubscription: refresh,  // ← ADD THIS alias for compatibility
         upgrade: handleUpgrade,
         downgrade: handleDowngrade,
         cancel: handleCancel,
         renew: handleRenew,
         setAutoRenew: handleAutoRenewToggle,
+        cancelSubscription: handleCancel,  // ← ADD THIS alias
+        renewSubscription: handleRenew,    // ← ADD THIS alias
+        upgradePlan: handleUpgrade,        // ← ADD THIS alias
+        downgradePlan: handleDowngrade,    // ← ADD THIS alias
+        updateAutoRenew: handleAutoRenewToggle,  // ← ADD THIS alias
         
         // Helpers
         isExpiringSoon: daysUntilExpiry <= 7 && daysUntilExpiry > 0,
@@ -159,8 +168,8 @@ export const SubscriptionProvider = ({ children }) => {
         canDowngrade,
         canCancel,
         canRenew,
-        status,
-        plan,
+        subscription?.status,
+        subscription?.plan,
         autoRenew,
         cancelAtPeriodEnd,
         currentPeriodEnd,

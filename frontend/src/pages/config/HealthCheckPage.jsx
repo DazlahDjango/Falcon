@@ -33,3 +33,4 @@ export const HealthCheckPage = () => {
     </div>
   );
 };
+export default HealthCheckPage;

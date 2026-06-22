@@ -8,12 +8,13 @@ const TeamStats = ({ stats }) => {
             <div className="team-stats-skeleton">
                 <div className="stats-grid">
                     {[1, 2, 3, 4].map(i => (
-                        <div className="stats-skeleton"/>
+                        <div key={i} className="stats-skeleton" />
                     ))}
                 </div>
             </div>
         );
     }
+    
     return (
         <div className="team-stats">
             <div className="stats-grid">
@@ -49,4 +50,5 @@ const TeamStats = ({ stats }) => {
         </div>
     );
 };
+
 export default TeamStats;

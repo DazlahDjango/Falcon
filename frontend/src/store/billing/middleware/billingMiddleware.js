@@ -1,61 +1,48 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit';
-import {
-    fetchCurrentSubscription,
-    fetchInvoices,
-    fetchTransactions,
-    fetchPaymentMethods,
-} from '../slices';
-import { showToast } from '../../ui/slices/uiSlice';
+import { fetchCurrentSubscription, updateSubscriptionSettings } from '../slices/subscriptionSlice';
+import { fetchPlans } from '../slices/planSlice';
+import { fetchInvoiceSummary } from '../slices/invoiceSlice';
+import { fetchTransactionSummary } from '../slices/transactionSlice';
+import { fetchUsageSummary } from '../slices/usageSlice';
 
-export const billingMiddleware = createListenerMiddleware();
+// Import PlanService from the correct path
+import { PlanService } from '../../../services/billing';
+
+const billingMiddleware = createListenerMiddleware();
+
+billingMiddleware.startListening({
+    actionCreator: updateSubscriptionSettings.fulfilled,
+    effect: async (action, { dispatch }) => {
+        dispatch(fetchCurrentSubscription());
+    },
+});
+
 billingMiddleware.startListening({
     actionCreator: fetchCurrentSubscription.fulfilled,
     effect: async (action, { dispatch }) => {
-        if (action.payload) {
-            // Refresh invoices and transactions after subscription change
-            await dispatch(fetchInvoices({ page: 1, pageSize: 10 }));
-            await dispatch(fetchTransactions({ page: 1, pageSize: 10 }));
+        if (action.payload?.id) {
+            dispatch(fetchUsageSummary());
+            dispatch(fetchInvoiceSummary());
+            dispatch(fetchTransactionSummary());
         }
     },
 });
 
-// Show toast on successful payment
 billingMiddleware.startListening({
-    matcher: (action) => 
-        action.type?.startsWith('billing/checkout/verify/fulfilled'),
-    effect: async (action, { dispatch }) => {
-        const result = action.payload;
-        if (result?.verified) {
-            dispatch(showToast({
-                message: 'Payment successful!',
-                type: 'success',
-                duration: 5000,
-            }));
+    actionCreator: fetchPlans.fulfilled,
+    effect: async (action, { dispatch, getState }) => {
+        const state = getState();
+        const currentPlan = state.billing?.subscriptions?.current?.plan;
+        if (currentPlan && !state.billing?.plans?.comparison?.length) {
+            try {
+                const response = await PlanService.getPlanComparison();
+                if (response?.data) {
+                    dispatch({ type: 'billing/plans/setComparison', payload: response.data });
+                }
+            } catch (err) {
+                console.error('Failed to fetch plan comparison:', err);
+            }
         }
-    },
-});
-
-// Show toast on payment failure
-billingMiddleware.startListening({
-    matcher: (action) => 
-        action.type?.startsWith('billing/checkout/init') && 
-        action.type?.endsWith('/rejected'),
-    effect: async (action, { dispatch }) => {
-        dispatch(showToast({
-            message: action.payload || 'Payment failed. Please try again.',
-            type: 'error',
-            duration: 5000,
-        }));
-    },
-});
-
-// Refresh payment methods after adding/deleting
-billingMiddleware.startListening({
-    matcher: (action) => 
-        action.type?.startsWith('billing/paymentMethods/add/fulfilled') ||
-        action.type?.startsWith('billing/paymentMethods/delete/fulfilled'),
-    effect: async (action, { dispatch }) => {
-        await dispatch(fetchPaymentMethods());
     },
 });
 

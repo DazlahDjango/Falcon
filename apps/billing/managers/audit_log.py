@@ -4,9 +4,6 @@ from datetime import timedelta
 from .base import BaseBillingManager, TenantAwareManager
 
 class AuditLogManager(TenantAwareManager):
-    def __init__(self, tenant_id=None, *args, **kwargs):
-        super().__init__(tenant_id, *args, **kwargs)
-    
     def by_action(self, action):
         """Filter by action type."""
         return self.get_queryset().filter(action=action)

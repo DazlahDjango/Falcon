@@ -1,0 +1,628 @@
+/* frontend/src/components/accounts/admin/admin.css */
+
+/* ============================================
+   Admin Module CSS - Production Ready
+   ============================================ */
+
+.admin-users-page,
+.admin-tenants-page,
+.admin-system-page {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Loading State */
+.admin-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 16px;
+    color: #6b7280;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 4px 0;
+}
+
+.page-header p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Admin Stats Grid */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.success {
+    border-left: 4px solid #10b981;
+}
+
+.stat-card.warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: #eff6ff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* Error Banner */
+.admin-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #fee2e2;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    color: #dc2626;
+    font-size: 14px;
+    flex-wrap: wrap;
+}
+
+.admin-error-banner button {
+    margin-left: auto;
+    padding: 6px 12px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Search Bar */
+.admin-search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-form {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 12px 10px 36px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-btn,
+.refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover,
+.refresh-btn:hover {
+    background: #f3f4f6;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.filter-btn.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+/* Filters Panel */
+.admin-filters-panel {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.filters-footer {
+    padding: 12px 20px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    text-align: right;
+}
+
+.reset-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+}
+
+.reset-btn:hover {
+    color: #dc2626;
+}
+
+/* Admin Table */
+.admin-table-container {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 14px 16px;
+    background: #f9fafb;
+    font-weight: 600;
+    font-size: 13px;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    background: #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+}
+
+.user-name {
+    font-weight: 500;
+    color: #111827;
+}
+
+.user-email {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.tenant-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.tenant-domain {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+/* Badges */
+.role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.role-super-admin {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.role-client-admin {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.role-executive {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.role-supervisor {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.role-dashboard-champion {
+    background: #fce7f3;
+    color: #db2777;
+}
+
+.role-staff {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.role-read-only {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.suspended {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.mfa-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.mfa-badge.enabled {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.mfa-badge.disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Action Buttons */
+.actions-cell {
+    white-space: nowrap;
+}
+
+.action-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    margin: 0 2px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.action-icon.edit {
+    color: #2563eb;
+}
+
+.action-icon.edit:hover {
+    background: #eff6ff;
+}
+
+.action-icon.suspend {
+    color: #f59e0b;
+}
+
+.action-icon.suspend:hover {
+    background: #fef3c7;
+}
+
+.action-icon.activate {
+    color: #10b981;
+}
+
+.action-icon.activate:hover {
+    background: #d1fae5;
+}
+
+.action-icon.delete {
+    color: #dc2626;
+}
+
+.action-icon.delete:hover {
+    background: #fee2e2;
+}
+
+/* Pagination */
+.admin-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 20px 0;
+}
+
+/* System Section */
+.system-section {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.system-section h2 {
+    padding: 16px 20px;
+    margin: 0;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Health Status */
+.health-status {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    border-left-width: 4px;
+    border-left-style: solid;
+    flex-wrap: wrap;
+}
+
+.health-icon {
+    font-size: 32px;
+}
+
+.health-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.health-status-label {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.health-status-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Services Grid */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    padding: 20px;
+}
+
+.service-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.service-icon {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+}
+
+.service-info {
+    flex: 1;
+}
+
+.service-name {
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.service-status {
+    font-size: 12px;
+}
+
+.service-status.healthy {
+    color: #10b981;
+}
+
+.service-status.unhealthy {
+    color: #dc2626;
+}
+
+/* Config Grid */
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    padding: 20px;
+}
+
+.config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.config-label {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.config-value {
+    font-weight: 500;
+    color: #111827;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+
+    .admin-users-page,
+    .admin-tenants-page,
+    .admin-system-page {
+        padding: 16px;
+    }
+
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .admin-search-bar {
+        flex-direction: column;
+    }
+
+    .search-form {
+        width: 100%;
+    }
+
+    .health-status {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -4,22 +4,20 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import rootReducer from './rootReducer';
+import kpiModuleReducer from './kpi/index';
 // Accounts Middlewares
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
 import { loggerMiddleware } from './middleware';
 // Tenant Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
 // Billing
-import { 
-    billingMiddlewareFn, 
-    webhookMiddlewareFn, 
-    analyticsMiddlewareFn 
-} from './billing/middleware';
+import { billingMiddlewares } from './billing/middleware';
+
 import { backupMiddleware, maintenanceMiddleware } from './config';
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['auth', 'tenant', 'appTenant', 'theme', 'organisation', 'subscription', 'tenantDomain', 'tenantBackup'],
+    whitelist: ['auth', 'tenant', 'appTenant', 'theme', 'organisation', 'subscription', 'tenantDomain', 'tenantBackup', 'reviews'],
     blacklist: [
         'ui',
         'notifications',
@@ -48,8 +46,14 @@ const persistConfig = {
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+const appReducer = (state, action) => {
+  const newState = persistedReducer(state, action);
+  
+  return newState;
+};
+
 export const store = configureStore({
-    reducer: persistedReducer,
+    reducer: appReducer,
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
@@ -89,9 +93,7 @@ export const store = configureStore({
             ...tenantMiddlewares,
             backupMiddleware,
             maintenanceMiddleware,
-            billingMiddlewareFn,
-            webhookMiddlewareFn,
-            analyticsMiddlewareFn
+            ...billingMiddlewares
         ),
     devTools: import.meta.env.MODE !== 'production'
 });

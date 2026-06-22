@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSyncExternalStore } from 'react';
-import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio } from "react-icons/fi";
+import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio, FiInfo, FiCheckCircle, FiAlertTriangle, FiXCircle, FiAlertOctagon } from "react-icons/fi";
 import { markAllAsRead, fetchUnreadCount } from '../../../store/accounts/slice/notificationSlice';
 import { formatDate } from '../../../utils/accounts/formatters';
 import { getDefaultRouteByRole } from '../../../config/constants/dashboardRouteConstants';
@@ -154,6 +154,10 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
         setBreadcrumbs(breadcrumbItems);
     }, [location.pathname, user?.role]);
 
+    const statusText = user?.is_active != null ? (user.is_active ? 'Active' : 'Inactive') : (wsConnected ? 'Live' : 'Offline');
+    const statusTitle = user?.is_active != null ? (user.is_active ? 'User active' : 'User inactive') : (wsConnected ? 'Dashboard live' : 'Dashboard offline');
+    const statusClassNames = `dashboard-header-live ${(user?.is_active != null ? user.is_active : wsConnected) ? 'dashboard-header-live--on' : ''}`.trim();
+
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
@@ -177,14 +181,20 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
     };
 
     const getNotificationIcon = (level) => {
-        const icons = {
-            info: 'ℹ️',
-            success: '✓',
-            warning: '⚠️',
-            error: '✗',
-            critical: '🔥'
-        };
-        return icons[level] || 'ℹ️';
+        switch (level) {
+            case 'info':
+                return <FiInfo size={16} />;
+            case 'success':
+                return <FiCheckCircle size={16} />;
+            case 'warning':
+                return <FiAlertTriangle size={16} />;
+            case 'error':
+                return <FiXCircle size={16} />;
+            case 'critical':
+                return <FiAlertOctagon size={16} />;
+            default:
+                return <FiInfo size={16} />;
+        }
     };
 
     return (
@@ -228,11 +238,11 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
             
             <div className="header-right">
                 <span
-                  className={`dashboard-header-live ${wsConnected ? 'dashboard-header-live--on' : ''}`}
-                  title={wsConnected ? 'Dashboard live' : 'Dashboard offline'}
+                  className={statusClassNames}
+                  title={statusTitle}
                 >
                   <FiRadio size={14} />
-                  {wsConnected ? 'Live' : 'Offline'}
+                  {statusText}
                 </span>
                 <button 
                     className="dashboard-quick-btn"
@@ -315,7 +325,6 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                         </div>
                         <div className="user-info">
                             <span className="user-name">{user?.first_name || user?.username}</span>
-                            <span className="user-role">{user?.role_display || user?.role}</span>
                         </div>
                         <FiChevronDown size={16} className="user-menu-arrow" />
                     </button>
@@ -373,3 +382,4 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
 };
 
 export { Header };
+export default Header;

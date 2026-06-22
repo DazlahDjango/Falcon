@@ -9,6 +9,7 @@ const LoginForm = ({ onSubmit, isLoading, error }) => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -16,20 +17,24 @@ const LoginForm = ({ onSubmit, isLoading, error }) => {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
     };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         const newErrors = {};
         if (!formData.email) newErrors.email = 'Email is required';
         if (!formData.password) newErrors.password = 'Password is required';
+        
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
         onSubmit(formData);
     };
+
     return (
         <form onSubmit={handleSubmit} className="auth-form">
             {error && <div className="input-feedback error" style={{ marginBottom: '1rem' }}>{error}</div>}
+            
             <div className="form-group">
                 <label htmlFor="email">Email Address</label>
                 <div className="input-wrapper">
@@ -80,4 +85,5 @@ const LoginForm = ({ onSubmit, isLoading, error }) => {
         </form>
     );
 };
+
 export default LoginForm;

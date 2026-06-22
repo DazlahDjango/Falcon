@@ -3,7 +3,8 @@ import { useSelector } from 'react-redux';
 import * as securityApi from '../../services/accounts/api/security';
 
 export const useAccountsSecurity = () => {
-    const { user } = useSelector((state) => state.auth);
+    const authState = useSelector((state) => state.auth) || {};
+    const { user } = authState;
     const isSuperAdmin = user?.role === 'super_admin' || user?.is_superuser;
     const isClientAdmin = user?.role === 'client_admin';
     const canAccessConsole = isSuperAdmin || isClientAdmin;

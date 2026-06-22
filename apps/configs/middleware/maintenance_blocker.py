@@ -5,6 +5,11 @@ from apps.configs.services.maintenance.maintenance_mode import MaintenanceMode
 
 class MaintenanceBlockerMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
+                return None
+
         mode = MaintenanceMode()
         if mode.is_active() and mode.get_type() == 'full':
             if request.path.startswith('/api/') or request.path.startswith('/admin/'):

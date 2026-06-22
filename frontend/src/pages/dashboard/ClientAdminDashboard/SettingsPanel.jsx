@@ -29,7 +29,7 @@ export const SettingsPanel = () => {
             Require KPI validation before approval
           </label>
         </div>
-        
+
         <div className="setting-group">
           <label className="checkbox-label">
             <input
@@ -40,7 +40,7 @@ export const SettingsPanel = () => {
             Require supervisor approval for all entries
           </label>
         </div>
-        
+
         <div className="setting-group">
           <label className="checkbox-label">
             <input
@@ -51,7 +51,7 @@ export const SettingsPanel = () => {
             Require MFA for all users
           </label>
         </div>
-        
+
         <div className="setting-group">
           <label>Session Timeout (minutes)</label>
           <input
@@ -62,7 +62,7 @@ export const SettingsPanel = () => {
             max="1440"
           />
         </div>
-        
+
         <div className="setting-group">
           <label>Default Language</label>
           <select
@@ -75,7 +75,7 @@ export const SettingsPanel = () => {
             <option value="de">German</option>
           </select>
         </div>
-        
+
         <button onClick={handleSave} className="save-btn">
           Save Settings
         </button>
@@ -83,3 +83,4 @@ export const SettingsPanel = () => {
     </DashboardCard>
   );
 };
+export default SettingsPanel;

@@ -19,14 +19,13 @@ class CompetencyCategorySerializer(BaseTenantSerializer):
             'id', 'name', 'description', 'tenant_id', 'tenant_name',
             'order', 'is_active', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'tenant']
 
 
 class CompetencySerializer(BaseTenantSerializer):
     """
     Serializer for Competency model.
     """
-    
     category_name = serializers.CharField(source='category.name', read_only=True)
     rating_scale_name = serializers.CharField(source='rating_scale.name', read_only=True)
     
@@ -40,7 +39,7 @@ class CompetencySerializer(BaseTenantSerializer):
             'excellent_behavior', 'needs_improvement_behavior',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'tenant']
 
 
 class CompetencyListSerializer(CompetencySerializer):

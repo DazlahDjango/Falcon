@@ -1,0 +1,468 @@
+/* src/components/reviews/cycles/detail/detail.css */
+
+.cycle-detail {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.cycle-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cycle-detail-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.cycle-detail-back:hover {
+  color: #1a1a2e;
+}
+
+.cycle-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cycle-detail-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cycle-detail-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.cycle-detail-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.cycle-detail-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.cycle-detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.cycle-detail-description {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+}
+
+.cycle-detail-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.cycle-detail-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* Cycle Info */
+.cycle-info {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.cycle-info-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.cycle-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cycle-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cycle-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 8px;
+  color: #6b7280;
+}
+
+.cycle-info-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.cycle-info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.cycle-info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+/* Cycle Progress */
+.cycle-progress {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
+.cycle-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cycle-progress-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.cycle-progress-overall {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.cycle-progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.cycle-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.cycle-progress-stages {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.cycle-progress-stage {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.cycle-progress-stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cycle-progress-stage-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.cycle-progress-stage-stats {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.cycle-progress-stage-bar {
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.cycle-progress-stage-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.cycle-progress-stage-percentage {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Cycle Participants */
+.cycle-participants {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.cycle-participants-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cycle-participants-title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cycle-participants-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.cycle-participants-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  background: #2563eb;
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.cycle-participants-search {
+  max-width: 200px;
+}
+
+.cycle-participants-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.cycle-participants-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.cycle-participants-item:hover {
+  background: white;
+}
+
+.cycle-participants-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #dbeafe;
+  color: #2563eb;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.cycle-participants-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.cycle-participants-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.cycle-participants-email {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.cycle-participants-empty {
+  text-align: center;
+  padding: 20px;
+  color: #9ca3af;
+}
+
+.cycle-participants-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.cycle-participants-toggle:hover {
+  color: #1d4ed8;
+}
+
+/* Cycle Summary */
+.cycle-summary {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.cycle-summary-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.cycle-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cycle-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.cycle-summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #f3f4f6;
+}
+
+.cycle-summary-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.cycle-summary-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.cycle-summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Cycle Actions */
+.cycle-actions {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.cycle-actions-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+}
+
+.cycle-actions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cycle-actions-btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+  .cycle-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cycle-detail-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .cycle-progress-stages {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .cycle-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cycle-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

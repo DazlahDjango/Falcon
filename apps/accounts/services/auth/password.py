@@ -39,34 +39,19 @@ class PasswordService:
     def change_password(self, user: User, old_password: str, new_password: str, request=None) -> Tuple[bool, str]:
         if not user.check_password(old_password):
             self.audit_service.log(
-                user=user, action='password.change_failed', action_type='update', request=request, severity='warning', metadata={'reason': 'wrong_old_password'}
-            )
-            return False
-        is_valid, errors = self.validate_password(new_password, user)
-        if not is_valid:
-            return False, errors[0]
-        user.set_password(new_password)
-        user.save(update_fields=['password'])
-        # Log password change
-        self.audit_service.log(
-            user=user, action='password.changed', action_type='update',
-            request=request, severity='info'
-        )
-        return True, 'Password changed successfully'
-    def change_password(self, user: User, old_password: str, new_password: str, request=None) -> Tuple[bool, str]:
-        if not user.check_password(old_password):
-            self.audit_service.log(
                 user=user, action='password.change_failed', action_type='update',
                 request=request, severity='warning',
                 metadata={'reason': 'wrong_old_password'}
             )
             return False, 'Current password is incorrect.'
+        
         is_valid, errors = self.validate_password(new_password, user)
         if not is_valid:
             return False, errors[0]
-        # Set pass
         user.set_password(new_password)
         user.save(update_fields=['password'])
+        from apps.accounts.services.auth.session import SessionService
+        SessionService().terminate_all_sessions(user)
         self.audit_service.log(
             user=user, action='password.changed', action_type='update',
             request=request, severity='info'

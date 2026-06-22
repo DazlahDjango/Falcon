@@ -8,7 +8,6 @@ from ..serializers import ValidationRecordSerializer, RejectionReasonSerializer,
 from ....models import ValidationRecord, RejectionReason, Escalation
 from ..filters import ValidationRecordListFilter
 from ....services import ValidationEscalator
-from ....managers import MonthlyActualManager
 from ....services.validation import pending_validation_count_for_supervisor
 
 class ValidationRecordViewSet(BaseKpiViewset):
@@ -20,13 +19,16 @@ class ValidationRecordViewSet(BaseKpiViewset):
     ordering_fields = ['validated_at']
     ordering = ['-validated_at']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related('actual', 'actual__kpi', 'actual__user', 'validated_by')
+
     @action(detail=False, methods=['get'])
     def pending(self, request):
-        MonthlyActualManager().needs_validation_alert()
         direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
-        validations = self.queryset.filter(
+        validations = self.get_queryset().filter(
             actual__user_id__in=direct_reports,
-            status='PENDING',
+            status='PENDING'
         )
         serializer = self.get_serializer(validations, many=True)
         return Response({
@@ -36,12 +38,70 @@ class ValidationRecordViewSet(BaseKpiViewset):
 
     @action(detail=False, methods=['get'], url_path='pending-summary')
     def pending_summary(self, request):
-        count = pending_validation_count_for_supervisor(request.user)
-        return Response({
-            'pending_count': count,
+        """Enhanced pending summary with more metadata."""
+        direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
+        
+        pending_validations = self.get_queryset().filter(
+            actual__user_id__in=direct_reports,
+            status='PENDING'
+        ).select_related('actual__kpi', 'actual__user')
+        
+        # Calculate additional metrics
+        from django.db.models import Count, Min, Max
+        from django.utils import timezone
+        
+        now = timezone.now()
+        
+        summary = {
+            'pending_count': pending_validations.count(),
             'supervisor_id': str(request.user.id),
-        })
-    
+            'by_kpi': {},
+            'by_user': {},
+            'by_period': {},
+            'oldest_pending': None,
+            'oldest_days': None,
+        }
+        
+        # Group by KPI
+        for validation in pending_validations:
+            kpi_name = validation.actual.kpi.name
+            if kpi_name not in summary['by_kpi']:
+                summary['by_kpi'][kpi_name] = 0
+            summary['by_kpi'][kpi_name] += 1
+            
+            # Group by user
+            user_email = validation.actual.user.email
+            if user_email not in summary['by_user']:
+                summary['by_user'][user_email] = 0
+            summary['by_user'][user_email] += 1
+            
+            # Group by period
+            period = f"{validation.actual.year}-{validation.actual.month:02d}"
+            if period not in summary['by_period']:
+                summary['by_period'][period] = 0
+            summary['by_period'][period] += 1
+            
+            # Find oldest
+            if validation.validated_at:
+                days_old = (now - validation.validated_at).days
+                if summary['oldest_days'] is None or days_old > summary['oldest_days']:
+                    summary['oldest_days'] = days_old
+                    summary['oldest_pending'] = {
+                        'kpi': kpi_name,
+                        'user': user_email,
+                        'period': period,
+                        'days_old': days_old,
+                        'validation_id': str(validation.id)
+                    }
+        
+        # Convert to lists for easier frontend consumption
+        summary['by_kpi'] = [{'kpi': k, 'count': v} for k, v in summary['by_kpi'].items()]
+        summary['by_user'] = [{'user': u, 'count': v} for u, v in summary['by_user'].items()]
+        summary['by_period'] = [{'period': p, 'count': v} for p, v in summary['by_period'].items()]
+        
+        return Response(summary)
+
+
 class RejectionReasonViewSet(BaseKpiViewset):
     queryset = RejectionReason.objects.filter(is_active=True)
     serializer_class = RejectionReasonSerializer
@@ -51,6 +111,14 @@ class RejectionReasonViewSet(BaseKpiViewset):
     ordering_fields = ['display_order']
     ordering = ['display_order']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if tenant_id:
+            return queryset.filter(tenant_id=tenant_id)
+        return queryset
+
+
 class EscalationViewSet(BaseKpiViewset):
     queryset = Escalation.objects.all()
     serializer_class = EscalationSerializer
@@ -59,7 +127,14 @@ class EscalationViewSet(BaseKpiViewset):
     search_fields = ['reason', 'resolution']
     ordering_fields = ['escalated_at']
     ordering = ['-escalated_at']
-    
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related(
+            'actual', 'actual__kpi', 'actual__user',
+            'escalated_by', 'escalated_to', 'resolved_by'
+        )
+
     def create(self, request, *args, **kwargs):
         escalator = ValidationEscalator()
         try:
@@ -76,6 +151,7 @@ class EscalationViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=True, methods=['post'])
     def resolve(self, request, pk=None):
         escalation = self.get_object()
@@ -93,10 +169,11 @@ class EscalationViewSet(BaseKpiViewset):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
     @action(detail=False, methods=['get'])
     def my_escalations(self, request):
         user_id = request.user.id
-        escalations = self.queryset.filter(
+        escalations = self.get_queryset().filter(
             escalated_to_id=user_id,
             status__in=['PENDING', 'REVIEWING']
         )

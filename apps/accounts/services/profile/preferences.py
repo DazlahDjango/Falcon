@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, List, Tuple
 from django.conf import settings
 from apps.accounts.models import UserPreference, TenantPreference
 from apps.accounts.services.audit.logger import AuditService
+
 logger = logging.getLogger(__name__)
 
 class PreferenceService:
@@ -50,7 +51,7 @@ class PreferenceService:
         try:
             preferences = self.get_user_preferences(user)
             settings = preferences.notification_settings or {}
-            settings['event_type'] = channels
+            settings[event_type] = channels  # FIXED: was 'event_type' literal
             preferences.notification_settings = settings
             preferences.save(update_fields=['notification_settings'])
             self.audit_service.log(
@@ -60,8 +61,9 @@ class PreferenceService:
             )
             return True, 'Notification settings updated'
         except Exception as e:
-            logger.error(f"Update notification settings error: {str()}")
-            return False, 'Unable to update notifications settings'
+            # FIXED: was str() with no argument
+            logger.error(f"Update notification settings error: {str(e)}")
+            return False, 'Unable to update notification settings'
         
     def get_notification_channels(self, user, event_type: str) -> List[str]:
         preferences = self.get_user_preferences(user)

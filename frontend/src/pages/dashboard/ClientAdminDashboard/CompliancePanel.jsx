@@ -30,26 +30,26 @@ export const CompliancePanel = ({ data, loading }) => {
             {Math.round(data.data_submission_rate || 0)}%
           </div>
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
+            <div
+              className="progress-fill"
               style={{ width: `${data.data_submission_rate || 0}%`, background: getRateColor(data.data_submission_rate) }}
             />
           </div>
         </div>
-        
+
         <div className="stat">
           <div className="stat-label">Review Completion Rate</div>
           <div className="stat-value" style={{ color: getRateColor(data.review_completion_rate) }}>
             {Math.round(data.review_completion_rate || 0)}%
           </div>
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
+            <div
+              className="progress-fill"
               style={{ width: `${data.review_completion_rate || 0}%`, background: getRateColor(data.review_completion_rate) }}
             />
           </div>
         </div>
-        
+
         <div className="compliance-alerts">
           <div className="alert-item">
             <span>Pending Reviews:</span>
@@ -69,3 +69,5 @@ CompliancePanel.propTypes = {
   data: PropTypes.object,
   loading: PropTypes.bool
 };
+
+export default CompliancePanel;

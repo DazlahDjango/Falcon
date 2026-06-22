@@ -28,7 +28,7 @@ export const MissingDataPanel = ({ data, loading, onNotifyUser }) => {
               </div>
             </div>
             {onNotifyUser && (
-              <button 
+              <button
                 onClick={() => onNotifyUser(item)}
                 className="notify-btn"
               >
@@ -52,3 +52,4 @@ MissingDataPanel.propTypes = {
   loading: PropTypes.bool,
   onNotifyUser: PropTypes.func
 };
+export default MissingDataPanel;

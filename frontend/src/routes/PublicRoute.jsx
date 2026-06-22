@@ -19,7 +19,7 @@ const PublicRoute = () => {
     }
 
     if (isAuthenticated) {
-        return <Navigate to="/kpi/dashboard" replace />;
+        return <Navigate to="/dashboard" replace />;
     }
 
     return <Outlet />;

@@ -1,47 +1,36 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import './shared.css';
 
-export const BillingCard = ({ 
-    children, 
-    title, 
-    icon, 
-    action, 
-    variant = 'default',
-    className = '',
-    onClick 
-}) => {
-    const variants = {
-        default: 'billing-card',
-        highlight: 'billing-card billing-card-highlight',
-        success: 'billing-card billing-card-success',
-        warning: 'billing-card billing-card-warning',
-        error: 'billing-card billing-card-error',
-    };
+export const BillingCard = ({ title, subtitle, icon, children, footer, loading = false, className = '', headerAction = null }) => {
+    if (loading) {
+        return (
+            <div className={`billing-card billing-card-loading ${className}`}>
+                <div className="billing-card-skeleton">
+                    <div className="skeleton skeleton-title"></div>
+                    <div className="skeleton skeleton-line"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className={variants[variant]} onClick={onClick}>
-            {(title || icon || action) && (
+        <div className={`billing-card ${className}`}>
+            {(title || headerAction) && (
                 <div className="billing-card-header">
                     <div className="billing-card-header-left">
-                        {icon && <span className="billing-card-icon">{icon}</span>}
-                        {title && <h3 className="billing-card-title">{title}</h3>}
+                        {icon && <div className="billing-card-icon">{icon}</div>}
+                        <div>
+                            {title && <h3 className="billing-card-title">{title}</h3>}
+                            {subtitle && <p className="billing-card-subtitle">{subtitle}</p>}
+                        </div>
                     </div>
-                    {action && <div className="billing-card-action">{action}</div>}
+                    {headerAction && <div className="billing-card-header-action">{headerAction}</div>}
                 </div>
             )}
             <div className="billing-card-body">{children}</div>
+            {footer && <div className="billing-card-footer">{footer}</div>}
         </div>
     );
-};
-
-BillingCard.propTypes = {
-    children: PropTypes.node.isRequired,
-    title: PropTypes.node,
-    icon: PropTypes.node,
-    action: PropTypes.node,
-    variant: PropTypes.oneOf(['default', 'highlight', 'success', 'warning', 'error']),
-    className: PropTypes.string,
-    onClick: PropTypes.func,
 };
 
 export default BillingCard;

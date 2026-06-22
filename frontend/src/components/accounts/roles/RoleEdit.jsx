@@ -12,25 +12,44 @@ const RoleEdit = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { selectedRole, isLoading } = useSelector((state) => state.roles);
+
     useEffect(() => {
-        dispatch(fetchRoleById(id));
+        if (id) {
+            dispatch(fetchRoleById(id));
+        }
     }, [dispatch, id]);
+
     const handleSubmit = async (formData) => {
         try {
             await dispatch(updateRole({ id, ...formData })).unwrap();
             dispatch(showAlert({ type: 'success', message: 'Role updated successfully' }));
-            navigate('/roles');
+            navigate(`/roles/${id}`);
         } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error.message || 'Railed to update role' }));
+            dispatch(showAlert({ type: 'error', message: error || 'Failed to update role' }));
         }
     };
+
     if (isLoading && !selectedRole) {
         return (
             <div className="role-form-page">
-                <SkeletonLoader type='form' />
+                <SkeletonLoader type="form" />
             </div>
         );
     }
+
+    if (!selectedRole) {
+        return (
+            <div className="role-form-page">
+                <div className="not-found">
+                    <h2>Role not found</h2>
+                    <button className="btn btn-primary" onClick={() => navigate('/roles')}>
+                        Back to Roles
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="role-form-page">
             <div className="page-header">
@@ -38,16 +57,17 @@ const RoleEdit = () => {
                     <FiArrowLeft size={20} />
                     Back to Role
                 </button>
-                <h1>Edit Role: {selectedRole?.name}</h1>
+                <h1>Edit Role: {selectedRole.name}</h1>
             </div>
             
             <RoleForm 
                 initialData={selectedRole}
                 onSubmit={handleSubmit}
                 onCancel={() => navigate(`/roles/${id}`)}
-                isEdit
+                isEdit={true}
             />
         </div>
     );
 };
+
 export default RoleEdit;

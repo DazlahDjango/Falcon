@@ -1,166 +1,216 @@
 // src/hooks/reviews/useSelfAssessment.js
-// Hook for self assessment operations
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useMemo } from 'react';
+import {
+  selectAllSelfAssessments,
+  selectSelfAssessmentsLoading,
+  selectSelfAssessmentsError,
+  selectSelectedSelfAssessment,
+  selectMySelfAssessment,
+  selectSelfAssessmentStats,
+  selectPendingSelfAssessments,
+  selectSubmittedSelfAssessments,
+} from '../../store/reviews/selectors';
+import {
+  fetchSelfAssessments,
+  fetchSelfAssessment,
+  createSelfAssessment,
+  updateSelfAssessment,
+  patchSelfAssessment,
+  deleteSelfAssessment,
+  submitSelfAssessment,
+  saveSelfAssessmentDraft,
+  resetSelfAssessmentToDraft,
+  softDeleteSelfAssessment,
+  restoreSelfAssessment,
+  fetchMySelfAssessment,
+  fetchSelfAssessmentStats,
+  resetSelfAssessmentState,
+} from '../../store/reviews/slices/selfAssessment.slice';
+import { useReviewsPermissions } from './';
 
-import { useState, useEffect, useCallback } from 'react';
-import { selfAssessmentService } from '@/services/reviews';
+const useSelfAssessment = () => {
+  const dispatch = useDispatch();
+  const permissions = useReviewsPermissions();
 
-export const useSelfAssessment = () => {
-    const [myAssessment, setMyAssessment] = useState(null);
-    const [teamAssessments, setTeamAssessments] = useState([]);
-    const [pendingAssessments, setPendingAssessments] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
+  // Selectors
+  const data = useSelector(selectAllSelfAssessments);
+  const loading = useSelector(selectSelfAssessmentsLoading);
+  const error = useSelector(selectSelfAssessmentsError);
+  const selected = useSelector(selectSelectedSelfAssessment);
+  const mySelfAssessment = useSelector(selectMySelfAssessment);
+  const stats = useSelector(selectSelfAssessmentStats);
+  const pendingAssessments = useSelector(selectPendingSelfAssessments);
+  const submittedAssessments = useSelector(selectSubmittedSelfAssessments);
 
-    // Get my self assessment
-    const fetchMyAssessment = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await selfAssessmentService.getMy();
-            setMyAssessment(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch self assessment');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  // Actions
+  const fetchAll = useCallback(
+    (params) => dispatch(fetchSelfAssessments(params)),
+    [dispatch]
+  );
 
-    // Get team assessments (managers only)
-    const fetchTeamAssessments = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await selfAssessmentService.getTeam();
-            setTeamAssessments(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch team assessments');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchOne = useCallback(
+    (id) => dispatch(fetchSelfAssessment(id)),
+    [dispatch]
+  );
 
-    // Get pending assessments
-    const fetchPendingAssessments = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await selfAssessmentService.getPending();
-            setPendingAssessments(data);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch pending assessments');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const create = useCallback(
+    (data) => {
+      if (!permissions.canCreateSelfAssessment) {
+        throw new Error('You do not have permission to create self assessments');
+      }
+      return dispatch(createSelfAssessment(data));
+    },
+    [dispatch, permissions.canCreateSelfAssessment]
+  );
 
-    // Get single assessment by ID
-    const getAssessment = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await selfAssessmentService.getById(id);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch assessment');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const update = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateSelfAssessment) {
+        throw new Error('You do not have permission to update self assessments');
+      }
+      return dispatch(updateSelfAssessment({ id, data }));
+    },
+    [dispatch, permissions.canUpdateSelfAssessment]
+  );
 
-    // Save assessment as draft
-    const saveAssessment = useCallback(async (data) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await selfAssessmentService.save(data);
-            if (data.id === myAssessment?.id) {
-                setMyAssessment(result);
-            }
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to save assessment');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, [myAssessment]);
+  const patch = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateSelfAssessment) {
+        throw new Error('You do not have permission to update self assessments');
+      }
+      return dispatch(patchSelfAssessment({ id, data }));
+    },
+    [dispatch, permissions.canUpdateSelfAssessment]
+  );
 
-    // Submit assessment for review
-    const submitAssessment = useCallback(async (id) => {
-        setSubmitting(true);
-        setError(null);
-        try {
-            const result = await selfAssessmentService.submit(id);
-            if (id === myAssessment?.id) {
-                setMyAssessment(result);
-            }
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to submit assessment');
-            throw err;
-        } finally {
-            setSubmitting(false);
-        }
-    }, [myAssessment]);
+  const remove = useCallback(
+    (id) => {
+      if (!permissions.canDeleteSelfAssessment) {
+        throw new Error('You do not have permission to delete self assessments');
+      }
+      return dispatch(deleteSelfAssessment(id));
+    },
+    [dispatch, permissions.canDeleteSelfAssessment]
+  );
 
-    // Get assessments for a specific cycle
-    const getAssessmentsForCycle = useCallback(async (cycleId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await selfAssessmentService.getForCycle(cycleId);
-            return data;
-        } catch (err) {
-            setError(err.message || 'Failed to fetch cycle assessments');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const submit = useCallback(
+    (id) => {
+      if (!permissions.canSubmitSelfAssessment) {
+        throw new Error('You do not have permission to submit self assessments');
+      }
+      return dispatch(submitSelfAssessment(id));
+    },
+    [dispatch, permissions.canSubmitSelfAssessment]
+  );
 
-    // Save competency ratings
-    const saveRatings = useCallback(async (id, ratings) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await selfAssessmentService.saveRatings(id, ratings);
-            return result;
-        } catch (err) {
-            setError(err.message || 'Failed to save ratings');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const saveDraft = useCallback(
+    (id, data) => {
+      if (!permissions.canUpdateSelfAssessment) {
+        throw new Error('You do not have permission to save self assessment drafts');
+      }
+      return dispatch(saveSelfAssessmentDraft({ id, data }));
+    },
+    [dispatch, permissions.canUpdateSelfAssessment]
+  );
 
-    useEffect(() => {
-        fetchMyAssessment();
-    }, [fetchMyAssessment]);
+  const resetToDraft = useCallback(
+    (id) => {
+      if (!permissions.canUpdateSelfAssessment) {
+        throw new Error('You do not have permission to reset self assessments');
+      }
+      return dispatch(resetSelfAssessmentToDraft(id));
+    },
+    [dispatch, permissions.canUpdateSelfAssessment]
+  );
 
-    return {
-        // State
-        myAssessment,
-        teamAssessments,
-        pendingAssessments,
-        loading,
-        error,
-        submitting,
-        // Methods
-        fetchMyAssessment,
-        fetchTeamAssessments,
-        fetchPendingAssessments,
-        getAssessment,
-        saveAssessment,
-        submitAssessment,
-        getAssessmentsForCycle,
-        saveRatings,
-    };
+  const softDelete = useCallback(
+    (id) => {
+      if (!permissions.canDeleteSelfAssessment) {
+        throw new Error('You do not have permission to delete self assessments');
+      }
+      return dispatch(softDeleteSelfAssessment(id));
+    },
+    [dispatch, permissions.canDeleteSelfAssessment]
+  );
+
+  const restore = useCallback(
+    (id) => {
+      if (!permissions.canDeleteSelfAssessment) {
+        throw new Error('You do not have permission to restore self assessments');
+      }
+      return dispatch(restoreSelfAssessment(id));
+    },
+    [dispatch, permissions.canDeleteSelfAssessment]
+  );
+
+  const fetchMy = useCallback(
+    () => dispatch(fetchMySelfAssessment()),
+    [dispatch]
+  );
+
+  const getStats = useCallback(
+    (cycleId) => dispatch(fetchSelfAssessmentStats(cycleId)),
+    [dispatch]
+  );
+
+  const reset = useCallback(
+    () => dispatch(resetSelfAssessmentState()),
+    [dispatch]
+  );
+
+  // Computed
+  const canManage = useMemo(
+    () => permissions.canCreateSelfAssessment,
+    [permissions.canCreateSelfAssessment]
+  );
+
+  const canSubmit = useMemo(
+    () => permissions.canSubmitSelfAssessment,
+    [permissions.canSubmitSelfAssessment]
+  );
+
+  return {
+    // Data
+    data,
+    loading,
+    error,
+    selected,
+    mySelfAssessment,
+    stats,
+    pendingAssessments,
+    submittedAssessments,
+
+    // CRUD Operations
+    fetchAll,
+    fetchOne,
+    create,
+    update,
+    patch,
+    remove,
+
+    // Actions
+    submit,
+    saveDraft,
+    resetToDraft,
+    softDelete,
+    restore,
+    fetchMy,
+    getStats,
+    reset,
+
+    // Permissions
+    canManage,
+    canSubmit,
+
+    // Utilities
+    isEmpty: data.length === 0,
+    totalCount: data.length,
+    getById: (id) => data.find((item) => item.id === id),
+    hasSelfAssessment: !!mySelfAssessment,
+    isSubmitted: mySelfAssessment?.status === 'submitted',
+    isDraft: mySelfAssessment?.status === 'draft',
+  };
 };
+
+export default useSelfAssessment;

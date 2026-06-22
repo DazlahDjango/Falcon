@@ -1,0 +1,485 @@
+/* src/components/reviews/pip-actions/detail/detail.css */
+
+.pip-action-detail {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pip-action-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pip-action-detail-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.pip-action-detail-back:hover {
+  color: #1a1a2e;
+}
+
+.pip-action-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pip-action-detail-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-action-detail-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.pip-action-detail-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.pip-action-detail-top {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 16px;
+}
+
+.pip-action-detail-title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pip-action-detail-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.pip-action-detail-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pip-action-detail-pip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.pip-action-detail-priority {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.pip-action-detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pip-action-detail-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.pip-action-detail-overdue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pip-action-detail-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.pip-action-detail-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-action-detail-tab:hover {
+  background: #e5e7eb;
+}
+
+.pip-action-detail-tab.active {
+  background: white;
+  color: #1a1a2e;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pip-action-detail-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pip-action-detail-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.pip-action-detail-info-item.full {
+  grid-column: 1 / -1;
+}
+
+.pip-action-detail-info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.pip-action-detail-info-value {
+  font-size: 14px;
+  color: #1a1a2e;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.pip-action-detail-info-sub {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.pip-action-detail-info-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.pip-action-detail-info-link:hover {
+  text-decoration: underline;
+}
+
+/* Complete Action */
+.pip-action-complete {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.pip-action-complete-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.pip-action-complete-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.pip-action-complete-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.pip-action-complete-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pip-action-complete-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pip-action-complete-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.pip-action-complete-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.pip-action-complete-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-action-complete-upload {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.pip-action-complete-upload:hover {
+  border-color: #2563eb;
+}
+
+.pip-action-complete-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.pip-action-complete-upload-label:hover {
+  color: #1a1a2e;
+}
+
+.pip-action-complete-upload-input {
+  display: none;
+}
+
+.pip-action-complete-upload-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 8px 0 0 0;
+}
+
+.pip-action-complete-file-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.pip-action-complete-file-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: #fee2e2;
+  border-radius: 50%;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pip-action-complete-file-remove:hover {
+  background: #fecaca;
+}
+
+.pip-action-complete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+/* Verify Action */
+.pip-action-verify {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.pip-action-verify-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.pip-action-verify-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.pip-action-verify-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.pip-action-verify-evidence {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.pip-action-verify-evidence-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.pip-action-verify-evidence-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.pip-action-verify-evidence-link:hover {
+  text-decoration: underline;
+}
+
+.pip-action-verify-evidence-missing {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.pip-action-verify-notes {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.pip-action-verify-notes-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.pip-action-verify-notes-content {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.pip-action-verify-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pip-action-verify-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pip-action-verify-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.pip-action-verify-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.pip-action-verify-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.pip-action-verify-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .pip-action-detail-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pip-action-detail-title-section {
+    flex-direction: column;
+  }
+  
+  .pip-action-detail-tabs {
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,250 @@
+/* src/components/reviews/reports/team/team.css */
+
+.team-report {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.team-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.team-report-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.team-report-back:hover {
+  color: #1a1a2e;
+}
+
+.team-report-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.team-report-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.team-report-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.team-report-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.team-report-header-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.team-report-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.team-report-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.team-report-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+/* Team Summary Report */
+.team-summary-report-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.team-summary-report-stats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.team-summary-report-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.team-summary-report-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+}
+
+.team-summary-report-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.team-summary-report-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.team-summary-report-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.team-summary-report-performers-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.team-summary-report-performers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-summary-report-performer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.team-summary-report-performer-name {
+  flex: 1;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.team-summary-report-performer-score {
+  font-weight: 600;
+  color: #22c55e;
+}
+
+.team-summary-report-performer-rating {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Team Ratings Distribution */
+.team-ratings-distribution-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.team-ratings-distribution-empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.team-ratings-distribution-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-ratings-distribution-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-ratings-distribution-item-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.team-ratings-distribution-item-label {
+  color: #374151;
+}
+
+.team-ratings-distribution-item-count {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.team-ratings-distribution-item-bar {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.team-ratings-distribution-item-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .team-summary-report-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .team-summary-report-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,78 +1,33 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { FiFileText, FiCheckCircle, FiClock, FiAlertCircle, FiDollarSign } from 'react-icons/fi';
+import { CurrencyFormatter } from '../shared/CurrencyFormatter';
+import './analytics.css';
 
-export const InvoiceAnalytics = ({ data, loading }) => {
-    if (loading) {
-        return <div className="invoice-analytics-skeleton">Loading...</div>;
-    }
+export const InvoiceAnalytics = ({ data = {}, loading = false }) => {
+    const stats = [
+        { label: 'Total Invoices', value: data.totalInvoices || 0, icon: FiFileText, color: '#3b82f6' },
+        { label: 'Paid', value: data.paidInvoices || 0, icon: FiCheckCircle, color: '#22c55e' },
+        { label: 'Pending', value: data.pendingInvoices || 0, icon: FiClock, color: '#f59e0b' },
+        { label: 'Overdue', value: data.overdueInvoices || 0, icon: FiAlertCircle, color: '#dc2626' },
+        { label: 'Total Amount', value: data.totalAmount || 0, icon: FiDollarSign, color: '#8b5cf6', isCurrency: true },
+        { label: 'Outstanding', value: data.outstandingAmount || 0, icon: FiAlertCircle, color: '#ef4444', isCurrency: true }
+    ];
 
-    const totalInvoices = data?.total_invoices || 0;
-    const paidInvoices = data?.paid || 0;
-    const pendingInvoices = data?.pending || 0;
-    const overdueInvoices = data?.overdue || 0;
-    const totalOutstanding = data?.total_outstanding || 0;
-    const averagePaymentTime = data?.avg_payment_days || 0;
-
-    const paidPercentage = totalInvoices > 0 ? (paidInvoices / totalInvoices) * 100 : 0;
-    const overduePercentage = totalInvoices > 0 ? (overdueInvoices / totalInvoices) * 100 : 0;
+    if (loading) return <div className="invoice-analytics-skeleton"><div className="skeleton skeleton-card"></div><div className="skeleton skeleton-card"></div><div className="skeleton skeleton-card"></div></div>;
 
     return (
         <div className="invoice-analytics">
-            <div className="invoice-analytics-grid">
-                <div className="invoice-analytics-card">
-                    <span className="invoice-analytics-label">Total Invoices</span>
-                    <span className="invoice-analytics-value">{totalInvoices}</span>
-                </div>
-                <div className="invoice-analytics-card">
-                    <span className="invoice-analytics-label">Paid</span>
-                    <span className="invoice-analytics-value success">{paidInvoices}</span>
-                    <span className="invoice-analytics-trend">({paidPercentage.toFixed(1)}%)</span>
-                </div>
-                <div className="invoice-analytics-card">
-                    <span className="invoice-analytics-label">Pending</span>
-                    <span className="invoice-analytics-value warning">{pendingInvoices}</span>
-                </div>
-                <div className="invoice-analytics-card">
-                    <span className="invoice-analytics-label">Overdue</span>
-                    <span className="invoice-analytics-value error">{overdueInvoices}</span>
-                    <span className="invoice-analytics-trend">({overduePercentage.toFixed(1)}%)</span>
-                </div>
-            </div>
-
-            <div className="invoice-analytics-progress">
-                <div className="progress-label">
-                    <span>Collection Rate</span>
-                    <span>{paidPercentage.toFixed(1)}%</span>
-                </div>
-                <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${paidPercentage}%` }}></div>
-                </div>
-            </div>
-
-            <div className="invoice-analytics-footer">
-                <div className="analytics-footer-item">
-                    <span>Outstanding Amount</span>
-                    <strong>KES {(totalOutstanding / 100).toLocaleString()}</strong>
-                </div>
-                <div className="analytics-footer-item">
-                    <span>Avg. Payment Time</span>
-                    <strong>{averagePaymentTime} days</strong>
-                </div>
+            <div className="analytics-header"><h4>Invoice Analytics</h4><span className="analytics-period">Last 30 days</span></div>
+            <div className="analytics-grid">
+                {stats.map(stat => (
+                    <div key={stat.label} className="analytics-card">
+                        <div className="analytics-card-icon" style={{ background: `${stat.color}15`, color: stat.color }}><stat.icon /></div>
+                        <div className="analytics-card-info"><span className="analytics-card-value">{stat.isCurrency ? <CurrencyFormatter amount={stat.value} showCents={false} /> : stat.value}</span><span className="analytics-card-label">{stat.label}</span></div>
+                    </div>
+                ))}
             </div>
         </div>
     );
-};
-
-InvoiceAnalytics.propTypes = {
-    data: PropTypes.shape({
-        total_invoices: PropTypes.number,
-        paid: PropTypes.number,
-        pending: PropTypes.number,
-        overdue: PropTypes.number,
-        total_outstanding: PropTypes.number,
-        avg_payment_days: PropTypes.number,
-    }),
-    loading: PropTypes.bool,
 };
 
 export default InvoiceAnalytics;

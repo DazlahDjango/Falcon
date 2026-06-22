@@ -19,15 +19,16 @@ export const ExecutiveDepartments = () => {
         <h1>Department Performance</h1>
         <p>View and compare performance across all departments</p>
       </div>
-      
+
       <DepartmentHeatmapWidget
         data={departments}
         loading={loading}
         title="Department Performance Heatmap"
         onDepartmentClick={handleDepartmentClick}
-        onRefresh={() => {}}
-        onExport={() => {}}
+        onRefresh={() => { }}
+        onExport={() => { }}
       />
     </div>
   );
 };
+export default ExecutiveDepartments;

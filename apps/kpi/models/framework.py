@@ -1,5 +1,6 @@
 from django.db import models
 from .base import BaseKPIModel
+from ..managers import KPIFrameworkManager, KPICategoryManager
 
 class Sector(BaseKPIModel):
     SECTOR_TYPES = [
@@ -39,6 +40,7 @@ class KPIFramework(BaseKPIModel):
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+    objects = KPIFrameworkManager()
     class Meta:
         db_table = 'kpi_frameworks'
         ordering = ['-version', 'name']
@@ -74,6 +76,7 @@ class KPICategory(BaseKPIModel):
     icon = models.CharField(max_length=50, blank=True)
     display_order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    objects = KPICategoryManager()
     class Meta:
         db_table = 'kpi_categories'
         ordering = ['display_order', 'name']

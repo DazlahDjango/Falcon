@@ -1,22 +1,38 @@
 // src/hooks/reviews/index.js
-// Export all review hooks
 
-export { useRatingScales } from './useRatingScales';
-export { useCompetencies } from './useCompetencies';
-export { useCycles } from './useCycles';
-export { useSelfAssessment } from './useSelfAssessment';
-export { useSupervisorReview } from './useSupervisorReview';
-export { useFinalRatings } from './useFinalRatings';
-export { usePIPs } from './usePIPs';
-export { useFeedback } from './useFeedback';
-export { useCalibration } from './useCalibration';
-export { useReviewComments } from './useReviewComments';
-export { usePromotions } from './usePromotions';
-export { useReports } from './useReports';
-export { useWebSocket } from './useWebSocket';
-export { useNotification } from './useNotification';
-export { useReviewForm, validators } from './useReviewForm';
-export { useAnalytics } from './useAnalytics';
-export { useInsights } from './useInsights';
-export { usePredictions } from './usePredictions';
-export { useAnalyticsDashboard } from './useAnalyticsDashboard';
+// Permission Hook
+export { default as useReviewsPermissions } from './useReviewsPermissions';
+
+// Core Feature Hooks
+export { default as useRatingScales } from './useRatingScales';
+export { default as useCompetencies } from './useCompetencies';
+export { default as useCompetencyCategories } from './useCompetencyCategories';
+export { default as useCycles } from './useCycles';
+export { default as useSelfAssessment } from './useSelfAssessment';
+export { default as useSupervisorReview } from './useSupervisorReview';
+export { default as useFinalRating } from './useFinalRating';
+export { default as usePIP } from './usePIP';
+export { default as usePIPActions } from './usePIPActions';
+export { default as useFeedback } from './useFeedback';
+export { default as useCalibration } from './useCalibration';
+export { default as useCoefficients } from './useCoefficients';
+export { default as useComments } from './useComments';
+export { default as usePromotions } from './usePromotions';
+export { default as useTemplates } from './useTemplates';
+
+// Dashboard & Reports
+export { default as useReviewsDashboard } from './useReviewsDashboard';
+export { default as useReviewsReports } from './useReviewsReports';
+
+// System & Utilities
+export { default as useReviewsSystemSettings } from './useReviewsSystemSettings';
+export { default as useReviewsReferenceData } from './useReviewsReferenceData';
+export { default as useReviewsAuditLogs } from './useReviewsAuditLogs';
+export { default as useReviewsNotifications } from './useReviewsNotifications';
+export { default as useReviewsWebSocket } from './useReviewsWebSocket';
+export { default as useReviewsCache } from './useReviewsCache';
+
+// Combined/Composite Hooks
+export { default as useEmployeeReviewStatus } from './useEmployeeReviewStatus';
+export { default as usePerformanceMetrics } from './usePerformanceMetrics';
+export { default as useCycleCompletion } from './useCycleCompletion';

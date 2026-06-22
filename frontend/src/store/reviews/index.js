@@ -1,1 +1,66 @@
-export { default as reviewsReducer } from './slices';
+// src/store/reviews/index.js (updated with hooks export)
+import { combineReducers } from '@reduxjs/toolkit';
+import {
+  ratingScaleReducer,
+  competencyReducer,
+  competencyCategoryReducer,
+  competencyRatingReducer,
+  reviewCycleReducer,
+  selfAssessmentReducer,
+  supervisorReviewReducer,
+  finalRatingReducer,
+  pipReducer,
+  pipActionReducer,
+  pipReviewReducer,
+  feedbackRequestReducer,
+  feedbackResponseReducer,
+  feedbackSummaryReducer,
+  calibrationSessionReducer,
+  calibrationRatingReducer,
+  coefficientReducer,
+  reviewCommentReducer,
+  promotionReducer,
+  reviewTemplateReducer,
+  reviewsDashboardReducer,
+  reviewsReportReducer,
+  reviewsHealthReducer,
+  reviewsSystemSettingsReducer,
+  reviewsReferenceDataReducer,
+  auditLogReducer,
+  notificationReducer,
+} from './slices';
+
+export const reviewsReducer = combineReducers({
+  ratingScales: ratingScaleReducer,
+  competencies: competencyReducer,
+  competencyCategories: competencyCategoryReducer,
+  competencyRatings: competencyRatingReducer,
+  cycles: reviewCycleReducer,
+  selfAssessments: selfAssessmentReducer,
+  supervisorReviews: supervisorReviewReducer,
+  finalRatings: finalRatingReducer,
+  pips: pipReducer,
+  pipActions: pipActionReducer,
+  pipReviews: pipReviewReducer,
+  feedbackRequests: feedbackRequestReducer,
+  feedbackResponses: feedbackResponseReducer,
+  feedbackSummaries: feedbackSummaryReducer,
+  calibrationSessions: calibrationSessionReducer,
+  calibrationRatings: calibrationRatingReducer,
+  coefficients: coefficientReducer,
+  comments: reviewCommentReducer,
+  promotions: promotionReducer,
+  templates: reviewTemplateReducer,
+  dashboard: reviewsDashboardReducer,
+  reports: reviewsReportReducer,
+  health: reviewsHealthReducer,
+  systemSettings: reviewsSystemSettingsReducer,
+  referenceData: reviewsReferenceDataReducer,
+  auditLogs: auditLogReducer,
+  notifications: notificationReducer,
+});
+
+// Export all
+export * from './selectors';
+export * from './slices';
+export * from './middleware';
