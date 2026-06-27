@@ -1,216 +1,318 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiRefreshCw, FiAlertCircle, FiLogOut, FiChevronRight } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import {
+  FiClock,
+  FiRefreshCw,
+  FiChevronLeft,
+  FiChevronRight,
+  FiSearch,
+  FiFilter,
+  FiLogOut,
+  FiTrash2,
+  FiAlertTriangle,
+} from 'react-icons/fi';
 import { useSessions } from '../../../hooks/accounts/useSessions';
 import { useAuth } from '../../../hooks/accounts/useAuth';
-import SessionCard from './components/SessionCard';
-import SessionDetails from './components/SessionDetails';
-import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
-import EmptyState from '../../common/Feedback/EmptyState';
-import ConfirmationDialog from '../../common/Feedback/ConfirmationDialog';
-import { showAlert } from '../../../store/accounts/slice/uiSlice';
+import { usePagination } from '../../../hooks/accounts/usePagination';
+import { SessionTable } from './SessionTable';
+import { SessionCard } from './SessionCard';
+import { BlacklistManager } from './BlacklistManager';
 
-const SessionList = () => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const { user } = useAuth();
-    const {
-        sessions,
-        activeSessions,
-        isLoading,
-        fetchSessions,
-        fetchActiveSessions,
-        terminateSession,
-        terminateAllSessions,
-    } = useSessions();
+export const SessionList = () => {
+  const { isAdmin, isSuperAdmin } = useAuth();
+  const {
+    sessions,
+    activeSessions,
+    isLoading,
+    error,
+    pagination: storePagination,
+    filters,
+    getSessions,
+    getActive,
+    terminateAllSessions,
+    setFilters,
+    setPage,
+    setPageSize,
+    clearError,
+  } = useSessions();
 
-    const [selectedSession, setSelectedSession] = useState(null);
-    const [terminateAllConfirm, setTerminateAllConfirm] = useState(false);
-    const [terminateSingleConfirm, setTerminateSingleConfirm] = useState(null);
+  const [viewMode, setViewMode] = useState('table');
+  const [showBlacklist, setShowBlacklist] = useState(false);
+  const [showTerminateAllConfirm, setShowTerminateAllConfirm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
-    // Load sessions on mount
-    useEffect(() => {
-        fetchSessions();
-        fetchActiveSessions();
-        
-        // Refresh sessions every 30 seconds
-        const interval = setInterval(() => {
-            fetchSessions();
-            fetchActiveSessions();
-        }, 30000);
-        
-        return () => clearInterval(interval);
-    }, [fetchSessions, fetchActiveSessions]);
+  const pagination = usePagination({
+    initialPage: storePagination.page || 1,
+    initialPageSize: storePagination.pageSize || 20,
+    initialTotal: storePagination.total || 0,
+  });
 
-    const handleTerminate = async (sessionId) => {
-        try {
-            await terminateSession(sessionId);
-            dispatch(showAlert({ type: 'success', message: 'Session terminated successfully' }));
-            fetchSessions();
-            fetchActiveSessions();
-            setTerminateSingleConfirm(null);
-        } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error || 'Failed to terminate session' }));
-        }
-    };
+  useEffect(() => {
+    loadSessions();
+  }, [pagination.page, pagination.pageSize, filters, searchTerm]);
 
-    const handleTerminateAll = async () => {
-        try {
-            await terminateAllSessions();
-            dispatch(showAlert({ type: 'success', message: 'All other sessions terminated' }));
-            fetchSessions();
-            fetchActiveSessions();
-            setTerminateAllConfirm(false);
-        } catch (error) {
-            dispatch(showAlert({ type: 'error', message: error || 'Failed to terminate sessions' }));
-        }
-    };
+  const loadSessions = () => {
+    getSessions({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      ...filters,
+      search: searchTerm || filters.search,
+    });
+  };
 
-    const handleRefresh = () => {
-        fetchSessions();
-        fetchActiveSessions();
-        dispatch(showAlert({ type: 'info', message: 'Refreshing sessions...' }));
-    };
+  const loadActive = () => {
+    getActive();
+  };
 
-    const getCurrentSession = () => {
-        return sessions?.find(s => s.is_current);
-    };
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    pagination.goToPage(1);
+  };
 
-    const otherSessions = sessions?.filter(s => !s.is_current) || [];
-    const currentSession = getCurrentSession();
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    pagination.goToPage(1);
+  };
 
-    if (isLoading && !sessions?.length) {
-        return (
-            <div className="sessions-page">
-                <div className="page-header">
-                    <h1>Active Sessions</h1>
-                    <p>Loading your active sessions...</p>
-                </div>
-                <SkeletonLoader type="list" count={3} />
-            </div>
-        );
+  const handleRefresh = () => {
+    loadSessions();
+    loadActive();
+  };
+
+  const handlePageChange = (newPage) => {
+    pagination.goToPage(newPage);
+    setPage(newPage);
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    pagination.changePageSize(newSize);
+    setPageSize(newSize);
+  };
+
+  const handleTerminateAll = async () => {
+    setActionLoading(true);
+    try {
+      await terminateAllSessions();
+      setShowTerminateAllConfirm(false);
+      handleRefresh();
+    } catch (err) {
+      console.error('Failed to terminate all sessions:', err);
+    } finally {
+      setActionLoading(false);
     }
+  };
 
-    return (
-        <div className="sessions-page">
-            {/* Header */}
-            <div className="page-header">
-                <div>
-                    <h1>Active Sessions</h1>
-                    <p>Manage your active login sessions across all devices</p>
-                </div>
-                <div className="header-actions">
-                    <button className="btn-icon" onClick={handleRefresh} title="Refresh">
-                        <FiRefreshCw size={18} />
-                    </button>
-                    {otherSessions.length > 0 && (
-                        <button 
-                            className="btn btn-danger" 
-                            onClick={() => setTerminateAllConfirm(true)}
-                        >
-                            <FiLogOut size={16} />
-                            Terminate All
-                        </button>
-                    )}
-                </div>
-            </div>
+  const canManage = isAdmin() || isSuperAdmin;
 
-            {/* Security Tip */}
-            <div className="security-tip">
-                <FiAlertCircle size={16} />
-                <span>
-                    If you don't recognize a session, terminate it immediately and 
-                    <button 
-                        className="link-btn" 
-                        onClick={() => navigate('/security/change-password')}
-                    >
-                        change your password
-                    </button>.
-                </span>
-            </div>
-
-            {/* Current Session Card */}
-            {currentSession && (
-                <div className="current-session-section">
-                    <h2>Current Session</h2>
-                    <SessionCard 
-                        session={currentSession}
-                        onTerminate={() => {}}  // Cannot terminate current session
-                        onViewDetails={() => setSelectedSession(currentSession)}
-                        isCurrent={true}
-                    />
-                </div>
-            )}
-
-            {/* Other Sessions */}
-            {otherSessions.length > 0 && (
-                <div className="other-sessions-section">
-                    <div className="section-header">
-                        <h2>Other Active Sessions</h2>
-                        <span className="session-count">
-                            {otherSessions.length} session{otherSessions.length !== 1 ? 's' : ''}
-                        </span>
-                    </div>
-                    <div className="sessions-grid">
-                        {otherSessions.map(session => (
-                            <SessionCard 
-                                key={session.id}
-                                session={session}
-                                onTerminate={() => setTerminateSingleConfirm(session)}
-                                onViewDetails={() => setSelectedSession(session)}
-                                isCurrent={false}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Empty State */}
-            {(!currentSession && otherSessions.length === 0) && (
-                <EmptyState 
-                    title="No Active Sessions"
-                    description="You are not currently logged in on any device"
-                    icon={<FiLogOut size={48} />}
-                />
-            )}
-
-            {/* Session Details Modal */}
-            <SessionDetails 
-                session={selectedSession}
-                isOpen={!!selectedSession}
-                onClose={() => setSelectedSession(null)}
-                onTerminate={() => {
-                    if (selectedSession) {
-                        handleTerminate(selectedSession.id);
-                        setSelectedSession(null);
-                    }
-                }}
-            />
-
-            {/* Terminate Single Session Confirmation */}
-            <ConfirmationDialog
-                isOpen={!!terminateSingleConfirm}
-                onClose={() => setTerminateSingleConfirm(null)}
-                onConfirm={() => handleTerminate(terminateSingleConfirm.id)}
-                type="warning"
-                title="Terminate Session"
-                message={`Are you sure you want to terminate this session from ${terminateSingleConfirm?.browser || 'Unknown'} ${terminateSingleConfirm?.os || 'Device'}?`}
-                confirmText="Terminate"
-            />
-
-            {/* Terminate All Sessions Confirmation */}
-            <ConfirmationDialog
-                isOpen={terminateAllConfirm}
-                onClose={() => setTerminateAllConfirm(false)}
-                onConfirm={handleTerminateAll}
-                type="warning"
-                title="Terminate All Sessions"
-                message="This will log you out from all other devices. Your current session will remain active."
-                confirmText="Terminate All"
-            />
+  return (
+    <div className="session-list-container">
+      <div className="session-list-header">
+        <div className="session-list-title">
+          <FiClock className="title-icon" />
+          <h1>Sessions</h1>
+          <span className="session-count">{pagination.total} sessions</span>
         </div>
-    );
-};
+        <div className="session-list-actions">
+          {canManage && (
+            <>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowBlacklist(!showBlacklist)}
+              >
+                <FiTrash2 /> {showBlacklist ? 'Hide Blacklist' : 'Blacklist'}
+              </button>
+              <button
+                className="btn-danger"
+                onClick={() => setShowTerminateAllConfirm(true)}
+              >
+                <FiLogOut /> Terminate All
+              </button>
+            </>
+          )}
+          <button className="btn-icon" onClick={handleRefresh}>
+            <FiRefreshCw className={isLoading ? 'spinning' : ''} />
+          </button>
+        </div>
+      </div>
 
+      <div className="session-list-stats">
+        <div className="stat-item">
+          <span className="stat-label">Active Sessions</span>
+          <span className="stat-value">{activeSessions.length}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Total Sessions</span>
+          <span className="stat-value">{pagination.total}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Current Session</span>
+          <span className="stat-value">
+            {activeSessions.find(s => s.is_current) ? 'Active' : 'None'}
+          </span>
+        </div>
+      </div>
+
+      <div className="session-list-toolbar">
+        <div className="session-list-search">
+          <FiSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search sessions by IP, device, or user..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <div className="session-list-toolbar-right">
+          <div className="session-filters">
+            <select
+              className="filter-select"
+              value={filters.status || ''}
+              onChange={(e) => handleFilterChange({ status: e.target.value })}
+            >
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+              <option value="revoked">Revoked</option>
+            </select>
+            <select
+              className="filter-select"
+              value={filters.device_type || ''}
+              onChange={(e) => handleFilterChange({ device_type: e.target.value })}
+            >
+              <option value="">All Devices</option>
+              <option value="desktop">Desktop</option>
+              <option value="mobile">Mobile</option>
+              <option value="tablet">Tablet</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+          <div className="view-toggle">
+            <button
+              className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Table view"
+            >
+              Table
+            </button>
+            <button
+              className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              title="Grid view"
+            >
+              Cards
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="session-list-error">
+          <span>{error}</span>
+          <button onClick={clearError}>×</button>
+        </div>
+      )}
+
+      {showBlacklist && canManage && (
+        <div className="session-blacklist-section">
+          <BlacklistManager />
+        </div>
+      )}
+
+      {isLoading && sessions.length === 0 ? (
+        <div className="session-list-loading">
+          <div className="spinner" />
+          <p>Loading sessions...</p>
+        </div>
+      ) : sessions.length === 0 ? (
+        <div className="session-list-empty">
+          <FiClock className="empty-icon" />
+          <h3>No sessions found</h3>
+          <p>Try adjusting your search or filters</p>
+        </div>
+      ) : (
+        <>
+          {viewMode === 'table' ? (
+            <SessionTable
+              sessions={sessions}
+              isLoading={isLoading}
+              onRefresh={handleRefresh}
+            />
+          ) : (
+            <div className="session-grid">
+              {sessions.map((session) => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  onRefresh={handleRefresh}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="session-list-pagination">
+            <div className="pagination-info">
+              Showing {sessions.length} of {pagination.total} sessions
+            </div>
+            <div className="pagination-controls">
+              <select
+                value={pagination.pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="pagination-select"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <button
+                className="pagination-btn"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={!pagination.hasPrev}
+              >
+                <FiChevronLeft />
+              </button>
+              <span className="pagination-current">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              <button
+                className="pagination-btn"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={!pagination.hasNext}
+              >
+                <FiChevronRight />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showTerminateAllConfirm && (
+        <div className="modal-overlay" onClick={() => setShowTerminateAllConfirm(false)}>
+          <div className="modal-content confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Terminate All Sessions</h3>
+              <button className="modal-close" onClick={() => setShowTerminateAllConfirm(false)}>
+                <FiX />
+              </button>
+            </div>
+            <div className="modal-body">
+              <FiAlertTriangle className="warning-icon" />
+              <p>Are you sure you want to terminate all active sessions?</p>
+              <p className="text-muted">This will log out all users from all devices.</p>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setShowTerminateAllConfirm(false)}>
+                Cancel
+              </button>
+              <button className="btn-danger" onClick={handleTerminateAll} disabled={actionLoading}>
+                {actionLoading ? 'Terminating...' : 'Yes, Terminate All'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 export default SessionList;

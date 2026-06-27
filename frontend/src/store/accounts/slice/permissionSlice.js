@@ -1,85 +1,163 @@
-/**
- * Permission Slice - Permission management state
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as permissionsApi from '../../../services/accounts/api/permissions';
 
-// Async Thunks
-// =============
-export const fetchPermissions = createAsyncThunk(
-    'permissions/fetch',
-    async (params = {}, { rejectWithValue }) => {
-        try {
-            const response = await permissionsApi.getPermissions(params);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch permissions');
-        }
-    }
-);
-export const fetchPermissionsByCategory = createAsyncThunk(
-    'permissions/fetchByCategory',
-    async (category, { rejectWithValue }) => {
-        try {
-            const response = await permissionsApi.getPermissionsByCategory(category);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch permissions');
-        }
-    }
-);
-
-// Initial State
-// ================
 const initialState = {
-    permissions: [],
-    groupedPermissions: {},
-    categories: ['kpi', 'review', 'user', 'tenant', 'report', 'workflow', 'admin'],
-    isLoading: false,
-    error: null
+  permissions: [],
+  selectedPermission: null,
+  permissionsByCategory: {},
+  permissionsByLevel: {},
+  isLoading: false,
+  error: null,
+  pagination: {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+  },
+  filters: {
+    category: '',
+    level: '',
+    is_active: null,
+    search: '',
+  },
 };
 
-// Slice
-// =======
-const permissionSlice = createSlice({
-    name: 'permissions',
-    initialState,
-    reducers: {
-        clearError: (state) => {
-            state.error = null;
-        }
-    },
-    extraReducers: (builder) => {
-        builder
-            // Fetch Permissions
-            .addCase(fetchPermissions.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchPermissions.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.permissions = action.payload.results;
-                // Group permissions by category
-                const grouped = {};
-                action.payload.results.forEach(perm => {
-                    if (!grouped[perm.category]) {
-                        grouped[perm.category] = [];
-                    }
-                    grouped[perm.category].push(perm);
-                });
-                state.groupedPermissions = grouped;
-            })
-            .addCase(fetchPermissions.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-            })
-            // Fetch Permissions By Category
-            .addCase(fetchPermissionsByCategory.fulfilled, (state, action) => {
-                state.groupedPermissions[action.meta.arg] = action.payload.results;
-            });
+export const fetchPermissions = createAsyncThunk(
+  'permissions/fetchPermissions',
+  async (params, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const pagination = state.permissions.pagination;
+      const filters = state.permissions.filters;
+      const queryParams = {
+        page: params?.page || pagination.page,
+        page_size: params?.pageSize || pagination.pageSize,
+        ...filters,
+        ...params,
+      };
+      const response = await permissionsApi.getPermissions(queryParams);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch permissions');
     }
+  }
+);
+
+export const fetchPermission = createAsyncThunk(
+  'permissions/fetchPermission',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await permissionsApi.getPermission(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch permission');
+    }
+  }
+);
+
+export const fetchPermissionsByCategory = createAsyncThunk(
+  'permissions/fetchByCategory',
+  async (category, { rejectWithValue }) => {
+    try {
+      const response = await permissionsApi.getPermissionsByCategory(category);
+      return { category, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch permissions by category');
+    }
+  }
+);
+
+export const fetchPermissionsByLevel = createAsyncThunk(
+  'permissions/fetchByLevel',
+  async (level, { rejectWithValue }) => {
+    try {
+      const response = await permissionsApi.getPermissionsByLevel(level);
+      return { level, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch permissions by level');
+    }
+  }
+);
+
+const permissionSlice = createSlice({
+  name: 'permissions',
+  initialState,
+  reducers: {
+    clearPermissionError: (state) => {
+      state.error = null;
+    },
+    setPermissionFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+      state.pagination.page = 1;
+    },
+    setPermissionPage: (state, action) => {
+      state.pagination.page = action.payload;
+    },
+    clearSelectedPermission: (state) => {
+      state.selectedPermission = null;
+    },
+    resetPermissions: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPermissions.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPermissions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const data = action.payload;
+        state.permissions = data.results || data.data || data || [];
+        state.pagination.total = data.count || data.total || 0;
+      })
+      .addCase(fetchPermissions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchPermission.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPermission.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.selectedPermission = action.payload;
+      })
+      .addCase(fetchPermission.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchPermissionsByCategory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPermissionsByCategory.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.permissionsByCategory[action.payload.category] = action.payload.data;
+      })
+      .addCase(fetchPermissionsByCategory.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchPermissionsByLevel.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPermissionsByLevel.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.permissionsByLevel[action.payload.level] = action.payload.data;
+      })
+      .addCase(fetchPermissionsByLevel.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+  },
 });
-export const { clearError } = permissionSlice.actions;
+
+export const {
+  clearPermissionError,
+  setPermissionFilters,
+  setPermissionPage,
+  clearSelectedPermission,
+  resetPermissions,
+} = permissionSlice.actions;
 
 export default permissionSlice.reducer;

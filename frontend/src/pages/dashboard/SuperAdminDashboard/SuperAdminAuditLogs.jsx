@@ -1,12 +1,12 @@
 import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
-import AuditLogs from '../../../components/accounts/audit/AuditLogs';
+import { AuditLogList } from '../../../components/accounts/audit/AuditLogList';
 
 const SuperAdminAuditLogs = () => {
     return (
         <DashboardLayout role="super_admin">
             <div className="dashboard-content">
-                <AuditLogs />
+                <AuditLogList />
             </div>
         </DashboardLayout>
     );

@@ -1,0 +1,42 @@
+.role-protected-fallback,
+.permission-gate-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  min-height: 200px;
+}
+
+.role-protected-fallback .fallback-icon,
+.permission-gate-fallback .fallback-icon {
+  font-size: 48px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.role-protected-fallback h3,
+.permission-gate-fallback h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.role-protected-fallback p,
+.permission-gate-fallback p {
+  color: #64748b;
+  font-size: 14px;
+  max-width: 400px;
+}
+
+.role-protected-loading,
+.permission-gate-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #94a3b8;
+  font-size: 14px;
+}

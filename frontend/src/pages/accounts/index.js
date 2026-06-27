@@ -6,54 +6,56 @@ export { default as ServerError } from './ServerError';
 export { default as Help } from './Help';
 export { default as About } from './About';
 
-// Auth pages
-export { default as Login } from '../../components/accounts/auth/Login';
-export { default as Register } from '../../components/accounts/auth/Register';
-export { default as MFAVerify } from '../../components/accounts/auth/MFAVerify';
-export { default as MFASetup } from '../../components/accounts/auth/MFASetup';
-export { default as ForgotPassword } from '../../components/accounts/auth/ForgotPassword';
-export { default as ResetPassword } from '../../components/accounts/auth/ResetPassword';
-export { default as VerifyEmail } from '../../components/accounts/auth/VerifyEmail';
-export { default as AcceptInvitation } from '../../components/accounts/auth/AcceptInvitation';
+export { default as LoginPage } from './LoginPage';
+export { default as MFAChallengePage } from './MFAChallengePage';
+export { default as MFASetupPage } from './MFASetupPage';
+export { default as PasswordResetPage } from './PasswordResetPage';
+export { default as PasswordResetConfirmPage } from './PasswordResetConfirmPage';
+export { default as RegisterPage } from './RegisterPage';
+export { default as TenantRegisterPage } from './TenantRegisterPage';
+export { default as VerifyEmailPage } from './VerifyEmailPage';
 
-// Dashboard Pages
-export { default as Dashboard } from '../../components/accounts/dashboard/Dashboard';
-export { default as UserDashboard } from '../../components/accounts/dashboard/UserDashboard';
-export { default as TeamDashboard } from '../../components/accounts/dashboard/TeamDashboard';
-export { default as ExecutiveDashboard } from '../../components/accounts/dashboard/ExecutiveDashboard';
+export { default as UsersPage } from './UsersPage';
+export { default as UserDetailPage } from './UserDetailPage';
+export { default as UserCreatePage } from './UserCreatePage';
+export { default as UserEditPage } from './UserEditPage';
 
-// User Pages
-export { default as UserList } from '../../components/accounts/users/UserList';
-export { default as UserDetail } from '../../components/accounts/users/UserDetail';
-export { default as UserCreate } from '../../components/accounts/users/UserCreate';
-export { default as UserEdit } from '../../components/accounts/users/UserEdit';
-export { default as UserProfile } from '../../components/accounts/users/UserProfile';
+export { default as ProfilePage } from './ProfilePage';
+export { default as ProfileEditPage } from './ProfileEditPage';
 
-// Team Pages
-export { default as TeamView } from '../../components/accounts/team/TeamView';
+export { default as MFADevicesPage } from './MFADevicesPage';
+export { default as MFABackupCodesPage } from './MFABackupCodesPage';
 
-// Role Pages
-export { default as RoleList } from '../../components/accounts/roles/RoleList';
-export { default as RoleDetail } from '../../components/accounts/roles/RoleDetail';
-export { default as RoleCreate } from '../../components/accounts/roles/RoleCreate';
-export { default as RoleEdit } from '../../components/accounts/roles/RoleEdit';
+export { default as RolesPage } from './RolesPage';
+export { default as RoleDetailPage } from './RoleDetailPage';
+export { default as RoleCreatePage } from './RoleCreatePage';
+export { default as RoleEditPage } from './RoleEditPage';
 
-// Session Pages
-export { default as SessionList } from '../../components/accounts/sessions/SessionList';
+export { default as PermissionsPage } from './PermissionsPage';
 
-// Settings Pages
-export { default as Settings } from '../../components/accounts/settings/Settings';
-export { default as ProfileSettings } from '../../components/accounts/settings/ProfileSettings';
-export { default as SecuritySettings } from '../../components/accounts/settings/SecuritySettings';
-export { default as NotificationSettings } from '../../components/accounts/settings/NotificationSettings';
-export { default as TenantSettings } from '../../components/accounts/settings/TenantSettings';
+export { default as SessionsPage } from './SessionsPage';
 
-// Audit Pages
-export { default as AuditLogs } from '../../components/accounts/audit/AuditLogs';
-export { default as AuditDetail } from '../../components/accounts/audit/AuditDetail';
+export { default as AuditLogsPage } from './AuditLogsPage';
+export { default as AuditLogDetailPage } from './AuditLogDetailPage';
+export { default as SecurityEventsPage } from './SecurityEventsPage';
+export { default as ComplianceReportPage } from './ComplianceReportPage';
 
-// Admin Pages
-export { default as AdminDashboard } from '../../components/accounts/admin/AdminDashboard';
-export { default as AdminUsers } from '../../components/accounts/admin/AdminUsers';
-export { default as AdminTenants } from '../../components/accounts/admin/AdminTenants';
-export { default as AdminSystem } from '../../components/accounts/admin/AdminSystem';
+export { default as UserPreferencesPage } from './UserPreferencesPage';
+export { default as TenantPreferencesPage } from './TenantPreferencesPage';
+export { default as BrandingSettingsPage } from './BrandingSettingsPage';
+export { default as NotificationSettingsPage } from './NotificationSettingsPage';
+
+export { default as AdminDashboardPage } from './AdminDashboardPage';
+export { default as AdminUsersPage } from './AdminUsersPage';
+export { default as AdminRolesPage } from './AdminRolesPage';
+export { default as AdminPermissionsPage } from './AdminPermissionsPage';
+export { default as AdminTenantsPage } from './AdminTenantsPage';
+export { default as AdminSystemSettingsPage } from './AdminSystemSettingsPage';
+export { default as AdminMFAManagementPage } from './AdminMFAManagementPage';
+
+export { default as LoginAttemptsPage } from './LoginAttemptsPage';
+export { default as LockoutSummaryPage } from './LockoutSummaryPage';
+export { default as TenantPolicyPage } from './TenantPolicyPage';
+
+export { default as DashboardPage } from './DashboardPage';
+export { default as SettingsPage } from './SettingsPage';

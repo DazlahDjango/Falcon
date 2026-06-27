@@ -1,226 +1,227 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    fetchAuditLogs,
-    fetchAuditLogById,
-    fetchUserAuditActivity,
-    fetchUserAuditSummary,
-    fetchTenantAuditSummary,
-    fetchSecurityEvents,
-    fetchObjectHistory,
-    fetchComplianceReport,
-    exportAuditLogs,
-    setFilters,
-    resetFilters,
-    setPage,
-    clearSelectedLog,
-    clearError,
-    resetAudit,
-    selectAudit,
+  fetchAuditLogs,
+  fetchAuditLog,
+  fetchUserActivity,
+  fetchUserActivitySummary,
+  fetchTenantActivitySummary,
+  fetchSecurityEvents,
+  fetchAnomalyDetection,
+  fetchComplianceReport,
+  fetchObjectHistory,
+  exportAuditLogs,
+  setAuditFilters,
+  setAuditPage,
+  clearSelectedLog,
+  clearAuditError,
 } from '../../store/accounts/slice/auditSlice';
+import {
+  selectAuditLogs,
+  selectSelectedAuditLog,
+  selectUserActivity,
+  selectUserActivitySummary,
+  selectTenantActivitySummary,
+  selectSecurityEvents,
+  selectAnomalyDetection,
+  selectComplianceReport,
+  selectObjectHistory,
+  selectAuditLoading,
+  selectAuditExporting,
+  selectAuditError,
+  selectAuditPagination,
+  selectAuditFilters,
+  selectAuditLogById,
+} from '../../store/accounts/selectors/auditSelectors';
 
 export const useAudit = () => {
-    const dispatch = useDispatch();
-    const auditState = useSelector(selectAudit) || {
-        logs: [],
-        selectedLog: null,
-        userActivity: null,
-        userSummary: null,
-        tenantSummary: null,
-        securityEvents: [],
-        objectHistory: [],
-        complianceReport: null,
-        pagination: {
-            current_page: 1,
-            total_pages: 1,
-            total_items: 0,
-            page_size: 20
-        },
-        filters: {
-            action: '',
-            action_type: '',
-            severity: '',
-            user_id: '',
-            start_date: '',
-            end_date: '',
-            ip_address: ''
-        },
-        isLoading: false,
-        error: null,
-        exporting: false
-    };
+  const dispatch = useDispatch();
+  const logs = useSelector(selectAuditLogs);
+  const selectedLog = useSelector(selectSelectedAuditLog);
+  const userActivity = useSelector(selectUserActivity);
+  const userActivitySummary = useSelector(selectUserActivitySummary);
+  const tenantActivitySummary = useSelector(selectTenantActivitySummary);
+  const securityEvents = useSelector(selectSecurityEvents);
+  const anomalyDetection = useSelector(selectAnomalyDetection);
+  const complianceReport = useSelector(selectComplianceReport);
+  const objectHistory = useSelector(selectObjectHistory);
+  const isLoading = useSelector(selectAuditLoading);
+  const isExporting = useSelector(selectAuditExporting);
+  const error = useSelector(selectAuditError);
+  const pagination = useSelector(selectAuditPagination);
+  const filters = useSelector(selectAuditFilters);
 
-    // Local UI state
-    const [exportFormat, setExportFormat] = useState('json');
-    const [dateRange, setDateRange] = useState({
-        start_date: '',
-        end_date: '',
-    });
-    const [selectedEventType, setSelectedEventType] = useState('');
+  const getLogs = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchAuditLogs(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Data Fetching ==========
+  const getLog = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchAuditLog(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadAuditLogs = useCallback(async (params = {}) => {
-        return await dispatch(fetchAuditLogs(params)).unwrap();
-    }, [dispatch]);
+  const getUserActivity = useCallback(
+    async (userId, params) => {
+      const result = await dispatch(fetchUserActivity({ userId, params })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadAuditLogById = useCallback(async (logId) => {
-        return await dispatch(fetchAuditLogById(logId)).unwrap();
-    }, [dispatch]);
+  const getUserSummary = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchUserActivitySummary(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadUserAuditActivity = useCallback(async (userId, days = 30) => {
-        return await dispatch(fetchUserAuditActivity({ userId, days })).unwrap();
-    }, [dispatch]);
+  const getTenantSummary = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchTenantActivitySummary(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadUserAuditSummary = useCallback(async (days = 30) => {
-        return await dispatch(fetchUserAuditSummary(days)).unwrap();
-    }, [dispatch]);
+  const getSecurityEvents = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchSecurityEvents(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadTenantAuditSummary = useCallback(async (days = 30) => {
-        return await dispatch(fetchTenantAuditSummary(days)).unwrap();
-    }, [dispatch]);
+  const getAnomalyDetection = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchAnomalyDetection(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadSecurityEvents = useCallback(async (days = 30) => {
-        return await dispatch(fetchSecurityEvents(days)).unwrap();
-    }, [dispatch]);
+  const getComplianceReport = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchComplianceReport(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadObjectHistory = useCallback(async (contentType, objectId) => {
-        return await dispatch(fetchObjectHistory({ contentType, objectId })).unwrap();
-    }, [dispatch]);
+  const getObjectHistory = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchObjectHistory(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadComplianceReport = useCallback(async (startDate, endDate) => {
-        return await dispatch(fetchComplianceReport({ startDate, endDate })).unwrap();
-    }, [dispatch]);
+  const exportLogs = useCallback(
+    async (data) => {
+      const result = await dispatch(exportAuditLogs(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const exportLogs = useCallback(async (data) => {
-        return await dispatch(exportAuditLogs(data)).unwrap();
-    }, [dispatch]);
+  const setFilters = useCallback(
+    (newFilters) => {
+      dispatch(setAuditFilters(newFilters));
+    },
+    [dispatch]
+  );
 
-    // ========== Filters & Pagination ==========
+  const setPage = useCallback(
+    (page) => {
+      dispatch(setAuditPage(page));
+    },
+    [dispatch]
+  );
 
-    const updateAuditFilters = useCallback((filters) => {
-        dispatch(setFilters(filters));
-    }, [dispatch]);
+  const clearSelected = useCallback(() => {
+    dispatch(clearSelectedLog());
+  }, [dispatch]);
 
-    const clearAuditFilters = useCallback(() => {
-        dispatch(resetFilters());
-    }, [dispatch]);
+  const clearError = useCallback(() => {
+    dispatch(clearAuditError());
+  }, [dispatch]);
 
-    const goToAuditPage = useCallback((page) => {
-        dispatch(setPage(page));
-    }, [dispatch]);
+  const getLogById = useCallback(
+    (id) => {
+      return selectAuditLogById({ auditLogs: { logs } }, id);
+    },
+    [logs]
+  );
 
-    // ========== Date Range Helpers ==========
-
-    const setDateRangeFilter = useCallback((startDate, endDate) => {
-        setDateRange({ start_date: startDate, end_date: endDate });
-        updateAuditFilters({ start_date: startDate, end_date: endDate });
-    }, [updateAuditFilters]);
-
-    const getLastNDays = useCallback((days) => {
-        const end = new Date();
-        const start = new Date();
-        start.setDate(start.getDate() - days);
-
-        const formatDate = (date) => date.toISOString().split('T')[0];
-
-        setDateRangeFilter(formatDate(start), formatDate(end));
-    }, [setDateRangeFilter]);
-
-    // ========== Utilities ==========
-
-    const clearAuditError = useCallback(() => {
-        dispatch(clearError());
-    }, [dispatch]);
-
-    const clearAuditSelection = useCallback(() => {
-        dispatch(clearSelectedLog());
-    }, [dispatch]);
-
-    const resetAuditState = useCallback(() => {
-        dispatch(resetAudit());
-    }, [dispatch]);
-
-    // ========== Computed Values ==========
-
-    const getSeverityBadge = (severity) => {
-        const badges = {
-            info: { text: 'Info', variant: 'info' },
-            warning: { text: 'Warning', variant: 'warning' },
-            error: { text: 'Error', variant: 'danger' },
-            critical: { text: 'Critical', variant: 'critical' },
-        };
-        return badges[severity] || badges.info;
-    };
-
-    const getActionTypeLabel = (actionType) => {
-        const labels = {
-            create: 'Create',
-            read: 'Read',
-            update: 'Update',
-            delete: 'Delete',
-            login: 'Login',
-            logout: 'Logout',
-            approve: 'Approve',
-            reject: 'Reject',
-            export: 'Export',
-            security: 'Security',
-        };
-        return labels[actionType] || actionType;
-    };
-
-    // ========== Return ==========
-
-    return {
-        // State
-        logs: auditState.logs,
-        selectedLog: auditState.selectedLog,
-        pagination: auditState.pagination,
-        filters: auditState.filters,
-        userActivity: auditState.userActivity,
-        userSummary: auditState.userSummary,
-        tenantSummary: auditState.tenantSummary,
-        securityEvents: auditState.securityEvents,
-        objectHistory: auditState.objectHistory,
-        complianceReport: auditState.complianceReport,
-        isLoading: auditState.isLoading,
-        error: auditState.error,
-        exporting: auditState.exporting,
-
-        // UI State
-        exportFormat,
-        setExportFormat,
-        dateRange,
-        selectedEventType,
-        setSelectedEventType,
-
-        // Actions - Data Fetching
-        loadAuditLogs,
-        loadAuditLogById,
-        loadUserAuditActivity,
-        loadUserAuditSummary,
-        loadTenantAuditSummary,
-        loadSecurityEvents,
-        loadObjectHistory,
-        loadComplianceReport,
-        exportLogs,
-
-        // Actions - Filters
-        updateAuditFilters,
-        clearAuditFilters,
-        goToAuditPage,
-
-        // Actions - Date Helpers
-        setDateRangeFilter,
-        getLastNDays,
-
-        // Utilities
-        clearAuditError,
-        clearAuditSelection,
-        resetAuditState,
-
-        // Computed Values
-        getSeverityBadge,
-        getActionTypeLabel,
-    };
+  return useMemo(
+    () => ({
+      logs,
+      selectedLog,
+      userActivity,
+      userActivitySummary,
+      tenantActivitySummary,
+      securityEvents,
+      anomalyDetection,
+      complianceReport,
+      objectHistory,
+      isLoading,
+      isExporting,
+      error,
+      pagination,
+      filters,
+      getLogs,
+      getLog,
+      getUserActivity,
+      getUserSummary,
+      getTenantSummary,
+      getSecurityEvents,
+      getAnomalyDetection,
+      getComplianceReport,
+      getObjectHistory,
+      exportLogs,
+      setFilters,
+      setPage,
+      clearSelected,
+      clearError,
+      getLogById,
+    }),
+    [
+      logs,
+      selectedLog,
+      userActivity,
+      userActivitySummary,
+      tenantActivitySummary,
+      securityEvents,
+      anomalyDetection,
+      complianceReport,
+      objectHistory,
+      isLoading,
+      isExporting,
+      error,
+      pagination,
+      filters,
+      getLogs,
+      getLog,
+      getUserActivity,
+      getUserSummary,
+      getTenantSummary,
+      getSecurityEvents,
+      getAnomalyDetection,
+      getComplianceReport,
+      getObjectHistory,
+      exportLogs,
+      setFilters,
+      setPage,
+      clearSelected,
+      clearError,
+      getLogById,
+    ]
+  );
 };

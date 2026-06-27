@@ -1,245 +1,251 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as auditApi from '../../../services/accounts/api/audit';
 
+const initialState = {
+  logs: [],
+  selectedLog: null,
+  userActivity: [],
+  userActivitySummary: null,
+  tenantActivitySummary: null,
+  securityEvents: [],
+  anomalyDetection: null,
+  complianceReport: null,
+  objectHistory: [],
+  isLoading: false,
+  isExporting: false,
+  error: null,
+  pagination: {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+  },
+  filters: {
+    action: '',
+    action_type: '',
+    severity: '',
+    user: '',
+    start_date: '',
+    end_date: '',
+  },
+};
+
 export const fetchAuditLogs = createAsyncThunk(
-    'audit/fetchLogs',
-    async (params = {}, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getAuditLogs(params);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch audit logs');
-        }
+  'audit/fetchLogs',
+  async (params, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const pagination = state.auditLogs.pagination;
+      const filters = state.auditLogs.filters;
+      const queryParams = {
+        page: params?.page || pagination.page,
+        page_size: params?.pageSize || pagination.pageSize,
+        ...filters,
+        ...params,
+      };
+      const response = await auditApi.getAuditLogs(queryParams);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch audit logs');
     }
+  }
 );
 
-export const fetchAuditLogById = createAsyncThunk(
-    'audit/fetchLogById',
-    async (logId, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getAuditLogById(logId);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch audit log');
-        }
+export const fetchAuditLog = createAsyncThunk(
+  'audit/fetchLog',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getAuditLog(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch audit log');
     }
+  }
 );
 
-export const fetchUserAuditActivity = createAsyncThunk(
-    'audit/fetchUserActivity',
-    async ({ userId, days = 30 }, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getUserAuditActivity(userId, days);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch user activity');
-        }
+export const fetchUserActivity = createAsyncThunk(
+  'audit/fetchUserActivity',
+  async ({ userId, params }, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getUserActivity(userId, params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch user activity');
     }
+  }
 );
 
-export const fetchUserAuditSummary = createAsyncThunk(
-    'audit/fetchUserSummary',
-    async (days = 30, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getUserAuditSummary(days);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch user summary');
-        }
+export const fetchUserActivitySummary = createAsyncThunk(
+  'audit/fetchUserActivitySummary',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getUserActivitySummary(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch user activity summary');
     }
+  }
 );
 
-export const fetchTenantAuditSummary = createAsyncThunk(
-    'audit/fetchTenantSummary',
-    async (days = 30, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getTenantAuditSummary(days);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch tenant summary');
-        }
+export const fetchTenantActivitySummary = createAsyncThunk(
+  'audit/fetchTenantActivitySummary',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getTenantActivitySummary(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch tenant activity summary');
     }
+  }
 );
 
 export const fetchSecurityEvents = createAsyncThunk(
-    'audit/fetchSecurityEvents',
-    async (days = 30, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getSecurityEvents(days);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch security events');
-        }
+  'audit/fetchSecurityEvents',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getSecurityEvents(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch security events');
     }
+  }
 );
 
-export const fetchObjectHistory = createAsyncThunk(
-    'audit/fetchObjectHistory',
-    async ({ contentType, objectId }, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getObjectHistory(contentType, objectId);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch object history');
-        }
+export const fetchAnomalyDetection = createAsyncThunk(
+  'audit/fetchAnomalyDetection',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getAnomalyDetection(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch anomaly detection');
     }
+  }
 );
 
 export const fetchComplianceReport = createAsyncThunk(
-    'audit/fetchComplianceReport',
-    async ({ startDate, endDate }, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.getComplianceReport(startDate, endDate);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch compliance report');
-        }
+  'audit/fetchComplianceReport',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getComplianceReport(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch compliance report');
     }
+  }
+);
+
+export const fetchObjectHistory = createAsyncThunk(
+  'audit/fetchObjectHistory',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.getObjectHistory(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch object history');
+    }
+  }
 );
 
 export const exportAuditLogs = createAsyncThunk(
-    'audit/exportLogs',
-    async (data, { rejectWithValue }) => {
-        try {
-            const response = await auditApi.exportAuditLogs(data);
-            return { data: response.data, format: data.format || 'json' };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to export audit logs');
-        }
+  'audit/exportLogs',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await auditApi.exportAuditLogs(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to export audit logs');
     }
+  }
 );
 
-// ============================================================
-// Initial State
-// ============================================================
-
-const initialState = {
-    logs: [],
-    selectedLog: null,
-    userActivity: null,
-    userSummary: null,
-    tenantSummary: null,
-    securityEvents: [],
-    objectHistory: [],
-    complianceReport: null,
-    pagination: {
-        current_page: 1,
-        total_pages: 1,
-        total_items: 0,
-        page_size: 20
-    },
-    filters: {
-        action: '',
-        action_type: '',
-        severity: '',
-        user_id: '',
-        start_date: '',
-        end_date: '',
-        ip_address: ''
-    },
-    isLoading: false,
-    error: null,
-    exporting: false
-};
-
-// ============================================================
-// Slice
-// ============================================================
-
 const auditSlice = createSlice({
-    name: 'audit',
-    initialState,
-    reducers: {
-        setFilters: (state, action) => {
-            state.filters = { ...state.filters, ...action.payload };
-            state.pagination.current_page = 1;
-        },
-        resetFilters: (state) => {
-            state.filters = initialState.filters;
-            state.pagination.current_page = 1;
-        },
-        setPage: (state, action) => {
-            state.pagination.current_page = action.payload;
-        },
-        clearSelectedLog: (state) => {
-            state.selectedLog = null;
-        },
-        clearError: (state) => {
-            state.error = null;
-        },
-        resetAudit: () => initialState
+  name: 'audit',
+  initialState,
+  reducers: {
+    clearAuditError: (state) => {
+      state.error = null;
     },
-    extraReducers: (builder) => {
-        builder
-            // Fetch Audit Logs
-            .addCase(fetchAuditLogs.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchAuditLogs.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.logs = action.payload.results || action.payload || [];
-                state.pagination = {
-                    current_page: action.payload.current_page || 1,
-                    total_pages: action.payload.total_pages || 1,
-                    total_items: action.payload.count || state.logs.length,
-                    page_size: action.payload.page_size || 20
-                };
-            })
-            .addCase(fetchAuditLogs.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-            })
-            // Fetch Audit Log By ID
-            .addCase(fetchAuditLogById.fulfilled, (state, action) => {
-                state.selectedLog = action.payload;
-            })
-            // Fetch User Audit Activity
-            .addCase(fetchUserAuditActivity.fulfilled, (state, action) => {
-                state.userActivity = action.payload;
-            })
-            // Fetch User Audit Summary
-            .addCase(fetchUserAuditSummary.fulfilled, (state, action) => {
-                state.userSummary = action.payload;
-            })
-            // Fetch Tenant Audit Summary
-            .addCase(fetchTenantAuditSummary.fulfilled, (state, action) => {
-                state.tenantSummary = action.payload;
-            })
-            // Fetch Security Events
-            .addCase(fetchSecurityEvents.fulfilled, (state, action) => {
-                state.securityEvents = action.payload.events || action.payload || [];
-            })
-            // Fetch Object History
-            .addCase(fetchObjectHistory.fulfilled, (state, action) => {
-                state.objectHistory = action.payload.history || action.payload || [];
-            })
-            // Fetch Compliance Report
-            .addCase(fetchComplianceReport.fulfilled, (state, action) => {
-                state.complianceReport = action.payload;
-            })
-            // Export Audit Logs
-            .addCase(exportAuditLogs.pending, (state) => {
-                state.exporting = true;
-            })
-            .addCase(exportAuditLogs.fulfilled, (state) => {
-                state.exporting = false;
-            })
-            .addCase(exportAuditLogs.rejected, (state) => {
-                state.exporting = false;
-            });
-    }
+    setAuditFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+      state.pagination.page = 1;
+    },
+    setAuditPage: (state, action) => {
+      state.pagination.page = action.payload;
+    },
+    clearSelectedLog: (state) => {
+      state.selectedLog = null;
+    },
+    resetAudit: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAuditLogs.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAuditLogs.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const data = action.payload;
+        state.logs = data.results || data.data || data || [];
+        state.pagination.total = data.count || data.total || 0;
+      })
+      .addCase(fetchAuditLogs.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchAuditLog.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAuditLog.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.selectedLog = action.payload;
+      })
+      .addCase(fetchAuditLog.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchUserActivity.fulfilled, (state, action) => {
+        state.userActivity = action.payload.activities || action.payload || [];
+      })
+      .addCase(fetchUserActivitySummary.fulfilled, (state, action) => {
+        state.userActivitySummary = action.payload;
+      })
+      .addCase(fetchTenantActivitySummary.fulfilled, (state, action) => {
+        state.tenantActivitySummary = action.payload;
+      })
+      .addCase(fetchSecurityEvents.fulfilled, (state, action) => {
+        state.securityEvents = action.payload.events || action.payload || [];
+      })
+      .addCase(fetchAnomalyDetection.fulfilled, (state, action) => {
+        state.anomalyDetection = action.payload;
+      })
+      .addCase(fetchComplianceReport.fulfilled, (state, action) => {
+        state.complianceReport = action.payload;
+      })
+      .addCase(fetchObjectHistory.fulfilled, (state, action) => {
+        state.objectHistory = action.payload.history || action.payload || [];
+      })
+      .addCase(exportAuditLogs.pending, (state) => {
+        state.isExporting = true;
+        state.error = null;
+      })
+      .addCase(exportAuditLogs.fulfilled, (state) => {
+        state.isExporting = false;
+      })
+      .addCase(exportAuditLogs.rejected, (state, action) => {
+        state.isExporting = false;
+        state.error = action.payload;
+      });
+  },
 });
-export const { setFilters, resetFilters, setPage, clearSelectedLog, clearError, resetAudit } = auditSlice.actions;
 
-export const selectAudit = (state) => state.audit;
-export const selectAuditLogs = (state) => state.audit.logs;
-export const selectSelectedLog = (state) => state.audit.selectedLog;
-export const selectAuditPagination = (state) => state.audit.pagination;
-export const selectAuditFilters = (state) => state.audit.filters;
-export const selectSecurityEvents = (state) => state.audit.securityEvents;
-export const selectComplianceReport = (state) => state.audit.complianceReport;
-export const selectAuditLoading = (state) => state.audit.isLoading;
-export const selectAuditError = (state) => state.audit.error;
+export const {
+  clearAuditError,
+  setAuditFilters,
+  setAuditPage,
+  clearSelectedLog,
+  resetAudit,
+} = auditSlice.actions;
 
 export default auditSlice.reducer;

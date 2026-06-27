@@ -1,229 +1,253 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    fetchCurrentUserProfile,
-    updateProfile,
-    uploadAvatar,
-    deleteAvatar,
-    changePassword,
-    clearProfileError,
-    resetProfile,
-    setAvatarProgress,
-    selectProfile,
+  fetchProfiles,
+  fetchProfile,
+  updateProfile,
+  uploadAvatar,
+  deleteAvatar,
+  addSkill,
+  updateSkill,
+  removeSkill,
+  addCertification,
+  removeCertification,
+  fetchMyProfile,
+  updateMyProfile,
+  setProfileFilters,
+  setProfilePage,
+  clearSelectedProfile,
+  clearProfileError,
 } from '../../store/accounts/slice/profileSlice';
+import {
+  selectProfiles,
+  selectSelectedProfile,
+  selectCurrentProfile,
+  selectProfilesLoading,
+  selectProfilesUpdating,
+  selectProfilesUploading,
+  selectProfilesError,
+  selectProfilesPagination,
+  selectProfilesFilters,
+  selectProfileById,
+  selectProfileByUserId,
+  selectProfileAvatar,
+  selectProfileCompletion,
+  selectSkillsCount,
+  selectCertificationsCount,
+} from '../../store/accounts/selectors/profileSelectors';
 
 export const useProfile = () => {
-    const dispatch = useDispatch();
-    const profileState = useSelector(selectProfile) || {
-        profile: null,
-        profileData: null,
-        isLoading: false,
-        error: null,
-        avatarUploadProgress: 0,
-        isUploadingAvatar: false
-    };
+  const dispatch = useDispatch();
+  const profiles = useSelector(selectProfiles);
+  const selectedProfile = useSelector(selectSelectedProfile);
+  const currentProfile = useSelector(selectCurrentProfile);
+  const isLoading = useSelector(selectProfilesLoading);
+  const isUpdating = useSelector(selectProfilesUpdating);
+  const isUploading = useSelector(selectProfilesUploading);
+  const error = useSelector(selectProfilesError);
+  const pagination = useSelector(selectProfilesPagination);
+  const filters = useSelector(selectProfilesFilters);
 
-    // Local UI state
-    const [isEditing, setIsEditing] = useState(false);
-    const [editFormData, setEditFormData] = useState({});
-    const [passwordForm, setPasswordForm] = useState({
-        old_password: '',
-        new_password: '',
-        confirm_password: '',
-    });
-    const [passwordErrors, setPasswordErrors] = useState({});
+  const getProfiles = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchProfiles(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Data Fetching ==========
+  const getProfile = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchProfile(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadProfile = useCallback(async () => {
-        return await dispatch(fetchCurrentUserProfile()).unwrap();
-    }, [dispatch]);
+  const update = useCallback(
+    async (id, data) => {
+      const result = await dispatch(updateProfile({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Profile Management ==========
+  const upload = useCallback(
+    async (id, file, onProgress) => {
+      const result = await dispatch(uploadAvatar({ id, file, onProgress })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const updateUserProfile = useCallback(async (data) => {
-        const result = await dispatch(updateProfile(data)).unwrap();
-        setIsEditing(false);
-        return result;
-    }, [dispatch]);
+  const removeAvatar = useCallback(
+    async (id) => {
+      const result = await dispatch(deleteAvatar(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const uploadUserAvatar = useCallback(async (file, onProgress) => {
-        const result = await dispatch(uploadAvatar({ file, onProgress })).unwrap();
-        return result;
-    }, [dispatch]);
+  const addSkill = useCallback(
+    async (id, data) => {
+      const result = await dispatch(addSkill({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const removeUserAvatar = useCallback(async () => {
-        return await dispatch(deleteAvatar()).unwrap();
-    }, [dispatch]);
+  const updateSkill = useCallback(
+    async (id, skillName, data) => {
+      const result = await dispatch(updateSkill({ id, skillName, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Password Management ==========
+  const removeSkill = useCallback(
+    async (id, skillName) => {
+      const result = await dispatch(removeSkill({ id, skillName })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const validatePasswordForm = useCallback(() => {
-        const errors = {};
+  const addCertification = useCallback(
+    async (id, data) => {
+      const result = await dispatch(addCertification({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-        if (!passwordForm.old_password) {
-            errors.old_password = 'Current password is required';
-        }
-        if (!passwordForm.new_password) {
-            errors.new_password = 'New password is required';
-        } else if (passwordForm.new_password.length < 8) {
-            errors.new_password = 'Password must be at least 8 characters';
-        }
-        if (passwordForm.new_password !== passwordForm.confirm_password) {
-            errors.confirm_password = 'Passwords do not match';
-        }
+  const removeCertification = useCallback(
+    async (id, certName) => {
+      const result = await dispatch(removeCertification({ id, certName })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-        setPasswordErrors(errors);
-        return Object.keys(errors).length === 0;
-    }, [passwordForm]);
+  const getMyProfile = useCallback(async () => {
+    const result = await dispatch(fetchMyProfile()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const changeUserPassword = useCallback(async () => {
-        if (!validatePasswordForm()) {
-            return false;
-        }
+  const updateMyProfile = useCallback(
+    async (data) => {
+      const result = await dispatch(updateMyProfile(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-        const result = await dispatch(changePassword({
-            oldPassword: passwordForm.old_password,
-            newPassword: passwordForm.new_password,
-        })).unwrap();
+  const setFilters = useCallback(
+    (newFilters) => {
+      dispatch(setProfileFilters(newFilters));
+    },
+    [dispatch]
+  );
 
-        // Reset form on success
-        setPasswordForm({
-            old_password: '',
-            new_password: '',
-            confirm_password: '',
-        });
-        setPasswordErrors({});
+  const setPage = useCallback(
+    (page) => {
+      dispatch(setProfilePage(page));
+    },
+    [dispatch]
+  );
 
-        return result;
-    }, [dispatch, passwordForm, validatePasswordForm]);
+  const clearSelected = useCallback(() => {
+    dispatch(clearSelectedProfile());
+  }, [dispatch]);
 
-    // ========== Form Handlers ==========
+  const clearError = useCallback(() => {
+    dispatch(clearProfileError());
+  }, [dispatch]);
 
-    const startEditing = useCallback((profile) => {
-        setEditFormData({
-            first_name: profile?.first_name || '',
-            last_name: profile?.last_name || '',
-            phone: profile?.phone_number || '',
-            department: profile?.department || '',
-            title: profile?.title || '',
-        });
-        setIsEditing(true);
-    }, []);
+  const getProfileById = useCallback(
+    (id) => {
+      return selectProfileById({ profiles: { profiles } }, id);
+    },
+    [profiles]
+  );
 
-    const cancelEditing = useCallback(() => {
-        setIsEditing(false);
-        setEditFormData({});
-    }, []);
+  const getProfileByUserId = useCallback(
+    (userId) => {
+      return selectProfileByUserId({ profiles: { profiles } }, userId);
+    },
+    [profiles]
+  );
 
-    const updateEditForm = useCallback((field, value) => {
-        setEditFormData(prev => ({ ...prev, [field]: value }));
-    }, []);
+  const getAvatar = useCallback(() => {
+    return selectProfileAvatar({ profiles: { currentProfile, selectedProfile } });
+  }, [currentProfile, selectedProfile]);
 
-    const updatePasswordForm = useCallback((field, value) => {
-        setPasswordForm(prev => ({ ...prev, [field]: value }));
-        // Clear error for this field when user types
-        if (passwordErrors[field]) {
-            setPasswordErrors(prev => ({ ...prev, [field]: '' }));
-        }
-    }, [passwordErrors]);
+  const getCompletion = useCallback(() => {
+    return selectProfileCompletion({ profiles: { currentProfile, selectedProfile } });
+  }, [currentProfile, selectedProfile]);
 
-    // ========== Utilities ==========
-
-    const clearProfileErrors = useCallback(() => {
-        dispatch(clearProfileError());
-    }, [dispatch]);
-
-    const resetProfileState = useCallback(() => {
-        dispatch(resetProfile());
-    }, [dispatch]);
-
-    const updateAvatarProgress = useCallback((progress) => {
-        dispatch(setAvatarProgress(progress));
-    }, [dispatch]);
-
-    // ========== Computed Values ==========
-
-    const getFullName = () => {
-        const profile = profileState.profile;
-        return `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || profile?.email;
-    };
-
-    const getInitials = () => {
-        const fullName = getFullName();
-        if (fullName === profileState.profile?.email) {
-            return fullName.charAt(0).toUpperCase();
-        }
-        return fullName.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
-    };
-
-    const isProfileComplete = () => {
-        const profile = profileState.profile;
-        if (!profile) return false;
-
-        const requiredFields = ['first_name', 'last_name', 'phone_number'];
-        return requiredFields.every(field => profile[field]);
-    };
-
-    const getProfileCompletionPercentage = () => {
-        const profile = profileState.profile;
-        if (!profile) return 0;
-
-        const fields = [
-            'first_name', 'last_name', 'phone_number',
-            'department', 'title', 'avatar'
-        ];
-        const completed = fields.filter(field => profile[field]).length;
-        return Math.round((completed / fields.length) * 100);
-    };
-
-    // ========== Load on Mount ==========
-
-    useEffect(() => {
-        loadProfile();
-    }, [loadProfile]);
-
-    // ========== Return ==========
-
-    return {
-        // State
-        profile: profileState.profile,
-        isLoading: profileState.isLoading,
-        error: profileState.error,
-        avatarUploadProgress: profileState.avatarUploadProgress,
-        isUploadingAvatar: profileState.isUploadingAvatar,
-
-        // Form State
-        isEditing,
-        editFormData,
-        passwordForm,
-        passwordErrors,
-
-        // Actions - Profile Management
-        loadProfile,
-        updateUserProfile,
-        uploadUserAvatar,
-        removeUserAvatar,
-
-        // Actions - Password
-        changeUserPassword,
-        validatePasswordForm,
-
-        // Actions - Form Handlers
-        startEditing,
-        cancelEditing,
-        updateEditForm,
-        updatePasswordForm,
-
-        // Actions - Utilities
-        clearProfileErrors,
-        resetProfileState,
-        updateAvatarProgress,
-
-        // Computed Values
-        getFullName,
-        getInitials,
-        isProfileComplete,
-        getProfileCompletionPercentage,
-    };
+  return useMemo(
+    () => ({
+      profiles,
+      selectedProfile,
+      currentProfile,
+      isLoading,
+      isUpdating,
+      isUploading,
+      error,
+      pagination,
+      filters,
+      getProfiles,
+      getProfile,
+      update,
+      upload,
+      removeAvatar,
+      addSkill,
+      updateSkill,
+      removeSkill,
+      addCertification,
+      removeCertification,
+      getMyProfile,
+      updateMyProfile,
+      setFilters,
+      setPage,
+      clearSelected,
+      clearError,
+      getProfileById,
+      getProfileByUserId,
+      getAvatar,
+      getCompletion,
+      clearSelectedProfile: clearSelected,
+    }),
+    [
+      profiles,
+      selectedProfile,
+      currentProfile,
+      isLoading,
+      isUpdating,
+      isUploading,
+      error,
+      pagination,
+      filters,
+      getProfiles,
+      getProfile,
+      update,
+      upload,
+      removeAvatar,
+      addSkill,
+      updateSkill,
+      removeSkill,
+      addCertification,
+      removeCertification,
+      getMyProfile,
+      updateMyProfile,
+      setFilters,
+      setPage,
+      clearSelected,
+      clearError,
+      getProfileById,
+      getProfileByUserId,
+      getAvatar,
+      getCompletion,
+    ]
+  );
 };

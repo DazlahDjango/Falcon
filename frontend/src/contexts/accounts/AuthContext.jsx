@@ -1,210 +1,297 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout as logoutAction, fetchCurrentUser, login as loginAction, verifyMfa as verifyMfaAction, selectUser, selectIsAuthenticated, selectAuth } from '../../store/accounts/slice/authSlice';
-import { getAccessToken, getRefreshToken, setTokens, clearTokens, getTenantId } from '../../services/accounts/storage/secureStorage';
+import {
+  selectUser,
+  selectIsAuthenticated,
+  selectAuth,
+  selectIsLoading,
+  selectAuthError,
+  selectRequiresMfa,
+  selectMfaToken,
+  selectMfaPending,
+} from '../../store/accounts';
+import { logout as logoutAction, fetchCurrentUser, login as loginAction, verifyMfa as verifyMfaAction, clearMfaState } from '../../store/accounts/slice/authSlice'
+import {
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
+  getTenantId,
+  setTenantId,
+} from '../../services/accounts/storage/secureStorage';
 import { logout as logoutApi, refreshToken as refreshTokenApi } from '../../services/accounts/api/auth';
 import { persistor } from '../../store';
 
 const AuthContext = createContext(null);
 
 export const useAuthContext = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuthContext must be used within AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuthContext must be used within AuthProvider');
+  }
+  return context;
 };
 
 export const AuthProvider = ({ children }) => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    
-    // Use Redux selectors for single source of truth
-    const reduxUser = useSelector(selectUser);
-    const reduxIsAuthenticated = useSelector(selectIsAuthenticated);
-    const authState = useSelector(selectAuth);
-    
-    const [localUser, setLocalUser] = useState(null);
-    const [localIsAuthenticated, setLocalIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    
-    // Sync with Redux state
-    useEffect(() => {
-        if (reduxUser !== localUser) {
-            setLocalUser(reduxUser);
-        }
-        if (reduxIsAuthenticated !== localIsAuthenticated) {
-            setLocalIsAuthenticated(reduxIsAuthenticated);
-        }
-    }, [reduxUser, reduxIsAuthenticated, localUser, localIsAuthenticated]);
-    
-    useEffect(() => {
-        const loadUser = async () => {
-            const token = await getAccessToken();
-            // If we have a token OR a persisted user, try to fetch user to verify
-            if (token || reduxUser) {
-                try {
-                    await dispatch(fetchCurrentUser()).unwrap();
-                } catch (err) {
-                    // If fetch fails, log out completely
-                    console.error("Failed to fetch user, logging out:", err);
-                    await clearTokens();
-                    sessionStorage.removeItem('current_session_id');
-                    await persistor.purge(); // Clear persisted Redux state completely
-                    dispatch(logoutAction());
-                }
-            }
-            setIsLoading(false);
-        };
-        loadUser();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-        const handleLogoutEvent = () => {
-            setLocalIsAuthenticated(false);
-            setLocalUser(null);
-            sessionStorage.removeItem('current_session_id');
-            dispatch(logoutAction());
-        };
-        window.addEventListener('auth:logout', handleLogoutEvent);
+  const reduxUser = useSelector(selectUser);
+  const reduxIsAuthenticated = useSelector(selectIsAuthenticated);
+  const reduxIsLoading = useSelector(selectIsLoading);
+  const reduxError = useSelector(selectAuthError);
+  const reduxRequiresMfa = useSelector(selectRequiresMfa);
+  const reduxMfaToken = useSelector(selectMfaToken);
+  const reduxMfaPending = useSelector(selectMfaPending);
+  const authState = useSelector(selectAuth);
 
-        return () => {
-            window.removeEventListener('auth:logout', handleLogoutEvent);
-        };
-    }, [dispatch]);
-    
-    const login = useCallback(async (credentials) => {
-        setError(null);
-        try {
-            const result = await dispatch(loginAction(credentials)).unwrap();
-            if (result.requires_mfa) {
-                return { requiresMfa: true, mfaToken: result.mfa_token };
-            }
-            if (result.session_id) {
-                sessionStorage.setItem('current_session_id', result.session_id);
-            }
-            // Redux will update, which will sync to local state via useEffect
-            return { success: true };
-        } catch (err) {
-            setError(err || 'Login failed');
-            return { success: false, error: err };
-        }
-    }, [dispatch]);
+  const [localError, setLocalError] = useState(null);
+  const initAttempted = useRef(false);
 
-    const verifyMfa = useCallback(async (mfaToken, otp) => {
-        setError(null);
-        try {
-            const result = await dispatch(verifyMfaAction({ mfa_token: mfaToken, otp })).unwrap();
-            if (result.session_id) {
-                sessionStorage.setItem('current_session_id', result.session_id);
-            }
-            return { success: true };
-        } catch (err) {
-            setError(err || 'MFA verification failed');
-            return { success: false, error: err };
+  // ✅ Memoized derived values
+  const isLoading = useMemo(() => reduxIsLoading || authState?.isLoading || false, [reduxIsLoading, authState?.isLoading]);
+  const error = useMemo(() => localError || reduxError || null, [localError, reduxError]);
+  const isAuthenticated = useMemo(() => reduxIsAuthenticated || false, [reduxIsAuthenticated]);
+  const user = useMemo(() => reduxUser || null, [reduxUser]);
+
+  // ✅ Initialization useEffect
+  useEffect(() => {
+    const initializeAuth = async () => {
+      if (initAttempted.current) return;
+      initAttempted.current = true;
+
+      try {
+        const token = await getAccessToken();
+        if (token) {
+          await dispatch(fetchCurrentUser()).unwrap();
         }
-    }, [dispatch]);
-    
-    const logout = useCallback(async () => {
-        try {
-            const refreshToken = await getRefreshToken();
-            if (refreshToken) {
-                await logoutApi(refreshToken);
-            }
-        } catch {
-            // proceed with local logout
-        } finally {
-            await clearTokens();
-            sessionStorage.removeItem('current_session_id');
-            await persistor.purge(); // Clear persisted Redux state completely
-            dispatch(logoutAction());
-            navigate('/login', { replace: true });
+      } catch (err) {
+        await clearTokens();
+        await persistor.purge();
+        dispatch(logoutAction());
+      }
+    };
+
+    initializeAuth();
+
+    const handleLogoutEvent = () => {
+      dispatch(logoutAction());
+    };
+    window.addEventListener('auth:logout', handleLogoutEvent);
+
+    return () => {
+      window.removeEventListener('auth:logout', handleLogoutEvent);
+    };
+  }, [dispatch]);
+
+  // ============ AUTH ACTIONS ============
+  const login = useCallback(
+    async (credentials) => {
+      setLocalError(null);
+      try {
+        const result = await dispatch(loginAction(credentials)).unwrap();
+
+        if (result.requires_mfa) {
+          return { requiresMfa: true, mfaToken: result.mfa_token };
         }
-    }, [navigate, dispatch]);
-    
-    const refreshAuth = useCallback(async () => {
-        try {
-            const refreshToken = await getRefreshToken();
-            if (!refreshToken) return false;
-            const response = await refreshTokenApi(refreshToken);
-            const { access } = response.data;
-            await setTokens(access, refreshToken);
-            return true;
-        } catch {
-            await logout();
-            return false;
+
+        if (result.session_id) {
+          sessionStorage.setItem('current_session_id', result.session_id);
         }
-    }, [logout]);
-    
-    const updateUser = useCallback((updatedUser) => {
-        setLocalUser(prev => ({ ...prev, ...updatedUser }));
-    }, []);
-    
-    // ✅ Helper methods for permissions (used by billing, kpi, etc.)
-    const hasRole = useCallback((role) => {
-        const userRole = localUser?.role || reduxUser?.role;
-        if (Array.isArray(role)) {
-            return role.includes(userRole);
+
+        if (result.user?.tenant_id) {
+          await setTenantId(result.user.tenant_id);
         }
-        return userRole === role;
-    }, [localUser, reduxUser]);
-    
-    const hasAnyRole = useCallback((roles) => {
-        const userRole = localUser?.role || reduxUser?.role;
-        return roles.includes(userRole);
-    }, [localUser, reduxUser]);
-    
-    const isAdmin = useCallback(() => {
-        const userRole = localUser?.role || reduxUser?.role;
-        return userRole === 'super_admin' || userRole === 'client_admin';
-    }, [localUser, reduxUser]);
-    
-    const isSuperAdmin = useCallback(() => {
-        const userRole = localUser?.role || reduxUser?.role;
-        return userRole === 'super_admin';
-    }, [localUser, reduxUser]);
-    
-    const getTenant = useCallback(async () => {
-        return await getTenantId();
-    }, []);
-    
-    const value = useMemo(() => ({
-        // User info
-        user: localUser || reduxUser,
-        isAuthenticated: localIsAuthenticated || reduxIsAuthenticated,
-        isLoading,
-        error,
-        
-        // User details
-        userId: localUser?.id || reduxUser?.id,
-        email: localUser?.email || reduxUser?.email,
-        role: localUser?.role || reduxUser?.role,
-        tenantId: localUser?.tenant_id || reduxUser?.tenant_id,
-        
-        // Permissions methods (for billing, kpi, etc.)
-        hasRole,
-        hasAnyRole,
-        isAdmin,
-        isSuperAdmin,
-        getTenant,
-        
-        // Auth actions
-        login,
-        verifyMfa,
-        logout,
-        refreshAuth,
-        updateUser,
-    }), [
-        localUser, reduxUser,
-        localIsAuthenticated, reduxIsAuthenticated,
-        isLoading, error,
-        hasRole, hasAnyRole, isAdmin, isSuperAdmin, getTenant,
-        login, verifyMfa, logout, refreshAuth, updateUser
-    ]);
-    
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+
+        return { success: true, user: result.user };
+      } catch (err) {
+        const errorMessage = typeof err === 'string' ? err : err?.message || 'Login failed';
+        setLocalError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
+    },
+    [dispatch]
+  );
+
+  const verifyMfa = useCallback(
+    async (mfaToken, otp) => {
+      setLocalError(null);
+      try {
+        const result = await dispatch(verifyMfaAction({ mfaToken, otp })).unwrap();
+
+        if (result.session_id) {
+          sessionStorage.setItem('current_session_id', result.session_id);
+        }
+
+        if (result.user?.tenant_id) {
+          await setTenantId(result.user.tenant_id);
+        }
+
+        dispatch(clearMfaState());
+        return { success: true, user: result.user };
+      } catch (err) {
+        const errorMessage = typeof err === 'string' ? err : err?.message || 'MFA verification failed';
+        setLocalError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
+    },
+    [dispatch]
+  );
+
+  const logout = useCallback(
+    async (redirect = true) => {
+      try {
+        const refreshToken = await getRefreshToken();
+        if (refreshToken) {
+          await logoutApi({ refresh: refreshToken });
+        }
+      } catch {
+        // proceed with local logout
+      } finally {
+        await clearTokens();
+        sessionStorage.removeItem('current_session_id');
+        await persistor.purge();
+        dispatch(logoutAction());
+        dispatch(clearMfaState());
+
+        if (redirect) {
+          navigate('/login', { replace: true });
+        }
+      }
+    },
+    [navigate, dispatch]
+  );
+
+  const refreshAuth = useCallback(async () => {
+    try {
+      const refreshToken = await getRefreshToken();
+      if (!refreshToken) return false;
+
+      const response = await refreshTokenApi({ refresh: refreshToken });
+      const { access, refresh } = response.data;
+
+      if (access) {
+        await setTokens(access, refresh || refreshToken);
+        return true;
+      }
+      return false;
+    } catch {
+      await logout(false);
+      return false;
+    }
+  }, [logout]);
+
+  const updateUser = useCallback(
+    (updatedUser) => {
+      if (user) {
+        const mergedUser = { ...user, ...updatedUser };
+        if (mergedUser.tenant_id) {
+          setTenantId(mergedUser.tenant_id);
+        }
+      }
+    },
+    [user]
+  );
+
+  // ============ ROLE CHECKS ============
+  const hasRole = useCallback(
+    (role) => {
+      if (!user) return false;
+      if (Array.isArray(role)) {
+        return role.includes(user.role);
+      }
+      return user.role === role;
+    },
+    [user]
+  );
+
+  const hasAnyRole = useCallback(
+    (roles) => {
+      if (!user) return false;
+      return roles.includes(user.role);
+    },
+    [user]
+  );
+
+  const isAdmin = useCallback(() => {
+    if (!user) return false;
+    return user.role === 'super_admin' || user.role === 'client_admin';
+  }, [user]);
+
+  const isSuperAdmin = useCallback(() => {
+    if (!user) return false;
+    return user.role === 'super_admin';
+  }, [user]);
+
+  const isManagement = useCallback(() => {
+    if (!user) return false;
+    return ['super_admin', 'client_admin', 'executive', 'supervisor'].includes(user.role);
+  }, [user]);
+
+  const getTenant = useCallback(async () => {
+    return await getTenantId();
+  }, []);
+
+  const clearError = useCallback(() => {
+    setLocalError(null);
+  }, []);
+
+  // ============ CONTEXT VALUE - MOVED HERE ============
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated,
+      isLoading,
+      error,
+      requiresMfa: reduxRequiresMfa,
+      mfaToken: reduxMfaToken,
+      mfaPending: reduxMfaPending,
+
+      userId: user?.id || null,
+      email: user?.email || null,
+      role: user?.role || null,
+      tenantId: user?.tenant_id || null,
+      fullName: user?.full_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || user?.email || null,
+
+      // Role functions
+      hasRole,
+      hasAnyRole,
+      isAdmin,
+      isSuperAdmin,
+      isManagement,
+      getTenant,
+
+      // Auth actions
+      login,
+      verifyMfa,
+      logout,
+      refreshAuth,
+      updateUser,
+      clearError,
+    }),
+    [
+      user,
+      isAuthenticated,
+      isLoading,
+      error,
+      reduxRequiresMfa,
+      reduxMfaToken,
+      reduxMfaPending,
+      hasRole,
+      hasAnyRole,
+      isAdmin,
+      isSuperAdmin,
+      isManagement,
+      getTenant,
+      login,
+      verifyMfa,
+      logout,
+      refreshAuth,
+      updateUser,
+      clearError,
+    ]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

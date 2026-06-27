@@ -1,69 +1,56 @@
-import { request } from "./client";
+import { request } from './client';
+import {
+  AUTH_ENDPOINTS,
+  MFA_DEVICE_ENDPOINTS,
+  SECURITY_ENDPOINTS,
+} from '../../../config/constants/accountsApiConstants';
 
-// ============================================================
-// AUTHENTICATION
-// ============================================================
-export const login = (data) => {
-    return request.post('/auth/login/', data);
-};
+// ============ Core Auth ============
+export const login = (data) => request.post(AUTH_ENDPOINTS.LOGIN, data);
 
-export const refreshToken = (refreshToken) => {
-    return request.post('/auth/refresh/', { refresh: refreshToken });
-};
+export const logout = (data) => request.post(AUTH_ENDPOINTS.LOGOUT, data);
 
-export const logout = () => {
-    return request.post('/auth/logout/');
-};
+export const refreshToken = (data) => request.post(AUTH_ENDPOINTS.REFRESH, data);
 
-export const verifyMfa = (mfaToken, otp) => {
-    return request.post('/auth/mfa-verify/', { mfa_token: mfaToken, otp });
-};
+export const register = (data) => request.post(AUTH_ENDPOINTS.REGISTER, data);
 
-// ============================================================
-// REGISTRATION & VERIFICATION
-// ============================================================
-export const register = (data) => {
-    return request.post('/auth/register/', data);
-};
+export const registerTenant = (data) => request.post(AUTH_ENDPOINTS.REGISTER_TENANT, data);
 
-export const verifyEmail = (token) => {
-    return request.post('/auth/verify-email/', { token });
-};
+// ============ MFA ============
+export const verifyMFA = (data) => request.post(AUTH_ENDPOINTS.MFA_VERIFY, data);
 
-export const resendVerification = (email) => {
-    return request.post('/auth/resend-verification/', { email });
-};
+export const setupMFA = (data) => request.post(AUTH_ENDPOINTS.MFA_SETUP, data);
 
-// ============================================================
-// PASSWORD MANAGEMENT
-// ============================================================
-export const forgotPassword = (email) => {
-    return request.post('/auth/password-reset/', { email });
-};
+export const getMFADevices = () => request.get(AUTH_ENDPOINTS.MFA_DEVICES);
 
-export const resetPassword = (data) => {
-    return request.post('/auth/password-reset/confirm/', data);
-};
+export const deleteMFADevice = (deviceId) =>
+  request.delete(`${AUTH_ENDPOINTS.MFA_DEVICES}${deviceId}/`);
 
-export const changePassword = (data) => {
-    return request.post('/auth/change-password/', data);
-};
+export const getBackupCodes = () => request.get(AUTH_ENDPOINTS.MFA_BACKUP_CODES);
 
-// ============================================================
-// INVITATIONS
-// ============================================================
-export const acceptInvitation = (data) => {
-    return request.post('/auth/invitation/accept/', data);
-};
+export const generateBackupCodes = () => request.post(AUTH_ENDPOINTS.MFA_BACKUP_CODES);
 
-export const getPendingInvitations = () => {
-    return request.get('/auth/invitations/');
-};
+// ============ User Management ============
+export const getCurrentUser = () => request.get(AUTH_ENDPOINTS.CURRENT_USER);
 
-export const cancelInvitation = (invitationId) => {
-    return request.delete(`/auth/invitations/${invitationId}/`);
-};
+export const changePassword = (data) => request.post(AUTH_ENDPOINTS.CHANGE_PASSWORD, data);
 
-export const resendInvitation = (invitationId) => {
-    return request.post(`/auth/invitations/${invitationId}/resend/`);
-};
+// ============ Invitations ============
+export const getInvitations = () => request.get(AUTH_ENDPOINTS.INVITATIONS);
+
+export const sendInvitation = (data) => request.post(AUTH_ENDPOINTS.INVITATIONS, data);
+
+export const acceptInvitation = (data) => request.post(AUTH_ENDPOINTS.ACCEPT_INVITATION, data);
+
+// ============ Password Reset ============
+export const forgotPassword = (data) => request.post(AUTH_ENDPOINTS.PASSWORD_RESET, data);
+
+export const resetPassword = (data) => request.post(AUTH_ENDPOINTS.PASSWORD_RESET_CONFIRM, data);
+
+// ============ Email Verification ============
+export const verifyEmail = (data) => request.post(AUTH_ENDPOINTS.VERIFY_EMAIL, data);
+
+export const resendVerification = (data) => request.post(AUTH_ENDPOINTS.RESEND_VERIFICATION, data);
+
+// ============ Step-Up Authentication ============
+export const verifyStepUp = (data) => request.post(AUTH_ENDPOINTS.STEP_UP_VERIFY, data);

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSyncExternalStore } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio, FiInfo, FiCheckCircle, FiAlertTriangle, FiXCircle, FiAlertOctagon } from "react-icons/fi";
 import { markAllAsRead, fetchUnreadCount } from '../../../store/accounts/slice/notificationSlice';
 import { formatDate } from '../../../utils/accounts/formatters';
 import { getDefaultRouteByRole } from '../../../config/constants/dashboardRouteConstants';
-import store from '../../../store';
 
 const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed, wsConnected }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -16,11 +15,15 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
     const notificationsRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
-    const notificationsState = useSyncExternalStore(
-        (listener) => store.subscribe(listener),
-        () => store.getState().notifications || { unreadCount: 0, notifications: [] },
-    );
-    const { unreadCount, notifications } = notificationsState;
+    const dispatch = useDispatch();
+
+    // ✅ Use useSelector instead of useSyncExternalStore
+    const { unreadCount, notifications } = useSelector((state) => state.notifications || { unreadCount: 0, notifications: [] });
+
+    // ✅ Fetch unread count only once on mount
+    useEffect(() => {
+        dispatch(fetchUnreadCount());
+    }, [dispatch]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -35,11 +38,8 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        store.dispatch(fetchUnreadCount());
-    }, []);
-
-    useEffect(() => {
+    // ✅ Memoize breadcrumb generation to prevent unnecessary recalculations
+    const generateBreadcrumbs = useCallback(() => {
         const path = location.pathname;
         const segments = path.split('/').filter(Boolean);
         const breadcrumbItems = [];
@@ -151,12 +151,36 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
             }
         }
         
-        setBreadcrumbs(breadcrumbItems);
-    }, [location.pathname, user?.role]);
+        // Remove duplicate breadcrumbs based on path
+        return breadcrumbItems.filter(
+            (item, index, self) => index === self.findIndex((t) => t.path === item.path)
+        );
+    }, [location.pathname, user?.role, dashboardRole]);
 
-    const statusText = user?.is_active != null ? (user.is_active ? 'Active' : 'Inactive') : (wsConnected ? 'Live' : 'Offline');
-    const statusTitle = user?.is_active != null ? (user.is_active ? 'User active' : 'User inactive') : (wsConnected ? 'Dashboard live' : 'Dashboard offline');
-    const statusClassNames = `dashboard-header-live ${(user?.is_active != null ? user.is_active : wsConnected) ? 'dashboard-header-live--on' : ''}`.trim();
+    // ✅ Update breadcrumbs only when they change
+    useEffect(() => {
+        const newBreadcrumbs = generateBreadcrumbs();
+        // ✅ Only update if changed to prevent infinite loop
+        setBreadcrumbs((prev) => {
+            if (prev.length !== newBreadcrumbs.length) return newBreadcrumbs;
+            if (prev.some((item, i) => item.path !== newBreadcrumbs[i]?.path)) return newBreadcrumbs;
+            return prev;
+        });
+    }, [generateBreadcrumbs]);
+
+    // ✅ Memoize status text
+    const statusText = useMemo(() => {
+        return user?.is_active != null ? (user.is_active ? 'Active' : 'Inactive') : (wsConnected ? 'Live' : 'Offline');
+    }, [user?.is_active, wsConnected]);
+
+    const statusTitle = useMemo(() => {
+        return user?.is_active != null ? (user.is_active ? 'User active' : 'User inactive') : (wsConnected ? 'Dashboard live' : 'Dashboard offline');
+    }, [user?.is_active, wsConnected]);
+
+    const statusClassNames = useMemo(() => {
+        const isOn = user?.is_active != null ? user.is_active : wsConnected;
+        return `dashboard-header-live ${isOn ? 'dashboard-header-live--on' : ''}`.trim();
+    }, [user?.is_active, wsConnected]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -167,7 +191,7 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
     };
 
     const handleMarkAllRead = () => {
-        store.dispatch(markAllAsRead());
+        dispatch(markAllAsRead());
         setShowNotifications(false);
     };
 
@@ -210,7 +234,7 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                 
                 <div className="header-breadcrumb">
                     {breadcrumbs.map((item, index) => (
-                        <React.Fragment key={item.path}>
+                        <React.Fragment key={`${item.path}-${index}`}>
                             {index > 0 && <span className="breadcrumb-separator">/</span>}
                             <button 
                                 className={`breadcrumb-item ${index === breadcrumbs.length - 1 ? 'active' : ''}`}

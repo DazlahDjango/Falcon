@@ -1,7 +1,6 @@
-export { default as MFADeviceManager } from './MFADeviceManager';
+export { default as MFAStatusCard } from './MFAStatusCard';
 export { default as MFADeviceList } from './MFADeviceList';
 export { default as MFADeviceCard } from './MFADeviceCard';
-export { default as MFATotpSetup } from './MFATotpSetup';
-export { default as MFABackupCodes } from './MFABackupCodes';
+export { default as MFASetupModal } from './MFASetupModal';
+export { default as BackupCodesDisplay } from './BackupCodesDisplay';
 export { default as MFAActivityLog } from './MFAActivityLog';
-export { default as MFAStatusBadge } from './MFAStatusBadge';

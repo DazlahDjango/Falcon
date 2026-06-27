@@ -1,34 +1,28 @@
 import { request } from './client';
+import { SECURITY_ENDPOINTS } from '../../../config/constants/accountsApiConstants';
 
-export const getTenantPolicy = (sync = false) => {
-    const params = sync ? { sync: '1' } : {};
-    return request.get('/security/policy/', { params });
-};
+export const getLoginAttempts = (params) => request.get(SECURITY_ENDPOINTS.LOGIN_ATTEMPTS, { params });
 
-export const getLockoutSummary = () => {
-    return request.get('/security/lockout-summary/');
-};
+export const getLoginAttempt = (id) => request.get(SECURITY_ENDPOINTS.LOGIN_ATTEMPT_DETAIL(id));
 
-export const getLoginAttempts = (params = {}) => {
-    return request.get('/security/login-attempts/', { params });
-};
+export const getTenantPolicy = (params) => request.get(SECURITY_ENDPOINTS.TENANT_POLICY, { params });
 
-export const getSystemPolicy = () => {
-    return request.get('/system-settings/');
-};
+export const getLockoutSummary = () => request.get(SECURITY_ENDPOINTS.LOCKOUT_SUMMARY);
 
-export const updateSystemPolicy = (settings) => {
-    return request.patch('/system-settings/', { settings });
-};
+export const getTenantMFAPolicy = () => request.get(SECURITY_ENDPOINTS.TENANT_MFA_POLICY);
 
-export const resetSystemPolicy = () => {
-    return request.post('/system-settings/reset/');
-};
+export const updateTenantMFAPolicy = (data) =>
+  request.patch(SECURITY_ENDPOINTS.TENANT_MFA_POLICY, data);
 
-export const syncAllTenantPolicies = () => {
-    return request.post('/system-settings/sync-policy/');
-};
+export const getUserMFAPolicies = () => request.get(SECURITY_ENDPOINTS.USER_MFA_POLICY_LIST);
 
-export const getTenantActiveSessions = () => {
-    return request.get('/sessions/tenant-active/');
-};
+export const getUserMFAPolicy = (userId) =>
+  request.get(SECURITY_ENDPOINTS.USER_MFA_POLICY_DETAIL(userId));
+
+export const updateUserMFAPolicy = (userId, data) =>
+  request.patch(SECURITY_ENDPOINTS.USER_MFA_POLICY_DETAIL(userId), data);
+
+export const clearUserMFAOverride = (userId) =>
+  request.delete(SECURITY_ENDPOINTS.USER_MFA_POLICY_DETAIL(userId));
+
+export const getUserMFAStatus = (userId) => request.get(SECURITY_ENDPOINTS.USER_MFA_STATUS(userId));

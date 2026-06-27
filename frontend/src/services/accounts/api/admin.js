@@ -1,90 +1,85 @@
 import { request } from './client';
+import { ADMIN_ENDPOINTS } from '../../../config/constants/accountsApiConstants';
 
-// User Management (Admin)
-// =========================
-export const getAllUsers = (params = {}) => {
-    return request.get('/admin/users/', { params });
-};
-export const createUserAdmin = (data) => {
-    return request.post('/admin/users/', data);
-};
-export const updateUserAdmin = (userId, data) => {
-    return request.patch(`/admin/users/${userId}/`, data);
-};
-export const deleteUserAdmin = (userId) => {
-    return request.delete(`/admin/users/${userId}/`);
-};
-export const impersonateUser = (userId) => {
-    return request.post(`/admin/users/${userId}/impersonate/`);
-};
-export const forcePasswordReset = (userId) => {
-    return request.post(`/admin/users/${userId}/force-password-reset/`);
-};
-export const getUserStats = () => {
-    return request.get('/admin/users/stats/');
-};
+// ============ Admin Users ============
+export const getAdminUsers = (params) => request.get(ADMIN_ENDPOINTS.USERS, { params });
 
-// Role Management (Admin)
-// ========================
-export const initSystemRoles = () => {
-    return request.post('/admin/roles/init-system-roles/');
-};
+export const getAdminUser = (id) => request.get(ADMIN_ENDPOINTS.USER_DETAIL(id));
 
-// Permission Management (Admin)
-// ==============================
-export const initPermissions = () => {
-    return request.post('/admin/permissions/init-permissions/');
-};
+export const createAdminUser = (data) => request.post(ADMIN_ENDPOINTS.USERS, data);
 
-// Tenant Management (Admin)
-// ===========================
-export const getTenants = (params = {}) => {
-    return request.get('/admin/tenants/', { params });
-};
-export const createTenant = (data) => {
-    return request.post('/admin/tenants/', data);
-};
-export const updateTenant = (tenantId, data) => {
-    return request.patch(`/admin/tenants/${tenantId}/`, data);
-};
-export const deleteTenant = (tenantId) => {
-    return request.delete(`/admin/tenants/${tenantId}/`);
-};
+export const updateAdminUser = (id, data) => request.patch(ADMIN_ENDPOINTS.USER_DETAIL(id), data);
 
-export const suspendTenant = (tenantId, reason) => {
-    return request.post(`/admin/tenants/${tenantId}/suspend/`, { reason });
-};
+export const deleteAdminUser = (id) => request.delete(ADMIN_ENDPOINTS.USER_DETAIL(id));
 
-export const activateTenant = (tenantId) => {
-    return request.post(`/admin/tenants/${tenantId}/activate/`);
-};
-export const createTenantWithAdmin = (data) => {
-    return request.post('/admin/tenants/create-with-admin/', data);
-};
-export const getTenantStats = () => {
-    return request.get('/admin/tenants/stats/');
-};
+export const impersonateUser = (id) => request.post(ADMIN_ENDPOINTS.USER_IMPERSONATE(id));
 
-// System Management (Admin)
-// ===========================
-export const getSystemInfo = () => {
-    return request.get('/admin/system/');
-};
-export const clearSystemCache = () => {
-    return request.post('/admin/system/clear-cache/');
-};
-export const getSystemConfig = () => {
-    return request.get('/admin/system/config/');
-};
-export const updateSystemConfig = (data) => {
-    return request.patch('/admin/system/config/', data);
-};
-export const clearUserCache = (userId) => {
-    return request.post('/admin/system/clear-user-cache/', { user_id: userId });
-};
-export const clearTenantCache = (tenantId) => {
-    return request.post('/admin/system/clear-tenant-cache/', { tenant_id: tenantId });
-};
-export const getSystemHealth = () => {
-    return request.get('/admin/system/health/');
-};
+export const forcePasswordReset = (id) =>
+  request.post(ADMIN_ENDPOINTS.USER_FORCE_PASSWORD_RESET(id));
+
+export const getAdminUserStats = () => request.get(ADMIN_ENDPOINTS.USER_STATS);
+
+// ============ Admin Roles ============
+export const getAdminRoles = (params) => request.get(ADMIN_ENDPOINTS.ROLES, { params });
+
+export const getAdminRole = (id) => request.get(ADMIN_ENDPOINTS.ROLE_DETAIL(id));
+
+export const createAdminRole = (data) => request.post(ADMIN_ENDPOINTS.ROLES, data);
+
+export const updateAdminRole = (id, data) =>
+  request.patch(ADMIN_ENDPOINTS.ROLE_DETAIL(id), data);
+
+export const deleteAdminRole = (id) => request.delete(ADMIN_ENDPOINTS.ROLE_DETAIL(id));
+
+export const initSystemRoles = () => request.post(ADMIN_ENDPOINTS.INIT_SYSTEM_ROLES);
+
+// ============ Admin Permissions ============
+export const getAdminPermissions = (params) => request.get(ADMIN_ENDPOINTS.PERMISSIONS, { params });
+
+export const getAdminPermission = (id) => request.get(ADMIN_ENDPOINTS.PERMISSION_DETAIL(id));
+
+export const createAdminPermission = (data) => request.post(ADMIN_ENDPOINTS.PERMISSIONS, data);
+
+export const updateAdminPermission = (id, data) =>
+  request.patch(ADMIN_ENDPOINTS.PERMISSION_DETAIL(id), data);
+
+export const deleteAdminPermission = (id) =>
+  request.delete(ADMIN_ENDPOINTS.PERMISSION_DETAIL(id));
+
+export const initPermissions = () => request.post(ADMIN_ENDPOINTS.INIT_PERMISSIONS);
+
+// ============ Admin Tenants ============
+export const getAdminTenants = (params) => request.get(ADMIN_ENDPOINTS.TENANTS, { params });
+
+export const getAdminTenant = (id) => request.get(ADMIN_ENDPOINTS.TENANT_DETAIL(id));
+
+export const createAdminTenant = (data) => request.post(ADMIN_ENDPOINTS.TENANTS, data);
+
+export const updateAdminTenant = (id, data) =>
+  request.patch(ADMIN_ENDPOINTS.TENANT_DETAIL(id), data);
+
+export const deleteAdminTenant = (id) => request.delete(ADMIN_ENDPOINTS.TENANT_DETAIL(id));
+
+export const createTenantWithAdmin = (data) =>
+  request.post(ADMIN_ENDPOINTS.TENANT_CREATE_WITH_ADMIN, data);
+
+export const suspendTenant = (id, data) => request.post(ADMIN_ENDPOINTS.TENANT_SUSPEND(id), data);
+
+export const activateTenant = (id) => request.post(ADMIN_ENDPOINTS.TENANT_ACTIVATE(id));
+
+export const getAdminTenantStats = () => request.get(ADMIN_ENDPOINTS.TENANT_STATS);
+
+// ============ Admin System ============
+export const getSystemInfo = () => request.get(ADMIN_ENDPOINTS.SYSTEM);
+
+export const clearSystemCache = () => request.post(ADMIN_ENDPOINTS.SYSTEM_CLEAR_CACHE);
+
+export const getSystemHealth = () => request.get(ADMIN_ENDPOINTS.SYSTEM_HEALTH);
+
+export const getSystemConfig = () => request.get(ADMIN_ENDPOINTS.SYSTEM_CONFIG);
+
+export const updateSystemConfig = (data) => request.patch(ADMIN_ENDPOINTS.SYSTEM_CONFIG, data);
+
+export const clearUserCache = (userId) => request.post(ADMIN_ENDPOINTS.CLEAR_USER_CACHE, { user_id: userId });
+
+export const clearTenantCache = (tenantId) => request.post(ADMIN_ENDPOINTS.CLEAR_TENANT_CACHE, { tenant_id: tenantId });

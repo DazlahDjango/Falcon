@@ -1,36 +1,58 @@
-Good morning, I want to work today fully on kpi app and make sure it's fully functional. 
-With your help, I managed to fix the routing issues and roght now I can view all the pages in the browser, just to be clear, all the backend apis when I was testing them earlier they all returned 200 ok status code which its much appealing, you can check this on the base directory path Docs/KPIs/tested_apis.md
+look at my django audit earlier it created a user from frontend and it was successfull.
 
-# KPI Files Paths
-If you'd want to check the backend kpi files, I don't have a problem with that but its okay, I myself can rate it 10/10 enterprise-oriented production ready
-For kpi frontend files this are the paths
-Frontend as base dir
-1. services/kpi/**
-2. store/kpi/slices/**, store/kpi/selectors/kpi.selectors
-3. components/kpi/**
-4. pages/kpi/**
-Then the routes are in src/routes/kpi.routes.jsx which I've told you it's fully functional
+{"time": "2026-06-21 09:44:30,159", "level": "INFO", "module": "signals", "message": "Profile created for user: kim@gmail.com"}
+{"time": "2026-06-21 09:44:30,331", "level": "INFO", "module": "signals", "message": "Preferences created for user: kim@gmail.com"}
+{"time": "2026-06-21 09:44:30,580", "level": "DEBUG", "module": "logger", "message": "Audit log created: user.created for user kim@gmail.com (Staff)"}
+{"time": "2026-06-21 09:44:30,639", "level": "INFO", "module": "signals", "message": "User created: kim@gmail.com (ID: 68a033c1-e74d-47b4-be3d-aa38b8e6869a)"}
+{"time": "2026-06-21 09:44:49,729", "level": "INFO", "module": "basehttp", "message": "\"POST /api/v1/admin/users/ HTTP/1.1\" 201 199"}
 
-# What I have see in frontend
-1. I can view all the pages, see creation buttons since I'm accessing as super admin role and all permissions they don't affect the super admin
-2. I started by trying to create sectors and the creation form was displayed but now when it comes button submission it doesn't submits, though when the form is empty and click the submit button, it gives you the validation messages on the asterisk fields that you have to fill them
-3. For the kpi management testing, I started by clicking the create button but it was just loading though it had displayed the wizard creation numbers form of the three steps, I think it will work perfectly after this, maybe it was because it lacked the sectors, categories, framework etc
-4. Being super admin, I called all the elements/components in the super admin navigation and including the other users dashboards, everything was working perfectly, it was well styled and appealing
-5. I could say that's all for now but one last thing, in kpi.routes.jsx files I've called all the analytics files correctly but the momment I try accessing them, they call the admin dashboard overview instead of the pages they are assigned. I think maybe I called the navigations link in the wrong way or something, you can check that too in config/navigation/platformAdminNavigation.js
+later I came to check with the django shell and it was in the shell too.
+In [1]: from apps.accounts.models import User
 
-# what I want you to do now
-1. We start by fixing the the CRUD actions, just clean the files/pages for all actions performed either, create , edit, view, delete, update, search, achieve, activate, deactivate etc
-2. Once number 1 is done we can proceed to check the error code of too many request sent, I guess that is always handled by the hooks, slices or the selectors and I think is just introduction of useRef required to fix that
-3. After NO. 2 we can proceed to clean the whole files making sure their will be no any code error apart from the necessary status code i.e 200, 404, 201(I think so this is for create) etc.
-4. Lastly but not the least, we make sure that all the kpi app is fully functional and works perfectly as it should and since I'm the one using the app, the changes should be done in a way that won't affect the super admin access, and I'll appreciate if you could leave me with some kind of instruction or documentation after you're done for me to understand the best approach you took to fix these issues, so that I don't make these mistakes in future and also I can be able to fix them myself.
+{"time": "2026-06-21 11:46:29,177", "level": "DEBUG", "module": "proactor_events", "message": "Using proactor: IocpProactor"}
+In [2]: users = User.objects.all()
 
-**Note**:
-1. Make sure you don't affect the app's functionality
-2. Don't affect the distribution of permissions
-3. Don't affect the app's styling and appearance for now
-4. The Primary thing we're focusing on is to make all the pages to function as intended and make sure there are no other issues i.e 
-    * Too many requests
-    * No response from requests
-    * Status codes not being displayed correctly
+{"time": "2026-06-21 11:46:31,684", "level": "DEBUG", "module": "proactor_events", "message": "Using proactor: IocpProactor"}
+In [3]: for user in users:
+   ...:     print(f"ID: {user.id} | Name: {user.get_full_name() or user.username} | Email: {user.email} | Tenant ID: {u
+      ⋮ ser.tenant_id}")
+   ...:
+ID: 83f08538-34aa-4121-8dfc-c0ab2a9f39aa | Name: AnonymousUser | Email: AnonymousUser | Tenant ID: 83d58535-dfcd-44d9-8f1c-4bc6874bb8fc
+ID: 8b6fe530-6533-4213-90c9-a8164b0336ea | Name: labo@gmail.com | Email: labo@gmail.com | Tenant ID: 15f5128c-d156-4141-9304-0c65f57a82e7
+ID: 68a033c1-e74d-47b4-be3d-aa38b8e6869a | Name: Kim Jun | Email: kim@gmail.com | Tenant ID: 15f5128c-d156-4141-9304-0c65f57a82e7
+ID: 1568c6fe-7c55-4150-86f2-8ce125d6ed70 | Name: donl@gmail.com | Email: donl@gmail.com | Tenant ID: 15f5128c-d156-4141-9304-0c65f57a82e7
 
-Thank you so much lets make this happen now, I'll be here to test as you make the changes and we fix them right there, don't mind you testing them, let me test by myself, you just make sure the files are clean and working, that's all I need from you, Thank you
+{"time": "2026-06-21 11:46:38,599", "level": "DEBUG", "module": "proactor_events", "message": "Using proactor: IocpProactor"}
+In [4]:
+
+
+But now in my user page or user management page, it displays nothing, I don't know why.
+here is my console:
+
+[AdminUserManager] useEffect triggered, loading users...
+AdminUserManager.jsx:63 🔄 Users changed: []
+AdminUserManager.jsx:64 📊 Users length: 0
+AdminUserManager.jsx:65 ⏳ Loading state: false
+AdminUserManager.jsx:66 📈 Pagination: {page: 1, pageSize: 20, total: 0, totalPages: 1, hasNext: false, …}
+AdminUserManager.jsx:71 [AdminUserManager] loadUsers called
+adminSlice.js:54 [fetchAdminUsers] Calling getAdminUsers with params: {limit: 20, offset: 0, page: 1, pageSize: 20, search: undefined}
+AdminUserManager.jsx:62 [AdminUserManager] useEffect triggered, loading users...
+AdminUserManager.jsx:63 🔄 Users changed: []
+AdminUserManager.jsx:64 📊 Users length: 0
+AdminUserManager.jsx:65 ⏳ Loading state: false
+AdminUserManager.jsx:66 📈 Pagination: {page: 1, pageSize: 20, total: 0, totalPages: 1, hasNext: false, …}
+AdminUserManager.jsx:71 [AdminUserManager] loadUsers called
+adminSlice.js:54 [fetchAdminUsers] Calling getAdminUsers with params: {limit: 20, offset: 0, page: 1, pageSize: 20, search: undefined}
+
+[fetchAdminUsers] RAW RESPONSE: {data: {…}, status: 200, statusText: 'OK', headers: AxiosHeaders, config: {…}, …}
+adminSlice.js:58 [fetchAdminUsers] RESPONSE DATA: {count: 4, next: null, previous: null, results: Array(4)}
+adminSlice.js:59 [fetchAdminUsers] RESPONSE STATUS: 200
+adminSlice.js:63 [fetchAdminUsers] ✅ Success! Returning data
+adminSlice.js:57 [fetchAdminUsers] RAW RESPONSE: {data: {…}, status: 200, statusText: 'OK', headers: AxiosHeaders, config: {…}, …}
+adminSlice.js:58 [fetchAdminUsers] RESPONSE DATA: {count: 4, next: null, previous: null, results: Array(4)}
+adminSlice.js:59 [fetchAdminUsers] RESPONSE STATUS: 200
+adminSlice.js:63 [fetchAdminUsers] ✅ Success! Returning data
+loggerMiddleware.js:4 [Redux] billing/analytics/fetchSummary/pending
+loggerMiddleware.js:5 Action: {type: 'billing/analytics/fetchSummary/pending', payload: undefined, meta: {…}}
+loggerMiddleware.js:6 Prev State: {auth: {…}, users: {…}, roles: {…}, permissions: {…}, sessions: {…}, …}
+loggerMiddleware.js:9 Next State: {auth: {…}, users: {…}, roles: {…}, permissions: {…}, sessions: {…}, …}

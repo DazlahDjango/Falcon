@@ -1,7 +1,6 @@
 // frontend/src/store/tenant/slice/tenantSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { tenantService } from '../../../services/tenant/tenant.service';
-import { deleteTenant as deleteTenantAdmin, suspendTenant as suspendTenantAdmin, activateTenant as activateTenantAdmin } from '../../../services/accounts/api/admin';
 
 // Helper to format API errors
 const formatError = (error) => {
@@ -80,7 +79,7 @@ export const deleteTenant = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
             // ✅ FIX: Use admin API endpoint instead of tenantService
-            await deleteTenantAdmin(id);
+            await tenantService.deleteTenant(id);
             return id;
         } catch (error) {
             return rejectWithValue(formatError(error));
@@ -106,7 +105,7 @@ export const suspendTenant = createAsyncThunk(
     async ({ id, reason }, { rejectWithValue }) => {
         try {
             // ✅ FIX: Use admin API endpoint instead of tenantService
-            const response = await suspendTenantAdmin(id, reason);
+            const response = await tenantService.suspendTenant(id, reason);
             return response.data;
         } catch (error) {
             return rejectWithValue(formatError(error));
@@ -119,7 +118,7 @@ export const activateTenant = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
             // ✅ FIX: Use admin API endpoint instead of tenantService
-            const response = await activateTenantAdmin(id);
+            const response = await tenantService.activateTenant(id);
             return response.data;
         } catch (error) {
             return rejectWithValue(formatError(error));

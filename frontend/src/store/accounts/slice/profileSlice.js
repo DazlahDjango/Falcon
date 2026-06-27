@@ -1,219 +1,346 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as usersApi from '../../../services/accounts/api/users';
 import * as profilesApi from '../../../services/accounts/api/profiles';
 
-// ✅ FIXED: Use profiles API for avatar
-export const getMyProfile = createAsyncThunk(
-    'profile/getMyProfile',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await profilesApi.getMyProfile();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch profile');
-        }
+const initialState = {
+  profiles: [],
+  currentProfile: null,
+  selectedProfile: null,
+  skills: [],
+  certifications: [],
+  isLoading: false,
+  isUpdating: false,
+  isUploading: false,
+  error: null,
+  pagination: {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    employee_type: '',
+    department: '',
+  },
+};
+
+export const fetchProfiles = createAsyncThunk(
+  'profiles/fetchProfiles',
+  async (params, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const pagination = state.profiles.pagination;
+      const filters = state.profiles.filters;
+      const queryParams = {
+        page: params?.page || pagination.page,
+        page_size: params?.pageSize || pagination.pageSize,
+        ...filters,
+        ...params,
+      };
+      const response = await profilesApi.getProfiles(queryParams);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch profiles');
     }
+  }
 );
 
-export const fetchCurrentUserProfile = createAsyncThunk(
-    'profile/fetchCurrent',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await usersApi.getCurrentUser();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch profile');
-        }
+export const fetchProfile = createAsyncThunk(
+  'profiles/fetchProfile',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.getProfile(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch profile');
     }
+  }
 );
 
 export const updateProfile = createAsyncThunk(
-    'profile/update',
-    async (data, { rejectWithValue }) => {
-        try {
-            const response = await usersApi.updateProfile(data);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to update profile');
-        }
+  'profiles/updateProfile',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.updateProfile(id, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update profile');
     }
+  }
 );
 
-export const updateUserProfile = createAsyncThunk(
-    'profile/updateUserProfile',
-    async ({ userId, data }, { rejectWithValue }) => {
-        try {
-            const response = await usersApi.updateUser(userId, data);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to update user profile');
-        }
-    }
-);
-
-// ✅ FIXED: Use correct avatar endpoints
 export const uploadAvatar = createAsyncThunk(
-    'profile/uploadAvatar',
-    async ({ file, onProgress }, { rejectWithValue, dispatch }) => {
-        try {
-            // First get profile ID
-            const profileResponse = await profilesApi.getMyProfile();
-            const profileId = profileResponse.data?.id || profileResponse.id;
-            
-            const formData = new FormData();
-            formData.append('avatar', file);
-            const response = await profilesApi.uploadAvatar(profileId, formData, onProgress);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to upload avatar');
-        }
+  'profiles/uploadAvatar',
+  async ({ id, file, onProgress }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const response = await profilesApi.uploadAvatar(id, formData, onProgress);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to upload avatar');
     }
+  }
 );
 
 export const deleteAvatar = createAsyncThunk(
-    'profile/deleteAvatar',
-    async (_, { rejectWithValue }) => {
-        try {
-            const profileResponse = await profilesApi.getMyProfile();
-            const profileId = profileResponse.data?.id || profileResponse.id;
-            const response = await profilesApi.deleteAvatar(profileId);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to delete avatar');
-        }
+  'profiles/deleteAvatar',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.deleteAvatar(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to delete avatar');
     }
+  }
 );
 
-
-export const changePassword = createAsyncThunk(
-    'profile/changePassword',
-    async ({ oldPassword, newPassword }, { rejectWithValue }) => {
-        try {
-            const response = await usersApi.changeUserPassword(oldPassword, newPassword);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to change password');
-        }
+export const addSkill = createAsyncThunk(
+  'profiles/addSkill',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.addSkill(id, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to add skill');
     }
+  }
 );
 
-const initialState = {
-    profile: null,
-    profileData: null,
-    isLoading: false,
-    error: null,
-    avatarUploadProgress: 0,
-    isUploadingAvatar: false
-};
+export const updateSkill = createAsyncThunk(
+  'profiles/updateSkill',
+  async ({ id, skillName, data }, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.updateSkill(id, skillName, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update skill');
+    }
+  }
+);
+
+export const removeSkill = createAsyncThunk(
+  'profiles/removeSkill',
+  async ({ id, skillName }, { rejectWithValue }) => {
+    try {
+      await profilesApi.removeSkill(id, skillName);
+      return skillName;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to remove skill');
+    }
+  }
+);
+
+export const addCertification = createAsyncThunk(
+  'profiles/addCertification',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.addCertification(id, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to add certification');
+    }
+  }
+);
+
+export const removeCertification = createAsyncThunk(
+  'profiles/removeCertification',
+  async ({ id, certName }, { rejectWithValue }) => {
+    try {
+      await profilesApi.removeCertification(id, certName);
+      return certName;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to remove certification');
+    }
+  }
+);
+
+export const fetchMyProfile = createAsyncThunk(
+  'profiles/fetchMyProfile',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.getMyProfile();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch profile');
+    }
+  }
+);
+
+export const updateMyProfile = createAsyncThunk(
+  'profiles/updateMyProfile',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await profilesApi.updateMyProfile(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update profile');
+    }
+  }
+);
 
 const profileSlice = createSlice({
-    name: 'profile',
-    initialState,
-    reducers: {
-        clearProfileError: (state) => {
-            state.error = null;
-        },
-        resetProfile: () => initialState,
-        setAvatarProgress: (state, action) => {
-            state.avatarUploadProgress = action.payload;
-        }
+  name: 'profiles',
+  initialState,
+  reducers: {
+    clearProfileError: (state) => {
+      state.error = null;
     },
-    extraReducers: (builder) => {
-        builder
-            // Get My Profile
-            .addCase(getMyProfile.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(getMyProfile.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.profile = action.payload;
-            })
-            .addCase(getMyProfile.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-            })
-            // Fetch Current User Profile
-            .addCase(fetchCurrentUserProfile.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchCurrentUserProfile.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.profile = action.payload;
-                state.profileData = action.payload;
-            })
-            .addCase(fetchCurrentUserProfile.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-            })
-            // Update Profile
-            .addCase(updateProfile.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(updateProfile.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.profile = { ...state.profile, ...action.payload };
-                state.profileData = { ...state.profileData, ...action.payload };
-            })
-            .addCase(updateProfile.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-            })
-            // Upload Avatar
-            .addCase(uploadAvatar.pending, (state) => {
-                state.isUploadingAvatar = true;
-                state.avatarUploadProgress = 0;
-                state.error = null;
-            })
-            .addCase(uploadAvatar.fulfilled, (state, action) => {
-                state.isUploadingAvatar = false;
-                state.avatarUploadProgress = 100;
-                if (state.profile) {
-                    state.profile.avatar = action.payload.avatar_url;
-                }
-                if (state.profileData) {
-                    state.profileData.avatar = action.payload.avatar_url;
-                }
-            })
-            .addCase(uploadAvatar.rejected, (state, action) => {
-                state.isUploadingAvatar = false;
-                state.avatarUploadProgress = 0;
-                state.error = action.payload;
-            })
-            // Delete Avatar
-            .addCase(deleteAvatar.fulfilled, (state) => {
-                if (state.profile) {
-                    state.profile.avatar = null;
-                }
-                if (state.profileData) {
-                    state.profileData.avatar = null;
-                }
-            })
-            // Change Password
-            .addCase(changePassword.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(changePassword.fulfilled, (state) => {
-                state.isLoading = false;
-            })
-            .addCase(changePassword.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-            });
-    }
+    setProfileFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+      state.pagination.page = 1;
+    },
+    setProfilePage: (state, action) => {
+      state.pagination.page = action.payload;
+    },
+    clearSelectedProfile: (state) => {
+      state.selectedProfile = null;
+    },
+    resetProfiles: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchProfiles.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchProfiles.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const data = action.payload;
+        state.profiles = data.results || data.data || data || [];
+        state.pagination.total = data.count || data.total || 0;
+      })
+      .addCase(fetchProfiles.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.selectedProfile = action.payload;
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.isUpdating = false;
+        if (state.selectedProfile?.id === action.payload.id) {
+          state.selectedProfile = { ...state.selectedProfile, ...action.payload };
+        }
+        const index = state.profiles.findIndex(p => p.id === action.payload.id);
+        if (index !== -1) {
+          state.profiles[index] = { ...state.profiles[index], ...action.payload };
+        }
+        if (state.currentProfile?.id === action.payload.id) {
+          state.currentProfile = { ...state.currentProfile, ...action.payload };
+        }
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload;
+      })
+      .addCase(uploadAvatar.pending, (state) => {
+        state.isUploading = true;
+        state.error = null;
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.isUploading = false;
+        const avatarUrl = action.payload.avatar_url || action.payload.url;
+        if (state.selectedProfile) {
+          state.selectedProfile.avatar = avatarUrl;
+        }
+        if (state.currentProfile) {
+          state.currentProfile.avatar = avatarUrl;
+        }
+        const index = state.profiles.findIndex(p => p.id === state.selectedProfile?.id);
+        if (index !== -1) {
+          state.profiles[index].avatar = avatarUrl;
+        }
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
+        state.isUploading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteAvatar.fulfilled, (state, action) => {
+        if (state.selectedProfile) {
+          state.selectedProfile.avatar = null;
+        }
+        if (state.currentProfile) {
+          state.currentProfile.avatar = null;
+        }
+        const index = state.profiles.findIndex(p => p.id === state.selectedProfile?.id);
+        if (index !== -1) {
+          state.profiles[index].avatar = null;
+        }
+      })
+      .addCase(addSkill.fulfilled, (state, action) => {
+        if (state.selectedProfile) {
+          state.selectedProfile.skills = [...(state.selectedProfile.skills || []), action.payload];
+        }
+      })
+      .addCase(updateSkill.fulfilled, (state, action) => {
+        if (state.selectedProfile) {
+          const index = state.selectedProfile.skills?.findIndex(s => s.name === action.payload.name);
+          if (index !== -1 && index !== undefined) {
+            state.selectedProfile.skills[index] = action.payload;
+          }
+        }
+      })
+      .addCase(removeSkill.fulfilled, (state, action) => {
+        if (state.selectedProfile) {
+          state.selectedProfile.skills = state.selectedProfile.skills?.filter(s => s.name !== action.payload) || [];
+        }
+      })
+      .addCase(addCertification.fulfilled, (state, action) => {
+        if (state.selectedProfile) {
+          state.selectedProfile.certifications = [...(state.selectedProfile.certifications || []), action.payload];
+        }
+      })
+      .addCase(removeCertification.fulfilled, (state, action) => {
+        if (state.selectedProfile) {
+          state.selectedProfile.certifications = state.selectedProfile.certifications?.filter(c => c.name !== action.payload) || [];
+        }
+      })
+      .addCase(fetchMyProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentProfile = action.payload;
+      })
+      .addCase(fetchMyProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateMyProfile.pending, (state) => {
+        state.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(updateMyProfile.fulfilled, (state, action) => {
+        state.isUpdating = false;
+        state.currentProfile = { ...state.currentProfile, ...action.payload };
+      })
+      .addCase(updateMyProfile.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload;
+      });
+  },
 });
 
-export const { clearProfileError, resetProfile, setAvatarProgress } = profileSlice.actions;
-
-export const selectProfile = (state) => state.profile;
-export const selectProfileData = (state) => state.profile.profileData;
-export const selectProfileInfo = (state) => state.profile.profile;
-export const selectProfileLoading = (state) => state.profile.isLoading;
-export const selectProfileError = (state) => state.profile.error;
-export const selectAvatarUploadProgress = (state) => state.profile.avatarUploadProgress;
-export const selectIsUploadingAvatar = (state) => state.profile.isUploadingAvatar;
+export const {
+  clearProfileError,
+  setProfileFilters,
+  setProfilePage,
+  clearSelectedProfile,
+  resetProfiles,
+} = profileSlice.actions;
 
 export default profileSlice.reducer;

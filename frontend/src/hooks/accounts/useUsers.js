@@ -1,220 +1,299 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    fetchUsers,
-    fetchUserById,
-    createUser,
-    updateUser,
-    deleteUser,
-    activateUser,
-    deactivateUser,
-    unlockUser,
-    assignRole,
-    changeUserPassword,
-    inviteUser,
-    resendInvitation,
-    cancelInvitation,
-    setFilters,
-    resetFilters,
-    setPage,
-    clearSelectedUser,
-    clearError,
-    selectUsers,
+  fetchUsers,
+  fetchUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  activateUser,
+  deactivateUser,
+  unlockUser,
+  assignUserRole,
+  fetchUserTeam,
+  fetchReportingChain,
+  fetchMyTeam,
+  fetchMyReportingChain,
+  fetchInvitations,
+  sendInvitation,
+  setUserFilters,
+  setUserPage,
+  setUserPageSize,
+  clearSelectedUser,
+  clearUserError,
 } from '../../store/accounts/slice/userSlice';
+import {
+  selectUsers,
+  selectSelectedUser,
+  selectUsersLoading,
+  selectUsersCreating,
+  selectUsersUpdating,
+  selectUsersDeleting,
+  selectUsersError,
+  selectUsersPagination,
+  selectUsersFilters,
+  selectUserTeam,
+  selectReportingChain,
+  selectMyTeam,
+  selectMyReportingChain,
+  selectInvitations,
+  selectUserById,
+  selectUsersByRole,
+  selectActiveUsers,
+  selectVerifiedUsers,
+  selectUsersWithMFA,
+} from '../../store/accounts/selectors/userSelectors';
 
 export const useUsers = () => {
-    const dispatch = useDispatch();
-    const usersState = useSelector(selectUsers) || {
-        users: [],
-        selectedUser: null,
-        pagination: {
-            current_page: 1,
-            total_pages: 1,
-            total_items: 0,
-            page_size: 20
-        },
-        filters: {
-            search: '',
-            role: '',
-            is_active: undefined,
-            is_verified: undefined,
-            mfa_enabled: undefined,
-            department_id: '',
-            joined_after: '',
-            joined_before: ''
-        },
-        isLoading: false,
-        error: null,
-        invitations: [],
-        invitationLoading: false
-    };
+  const dispatch = useDispatch();
+  const users = useSelector(selectUsers);
+  const selectedUser = useSelector(selectSelectedUser);
+  const isLoading = useSelector(selectUsersLoading);
+  const isCreating = useSelector(selectUsersCreating);
+  const isUpdating = useSelector(selectUsersUpdating);
+  const isDeleting = useSelector(selectUsersDeleting);
+  const error = useSelector(selectUsersError);
+  const pagination = useSelector(selectUsersPagination);
+  const filters = useSelector(selectUsersFilters);
+  const userTeam = useSelector(selectUserTeam);
+  const reportingChain = useSelector(selectReportingChain);
+  const myTeam = useSelector(selectMyTeam);
+  const myReportingChain = useSelector(selectMyReportingChain);
+  const invitations = useSelector(selectInvitations);
 
-    // Local UI state
-    const [selectedUserId, setSelectedUserId] = useState(null);
-    const [inviteModalOpen, setInviteModalOpen] = useState(false);
-    const [roleModalOpen, setRoleModalOpen] = useState(false);
-    const [selectedRole, setSelectedRole] = useState('');
+  const getUsers = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchUsers(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Data Fetching ==========
+  const getUser = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadUsers = useCallback(async (params = {}) => {
-        return await dispatch(fetchUsers(params)).unwrap();
-    }, [dispatch]);
+  const create = useCallback(
+    async (data) => {
+      const result = await dispatch(createUser(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadUserById = useCallback(async (userId) => {
-        setSelectedUserId(userId);
-        return await dispatch(fetchUserById(userId)).unwrap();
-    }, [dispatch]);
+  const update = useCallback(
+    async (id, data) => {
+      const result = await dispatch(updateUser({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== CRUD Operations ==========
+  const remove = useCallback(
+    async (id) => {
+      const result = await dispatch(deleteUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const addUser = useCallback(async (userData) => {
-        const result = await dispatch(createUser(userData)).unwrap();
-        return result;
-    }, [dispatch]);
+  const activate = useCallback(
+    async (id) => {
+      const result = await dispatch(activateUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const editUser = useCallback(async (userId, userData) => {
-        const result = await dispatch(updateUser({ id: userId, ...userData })).unwrap();
-        return result;
-    }, [dispatch]);
+  const deactivate = useCallback(
+    async (id) => {
+      const result = await dispatch(deactivateUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const removeUser = useCallback(async (userId) => {
-        return await dispatch(deleteUser(userId)).unwrap();
-    }, [dispatch]);
+  const unlock = useCallback(
+    async (id) => {
+      const result = await dispatch(unlockUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== User Actions ==========
+  const assignRole = useCallback(
+    async (id, role) => {
+      const result = await dispatch(assignUserRole({ id, role })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const activateUserAccount = useCallback(async (userId) => {
-        return await dispatch(activateUser(userId)).unwrap();
-    }, [dispatch]);
+  const getTeam = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchUserTeam(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const deactivateUserAccount = useCallback(async (userId) => {
-        return await dispatch(deactivateUser(userId)).unwrap();
-    }, [dispatch]);
+  const getReportingChain = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchReportingChain(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const unlockUserAccount = useCallback(async (userId) => {
-        return await dispatch(unlockUser(userId)).unwrap();
-    }, [dispatch]);
+  const getMyTeam = useCallback(async () => {
+    const result = await dispatch(fetchMyTeam()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const assignUserRole = useCallback(async (userId, role) => {
-        return await dispatch(assignRole({ userId, role })).unwrap();
-    }, [dispatch]);
+  const getMyReportingChain = useCallback(async () => {
+    const result = await dispatch(fetchMyReportingChain()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const changeUserPasswordAction = useCallback(async (userId, oldPassword, newPassword) => {
-        return await dispatch(changeUserPassword({ userId, oldPassword, newPassword })).unwrap();
-    }, [dispatch]);
+  const getInvitations = useCallback(async () => {
+    const result = await dispatch(fetchInvitations()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    // ========== Invitations ==========
+  const invite = useCallback(
+    async (data) => {
+      const result = await dispatch(sendInvitation(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const sendInvitation = useCallback(async (inviteData) => {
-        return await dispatch(inviteUser(inviteData)).unwrap();
-    }, [dispatch]);
+  const setFilters = useCallback(
+    (newFilters) => {
+      dispatch(setUserFilters(newFilters));
+    },
+    [dispatch]
+  );
 
-    const resendUserInvitation = useCallback(async (invitationId) => {
-        return await dispatch(resendInvitation(invitationId)).unwrap();
-    }, [dispatch]);
+  const setPage = useCallback(
+    (page) => {
+      dispatch(setUserPage(page));
+    },
+    [dispatch]
+  );
 
-    const cancelUserInvitation = useCallback(async (invitationId) => {
-        return await dispatch(cancelInvitation(invitationId)).unwrap();
-    }, [dispatch]);
+  const setPageSize = useCallback(
+    (pageSize) => {
+      dispatch(setUserPageSize(pageSize));
+    },
+    [dispatch]
+  );
 
-    // ========== Filters & Pagination ==========
+  const clearSelected = useCallback(() => {
+    dispatch(clearSelectedUser());
+  }, [dispatch]);
 
-    const updateFilters = useCallback((filters) => {
-        dispatch(setFilters(filters));
-    }, [dispatch]);
+  const clearError = useCallback(() => {
+    dispatch(clearUserError());
+  }, [dispatch]);
 
-    const clearAllFilters = useCallback(() => {
-        dispatch(resetFilters());
-    }, [dispatch]);
+  const getUserById = useCallback(
+    (id) => {
+      return selectUserById({ users: { users } }, id);
+    },
+    [users]
+  );
 
-    const goToPage = useCallback((page) => {
-        dispatch(setPage(page));
-    }, [dispatch]);
+  const getUsersByRole = useCallback(
+    (role) => {
+      return selectUsersByRole({ users: { users } }, role);
+    },
+    [users]
+  );
 
-    // ========== Utilities ==========
-
-    const clearUserError = useCallback(() => {
-        dispatch(clearError());
-    }, [dispatch]);
-
-    const clearUserSelection = useCallback(() => {
-        dispatch(clearSelectedUser());
-        setSelectedUserId(null);
-    }, [dispatch]);
-
-    // ========== Computed Values ==========
-
-    const getFullName = (user) => {
-        return `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || user?.email;
-    };
-
-    const getUserRoleLabel = (role) => {
-        const roleLabels = {
-            super_admin: 'Super Admin',
-            client_admin: 'Client Admin',
-            executive: 'Executive',
-            supervisor: 'Supervisor',
-            dashboard_champion: 'Dashboard Champion',
-            staff: 'Staff',
-            read_only: 'Read Only',
-        };
-        return roleLabels[role] || role;
-    };
-
-    // ========== Return ==========
-
-    return {
-        // State
-        users: usersState.users,
-        selectedUser: usersState.selectedUser,
-        pagination: usersState.pagination,
-        filters: usersState.filters,
-        isLoading: usersState.isLoading,
-        error: usersState.error,
-        invitations: usersState.invitations,
-        invitationLoading: usersState.invitationLoading,
-
-        // UI State
-        selectedUserId,
-        setSelectedUserId,
-        inviteModalOpen,
-        setInviteModalOpen,
-        roleModalOpen,
-        setRoleModalOpen,
-        selectedRole,
-        setSelectedRole,
-
-        // Actions - Data Fetching
-        loadUsers,
-        loadUserById,
-
-        // Actions - CRUD
-        addUser,
-        editUser,
-        removeUser,
-
-        // Actions - User Management
-        activateUserAccount,
-        deactivateUserAccount,
-        unlockUserAccount,
-        assignUserRole,
-        changeUserPasswordAction,
-
-        // Actions - Invitations
-        sendInvitation,
-        resendUserInvitation,
-        cancelUserInvitation,
-
-        // Actions - Filters
-        updateFilters,
-        clearAllFilters,
-        goToPage,
-
-        // Utilities
-        clearUserError,
-        clearUserSelection,
-        getFullName,
-        getUserRoleLabel,
-    };
+  return useMemo(
+    () => ({
+      users,
+      selectedUser,
+      isLoading,
+      isCreating,
+      isUpdating,
+      isDeleting,
+      error,
+      pagination,
+      filters,
+      userTeam,
+      reportingChain,
+      myTeam,
+      myReportingChain,
+      invitations,
+      getUsers,
+      getUser,
+      create,
+      createUser: create,
+      update,
+      updateUser: update,
+      remove,
+      activate,
+      deactivate,
+      unlock,
+      assignRole,
+      getTeam,
+      getReportingChain,
+      getMyTeam,
+      getMyReportingChain,
+      getInvitations,
+      invite,
+      setFilters,
+      setPage,
+      setPageSize,
+      clearSelected,
+      clearSelectedUser: clearSelected,
+      clearError,
+      getUserById,
+      getUsersByRole,
+    }),
+    [
+      users,
+      selectedUser,
+      isLoading,
+      isCreating,
+      isUpdating,
+      isDeleting,
+      error,
+      pagination,
+      filters,
+      userTeam,
+      reportingChain,
+      myTeam,
+      myReportingChain,
+      invitations,
+      getUsers,
+      getUser,
+      create,
+      update,
+      remove,
+      activate,
+      deactivate,
+      unlock,
+      assignRole,
+      getTeam,
+      getReportingChain,
+      getMyTeam,
+      getMyReportingChain,
+      getInvitations,
+      invite,
+      setFilters,
+      setPage,
+      setPageSize,
+      clearSelected,
+      clearError,
+      getUserById,
+      getUsersByRole,
+    ]
+  );
 };

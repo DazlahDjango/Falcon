@@ -15,7 +15,7 @@ const useKPIPermissions = () => {
         const isClientAdmin = isSuperAdmin || role === 'client_admin';
         const isExecutive = isClientAdmin || role === 'executive';
         const isDashboardChampion = isClientAdmin || role === 'dashboard_champion';
-        const isManager = isClientAdmin || role === 'manager' || user?.get_direct_reports?.length > 0;
+        const isManager = isClientAdmin || role === 'manager' || user?.is_manager === true;
         const isStaff = role === 'staff' || isSuperAdmin;
         
         // KPI-specific permissions

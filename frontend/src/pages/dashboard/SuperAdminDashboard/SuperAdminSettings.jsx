@@ -1,12 +1,12 @@
 import React from 'react';
 import { DashboardLayout } from '../../../components/dashboard/Layout';
-import Settings from '../../../components/accounts/settings/Settings';
+import { SettingsPage } from '../../accounts/SettingsPage';
 
 const SuperAdminSettings = () => {
     return (
         <DashboardLayout role="super_admin">
             <div className="dashboard-content">
-                <Settings />
+                <SettingsPage />
             </div>
         </DashboardLayout>
     );

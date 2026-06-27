@@ -1,34 +1,21 @@
 import { request } from './client';
+import { ROLE_ENDPOINTS } from '../../../config/constants/accountsApiConstants';
 
-// Role CRUD
-// ============
-export const getRoles = (params = {}) => {
-    return request.get('/roles/', { params });
-};
-export const getRoleById = (roleId) => {
-    return request.get(`/roles/${roleId}/`);
-};
-export const createRole = (data) => {
-    return request.post('/roles/', data);
-};
-export const updateRole = (roleId, data) => {
-    return request.patch(`/roles/${roleId}/`, data);
-};
-export const deleteRole = (roleId) => {
-    return request.delete(`/roles/${roleId}/`);
-};
+export const getRoles = (params) => request.get(ROLE_ENDPOINTS.LIST, { params });
 
-// Role Actions
-// ===============
-export const getSystemRoles = () => {
-    return request.get('/roles/system/');
-};
-export const getAssignableRoles = () => {
-    return request.get('/roles/assignable/');
-};
-export const getRolePermissions = (roleId) => {
-    return request.get(`/roles/${roleId}/permissions/`);
-};
-export const assignRolePermissions = (roleId, permissionIds) => {
-    return request.post(`/roles/${roleId}/permissions/`, { permission_ids: permissionIds });
-};
+export const getRole = (id) => request.get(ROLE_ENDPOINTS.DETAIL(id));
+
+export const createRole = (data) => request.post(ROLE_ENDPOINTS.CREATE, data);
+
+export const updateRole = (id, data) => request.patch(ROLE_ENDPOINTS.UPDATE(id), data);
+
+export const deleteRole = (id) => request.delete(ROLE_ENDPOINTS.DELETE(id));
+
+export const getSystemRoles = () => request.get(ROLE_ENDPOINTS.SYSTEM_ROLES);
+
+export const getAssignableRoles = () => request.get(ROLE_ENDPOINTS.ASSIGNABLE_ROLES);
+
+export const getRolePermissions = (id) => request.get(ROLE_ENDPOINTS.ROLE_PERMISSIONS(id));
+
+export const assignPermissions = (id, data) =>
+  request.post(ROLE_ENDPOINTS.ASSIGN_PERMISSIONS(id), data);
