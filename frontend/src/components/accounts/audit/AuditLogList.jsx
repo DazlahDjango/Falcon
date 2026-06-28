@@ -13,6 +13,7 @@ import {
   FiShield,
   FiUser,
   FiClock,
+  FiX,
 } from 'react-icons/fi';
 import { useAudit } from '../../../hooks/accounts/useAudit';
 import { usePagination } from '../../../hooks/accounts/usePagination';
