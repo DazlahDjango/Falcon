@@ -3,26 +3,26 @@
 import { createSelector } from '@reduxjs/toolkit';
 
 // ==================== BASE STATE SELECTORS ====================
-const selectDashboardState = (state) => state.dashboard;
-const selectDashboardConfigState = (state) => state.dashboardConfig;
-const selectDashboardAlertsState = (state) => state.dashboardAlerts;
-const selectDashboardExportsState = (state) => state.dashboardExports;
-const selectDashboardComparisonsState = (state) => state.dashboardComparisons;
+const selectDashboardState = (state) => state?.dashboard;
+const selectDashboardConfigState = (state) => state?.dashboardConfig;
+const selectDashboardAlertsState = (state) => state?.dashboardAlerts;
+const selectDashboardExportsState = (state) => state?.dashboardExports;
+const selectDashboardComparisonsState = (state) => state?.dashboardComparisons;
 
 // ===== ADD NEW SLICE SELECTORS =====
-const selectManagerDashboardState = (state) => state.managerDashboard;
-const selectStaffDashboardState = (state) => state.staffDashboard;
-const selectChampionDashboardState = (state) => state.championDashboard;
-const selectReadOnlyDashboardState = (state) => state.readOnlyDashboard;
+const selectManagerDashboardState = (state) => state?.managerDashboard;
+const selectStaffDashboardState = (state) => state?.staffDashboard;
+const selectChampionDashboardState = (state) => state?.championDashboard;
+const selectReadOnlyDashboardState = (state) => state?.readOnlyDashboard;
 
 // ==================== EXECUTIVE DASHBOARD SELECTORS ====================
-export const selectExecutiveData = (state) => state.dashboard?.executive?.data;
-export const selectExecutiveDepartments = (state) => state.dashboard?.executive?.departments;
-export const selectExecutiveTrends = (state) => state.dashboard?.executive?.trends;
-export const selectExecutiveIssues = (state) => state.dashboard?.executive?.issues;
-export const selectExecutiveLoading = (state) => state.dashboard?.executive?.loading;
-export const selectExecutiveError = (state) => state.dashboard?.executive?.error;
-export const selectExecutiveLastUpdated = (state) => state.dashboard?.executive?.lastUpdated;
+export const selectExecutiveData = (state) => state?.dashboard?.executive?.data;
+export const selectExecutiveDepartments = (state) => state?.dashboard?.executive?.departments;
+export const selectExecutiveTrends = (state) => state?.dashboard?.executive?.trends;
+export const selectExecutiveIssues = (state) => state?.dashboard?.executive?.issues;
+export const selectExecutiveLoading = (state) => state?.dashboard?.executive?.loading;
+export const selectExecutiveError = (state) => state?.dashboard?.executive?.error;
+export const selectExecutiveLastUpdated = (state) => state?.dashboard?.executive?.lastUpdated;
 
 export const selectExecutiveOverview = createSelector(
   [selectExecutiveData],
@@ -55,15 +55,15 @@ export const selectExecutiveIsEmpty = createSelector(
 );
 
 // ==================== CLIENT ADMIN DASHBOARD SELECTORS ====================
-export const selectClientAdminData = (state) => state.dashboard?.clientAdmin?.data;
-export const selectClientAdminCompliance = (state) => state.dashboard?.clientAdmin?.compliance;
-export const selectClientAdminPendingApprovals = (state) => state.dashboard?.clientAdmin?.pendingApprovals;
-export const selectClientAdminMissingData = (state) => state.dashboard?.clientAdmin?.missingData;
-export const selectClientAdminUserActivity = (state) => state.dashboard?.clientAdmin?.userActivity;
-export const selectClientAdminKpiBreakdown = (state) => state.dashboard?.clientAdmin?.kpiBreakdown;
-export const selectClientAdminLoading = (state) => state.dashboard?.clientAdmin?.loading;
-export const selectClientAdminError = (state) => state.dashboard?.clientAdmin?.error;
-export const selectClientAdminLastUpdated = (state) => state.dashboard?.clientAdmin?.lastUpdated;
+export const selectClientAdminData = (state) => state?.dashboard?.clientAdmin?.data;
+export const selectClientAdminCompliance = (state) => state?.dashboard?.clientAdmin?.compliance;
+export const selectClientAdminPendingApprovals = (state) => state?.dashboard?.clientAdmin?.pendingApprovals;
+export const selectClientAdminMissingData = (state) => state?.dashboard?.clientAdmin?.missingData;
+export const selectClientAdminUserActivity = (state) => state?.dashboard?.clientAdmin?.userActivity;
+export const selectClientAdminKpiBreakdown = (state) => state?.dashboard?.clientAdmin?.kpiBreakdown;
+export const selectClientAdminLoading = (state) => state?.dashboard?.clientAdmin?.loading;
+export const selectClientAdminError = (state) => state?.dashboard?.clientAdmin?.error;
+export const selectClientAdminLastUpdated = (state) => state?.dashboard?.clientAdmin?.lastUpdated;
 
 export const selectClientAdminTenantOverview = createSelector(
   [selectClientAdminData],
@@ -109,15 +109,15 @@ export const selectClientAdminKpiHealth = createSelector(
 );
 
 // ==================== SUPER ADMIN DASHBOARD SELECTORS ====================
-export const selectSuperAdminData = (state) => state.dashboard?.superAdmin?.data;
-export const selectSuperAdminTenants = (state) => state.dashboard?.superAdmin?.tenants;
-export const selectSuperAdminSystemHealth = (state) => state.dashboard?.superAdmin?.systemHealth;
-export const selectSuperAdminSubscriptionAlerts = (state) => state.dashboard?.superAdmin?.subscriptionAlerts;
-export const selectSuperAdminPlatformMetrics = (state) => state.dashboard?.superAdmin?.platformMetrics;
-export const selectSuperAdminBillingOverview = (state) => state.dashboard?.superAdmin?.billingOverview;
-export const selectSuperAdminLoading = (state) => state.dashboard?.superAdmin?.loading;
-export const selectSuperAdminError = (state) => state.dashboard?.superAdmin?.error;
-export const selectSuperAdminLastUpdated = (state) => state.dashboard?.superAdmin?.lastUpdated;
+export const selectSuperAdminData = (state) => state?.dashboard?.superAdmin?.data;
+export const selectSuperAdminTenants = (state) => state?.dashboard?.superAdmin?.tenants;
+export const selectSuperAdminSystemHealth = (state) => state?.dashboard?.superAdmin?.systemHealth;
+export const selectSuperAdminSubscriptionAlerts = (state) => state?.dashboard?.superAdmin?.subscriptionAlerts;
+export const selectSuperAdminPlatformMetrics = (state) => state?.dashboard?.superAdmin?.platformMetrics;
+export const selectSuperAdminBillingOverview = (state) => state?.dashboard?.superAdmin?.billingOverview;
+export const selectSuperAdminLoading = (state) => state?.dashboard?.superAdmin?.loading;
+export const selectSuperAdminError = (state) => state?.dashboard?.superAdmin?.error;
+export const selectSuperAdminLastUpdated = (state) => state?.dashboard?.superAdmin?.lastUpdated;
 
 export const selectSuperAdminPlatformOverview = createSelector(
   [selectSuperAdminData],
@@ -159,18 +159,18 @@ export const selectSuperAdminSystemStatus = createSelector(
 
 // ==================== MANAGER DASHBOARD SELECTORS ====================
 
-export const selectManagerData = (state) => state.managerDashboard?.data;
-export const selectManagerTeamMembers = (state) => state.managerDashboard?.teamMembers;
-export const selectManagerTeamSummary = (state) => state.managerDashboard?.teamSummary;
-export const selectManagerPendingApprovals = (state) => state.managerDashboard?.pendingApprovals;
-export const selectManagerPeriod = (state) => state.managerDashboard?.period;
-export const selectManagerIncludeTeam = (state) => state.managerDashboard?.includeTeam;
-export const selectManagerDrillDownUserId = (state) => state.managerDashboard?.drillDownUserId;
-export const selectManagerLoading = (state) => state.managerDashboard?.loading;
-export const selectManagerApproving = (state) => state.managerDashboard?.approving;
-export const selectManagerRejecting = (state) => state.managerDashboard?.rejecting;
-export const selectManagerError = (state) => state.managerDashboard?.error;
-export const selectManagerLastUpdated = (state) => state.managerDashboard?.lastUpdated;
+export const selectManagerData = (state) => state?.managerDashboard?.data;
+export const selectManagerTeamMembers = (state) => state?.managerDashboard?.teamMembers;
+export const selectManagerTeamSummary = (state) => state?.managerDashboard?.teamSummary;
+export const selectManagerPendingApprovals = (state) => state?.managerDashboard?.pendingApprovals;
+export const selectManagerPeriod = (state) => state?.managerDashboard?.period;
+export const selectManagerIncludeTeam = (state) => state?.managerDashboard?.includeTeam;
+export const selectManagerDrillDownUserId = (state) => state?.managerDashboard?.drillDownUserId;
+export const selectManagerLoading = (state) => state?.managerDashboard?.loading;
+export const selectManagerApproving = (state) => state?.managerDashboard?.approving;
+export const selectManagerRejecting = (state) => state?.managerDashboard?.rejecting;
+export const selectManagerError = (state) => state?.managerDashboard?.error;
+export const selectManagerLastUpdated = (state) => state?.managerDashboard?.lastUpdated;
 
 export const selectManagerPersonalKPIs = createSelector(
   [selectManagerData],
@@ -237,17 +237,17 @@ export const selectManagerIsDrilledDown = createSelector(
 
 // ==================== STAFF DASHBOARD SELECTORS ====================
 
-export const selectStaffData = (state) => state.staffDashboard?.data;
-export const selectStaffMyKPIs = (state) => state.staffDashboard?.myKPIs;
-export const selectStaffPendingSubmissions = (state) => state.staffDashboard?.pendingSubmissions;
-export const selectStaffMissionStatus = (state) => state.staffDashboard?.missionStatus;
-export const selectStaffPendingTasks = (state) => state.staffDashboard?.pendingTasks;
-export const selectStaffPeriod = (state) => state.staffDashboard?.period;
-export const selectStaffLoading = (state) => state.staffDashboard?.loading;
-export const selectStaffSubmitting = (state) => state.staffDashboard?.submitting;
-export const selectStaffUpdatingMission = (state) => state.staffDashboard?.updatingMission;
-export const selectStaffError = (state) => state.staffDashboard?.error;
-export const selectStaffLastUpdated = (state) => state.staffDashboard?.lastUpdated;
+export const selectStaffData = (state) => state?.staffDashboard?.data;
+export const selectStaffMyKPIs = (state) => state?.staffDashboard?.myKPIs;
+export const selectStaffPendingSubmissions = (state) => state?.staffDashboard?.pendingSubmissions;
+export const selectStaffMissionStatus = (state) => state?.staffDashboard?.missionStatus;
+export const selectStaffPendingTasks = (state) => state?.staffDashboard?.pendingTasks;
+export const selectStaffPeriod = (state) => state?.staffDashboard?.period;
+export const selectStaffLoading = (state) => state?.staffDashboard?.loading;
+export const selectStaffSubmitting = (state) => state?.staffDashboard?.submitting;
+export const selectStaffUpdatingMission = (state) => state?.staffDashboard?.updatingMission;
+export const selectStaffError = (state) => state?.staffDashboard?.error;
+export const selectStaffLastUpdated = (state) => state?.staffDashboard?.lastUpdated;
 
 export const selectStaffOverallScore = createSelector(
   [selectStaffData],
@@ -301,18 +301,18 @@ export const selectStaffOverdueCount = createSelector(
 
 // ==================== CHAMPION DASHBOARD SELECTORS ====================
 
-export const selectChampionData = (state) => state.championDashboard?.data;
-export const selectChampionAvailableKPIs = (state) => state.championDashboard?.availableKPIs;
-export const selectChampionAssignedKPIs = (state) => state.championDashboard?.assignedKPIs;
-export const selectChampionTemplates = (state) => state.championDashboard?.templates;
-export const selectChampionTargetUserId = (state) => state.championDashboard?.targetUserId;
-export const selectChampionPeriod = (state) => state.championDashboard?.period;
-export const selectChampionLoading = (state) => state.championDashboard?.loading;
-export const selectChampionSaving = (state) => state.championDashboard?.saving;
-export const selectChampionCreatingTemplate = (state) => state.championDashboard?.creatingTemplate;
-export const selectChampionApplyingTemplate = (state) => state.championDashboard?.applyingTemplate;
-export const selectChampionError = (state) => state.championDashboard?.error;
-export const selectChampionLastUpdated = (state) => state.championDashboard?.lastUpdated;
+export const selectChampionData = (state) => state?.championDashboard?.data;
+export const selectChampionAvailableKPIs = (state) => state?.championDashboard?.availableKPIs;
+export const selectChampionAssignedKPIs = (state) => state?.championDashboard?.assignedKPIs;
+export const selectChampionTemplates = (state) => state?.championDashboard?.templates;
+export const selectChampionTargetUserId = (state) => state?.championDashboard?.targetUserId;
+export const selectChampionPeriod = (state) => state?.championDashboard?.period;
+export const selectChampionLoading = (state) => state?.championDashboard?.loading;
+export const selectChampionSaving = (state) => state?.championDashboard?.saving;
+export const selectChampionCreatingTemplate = (state) => state?.championDashboard?.creatingTemplate;
+export const selectChampionApplyingTemplate = (state) => state?.championDashboard?.applyingTemplate;
+export const selectChampionError = (state) => state?.championDashboard?.error;
+export const selectChampionLastUpdated = (state) => state?.championDashboard?.lastUpdated;
 
 export const selectChampionTargetUser = createSelector(
   [selectChampionData],
@@ -366,12 +366,12 @@ export const selectChampionTotalWeight = createSelector(
 
 // ==================== READ-ONLY DASHBOARD SELECTORS ====================
 
-export const selectReadOnlyData = (state) => state.readOnlyDashboard?.data;
-export const selectReadOnlyPeriod = (state) => state.readOnlyDashboard?.period;
-export const selectReadOnlyViewType = (state) => state.readOnlyDashboard?.viewType;
-export const selectReadOnlyLoading = (state) => state.readOnlyDashboard?.loading;
-export const selectReadOnlyError = (state) => state.readOnlyDashboard?.error;
-export const selectReadOnlyLastUpdated = (state) => state.readOnlyDashboard?.lastUpdated;
+export const selectReadOnlyData = (state) => state?.readOnlyDashboard?.data;
+export const selectReadOnlyPeriod = (state) => state?.readOnlyDashboard?.period;
+export const selectReadOnlyViewType = (state) => state?.readOnlyDashboard?.viewType;
+export const selectReadOnlyLoading = (state) => state?.readOnlyDashboard?.loading;
+export const selectReadOnlyError = (state) => state?.readOnlyDashboard?.error;
+export const selectReadOnlyLastUpdated = (state) => state?.readOnlyDashboard?.lastUpdated;
 
 export const selectReadOnlyDashboardData = createSelector(
   [selectReadOnlyData],
@@ -399,8 +399,8 @@ export const selectReadOnlyDashboardType = createSelector(
 );
 
 // ==================== SHARED DASHBOARD SELECTORS ====================
-export const selectActiveDashboard = (state) => state.dashboard?.activeDashboard;
-export const selectRefreshInProgress = (state) => state.dashboard?.refreshInProgress;
+export const selectActiveDashboard = (state) => state?.dashboard?.activeDashboard;
+export const selectRefreshInProgress = (state) => state?.dashboard?.refreshInProgress;
 
 export const selectIsDashboardReady = createSelector(
   [selectActiveDashboard, selectExecutiveLoading, selectClientAdminLoading, selectSuperAdminLoading, selectManagerLoading, selectStaffLoading],
@@ -439,13 +439,13 @@ export const selectDashboardLastUpdated = createSelector(
 );
 
 // ==================== DASHBOARD CONFIG SELECTORS ====================
-export const selectDashboardConfigs = (state) => state.dashboardConfig?.configs;
-export const selectCurrentConfig = (state) => state.dashboardConfig?.currentConfig;
-export const selectDashboardWidgets = (state) => state.dashboardConfig?.widgets;
-export const selectDashboardFavorites = (state) => state.dashboardConfig?.favorites;
-export const selectConfigLoading = (state) => state.dashboardConfig?.loading;
-export const selectConfigSaving = (state) => state.dashboardConfig?.saving;
-export const selectConfigError = (state) => state.dashboardConfig?.error;
+export const selectDashboardConfigs = (state) => state?.dashboardConfig?.configs;
+export const selectCurrentConfig = (state) => state?.dashboardConfig?.currentConfig;
+export const selectDashboardWidgets = (state) => state?.dashboardConfig?.widgets;
+export const selectDashboardFavorites = (state) => state?.dashboardConfig?.favorites;
+export const selectConfigLoading = (state) => state?.dashboardConfig?.loading;
+export const selectConfigSaving = (state) => state?.dashboardConfig?.saving;
+export const selectConfigError = (state) => state?.dashboardConfig?.error;
 
 export const selectCurrentConfigLayout = createSelector(
   [selectCurrentConfig],
@@ -478,10 +478,10 @@ export const selectIsFavorite = createSelector(
 );
 
 // ==================== DASHBOARD ALERTS SELECTORS ====================
-export const selectAlerts = (state) => state.dashboardAlerts?.alerts;
-export const selectAlertsTotal = (state) => state.dashboardAlerts?.total;
-export const selectAlertsLoading = (state) => state.dashboardAlerts?.loading;
-export const selectAlertsError = (state) => state.dashboardAlerts?.error;
+export const selectAlerts = (state) => state?.dashboardAlerts?.alerts;
+export const selectAlertsTotal = (state) => state?.dashboardAlerts?.total;
+export const selectAlertsLoading = (state) => state?.dashboardAlerts?.loading;
+export const selectAlertsError = (state) => state?.dashboardAlerts?.error;
 
 export const selectCriticalAlerts = createSelector(
   [selectAlerts],
@@ -514,12 +514,12 @@ export const selectHasCriticalAlerts = createSelector(
 );
 
 // ==================== DASHBOARD EXPORTS SELECTORS ====================
-export const selectExports = (state) => state.dashboardExports?.exports;
-export const selectExportHistory = (state) => state.dashboardExports?.history;
-export const selectExportsTotal = (state) => state.dashboardExports?.total;
-export const selectExportsLoading = (state) => state.dashboardExports?.loading;
-export const selectExporting = (state) => state.dashboardExports?.exporting;
-export const selectExportsError = (state) => state.dashboardExports?.error;
+export const selectExports = (state) => state?.dashboardExports?.exports;
+export const selectExportHistory = (state) => state?.dashboardExports?.history;
+export const selectExportsTotal = (state) => state?.dashboardExports?.total;
+export const selectExportsLoading = (state) => state?.dashboardExports?.loading;
+export const selectExporting = (state) => state?.dashboardExports?.exporting;
+export const selectExportsError = (state) => state?.dashboardExports?.error;
 
 export const selectActiveExports = createSelector(
   [selectExports],
@@ -537,12 +537,12 @@ export const selectRecentExports = createSelector(
 );
 
 // ==================== DASHBOARD COMPARISONS SELECTORS ====================
-export const selectComparisons = (state) => state.dashboardComparisons?.comparisons;
-export const selectSelectedComparison = (state) => state.dashboardComparisons?.selectedComparison;
-export const selectComparisonResults = (state) => state.dashboardComparisons?.comparisonResults;
-export const selectComparisonsLoading = (state) => state.dashboardComparisons?.loading;
-export const selectCalculating = (state) => state.dashboardComparisons?.calculating;
-export const selectComparisonsError = (state) => state.dashboardComparisons?.error;
+export const selectComparisons = (state) => state?.dashboardComparisons?.comparisons;
+export const selectSelectedComparison = (state) => state?.dashboardComparisons?.selectedComparison;
+export const selectComparisonResults = (state) => state?.dashboardComparisons?.comparisonResults;
+export const selectComparisonsLoading = (state) => state?.dashboardComparisons?.loading;
+export const selectCalculating = (state) => state?.dashboardComparisons?.calculating;
+export const selectComparisonsError = (state) => state?.dashboardComparisons?.error;
 
 export const selectPublicComparisons = createSelector(
   [selectComparisons],

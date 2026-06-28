@@ -17,7 +17,7 @@ import { backupMiddleware, maintenanceMiddleware } from './config';
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['auth', 'tenant', 'appTenant', 'theme', 'organisation', 'subscription', 'tenantDomain', 'tenantBackup'],
+    whitelist: ['auth', 'tenant', 'appTenant', 'theme', 'organisation', 'subscription', 'tenantDomain', 'tenantBackup', 'reviews'],
     blacklist: [
         'ui',
         'notifications',
@@ -47,16 +47,7 @@ const persistConfig = {
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const appReducer = (state, action) => {
-  // If we are on a KPI page, we want to make sure the KPI reducer is active
   const newState = persistedReducer(state, action);
-  
-  // Force injection of KPI reducer if it's missing but we have a kpiModuleReducer
-  if (state && !newState.kpi && kpiModuleReducer) {
-    return {
-      ...newState,
-      kpi: kpiModuleReducer(state.kpi, action)
-    };
-  }
   
   return newState;
 };

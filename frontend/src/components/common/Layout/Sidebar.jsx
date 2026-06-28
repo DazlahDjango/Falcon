@@ -122,6 +122,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders, roles: ['supervisor', 'client_admin', "super_admin"] },
             { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/analytics', name: 'Analytics', icon: FiTrendingUp, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reviews/rating-scales', name: 'Rating Scales', icon: FiSliders, roles: ['supervisor', 'client_admin', 'super_admin', 'dashboard_champion', 'executive'] },
             { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings, roles: ['super_admin'] },
         ];
         const configItems = [

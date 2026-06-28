@@ -1,288 +1,177 @@
-// src/store/reviews/middleware/websocketMiddleware.js
-// WebSocket middleware for real-time updates
+// src/store/middleware/websocketMiddleware.js
+import { notificationActions } from '../slices/notification.slice';
+import { dashboardActions } from '../slices/dashboard.slice';
+import { cycleActions } from '../slices/cycle.slice';
+import { finalRatingActions } from '../slices/finalRating.slice';
 
-import {
-    fetchCycleProgress,
-    fetchActiveCycle,
-    fetchMyCycles,
-} from '../slices/cycleSlice';
-import {
-    fetchReviewQueue,
-} from '../slices/supervisorReviewSlice';
-import {
-    fetchActivePIPs,
-    fetchMyPIPs,
-} from '../slices/pipSlice';
-import {
-    fetchPendingFeedbackRequests,
-    fetchMyFeedbackSummary,
-} from '../slices/feedbackSlice';
-import {
-    fetchMyCalibrationSessions,
-} from '../slices/calibrationSlice';
-import {
-    addNotification,
-    setUnreadCount,
-} from '../slices/notificationSlice';
-
-// Use shared websocket service and constants
-import { websocketService } from '../../../services/websocket';
-import { REVIEWS_WS, websocketBase } from '../../../config/constants/websocketApiConstants';
-import { getAccessToken } from '../../../services/accounts/storage/secureStorage';
-
-// ========== WebSocket Connection State ==========
-let currentUserId = null;
-const connections = new Map();
-
-// ========== WebSocket Message Handlers ==========
-const messageHandlers = {
-    // Notification handlers
-    notification: (store, data) => {
-        store.dispatch(addNotification(data));
-        
-        // Show browser notification if permitted
-        if (Notification.permission === 'granted' && data.title) {
-            new Notification(data.title, {
-                body: data.message,
-                icon: '/favicon.ico',
-            });
-        }
-    },
-    
-    unread_count: (store, data) => {
-        store.dispatch(setUnreadCount(data.count));
-    },
-    
-    // Review status handlers
-    review_submitted: (store, data) => {
-        if (data.cycle_id) {
-            store.dispatch(fetchCycleProgress(data.cycle_id));
-        }
-        store.dispatch(fetchReviewQueue());
-        store.dispatch(fetchMyCycles());
-    },
-    
-    review_approved: (store, data) => {
-        if (data.cycle_id) {
-            store.dispatch(fetchCycleProgress(data.cycle_id));
-            store.dispatch(fetchActiveCycle());
-        }
-        store.dispatch(fetchReviewQueue());
-    },
-    
-    review_rejected: (store, data) => {
-        if (data.cycle_id) {
-            store.dispatch(fetchCycleProgress(data.cycle_id));
-        }
-    },
-    
-    completion_updated: (store, data) => {
-        if (data.cycle_id) {
-            store.dispatch(fetchCycleProgress(data.cycle_id));
-        }
-    },
-    
-    // PIP handlers
-    pip_created: (store, data) => {
-        store.dispatch(fetchActivePIPs());
-        store.dispatch(fetchMyPIPs());
-    },
-    
-    pip_updated: (store, data) => {
-        store.dispatch(fetchActivePIPs());
-        if (data.employee_id === currentUserId) {
-            store.dispatch(fetchMyPIPs());
-        }
-    },
-    
-    pip_completed: (store, data) => {
-        store.dispatch(fetchActivePIPs());
-        store.dispatch(fetchMyPIPs());
-    },
-    
-    pip_escalated: (store, data) => {
-        store.dispatch(fetchActivePIPs());
-        store.dispatch(addNotification({
-            type: 'warning',
-            title: 'PIP Escalated',
-            message: `PIP for ${data.employee_name} has been escalated`,
-        }));
-    },
-    
-    // Feedback handlers
-    feedback_requested: (store, data) => {
-        store.dispatch(fetchPendingFeedbackRequests());
-        store.dispatch(addNotification({
-            type: 'info',
-            title: 'Feedback Requested',
-            message: `You have been asked to provide feedback for ${data.subject_name}`,
-        }));
-    },
-    
-    feedback_submitted: (store, data) => {
-        store.dispatch(fetchMyFeedbackSummary());
-    },
-    
-    // Calibration handlers
-    calibration_adjustment: (store, data) => {
-        store.dispatch(addNotification({
-            type: 'info',
-            title: 'Rating Adjusted',
-            message: `${data.employee_name}'s rating adjusted from ${data.before_score} to ${data.after_score}`,
-        }));
-    },
-    
-    calibration_session_started: (store, data) => {
-        store.dispatch(fetchMyCalibrationSessions());
-    },
-    
-    calibration_session_completed: (store, data) => {
-        store.dispatch(fetchMyCalibrationSessions());
-    },
-    
-    calibration_comment: (store, data) => {
-        store.dispatch(addNotification({
-            type: 'info',
-            title: 'New Comment',
-            message: `${data.author_name} commented in calibration session`,
-        }));
-    },
-    
-    // Connection handlers
-    pong: () => {
-        // Connection alive
-    },
-    
-    connected: () => {
-        console.log('WebSocket connected');
-    },
-    
-    error: (store, data) => {
-        console.error('WebSocket error:', data.message);
-    },
+// WebSocket event handlers mapping
+const WS_EVENT_HANDLERS = {
+  'review_submitted': (store, payload) => {
+    // Handle review submitted event
+    store.dispatch(cycleActions.setProgress(payload.progress));
+  },
+  'review_approved': (store, payload) => {
+    store.dispatch(finalRatingActions.selectItem(payload));
+  },
+  'review_completed': (store, payload) => {
+    store.dispatch(cycleActions.setProgress(payload.progress));
+  },
+  'review_rejected': (store, payload) => {
+    store.dispatch(cycleActions.setProgress(payload.progress));
+  },
+  'cycle_progress': (store, payload) => {
+    store.dispatch(cycleActions.setProgress(payload));
+  },
+  'pip_updated': (store, payload) => {
+    store.dispatch({ type: 'pips/updateItem', payload });
+  },
+  'calibration_adjustment': (store, payload) => {
+    store.dispatch({ type: 'calibrationSessions/updateItem', payload });
+  },
+  'calibration_chat': (store, payload) => {
+    store.dispatch({ type: 'calibrationSessions/addComment', payload });
+  },
+  'notification': (store, payload) => {
+    store.dispatch(notificationActions.websocketNotification(payload));
+  },
+  'dashboard_metrics': (store, payload) => {
+    store.dispatch(dashboardActions.setMetrics(payload));
+  },
+  'dependency_sync': (store, payload) => {
+    // Handle dependency sync events
+    if (payload.source === 'structure') {
+      store.dispatch({ type: 'referenceData/updateDepartments', payload: payload.departments });
+    } else if (payload.source === 'accounts') {
+      store.dispatch({ type: 'referenceData/updateUsers', payload: payload.users });
+    } else if (payload.source === 'kpi') {
+      store.dispatch(dashboardActions.setMetrics(payload));
+    }
+  },
 };
 
-// ========== Process Incoming Message ==========
-const processMessage = (store, data) => {
-    const handler = messageHandlers[data.type];
-    if (handler) {
-        handler(store, data);
+export const websocketMiddleware = (store) => {
+  let socket = null;
+  let reconnectAttempts = 0;
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const RECONNECT_DELAY = 3000;
+
+  const connect = () => {
+    const token = localStorage.getItem('access_token');
+    const tenantId = localStorage.getItem('tenant_id');
+    
+    if (!token || !tenantId) {
+      console.warn('WebSocket: Missing token or tenant ID');
+      return;
+    }
+
+    const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8000'}/ws/reviews/?token=${token}&tenant=${tenantId}`;
+    
+    try {
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        console.log('WebSocket: Connected successfully');
+        reconnectAttempts = 0;
+        // Send subscription message
+        socket.send(JSON.stringify({
+          type: 'subscribe',
+          channels: ['reviews', 'notifications', 'dashboard'],
+        }));
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const { type, payload } = data;
+
+          // Find and execute handler
+          const handler = WS_EVENT_HANDLERS[type];
+          if (handler) {
+            handler(store, payload);
+          } else {
+            console.debug('WebSocket: Unhandled event type:', type);
+          }
+        } catch (error) {
+          console.error('WebSocket: Error processing message:', error);
+        }
+      };
+
+      socket.onclose = (event) => {
+        console.log('WebSocket: Disconnected', event.code, event.reason);
+        socket = null;
+        attemptReconnect();
+      };
+
+      socket.onerror = (error) => {
+        console.error('WebSocket: Error:', error);
+        socket?.close();
+      };
+
+    } catch (error) {
+      console.error('WebSocket: Connection error:', error);
+      attemptReconnect();
+    }
+  };
+
+  const attemptReconnect = () => {
+    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      reconnectAttempts += 1;
+      console.log(`WebSocket: Reconnecting attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
+      setTimeout(connect, RECONNECT_DELAY * reconnectAttempts);
     } else {
-        console.log('Unhandled WebSocket message type:', data.type);
+      console.warn('WebSocket: Max reconnection attempts reached');
+      store.dispatch({ type: 'websocket/maxReconnectAttempts' });
     }
-};
+  };
 
-// ========== WebSocket Connection Management ==========
-export const connectWebSocket = async (store, type = 'notifications', id = null) => {
-    // initialize token-aware base
-    const token = await getAccessToken();
-    websocketService.init(websocketBase, token);
+  const disconnect = () => {
+    if (socket) {
+      socket.close(1000, 'Client disconnecting');
+      socket = null;
+    }
+  };
 
-    const key = type === 'notifications' ? 'reviews_notifications' : type === 'review_status' ? `reviews_status_${id}` : `reviews_calibration_${id}`;
-    if (connections.has(key) && websocketService.isConnected(key)) return;
+  const send = (data) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(data));
+      return true;
+    }
+    console.warn('WebSocket: Cannot send - socket not open');
+    return false;
+  };
 
-    const endpoint = type === 'notifications' ? REVIEWS_WS.NOTIFICATIONS : type === 'review_status' ? REVIEWS_WS.STATUS(id) : REVIEWS_WS.CALIBRATION(id);
-
-    websocketService.connect(
-        key,
-        endpoint,
-        (data) => processMessage(store, data),
-        () => processMessage(store, { type: 'connected' }),
-        (error) => processMessage(store, { type: 'error', message: error?.message || 'WebSocket error' }),
-        () => {
-            // onClose handled by service reconnection logic
+  // Return middleware API
+  return (next) => (action) => {
+    // Handle WebSocket actions
+    switch (action.type) {
+      case 'WEBSOCKET_CONNECT':
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+          connect();
         }
-    );
-
-    connections.set(key, true);
-};
-
-// ========== Disconnect WebSocket ==========
-export const disconnectWebSocket = () => {
-    connections.forEach((_, key) => websocketService.disconnect(key));
-    connections.clear();
-};
-
-// ========== Send Message through WebSocket ==========
-export const sendWebSocketMessage = (key, data) => websocketService.send(key, data);
-
-// ========== Subscribe to Review Cycle Updates ==========
-export const subscribeToCycle = (cycleId) => sendWebSocketMessage(`reviews_status_${cycleId}`, { type: 'subscribe_cycle', cycle_id: cycleId });
-
-// ========== Unsubscribe from Review Cycle Updates ==========
-export const unsubscribeFromCycle = (cycleId) => sendWebSocketMessage(`reviews_status_${cycleId}`, { type: 'unsubscribe_cycle', cycle_id: cycleId });
-
-// ========== Join Calibration Session ==========
-export const joinCalibrationSession = (sessionId) => sendWebSocketMessage(`reviews_calibration_${sessionId}`, { type: 'join_session', session_id: sessionId });
-
-// ========== Leave Calibration Session ==========
-export const leaveCalibrationSession = (sessionId) => sendWebSocketMessage(`reviews_calibration_${sessionId}`, { type: 'leave_session', session_id: sessionId });
-
-// ========== WebSocket Middleware ==========
-export const websocketMiddleware = (store) => (next) => (action) => {
-    // Handle WebSocket connection actions
-    if (action.type === 'reviews/websocket/connect') {
-        const { type, id } = action.payload || {};
-        connectWebSocket(store, type || 'notifications', id);
+        break;
+      case 'WEBSOCKET_DISCONNECT':
+        disconnect();
+        break;
+      case 'WEBSOCKET_SEND':
+        send(action.payload);
+        break;
+      case 'WEBSOCKET_RECONNECT':
+        disconnect();
+        setTimeout(connect, RECONNECT_DELAY);
+        break;
+      default:
+        break;
     }
-    
-    if (action.type === 'reviews/websocket/disconnect') {
-        disconnectWebSocket();
-    }
-    
-    if (action.type === 'reviews/websocket/send') {
-        sendWebSocketMessage(action.payload);
-    }
-    
-    if (action.type === 'reviews/websocket/subscribeCycle') {
-        subscribeToCycle(action.payload);
-    }
-    
-    if (action.type === 'reviews/websocket/unsubscribeCycle') {
-        unsubscribeFromCycle();
-    }
-    
-    if (action.type === 'reviews/websocket/joinCalibration') {
-        joinCalibrationSession(action.payload);
-    }
-    
-    if (action.type === 'reviews/websocket/leaveCalibration') {
-        leaveCalibrationSession(action.payload);
-    }
-    
+
     return next(action);
+  };
 };
 
-// ========== Action Creators for WebSocket ==========
-export const connectWebSocketAction = (type = 'notifications', id = null) => ({
-    type: 'reviews/websocket/connect',
-    payload: { type, id },
-});
-
-export const disconnectWebSocketAction = () => ({
-    type: 'reviews/websocket/disconnect',
-});
-
-export const sendWebSocketMessageAction = (data) => ({
-    type: 'reviews/websocket/send',
-    payload: data,
-});
-
-export const subscribeToCycleAction = (cycleId) => ({
-    type: 'reviews/websocket/subscribeCycle',
-    payload: cycleId,
-});
-
-export const unsubscribeFromCycleAction = () => ({
-    type: 'reviews/websocket/unsubscribeCycle',
-});
-
-export const joinCalibrationSessionAction = (sessionId) => ({
-    type: 'reviews/websocket/joinCalibration',
-    payload: sessionId,
-});
-
-export const leaveCalibrationSessionAction = (sessionId) => ({
-    type: 'reviews/websocket/leaveCalibration',
-    payload: sessionId,
-});
+// Action creators for WebSocket
+export const websocketActions = {
+  connect: () => ({ type: 'WEBSOCKET_CONNECT' }),
+  disconnect: () => ({ type: 'WEBSOCKET_DISCONNECT' }),
+  reconnect: () => ({ type: 'WEBSOCKET_RECONNECT' }),
+  send: (payload) => ({ type: 'WEBSOCKET_SEND', payload }),
+  subscribe: (channels) => ({ type: 'WEBSOCKET_SEND', payload: { type: 'subscribe', channels } }),
+};

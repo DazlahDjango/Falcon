@@ -1,74 +1,86 @@
 // src/services/reviews/competency.service.js
-// Handles all competency, competency category, and competency rating API calls
+// Competency and Competency Category API service
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS } from '../../config/constants';
+import { BaseReviewsService } from './reviewsBase.service';
 
-// ========== Competency Service ==========
-class CompetencyService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEW_API_ENDPOINTS.COMPETENCIES);
-    }
+class CompetencyCategoryService extends BaseReviewsService {
+  constructor() {
+    super('competency-categories');
+  }
 
-    /**
-     * Get all active competencies only
-     * @returns {Promise<Array>} List of active competencies
-     */
-    async getActive() {
-        const response = await apiClient.get(REVIEW_API_ENDPOINTS.COMPETENCY_ACTIVE);
-        return response.data;
-    }
+  async activate(id) {
+    return this.action(id, 'activate');
+  }
 
-    /**
-     * Get all required competencies only
-     * @returns {Promise<Array>} List of required competencies
-     */
-    async getRequired() {
-        const response = await apiClient.get(REVIEW_API_ENDPOINTS.COMPETENCY_REQUIRED);
-        return response.data;
-    }
+  async deactivate(id) {
+    return this.action(id, 'deactivate');
+  }
+
+  async getCompetencies(id) {
+    const response = await this.apiClient.get(`/competency-categories/${id}/competencies/`);
+    return response.data;
+  }
 }
 
-// ========== Competency Category Service ==========
-class CompetencyCategoryService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEW_API_ENDPOINTS.COMPETENCY_CATEGORIES);
-    }
+class CompetencyService extends BaseReviewsService {
+  constructor() {
+    super('competencies');
+  }
+
+  async activate(id) {
+    return this.action(id, 'activate');
+  }
+
+  async deactivate(id) {
+    return this.action(id, 'deactivate');
+  }
+
+  async getUsageStats(id) {
+    const response = await this.apiClient.get(`/competencies/${id}/usage_stats/`);
+    return response.data;
+  }
+
+  async getActive() {
+    const response = await this.apiClient.get('/competencies/active/');
+    return response.data;
+  }
+
+  async getRequired() {
+    const response = await this.apiClient.get('/competencies/required/');
+    return response.data;
+  }
+
+  async getByType(type) {
+    const response = await this.apiClient.get(`/competencies/by-type/${type}/`);
+    return response.data;
+  }
 }
 
-// ========== Competency Rating Service ==========
-class CompetencyRatingService {
-    /**
-     * Get competency ratings for a self assessment
-     * @param {string|number} assessmentId - Self assessment ID
-     * @returns {Promise<Array>} List of competency ratings
-     */
-    async getForSelfAssessment(assessmentId) {
-        const response = await apiClient.get(REVIEW_API_ENDPOINTS.COMPETENCY_RATINGS_BY_ASSESSMENT(assessmentId));
-        return response.data;
-    }
+class CompetencyRatingService extends BaseReviewsService {
+  constructor() {
+    super('competency-ratings');
+  }
 
-    /**
-     * Get competency ratings for a supervisor review
-     * @param {string|number} reviewId - Supervisor review ID
-     * @returns {Promise<Array>} List of competency ratings
-     */
-    async getForSupervisorReview(reviewId) {
-        const response = await apiClient.get(REVIEW_API_ENDPOINTS.COMPETENCY_RATINGS_BY_REVIEW(reviewId));
-        return response.data;
-    }
+  async getByAssessment(assessmentId) {
+    const response = await this.apiClient.get(`/competency-ratings/by-assessment/${assessmentId}/`);
+    return response.data;
+  }
 
-    /**
-     * Bulk create competency ratings
-     * @param {Object} data - { parent_id, parent_type, ratings[] }
-     * @returns {Promise<Array>} Created ratings
-     */
-    async bulkCreate(data) {
-        const response = await apiClient.post(REVIEW_API_ENDPOINTS.COMPETENCY_RATINGS_BULK, data);
-        return response.data;
-    }
+  async getByReview(reviewId) {
+    const response = await this.apiClient.get(`/competency-ratings/by-review/${reviewId}/`);
+    return response.data;
+  }
+
+  async bulkCreate(parentId, parentType, ratings) {
+    const response = await this.apiClient.post('/competency-ratings/bulk_create/', {
+      parent_id: parentId,
+      parent_type: parentType,
+      ratings,
+    });
+    return response.data;
+  }
 }
 
-export const competencyService = new CompetencyService();
 export const competencyCategoryService = new CompetencyCategoryService();
+export const competencyService = new CompetencyService();
 export const competencyRatingService = new CompetencyRatingService();

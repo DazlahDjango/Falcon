@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCycles } from '../../hooks/reviews';
-import { CycleDetail } from '../../components/reviews/cycle';
+import { CycleDetail } from '../../components/reviews/cycles';
 import { REVIEW_ROUTES } from '../../config/constants';
 
 const CycleDetailPage = () => {

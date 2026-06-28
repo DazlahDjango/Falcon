@@ -126,7 +126,7 @@ class PIPReportService(BaseReviewService):
         Returns:
             dict: Organization PIP summary
         """
-        queryset = PIP.objects.filter(tenant=tenant)
+        queryset = PIP.objects.filter(tenant_id=tenant.id)
         
         if status:
             queryset = queryset.filter(status=status)
@@ -143,8 +143,8 @@ class PIPReportService(BaseReviewService):
         
         # Count by department
         department_counts = {}
-        for pip in queryset.select_related('employee__department'):
-            dept_name = pip.employee.department.name if pip.employee.department else 'No Department'
+        for pip in queryset.select_related('employee'):
+            dept_name = pip.employee.department if pip.employee.department else 'No Department'
             department_counts[dept_name] = department_counts.get(dept_name, 0) + 1
         
         # Count by outcome
@@ -157,8 +157,8 @@ class PIPReportService(BaseReviewService):
             'pending': queryset.filter(outcome__isnull=True).count(),
         }
         
-        # Active PIPs summary
-        active_pips = queryset.filter(status='active')
+        # Active PIPs summary (draft or submitted)
+        active_pips = queryset.filter(status__in=['draft', 'submitted'])
         active_count = active_pips.count()
         
         # Overdue PIPs
@@ -170,11 +170,18 @@ class PIPReportService(BaseReviewService):
         soon_date = today + timedelta(days=14)
         ending_soon = active_pips.filter(end_date__lte=soon_date, end_date__gte=today).count()
         
-        # Average completion rate for successful PIPs
+        # Average completion rate for successful PIPs: count completed actions / total actions per pip
         successful_pips = queryset.filter(outcome='successful')
-        avg_completion_rate = successful_pips.aggregate(
-            avg=Avg('actions__status', filter=Q(actions__status='completed'))
-        )['avg'] or 0
+        avg_completion_rate = 0
+        if successful_pips.exists():
+            total_completion_rates = []
+            for pip in successful_pips.prefetch_related('actions'):
+                total_actions = pip.actions.count()
+                if total_actions > 0:
+                    completed = pip.actions.filter(status='completed').count()
+                    total_completion_rates.append((completed / total_actions) * 100)
+            if total_completion_rates:
+                avg_completion_rate = round(sum(total_completion_rates) / len(total_completion_rates), 1)
         
         return {
             'total_pips': total,
@@ -255,7 +262,7 @@ class PIPReportService(BaseReviewService):
             month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
             
             month_pips = PIP.objects.filter(
-                tenant=tenant,
+                tenant_id=tenant.id,
                 created_at__date__gte=month_start,
                 created_at__date__lte=month_end
             )

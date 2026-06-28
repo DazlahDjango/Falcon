@@ -15,18 +15,4 @@ export {
 
 export {
     websocketMiddleware,
-    connectWebSocket,
-    disconnectWebSocket,
-    sendWebSocketMessage,
-    subscribeToCycle,
-    unsubscribeFromCycle,
-    joinCalibrationSession,
-    leaveCalibrationSession,
-    connectWebSocketAction,
-    disconnectWebSocketAction,
-    sendWebSocketMessageAction,
-    subscribeToCycleAction,
-    unsubscribeFromCycleAction,
-    joinCalibrationSessionAction,
-    leaveCalibrationSessionAction,
 } from './websocketMiddleware';

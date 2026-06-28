@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompetencies } from '../../hooks/reviews';
-import { CompetencyList, CompetencyForm, CompetencyCategoryList, CompetencyCategoryForm } from '../../components/reviews/competency';
+import { CompetencyList, CompetencyForm, CompetencyCategoryList, CompetencyCategoryForm } from '../../components/reviews/competencies';
 import { REVIEW_ROUTES } from '../../config/constants';
 
 const CompetenciesPage = () => {

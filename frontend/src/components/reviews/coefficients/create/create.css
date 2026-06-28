@@ -1,0 +1,133 @@
+/* src/components/reviews/coefficients/create/create.css */
+
+.coefficient-create {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.coefficient-create-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.coefficient-create-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.coefficient-create-back:hover {
+  color: #1a1a2e;
+}
+
+.coefficient-create-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.coefficient-create-form {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+/* Form Styles */
+.coefficient-form-group {
+  margin-bottom: 20px;
+}
+
+.coefficient-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.coefficient-form-input,
+.coefficient-form-textarea,
+.coefficient-form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background: white;
+}
+
+.coefficient-form-input:focus,
+.coefficient-form-textarea:focus,
+.coefficient-form-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.coefficient-form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.coefficient-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.coefficient-form-hint {
+  display: block;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.coefficient-form-checkbox-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.coefficient-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.coefficient-form-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+}
+
+.coefficient-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .coefficient-form-row {
+    grid-template-columns: 1fr;
+  }
+}

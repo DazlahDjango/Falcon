@@ -1,52 +1,49 @@
 // src/services/reviews/coefficient.service.js
-// Handles all coefficient API calls for department/role score adjustments
+// Coefficient API service
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS } from '../../config/constants';
+import { BaseReviewsService } from './reviewsBase.service';
 
-class CoefficientService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEW_API_ENDPOINTS.COEFFICIENTS);
-    }
+class CoefficientService extends BaseReviewsService {
+  constructor() {
+    super('coefficients');
+  }
 
-    /**
-     * Get coefficients for a specific department
-     * @param {string|number} departmentId - Department ID
-     * @returns {Promise<Array>} Department coefficients
-     */
-    async getForDepartment(departmentId) {
-        const response = await apiClient.get(`${REVIEW_API_ENDPOINTS.COEFFICIENTS}?department=${departmentId}`);
-        return response.data;
-    }
+  async activate(id) {
+    return this.action(id, 'activate');
+  }
 
-    /**
-     * Get coefficients for a specific position
-     * @param {string|number} positionId - Position ID
-     * @returns {Promise<Array>} Position coefficients
-     */
-    async getForPosition(positionId) {
-        const response = await apiClient.get(`${REVIEW_API_ENDPOINTS.COEFFICIENTS}?position=${positionId}`);
-        return response.data;
-    }
+  async deactivate(id) {
+    return this.action(id, 'deactivate');
+  }
 
-    /**
-     * Get coefficients for a specific user
-     * @param {string|number} userId - User ID
-     * @returns {Promise<Array>} User coefficients
-     */
-    async getForUser(userId) {
-        const response = await apiClient.get(`${REVIEW_API_ENDPOINTS.COEFFICIENTS}?user=${userId}`);
-        return response.data;
-    }
+  async getActive() {
+    const response = await this.apiClient.get('/coefficients/active/');
+    return response.data;
+  }
 
-    /**
-     * Get active coefficients only
-     * @returns {Promise<Array>} Active coefficients
-     */
-    async getActive() {
-        const response = await apiClient.get(`${REVIEW_API_ENDPOINTS.COEFFICIENTS}?is_active=true`);
-        return response.data;
-    }
+  async applyCoefficient(score, coefficientValue) {
+    const response = await this.apiClient.post('/coefficients/apply/', {
+      score,
+      coefficient_value: coefficientValue,
+    });
+    return response.data;
+  }
+
+  async getByDepartment(departmentId) {
+    const response = await this.apiClient.get(`/coefficients/by-department/${departmentId}/`);
+    return response.data;
+  }
+
+  async getByPosition(positionId) {
+    const response = await this.apiClient.get(`/coefficients/by-position/${positionId}/`);
+    return response.data;
+  }
+
+  async getByUser(userId) {
+    const response = await this.apiClient.get(`/coefficients/by-user/${userId}/`);
+    return response.data;
+  }
 }
 
 export const coefficientService = new CoefficientService();
+export default coefficientService;

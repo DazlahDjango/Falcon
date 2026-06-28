@@ -1,0 +1,202 @@
+/* src/components/reviews/coefficients/list/list.css */
+
+.coefficient-list {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.coefficient-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.coefficient-list-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coefficient-list-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.coefficient-list-count {
+  font-size: 14px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.coefficient-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coefficient-list-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.coefficient-search {
+  max-width: 400px;
+}
+
+.coefficient-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.coefficient-filter-select,
+.coefficient-filter-input {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  color: #374151;
+  min-width: 120px;
+  cursor: pointer;
+}
+
+.coefficient-filter-input {
+  min-width: 100px;
+}
+
+.coefficient-filter-select:focus,
+.coefficient-filter-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.coefficient-filter-clear {
+  padding: 6px 14px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 6px;
+  color: #6b7280;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.coefficient-filter-clear:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Table Styles */
+.coefficient-table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.coefficient-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.coefficient-table thead {
+  background: #f9fafb;
+}
+
+.coefficient-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coefficient-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #1a1a2e;
+}
+
+.coefficient-table-row:hover {
+  background: #f9fafb;
+}
+
+.coefficient-table-type-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.coefficient-table-value-number {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2563eb;
+}
+
+.coefficient-table-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.coefficient-table-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.coefficient-table-action-btn:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.coefficient-table-action-btn.danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.coefficient-table-action-btn.warning:hover {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.coefficient-table-action-btn.success:hover {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+@media (max-width: 768px) {
+  .coefficient-filters {
+    flex-direction: column;
+  }
+  
+  .coefficient-filter-select,
+  .coefficient-filter-input {
+    width: 100%;
+  }
+}

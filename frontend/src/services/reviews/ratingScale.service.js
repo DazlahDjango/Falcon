@@ -1,42 +1,43 @@
 // src/services/reviews/ratingScale.service.js
-// Handles all rating scale API calls
+import { BaseReviewsService } from './reviewsBase.service';
 
-import { ReviewsBaseService, apiClient } from './reviewsBase.service';
-import { REVIEW_API_ENDPOINTS as REVIEWS_API } from '../../config/constants';
+class RatingScaleService extends BaseReviewsService {
+  constructor() {
+    super('rating-scales');
+  }
 
-class RatingScaleService extends ReviewsBaseService {
-    constructor() {
-        super(REVIEWS_API.RATING_SCALES);
-    }
+  async setDefault(id) {
+    return this.action(id, 'set_default');
+  }
 
-    /**
-     * Set a rating scale as the default for the tenant
-     * @param {string|number} id - Rating scale ID
-     * @returns {Promise<Object>} Updated rating scale
-     */
-    async setDefault(id) {
-        const response = await apiClient.post(REVIEWS_API.RATING_SCALE_SET_DEFAULT(id));
-        return response.data;
-    }
+  async activate(id) {
+    return this.action(id, 'activate');
+  }
 
-    /**
-     * Get the default rating scale for the current tenant
-     * @returns {Promise<Object>} Default rating scale
-     */
-    async getDefault() {
-        const response = await apiClient.get(REVIEWS_API.RATING_SCALE_DEFAULT);
-        return response.data;
-    }
+  async deactivate(id) {
+    return this.action(id, 'deactivate');
+  }
 
-    /**
-     * Convert a score using a rating scale
-     * @param {Object} data - { score, from_type, to_type, rating_scale_id }
-     * @returns {Promise<Object>} Converted score
-     */
-    async convertScore(data) {
-        const response = await apiClient.post(REVIEWS_API.RATING_SCALE_CONVERT, data);
-        return response.data;
-    }
+  async getDefault() {
+    const response = await this.apiClient.get('/rating-scales/default/');
+    return response.data;
+  }
+
+  async getActiveScales() {
+    const response = await this.apiClient.get('/rating-scales/active_scales/');
+    return response.data;
+  }
+
+  async convertScore(ratingScaleId, score, fromType, toType) {
+    const response = await this.apiClient.post('/rating-scales/convert/', {
+      rating_scale_id: ratingScaleId,
+      score,
+      from_type: fromType,
+      to_type: toType,
+    });
+    return response.data;
+  }
 }
 
 export const ratingScaleService = new RatingScaleService();
+export default ratingScaleService;

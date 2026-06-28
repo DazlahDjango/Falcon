@@ -1,37 +1,56 @@
-// src/store/reviews/slices/index.js
-// Export all slices
-import { combineReducers } from '@reduxjs/toolkit';
-import ratingScaleReducer from './ratingScaleSlice';
-import competencyReducer from './competencySlice';
-import cycleReducer from './cycleSlice';
-import selfAssessmentReducer from './selfAssessmentSlice';
-import supervisorReviewReducer from './supervisorReviewSlice';
-import finalRatingReducer from './finalRatingSlice';
-import pipReducer from './pipSlice';
-import feedbackReducer from './feedbackSlice';
-import calibrationReducer from './calibrationSlice';
-import commentReducer from './commentSlice';
-import notificationReducer from './notificationSlice';
+export { default as ratingScaleReducer } from './ratingScale.slice';
+export { default as competencyReducer } from './competency.slice';
+export { default as competencyCategoryReducer } from './competencyCategory.slice';
+export { default as competencyRatingReducer } from './competencyRating.slice';
+export { default as reviewCycleReducer } from './cycle.slice';
+export { default as selfAssessmentReducer } from './selfAssessment.slice';
+export { default as supervisorReviewReducer } from './supervisorReview.slice';
+export { default as finalRatingReducer } from './finalRating.slice';
+export { default as pipReducer } from './pip.slice';
+export { default as pipActionReducer } from './pipAction.slice';
+export { default as pipReviewReducer } from './pipReview.slice';
+export { default as feedbackRequestReducer } from './feedbackRequest.slice';
+export { default as feedbackResponseReducer } from './feedbackResponse.slice';
+export { default as feedbackSummaryReducer } from './feedbackSummary.slice';
+export { default as calibrationSessionReducer } from './calibrationSession.slice';
+export { default as calibrationRatingReducer } from './calibrationRating.slice';
+export { default as coefficientReducer } from './coefficient.slice';
+export { default as reviewCommentReducer } from './comment.slice';
+export { default as promotionReducer } from './promotion.slice';
+export { default as reviewTemplateReducer } from './template.slice';
+export { default as reviewsDashboardReducer } from './dashboard.slice';
+export { default as reviewsReportReducer } from './report.slice';
+export { default as reviewsHealthReducer } from './health.slice';
+export { default as reviewsSystemSettingsReducer } from './systemSettings.slice';
+export { default as reviewsReferenceDataReducer } from './referenceData.slice';
+export { default as auditLogReducer } from './auditLog.slice';
+export { default as notificationReducer } from './notification.slice';
 
-const reviewsReducer = combineReducers({
-    ratingScale: ratingScaleReducer,
-    competency: competencyReducer,
-    cycle: cycleReducer,
-    selfAssessment: selfAssessmentReducer,
-    supervisorReview: supervisorReviewReducer,
-    finalRating: finalRatingReducer,
-    pip: pipReducer,
-    feedback: feedbackReducer,
-    calibration: calibrationReducer,
-    comments: commentReducer,
-    notifications: notificationReducer
-});
-
-export { default } from './ratingScaleSlice';
-export { default as supervisorReviewReducer } from './supervisorReviewSlice';
-export { default as finalRatingReducer } from './finalRatingSlice';
-export { default as pipReducer } from './pipSlice';
-export { default as feedbackReducer } from './feedbackSlice';
-export { default as calibrationReducer } from './calibrationSlice';
-export { default as commentReducer } from './commentSlice';
-export { default as notificationReducer } from './notificationSlice';
+// Export all actions and thunks from each slice
+export * from './ratingScale.slice';
+export * from './competency.slice';
+export * from './competencyCategory.slice';
+export * from './competencyRating.slice';
+export * from './cycle.slice';
+export * from './selfAssessment.slice';
+export * from './supervisorReview.slice';
+export * from './finalRating.slice';
+export * from './pip.slice';
+export * from './pipAction.slice';
+export * from './pipReview.slice';
+export * from './feedbackRequest.slice';
+export * from './feedbackResponse.slice';
+export * from './feedbackSummary.slice';
+export * from './calibrationSession.slice';
+export * from './calibrationRating.slice';
+export * from './coefficient.slice';
+export * from './comment.slice';
+export * from './promotion.slice';
+export * from './template.slice';
+export * from './dashboard.slice';
+export * from './report.slice';
+export * from './health.slice';
+export * from './systemSettings.slice';
+export * from './referenceData.slice';
+export * from './auditLog.slice';
+export * from './notification.slice';

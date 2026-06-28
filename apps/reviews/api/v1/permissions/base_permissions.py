@@ -1,72 +1,46 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from django.utils.translation import gettext_lazy as _
+from apps.accounts.constants import UserRoles
 
 class IsAuthenticated(BasePermission):
+    message = _('Authentication required')
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated)
 
-
 class IsAdminOrReadOnly(BasePermission):
+    message = _('Admin privileges required for write operations')
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
-        return bool(request.user and request.user.is_staff or request.user.is_superuser)
-
+        return request.user and (request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN])
 
 class IsOwnerOrReadOnly(BasePermission):
-    """
-    Object owners have full access.
-    Others have read-only access.
-    """
+    message = _('You must be the owner to modify this resource')
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        
-        # Check if user is the owner
-        owner_attr = getattr(view, 'owner_attr', 'user')
-        owner = getattr(obj, owner_attr, None)
-        
-        if owner and owner == request.user:
-            return True
-        
-        # Admin can edit anything
-        return bool(request.user and request.user.is_staff or request.user.is_superuser)
-
+        owner_id = getattr(obj, 'employee_id', None) or getattr(obj, 'user_id', None) or getattr(obj, 'created_by_id', None)
+        return owner_id and str(owner_id) == str(request.user.id)
 
 class IsTenantUser(BasePermission):
-    """
-    Ensures user belongs to the same tenant as the requested object.
-    """
+    message = _('You must be in the same tenant')
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        
-        # Get tenant from request or view
-        tenant = getattr(request, 'tenant_id', None)
-        
-        if tenant and request.user.tenant_id != tenant:
-            return False
-        
-        return True
-    
+        tenant_id = getattr(request, 'tenant_id', None) or getattr(request.user, 'tenant_id', None)
+        return tenant_id == request.user.tenant_id
     def has_object_permission(self, request, view, obj):
-        # Check if object has tenant attribute
-        if hasattr(obj, 'tenant'):
-            return obj.tenant == request.user.tenant_id
-        
-        # Check if object has user with tenant
-        if hasattr(obj, 'user') and hasattr(obj.user, 'tenant_id'):
-            return obj.user.tenant_id == request.user.tenant_id
-        
-        # Check if object has employee with tenant
-        if hasattr(obj, 'employee') and hasattr(obj.employee, 'tenant_id'):
-            return obj.employee.tenant_id == request.user.tenant_id
-        
-        return True
+        obj_tenant_id = getattr(obj, 'tenant_id', None)
+        return obj_tenant_id == request.user.tenant_id
 
-
-class IsSuperAdmin(BasePermission):
-    """
-    Allows access only to super admin users.
-    """
+class IsAdminOrManager(BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_superuser)
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.MANAGER]
+
+class IsAdminOnly(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]

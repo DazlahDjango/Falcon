@@ -1,0 +1,235 @@
+/* src/components/reviews/reports/cycle/cycle.css */
+
+.cycle-report {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.cycle-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cycle-report-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.cycle-report-back:hover {
+  color: #1a1a2e;
+}
+
+.cycle-report-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cycle-report-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cycle-report-refresh:hover {
+  background: #f3f4f6;
+  color: #1a1a2e;
+}
+
+.cycle-report-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.cycle-report-header-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.cycle-report-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.cycle-report-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.cycle-report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Cycle Stats */
+.cycle-stats-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.cycle-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cycle-stats-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.cycle-stats-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+}
+
+.cycle-stats-item-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.cycle-stats-item-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.cycle-stats-item-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.cycle-stats-gauge {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+/* Rating Distribution Report */
+.rating-distribution-report-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.rating-distribution-report-empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.rating-distribution-report-summary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.rating-distribution-report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rating-distribution-report-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rating-distribution-report-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.rating-distribution-report-item-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.rating-distribution-report-item-label {
+  flex: 1;
+  color: #374151;
+}
+
+.rating-distribution-report-item-count {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.rating-distribution-report-item-bar {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rating-distribution-report-item-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .cycle-report-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .cycle-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,0 +1,401 @@
+/* src/components/reviews/supervisor-reviews/detail/detail.css */
+
+.supervisor-review-detail {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.supervisor-review-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.supervisor-review-detail-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.supervisor-review-detail-back:hover {
+  color: #1a1a2e;
+}
+
+.supervisor-review-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.supervisor-review-detail-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.supervisor-review-detail-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.supervisor-review-detail-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.supervisor-review-detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.supervisor-review-detail-employee {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.supervisor-review-detail-comparison {
+  margin-bottom: 24px;
+}
+
+/* View Component */
+.supervisor-review-view-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.supervisor-review-view-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.supervisor-review-view-recommendation {
+  background: #dbeafe;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.supervisor-review-view-recommendation-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0 0 4px 0;
+}
+
+.supervisor-review-view-recommendation-value {
+  font-size: 14px;
+  color: #1e3a5f;
+  margin: 0;
+}
+
+.supervisor-review-view-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.supervisor-review-view-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.supervisor-review-view-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+}
+
+.supervisor-review-view-section-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 4px 0;
+}
+
+.supervisor-review-view-section-value {
+  font-size: 14px;
+  color: #1a1a2e;
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.supervisor-review-view-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.supervisor-review-view-rating-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.supervisor-review-view-rating-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.supervisor-review-view-rating-score {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.supervisor-review-view-star {
+  font-size: 18px;
+  color: #d1d5db;
+}
+
+.supervisor-review-view-star.filled {
+  color: #f59e0b;
+}
+
+.supervisor-review-view-rating-value {
+  font-size: 13px;
+  color: #6b7280;
+  margin-left: 8px;
+}
+
+.supervisor-review-view-rating-comment {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
+
+.supervisor-review-view-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.supervisor-review-view-badge.bonus {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.supervisor-review-view-badge.promotion {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.supervisor-review-view-badge.override {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.supervisor-review-view-integrity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #22c55e;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  margin-top: 16px;
+}
+
+/* Competency Comparison */
+.competency-comparison {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.competency-comparison-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 4px 0;
+}
+
+.competency-comparison-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.competency-comparison-empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.competency-comparison-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.competency-comparison-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+}
+
+.competency-comparison-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  font-size: 14px;
+  align-items: center;
+}
+
+.competency-comparison-name {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.competency-comparison-self,
+.competency-comparison-supervisor {
+  text-align: center;
+  color: #6b7280;
+}
+
+.competency-comparison-gap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.competency-comparison-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.competency-comparison-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.competency-comparison-summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.competency-comparison-summary-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.competency-comparison-largest {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.competency-comparison-largest-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+}
+
+.competency-comparison-largest-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.competency-comparison-largest-item:last-child {
+  border-bottom: none;
+}
+
+.competency-comparison-largest-name {
+  font-size: 14px;
+  color: #374151;
+}
+
+.competency-comparison-largest-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .competency-comparison-header,
+  .competency-comparison-row {
+    grid-template-columns: 1fr 1fr 1fr;
+    font-size: 12px;
+  }
+
+  .competency-comparison-header-name,
+  .competency-comparison-name {
+    grid-column: 1 / -1;
+  }
+
+  .competency-comparison-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .supervisor-review-view-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,266 @@
+/* src/components/reviews/coefficients/apply/apply.css */
+
+.coefficient-apply {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.coefficient-apply-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.coefficient-apply-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.coefficient-apply-back:hover {
+  color: #1a1a2e;
+}
+
+.coefficient-apply-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.coefficient-apply-content {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+}
+
+.coefficient-apply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.coefficient-apply-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coefficient-apply-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.coefficient-apply-input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.coefficient-apply-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.coefficient-apply-hint {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.coefficient-apply-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.coefficient-apply-result {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.coefficient-apply-result-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.coefficient-apply-result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.coefficient-apply-result-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.coefficient-apply-result-item.highlight {
+  background: #dbeafe;
+}
+
+.coefficient-apply-result-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.coefficient-apply-result-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Calculator */
+.coefficient-calculator {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.coefficient-calculator-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.coefficient-calculator-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.coefficient-calculator-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coefficient-calculator-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.coefficient-calculator-input {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.coefficient-calculator-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.coefficient-calculator-hint {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.coefficient-calculator-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.coefficient-calculator-result {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.coefficient-calculator-result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.coefficient-calculator-result-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+}
+
+.coefficient-calculator-result-item.highlight {
+  background: #dbeafe;
+}
+
+.coefficient-calculator-result-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.coefficient-calculator-result-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .coefficient-apply-result-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .coefficient-calculator-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .coefficient-calculator-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .coefficient-apply-result-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .coefficient-calculator-result-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
