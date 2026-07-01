@@ -1,113 +1,121 @@
 import React, { useState } from 'react';
 import {
-    FiSmartphone, FiMail, FiPhone, FiCpu,
-    FiStar, FiTrash2, FiCheckCircle, FiAlertCircle, FiClock
+  FiSmartphone,
+  FiCheckCircle,
+  FiXCircle,
+  FiStar,
+  FiTrash2,
+  FiMoreVertical,
+  FiEdit,
+  FiShield,
+  FiClock,
 } from 'react-icons/fi';
-import { formatDistanceToNow } from 'date-fns';
+import { MFA_DEVICE_TYPE_LABELS } from '../../../config/constants/accountsApiConstants';
 
-const getDeviceIcon = (deviceType) => {
-    switch (deviceType) {
-        case 'totp':
-            return <FiSmartphone />;
-        case 'email':
-            return <FiMail />;
-        case 'sms':
-            return <FiPhone />;
-        case 'hardware':
-            return <FiCpu />;
-        default:
-            return <FiSmartphone />;
-    }
-};
+export const MFADeviceCard = ({ device, onDelete, onSetPrimary, isLoading }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
 
-const MFADeviceCard = ({ device, onRemove, onSetPrimary }) => {
-    const [showConfirm, setShowConfirm] = useState(false);
-
-    const getStatusBadge = () => {
-        if (device.is_primary) {
-            return <span className="badge-primary"><FiStar /> Primary</span>;
-        }
-        if (device.is_locked) {
-            return <span className="badge-warning"><FiAlertCircle /> Locked</span>;
-        }
-        if (device.is_verified) {
-            return <span className="badge-success"><FiCheckCircle /> Verified</span>;
-        }
-        return <span className="badge-secondary"><FiClock /> Pending</span>;
+  const getDeviceIcon = () => {
+    const icons = {
+      totp: FiShield,
+      sms: FiSmartphone,
+      email: FiSmartphone,
+      hardware: FiShield,
     };
+    const Icon = icons[device.device_type] || FiSmartphone;
+    return <Icon className="device-icon" />;
+  };
 
-    const getLastUsedText = () => {
-        if (!device.last_used_at) return 'Never used';
-        return `Last used ${formatDistanceToNow(new Date(device.last_used_at), { addSuffix: true })}`;
-    };
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
-    return (
-        <div className={`mfa-device-card ${device.is_primary ? 'primary' : ''}`}>
-            <div className="device-icon">
-                {getDeviceIcon(device.device_type)}
-            </div>
-
-            <div className="device-info">
-                <div className="device-name">
-                    {device.name}
-                    {device.device_type === 'totp' && device.is_verified && (
-                        <span className="verified-badge">✓</span>
-                    )}
-                </div>
-                <div className="device-details">
-                    {device.phone && <span className="device-contact">{device.phone}</span>}
-                    {device.email && <span className="device-contact">{device.email}</span>}
-                </div>
-                <div className="device-meta">
-                    <span className="last-used">
-                        <FiClock size={12} />
-                        {getLastUsedText()}
-                    </span>
-                </div>
-            </div>
-
-            <div className="device-status">
-                {getStatusBadge()}
-            </div>
-
-            <div className="device-actions">
-                {!device.is_primary && device.is_verified && device.is_active && (
-                    <button
-                        className="btn-icon"
-                        onClick={() => onSetPrimary(device.id)}
-                        title="Set as primary"
-                    >
-                        <FiStar />
-                    </button>
-                )}
-                <button
-                    className="btn-icon danger"
-                    onClick={() => setShowConfirm(true)}
-                    title="Remove device"
-                >
-                    <FiTrash2 />
-                </button>
-            </div>
-
-            {/* Remove Confirmation Dialog */}
-            {showConfirm && (
-                <div className="device-confirm-overlay">
-                    <div className="device-confirm-dialog">
-                        <p>Remove "{device.name}"?</p>
-                        <div className="confirm-actions">
-                            <button onClick={() => setShowConfirm(false)}>Cancel</button>
-                            <button onClick={() => {
-                                onRemove(device.id, device.name);
-                                setShowConfirm(false);
-                            }} className="danger">
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+  return (
+    <div className={`mfa-device-card ${device.is_primary ? 'primary' : ''}`}>
+      <div className="device-card-header">
+        <div className="device-icon-wrapper">{getDeviceIcon()}</div>
+        <div className="device-info">
+          <span className="device-name">{device.name}</span>
+          <span className="device-type">{MFA_DEVICE_TYPE_LABELS[device.device_type] || device.device_type}</span>
         </div>
-    );
+        <div className="device-status">
+          {device.is_primary && (
+            <span className="primary-badge">
+              <FiStar /> Primary
+            </span>
+          )}
+          {device.is_verified ? (
+            <span className="verified-badge">
+              <FiCheckCircle /> Verified
+            </span>
+          ) : (
+            <span className="unverified-badge">
+              <FiXCircle /> Unverified
+            </span>
+          )}
+          {device.is_locked && (
+            <span className="locked-badge">
+              <FiXCircle /> Locked
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="device-card-body">
+        <div className="device-details">
+          <div className="device-detail">
+            <span className="detail-label">Created</span>
+            <span className="detail-value">{formatDate(device.created_at)}</span>
+          </div>
+          {device.last_used_at && (
+            <div className="device-detail">
+              <span className="detail-label">Last Used</span>
+              <span className="detail-value">{formatDate(device.last_used_at)}</span>
+            </div>
+          )}
+          {device.verified_at && (
+            <div className="device-detail">
+              <span className="detail-label">Verified</span>
+              <span className="detail-value">{formatDate(device.verified_at)}</span>
+            </div>
+          )}
+          {device.fail_count > 0 && (
+            <div className="device-detail">
+              <span className="detail-label">Failed Attempts</span>
+              <span className="detail-value">{device.fail_count}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="device-card-actions">
+        {!device.is_primary && device.is_verified && !device.is_locked && (
+          <button
+            className="action-btn primary-action"
+            onClick={onSetPrimary}
+            disabled={isLoading}
+          >
+            <FiStar /> Set Primary
+          </button>
+        )}
+        <button
+          className="action-btn delete-action"
+          onClick={onDelete}
+          disabled={isLoading}
+        >
+          <FiTrash2 /> Remove
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default MFADeviceCard;

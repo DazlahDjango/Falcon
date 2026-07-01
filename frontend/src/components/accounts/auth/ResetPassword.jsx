@@ -54,7 +54,8 @@ const ResetPassword = () => {
                 navigate('/login');
             }, 3000);
         } catch (err) {
-            dispatch(showAlert({ type: 'error', message: err || 'Failed to reset password' }));
+            const errorMessage = typeof err === 'string' ? err : (err?.message || 'Failed to reset password');
+            dispatch(showAlert({ type: 'error', message: errorMessage }));
         } finally {
             setIsLoading(false);
         }

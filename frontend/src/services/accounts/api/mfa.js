@@ -1,156 +1,49 @@
 import { request } from './client';
+import {
+  MFA_DEVICE_ENDPOINTS,
+  MFA_AUDIT_LOG_ENDPOINTS,
+} from '../../../config/constants/accountsApiConstants';
 
-// MFA Devices
-// =============
-// Device Management
-export const getMfaDevices = () => {
-    return request.get('/mfa/devices/');
-};
+export const getMFADevices = (params) => request.get(MFA_DEVICE_ENDPOINTS.LIST, { params });
 
-export const getMfaDevice = (deviceId) => {
-    return request.get(`/mfa/devices/${deviceId}/`);
-};
+export const getMFADevice = (id) => request.get(MFA_DEVICE_ENDPOINTS.DETAIL(id));
 
-export const createMfaDevice = (data) => {
-    return request.post('/mfa/devices/', data);
-};
+export const createMFADevice = (data) => request.post(MFA_DEVICE_ENDPOINTS.CREATE, data);
 
-export const updateMfaDevice = (deviceId, data) => {
-    return request.patch(`/mfa/devices/${deviceId}/`, data);
-};
+export const updateMFADevice = (id, data) => request.patch(MFA_DEVICE_ENDPOINTS.UPDATE(id), data);
 
-export const deleteMfaDevice = (deviceId) => {
-    return request.delete(`/mfa/devices/${deviceId}/`);
-};
+export const deleteMFADevice = (id) => request.delete(MFA_DEVICE_ENDPOINTS.DELETE(id));
 
-export const setPrimaryDevice = (deviceId) => {
-    return request.post(`/mfa/devices/${deviceId}/set-primary/`);
-};
+export const setupTOTP = (data) => request.post(MFA_DEVICE_ENDPOINTS.SETUP_TOTP, data);
 
-// TOTP Setup Flow
-export const setupTotp = (deviceName = 'Authenticator') => {
-    return request.post('/mfa/devices/setup-totp/', { device_name: deviceName });
-};
+export const verifyTOTPSetup = (data) =>
+  request.post(MFA_DEVICE_ENDPOINTS.VERIFY_TOTP_SETUP, data);
 
-export const verifyTotpSetup = (otp, deviceId) => {
-    return request.post('/mfa/devices/verify-totp-setup/', { otp, device_id: deviceId });
-};
+export const verifyDevice = (id, data) =>
+  request.post(MFA_DEVICE_ENDPOINTS.VERIFY_DEVICE(id), data);
 
-// Verification (during login)
-export const verifyMfaDevice = (deviceId, otp) => {
-    return request.post(`/mfa/devices/${deviceId}/verify/`, { otp });
-};
+export const verifyBackupCode = (data) => request.post(MFA_DEVICE_ENDPOINTS.VERIFY_BACKUP, data);
 
-export const verifyBackupCode = (code) => {
-    return request.post('/mfa/devices/verify-backup/', { code });
-};
+export const generateBackupCodes = (data) =>
+  request.post(MFA_DEVICE_ENDPOINTS.GENERATE_BACKUP_CODES, data);
 
-// Backup Codes
-export const generateBackupCodes = (count = 10) => {
-    return request.post('/mfa/devices/generate-backup-codes/', { count });
-};
+export const getBackupCodesStatus = () => request.get(MFA_DEVICE_ENDPOINTS.BACKUP_CODES_STATUS);
 
-export const getBackupCodesStatus = () => {
-    return request.get('/mfa/devices/backup-codes-status/');
-};
+export const setPrimaryDevice = (id, data) =>
+  request.post(MFA_DEVICE_ENDPOINTS.SET_PRIMARY(id), data);
 
-// MFA Status & Info
-export const getMfaStatus = () => {
-    return request.get('/mfa/devices/status/');
-};
+export const disableMFA = (data) => request.post(MFA_DEVICE_ENDPOINTS.DISABLE_MFA, data);
 
-export const getMfaActivity = (hours = 24) => {
-    return request.get('/mfa/devices/activity/', { params: { hours } });
-};
+export const getMFAStatus = () => request.get(MFA_DEVICE_ENDPOINTS.MFA_STATUS);
 
-export const getMfaFailureRate = (hours = 24) => {
-    return request.get('/mfa/devices/failure-rate/', { params: { hours } });
-};
+export const getMFAActivity = (params) =>
+  request.get(MFA_DEVICE_ENDPOINTS.RECENT_ACTIVITY, { params });
 
-// Disable MFA
-export const disableMfa = (deviceId = null) => {
-    return request.post('/mfa/devices/disable/', { confirm: true, device_id: deviceId });
-};
+export const getMFAFailureRate = (params) =>
+  request.get(MFA_DEVICE_ENDPOINTS.FAILURE_RATE, { params });
 
-// ============================================================================
-// MFA Audit Logs
-// ============================================================================
+export const getMFAAuditLogs = (params) => request.get(MFA_AUDIT_LOG_ENDPOINTS.LIST, { params });
 
-export const getMfaAuditLogs = (params = {}) => {
-    return request.get('/mfa/audit-logs/', { params });
-};
+export const getMFAAuditLog = (id) => request.get(MFA_AUDIT_LOG_ENDPOINTS.DETAIL(id));
 
-export const getMfaAuditLogDetail = (logId) => {
-    return request.get(`/mfa/audit-logs/${logId}/`);
-};
-
-export const getMfaAuditLogSummary = () => {
-    return request.get('/mfa/audit-logs/summary/');
-};
-
-// ============================================================================
-// Admin Routes (For managing other users' MFA)
-// ============================================================================
-
-export const getUserMfaDevices = (userId) => {
-    return request.get(`/users/${userId}/mfa-devices/`);
-};
-
-export const setupUserTotp = (userId, deviceName = 'Authenticator') => {
-    return request.post(`/users/${userId}/mfa-devices/setup-totp/`, { device_name: deviceName });
-};
-
-export const verifyUserTotpSetup = (userId, otp, deviceId) => {
-    return request.post(`/users/${userId}/mfa-devices/verify-totp-setup/`, { otp, device_id: deviceId });
-};
-
-export const disableUserMfa = (userId, deviceId = null) => {
-    return request.post(`/users/${userId}/mfa-devices/disable/`, { confirm: true, device_id: deviceId });
-};
-
-// ============================================================================
-// Convenience API Object (for easy importing)
-// ============================================================================
-
-export const mfaApi = {
-    // Device Management
-    getDevices: getMfaDevices,
-    getDevice: getMfaDevice,
-    createDevice: createMfaDevice,
-    updateDevice: updateMfaDevice,
-    deleteDevice: deleteMfaDevice,
-    setPrimary: setPrimaryDevice,
-
-    // TOTP Setup
-    setupTotp,
-    verifyTotpSetup,
-
-    // Verification
-    verifyDevice: verifyMfaDevice,
-    verifyBackupCode,
-
-    // Backup Codes
-    generateBackupCodes,
-    getBackupCodesStatus,
-
-    // Status
-    getStatus: getMfaStatus,
-    getActivity: getMfaActivity,
-    getFailureRate: getMfaFailureRate,
-
-    // Disable
-    disable: disableMfa,
-
-    // Audit
-    getAuditLogs: getMfaAuditLogs,
-    getAuditLogDetail: getMfaAuditLogDetail,
-    getAuditLogSummary: getMfaAuditLogSummary,
-
-    // Admin
-    getUserDevices: getUserMfaDevices,
-    setupUserTotp,
-    verifyUserTotpSetup,
-    disableUserMfa,
-};
-
-export default mfaApi;
+export const getMFAAuditSummary = () => request.get(MFA_AUDIT_LOG_ENDPOINTS.SUMMARY);

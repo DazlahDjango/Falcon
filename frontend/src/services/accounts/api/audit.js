@@ -1,66 +1,29 @@
 import { request } from './client';
+import { AUDIT_LOG_ENDPOINTS } from '../../../config/constants/accountsApiConstants';
 
-export const getAuditLogs = (params = {}) => {
-    return request.get('/audit-logs/', { params });
-};
+export const getAuditLogs = (params) => request.get(AUDIT_LOG_ENDPOINTS.LIST, { params });
 
-export const getAuditLogById = (logId) => {
-    return request.get(`/audit-logs/${logId}/`);
-};
+export const getAuditLog = (id) => request.get(AUDIT_LOG_ENDPOINTS.DETAIL(id));
 
-export const getUserAuditActivity = (userId, days = 30) => {
-    return request.get(`/audit-logs/user/${userId}/`, { params: { days } });
-};
+export const getUserActivity = (userId, params) =>
+  request.get(AUDIT_LOG_ENDPOINTS.USER_ACTIVITY(userId), { params });
 
-export const getUserAuditSummary = (days = 30) => {
-    return request.get('/audit-logs/user-summary/', { params: { days } });
-};
+export const getUserActivitySummary = (params) =>
+  request.get(AUDIT_LOG_ENDPOINTS.USER_SUMMARY, { params });
 
-export const getTenantAuditSummary = (days = 30) => {
-    return request.get('/audit-logs/tenant-summary/', { params: { days } });
-};
+export const getTenantActivitySummary = (params) =>
+  request.get(AUDIT_LOG_ENDPOINTS.TENANT_SUMMARY, { params });
 
-export const getSecurityEvents = (days = 30) => {
-    return request.get('/audit-logs/security-events/', { params: { days } });
-};
+export const getSecurityEvents = (params) =>
+  request.get(AUDIT_LOG_ENDPOINTS.SECURITY_EVENTS, { params });
 
-export const getObjectHistory = (contentType, objectId) => {
-    return request.get('/audit-logs/object-history/', {
-        params: { content_type: contentType, object_id: objectId }
-    });
-};
+export const getAnomalyDetection = (params) =>
+  request.get(AUDIT_LOG_ENDPOINTS.ANOMALY_DETECTION, { params });
 
-export const exportAuditLogs = (data) => {
-    return request.post('/audit-logs/export/', data, {
-        responseType: 'blob'
-    });
-};
+export const getComplianceReport = (params) =>
+  request.get(AUDIT_LOG_ENDPOINTS.COMPLIANCE_REPORT, { params });
 
-export const getComplianceReport = (startDate, endDate) => {
-    return request.get('/audit-logs/compliance-report/', {
-        params: { start_date: startDate, end_date: endDate }
-    });
-};
+export const getObjectHistory = (params) =>
+  request.get(AUDIT_LOG_ENDPOINTS.OBJECT_HISTORY, { params });
 
-export const auditApi = {
-    // Basic
-    getAuditLogs,
-    getAuditLogById,
-
-    // User Activity
-    getUserAuditActivity,
-    getUserAuditSummary,
-    getTenantAuditSummary,
-
-    // Security
-    getSecurityEvents,
-
-    // History
-    getObjectHistory,
-
-    // Exports
-    exportAuditLogs,
-    getComplianceReport,
-};
-
-export default auditApi;
+export const exportAuditLogs = (data) => request.post(AUDIT_LOG_ENDPOINTS.EXPORT, data);

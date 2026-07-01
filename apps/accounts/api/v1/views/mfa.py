@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Count
-from apps.accounts.models import MFADevice, MFAAuditLog  # ✅ ADD THIS IMPORT
+from apps.accounts.models import MFADevice, MFAAuditLog 
 from apps.accounts.services import MFAService
 from ..serializers.mfa import (
     MFADeviceSerializer, 

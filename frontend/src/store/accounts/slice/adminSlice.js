@@ -1,430 +1,789 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as adminApi from '../../../services/accounts/api/admin';
 
-export const fetchSystemStats = createAsyncThunk(
-    'admin/fetchSystemStats',
-    async (_, { rejectWithValue }) => {
-        try {
-            const [userStats, tenantStats, systemInfo] = await Promise.all([
-                adminApi.getUserStats(),
-                adminApi.getTenantStats(),
-                adminApi.getSystemInfo()
-            ]);
-            return {
-                users: userStats.data,
-                tenants: tenantStats.data,
-                system: systemInfo.data
-            };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch system stats');
-        }
+const initialState = {
+  users: [],
+  selectedAdminUser: null,
+  roles: [],
+  selectedAdminRole: null,
+  permissions: [],
+  selectedAdminPermission: null,
+  tenants: [],
+  selectedAdminTenant: null,
+  systemInfo: null,
+  systemHealth: null,
+  systemConfig: null,
+  userStats: null,
+  tenantStats: null,
+  isLoading: false,
+  isCreating: false,
+  isUpdating: false,
+  isDeleting: false,
+  error: null,
+  pagination: {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    role: '',
+    is_active: null,
+    plan: '',
+  },
+};
+
+// ============ Existing Thunks ============
+export const fetchAdminUsers = createAsyncThunk(
+  'admin/fetchUsers',
+  async (params, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const pagination = state.admin?.pagination || { page: 1, pageSize: 20 };
+      const filters = state.admin?.filters || {};
+      const page = params?.page || pagination.page;
+      const limit = params?.pageSize || pagination.pageSize;
+      const offset = (page - 1) * limit;
+      const queryParams = {
+        limit,
+        offset,
+        ...filters,
+        ...params,
+      };
+
+      console.log('[fetchAdminUsers] Calling getAdminUsers with params:', queryParams);
+      const response = await adminApi.getAdminUsers(queryParams);
+
+      console.log('[fetchAdminUsers] RAW RESPONSE:', response);
+      console.log('[fetchAdminUsers] RESPONSE DATA:', response?.data);
+      console.log('[fetchAdminUsers] RESPONSE STATUS:', response?.status);
+
+      // ✅ Check if response is successful
+      if (response?.status === 200) {
+        console.log('[fetchAdminUsers] ✅ Success! Returning data');
+        return response.data;
+      } else {
+        console.error('[fetchAdminUsers] ❌ Response status not 200:', response?.status);
+        return rejectWithValue(`Failed with status: ${response?.status}`);
+      }
+
+    } catch (error) {
+      console.error('[fetchAdminUsers] ❌ CATCH ERROR:', error);
+      console.error('[fetchAdminUsers] Error response:', error.response);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin users');
     }
+  }
 );
 
-export const fetchAllUsers = createAsyncThunk(
-    'admin/fetchAllUsers',
-    async (params = {}, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.getAllUsers(params);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch users');
-        }
+export const fetchAdminUser = createAsyncThunk(
+  'admin/fetchUser',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getAdminUser(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin user');
     }
+  }
 );
 
-export const deleteUserAdmin = createAsyncThunk(
-    'admin/deleteUserAdmin',
-    async (userId, { rejectWithValue }) => {
-        try {
-            await adminApi.deleteUserAdmin(userId);
-            return userId;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to delete user');
-        }
+export const createAdminUser = createAsyncThunk(
+  'admin/createUser',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.createAdminUser(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to create admin user');
     }
+  }
 );
 
-export const suspendUser = createAsyncThunk(
-    'admin/suspendUser',
-    async (userId, { rejectWithValue }) => {
-        try {
-            await adminApi.updateUserAdmin(userId, { is_active: false });
-            return { userId, is_active: false };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to suspend user');
-        }
+export const updateAdminUser = createAsyncThunk(
+  'admin/updateUser',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.updateAdminUser(id, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update admin user');
     }
+  }
 );
 
-export const activateUserAdmin = createAsyncThunk(
-    'admin/activateUserAdmin',
-    async (userId, { rejectWithValue }) => {
-        try {
-            await adminApi.updateUserAdmin(userId, { is_active: true });
-            return { userId, is_active: true };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to activate user');
-        }
+export const deleteAdminUser = createAsyncThunk(
+  'admin/deleteUser',
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminApi.deleteAdminUser(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to delete admin user');
     }
+  }
 );
 
 export const impersonateUser = createAsyncThunk(
-    'admin/impersonateUser',
-    async (userId, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.impersonateUser(userId);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to impersonate user');
-        }
+  'admin/impersonateUser',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.impersonateUser(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to impersonate user');
     }
+  }
 );
 
 export const forcePasswordReset = createAsyncThunk(
-    'admin/forcePasswordReset',
-    async (userId, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.forcePasswordReset(userId);
-            return { userId, data: response.data };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to force password reset');
-        }
+  'admin/forcePasswordReset',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.forcePasswordReset(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to force password reset');
     }
+  }
 );
 
-export const fetchTenants = createAsyncThunk(
-    'admin/fetchTenants',
-    async (params = {}, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.getTenants(params);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch tenants');
-        }
+export const fetchAdminUserStats = createAsyncThunk(
+  'admin/fetchUserStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getAdminUserStats();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch user stats');
     }
+  }
 );
 
-export const createTenant = createAsyncThunk(
-    'admin/createTenant',
-    async (tenantData, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.createTenant(tenantData);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to create tenant');
-        }
+export const fetchAdminRoles = createAsyncThunk(
+  'admin/fetchRoles',
+  async (params, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const pagination = state.admin?.pagination || { page: 1, pageSize: 20 };
+      const filters = state.admin?.filters || {};
+      const page = params?.page || pagination.page;
+      const limit = params?.pageSize || pagination.pageSize;
+      const offset = (page - 1) * limit;
+      const queryParams = {
+        limit,
+        offset,
+        ...filters,
+        ...params,
+      };
+      const response = await adminApi.getAdminRoles(queryParams);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin roles');
     }
+  }
 );
 
-export const updateTenant = createAsyncThunk(
-    'admin/updateTenant',
-    async ({ id, ...data }, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.updateTenant(id, data);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to update tenant');
-        }
+export const fetchAdminRole = createAsyncThunk(
+  'admin/fetchRole',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getAdminRole(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin role');
     }
+  }
 );
 
-export const deleteTenant = createAsyncThunk(
-    'admin/deleteTenant',
-    async (tenantId, { rejectWithValue }) => {
-        try {
-            await adminApi.deleteTenant(tenantId);
-            return tenantId;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to delete tenant');
-        }
+export const createAdminRole = createAsyncThunk(
+  'admin/createRole',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.createAdminRole(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to create admin role');
     }
+  }
 );
 
-export const suspendTenant = createAsyncThunk(
-    'admin/suspendTenant',
-    async (tenantId, { rejectWithValue }) => {
-        try {
-            await adminApi.suspendTenant(tenantId);
-            return { tenantId, is_active: false };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to suspend tenant');
-        }
+export const updateAdminRole = createAsyncThunk(
+  'admin/updateRole',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.updateAdminRole(id, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update admin role');
     }
+  }
 );
 
-export const activateTenant = createAsyncThunk(
-    'admin/activateTenant',
-    async (tenantId, { rejectWithValue }) => {
-        try {
-            await adminApi.activateTenant(tenantId);
-            return { tenantId, is_active: true };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to activate tenant');
-        }
+export const deleteAdminRole = createAsyncThunk(
+  'admin/deleteRole',
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminApi.deleteAdminRole(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to delete admin role');
     }
-);
-
-export const createTenantWithAdmin = createAsyncThunk(
-    'admin/createTenantWithAdmin',
-    async (data, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.createTenantWithAdmin(data);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to create tenant with admin');
-        }
-    }
-);
-
-export const fetchSystemHealth = createAsyncThunk(
-    'admin/fetchSystemHealth',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.getSystemHealth();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch system health');
-        }
-    }
-);
-
-export const fetchSystemConfig = createAsyncThunk(
-    'admin/fetchSystemConfig',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.getSystemConfig();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch system config');
-        }
-    }
-);
-
-export const updateSystemConfig = createAsyncThunk(
-    'admin/updateSystemConfig',
-    async (config, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.updateSystemConfig(config);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to update system config');
-        }
-    }
-);
-
-export const clearCache = createAsyncThunk(
-    'admin/clearCache',
-    async (_, { rejectWithValue }) => {
-        try {
-            await adminApi.clearSystemCache();
-            return true;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to clear cache');
-        }
-    }
-);
-
-export const clearUserCache = createAsyncThunk(
-    'admin/clearUserCache',
-    async (userId, { rejectWithValue }) => {
-        try {
-            await adminApi.clearUserCache(userId);
-            return userId;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to clear user cache');
-        }
-    }
-);
-
-export const clearTenantCache = createAsyncThunk(
-    'admin/clearTenantCache',
-    async (tenantId, { rejectWithValue }) => {
-        try {
-            await adminApi.clearTenantCache(tenantId);
-            return tenantId;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to clear tenant cache');
-        }
-    }
+  }
 );
 
 export const initSystemRoles = createAsyncThunk(
-    'admin/initSystemRoles',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.initSystemRoles();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to init system roles');
-        }
+  'admin/initSystemRoles',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.initSystemRoles();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to initialize system roles');
     }
+  }
+);
+
+export const fetchAdminPermissions = createAsyncThunk(
+  'admin/fetchPermissions',
+  async (params, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const pagination = state.admin?.pagination || { page: 1, pageSize: 20 };
+      const filters = state.admin?.filters || {};
+      const page = params?.page || pagination.page;
+      const limit = params?.pageSize || pagination.pageSize;
+      const offset = (page - 1) * limit;
+      const queryParams = {
+        limit,
+        offset,
+        ...filters,
+        ...params,
+      };
+      const response = await adminApi.getAdminPermissions(queryParams);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin permissions');
+    }
+  }
+);
+
+export const fetchAdminPermission = createAsyncThunk(
+  'admin/fetchPermission',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getAdminPermission(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin permission');
+    }
+  }
+);
+
+export const createAdminPermission = createAsyncThunk(
+  'admin/createPermission',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.createAdminPermission(data);
+      return response.data;
+    } catch (error) {
+      console.error('[createAdminPermission] Request data:', data);
+      console.error('[createAdminPermission] Error response:', error.response);
+      return rejectWithValue(error.response?.data?.error || 'Failed to create admin permission');
+    }
+  }
+);
+
+export const updateAdminPermission = createAsyncThunk(
+  'admin/updatePermission',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.updateAdminPermission(id, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update admin permission');
+    }
+  }
+);
+
+export const deleteAdminPermission = createAsyncThunk(
+  'admin/deletePermission',
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminApi.deleteAdminPermission(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to delete admin permission');
+    }
+  }
 );
 
 export const initPermissions = createAsyncThunk(
-    'admin/initPermissions',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await adminApi.initPermissions();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to init permissions');
-        }
+  'admin/initPermissions',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.initPermissions();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to initialize permissions');
     }
+  }
 );
 
-const initialState = {
-    stats: {
-        total_users: 0,
-        active_users: 0,
-        total_tenants: 0,
-        active_tenants: 0,
-        uptime: '0d',
-        api_requests: 0,
-        request_trend: null
-    },
-    users: [],
-    tenants: [],
-    health: null,
-    systemConfig: null,
-    pagination: {
-        current_page: 1,
-        total_pages: 1,
-        total_items: 0,
-        page_size: 20
-    },
-    isLoading: false,
-    error: null
-};
+export const fetchAdminTenants = createAsyncThunk(
+  'admin/fetchTenants',
+  async (params, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const pagination = state.admin?.pagination || { page: 1, pageSize: 20 };
+      const filters = state.admin?.filters || {};
+      const page = params?.page || pagination.page;
+      const limit = params?.pageSize || pagination.pageSize;
+      const offset = (page - 1) * limit;
+      const queryParams = {
+        limit,
+        offset,
+        ...filters,
+        ...params,
+      };
+      const response = await adminApi.getAdminTenants(queryParams);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin tenants');
+    }
+  }
+);
+
+export const fetchAdminTenant = createAsyncThunk(
+  'admin/fetchTenant',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getAdminTenant(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin tenant');
+    }
+  }
+);
+
+export const createAdminTenant = createAsyncThunk(
+  'admin/createTenant',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.createAdminTenant(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to create admin tenant');
+    }
+  }
+);
+
+export const updateAdminTenant = createAsyncThunk(
+  'admin/updateTenant',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.updateAdminTenant(id, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update admin tenant');
+    }
+  }
+);
+
+export const deleteAdminTenant = createAsyncThunk(
+  'admin/deleteTenant',
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminApi.deleteAdminTenant(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to delete admin tenant');
+    }
+  }
+);
+
+export const createTenantWithAdmin = createAsyncThunk(
+  'admin/createTenantWithAdmin',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.createTenantWithAdmin(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to create tenant with admin');
+    }
+  }
+);
+
+export const suspendTenant = createAsyncThunk(
+  'admin/suspendTenant',
+  async ({ id, reason }, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.suspendTenant(id, { reason });
+      return { id, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to suspend tenant');
+    }
+  }
+);
+
+export const activateTenant = createAsyncThunk(
+  'admin/activateTenant',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.activateTenant(id);
+      return { id, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to activate tenant');
+    }
+  }
+);
+
+export const fetchAdminTenantStats = createAsyncThunk(
+  'admin/fetchTenantStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getAdminTenantStats();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch tenant stats');
+    }
+  }
+);
+
+export const fetchSystemInfo = createAsyncThunk(
+  'admin/fetchSystemInfo',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getSystemInfo();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch system info');
+    }
+  }
+);
+
+export const clearSystemCache = createAsyncThunk(
+  'admin/clearSystemCache',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.clearSystemCache();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to clear system cache');
+    }
+  }
+);
+
+export const fetchSystemHealth = createAsyncThunk(
+  'admin/fetchSystemHealth',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getSystemHealth();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch system health');
+    }
+  }
+);
+
+// ============ NEW THUNKS ============
+
+export const fetchSystemConfig = createAsyncThunk(
+  'admin/fetchSystemConfig',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.getSystemConfig();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch system config');
+    }
+  }
+);
+
+export const updateSystemConfig = createAsyncThunk(
+  'admin/updateSystemConfig',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.updateSystemConfig(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update system config');
+    }
+  }
+);
+
+export const clearUserCache = createAsyncThunk(
+  'admin/clearUserCache',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.clearUserCache(userId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to clear user cache');
+    }
+  }
+);
+
+export const clearTenantCache = createAsyncThunk(
+  'admin/clearTenantCache',
+  async (tenantId, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.clearTenantCache(tenantId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to clear tenant cache');
+    }
+  }
+);
+
+// ============================================
+// SLICE
+// ============================================
 
 const adminSlice = createSlice({
-    name: 'admin',
-    initialState,
-    reducers: {
-        clearError: (state) => {
-            state.error = null;
-        },
-        resetAdmin: () => initialState
+  name: 'admin',
+  initialState,
+  reducers: {
+    clearAdminError: (state) => {
+      state.error = null;
     },
-    extraReducers: (builder) => {
-        builder
-            // Fetch System Stats
-            .addCase(fetchSystemStats.fulfilled, (state, action) => {
-                const userStats = action.payload.users || {};
-                const tenantStats = action.payload.tenants || {};
-                const systemStats = action.payload.system || {};
-                state.stats = {
-                    ...state.stats,
-                    total_users: userStats.total_users || systemStats.statistics?.total_users || 0,
-                    active_users: userStats.active_users || 0,
-                    total_tenants: tenantStats.total_tenants || systemStats.statistics?.total_tenants || 0,
-                    active_tenants: tenantStats.active_tenants || 0,
-                    uptime: systemStats.uptime || '0d',
-                    api_requests: systemStats.api_requests || 0,
-                    request_trend: systemStats.request_trend || null
-                };
-            })
-            // Fetch All Users
-            .addCase(fetchAllUsers.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchAllUsers.fulfilled, (state, action) => {
-                state.isLoading = false;
-                const payload = action.payload || {};
-                const list = payload.results || (Array.isArray(payload) ? payload : []);
-                state.users = Array.isArray(list) ? list : [];
-                state.pagination = {
-                    current_page: payload.current_page || 1,
-                    total_pages: payload.total_pages || 1,
-                    total_items: payload.count || state.users.length,
-                    page_size: payload.page_size || 20
-                };
-            })
-            .addCase(fetchAllUsers.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-            })
-            // Delete User
-            .addCase(deleteUserAdmin.fulfilled, (state, action) => {
-                state.users = state.users.filter(u => u.id !== action.payload);
-                state.pagination.total_items -= 1;
-            })
-            // Suspend/Activate User
-            .addCase(suspendUser.fulfilled, (state, action) => {
-                const user = state.users.find(u => u.id === action.payload.userId);
-                if (user) user.is_active = action.payload.is_active;
-            })
-            .addCase(activateUserAdmin.fulfilled, (state, action) => {
-                const user = state.users.find(u => u.id === action.payload.userId);
-                if (user) user.is_active = action.payload.is_active;
-            })
-            // Impersonate User
-            .addCase(impersonateUser.fulfilled, (state, action) => {
-                // Handle impersonation token - stored separately
-            })
-            // Force Password Reset
-            .addCase(forcePasswordReset.fulfilled, (state) => {
-                // Password reset initiated - no state update needed
-            })
-            // Fetch Tenants
-            .addCase(fetchTenants.fulfilled, (state, action) => {
-                state.tenants = action.payload.results || action.payload || [];
-            })
-            // Create/Update/Delete Tenant
-            .addCase(createTenant.fulfilled, (state, action) => {
-                state.tenants.unshift(action.payload);
-                state.stats.total_tenants += 1;
-            })
-            .addCase(updateTenant.fulfilled, (state, action) => {
-                const index = state.tenants.findIndex(t => t.id === action.payload.id);
-                if (index !== -1) state.tenants[index] = action.payload;
-            })
-            .addCase(deleteTenant.fulfilled, (state, action) => {
-                state.tenants = state.tenants.filter(t => t.id !== action.payload);
-                state.stats.total_tenants -= 1;
-            })
-            .addCase(suspendTenant.fulfilled, (state, action) => {
-                const tenant = state.tenants.find(t => t.id === action.payload.tenantId);
-                if (tenant) tenant.is_active = action.payload.is_active;
-            })
-            .addCase(activateTenant.fulfilled, (state, action) => {
-                const tenant = state.tenants.find(t => t.id === action.payload.tenantId);
-                if (tenant) tenant.is_active = action.payload.is_active;
-            })
-            .addCase(createTenantWithAdmin.fulfilled, (state, action) => {
-                state.tenants.unshift(action.payload.tenant);
-                state.stats.total_tenants += 1;
-            })
-            // System Health
-            .addCase(fetchSystemHealth.fulfilled, (state, action) => {
-                state.health = action.payload;
-            })
-            // System Config
-            .addCase(fetchSystemConfig.fulfilled, (state, action) => {
-                state.systemConfig = action.payload;
-            })
-            .addCase(updateSystemConfig.fulfilled, (state, action) => {
-                state.systemConfig = { ...state.systemConfig, ...action.payload };
-            })
-            // Init System Roles & Permissions
-            .addCase(initSystemRoles.fulfilled, (state) => {
-                // Roles initialized
-            })
-            .addCase(initPermissions.fulfilled, (state) => {
-                // Permissions initialized
-            });
-    }
+    setAdminFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+      state.pagination.page = 1;
+    },
+    setAdminPage: (state, action) => {
+      state.pagination.page = action.payload;
+    },
+    setAdminPageSize: (state, action) => {
+      state.pagination.pageSize = action.payload;
+      state.pagination.page = 1;
+    },
+    clearSelectedAdminUser: (state) => {
+      state.selectedAdminUser = null;
+    },
+    clearSelectedAdminRole: (state) => {
+      state.selectedAdminRole = null;
+    },
+    clearSelectedAdminPermission: (state) => {
+      state.selectedAdminPermission = null;
+    },
+    clearSelectedAdminTenant: (state) => {
+      state.selectedAdminTenant = null;
+    },
+    resetAdmin: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      // ============ USER MANAGEMENT ============
+      .addCase(fetchAdminUsers.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdminUsers.fulfilled, (state, action) => {
+        console.log('✅ fetchAdminUsers.fulfilled - BEFORE update:', {
+          currentUsers: state.users,
+          payload: action.payload,
+          results: action.payload?.results,
+        });
+
+        const results = action.payload?.results || action.payload || [];
+
+        state.isLoading = false;
+        state.users = results;
+
+        state.pagination = {
+          page:
+            action.payload?.offset != null && action.payload?.limit
+              ? (action.payload.offset / action.payload.limit) + 1
+              : state.pagination?.page || 1,
+          pageSize: action.payload?.limit || state.pagination?.pageSize || 20,
+          total: action.payload?.count || 0,
+        };
+
+        state.error = null;
+
+        console.log('✅ fetchAdminUsers.fulfilled - AFTER update:', {
+          newUsers: state.users,
+          newPagination: state.pagination,
+        });
+      })
+      .addCase(fetchAdminUsers.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(createAdminUser.pending, (state) => {
+        state.isCreating = true;
+        state.error = null;
+      })
+      .addCase(createAdminUser.fulfilled, (state, action) => {
+        state.isCreating = false;
+        // Optionally add new user to the list
+        if (action.payload) {
+          state.users.unshift(action.payload);
+        }
+      })
+      .addCase(createAdminUser.rejected, (state, action) => {
+        state.isCreating = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updateAdminUser.pending, (state) => {
+        state.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(updateAdminUser.fulfilled, (state, action) => {
+        state.isUpdating = false;
+        const index = state.users.findIndex(u => u.id === action.payload.id);
+        if (index !== -1) {
+          state.users[index] = action.payload;
+        }
+      })
+      .addCase(updateAdminUser.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload;
+      })
+
+      .addCase(deleteAdminUser.pending, (state) => {
+        state.isDeleting = true;
+        state.error = null;
+      })
+      .addCase(deleteAdminUser.fulfilled, (state, action) => {
+        state.isDeleting = false;
+        state.users = state.users.filter(u => u.id !== action.payload);
+      })
+      .addCase(deleteAdminUser.rejected, (state, action) => {
+        state.isDeleting = false;
+        state.error = action.payload;
+      })
+
+      // ============ ROLE MANAGEMENT ============
+      .addCase(fetchAdminRoles.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdminRoles.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.roles = action.payload?.results || action.payload || [];
+        state.pagination = {
+          page: (action.payload?.offset / action.payload?.limit) + 1 || 1,
+          pageSize: action.payload?.limit || 20,
+          total: action.payload?.count || 0,
+        };
+      })
+      .addCase(fetchAdminRoles.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // ============ PERMISSION MANAGEMENT ============
+      .addCase(fetchAdminPermissions.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdminPermissions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.permissions = action.payload?.results || action.payload || [];
+        state.pagination = {
+          page: (action.payload?.offset / action.payload?.limit) + 1 || 1,
+          pageSize: action.payload?.limit || 20,
+          total: action.payload?.count || 0,
+        };
+      })
+      .addCase(fetchAdminPermissions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // ============ TENANT MANAGEMENT ============
+      .addCase(fetchAdminTenants.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdminTenants.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.tenants = action.payload?.results || action.payload || [];
+        state.pagination = {
+          page: (action.payload?.offset / action.payload?.limit) + 1 || 1,
+          pageSize: action.payload?.limit || 20,
+          total: action.payload?.count || 0,
+        };
+      })
+      .addCase(fetchAdminTenants.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // ============ SYSTEM MANAGEMENT ============
+      .addCase(fetchSystemInfo.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSystemInfo.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.systemInfo = action.payload;
+      })
+      .addCase(fetchSystemInfo.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchSystemHealth.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSystemHealth.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.systemHealth = action.payload;
+      })
+      .addCase(fetchSystemHealth.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchSystemConfig.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSystemConfig.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.systemConfig = action.payload;
+      })
+      .addCase(fetchSystemConfig.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updateSystemConfig.pending, (state) => {
+        state.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(updateSystemConfig.fulfilled, (state, action) => {
+        state.isUpdating = false;
+        state.systemConfig = action.payload;
+      })
+      .addCase(updateSystemConfig.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload;
+      })
+
+      .addCase(clearUserCache.fulfilled, (state) => {
+        state.systemInfo = { ...state.systemInfo, user_cache_cleared_at: new Date().toISOString() };
+      })
+      .addCase(clearTenantCache.fulfilled, (state) => {
+        state.systemInfo = { ...state.systemInfo, tenant_cache_cleared_at: new Date().toISOString() };
+      });
+  },
 });
-export const { clearError, resetAdmin } = adminSlice.actions;
-export const selectAdmin = (state) => state.admin;
-export const selectAdminStats = (state) => state.admin.stats;
-export const selectAdminUsers = (state) => state.admin.users;
-export const selectAdminTenants = (state) => state.admin.tenants;
-export const selectAdminHealth = (state) => state.admin.health;
-export const selectAdminSystemConfig = (state) => state.admin.systemConfig;
-export const selectAdminPagination = (state) => state.admin.pagination;
-export const selectAdminLoading = (state) => state.admin.isLoading;
-export const selectAdminError = (state) => state.admin.error;
+
+export const {
+  clearAdminError,
+  setAdminFilters,
+  setAdminPage,
+  clearSelectedAdminUser,
+  clearSelectedAdminRole,
+  clearSelectedAdminPermission,
+  clearSelectedAdminTenant,
+  resetAdmin,
+} = adminSlice.actions;
 
 export default adminSlice.reducer;

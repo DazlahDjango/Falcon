@@ -1,290 +1,344 @@
-// frontend/src/store/accounts/hooks/useAdminMFA.js
-import { useState, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    // System Settings
-    fetchSystemSettings,
-    updateSystemSettings,
-    resetSystemSettings,
-    syncAllTenantsPolicy,
-
-    // Tenant MFA Policy
-    fetchTenantMFAPolicy,
-    updateTenantMFAPolicy,
-
-    // User MFA Policy
-    fetchAllUsersMFAPolicy,
-    fetchUserMFAPolicy,
-    updateUserMFAOverride,
-    clearUserMFAOverride,
-    fetchUserMFAStatus,
-
-    // Admin MFA Reset
-    resetUserMFA,
-    clearUserDevices,
-    fetchAdminMFAStatus,
-
-    // Step-Up
-    verifyStepUp,
-
-    // Selectors
-    selectAdminMfa,
-    selectStepUpVerified,
-
-    // Actions
-    clearAdminMfaErrors,
-    clearStepUpVerification,
-    setUsersFilters,
-    setUsersPage,
-    resetAdminMfaState,
+  fetchSystemSettings,
+  updateSystemSettings,
+  resetSystemSettings,
+  syncAllTenantsPolicy,
+  fetchTenantMFAPolicy,
+  updateTenantMFAPolicy,
+  fetchAllUsersMFAPolicy,
+  fetchUserMFAPolicy,
+  updateUserMFAOverride,
+  clearUserMFAOverride,
+  fetchUserMFAStatus,
+  resetUserMFA,
+  clearUserDevices,
+  fetchAdminMFAStatus,
+  verifyStepUp,
+  setAdminMfaUsersFilters,
+  setAdminMfaUsersPage,
+  clearAdminMfaErrors,
+  clearStepUpVerification,
 } from '../../store/accounts/slice/adminMfaSlice';
+import {
+  selectSystemSettings,
+  selectSystemSettingsLoading,
+  selectSystemSettingsError,
+  selectSystemSettingsUpdating,
+  selectTenantPolicy,
+  selectTenantPolicyLoading,
+  selectTenantPolicyError,
+  selectTenantPolicyUpdating,
+  selectUsersPolicy,
+  selectUsersPolicyLoading,
+  selectUsersPolicyError,
+  selectCurrentUserPolicy,
+  selectCurrentUserPolicyLoading,
+  selectCurrentUserPolicyUpdating,
+  selectUserMFAStatus,
+  selectUserMFAStatusLoading,
+  selectAdminMFAStatus,
+  selectAdminMFAStatusLoading,
+  selectResettingUserMFA,
+  selectClearingDevices,
+  selectStepUpVerified,
+  selectStepUpVerifying,
+  selectStepUpAction,
+  selectStepUpExpiresAt,
+  selectSyncingPolicy,
+  selectAdminMfaUsersFilters,
+  selectAdminMfaUsersPage,
+  selectAdminMfaUsersTotal,
+  selectTenantMfaRequiredRoles,
+  selectUserMfaEffectiveRequired,
+  selectUserMfaOverride,
+  selectIsStepUpValid,
+} from '../../store/accounts/selectors/adminMfaSelectors';
 
 export const useAdminMFA = () => {
-    const dispatch = useDispatch();
-    const adminMfaState = useSelector(selectAdminMfa) || {
-        systemSettings: null,
-        systemSettingsLoading: false,
-        systemSettingsError: null,
-        systemSettingsUpdating: false,
-        tenantPolicy: null,
-        tenantPolicyLoading: false,
-        tenantPolicyError: null,
-        tenantPolicyUpdating: false,
-        usersPolicy: [],
-        usersPolicyLoading: false,
-        usersPolicyError: null,
-        currentUserPolicy: null,
-        currentUserPolicyLoading: false,
-        currentUserPolicyUpdating: false,
-        userMFAStatus: null,
-        userMFAStatusLoading: false,
-        adminMFAStatus: null,
-        adminMFAStatusLoading: false,
-        resettingUserMFA: false,
-        clearingDevices: false,
-        stepUpVerified: false,
-        stepUpVerifying: false,
-        stepUpAction: null,
-        stepUpExpiresAt: null,
-        syncingPolicy: false,
-        usersFilters: {
-            search: '',
-            role: '',
-            mfa_enabled: null,
-            mfa_required_override: null,
-        },
-        usersPage: 1,
-        usersPageSize: 20,
-        usersTotal: 0,
-    };
-    const stepUpVerified = useSelector(selectStepUpVerified) || false;
+  const dispatch = useDispatch();
+  const systemSettings = useSelector(selectSystemSettings);
+  const systemSettingsLoading = useSelector(selectSystemSettingsLoading);
+  const systemSettingsError = useSelector(selectSystemSettingsError);
+  const systemSettingsUpdating = useSelector(selectSystemSettingsUpdating);
+  const tenantPolicy = useSelector(selectTenantPolicy);
+  const tenantPolicyLoading = useSelector(selectTenantPolicyLoading);
+  const tenantPolicyError = useSelector(selectTenantPolicyError);
+  const tenantPolicyUpdating = useSelector(selectTenantPolicyUpdating);
+  const usersPolicy = useSelector(selectUsersPolicy);
+  const usersPolicyLoading = useSelector(selectUsersPolicyLoading);
+  const usersPolicyError = useSelector(selectUsersPolicyError);
+  const currentUserPolicy = useSelector(selectCurrentUserPolicy);
+  const currentUserPolicyLoading = useSelector(selectCurrentUserPolicyLoading);
+  const currentUserPolicyUpdating = useSelector(selectCurrentUserPolicyUpdating);
+  const userMFAStatus = useSelector(selectUserMFAStatus);
+  const userMFAStatusLoading = useSelector(selectUserMFAStatusLoading);
+  const adminMFAStatus = useSelector(selectAdminMFAStatus);
+  const adminMFAStatusLoading = useSelector(selectAdminMFAStatusLoading);
+  const resettingUserMFA = useSelector(selectResettingUserMFA);
+  const clearingDevices = useSelector(selectClearingDevices);
+  const stepUpVerified = useSelector(selectStepUpVerified);
+  const stepUpVerifying = useSelector(selectStepUpVerifying);
+  const stepUpAction = useSelector(selectStepUpAction);
+  const stepUpExpiresAt = useSelector(selectStepUpExpiresAt);
+  const syncingPolicy = useSelector(selectSyncingPolicy);
+  const usersFilters = useSelector(selectAdminMfaUsersFilters);
+  const usersPage = useSelector(selectAdminMfaUsersPage);
+  const usersTotal = useSelector(selectAdminMfaUsersTotal);
+  const isStepUpValid = useSelector(selectIsStepUpValid);
 
-    // Local UI state
-    const [selectedUserId, setSelectedUserId] = useState(null);
-    const [resetReason, setResetReason] = useState('');
-    const [stepUpOtp, setStepUpOtp] = useState('');
-    const [stepUpAction, setStepUpAction] = useState(null);
+  const getSystemSettings = useCallback(async () => {
+    const result = await dispatch(fetchSystemSettings()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    // ========== System Settings ==========
+  const updateSystem = useCallback(
+    async (data) => {
+      const result = await dispatch(updateSystemSettings(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadSystemSettings = useCallback(async () => {
-        return await dispatch(fetchSystemSettings()).unwrap();
-    }, [dispatch]);
+  const resetSystem = useCallback(async () => {
+    const result = await dispatch(resetSystemSettings()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const updateSystemSettingsAction = useCallback(async (patch) => {
-        return await dispatch(updateSystemSettings(patch)).unwrap();
-    }, [dispatch]);
+  const syncPolicy = useCallback(async () => {
+    const result = await dispatch(syncAllTenantsPolicy()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const resetSystemSettingsAction = useCallback(async () => {
-        return await dispatch(resetSystemSettings()).unwrap();
-    }, [dispatch]);
+  const getTenantPolicy = useCallback(async () => {
+    const result = await dispatch(fetchTenantMFAPolicy()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const syncPolicyToAllTenants = useCallback(async () => {
-        return await dispatch(syncAllTenantsPolicy()).unwrap();
-    }, [dispatch]);
+  const updateTenantPolicy = useCallback(
+    async (mfaRequiredRoles) => {
+      const result = await dispatch(updateTenantMFAPolicy(mfaRequiredRoles)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Tenant MFA Policy ==========
+  const getAllUsersPolicy = useCallback(async () => {
+    const result = await dispatch(fetchAllUsersMFAPolicy()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const loadTenantMFAPolicy = useCallback(async () => {
-        return await dispatch(fetchTenantMFAPolicy()).unwrap();
-    }, [dispatch]);
+  const getUserPolicy = useCallback(
+    async (userId) => {
+      const result = await dispatch(fetchUserMFAPolicy(userId)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const updateTenantMFAPolicyAction = useCallback(async (mfa_required_roles) => {
-        return await dispatch(updateTenantMFAPolicy(mfa_required_roles)).unwrap();
-    }, [dispatch]);
+  const updateUserOverride = useCallback(
+    async (userId, mfaRequired) => {
+      const result = await dispatch(updateUserMFAOverride({ userId, mfa_required: mfaRequired })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== User MFA Policy ==========
+  const clearOverride = useCallback(
+    async (userId) => {
+      const result = await dispatch(clearUserMFAOverride(userId)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadAllUsersMFAPolicy = useCallback(async () => {
-        return await dispatch(fetchAllUsersMFAPolicy()).unwrap();
-    }, [dispatch]);
+  const getUserMFAStatus = useCallback(
+    async (userId) => {
+      const result = await dispatch(fetchUserMFAStatus(userId)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadUserMFAPolicy = useCallback(async (userId) => {
-        return await dispatch(fetchUserMFAPolicy(userId)).unwrap();
-    }, [dispatch]);
+  const resetUser = useCallback(
+    async (userId, reason) => {
+      const result = await dispatch(resetUserMFA({ userId, reason })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const updateUserMFAOverrideAction = useCallback(async (userId, mfa_required) => {
-        return await dispatch(updateUserMFAOverride({ userId, mfa_required })).unwrap();
-    }, [dispatch]);
+  const clearDevices = useCallback(
+    async (userId, deviceId) => {
+      const result = await dispatch(clearUserDevices({ userId, deviceId })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const clearUserMFAOverrideAction = useCallback(async (userId) => {
-        return await dispatch(clearUserMFAOverride(userId)).unwrap();
-    }, [dispatch]);
+  const getAdminMFAStatus = useCallback(
+    async (userId) => {
+      const result = await dispatch(fetchAdminMFAStatus(userId)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadUserMFAStatus = useCallback(async (userId) => {
-        return await dispatch(fetchUserMFAStatus(userId)).unwrap();
-    }, [dispatch]);
+  const stepUpVerify = useCallback(
+    async (action, otp) => {
+      const result = await dispatch(verifyStepUp({ action, otp })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Admin MFA Reset ==========
+  const setFilters = useCallback(
+    (newFilters) => {
+      dispatch(setAdminMfaUsersFilters(newFilters));
+    },
+    [dispatch]
+  );
 
-    const resetUserMFAAction = useCallback(async (userId, reason = '') => {
-        return await dispatch(resetUserMFA({ userId, reason })).unwrap();
-    }, [dispatch]);
+  const setPage = useCallback(
+    (page) => {
+      dispatch(setAdminMfaUsersPage(page));
+    },
+    [dispatch]
+  );
 
-    const clearUserDevicesAction = useCallback(async (userId, deviceId = null) => {
-        return await dispatch(clearUserDevices({ userId, deviceId })).unwrap();
-    }, [dispatch]);
+  const clearErrors = useCallback(() => {
+    dispatch(clearAdminMfaErrors());
+  }, [dispatch]);
 
-    const loadAdminMFAStatus = useCallback(async (userId) => {
-        return await dispatch(fetchAdminMFAStatus(userId)).unwrap();
-    }, [dispatch]);
+  const clearStepUp = useCallback(() => {
+    dispatch(clearStepUpVerification());
+  }, [dispatch]);
 
-    // ========== Step-Up Authentication ==========
+  const getTenantRequiredRoles = useCallback(() => {
+    return selectTenantMfaRequiredRoles({ adminMfa: { tenantPolicy } });
+  }, [tenantPolicy]);
 
-    const verifyStepUpAction = useCallback(async (action, otp) => {
-        const result = await dispatch(verifyStepUp({ action, otp })).unwrap();
-        return result;
-    }, [dispatch]);
+  const getUserEffectiveRequired = useCallback(
+    (userId) => {
+      return selectUserMfaEffectiveRequired({ adminMfa: { usersPolicy } }, userId);
+    },
+    [usersPolicy]
+  );
 
-    const clearStepUp = useCallback(() => {
-        dispatch(clearStepUpVerification());
-        setStepUpOtp('');
-        setStepUpAction(null);
-    }, [dispatch]);
+  const getUserOverride = useCallback(
+    (userId) => {
+      return selectUserMfaOverride({ adminMfa: { usersPolicy } }, userId);
+    },
+    [usersPolicy]
+  );
 
-    // ========== Filters & Pagination ==========
-
-    const updateUsersFilters = useCallback((filters) => {
-        dispatch(setUsersFilters(filters));
-    }, [dispatch]);
-
-    const updateUsersPage = useCallback((page) => {
-        dispatch(setUsersPage(page));
-    }, [dispatch]);
-
-    // ========== Utility ==========
-
-    const clearErrors = useCallback(() => {
-        dispatch(clearAdminMfaErrors());
-    }, [dispatch]);
-
-    const resetState = useCallback(() => {
-        dispatch(resetAdminMfaState());
-    }, [dispatch]);
-
-    // ========== Computed Values ==========
-
-    const filteredUsers = adminMfaState.usersPolicy.filter(user => {
-        const filters = adminMfaState.usersFilters;
-        if (filters.search && !user.email.toLowerCase().includes(filters.search.toLowerCase()) &&
-            !user.first_name?.toLowerCase().includes(filters.search.toLowerCase()) &&
-            !user.last_name?.toLowerCase().includes(filters.search.toLowerCase())) {
-            return false;
-        }
-        if (filters.role && user.role !== filters.role) return false;
-        if (filters.mfa_enabled !== null && user.mfa_enabled !== filters.mfa_enabled) return false;
-        if (filters.mfa_required_override !== null) {
-            if (filters.mfa_required_override === 'none' && user.mfa_required_override !== null) return false;
-            if (filters.mfa_required_override === 'required' && user.mfa_required_override !== true) return false;
-            if (filters.mfa_required_override === 'exempt' && user.mfa_required_override !== false) return false;
-        }
-        return true;
-    });
-
-    const paginatedUsers = filteredUsers.slice(
-        (adminMfaState.usersPage - 1) * adminMfaState.usersPageSize,
-        adminMfaState.usersPage * adminMfaState.usersPageSize
-    );
-
-    // ========== Return ==========
-
-    return {
-        // State
-        systemSettings: adminMfaState.systemSettings,
-        systemSettingsLoading: adminMfaState.systemSettingsLoading,
-        systemSettingsUpdating: adminMfaState.systemSettingsUpdating,
-        systemSettingsError: adminMfaState.systemSettingsError,
-
-        tenantPolicy: adminMfaState.tenantPolicy,
-        tenantPolicyLoading: adminMfaState.tenantPolicyLoading,
-        tenantPolicyUpdating: adminMfaState.tenantPolicyUpdating,
-
-        usersPolicy: adminMfaState.usersPolicy,
-        usersPolicyLoading: adminMfaState.usersPolicyLoading,
-        filteredUsers,
-        paginatedUsers,
-        usersTotal: filteredUsers.length,
-        usersPage: adminMfaState.usersPage,
-        usersPageSize: adminMfaState.usersPageSize,
-        usersFilters: adminMfaState.usersFilters,
-
-        currentUserPolicy: adminMfaState.currentUserPolicy,
-        currentUserPolicyLoading: adminMfaState.currentUserPolicyLoading,
-
-        userMFAStatus: adminMfaState.userMFAStatus,
-        userMFAStatusLoading: adminMfaState.userMFAStatusLoading,
-
-        adminMFAStatus: adminMfaState.adminMFAStatus,
-        adminMFAStatusLoading: adminMfaState.adminMFAStatusLoading,
-
-        stepUpVerified: adminMfaState.stepUpVerified,
-        stepUpVerifying: adminMfaState.stepUpVerifying,
-        stepUpAction: adminMfaState.stepUpAction,
-
-        resettingUserMFA: adminMfaState.resettingUserMFA,
-        clearingDevices: adminMfaState.clearingDevices,
-        syncingPolicy: adminMfaState.syncingPolicy,
-
-        // UI State
-        selectedUserId,
-        setSelectedUserId,
-        resetReason,
-        setResetReason,
-        stepUpOtp,
-        setStepUpOtp,
-
-        // Actions - System Settings
-        loadSystemSettings,
-        updateSystemSettings: updateSystemSettingsAction,
-        resetSystemSettings: resetSystemSettingsAction,
-        syncPolicyToAllTenants,
-
-        // Actions - Tenant MFA Policy
-        loadTenantMFAPolicy,
-        updateTenantMFAPolicy: updateTenantMFAPolicyAction,
-
-        // Actions - User MFA Policy
-        loadAllUsersMFAPolicy,
-        loadUserMFAPolicy,
-        updateUserMFAOverride: updateUserMFAOverrideAction,
-        clearUserMFAOverride: clearUserMFAOverrideAction,
-        loadUserMFAStatus,
-
-        // Actions - Admin MFA Reset
-        resetUserMFA: resetUserMFAAction,
-        clearUserDevices: clearUserDevicesAction,
-        loadAdminMFAStatus,
-
-        // Actions - Step-Up
-        verifyStepUp: verifyStepUpAction,
-        clearStepUp,
-
-        // Actions - Filters
-        updateUsersFilters,
-        updateUsersPage,
-
-        // Utilities
-        clearErrors,
-        resetState,
-    };
+  return useMemo(
+    () => ({
+      systemSettings,
+      systemSettingsLoading,
+      systemSettingsError,
+      systemSettingsUpdating,
+      tenantPolicy,
+      tenantPolicyLoading,
+      tenantPolicyError,
+      tenantPolicyUpdating,
+      usersPolicy,
+      usersPolicyLoading,
+      usersPolicyError,
+      currentUserPolicy,
+      currentUserPolicyLoading,
+      currentUserPolicyUpdating,
+      userMFAStatus,
+      userMFAStatusLoading,
+      adminMFAStatus,
+      adminMFAStatusLoading,
+      resettingUserMFA,
+      clearingDevices,
+      stepUpVerified,
+      stepUpVerifying,
+      stepUpAction,
+      stepUpExpiresAt,
+      syncingPolicy,
+      usersFilters,
+      usersPage,
+      usersTotal,
+      isStepUpValid,
+      getSystemSettings,
+      updateSystem,
+      resetSystem,
+      syncPolicy,
+      getTenantPolicy,
+      updateTenantPolicy,
+      getAllUsersPolicy,
+      getUserPolicy,
+      updateUserOverride,
+      clearOverride,
+      getUserMFAStatus,
+      resetUser,
+      clearDevices,
+      getAdminMFAStatus,
+      stepUpVerify,
+      setFilters,
+      setPage,
+      clearErrors,
+      clearStepUp,
+      getTenantRequiredRoles,
+      getUserEffectiveRequired,
+      getUserOverride,
+    }),
+    [
+      systemSettings,
+      systemSettingsLoading,
+      systemSettingsError,
+      systemSettingsUpdating,
+      tenantPolicy,
+      tenantPolicyLoading,
+      tenantPolicyError,
+      tenantPolicyUpdating,
+      usersPolicy,
+      usersPolicyLoading,
+      usersPolicyError,
+      currentUserPolicy,
+      currentUserPolicyLoading,
+      currentUserPolicyUpdating,
+      userMFAStatus,
+      userMFAStatusLoading,
+      adminMFAStatus,
+      adminMFAStatusLoading,
+      resettingUserMFA,
+      clearingDevices,
+      stepUpVerified,
+      stepUpVerifying,
+      stepUpAction,
+      stepUpExpiresAt,
+      syncingPolicy,
+      usersFilters,
+      usersPage,
+      usersTotal,
+      isStepUpValid,
+      getSystemSettings,
+      updateSystem,
+      resetSystem,
+      syncPolicy,
+      getTenantPolicy,
+      updateTenantPolicy,
+      getAllUsersPolicy,
+      getUserPolicy,
+      updateUserOverride,
+      clearOverride,
+      getUserMFAStatus,
+      resetUser,
+      clearDevices,
+      getAdminMFAStatus,
+      stepUpVerify,
+      setFilters,
+      setPage,
+      clearErrors,
+      clearStepUp,
+      getTenantRequiredRoles,
+      getUserEffectiveRequired,
+      getUserOverride,
+    ]
+  );
 };

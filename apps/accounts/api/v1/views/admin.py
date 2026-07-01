@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class AdminUserViewSet(BaseModelViewset):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_deleted=False)
     filterset_class = UserFilter
     search_fields = ['email', 'username', 'first_name', 'last_name']
     ordering_fields = ['email', 'created_at', 'last_login']

@@ -43,9 +43,11 @@ import {
   FiUsers as FiUserGroup,
   FiMessageSquare,
   FiTrendingUp as FiUpward,
+  FiUserCheck,
+  FiUserX,
   FiUser,
 } from 'react-icons/fi';
-import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner, MdGavel } from 'react-icons/md';
+import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
 import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
@@ -56,6 +58,7 @@ import { ROUTES } from '../constants';
 import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../constants/kpiRouteConstants';
 import { REVIEW_ROUTES } from '../constants/reviewRouteConstants';
 import { STRUCTURE_ROUTES } from '../constants/structureRouteConstants';
+import { ACCOUNTS_ROUTES } from '../constants/accountsRouteConstants';
 
 // ============================================
 // MFA ROUTES
@@ -237,96 +240,56 @@ export const STRUCTURE_NAV_ITEMS = [
 
 // ============================================
 // REVIEWS NAVIGATION ITEMS (Super Admin)
+// ACCOUNTS NAVIGATION ITEMS - Using ACCOUNTS_ROUTES
 // ============================================
-export const REVIEWS_NAV_ITEMS = [
-  // Dashboards
-  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_STAFF, name: 'Staff Dashboard', icon: FiHome },
-  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_SUPERVISOR, name: 'Supervisor Dashboard', icon: FiUserGroup },
-  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_EXECUTIVE, name: 'Executive Dashboard', icon: FiTrendingUp },
-  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_ADMIN, name: 'Admin Dashboard', icon: FiShield },
-  
-  // Core Features
-  { path: REVIEW_ROUTES.RATING_SCALES_LIST, name: 'Rating Scales', icon: FiSliders },
-  { path: REVIEW_ROUTES.COMPETENCIES_LIST, name: 'Competencies', icon: FiTarget },
-  { path: REVIEW_ROUTES.COMPETENCY_CATEGORIES, name: 'Competency Categories', icon: FiFolder },
-  { path: REVIEW_ROUTES.REVIEW_CYCLES_LIST, name: 'Review Cycles', icon: FiCalendar },
-  
-  // Assessments
-  { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, name: 'Self Assessment', icon: FiCheckCircle },
-  { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_QUEUE, name: 'Review Queue', icon: FiActivity },
-  { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_PENDING_APPROVALS, name: 'Pending Approvals', icon: FiClock },
-  { path: REVIEW_ROUTES.FINAL_RATINGS_LIST, name: 'Final Ratings', icon: FiStar },
-  { path: REVIEW_ROUTES.RATING_DISTRIBUTION, name: 'Rating Distribution', icon: FiBarChart2 },
-  
-  // PIPs
-  { path: REVIEW_ROUTES.PIPS_LIST, name: 'PIPs', icon: FiFlag },
-  { path: REVIEW_ROUTES.PIPS_REPORT, name: 'PIP Reports', icon: FiFileText },
-  
-  // Feedback & Calibration
-  { path: REVIEW_ROUTES.FEEDBACK_REQUESTS, name: '360 Feedback', icon: FiMessageSquare },
-  { path: REVIEW_ROUTES.CALIBRATION_SESSIONS, name: 'Calibration Sessions', icon: MdGavel },
-  { path: REVIEW_ROUTES.CALIBRATION_OUTLIERS, name: 'Calibration Outliers', icon: FiAlertCircle },
-  
-  // Coefficients & Promotions
-  { path: REVIEW_ROUTES.COEFFICIENTS_LIST, name: 'Coefficients', icon: FiSliders },
-  { path: REVIEW_ROUTES.PROMOTIONS_LIST, name: 'Promotions', icon: FiAward },
-  { path: REVIEW_ROUTES.PROMOTIONS_STATS, name: 'Promotion Stats', icon: FiBarChart2 },
-  
-  // Templates
-  { path: REVIEW_ROUTES.REVIEW_TEMPLATES_LIST, name: 'Review Templates', icon: FiFileText },
-  
-  // Reports & Settings
-  { path: REVIEW_ROUTES.REPORTS, name: 'Reports', icon: FiDownload },
-  { path: REVIEW_ROUTES.REPORTS_EMPLOYEE, name: 'Employee Reports', icon: FiUsers },
-  { path: REVIEW_ROUTES.REPORTS_TEAM, name: 'Team Reports', icon: FiUserGroup },
-  { path: REVIEW_ROUTES.REPORTS_CYCLE, name: 'Cycle Reports', icon: FiCalendar },
-  { path: REVIEW_ROUTES.REPORTS_PIP, name: 'PIP Reports', icon: FiFlag },
-  { path: REVIEW_ROUTES.REPORTS_CALIBRATION, name: 'Calibration Reports', icon: MdGavel },
-  { path: REVIEW_ROUTES.REPORTS_EXPORT, name: 'Export Reports', icon: FiDownload },
-  
-  // Settings
-  { path: REVIEW_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
-  { path: REVIEW_ROUTES.NOTIFICATION_PREFERENCES, name: 'Notification Preferences', icon: FiBell },
-  { path: REVIEW_ROUTES.AUDIT_SETTINGS, name: 'Audit Settings', icon: FiShield },
-  
-  // Audit & Notifications
-  { path: REVIEW_ROUTES.AUDIT_LOGS, name: 'Audit Logs', icon: FiList },
-  { path: REVIEW_ROUTES.NOTIFICATIONS, name: 'Notifications', icon: FiBell },
+export const ACCOUNTS_SUPER_ADMIN_NAV_ITEMS = [
+  { path: ACCOUNTS_ROUTES.USERS, name: 'All Users', icon: FiUsers },
+  { path: ACCOUNTS_ROUTES.ADMIN_USERS, name: 'Manage Users', icon: FiUserCheck },
+  { path: ACCOUNTS_ROUTES.ROLES, name: 'Roles', icon: FiShield },
+  { path: ACCOUNTS_ROUTES.ADMIN_ROLES, name: 'Manage Roles', icon: FiKey },
+  { path: ACCOUNTS_ROUTES.PERMISSIONS, name: 'Permissions', icon: FiLock },
+  { path: ACCOUNTS_ROUTES.ADMIN_PERMISSIONS, name: 'Manage Permissions', icon: FiGrid },
+  { path: ACCOUNTS_ROUTES.ADMIN_TENANTS, name: 'Manage Tenants', icon: FiBriefcase },
+  { path: ACCOUNTS_ROUTES.SESSIONS, name: 'Sessions', icon: FiClock },
+  { path: ACCOUNTS_ROUTES.ACTIVE_SESSIONS, name: 'Active Sessions', icon: FiActivity },
+  { path: ACCOUNTS_ROUTES.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },
+  { path: ACCOUNTS_ROUTES.AUDIT_SECURITY_EVENTS, name: 'Security Events', icon: FiAlertCircle },
+  { path: ACCOUNTS_ROUTES.AUDIT_COMPLIANCE, name: 'Compliance Report', icon: FiDownload },
+  { path: ACCOUNTS_ROUTES.SECURITY_LOGIN_ATTEMPTS, name: 'Login Attempts', icon: FiUserX },
+  { path: ACCOUNTS_ROUTES.SECURITY_LOCKOUT_SUMMARY, name: 'Lockout Summary', icon: FiLock },
+  { path: ACCOUNTS_ROUTES.SECURITY_MFA_POLICY, name: 'MFA Policy', icon: FiShield },
+  { path: ACCOUNTS_ROUTES.ADMIN_MFA, name: 'MFA Management', icon: FiSmartphone },
+  { path: ACCOUNTS_ROUTES.MFA_DEVICES, name: 'My MFA Devices', icon: FiSmartphone },
+  { path: ACCOUNTS_ROUTES.MFA_BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
+  { path: ACCOUNTS_ROUTES.ADMIN_SYSTEM, name: 'System Settings', icon: FiServer },
+  { path: ACCOUNTS_ROUTES.SYSTEM_SETTINGS, name: 'System Policy', icon: FiSettings },
+  { path: ACCOUNTS_ROUTES.TENANT_SETTINGS, name: 'Tenant Settings', icon: FiSettings },
+  { path: ACCOUNTS_ROUTES.MY_PROFILE, name: 'My Profile', icon: FiUser },
+  { path: ACCOUNTS_ROUTES.MY_SETTINGS, name: 'My Settings', icon: FiSettings },
+  { path: ACCOUNTS_ROUTES.CHANGE_PASSWORD, name: 'Change Password', icon: FiLock },
+];
+
+export const ACCOUNTS_CLIENT_ADMIN_NAV_ITEMS = [
+  { path: ACCOUNTS_ROUTES.USERS, name: 'Users', icon: FiUsers },
+  { path: ACCOUNTS_ROUTES.ROLES, name: 'Roles', icon: FiShield },
+  { path: ACCOUNTS_ROUTES.SESSIONS, name: 'Sessions', icon: FiClock },
+  { path: ACCOUNTS_ROUTES.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },
+  { path: ACCOUNTS_ROUTES.AUDIT_SECURITY_EVENTS, name: 'Security Events', icon: FiAlertCircle },
+  { path: ACCOUNTS_ROUTES.AUDIT_COMPLIANCE, name: 'Compliance Report', icon: FiDownload },
+  { path: ACCOUNTS_ROUTES.SECURITY_LOGIN_ATTEMPTS, name: 'Login Attempts', icon: FiUserX },
+  { path: ACCOUNTS_ROUTES.SECURITY_LOCKOUT_SUMMARY, name: 'Lockout Summary', icon: FiLock },
+  { path: ACCOUNTS_ROUTES.SECURITY_MFA_POLICY, name: 'MFA Policy', icon: FiShield },
+  { path: ACCOUNTS_ROUTES.ADMIN_MFA, name: 'MFA Management', icon: FiSmartphone },
+  { path: ACCOUNTS_ROUTES.MFA_DEVICES, name: 'My MFA Devices', icon: FiSmartphone },
+  { path: ACCOUNTS_ROUTES.MFA_BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
+  { path: ACCOUNTS_ROUTES.TENANT_SETTINGS, name: 'Tenant Settings', icon: FiSettings },
+  { path: ACCOUNTS_ROUTES.MY_PROFILE, name: 'My Profile', icon: FiUser },
+  { path: ACCOUNTS_ROUTES.MY_SETTINGS, name: 'My Settings', icon: FiSettings },
+  { path: ACCOUNTS_ROUTES.CHANGE_PASSWORD, name: 'Change Password', icon: FiLock },
 ];
 
 // ============================================
-// REVIEWS NAVIGATION ITEMS (Client Admin - limited)
-// ============================================
-export const CLIENT_ADMIN_REVIEWS_NAV_ITEMS = [
-  // Dashboards
-  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_STAFF, name: 'Staff Dashboard', icon: FiHome },
-  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_SUPERVISOR, name: 'Supervisor Dashboard', icon: FiUserGroup },
-  { path: REVIEW_ROUTES.REVIEW_DASHBOARD_EXECUTIVE, name: 'Executive Dashboard', icon: FiTrendingUp },
-  
-  // Core Features
-  { path: REVIEW_ROUTES.RATING_SCALES_LIST, name: 'Rating Scales', icon: FiSliders },
-  { path: REVIEW_ROUTES.COMPETENCIES_LIST, name: 'Competencies', icon: FiTarget },
-  { path: REVIEW_ROUTES.REVIEW_CYCLES_LIST, name: 'Review Cycles', icon: FiCalendar },
-  
-  // Assessments
-  { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, name: 'Self Assessment', icon: FiCheckCircle },
-  { path: REVIEW_ROUTES.FINAL_RATINGS_LIST, name: 'Final Ratings', icon: FiStar },
-  
-  // PIPs
-  { path: REVIEW_ROUTES.PIPS_LIST, name: 'PIPs', icon: FiFlag },
-  
-  // Feedback & Calibration
-  { path: REVIEW_ROUTES.FEEDBACK_REQUESTS, name: '360 Feedback', icon: FiMessageSquare },
-  
-  // Reports
-  { path: REVIEW_ROUTES.REPORTS, name: 'Reports', icon: FiDownload },
-  
-  // Settings
-  { path: REVIEW_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
-];
-
-// ============================================
-// SUPER ADMIN NAVIGATION GROUPS
+// SUPER ADMIN NAVIGATION GROUPS - UPDATED WITH ACCOUNTS
 // ============================================
 export const SUPER_ADMIN_NAV_GROUPS = {
   main: [
@@ -344,8 +307,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/tenants/connections/health', name: 'Connection Health', icon: FiShield },
   ],
   billing: ADMIN_BILLING_NAV_ITEMS,
-  
-  // KPI Groups
+
   kpiAdmin: KPI_ADMIN_NAV_ITEMS,
   kpiManagement: KPI_MANAGEMENT_NAV_ITEMS,
   kpiAnalytics: KPI_ANALYTICS_NAV_ITEMS,
@@ -367,6 +329,33 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/admin/users', name: 'Admin Users', icon: FiUsers },
     { path: '/admin/tenants', name: 'Admin Tenants', icon: FiLayers },
   ],
+
+  structure: [
+    { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
+    { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
+    { path: '/app/structure/teams', name: 'Teams', icon: HiOutlineUserGroup },
+    { path: '/app/structure/positions', name: 'Positions', icon: BsBriefcase },
+    { path: '/app/structure/employments', name: 'Employments', icon: BsPersonBadge },
+    { path: '/app/structure/reporting-lines', name: 'Reporting Lines', icon: BsDiagram3 },
+    { path: '/app/structure/cost-centers', name: 'Cost Centers', icon: FiDollarSign },
+    { path: '/app/structure/locations', name: 'Locations', icon: FiMapPin },
+    { path: '/app/structure/org-chart', name: 'Organization Chart', icon: FiGitBranch },
+    { path: '/app/structure/department-trees', name: 'Department Tree', icon: FiGitBranch },
+    { path: '/app/structure/team-hierarchies', name: 'Team Hierarchy', icon: FiGitBranch },
+    { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase },
+  ],
+  reviews: [
+    { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2 },
+    { path: '/reviews/cycles', name: 'Review Cycles', icon: FiCalendar },
+    { path: '/reviews/self-assessment', name: 'Self Assessment', icon: FiCheckCircle },
+    { path: '/reviews/review-queue', name: 'Review Queue', icon: FiActivity },
+    { path: '/reviews/final-ratings', name: 'Final Ratings', icon: FiBarChart2 },
+    { path: '/reviews/pips', name: 'Performance Plans', icon: FiFlag },
+    { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers },
+    { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders },
+    { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText },
+  ],
+  accounts: ACCOUNTS_SUPER_ADMIN_NAV_ITEMS,
   mfa: MFA_NAV_ITEMS,
   config: CONFIG_NAV_ITEMS,
   settings: [
@@ -378,11 +367,16 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: '/admin/system', name: 'Admin System Settings', icon: FiServer },
     { path: '/settings', name: 'System Settings', icon: FiSettings },
     { path: '/notifications', name: 'Notification Settings', icon: FiBell },
+    { path: '/app/structure/settings', name: 'Structure Settings', icon: FiSettings },
+    { path: ACCOUNTS_ROUTES.SECURITY, name: 'Accounts Security', icon: FiLock },
+    { path: ACCOUNTS_ROUTES.ADMIN_SYSTEM, name: 'Admin System Settings', icon: FiServer },
+    { path: ACCOUNTS_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+    { path: ACCOUNTS_ROUTES.MY_SETTINGS, name: 'Notification Settings', icon: FiBell },
   ],
 };
 
 // ============================================
-// CLIENT ADMIN NAVIGATION GROUPS
+// CLIENT ADMIN NAVIGATION GROUPS - UPDATED WITH ACCOUNTS
 // ============================================
 export const CLIENT_ADMIN_NAV_GROUPS = {
   main: [
@@ -408,19 +402,15 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, name: 'Roles & Permissions', icon: FiShield },
-    { path: ROUTES.USERS, name: 'User Directory', icon: FiUsers },
-    { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
+    { path: ACCOUNTS_ROUTES.USERS, name: 'User Directory', icon: FiUsers },
+    { path: ACCOUNTS_ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
-  
-  // Reviews - Limited access for Client Admin
-  reviews: CLIENT_ADMIN_REVIEWS_NAV_ITEMS,
-  
   mfa: MFA_NAV_ITEMS,
   compliance: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.EXPORTS, name: 'Exports', icon: FiDownload },
-    { path: ROUTES.AUDIT, name: 'Accounts Audit', icon: FiActivity },
+    { path: ACCOUNTS_ROUTES.AUDIT_LOGS, name: 'Accounts Audit', icon: FiActivity },
   ],
   config: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.SETTINGS, name: 'PMS Settings', icon: FiSettings },
@@ -431,7 +421,7 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
 };
 
 // ============================================
-// EXPANDED STATES
+// EXPANDED STATES - UPDATED WITH ACCOUNTS
 // ============================================
 export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   main: true,
@@ -442,9 +432,9 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   kpiAnalytics: false,
   kpiOperations: false,
   kpiDashboards: false,
-  structure: true,  // Structure expanded by default for Super Admin
-  reviews: true,
-  accounts: false,
+  structure: false,
+  reviews: false,
+  accounts: true,
   mfa: false,
   config: false,
   settings: false,
@@ -467,7 +457,7 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
 };
 
 // ============================================
-// GROUP LABELS
+// GROUP LABELS - UPDATED WITH ACCOUNTS
 // ============================================
 export const SUPER_ADMIN_GROUP_LABELS = {
   main: 'Main',
@@ -478,9 +468,9 @@ export const SUPER_ADMIN_GROUP_LABELS = {
   kpiAnalytics: '📈 Analytics & Reports',
   kpiOperations: '⚙️ Operations',
   kpiDashboards: '📺 Dashboards',
-  structure: '🏛️ Organization Structure',  // Structure label for Super Admin
-  reviews: '⭐ Performance Reviews',
-  accounts: 'Users & Platform Access',
+  structure: 'Organization Structure',
+  reviews: 'Performance Reviews',
+  accounts: '👥 Accounts Management',
   mfa: 'Multi-Factor Authentication',
   config: 'Configuration Manager',
   settings: 'System & Unified Settings',
@@ -503,11 +493,11 @@ export const CLIENT_ADMIN_GROUP_LABELS = {
 };
 
 // ============================================
-// HELPER FUNCTION TO CHECK IF ROUTE IS ACTIVE
+// HELPER FUNCTIONS
 // ============================================
 export const isKpiRouteActive = (path, currentPath) => {
   if (path === currentPath) return true;
-  
+
   const patterns = [
     /^\/kpi\/detail\/[\w-]+$/,
     /^\/kpi\/edit\/[\w-]+$/,
@@ -521,29 +511,27 @@ export const isKpiRouteActive = (path, currentPath) => {
     /^\/kpi\/admin\/categories\/[\w-]+\/edit$/,
     /^\/kpi\/admin\/templates\/[\w-]+\/edit$/,
   ];
-  
-  return patterns.some(pattern => pattern.test(currentPath));
+
+  return patterns.some((pattern) => pattern.test(currentPath));
 };
 
-// ============================================
-// STRUCTURE SPECIFIC HELPERS
-// ============================================
-export const isStructureRouteActive = (path, currentPath) => {
+export const isAccountsRouteActive = (path, currentPath) => {
   if (path === currentPath) return true;
-  
+
   const patterns = [
-    /^\/structure\/departments\/[\w-]+$/,
-    /^\/structure\/divisions\/[\w-]+$/,
-    /^\/structure\/sections\/[\w-]+$/,
-    /^\/structure\/units\/[\w-]+$/,
-    /^\/structure\/positions\/[\w-]+$/,
-    /^\/structure\/employments\/[\w-]+$/,
-    /^\/structure\/hierarchy\/[\w-]+$/,
-    /^\/structure\/cost-centers\/[\w-]+$/,
-    /^\/structure\/locations\/[\w-]+$/,
-    /^\/structure\/reporting\/[\w-]+$/,
-    /^\/structure\/interim\/[\w-]+$/,
+    /^\/users\/[\w-]+$/,
+    /^\/users\/[\w-]+\/edit$/,
+    /^\/roles\/[\w-]+$/,
+    /^\/roles\/[\w-]+\/edit$/,
+    /^\/permissions\/[\w-]+$/,
+    /^\/sessions\/[\w-]+$/,
+    /^\/audit-logs\/[\w-]+$/,
+    /^\/admin\/users\/[\w-]+$/,
+    /^\/admin\/tenants\/[\w-]+$/,
+    /^\/admin\/mfa\/users\/[\w-]+$/,
+    /^\/profiles\/[\w-]+$/,
+    /^\/profiles\/[\w-]+\/edit$/,
   ];
-  
-  return patterns.some(pattern => pattern.test(currentPath));
+
+  return patterns.some((pattern) => pattern.test(currentPath));
 };

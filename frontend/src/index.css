@@ -17,19 +17,10 @@
 @import './components/forms.css';
 @import './components/ui.css';
 @import './styles/pages.css';
-@import './components/auth.css';
-@import './components/dashboard.css';
 @import './styles/dashboard/dashboard.css';
 @import './styles/dashboard/super.css';
 @import './styles/dashboard/client.css';
 @import './styles/dashboard/executive.css';
-@import './components/users.css';
-@import './components/team.css';
-@import './components/roles.css';
-@import './components/sessions.css';
-@import './components/settings.css';
-@import './components/audit.css';
-@import './components/admin.css';
 @import './styles/organisation.css';
 @import './assets/styles/tailwind.css';
 @import './assets/styles/globals.css';
@@ -40,10 +31,9 @@
 @import './assets/styles/kpi/traffic-light.css';
 @import './assets/styles/kpi/forms.css';
 @import './styles/sidebar.css';
-@import './components/accounts/mfa/mfa.css';
 
 /* ============================================
-   TENANT APP CSS IMPORTS
+  APP CSS IMPORTS
    ============================================ */
 /* Tenant Core Components */
 @import './components/tenant/tenant/tenant.css';
@@ -60,6 +50,9 @@
 @import './components/tenant/billing/billing.css';
 @import './styles/tenants/connections.css';
 @import './styles//tenants/connections-pages.css';
+
+/* Accounts index css */
+@import './components/accounts/accounts.css';
 
 /* Config Styling */
 @import './styles/config/audit.css';

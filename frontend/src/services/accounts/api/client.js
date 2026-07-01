@@ -1,10 +1,5 @@
-/**
- * Accounts app HTTP client — delegates to shared services/api/accountsClient.js
- */
-export {
-  apiClient,
-  request,
-  upload,
-  setupAxiosInterceptors,
-  default,
-} from '../../api/accountsClient';
+import { request, upload, setupAxiosInterceptors } from '../../api/accountsClient';
+import { apiClient as accountsApiClient } from '../../api/accountsClient';
+
+export { accountsApiClient, request, upload, setupAxiosInterceptors };
+export default accountsApiClient;

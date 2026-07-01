@@ -1,28 +1,20 @@
 import { request } from './client';
+import { SESSION_ENDPOINTS } from '../../../config/constants/accountsApiConstants';
 
-// Session Management
-// =====================
-export const getSessions = (params = {}) => {
-    return request.get('/sessions/', { params });
-};
-export const getActiveSessions = () => {
-    return request.get('/sessions/active/');
-};
-export const getCurrentSession = () => {
-    return request.get('/sessions/current/');
-};
-export const terminateSession = (sessionId) => {
-    return request.post(`/sessions/${sessionId}/terminate/`);
-};
-export const terminateAllSessions = () => {
-    return request.post('/sessions/terminate-all/');
-};
+export const getSessions = (params) => request.get(SESSION_ENDPOINTS.LIST, { params });
 
-// Session Blacklist (Admin)
-// ===========================
-export const getBlacklistedTokens = (params = {}) => {
-    return request.get('/sessions/blacklist/', { params });
-};
-export const blacklistToken = (tokenId, reason = '') => {
-    return request.post('/sessions/blacklist/', { token_id: tokenId, reason });
-};
+export const getSession = (id) => request.get(SESSION_ENDPOINTS.DETAIL(id));
+
+export const terminateSession = (id) => request.post(SESSION_ENDPOINTS.TERMINATE(id));
+
+export const getActiveSessions = () => request.get(SESSION_ENDPOINTS.ACTIVE_SESSIONS);
+
+export const getCurrentSession = () => request.get(SESSION_ENDPOINTS.CURRENT_SESSION);
+
+export const terminateAllSessions = () => request.post(SESSION_ENDPOINTS.TERMINATE_ALL);
+
+export const getTenantActiveSessions = () => request.get(SESSION_ENDPOINTS.TENANT_ACTIVE);
+
+export const getBlacklistedTokens = (params) => request.get(SESSION_ENDPOINTS.BLACKLIST, { params });
+
+export const blacklistToken = (tokenId, reason = '') => request.post(SESSION_ENDPOINTS.BLACKLIST, { token_id: tokenId, reason });

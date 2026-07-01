@@ -1,164 +1,223 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiPlus, FiEdit, FiTrash2, FiLock, FiUsers, FiShield } from 'react-icons/fi';
-import { fetchRoles, deleteRole } from '../../../store/accounts/slice/roleSlice';
-import { showAlert } from '../../../store/accounts/slice/uiSlice';
-import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';
-import EmptyState from '../../common/Feedback/EmptyState';
-import ConfirmationDialog from '../../common/Feedback/ConfirmationDialog';
+import {
+  FiShield,
+  FiPlus,
+  FiSearch,
+  FiFilter,
+  FiRefreshCw,
+  FiChevronLeft,
+  FiChevronRight,
+  FiUserCheck,
+} from 'react-icons/fi';
+import { useRoles } from '../../../hooks/accounts/useRoles';
+import { useAuth } from '../../../hooks/accounts/useAuth';
+import { usePagination } from '../../../hooks/accounts/usePagination';
+import { RoleTable } from './RoleTable';
+import { RoleForm } from './RoleForm';
+import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstants';
 
-const RoleList = () => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const { roles, isLoading } = useSelector((state) => state.roles);
-    const { user } = useSelector((state) => state.auth);
-    const [deleteTarget, setDeleteTarget] = useState(null);
+export const RoleList = () => {
+  const navigate = useNavigate();
+  const { isSuperAdmin, isAdmin } = useAuth();
+  const {
+    roles,
+    isLoading,
+    error,
+    pagination: storePagination,
+    filters,
+    getRoles,
+    setFilters,
+    setPage,
+    setPageSize,
+    clearError,
+  } = useRoles();
 
-    useEffect(() => {
-        dispatch(fetchRoles());
-    }, [dispatch]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-    const canManageRoles = user?.role === 'super_admin' || user?.role === 'client_admin';
+  const pagination = usePagination({
+    initialPage: storePagination.page || 1,
+    initialPageSize: storePagination.pageSize || 20,
+    initialTotal: storePagination.total || 0,
+  });
 
-    const handleDelete = async () => {
-        if (deleteTarget) {
-            try {
-                await dispatch(deleteRole(deleteTarget.id)).unwrap();
-                dispatch(showAlert({ type: 'success', message: `Role "${deleteTarget.name}" deleted successfully` }));
-                setDeleteTarget(null);
-            } catch (error) {
-                dispatch(showAlert({ type: 'error', message: error || 'Failed to delete role' }));
-            }
-        }
-    };
+  useEffect(() => {
+    getRoles({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      ...filters,
+      search: searchTerm || filters.search,
+    });
+  }, [pagination.page, pagination.pageSize, filters, searchTerm]);
 
-    const getRoleIcon = (role) => {
-        if (role.is_system) return <FiLock size={20} />;
-        return <FiUsers size={20} />;
-    };
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    pagination.goToPage(1);
+  };
 
-    const getRoleTypeLabel = (role) => {
-        if (role.is_system) return 'System Role';
-        if (role.role_type === 'custom') return 'Custom Role';
-        return role.role_type || 'Custom';
-    };
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    pagination.goToPage(1);
+  };
 
-    if (isLoading && !roles.length) {
-        return (
-            <div className="roles-page">
-                <div className="page-header">
-                    <h1>Roles</h1>
-                    <p>Loading roles...</p>
-                </div>
-                <SkeletonLoader type="list" count={5} />
-            </div>
-        );
-    }
+  const handleRefresh = () => {
+    getRoles({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      ...filters,
+      search: searchTerm || filters.search,
+    });
+  };
 
-    return (
-        <div className="roles-page">
-            {/* Header */}
-            <div className="page-header">
-                <div>
-                    <h1>Roles</h1>
-                    <p>Manage user roles and permissions</p>
-                </div>
-                {canManageRoles && (
-                    <button className="btn btn-primary" onClick={() => navigate('/roles/create')}>
-                        <FiPlus size={16} />
-                        Create Role
-                    </button>
-                )}
-            </div>
-            
-            {/* Stats Summary */}
-            <div className="roles-stats">
-                <div className="stat-card">
-                    <div className="stat-value">{roles.length}</div>
-                    <div className="stat-label">Total Roles</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value">{roles.filter(r => r.is_system).length}</div>
-                    <div className="stat-label">System Roles</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value">{roles.filter(r => !r.is_system && r.is_assignable).length}</div>
-                    <div className="stat-label">Assignable Roles</div>
-                </div>
-            </div>
-            
-            {/* Roles Grid */}
-            <div className="roles-grid">
-                {roles.map((role) => (
-                    <div key={role.id} className="role-card">
-                        <div className="role-card-header">
-                            <div className="role-icon">
-                                {getRoleIcon(role)}
-                            </div>
-                            <div className="role-info">
-                                <h3>{role.name}</h3>
-                                <span className="role-code">{role.code}</span>
-                            </div>
-                            {canManageRoles && !role.is_system && (
-                                <div className="role-actions">
-                                    <button 
-                                        className="action-btn edit"
-                                        onClick={() => navigate(`/roles/${role.id}/edit`)}
-                                        title="Edit Role"
-                                    >
-                                        <FiEdit size={16} />
-                                    </button>
-                                    <button 
-                                        className="action-btn delete"
-                                        onClick={() => setDeleteTarget(role)}
-                                        title="Delete Role"
-                                    >
-                                        <FiTrash2 size={16} />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <p className="role-description">{role.description || 'No description provided'}</p>
-                        <div className="role-meta">
-                            <span className="role-type">{getRoleTypeLabel(role)}</span>
-                            <span className="role-permissions">
-                                <FiShield size={12} />
-                                {role.permission_count || 0} permissions
-                            </span>
-                        </div>
-                        <button 
-                            className="view-details-btn"
-                            onClick={() => navigate(`/roles/${role.id}`)}
-                        >
-                            View Details
-                        </button>
-                    </div>
-                ))}
-            </div>
-            
-            {roles.length === 0 && (
-                <EmptyState 
-                    title="No roles found"
-                    description="Create roles to manage user permissions"
-                    action={canManageRoles}
-                    actionText="Create Role"
-                    onAction={() => navigate('/roles/create')}
-                />
-            )}
-            
-            {/* Delete Confirmation Dialog */}
-            <ConfirmationDialog
-                isOpen={!!deleteTarget}
-                onClose={() => setDeleteTarget(null)}
-                onConfirm={handleDelete}
-                type="danger"
-                title="Delete Role"
-                message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-                confirmText="Delete"
-            />
+  const handlePageChange = (newPage) => {
+    pagination.goToPage(newPage);
+    setPage(newPage);
+  };
+
+  const canCreate = isSuperAdmin || isAdmin;
+
+  return (
+    <div className="role-list-container">
+      <div className="role-list-header">
+        <div className="role-list-title">
+          <FiShield className="title-icon" />
+          <h1>Roles</h1>
+          <span className="role-count">{pagination.total} roles</span>
         </div>
-    );
-};
+        <div className="role-list-actions">
+          {canCreate && (
+            <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
+              <FiPlus /> Create Role
+            </button>
+          )}
+          <button className="btn-icon" onClick={handleRefresh}>
+            <FiRefreshCw className={isLoading ? 'spinning' : ''} />
+          </button>
+        </div>
+      </div>
 
+      <div className="role-list-toolbar">
+        <div className="role-list-search">
+          <FiSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search roles by name or code..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <div className="role-list-toolbar-right">
+          <div className="role-filters">
+            <select
+              className="filter-select"
+              value={filters.role_type || ''}
+              onChange={(e) => handleFilterChange({ role_type: e.target.value })}
+            >
+              <option value="">All Types</option>
+              <option value="system">System</option>
+              <option value="custom">Custom</option>
+            </select>
+            <select
+              className="filter-select"
+              value={filters.is_assignable == null ? '' : filters.is_assignable.toString()}
+              onChange={(e) => {
+                const val = e.target.value;
+                handleFilterChange({ is_assignable: val === '' ? null : val === 'true' });
+              }}
+            >
+
+              <option value="">All Assignable</option>
+              <option value="true">Assignable</option>
+              <option value="false">Not Assignable</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="role-list-error">
+          <span>{error}</span>
+          <button onClick={clearError}>×</button>
+        </div>
+      )}
+
+      {isLoading && roles.length === 0 ? (
+        <div className="role-list-loading">
+          <div className="spinner" />
+          <p>Loading roles...</p>
+        </div>
+      ) : roles.length === 0 ? (
+        <div className="role-list-empty">
+          <FiShield className="empty-icon" />
+          <h3>No roles found</h3>
+          <p>Try adjusting your search or filters</p>
+          {canCreate && (
+            <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
+              <FiPlus /> Create your first role
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <RoleTable
+            roles={roles}
+            isLoading={isLoading}
+            onRowClick={(role) => navigate(ACCOUNTS_ROUTES.ROLE_DETAIL(role.id))}
+          />
+
+          <div className="role-list-pagination">
+            <div className="pagination-info">
+              Showing {roles.length} of {pagination.total} roles
+            </div>
+            <div className="pagination-controls">
+              <select
+                value={pagination.pageSize}
+                onChange={(e) => {
+                  const newSize = Number(e.target.value);
+                  pagination.changePageSize(newSize);
+                  setPageSize(newSize);
+                }}
+                className="pagination-select"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <button
+                className="pagination-btn"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={!pagination.hasPrev}
+              >
+                <FiChevronLeft />
+              </button>
+              <span className="pagination-current">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              <button
+                className="pagination-btn"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={!pagination.hasNext}
+              >
+                <FiChevronRight />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showCreateModal && (
+        <RoleForm
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            handleRefresh();
+          }}
+        />
+      )}
+    </div>
+  );
+};
 export default RoleList;

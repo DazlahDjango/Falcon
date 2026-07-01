@@ -97,15 +97,15 @@ class OAuthService:
         password_service = PasswordService()
         import secrets
         random_password = secrets.token_urlsafe(16)
-        from apps.core.models import Client
-        defaul_tenant = Client.objects.filter(is_deleted=False).first()
-        if not defaul_tenant:
+        from apps.tenant.models import Client
+        default_tenant = Client.objects.filter(is_deleted=False).first()
+        if not default_tenant:
             return None, None
         user, error = self.user_registration.register_user(
             email=email,
             username=email.split('@')[0],
             password=random_password,
-            tenant_id=str(defaul_tenant.id),
+            tenant_id=str(default_tenant.id),
             first_name=user_info.get('given_name', ''),
             last_name=user_info.get('family_name', ''),
             role='staff',

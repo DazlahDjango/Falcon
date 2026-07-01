@@ -12,7 +12,7 @@ export { default as OrgTreeNode } from '../../structure/common/OrgTreeNode';
 export { default as SecurityConsole } from '../../accounts/security/SecurityConsole';
 export { default as UserList } from '../../accounts/users/UserList';
 export { default as RoleList } from '../../accounts/roles/RoleList';
-export { default as AuditLogs } from '../../accounts/audit/AuditLogs';
+export { default as AuditLogList } from '../../accounts/audit/AuditLogList';
 export { GlobalSecurityBanner } from '../../accounts/common/GlobalSecurityBanner';
 
 // ——— Config (system health, backups, platform ops) ———

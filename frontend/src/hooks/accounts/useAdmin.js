@@ -1,248 +1,585 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    fetchSystemStats,
-    fetchAllUsers,
-    deleteUserAdmin,
-    suspendUser,
-    activateUserAdmin,
-    impersonateUser,
-    forcePasswordReset,
-    fetchTenants,
-    createTenant,
-    updateTenant,
-    deleteTenant,
-    suspendTenant,
-    activateTenant,
-    createTenantWithAdmin,
-    fetchSystemHealth,
-    fetchSystemConfig,
-    updateSystemConfig,
-    clearCache,
-    clearUserCache,
-    clearTenantCache,
-    initSystemRoles,
-    initPermissions,
-    clearError,
-    resetAdmin,
-    selectAdmin,
+  fetchAdminUsers,
+  fetchAdminUser,
+  createAdminUser,
+  updateAdminUser,
+  deleteAdminUser,
+  impersonateUser,
+  forcePasswordReset,
+  fetchAdminUserStats,
+  fetchAdminRoles,
+  fetchAdminRole,
+  createAdminRole,
+  updateAdminRole,
+  deleteAdminRole,
+  initSystemRoles,
+  fetchAdminPermissions,
+  fetchAdminPermission,
+  createAdminPermission,
+  updateAdminPermission,
+  deleteAdminPermission,
+  initPermissions,
+  fetchAdminTenants,
+  fetchAdminTenant,
+  createAdminTenant,
+  updateAdminTenant,
+  deleteAdminTenant,
+  createTenantWithAdmin,
+  suspendTenant,
+  activateTenant,
+  fetchAdminTenantStats,
+  fetchSystemInfo,
+  clearSystemCache,
+  fetchSystemHealth,
+  // ============ NEW THUNKS ============
+  fetchSystemConfig,
+  updateSystemConfig,
+  clearUserCache,
+  clearTenantCache,
+  // ============ END NEW ============
+  setAdminFilters,
+  setAdminPage,
+  clearSelectedAdminUser,
+  clearSelectedAdminRole,
+  clearSelectedAdminPermission,
+  clearSelectedAdminTenant,
+  clearAdminError,
 } from '../../store/accounts/slice/adminSlice';
+import {
+  activateUser as activateAdminUser,
+  deactivateUser as deactivateAdminUser,
+} from '../../store/accounts/slice/userSlice';
+import {
+  selectAdminUsers,
+  selectSelectedAdminUser,
+  selectAdminRoles,
+  selectSelectedAdminRole,
+  selectAdminPermissions,
+  selectSelectedAdminPermission,
+  selectAdminTenants,
+  selectSelectedAdminTenant,
+  selectSystemInfo,
+  selectSystemHealth,
+  selectAdminUserStats,
+  selectAdminTenantStats,
+  selectAdminLoading,
+  selectAdminCreating,
+  selectAdminUpdating,
+  selectAdminDeleting,
+  selectAdminError,
+  selectAdminPagination,
+  selectAdminFilters,
+  selectAdminUserById,
+  selectAdminRoleById,
+  selectAdminPermissionById,
+  selectAdminTenantById,
+  selectAdminUserCount,
+  selectAdminActiveUserCount,
+  selectAdminMfaEnabledCount,
+  selectAdminTenantCount,
+  selectSystemStatus,
+  selectSystemIsHealthy,
+} from '../../store/accounts/selectors/adminSelectors';
 
 export const useAdmin = () => {
-    const dispatch = useDispatch();
-    const adminState = useSelector(selectAdmin) || {
-        stats: {
-            total_users: 0,
-            active_users: 0,
-            total_tenants: 0,
-            active_tenants: 0,
-            uptime: '0d',
-            api_requests: 0,
-            request_trend: null
-        },
-        users: [],
-        tenants: [],
-        health: null,
-        systemConfig: null,
-        pagination: {
-            current_page: 1,
-            total_pages: 1,
-            total_items: 0,
-            page_size: 20
-        },
-        isLoading: false,
-        error: null
-    };
+  const dispatch = useDispatch();
+  const users = useSelector(selectAdminUsers);
+  const selectedUser = useSelector(selectSelectedAdminUser);
+  const roles = useSelector(selectAdminRoles);
+  const selectedRole = useSelector(selectSelectedAdminRole);
+  const permissions = useSelector(selectAdminPermissions);
+  const selectedPermission = useSelector(selectSelectedAdminPermission);
+  const tenants = useSelector(selectAdminTenants);
+  const selectedTenant = useSelector(selectSelectedAdminTenant);
+  const systemInfo = useSelector(selectSystemInfo);
+  const systemHealth = useSelector(selectSystemHealth);
+  const userStats = useSelector(selectAdminUserStats);
+  const tenantStats = useSelector(selectAdminTenantStats);
+  const isLoading = useSelector(selectAdminLoading);
+  const isCreating = useSelector(selectAdminCreating);
+  const isUpdating = useSelector(selectAdminUpdating);
+  const isDeleting = useSelector(selectAdminDeleting);
+  const error = useSelector(selectAdminError);
+  const pagination = useSelector(selectAdminPagination);
+  const filters = useSelector(selectAdminFilters);
 
-    // Local UI state
-    const [selectedUserId, setSelectedUserId] = useState(null);
-    const [selectedTenantId, setSelectedTenantId] = useState(null);
-    const [tenantModalOpen, setTenantModalOpen] = useState(false);
-    const [userModalOpen, setUserModalOpen] = useState(false);
+  // ============ User Management ============
+  const getUsers = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchAdminUsers(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== System Stats ==========
+  const getUser = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchAdminUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadSystemStats = useCallback(async () => {
-        return await dispatch(fetchSystemStats()).unwrap();
-    }, [dispatch]);
+  const createUser = useCallback(
+    async (data) => {
+      const result = await dispatch(createAdminUser(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== User Management (Admin) ==========
+  const updateUser = useCallback(
+    async (id, data) => {
+      const result = await dispatch(updateAdminUser({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadAllUsersAdmin = useCallback(async (params = {}) => {
-        return await dispatch(fetchAllUsers(params)).unwrap();
-    }, [dispatch]);
+  const deleteUser = useCallback(
+    async (id) => {
+      const result = await dispatch(deleteAdminUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const deleteUserAdminAction = useCallback(async (userId) => {
-        return await dispatch(deleteUserAdmin(userId)).unwrap();
-    }, [dispatch]);
+  const impersonate = useCallback(
+    async (id) => {
+      const result = await dispatch(impersonateUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const suspendUserAction = useCallback(async (userId) => {
-        return await dispatch(suspendUser(userId)).unwrap();
-    }, [dispatch]);
+  const forceReset = useCallback(
+    async (id) => {
+      const result = await dispatch(forcePasswordReset(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const activateUserAdminAction = useCallback(async (userId) => {
-        return await dispatch(activateUserAdmin(userId)).unwrap();
-    }, [dispatch]);
+  const activateUser = useCallback(
+    async (id) => {
+      const result = await dispatch(activateAdminUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const impersonateUserAction = useCallback(async (userId) => {
-        return await dispatch(impersonateUser(userId)).unwrap();
-    }, [dispatch]);
+  const deactivateUser = useCallback(
+    async (id) => {
+      const result = await dispatch(deactivateAdminUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const forcePasswordResetAction = useCallback(async (userId) => {
-        return await dispatch(forcePasswordReset(userId)).unwrap();
-    }, [dispatch]);
+  const getUserStats = useCallback(async () => {
+    const result = await dispatch(fetchAdminUserStats()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    // ========== Tenant Management ==========
+  // ============ Role Management ============
+  const getRoles = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchAdminRoles(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadTenants = useCallback(async (params = {}) => {
-        return await dispatch(fetchTenants(params)).unwrap();
-    }, [dispatch]);
+  const getRole = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchAdminRole(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const addTenant = useCallback(async (tenantData) => {
-        const result = await dispatch(createTenant(tenantData)).unwrap();
-        return result;
-    }, [dispatch]);
+  const createRole = useCallback(
+    async (data) => {
+      const result = await dispatch(createAdminRole(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const editTenant = useCallback(async (tenantId, tenantData) => {
-        return await dispatch(updateTenant({ id: tenantId, ...tenantData })).unwrap();
-    }, [dispatch]);
+  const updateRole = useCallback(
+    async (id, data) => {
+      const result = await dispatch(updateAdminRole({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const removeTenant = useCallback(async (tenantId) => {
-        return await dispatch(deleteTenant(tenantId)).unwrap();
-    }, [dispatch]);
+  const deleteRole = useCallback(
+    async (id) => {
+      const result = await dispatch(deleteAdminRole(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const suspendTenantAction = useCallback(async (tenantId) => {
-        return await dispatch(suspendTenant(tenantId)).unwrap();
-    }, [dispatch]);
+  const initRoles = useCallback(async () => {
+    const result = await dispatch(initSystemRoles()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const activateTenantAction = useCallback(async (tenantId) => {
-        return await dispatch(activateTenant(tenantId)).unwrap();
-    }, [dispatch]);
+  // ============ Permission Management ============
+  const getPermissions = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchAdminPermissions(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const addTenantWithAdmin = useCallback(async (data) => {
-        return await dispatch(createTenantWithAdmin(data)).unwrap();
-    }, [dispatch]);
+  const getPermission = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchAdminPermission(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== System Management ==========
+  const createPermission = useCallback(
+    async (data) => {
+      const result = await dispatch(createAdminPermission(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadSystemHealth = useCallback(async () => {
-        return await dispatch(fetchSystemHealth()).unwrap();
-    }, [dispatch]);
+  const updatePermission = useCallback(
+    async (id, data) => {
+      const result = await dispatch(updateAdminPermission({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadSystemConfig = useCallback(async () => {
-        return await dispatch(fetchSystemConfig()).unwrap();
-    }, [dispatch]);
+  const deletePermission = useCallback(
+    async (id) => {
+      const result = await dispatch(deleteAdminPermission(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const updateSystemConfigAction = useCallback(async (config) => {
-        return await dispatch(updateSystemConfig(config)).unwrap();
-    }, [dispatch]);
+  const initPermissions = useCallback(async () => {
+    const result = await dispatch(initPermissions()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const clearSystemCache = useCallback(async () => {
-        return await dispatch(clearCache()).unwrap();
-    }, [dispatch]);
+  // ============ Tenant Management ============
+  const getTenants = useCallback(
+    async (params) => {
+      const result = await dispatch(fetchAdminTenants(params)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const clearUserCacheAction = useCallback(async (userId) => {
-        return await dispatch(clearUserCache(userId)).unwrap();
-    }, [dispatch]);
+  const getTenant = useCallback(
+    async (id) => {
+      const result = await dispatch(fetchAdminTenant(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const clearTenantCacheAction = useCallback(async (tenantId) => {
-        return await dispatch(clearTenantCache(tenantId)).unwrap();
-    }, [dispatch]);
+  const createTenant = useCallback(
+    async (data) => {
+      const result = await dispatch(createAdminTenant(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Initialization ==========
+  const updateTenant = useCallback(
+    async (id, data) => {
+      const result = await dispatch(updateAdminTenant({ id, data })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const initializeSystemRoles = useCallback(async () => {
-        return await dispatch(initSystemRoles()).unwrap();
-    }, [dispatch]);
+  const deleteTenant = useCallback(
+    async (id) => {
+      const result = await dispatch(deleteAdminTenant(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const initializePermissions = useCallback(async () => {
-        return await dispatch(initPermissions()).unwrap();
-    }, [dispatch]);
+  const createTenantWithAdmin = useCallback(
+    async (data) => {
+      const result = await dispatch(createTenantWithAdmin(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    // ========== Utilities ==========
+  const suspend = useCallback(
+    async (id, reason) => {
+      const result = await dispatch(suspendTenant({ id, reason })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const clearAdminError = useCallback(() => {
-        dispatch(clearError());
-    }, [dispatch]);
+  const activate = useCallback(
+    async (id) => {
+      const result = await dispatch(activateTenant(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const resetAdminState = useCallback(() => {
-        dispatch(resetAdmin());
-    }, [dispatch]);
+  const getTenantStats = useCallback(async () => {
+    const result = await dispatch(fetchAdminTenantStats()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    // ========== Computed Values ==========
+  // ============ System Management ============
+  const getSystemInfo = useCallback(async () => {
+    const result = await dispatch(fetchSystemInfo()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const getTenantStatusBadge = (tenant) => {
-        if (!tenant.is_active) return { text: 'Suspended', variant: 'danger' };
-        return { text: 'Active', variant: 'success' };
-    };
+  const clearCache = useCallback(async () => {
+    const result = await dispatch(clearSystemCache()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const getUserStatusBadge = (user) => {
-        if (!user.is_active) return { text: 'Inactive', variant: 'danger' };
-        if (user.locked_until) return { text: 'Locked', variant: 'warning' };
-        return { text: 'Active', variant: 'success' };
-    };
+  const getSystemHealth = useCallback(async () => {
+    const result = await dispatch(fetchSystemHealth()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    // ========== Return ==========
+  // ============ NEW SYSTEM FUNCTIONS ============
+  const getSystemConfig = useCallback(async () => {
+    const result = await dispatch(fetchSystemConfig()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    return {
-        // State
-        stats: adminState.stats,
-        users: adminState.users,
-        tenants: adminState.tenants,
-        health: adminState.health,
-        systemConfig: adminState.systemConfig,
-        pagination: adminState.pagination,
-        isLoading: adminState.isLoading,
-        error: adminState.error,
+  const updateSystemConfig = useCallback(async (data) => {
+    const result = await dispatch(updateSystemConfig(data)).unwrap();
+    return result;
+  }, [dispatch]);
 
-        // UI State
-        selectedUserId,
-        setSelectedUserId,
-        selectedTenantId,
-        setSelectedTenantId,
-        tenantModalOpen,
-        setTenantModalOpen,
-        userModalOpen,
-        setUserModalOpen,
+  const clearUserCache = useCallback(async (userId) => {
+    const result = await dispatch(clearUserCache(userId)).unwrap();
+    return result;
+  }, [dispatch]);
 
-        // Actions - System Stats
-        loadSystemStats,
+  const clearTenantCache = useCallback(async (tenantId) => {
+    const result = await dispatch(clearTenantCache(tenantId)).unwrap();
+    return result;
+  }, [dispatch]);
+  // ============ END NEW ============
 
-        // Actions - User Management
-        loadAllUsersAdmin,
-        deleteUserAdminAction,
-        suspendUserAction,
-        activateUserAdminAction,
-        impersonateUserAction,
-        forcePasswordResetAction,
+  // ============ Filters & Pagination ============
+  const setFilters = useCallback(
+    (newFilters) => {
+      dispatch(setAdminFilters(newFilters));
+    },
+    [dispatch]
+  );
 
-        // Actions - Tenant Management
-        loadTenants,
-        addTenant,
-        editTenant,
-        removeTenant,
-        suspendTenantAction,
-        activateTenantAction,
-        addTenantWithAdmin,
+  const setPage = useCallback(
+    (page) => {
+      dispatch(setAdminPage(page));
+    },
+    [dispatch]
+  );
 
-        // Actions - System Management
-        loadSystemHealth,
-        loadSystemConfig,
-        updateSystemConfigAction,
-        clearSystemCache,
-        clearUserCacheAction,
-        clearTenantCacheAction,
+  const setPageSize = useCallback(
+    (pageSize) => {
+      dispatch(setAdminPageSize(pageSize));
+    },
+    [dispatch]
+  );
 
-        // Actions - Initialization
-        initializeSystemRoles,
-        initializePermissions,
+  // ============ Clear States ============
+  const clearSelectedUser = useCallback(() => {
+    dispatch(clearSelectedAdminUser());
+  }, [dispatch]);
 
-        // Utilities
-        clearAdminError,
-        resetAdminState,
+  const clearSelectedRole = useCallback(() => {
+    dispatch(clearSelectedAdminRole());
+  }, [dispatch]);
 
-        // Computed Values
-        getTenantStatusBadge,
-        getUserStatusBadge,
-    };
+  const clearSelectedPermission = useCallback(() => {
+    dispatch(clearSelectedAdminPermission());
+  }, [dispatch]);
+
+  const clearSelectedTenant = useCallback(() => {
+    dispatch(clearSelectedAdminTenant());
+  }, [dispatch]);
+
+  const clearError = useCallback(() => {
+    dispatch(clearAdminError());
+  }, [dispatch]);
+
+  // ============ Memoized Return ============
+  return useMemo(
+    () => ({
+      // State
+      users,
+      selectedUser,
+      roles,
+      selectedRole,
+      permissions,
+      selectedPermission,
+      tenants,
+      selectedTenant,
+      systemInfo,
+      systemHealth,
+      userStats,
+      tenantStats,
+      isLoading,
+      isCreating,
+      isUpdating,
+      isDeleting,
+      error,
+      pagination,
+      filters,
+
+      // User functions
+      getUsers,
+      getUser,
+      createUser,
+      updateUser,
+      deleteUser,
+      activateUser,
+      deactivateUser,
+      impersonate,
+      forceReset,
+      getUserStats,
+
+      // Role functions
+      getRoles,
+      getRole,
+      createRole,
+      updateRole,
+      deleteRole,
+      initRoles,
+
+      // Permission functions
+      getPermissions,
+      getPermission,
+      createPermission,
+      updatePermission,
+      deletePermission,
+      initPermissions,
+
+      // Tenant functions
+      getTenants,
+      getTenant,
+      createTenant,
+      updateTenant,
+      deleteTenant,
+      createTenantWithAdmin,
+      suspend,
+      activate,
+      getTenantStats,
+
+      // System functions
+      getSystemInfo,
+      clearCache,
+      getSystemHealth,
+      getSystemConfig,
+      updateSystemConfig,
+      clearUserCache,
+      clearTenantCache,
+
+      // Filters & Pagination
+      setFilters,
+      setPage,
+      setPageSize,
+
+      // Clear functions
+      clearSelectedUser,
+      clearSelectedRole,
+      clearSelectedPermission,
+      clearSelectedTenant,
+      clearError,
+      impersonateUser: impersonate,
+      forcePasswordReset: forceReset,
+    }),
+    [
+      users,
+      selectedUser,
+      roles,
+      selectedRole,
+      permissions,
+      selectedPermission,
+      tenants,
+      selectedTenant,
+      systemInfo,
+      systemHealth,
+      userStats,
+      tenantStats,
+      isLoading,
+      isCreating,
+      isUpdating,
+      isDeleting,
+      error,
+      pagination,
+      filters,
+      getUsers,
+      getUser,
+      createUser,
+      updateUser,
+      deleteUser,
+      activateUser,
+      deactivateUser,
+      activateUser,
+      deactivateUser,
+      impersonate,
+      forceReset,
+      getUserStats,
+      getRoles,
+      getRole,
+      createRole,
+      updateRole,
+      deleteRole,
+      initRoles,
+      getPermissions,
+      getPermission,
+      createPermission,
+      updatePermission,
+      deletePermission,
+      initPermissions,
+      getTenants,
+      getTenant,
+      createTenant,
+      updateTenant,
+      deleteTenant,
+      createTenantWithAdmin,
+      suspend,
+      activate,
+      getTenantStats,
+      getSystemInfo,
+      clearCache,
+      getSystemHealth,
+      getSystemConfig,
+      updateSystemConfig,
+      clearUserCache,
+      clearTenantCache,
+      setFilters,
+      setPage,
+      setPageSize,
+      clearSelectedUser,
+      clearSelectedRole,
+      clearSelectedPermission,
+      clearSelectedTenant,
+      clearError,
+    ]
+  );
 };

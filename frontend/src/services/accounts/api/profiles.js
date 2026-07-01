@@ -1,78 +1,46 @@
 import { request } from './client';
+import { PROFILE_ENDPOINTS } from '../../../config/constants/accountsApiConstants';
 
-// Profile API
-export const getProfiles = (params = {}) => {
-    return request.get('/profiles/', { params });
-};
+export const getProfiles = (params) => request.get(PROFILE_ENDPOINTS.LIST, { params });
 
-export const getProfileById = (profileId) => {
-    return request.get(`/profiles/${profileId}/`);
-};
+export const getProfile = (id) => request.get(PROFILE_ENDPOINTS.DETAIL(id));
 
-export const getMyProfile = () => {
-    return request.get('/profiles/my/');
-};
+export const updateProfile = (id, data) => request.patch(PROFILE_ENDPOINTS.UPDATE(id), data);
 
-export const updateMyProfile = (data) => {
-    return request.patch('/profiles/my/', data);
-};
+export const deleteProfile = (id) => request.delete(PROFILE_ENDPOINTS.DELETE(id));
 
-// Avatar Management
-export const uploadAvatar = (profileId, formData, onProgress) => {
-    return request.post(`/profiles/${profileId}/avatar/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / e.total))
-    });
-};
+export const uploadAvatar = (id, formData, onProgress) =>
+  request.post(PROFILE_ENDPOINTS.UPLOAD_AVATAR(id), formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: (e) => onProgress && onProgress(Math.round((e.loaded * 100) / e.total)),
+  });
 
-export const deleteAvatar = (profileId) => {
-    return request.delete(`/profiles/${profileId}/avatar/`);
-};
+export const deleteAvatar = (id) => request.delete(PROFILE_ENDPOINTS.DELETE_AVATAR(id));
 
-// Skills Management
-export const addSkill = (profileId, data) => {
-    return request.post(`/profiles/${profileId}/skills/`, data);
-};
+export const addSkill = (id, data) => request.post(PROFILE_ENDPOINTS.SKILLS(id), data);
 
-export const updateSkill = (profileId, skillName, data) => {
-    return request.patch(`/profiles/${profileId}/skills/${skillName}/`, data);
-};
+export const updateSkill = (id, skillName, data) =>
+  request.put(PROFILE_ENDPOINTS.SKILL_DETAIL(id, skillName), data);
 
-export const removeSkill = (profileId, skillName) => {
-    return request.delete(`/profiles/${profileId}/skills/${skillName}/`);
-};
+export const removeSkill = (id, skillName) =>
+  request.delete(PROFILE_ENDPOINTS.SKILL_DETAIL(id, skillName));
 
-export const getSkillsSummary = (profileId) => {
-    return request.get(`/profiles/${profileId}/skills-summary/`);
-};
+export const getSkillsSummary = (id) => request.get(PROFILE_ENDPOINTS.SKILLS_SUMMARY(id));
 
-// Certifications Management
-export const addCertification = (profileId, data) => {
-    return request.post(`/profiles/${profileId}/certifications/`, data);
-};
+export const addCertification = (id, data) =>
+  request.post(PROFILE_ENDPOINTS.CERTIFICATIONS(id), data);
 
-export const removeCertification = (profileId, certName) => {
-    return request.delete(`/profiles/${profileId}/certifications/${certName}/`);
-};
+export const removeCertification = (id, certName) =>
+  request.delete(PROFILE_ENDPOINTS.CERTIFICATION_DETAIL(id, certName));
 
-export const getCertificationsSummary = (profileId) => {
-    return request.get(`/profiles/${profileId}/certifications-summary/`);
-};
+export const getCertificationsSummary = (id) =>
+  request.get(PROFILE_ENDPOINTS.CERTIFICATIONS_SUMMARY(id));
 
-export const profilesApi = {
-    getProfiles,
-    getProfileById,
-    getMyProfile,
-    updateMyProfile,
-    uploadAvatar,
-    deleteAvatar,
-    addSkill,
-    updateSkill,
-    removeSkill,
-    getSkillsSummary,
-    addCertification,
-    removeCertification,
-    getCertificationsSummary,
-};
+export const getMyProfile = () => request.get(PROFILE_ENDPOINTS.MY_PROFILE);
 
-export default profilesApi;
+export const updateMyProfile = (data) => request.patch(PROFILE_ENDPOINTS.MY_PROFILE, data);
+
+export const getMySkillsSummary = () => request.get(PROFILE_ENDPOINTS.MY_SKILLS_SUMMARY);
+
+export const getMyCertificationsSummary = () =>
+  request.get(PROFILE_ENDPOINTS.MY_CERTIFICATIONS_SUMMARY);

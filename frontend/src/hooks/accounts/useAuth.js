@@ -1,116 +1,249 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    login as loginAction,
-    logout as logoutAction,
-    register as registerAction,
-    verifyMfa as verifyMfaAction,
-    changePassword as changePasswordAction,
-    updateProfile as updateProfileAction,
-    clearError,
-    selectAuth,
-    fetchCurrentUser
+  login as loginAction,
+  verifyMfa as verifyMfaAction,
+  logout as logoutAction,
+  fetchCurrentUser,
+  clearError,
+  clearMfaState,
+  // ============ NEW IMPORTS ============
+  register as registerAction,
+  registerTenant as registerTenantAction,
+  forgotPassword as forgotPasswordAction,
+  resetPassword as resetPasswordAction,
+  verifyEmail as verifyEmailAction,
+  resendVerification as resendVerificationAction,
+  // ============ END NEW ============
 } from '../../store/accounts/slice/authSlice';
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../../services/accounts/storage/secureStorage';
+import {
+  selectAuth,
+  selectUser,
+  selectIsAuthenticated,
+  selectIsLoading,
+  selectAuthError,
+  selectRequiresMfa,
+  selectMfaToken,
+  selectMfaPending,
+  selectIsInitialized,
+  selectUserRole,
+  selectUserTenantId,
+  selectUserId,
+  selectUserEmail,
+  selectUserFullName,
+  selectIsSuperAdmin,
+  selectIsVerified,
+} from '../../store/accounts/selectors/authSelectors';
 
 export const useAuth = () => {
-    const dispatch = useDispatch();
-    const auth = useSelector(selectAuth);
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectAuthError);
+  const requiresMfa = useSelector(selectRequiresMfa);
+  const mfaToken = useSelector(selectMfaToken);
+  const mfaPending = useSelector(selectMfaPending);
+  const isInitialized = useSelector(selectIsInitialized);
+  const role = useSelector(selectUserRole);
+  const tenantId = useSelector(selectUserTenantId);
+  const userId = useSelector(selectUserId);
+  const email = useSelector(selectUserEmail);
+  const fullName = useSelector(selectUserFullName);
+  const isSuperAdmin = useSelector(selectIsSuperAdmin);
+  const isVerified = useSelector(selectIsVerified);
 
-    // Provide default values if auth is undefined
-    const safeAuth = auth || {
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-        requiresMfa: false,
-        mfaToken: null,
-    };
+  // ============ Auth Actions ============
+  const login = useCallback(
+    async (credentials) => {
+      const result = await dispatch(loginAction(credentials)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const login = useCallback(async (credentials) => {
-        try {
-            const result = await dispatch(loginAction(credentials)).unwrap();
-            if (!result.requires_mfa) {
-                await setTokens(result.access, result.refresh);
-            }
-            return { success: true, data: result };
-        } catch (error) {
-            return { success: false, error: error.message || 'Login failed' };
-        }
-    }, [dispatch]);
+  const verifyMfa = useCallback(
+    async (mfaToken, otp) => {
+      const result = await dispatch(verifyMfaAction({ mfaToken, otp })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const logout = useCallback(async () => {
-        try {
-            await dispatch(logoutAction()).unwrap();
-            await clearTokens();
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message || 'Logout failed' };
-        }
-    }, [dispatch]);
+  const logout = useCallback(async () => {
+    await dispatch(logoutAction()).unwrap();
+  }, [dispatch]);
 
-    const register = useCallback(async (userData) => {
-        try {
-            const result = await dispatch(registerAction(userData)).unwrap();
-            return { success: true, data: result };
-        } catch (error) {
-            return { success: false, error: error.message || 'Registration failed' };
-        }
-    }, [dispatch]);
+  const refreshUser = useCallback(async () => {
+    const result = await dispatch(fetchCurrentUser()).unwrap();
+    return result;
+  }, [dispatch]);
 
-    const verifyMfa = useCallback(async (data) => {
-        try {
-            const mfaToken = data.mfaToken || data.mfa_token;
-            const otp = data.otp;
-            const result = await dispatch(verifyMfaAction({ mfaToken, otp })).unwrap();
-            await setTokens(result.access, result.refresh);
-            return { success: true, data: result };
-        } catch (error) {
-            return { success: false, error: error.message || 'MFA verification failed' };
-        }
-    }, [dispatch]);
+  const clearAuthError = useCallback(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
-    const changePassword = useCallback(async (passwordData) => {
-        try {
-            await dispatch(changePasswordAction(passwordData)).unwrap();
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message || 'Password change failed' };
-        }
-    }, [dispatch]);
+  const clearMfa = useCallback(() => {
+    dispatch(clearMfaState());
+  }, [dispatch]);
 
-    const updateProfile = useCallback(async (profileData) => {
-        try {
-            const result = await dispatch(updateProfileAction(profileData)).unwrap();
-            return { success: true, data: result };
-        } catch (error) {
-            return { success: false, error: error.message || 'Profile update failed' };
-        }
-    }, [dispatch]);
+  // ============ Registration ============
+  const register = useCallback(
+    async (data) => {
+      const result = await dispatch(registerAction(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const clearAuthError = useCallback(() => {
-        dispatch(clearError());
-    }, [dispatch]);
+  const registerTenant = useCallback(
+    async (data) => {
+      const result = await dispatch(registerTenantAction(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    const loadCurrentUser = useCallback(() => {
-        dispatch(fetchCurrentUser());
-    }, [dispatch]);
+  // ============ Password Reset ============
+  const forgotPassword = useCallback(
+    async (data) => {
+      const result = await dispatch(forgotPasswordAction(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
 
-    return {
-        user: safeAuth.user,
-        isAuthenticated: safeAuth.isAuthenticated,
-        isLoading: safeAuth.isLoading,
-        error: safeAuth.error,
-        requiresMfa: safeAuth.requiresMfa,
-        mfaToken: safeAuth.mfaToken,
-        // Actions
-        login,
-        logout,
-        register,
-        verifyMfa,
-        changePassword,
-        updateProfile,
-        clearError: clearAuthError,
-        loadCurrentUser
-    };
+  const resetPassword = useCallback(
+    async (data) => {
+      const result = await dispatch(resetPasswordAction(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  // ============ Email Verification ============
+  const verifyEmail = useCallback(
+    async (data) => {
+      const result = await dispatch(verifyEmailAction(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  const resendVerification = useCallback(
+    async (data) => {
+      const result = await dispatch(resendVerificationAction(data)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  // ============ Role Checks ============
+  const hasRole = useCallback(
+    (targetRole) => {
+      if (!user) return false;
+      if (Array.isArray(targetRole)) {
+        return targetRole.includes(role);
+      }
+      return role === targetRole;
+    },
+    [user, role]
+  );
+
+  const hasAnyRole = useCallback(
+    (roles) => {
+      if (!user) return false;
+      return roles.includes(role);
+    },
+    [user, role]
+  );
+
+  const isAdmin = useCallback(() => {
+    return role === 'super_admin' || role === 'client_admin';
+  }, [role]);
+
+  const isManagement = useCallback(() => {
+    return ['super_admin', 'client_admin', 'executive', 'supervisor'].includes(role);
+  }, [role]);
+
+  // ============ Memoized Return ============
+  return useMemo(
+    () => ({
+      // State
+      user,
+      isAuthenticated,
+      isLoading,
+      error,
+      requiresMfa,
+      mfaToken,
+      mfaPending,
+      isInitialized,
+      role,
+      tenantId,
+      userId,
+      email,
+      fullName,
+      isSuperAdmin,
+      isVerified,
+
+      // Auth Actions
+      login,
+      verifyMfa,
+      logout,
+      refreshUser,
+      clearAuthError,
+      clearMfa,
+
+      // Registration
+      register,
+      registerTenant,
+
+      // Password Reset
+      forgotPassword,
+      resetPassword,
+
+      // Email Verification
+      verifyEmail,
+      resendVerification,
+
+      // Role Checks
+      hasRole,
+      hasAnyRole,
+      isAdmin,
+      isManagement,
+    }),
+    [
+      user,
+      isAuthenticated,
+      isLoading,
+      error,
+      requiresMfa,
+      mfaToken,
+      mfaPending,
+      isInitialized,
+      role,
+      tenantId,
+      userId,
+      email,
+      fullName,
+      isSuperAdmin,
+      isVerified,
+      login,
+      verifyMfa,
+      logout,
+      refreshUser,
+      clearAuthError,
+      clearMfa,
+      register,
+      registerTenant,
+      forgotPassword,
+      resetPassword,
+      verifyEmail,
+      resendVerification,
+      hasRole,
+      hasAnyRole,
+      isAdmin,
+      isManagement,
+    ]
+  );
 };
