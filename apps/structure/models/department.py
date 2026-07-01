@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from .base import BaseStructureModel
+from apps.structure.managers.department import DepartmentManager
+from apps.structure.enums.org_level import OrgLevel
 
 class Department(BaseStructureModel):
     SENSITIVITY_CHOICES = [
@@ -21,17 +23,15 @@ class Department(BaseStructureModel):
     headcount_limit = models.PositiveIntegerField(_('headcount limit'), null=True, blank=True)
     is_active = models.BooleanField(_('active'), default=True, db_index=True)
     sensitivity_level = models.CharField(_('sensitivity level'), max_length=20, choices=SENSITIVITY_CHOICES, default='internal')
-    
+
+    objects = DepartmentManager()
+
     class Meta:
         db_table = 'structure_department'
         verbose_name = _('department')
         verbose_name_plural = _('departments')
         constraints = [
-            models.UniqueConstraint(
-                fields=['tenant_id', 'code'],
-                condition=models.Q(is_deleted=False),
-                name='unique_tenant_department_code'
-            )
+            models.UniqueConstraint(fields=['tenant_id', 'code'], condition=models.Q(is_deleted=False), name='unique_tenant_department_code')
         ]
         indexes = [
             models.Index(fields=['path']),
@@ -39,29 +39,56 @@ class Department(BaseStructureModel):
             models.Index(fields=['tenant_id', 'code']),
             models.Index(fields=['cost_center_id']),
         ]
-    
+
     def __str__(self):
         return f"{self.code} - {self.name}"
+
     def clean(self):
         if self.parent and self.parent.id == self.id:
             raise ValidationError({'parent': _("Department cannot be its own parent.")})
         if self.parent and self.parent.tenant_id != self.tenant_id:
             raise ValidationError({'parent': _("Parent department must belong to same tenant.")})
+
     def save(self, *args, **kwargs):
         self.full_clean()
-        if not self.path and self.parent:
-            self.path = f"{self.parent.path}/{self.code}" if self.parent.path else self.code
-            self.depth = self.parent.depth + 1
+        if self.pk:
+            old = Department.objects.filter(pk=self.pk).first()
+            if old and (old.code != self.code or old.parent_id != self.parent_id):
+                self.path = self._compute_path()
+                self.depth = self._compute_depth()
         elif not self.path:
-            self.path = self.code
-            self.depth = 0
+            if self.parent:
+                self.path = f"{self.parent.path}/{self.code}" if self.parent.path else self.code
+                self.depth = self.parent.depth + 1
+            else:
+                self.path = self.code
+                self.depth = 0
         super().save(*args, **kwargs)
+
+    def _compute_path(self):
+        if self.parent:
+            return f"{self.parent.path}/{self.code}" if self.parent.path else self.code
+        return self.code
+
+    def _compute_depth(self):
+        if self.parent:
+            return self.parent.depth + 1
+        return 0
+
     @property
     def full_path(self):
         if self.parent:
             return f"{self.parent.full_path} / {self.name}"
         return self.name
-    
+
+    @property
+    def level(self):
+        return OrgLevel.DEPARTMENT
+
+    @property
+    def get_level_display(self):
+        return dict(OrgLevel.choices).get(self.level, '')
+
     def get_descendants(self, include_self=False):
         descendants = list(self.children.filter(is_deleted=False, is_active=True))
         for child in self.children.all():
@@ -69,3 +96,11 @@ class Department(BaseStructureModel):
         if include_self:
             descendants.insert(0, self)
         return descendants
+
+    def get_ancestors(self):
+        ancestors = []
+        current = self
+        while current.parent:
+            ancestors.append(current.parent)
+            current = current.parent
+        return ancestors

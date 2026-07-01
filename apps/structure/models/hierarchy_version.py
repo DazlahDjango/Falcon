@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .base import BaseStructureModel
-
+from apps.structure.managers.base import BaseStructureManager
 
 class HierarchyVersion(BaseStructureModel):
     VERSION_TYPE_CHOICES = [
@@ -17,7 +17,7 @@ class HierarchyVersion(BaseStructureModel):
     description = models.TextField(_('description'), blank=True)
     version_type = models.CharField(_('version type'), max_length=20, choices=VERSION_TYPE_CHOICES, default='auto')
     snapshot = models.JSONField(_('snapshot data'), help_text=_("Full org structure snapshot at this point in time"))
-    snapshot_hash = models.CharField(_('snapshot hash'), max_length=64, unique=True, db_index=True)
+    snapshot_hash = models.CharField(_('snapshot hash'), max_length=64, db_index=True)
     effective_from = models.DateTimeField(_('effective from'), db_index=True)
     effective_to = models.DateTimeField(_('effective to'), null=True, blank=True)
     is_current = models.BooleanField(_('is current'), default=False, db_index=True)
@@ -25,23 +25,27 @@ class HierarchyVersion(BaseStructureModel):
     approved_by_id = models.UUIDField(_('approved by user ID'), null=True, blank=True)
     approved_at = models.DateTimeField(_('approved at'), null=True, blank=True)
     approved_notes = models.TextField(_('approved notes'), blank=True)
-    
+
+    objects = BaseStructureManager()
+
     class Meta:
         db_table = 'structure_hierarchy_version'
         verbose_name = _('hierarchy version')
         verbose_name_plural = _('hierarchy versions')
-        unique_together = [['tenant_id', 'version_number']]
+        unique_together = [['tenant_id', 'version_number'], ['tenant_id', 'snapshot_hash']]
         indexes = [
             models.Index(fields=['tenant_id', 'is_current']),
             models.Index(fields=['tenant_id', 'effective_from', 'effective_to']),
             models.Index(fields=['snapshot_hash']),
             models.Index(fields=['version_type']),
         ]
+
     def __str__(self):
         return f"v{self.version_number} - {self.get_version_type_display()} ({self.effective_from.date()})"
+
     @classmethod
     def capture_current(cls, tenant_id, version_type='auto', description='', created_by=None):
-        from ..services import TreeBuilder
+        from apps.structure.services.hierarchy.tree_builder import TreeBuilder
         snapshot = TreeBuilder().build_full_tree(tenant_id)
         import hashlib
         import json

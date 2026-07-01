@@ -4,10 +4,10 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import transaction
 from django.utils import timezone
-from ....models.hierarchy_version import HierarchyVersion
-from ..serializers.hierarchy import HierarchyVersionSerializer, HierarchyVersionDetailSerializer, HierarchySnapshotSerializer
-from ..throttles.structure_limits import HierarchyReadThrottle, HierarchyWriteThrottle
-from ..permissions.structure_permissions import CanViewHierarchy, CanEditHierarchy
+from apps.structure.models.hierarchy_version import HierarchyVersion
+from apps.structure.api.v1.serializers.hierarchy import HierarchyVersionSerializer, HierarchyVersionDetailSerializer, HierarchySnapshotSerializer
+from apps.structure.api.v1.throttles.structure_limits import HierarchyReadThrottle, HierarchyWriteThrottle
+from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanManageDepartment, CanViewOrgChart
 from .base import BaseStructureViewSet, BaseStructureReadOnlyViewSet
 
 class HierarchyViewSet(BaseStructureViewSet):
@@ -22,9 +22,9 @@ class HierarchyViewSet(BaseStructureViewSet):
     
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'capture_snapshot', 'restore_version']:
-            self.permission_classes = [CanEditHierarchy]
+            self.permission_classes = [IsTenantMember, CanManageDepartment]
         else:
-            self.permission_classes = [CanViewHierarchy]
+            self.permission_classes = [IsTenantMember, CanViewOrgChart]
         return super().get_permissions()
     
     def get_throttles(self):
@@ -46,11 +46,11 @@ class HierarchyViewSet(BaseStructureViewSet):
         tenant_id = request.user.tenant_id
         serializer = HierarchySnapshotSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        from ....services.hierarchy.tree_builder import TreeBuilder
+        from apps.structure.services.hierarchy.tree_builder import TreeBuilder
         import hashlib
         import json
         tree_builder = TreeBuilder()
-        snapshot = tree_builder.build_full_org_tree(tenant_id)
+        snapshot = tree_builder.build_full_tree(tenant_id)
         snapshot_hash = hashlib.sha256(json.dumps(snapshot, sort_keys=True, default=str).encode()).hexdigest()
         latest_version = HierarchyVersion.objects.filter(tenant_id=tenant_id).order_by('-version_number').first()
         version_number = (latest_version.version_number + 1) if latest_version else 1
@@ -79,15 +79,15 @@ class HierarchyViewSet(BaseStructureViewSet):
     def _calculate_changes_summary(self, previous_version: HierarchyVersion, new_snapshot: dict) -> dict:
         if not previous_version or not previous_version.snapshot:
             return {}
-        old_departments = previous_version.snapshot.get('departments', [])
-        new_departments = new_snapshot.get('departments', [])
-        old_dept_ids = {d.get('id') for d in old_departments}
-        new_dept_ids = {d.get('id') for d in new_departments}
+        old_divisions = previous_version.snapshot.get('divisions', [])
+        new_divisions = new_snapshot.get('divisions', [])
+        old_div_ids = {d.get('id') for d in old_divisions}
+        new_div_ids = {d.get('id') for d in new_divisions}
         return {
-            'departments_added': len(new_dept_ids - old_dept_ids),
-            'departments_removed': len(old_dept_ids - new_dept_ids),
-            'summary': f"Department changes: +{len(new_dept_ids - old_dept_ids)} / -{len(old_dept_ids - new_dept_ids)}",
-            'change_count': len(new_dept_ids ^ old_dept_ids),
+            'divisions_added': len(new_div_ids - old_div_ids),
+            'divisions_removed': len(old_div_ids - new_div_ids),
+            'summary': f"Division changes: +{len(new_div_ids - old_div_ids)} / -{len(old_div_ids - new_div_ids)}",
+            'change_count': len(new_div_ids ^ old_div_ids),
             'captured_at': timezone.now().isoformat()
         }
     
@@ -99,7 +99,6 @@ class HierarchyViewSet(BaseStructureViewSet):
             return Response({'error': 'Version has no snapshot data'}, status=status.HTTP_400_BAD_REQUEST)
         tenant_id = request.user.tenant_id
         snapshot = version.snapshot
-        departments = snapshot.get('departments', [])
         current_version = HierarchyVersion.objects.filter(tenant_id=tenant_id, is_current=True).first()
         if current_version:
             current_version.is_current = False
@@ -135,16 +134,15 @@ class HierarchyViewSet(BaseStructureViewSet):
         version_b = HierarchyVersion.objects.filter(id=compare_to_id, tenant_id=request.user.tenant_id).first()
         if not version_b:
             return Response({'error': 'Version to compare not found'}, status=status.HTTP_404_NOT_FOUND)
-        from ....services.audit.diff_calculator import DiffCalculatorService
         old_snapshot = version_a.snapshot if version_a.version_number < version_b.version_number else version_b.snapshot
         new_snapshot = version_b.snapshot if version_a.version_number < version_b.version_number else version_a.snapshot
-        old_departments = {d.get('code'): d for d in old_snapshot.get('departments', []) if old_snapshot}
-        new_departments = {d.get('code'): d for d in new_snapshot.get('departments', []) if new_snapshot}
-        added = [code for code in new_departments.keys() if code not in old_departments]
-        removed = [code for code in old_departments.keys() if code not in new_departments]
+        old_divisions = {d.get('code'): d for d in old_snapshot.get('divisions', []) if old_snapshot}
+        new_divisions = {d.get('code'): d for d in new_snapshot.get('divisions', []) if new_snapshot}
+        added = [code for code in new_divisions.keys() if code not in old_divisions]
+        removed = [code for code in old_divisions.keys() if code not in new_divisions]
         modified = []
-        for code in set(old_departments.keys()) & set(new_departments.keys()):
-            if old_departments[code] != new_departments[code]:
+        for code in set(old_divisions.keys()) & set(new_divisions.keys()):
+            if old_divisions[code] != new_divisions[code]:
                 modified.append(code)
         return Response({
             'version_a': {
@@ -160,9 +158,9 @@ class HierarchyViewSet(BaseStructureViewSet):
                 'captured_at': version_b.effective_from
             },
             'differences': {
-                'departments_added': added,
-                'departments_removed': removed,
-                'departments_modified': modified,
+                'divisions_added': added,
+                'divisions_removed': removed,
+                'divisions_modified': modified,
                 'add_count': len(added),
                 'remove_count': len(removed),
                 'modify_count': len(modified)
@@ -194,11 +192,11 @@ class HierarchyViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['post'], url_path='auto-capture')
     def auto_capture(self, request):
         tenant_id = request.user.tenant_id
-        from ....services.hierarchy.tree_builder import TreeBuilder
+        from apps.structure.services.hierarchy.tree_builder import TreeBuilder
         import hashlib
         import json
         tree_builder = TreeBuilder()
-        snapshot = tree_builder.build_full_org_tree(tenant_id)
+        snapshot = tree_builder.build_full_tree(tenant_id)
         snapshot_hash = hashlib.sha256(json.dumps(snapshot, sort_keys=True, default=str).encode()).hexdigest()
         latest_version = HierarchyVersion.objects.filter(tenant_id=tenant_id).order_by('-version_number').first()
         if latest_version and latest_version.snapshot_hash == snapshot_hash:
@@ -227,20 +225,15 @@ class HierarchyViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='validate')
     def validate_hierarchy(self, request):
         tenant_id = request.user.tenant_id
-        from ....services.validation.org_validator import OrgValidatorService
-        from ....services.hierarchy.cycle_detector import CycleDetector
+        from apps.structure.services.validation.org_validator import OrgValidatorService
+        from apps.structure.services.hierarchy.cycle_detector import CycleDetector
         validator = OrgValidatorService()
         integrity_check = validator.validate_org_integrity(tenant_id)
-        dept_cycles = CycleDetector.find_all_cycles(tenant_id, 'department')
-        team_cycles = CycleDetector.find_all_cycles(tenant_id, 'team')
+        cycles = CycleDetector().find_all_cycles(tenant_id)
         return Response({
-            'is_valid': integrity_check['is_valid'] and len(dept_cycles) == 0 and len(team_cycles) == 0,
+            'is_valid': integrity_check['is_valid'] and len(cycles) == 0,
             'integrity_issues': integrity_check['issues'],
             'integrity_issue_count': integrity_check['issue_count'],
-            'department_cycles': len(dept_cycles),
-            'team_cycles': len(team_cycles),
-            'cycle_details': {
-                'departments': [str(cycle[0]) for cycle in dept_cycles],
-                'teams': [str(cycle[0]) for cycle in team_cycles]
-            }
+            'cycles': len(cycles),
+            'cycle_details': [{'node_id': str(cycle['node_id']), 'code': cycle.get('code', '')} for cycle in cycles]
         })

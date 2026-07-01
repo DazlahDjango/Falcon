@@ -4,10 +4,14 @@ import {
     FiHome, FiBarChart2, FiUsers, FiTrendingUp, FiAlertCircle, 
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
     FiDownload, FiSettings, FiBell, FiGrid, FiPieChart, FiFileText,
-    FiTarget, FiActivity, FiAward
+    FiTarget, FiActivity, FiAward, FiGitBranch, FiMapPin, FiDollarSign,
+    FiLayers, FiBriefcase
 } from 'react-icons/fi';
+import { HiOutlineBuildingOffice } from 'react-icons/hi2';
+import { BsDiagram3 } from 'react-icons/bs';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
 import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
+import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
@@ -15,6 +19,7 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
         main: true,
         performance: true,
         organization: true,
+        structure: false,
         reports: true,
         settings: false
     });
@@ -44,6 +49,18 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
             { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiBarChart2 },
             { path: KPI_ROUTES.AGGREGATED_SCORES_DEPARTMENTS, name: 'Department Scores', icon: FiGrid },
             { path: KPI_ROUTES.AGGREGATED_SCORES_RANKING, name: 'Department Ranking', icon: FiAward },
+        ],
+        structure: [
+            { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Structure Dashboard', icon: FiBarChart2 },
+            { path: STRUCTURE_ROUTES.DEPARTMENTS, name: 'Departments', icon: HiOutlineBuildingOffice },
+            { path: STRUCTURE_ROUTES.DIVISIONS, name: 'Divisions', icon: FiGitBranch },
+            { path: STRUCTURE_ROUTES.POSITIONS, name: 'Positions', icon: FiBriefcase },
+            { path: STRUCTURE_ROUTES.EMPLOYMENTS, name: 'Employments', icon: FiUsers },
+            { path: STRUCTURE_ROUTES.REPORTING_LINES, name: 'Reporting Lines', icon: BsDiagram3 },
+            { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
+            { path: STRUCTURE_ROUTES.COST_CENTERS, name: 'Cost Centers', icon: FiDollarSign },
+            { path: STRUCTURE_ROUTES.LOCATIONS, name: 'Locations', icon: FiMapPin },
+            { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, name: 'Hierarchy', icon: FiLayers },
         ],
         reports: [
             { path: DASHBOARD_ROUTES.EXECUTIVE.REPORTS, name: 'Reports', icon: FiFileText },
@@ -94,7 +111,6 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
 
     return (
         <aside className={`sidebar executive-sidebar ${isOpen ? 'open' : 'closed'} ${isCollapsed ? 'collapsed' : ''}`}>
-            {/* Logo Area */}
             <div className="sidebar-logo">
                 <NavLink to={DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW} className="logo-link">
                     <div className="logo-icon">
@@ -111,7 +127,6 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
                 </button>
             </div>
             
-            {/* Tenant Info */}
             {!isCollapsed && currentTenant && (
                 <div className="sidebar-tenant">
                     <div className="tenant-name">{currentTenant.name}</div>
@@ -123,6 +138,7 @@ const ExecutiveSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, 
                 {renderNavGroup('Main', navigation.main, 'main')}
                 {renderNavGroup('Performance Analytics', navigation.performance, 'performance')}
                 {renderNavGroup('Organization Performance', navigation.organization, 'organization')}
+                {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Reports & Exports', navigation.reports, 'reports')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>

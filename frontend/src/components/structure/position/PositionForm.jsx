@@ -1,0 +1,260 @@
+import React, { useEffect, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
+import { usePositions, usePositionForm } from '../../../hooks/structure';
+import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
+import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
+import './position.css';
+
+export const PositionForm = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = !!id;
+
+  const {
+    currentItem,
+    isLoading,
+    error,
+    fetchById,
+    create,
+    update,
+    clearError,
+  } = usePositions({ autoFetch: false });
+
+  const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = usePositionForm({
+    initialValues: {
+      job_code: '',
+      title: '',
+      grade: '',
+      level: 5,
+      reports_to_id: '',
+      min_tenure_months: 0,
+      required_competencies: [],
+      is_single_incumbent: false,
+      max_incumbents: '',
+      requires_supervisor_approval: true,
+    },
+    onSubmit: async (formData) => {
+      if (isEditing) {
+        await update(id, formData);
+      } else {
+        await create(formData);
+      }
+      navigate(STRUCTURE_ROUTES.POSITIONS);
+    },
+  });
+
+  useEffect(() => {
+    if (isEditing && id) {
+      fetchById(id);
+    }
+  }, [isEditing, id, fetchById]);
+
+  useEffect(() => {
+    if (currentItem && isEditing) {
+      resetForm({
+        job_code: currentItem.job_code || '',
+        title: currentItem.title || '',
+        grade: currentItem.grade || '',
+        level: currentItem.level || 5,
+        reports_to_id: currentItem.reports_to_id || '',
+        min_tenure_months: currentItem.min_tenure_months || 0,
+        required_competencies: currentItem.required_competencies || [],
+        is_single_incumbent: currentItem.is_single_incumbent || false,
+        max_incumbents: currentItem.max_incumbents || '',
+        requires_supervisor_approval: currentItem.requires_supervisor_approval !== undefined ? currentItem.requires_supervisor_approval : true,
+      });
+    }
+  }, [currentItem, isEditing, resetForm]);
+
+  const handleCancel = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.POSITIONS);
+  }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="position-form-loading">
+        <StructureLoading text="Loading position..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="position-form-error">
+        <p>{error}</p>
+        <button onClick={clearError} className="btn btn-primary">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (isEditing && !currentItem) {
+    return (
+      <StructureEmptyState
+        title="Position Not Found"
+        description="The position you are looking for does not exist."
+        actionLabel="Back to Positions"
+        onAction={handleCancel}
+      />
+    );
+  }
+
+  return (
+    <div className="position-form-container">
+      <div className="position-form-header">
+        <button onClick={handleCancel} className="back-btn">
+          <FiArrowLeft size={18} />
+          Back
+        </button>
+        <h1>{isEditing ? 'Edit Position' : 'Create Position'}</h1>
+      </div>
+
+      <StructureForm
+        title={isEditing ? `Editing: ${currentItem?.title}` : 'New Position'}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        isLoading={isSubmitting}
+        isEditing={isEditing}
+      >
+        <div className="form-group">
+          <label htmlFor="job_code">
+            Job Code <span className="required">*</span>
+          </label>
+          <input
+            id="job_code"
+            name="job_code"
+            type="text"
+            placeholder="e.g., ENG-001"
+            value={values.job_code || ''}
+            onChange={handleChange}
+            required
+            disabled={isSubmitting}
+          />
+          <span className="form-hint">Format: 2-4 letters, hyphen, 3-5 digits (e.g., ENG-001)</span>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="title">
+            Title <span className="required">*</span>
+          </label>
+          <input
+            id="title"
+            name="title"
+            type="text"
+            placeholder="e.g., Senior Software Engineer"
+            value={values.title || ''}
+            onChange={handleChange}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="grade">Grade</label>
+          <input
+            id="grade"
+            name="grade"
+            type="text"
+            placeholder="e.g., P5"
+            value={values.grade || ''}
+            onChange={handleChange}
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="level">
+            Level <span className="required">*</span>
+          </label>
+          <input
+            id="level"
+            name="level"
+            type="number"
+            placeholder="1-20"
+            value={values.level || 5}
+            onChange={handleChange}
+            min="1"
+            max="20"
+            required
+            disabled={isSubmitting}
+          />
+          <span className="form-hint">Must be between 1 and 20</span>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="reports_to_id">Reports To Position</label>
+          <input
+            id="reports_to_id"
+            name="reports_to_id"
+            type="text"
+            placeholder="Position ID"
+            value={values.reports_to_id || ''}
+            onChange={handleChange}
+            disabled={isSubmitting}
+          />
+          <span className="form-hint">Leave empty for top-level position</span>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="min_tenure_months">Minimum Tenure (months)</label>
+          <input
+            id="min_tenure_months"
+            name="min_tenure_months"
+            type="number"
+            placeholder="0"
+            value={values.min_tenure_months || 0}
+            onChange={handleChange}
+            min="0"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="max_incumbents">Maximum Incumbents</label>
+          <input
+            id="max_incumbents"
+            name="max_incumbents"
+            type="number"
+            placeholder="Leave empty for unlimited"
+            value={values.max_incumbents || ''}
+            onChange={handleChange}
+            min="1"
+            disabled={isSubmitting}
+          />
+          <span className="form-hint">Number of people who can hold this position</span>
+        </div>
+
+        <div className="form-group checkbox-group">
+          <label className="checkbox-label">
+            <input
+              name="is_single_incumbent"
+              type="checkbox"
+              checked={values.is_single_incumbent || false}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+            <span>Single Incumbent Only</span>
+          </label>
+          <span className="form-hint">Only one person can hold this position</span>
+        </div>
+
+        <div className="form-group checkbox-group">
+          <label className="checkbox-label">
+            <input
+              name="requires_supervisor_approval"
+              type="checkbox"
+              checked={values.requires_supervisor_approval !== false}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+            <span>Requires Supervisor Approval</span>
+          </label>
+        </div>
+      </StructureForm>
+    </div>
+  );
+};
+
+export default PositionForm;

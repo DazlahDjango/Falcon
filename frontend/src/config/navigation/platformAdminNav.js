@@ -1,4 +1,4 @@
-// src/config/constants/adminNavConfig.js
+// src/config/navigation/platformAdminNav.js
 import {
   FiHome,
   FiBarChart2,
@@ -43,6 +43,7 @@ import {
   FiUsers as FiUserGroup,
   FiMessageSquare,
   FiTrendingUp as FiUpward,
+  FiUser,
 } from 'react-icons/fi';
 import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner, MdGavel } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
@@ -54,6 +55,7 @@ import { BILLING_ROUTES } from '../constants/billingRouteConstants';
 import { ROUTES } from '../constants';
 import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../constants/kpiRouteConstants';
 import { REVIEW_ROUTES } from '../constants/reviewRouteConstants';
+import { STRUCTURE_ROUTES } from '../constants/structureRouteConstants';
 
 // ============================================
 // MFA ROUTES
@@ -185,6 +187,55 @@ export const KPI_DASHBOARDS_NAV_ITEMS = [
 ];
 
 // ============================================
+// STRUCTURE NAVIGATION ITEMS
+// ============================================
+export const STRUCTURE_NAV_ITEMS = [
+  // Dashboards
+  { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Structure Dashboard', icon: FiBarChart2 },
+  { path: STRUCTURE_ROUTES.DASHBOARD_HEALTH, name: 'Structure Health', icon: FiActivity },
+  
+  // Organizational Units
+  { path: STRUCTURE_ROUTES.ORG_UNITS, name: 'Organizational Units', icon: FiLayers },
+  { path: STRUCTURE_ROUTES.DIVISIONS, name: 'Divisions', icon: FiGitBranch },
+  { path: STRUCTURE_ROUTES.DEPARTMENTS, name: 'Departments', icon: HiOutlineBuildingOffice },
+  { path: STRUCTURE_ROUTES.SECTIONS, name: 'Sections', icon: FiFolder },
+  { path: STRUCTURE_ROUTES.UNITS, name: 'Units', icon: FiGrid },
+  
+  // Positions & Employments
+  { path: STRUCTURE_ROUTES.POSITIONS, name: 'Positions', icon: BsBriefcase },
+  { path: STRUCTURE_ROUTES.EMPLOYMENTS, name: 'Employments', icon: BsPersonBadge },
+  { path: STRUCTURE_ROUTES.MY_EMPLOYMENT, name: 'My Employment', icon: FiUser },
+  
+  // Reporting
+  { path: STRUCTURE_ROUTES.REPORTING_LINES, name: 'Reporting Lines', icon: BsDiagram3 },
+  { path: STRUCTURE_ROUTES.MY_CHAIN, name: 'My Reporting Chain', icon: FiGitBranch },
+  { path: STRUCTURE_ROUTES.ORGANIZATION_SPAN, name: 'Span of Control', icon: FiUsers },
+  { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENTS, name: 'Interim Assignments', icon: FiClock },
+  
+  // Resources
+  { path: STRUCTURE_ROUTES.COST_CENTERS, name: 'Cost Centers', icon: FiDollarSign },
+  { path: STRUCTURE_ROUTES.LOCATIONS, name: 'Locations', icon: FiMapPin },
+  
+  // Hierarchy
+  { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, name: 'Current Hierarchy', icon: FiDatabase },
+  { path: STRUCTURE_ROUTES.HIERARCHY_HISTORY, name: 'Version History', icon: FiClock },
+  { path: STRUCTURE_ROUTES.HIERARCHY_VALIDATE, name: 'Validate Hierarchy', icon: FiCheckCircle },
+  
+  // Visualization
+  { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
+  { path: STRUCTURE_ROUTES.ORG_CHART_TREE, name: 'Org Tree', icon: FiLayers },
+  
+  // Bulk Operations
+  { path: STRUCTURE_ROUTES.BULK_DEPARTMENTS, name: 'Bulk Departments', icon: FiDatabase },
+  { path: STRUCTURE_ROUTES.BULK_EMPLOYMENTS, name: 'Bulk Employments', icon: FiDatabase },
+  { path: STRUCTURE_ROUTES.BULK_REPORTING, name: 'Bulk Reporting', icon: FiDatabase },
+  
+  // Settings
+  { path: STRUCTURE_ROUTES.SYSTEM_SETTINGS, name: 'Structure Settings', icon: FiSettings },
+  { path: STRUCTURE_ROUTES.REFERENCE_DATA, name: 'Reference Data', icon: FiDatabase },
+];
+
+// ============================================
 // REVIEWS NAVIGATION ITEMS (Super Admin)
 // ============================================
 export const REVIEWS_NAV_ITEMS = [
@@ -301,20 +352,8 @@ export const SUPER_ADMIN_NAV_GROUPS = {
   kpiOperations: KPI_OPERATIONS_NAV_ITEMS,
   kpiDashboards: KPI_DASHBOARDS_NAV_ITEMS,
   
-  structure: [
-    { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
-    { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
-    { path: '/app/structure/teams', name: 'Teams', icon: HiOutlineUserGroup },
-    { path: '/app/structure/positions', name: 'Positions', icon: BsBriefcase },
-    { path: '/app/structure/employments', name: 'Employments', icon: BsPersonBadge },
-    { path: '/app/structure/reporting-lines', name: 'Reporting Lines', icon: BsDiagram3 },
-    { path: '/app/structure/cost-centers', name: 'Cost Centers', icon: FiDollarSign },
-    { path: '/app/structure/locations', name: 'Locations', icon: FiMapPin },
-    { path: '/app/structure/org-chart', name: 'Organization Chart', icon: FiGitBranch },
-    { path: '/app/structure/department-trees', name: 'Department Tree', icon: FiGitBranch },
-    { path: '/app/structure/team-hierarchies', name: 'Team Hierarchy', icon: FiGitBranch },
-    { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase },
-  ],
+  // Structure Group - NEW
+  structure: STRUCTURE_NAV_ITEMS,
   
   // Reviews - Full access for Super Admin
   reviews: REVIEWS_NAV_ITEMS,
@@ -334,7 +373,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SETTINGS, name: 'PMS Settings', icon: FiSettings },
     { path: '/config/settings', name: 'Config Settings', icon: FiSettings },
     { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings },
-    { path: '/app/structure/settings', name: 'Structure Settings', icon: FiSettings },
+    { path: STRUCTURE_ROUTES.SYSTEM_SETTINGS, name: 'Structure Settings', icon: FiSettings },
     { path: '/security', name: 'Accounts Security', icon: FiLock },
     { path: '/admin/system', name: 'Admin System Settings', icon: FiServer },
     { path: '/settings', name: 'System Settings', icon: FiSettings },
@@ -362,6 +401,10 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
   kpiManagement: KPI_MANAGEMENT_NAV_ITEMS,
   kpiAnalytics: KPI_ANALYTICS_NAV_ITEMS,
   kpiOperations: KPI_OPERATIONS_NAV_ITEMS,
+  
+  // Structure Group - NEW for Client Admin
+  structure: STRUCTURE_NAV_ITEMS,
+  
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, name: 'Roles & Permissions', icon: FiShield },
@@ -399,8 +442,8 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   kpiAnalytics: false,
   kpiOperations: false,
   kpiDashboards: false,
-  structure: false,
-  reviews: true,  // Reviews expanded by default for Super Admin
+  structure: true,  // Structure expanded by default for Super Admin
+  reviews: true,
   accounts: false,
   mfa: false,
   config: false,
@@ -415,8 +458,9 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   kpiManagement: true,
   kpiAnalytics: false,
   kpiOperations: false,
+  structure: true,  // Structure expanded by default for Client Admin
   management: true,
-  reviews: true,  // Reviews expanded by default for Client Admin
+  reviews: true,
   mfa: false,
   compliance: false,
   config: false,
@@ -434,8 +478,8 @@ export const SUPER_ADMIN_GROUP_LABELS = {
   kpiAnalytics: '📈 Analytics & Reports',
   kpiOperations: '⚙️ Operations',
   kpiDashboards: '📺 Dashboards',
-  structure: 'Organization Structure',
-  reviews: '⭐ Performance Reviews',  // Reviews label for Super Admin
+  structure: '🏛️ Organization Structure',  // Structure label for Super Admin
+  reviews: '⭐ Performance Reviews',
   accounts: 'Users & Platform Access',
   mfa: 'Multi-Factor Authentication',
   config: 'Configuration Manager',
@@ -450,8 +494,9 @@ export const CLIENT_ADMIN_GROUP_LABELS = {
   kpiManagement: '📊 KPI Management',
   kpiAnalytics: '📈 Analytics & Reports',
   kpiOperations: '⚙️ Operations',
+  structure: '🏛️ Organization Structure',  // Structure label for Client Admin
   management: 'Management',
-  reviews: '⭐ Performance Reviews',  // Reviews label for Client Admin
+  reviews: '⭐ Performance Reviews',
   mfa: 'Multi-Factor Authentication',
   compliance: 'Reports & Compliance',
   config: 'Configuration',
@@ -475,6 +520,29 @@ export const isKpiRouteActive = (path, currentPath) => {
     /^\/kpi\/admin\/frameworks\/[\w-]+\/edit$/,
     /^\/kpi\/admin\/categories\/[\w-]+\/edit$/,
     /^\/kpi\/admin\/templates\/[\w-]+\/edit$/,
+  ];
+  
+  return patterns.some(pattern => pattern.test(currentPath));
+};
+
+// ============================================
+// STRUCTURE SPECIFIC HELPERS
+// ============================================
+export const isStructureRouteActive = (path, currentPath) => {
+  if (path === currentPath) return true;
+  
+  const patterns = [
+    /^\/structure\/departments\/[\w-]+$/,
+    /^\/structure\/divisions\/[\w-]+$/,
+    /^\/structure\/sections\/[\w-]+$/,
+    /^\/structure\/units\/[\w-]+$/,
+    /^\/structure\/positions\/[\w-]+$/,
+    /^\/structure\/employments\/[\w-]+$/,
+    /^\/structure\/hierarchy\/[\w-]+$/,
+    /^\/structure\/cost-centers\/[\w-]+$/,
+    /^\/structure\/locations\/[\w-]+$/,
+    /^\/structure\/reporting\/[\w-]+$/,
+    /^\/structure\/interim\/[\w-]+$/,
   ];
   
   return patterns.some(pattern => pattern.test(currentPath));

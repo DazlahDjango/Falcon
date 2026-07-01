@@ -1,15 +1,22 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { hierarchyService } from '../../../services/structure/hierarchy.service';
-import { initialHierarchyState, LoadingState } from './structureTypes';
-import { showToast } from '../../ui/slices/uiSlice';
+import { hierarchyService } from '../../../services/structure';
 
-// Async Thunks
+const initialState = {
+  items: [],
+  currentItem: null,
+  currentVersion: null,
+  history: [],
+  validationResult: null,
+  isLoading: false,
+  error: null,
+  totalCount: 0,
+};
+
 export const fetchHierarchyVersions = createAsyncThunk(
-  'structure/hierarchy/fetchVersions',
-  async ({ page = 1, pageSize = 20 } = {}, { rejectWithValue }) => {
+  'hierarchy/fetchAll',
+  async (params, { rejectWithValue }) => {
     try {
-      const params = { page, page_size: pageSize };
-      const response = await hierarchyService.getVersionHistory(pageSize);
+      const response = await hierarchyService.list(params);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch hierarchy versions');
@@ -17,23 +24,11 @@ export const fetchHierarchyVersions = createAsyncThunk(
   }
 );
 
-export const fetchCurrentHierarchyVersion = createAsyncThunk(
-  'structure/hierarchy/fetchCurrent',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await hierarchyService.getCurrentVersion();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch current hierarchy version');
-    }
-  }
-);
-
 export const fetchHierarchyVersionById = createAsyncThunk(
-  'structure/hierarchy/fetchVersionById',
+  'hierarchy/fetchById',
   async (id, { rejectWithValue }) => {
     try {
-      const response = await hierarchyService.getVersion(id);
+      const response = await hierarchyService.getById(id);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch hierarchy version');
@@ -41,55 +36,35 @@ export const fetchHierarchyVersionById = createAsyncThunk(
   }
 );
 
-export const fetchHierarchyHealth = createAsyncThunk(
-  'structure/hierarchy/fetchHealth',
+export const fetchCurrentHierarchyVersion = createAsyncThunk(
+  'hierarchy/fetchCurrent',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await hierarchyService.getHealthMetrics();
+      const response = await hierarchyService.getCurrent();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch hierarchy health');
+      return rejectWithValue(error.message || 'Failed to fetch current hierarchy version');
     }
   }
 );
 
-export const captureHierarchySnapshot = createAsyncThunk(
-  'structure/hierarchy/captureSnapshot',
-  async (data, { dispatch, rejectWithValue }) => {
+export const fetchHierarchyHistory = createAsyncThunk(
+  'hierarchy/fetchHistory',
+  async (limit, { rejectWithValue }) => {
     try {
-      const response = await hierarchyService.captureSnapshot(data);
-      dispatch(showToast({ message: `Hierarchy snapshot captured as version ${response.data?.version_number}`, type: 'success' }));
-      dispatch(fetchHierarchyVersions({}));
-      dispatch(fetchCurrentHierarchyVersion());
+      const response = await hierarchyService.getHistory(limit);
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to capture snapshot', type: 'error' }));
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const restoreHierarchyVersion = createAsyncThunk(
-  'structure/hierarchy/restoreVersion',
-  async (versionId, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await hierarchyService.restoreVersion(versionId);
-      dispatch(showToast({ message: response.data?.message || 'Hierarchy restored successfully', type: 'success' }));
-      dispatch(fetchHierarchyVersions({}));
-      dispatch(fetchCurrentHierarchyVersion());
-      return response.data;
-    } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to restore hierarchy', type: 'error' }));
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch hierarchy history');
     }
   }
 );
 
 export const validateHierarchy = createAsyncThunk(
-  'structure/hierarchy/validate',
+  'hierarchy/validate',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await hierarchyService.validateHierarchy();
+      const response = await hierarchyService.validate();
       return response.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to validate hierarchy');
@@ -97,115 +72,120 @@ export const validateHierarchy = createAsyncThunk(
   }
 );
 
-export const detectHierarchyCycles = createAsyncThunk(
-  'structure/hierarchy/detectCycles',
+export const captureHierarchySnapshot = createAsyncThunk(
+  'hierarchy/capture',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await hierarchyService.capture(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to capture hierarchy snapshot');
+    }
+  }
+);
+
+export const autoCaptureHierarchy = createAsyncThunk(
+  'hierarchy/autoCapture',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await hierarchyService.detectCycles();
+      const response = await hierarchyService.autoCapture();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to detect cycles');
+      return rejectWithValue(error.message || 'Failed to auto-capture hierarchy');
     }
   }
 );
 
-export const repairHierarchyCycles = createAsyncThunk(
-  'structure/hierarchy/repairCycles',
-  async (dryRun = true, { dispatch, rejectWithValue }) => {
+export const restoreHierarchyVersion = createAsyncThunk(
+  'hierarchy/restore',
+  async (id, { rejectWithValue }) => {
     try {
-      const response = await hierarchyService.repairCycles(dryRun);
-      dispatch(showToast({ message: response.data?.message || 'Cycle repair completed', type: 'success' }));
-      dispatch(validateHierarchy());
-      dispatch(detectHierarchyCycles());
+      const response = await hierarchyService.restore(id);
       return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Failed to repair cycles', type: 'error' }));
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to restore hierarchy version');
     }
   }
 );
 
-/**
- * Hierarchy Slice
- */
+export const diffHierarchyVersions = createAsyncThunk(
+  'hierarchy/diff',
+  async ({ id, compareToId }, { rejectWithValue }) => {
+    try {
+      const response = await hierarchyService.diff(id, compareToId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to diff hierarchy versions');
+    }
+  }
+);
+
 const hierarchySlice = createSlice({
-  name: 'structure/hierarchy',
-  initialState: initialHierarchyState,
+  name: 'hierarchy',
+  initialState,
   reducers: {
-    setHierarchyPageSize: (state, action) => {
-      state.pagination.pageSize = action.payload;
-      state.pagination.page = 1;
+    clearHierarchyError: (state) => {
+      state.error = null;
     },
-    
-    setHierarchyFilters: (state, action) => {
-      state.filters = { ...state.filters, ...action.payload };
-      state.pagination.page = 1;
+    clearHierarchyCurrent: (state) => {
+      state.currentItem = null;
     },
-    
-    clearHierarchyFilters: (state) => {
-      state.filters = initialHierarchyState.filters;
-      state.pagination.page = 1;
-    },
-    setHierarchyPage: (state, action) => {
-      state.pagination.page = action.payload;
-    },
-    setSelectedVersion: (state, action) => {
-      state.selectedVersion = action.payload;
-    },
-    clearSelectedVersion: (state) => {
-      state.selectedVersion = null;
-    },
-    clearHierarchyHealth: (state) => {
-      state.health = null;
-    },
+    resetHierarchyState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchHierarchyVersions.pending, (state) => {
-        state.loading = LoadingState.LOADING;
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(fetchHierarchyVersions.fulfilled, (state, action) => {
-        state.loading = LoadingState.SUCCEEDED;
-        state.versions = action.payload?.results || action.payload || [];
-        state.pagination.total = action.payload?.count || state.versions.length;
-        state.pagination.totalPages = Math.ceil(state.pagination.total / state.pagination.pageSize);
+        state.isLoading = false;
+        state.items = action.payload.results || action.payload;
+        state.totalCount = action.payload.count || action.payload.length || 0;
       })
       .addCase(fetchHierarchyVersions.rejected, (state, action) => {
-        state.loading = LoadingState.FAILED;
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchHierarchyVersionById.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchHierarchyVersionById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentItem = action.payload;
+      })
+      .addCase(fetchHierarchyVersionById.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload;
       })
       .addCase(fetchCurrentHierarchyVersion.fulfilled, (state, action) => {
         state.currentVersion = action.payload;
       })
-      .addCase(fetchHierarchyVersionById.fulfilled, (state, action) => {
-        state.selectedVersion = action.payload;
-      })
-      .addCase(fetchHierarchyHealth.fulfilled, (state, action) => {
-        state.health = action.payload;
-      })
-      .addCase(captureHierarchySnapshot.fulfilled, (state, action) => {
-        state.currentVersion = action.payload;
-      })
-      .addCase(restoreHierarchyVersion.fulfilled, (state, action) => {
-        state.currentVersion = action.payload?.new_version || action.payload;
+      .addCase(fetchHierarchyHistory.fulfilled, (state, action) => {
+        state.history = action.payload.versions || action.payload;
       })
       .addCase(validateHierarchy.fulfilled, (state, action) => {
-        state.validation = action.payload;
+        state.validationResult = action.payload;
       })
-      .addCase(detectHierarchyCycles.fulfilled, (state, action) => {
-        state.cycles = action.payload;
+      .addCase(captureHierarchySnapshot.fulfilled, (state, action) => {
+        if (action.payload.version) {
+          state.items.unshift(action.payload.version);
+          state.totalCount += 1;
+        }
+      })
+      .addCase(autoCaptureHierarchy.fulfilled, (state, action) => {
+        if (action.payload.version_id) {
+          state.currentVersion = action.payload;
+        }
       });
   },
 });
 
 export const {
-  setHierarchyPageSize,
-  setHierarchyFilters,
-  clearHierarchyFilters,
-  setHierarchyPage,
-  setSelectedVersion,
-  clearSelectedVersion,
-  clearHierarchyHealth,
+  clearHierarchyError,
+  clearHierarchyCurrent,
+  resetHierarchyState,
 } = hierarchySlice.actions;
 
 export default hierarchySlice.reducer;

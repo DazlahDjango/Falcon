@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers, selectUsersList, selectUsersLoading } from '../../store/accounts/slice/userSlice';
-import { fetchEmployments, selectEmployments, selectEmploymentsLoading } from '../../store/structure';
+import { selectEmployments, selectEmploymentsLoading } from '../../store/structure';
+import { fetchEmployments } from '../../store/structure/slice/employmentSlice';
 
 export const useEmployees = () => {
   const dispatch = useDispatch();

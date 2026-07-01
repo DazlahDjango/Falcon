@@ -1,89 +1,75 @@
-from typing import Dict, Any, List, Optional
+from typing import List, Dict, Any, Optional
 from uuid import UUID
-from django.db import models
 from django.core.cache import cache
-from ...models.employment import Employment
-from ...models.reporting_line import ReportingLine
-from ...constants import DEFAULT_MAX_DIRECT_REPORTS
+from apps.structure.models.employment import Employment
+from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.interim_assignment import InterimAssignment
+from apps.structure.constants import DEFAULT_MAX_DIRECT_REPORTS
 
-class SpanOfControlService:
+class SpanOfControl:
     def __init__(self):
         self._cache = cache
     
-    def get_direct_report_count(self, manager_user_id: UUID, tenant_id: UUID, relation_type: str = 'solid') -> int:
-        cache_key = f"structure:span:direct:{tenant_id}:{manager_user_id}:{relation_type}"
-        cached = self._cache.get(cache_key)
-        if cached is not None:
-            return cached
-        count = ReportingLine.objects.filter(
-            manager__user_id=manager_user_id,
-            relation_type=relation_type,
-            is_active=True,
-            tenant_id=tenant_id,
-            is_deleted=False
-        ).count()
-        self._cache.set(cache_key, count, 300)
-        return count
-    
-    def get_indirect_report_count(self, manager_user_id: UUID, tenant_id: UUID) -> int:
-        cache_key = f"structure:span:indirect:{tenant_id}:{manager_user_id}"
-        cached = self._cache.get(cache_key)
-        if cached is not None:
-            return cached
-        direct_reports = ReportingLine.objects.filter(
-            manager__user_id=manager_user_id,
-            relation_type='solid',
-            is_active=True,
-            tenant_id=tenant_id,
-            is_deleted=False
-        ).select_related('employee')
-        indirect_count = 0
-        for report in direct_reports:
-            indirect_count += self.get_direct_report_count(report.employee.user_id, tenant_id)
-        self._cache.set(cache_key, indirect_count, 300)
-        return indirect_count
-    
-    def get_total_span(self, manager_user_id: UUID, tenant_id: UUID) -> Dict[str, Any]:
-        direct = self.get_direct_report_count(manager_user_id, tenant_id)
-        indirect = self.get_indirect_report_count(manager_user_id, tenant_id)
+    def calculate_span(self, manager_id: UUID) -> Dict[str, Any]:
+        manager = Employment.objects.get(id=manager_id, is_deleted=False)
+        direct_reports = ReportingLine.objects.filter(manager=manager, is_active=True, is_deleted=False)
+        interim_reports = InterimAssignment.objects.filter(interim_manager=manager, is_active=True, is_deleted=False)
+        total_direct = direct_reports.count()
+        total_interim = interim_reports.count()
         return {
-            'manager_user_id': str(manager_user_id),
-            'direct_reports': direct,
-            'indirect_reports': indirect,
-            'total_reports': direct + indirect,
-            'is_healthy': direct <= DEFAULT_MAX_DIRECT_REPORTS,
-            'warning': direct > DEFAULT_MAX_DIRECT_REPORTS
+            'manager_id': str(manager.user_id),
+            'direct_reports_count': total_direct,
+            'interim_reports_count': total_interim,
+            'total_reports': total_direct + total_interim,
+            'direct_reports': [str(rl.employee.user_id) for rl in direct_reports],
+            'interim_reports': [str(ia.employee.user_id) for ia in interim_reports]
         }
     
-    def get_organization_span_report(self, tenant_id: UUID) -> List[Dict[str, Any]]:
-        managers = Employment.objects.filter(
+    def get_span_by_level(self, tenant_id: UUID, level: Optional[str] = None) -> List[Dict[str, Any]]:
+        employments = Employment.objects.filter(
             tenant_id=tenant_id,
+            is_manager=True,
             is_current=True,
-            is_deleted=False,
             is_active=True,
-            is_manager=True
-        ).values_list('user_id', flat=True).distinct()
-        report = []
-        for manager_id in managers:
-            report.append(self.get_total_span(manager_id, tenant_id))
-        return sorted(report, key=lambda x: x['total_reports'], reverse=True)
+            is_deleted=False
+        )
+        spans = []
+        for emp in employments:
+            span = self.calculate_span(emp.id)
+            if level:
+                if emp.position and emp.position.level == level:
+                    spans.append(span)
+            else:
+                spans.append(span)
+        return spans
     
     def get_average_span(self, tenant_id: UUID) -> Dict[str, float]:
-        report = self.get_organization_span_report(tenant_id)
-        
-        if not report:
-            return {'average_direct': 0.0, 'average_indirect': 0.0, 'average_total': 0.0}
-        total_direct = sum(r['direct_reports'] for r in report)
-        total_indirect = sum(r['indirect_reports'] for r in report)
-        count = len(report)
+        spans = self.get_span_by_level(tenant_id, None)
+        if not spans:
+            return {'average_direct': 0.0, 'average_interim': 0.0, 'average_total': 0.0}
+        total_direct = sum(s['direct_reports_count'] for s in spans)
+        total_interim = sum(s['interim_reports_count'] for s in spans)
+        count = len(spans)
         return {
             'average_direct': round(total_direct / count, 2),
-            'average_indirect': round(total_indirect / count, 2),
-            'average_total': round((total_direct + total_indirect) / count, 2)
+            'average_interim': round(total_interim / count, 2),
+            'average_total': round((total_direct + total_interim) / count, 2)
         }
     
+    def get_max_span(self, tenant_id: UUID) -> Optional[Dict[str, Any]]:
+        spans = self.get_span_by_level(tenant_id, None)
+        if not spans:
+            return None
+        return max(spans, key=lambda x: x['total_reports'])
+    
+    def get_min_span(self, tenant_id: UUID) -> Optional[Dict[str, Any]]:
+        spans = self.get_span_by_level(tenant_id, None)
+        if not spans:
+            return None
+        return min(spans, key=lambda x: x['total_reports'])
+    
     def get_span_distribution(self, tenant_id: UUID) -> Dict[str, int]:
-        report = self.get_organization_span_report(tenant_id)
+        spans = self.get_span_by_level(tenant_id, None)
         distribution = {
             '0': 0,
             '1-5': 0,
@@ -92,8 +78,8 @@ class SpanOfControlService:
             '16-20': 0,
             '20+': 0
         }
-        for manager in report:
-            total = manager['total_reports']
+        for span in spans:
+            total = span['total_reports']
             if total == 0:
                 distribution['0'] += 1
             elif total <= 5:
@@ -108,12 +94,24 @@ class SpanOfControlService:
                 distribution['20+'] += 1
         return distribution
     
-    def check_span_limit_exceeded(self, manager_user_id: UUID, tenant_id: UUID, limit: Optional[int] = None) -> bool:
-        if limit is None:
-            limit = DEFAULT_MAX_DIRECT_REPORTS
-        direct_count = self.get_direct_report_count(manager_user_id, tenant_id)
-        return direct_count >= limit
+    def identify_overloaded_managers(self, tenant_id: UUID, threshold: int = 15) -> List[Dict[str, Any]]:
+        spans = self.get_span_by_level(tenant_id, None)
+        return [s for s in spans if s['total_reports'] > threshold]
     
-    def identify_managers_with_span_warning(self, tenant_id: UUID, threshold: int = 15) -> List[Dict[str, Any]]:
-        report = self.get_organization_span_report(tenant_id)
-        return [m for m in report if m['total_reports'] > threshold]
+    def identify_underutilized_managers(self, tenant_id: UUID, threshold: int = 3) -> List[Dict[str, Any]]:
+        spans = self.get_span_by_level(tenant_id, None)
+        return [s for s in spans if s['total_reports'] < threshold]
+    
+    def get_recommended_span(self, manager_id: UUID) -> str:
+        span = self.calculate_span(manager_id)
+        if span['total_reports'] > 15:
+            return 'overloaded'
+        elif span['total_reports'] < 3:
+            return 'underutilized'
+        else:
+            return 'optimal'
+    
+    def clear_cache(self, tenant_id: UUID) -> None:
+        keys = self._cache.keys(f"structure:span:{tenant_id}:*")
+        for key in keys:
+            self._cache.delete(key)

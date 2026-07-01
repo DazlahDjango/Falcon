@@ -1,159 +1,190 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { costCenterService } from '../../../services/structure/costCenter.service';
-import { initialCostCenterState, LoadingState } from './structureTypes';
-import { showToast } from '../../ui/slices/uiSlice';
+import { costCenterService } from '../../../services/structure';
 
-// Async Thunks
+const initialState = {
+  items: [],
+  currentItem: null,
+  stats: null,
+  isLoading: false,
+  error: null,
+  totalCount: 0,
+  filters: {},
+  pagination: { page: 1, pageSize: 20 },
+};
+
 export const fetchCostCenters = createAsyncThunk(
-  'structure/costCenters/fetch',
-  async ({ page = 1, pageSize = 50, filters = {} }, { rejectWithValue }) => {
+  'costCenters/fetchAll',
+  async (params, { rejectWithValue }) => {
     try {
-      const params = { page, page_size: pageSize, ...filters };
       const response = await costCenterService.list(params);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch cost centers';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch cost centers');
     }
   }
 );
 
 export const fetchCostCenterById = createAsyncThunk(
-  'structure/costCenters/fetchById',
+  'costCenters/fetchById',
   async (id, { rejectWithValue }) => {
     try {
       const response = await costCenterService.getById(id);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch cost center';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch cost center');
     }
   }
 );
 
-export const fetchCostCenterTree = createAsyncThunk(
-  'structure/costCenters/fetchTree',
-  async ({ includeInactive = false } = {}, { rejectWithValue }) => {
+export const fetchCostCenterStats = createAsyncThunk(
+  'costCenters/fetchStats',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await costCenterService.getTree(includeInactive);
+      const response = await costCenterService.getStats();
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch cost center tree';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch cost center stats');
+    }
+  }
+);
+
+export const fetchCostCenterChildren = createAsyncThunk(
+  'costCenters/fetchChildren',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await costCenterService.getChildren(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch cost center children');
+    }
+  }
+);
+
+export const fetchCostCenterUtilization = createAsyncThunk(
+  'costCenters/fetchUtilization',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await costCenterService.getUtilization(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch cost center utilization');
     }
   }
 );
 
 export const createCostCenter = createAsyncThunk(
-  'structure/costCenters/create',
-  async (data, { dispatch, rejectWithValue }) => {
+  'costCenters/create',
+  async (data, { rejectWithValue }) => {
     try {
       const response = await costCenterService.create(data);
-      dispatch(showToast({ message: 'Cost center created successfully', type: 'success' }));
-      dispatch(fetchCostCenters({}));
-      dispatch(fetchCostCenterTree());
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to create cost center';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to create cost center');
     }
   }
 );
 
 export const updateCostCenter = createAsyncThunk(
-  'structure/costCenters/update',
-  async ({ id, data }, { dispatch, rejectWithValue }) => {
+  'costCenters/update',
+  async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await costCenterService.update(id, data);
-      dispatch(showToast({ message: 'Cost center updated successfully', type: 'success' }));
-      dispatch(fetchCostCenterById(id));
-      dispatch(fetchCostCenters({}));
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to update cost center';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to update cost center');
     }
   }
 );
 
 export const deleteCostCenter = createAsyncThunk(
-  'structure/costCenters/delete',
-  async (id, { dispatch, rejectWithValue }) => {
+  'costCenters/delete',
+  async (id, { rejectWithValue }) => {
     try {
       await costCenterService.delete(id);
-      dispatch(showToast({ message: 'Cost center deleted successfully', type: 'success' }));
-      dispatch(fetchCostCenters({}));
-      dispatch(fetchCostCenterTree());
       return id;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to delete cost center';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to delete cost center');
     }
   }
 );
 
-/**
- * Cost Center Slice
- */
 const costCenterSlice = createSlice({
-  name: 'structure/costCenters',
-  initialState: initialCostCenterState,
+  name: 'costCenters',
+  initialState,
   reducers: {
-    setCostCenterPage: (state, action) => {
-      state.pagination.page = action.payload;
+    clearCostCenterError: (state) => {
+      state.error = null;
     },
-    setCostCenterPageSize: (state, action) => {
-      state.pagination.pageSize = action.payload;
-      state.pagination.page = 1;
+    clearCostCenterCurrent: (state) => {
+      state.currentItem = null;
     },
     setCostCenterFilters: (state, action) => {
-      state.filters = { ...state.filters, ...action.payload };
-      state.pagination.page = 1;
+      state.filters = action.payload;
     },
-    clearCostCenterFilters: (state) => {
-      state.filters = initialCostCenterState.filters;
-      state.pagination.page = 1;
+    setCostCenterPagination: (state, action) => {
+      state.pagination = { ...state.pagination, ...action.payload };
     },
-    clearSelectedCostCenter: (state) => {
-      state.selectedCostCenter = null;
-    },
+    resetCostCenterState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchCostCenters.pending, (state) => {
-        state.loading = LoadingState.LOADING;
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(fetchCostCenters.fulfilled, (state, action) => {
-        state.loading = LoadingState.SUCCEEDED;
-        state.items = action.payload?.results || action.payload || [];
-        state.pagination.total = action.payload?.count || state.items.length;
-        state.pagination.totalPages = Math.ceil(state.pagination.total / state.pagination.pageSize);
+        state.isLoading = false;
+        state.items = action.payload.results || action.payload;
+        state.totalCount = action.payload.count || action.payload.length || 0;
       })
       .addCase(fetchCostCenters.rejected, (state, action) => {
-        state.loading = LoadingState.FAILED;
+        state.isLoading = false;
         state.error = action.payload;
       })
-      .addCase(fetchCostCenterById.fulfilled, (state, action) => {
-        state.selectedCostCenter = action.payload;
+      .addCase(fetchCostCenterById.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
       })
-      .addCase(fetchCostCenterTree.fulfilled, (state, action) => {
-        state.tree = action.payload;
+      .addCase(fetchCostCenterById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentItem = action.payload;
+      })
+      .addCase(fetchCostCenterById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchCostCenterStats.fulfilled, (state, action) => {
+        state.stats = action.payload;
+      })
+      .addCase(createCostCenter.fulfilled, (state, action) => {
+        state.items.unshift(action.payload);
+        state.totalCount += 1;
+      })
+      .addCase(updateCostCenter.fulfilled, (state, action) => {
+        const index = state.items.findIndex(item => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.currentItem?.id === action.payload.id) {
+          state.currentItem = action.payload;
+        }
       })
       .addCase(deleteCostCenter.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item.id !== action.payload);
+        state.totalCount -= 1;
+        if (state.currentItem?.id === action.payload) {
+          state.currentItem = null;
+        }
       });
   },
 });
 
 export const {
-  setCostCenterPage,
-  setCostCenterPageSize,
+  clearCostCenterError,
+  clearCostCenterCurrent,
   setCostCenterFilters,
-  clearCostCenterFilters,
-  clearSelectedCostCenter,
+  setCostCenterPagination,
+  resetCostCenterState,
 } = costCenterSlice.actions;
 
 export default costCenterSlice.reducer;

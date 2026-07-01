@@ -219,7 +219,7 @@ MIDDLEWARE = [
     # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
     # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     # Billing
-    'apps.billing.middleware.SubscriptionGuardMiddleware',
+    # 'apps.billing.middleware.SubscriptionGuardMiddleware',
     'apps.billing.middleware.BillingAuditMiddleware',
     'apps.billing.middleware.WebhookRateLimitMiddleware',
     'apps.billing.middleware.TenantBillingContextMiddleware',

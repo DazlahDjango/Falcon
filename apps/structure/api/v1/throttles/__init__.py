@@ -1,6 +1,5 @@
 from .structure_limits import (
     DepartmentRateThrottle,
-    TeamRateThrottle,
     EmploymentRateThrottle,
     ReportingRateThrottle,
     HierarchyReadThrottle,
@@ -9,11 +8,11 @@ from .structure_limits import (
     BulkOperationThrottle,
     StructureBurstThrottle,
     StructureSustainedThrottle,
+    OrgUnitRateThrottle,
 )
 
 __all__ = [
     'DepartmentRateThrottle',
-    'TeamRateThrottle',
     'EmploymentRateThrottle',
     'ReportingRateThrottle',
     'HierarchyReadThrottle',
@@ -22,4 +21,5 @@ __all__ = [
     'BulkOperationThrottle',
     'StructureBurstThrottle',
     'StructureSustainedThrottle',
+    'OrgUnitRateThrottle',
 ]

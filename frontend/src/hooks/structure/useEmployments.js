@@ -1,45 +1,140 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
-import { employmentService } from '../../services/structure/employment.service';
-import { normalizeStructureListPage, normalizeStructureResultsArray, normalizeStructureEntity } from '../../services/structure/structureResponse';
-import { STRUCTURE_QUERY_KEYS, DEFAULT_PAGE_SIZE } from '../../config/constants/structureConstants';
+import { useDispatch, useSelector } from 'react-redux';
+import { useCallback, useEffect } from 'react';
+import {
+    fetchEmployments,
+    fetchEmploymentById,
+    fetchCurrentEmployments,
+    fetchEmploymentsByUser,
+    fetchEmploymentStats,
+    fetchMyEmployment,
+    createEmployment,
+    updateEmployment,
+    deleteEmployment,
+    transferEmployee,
+    bulkCreateEmployments,
+    clearEmploymentError,
+    clearEmploymentCurrent,
+    setEmploymentFilters,
+    setEmploymentPagination,
+    resetEmploymentState,
+} from '../../store/structure/slice/employmentSlice';
+import {
+    selectEmploymentsItems,
+    selectEmploymentsCurrent,
+    selectEmploymentsCurrentList,
+    selectEmploymentsStats,
+    selectEmploymentsLoading,
+    selectEmploymentsError,
+    selectEmploymentsTotal,
+} from '../../store/structure/selectors';
 
-export const useEmployments = (filters = {}, page = 1, pageSize = DEFAULT_PAGE_SIZE) => {
-  const params = { page, page_size: pageSize, ...filters };
+export const useEmployments = (options = {}) => {
+    const dispatch = useDispatch();
+    const { autoFetch = true, params = {} } = options;
 
-  return useQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.EMPLOYMENTS, params],
-    queryFn: () => employmentService.list(params),
-    select: normalizeStructureListPage,
-    staleTime: 3 * 60 * 1000,
-    keepPreviousData: true,
-  });
+    const items = useSelector(selectEmploymentsItems);
+    const currentItem = useSelector(selectEmploymentsCurrent);
+    const currentEmployments = useSelector(selectEmploymentsCurrentList);
+    const stats = useSelector(selectEmploymentsStats);
+    const isLoading = useSelector(selectEmploymentsLoading);
+    const error = useSelector(selectEmploymentsError);
+    const totalCount = useSelector(selectEmploymentsTotal);
+
+    const fetchAll = useCallback((fetchParams) => {
+        return dispatch(fetchEmployments(fetchParams || params));
+    }, [dispatch, params]);
+
+    const fetchById = useCallback((id) => {
+        return dispatch(fetchEmploymentById(id));
+    }, [dispatch]);
+
+    const fetchCurrent = useCallback((fetchParams) => {
+        return dispatch(fetchCurrentEmployments(fetchParams));
+    }, [dispatch]);
+
+    const fetchByUser = useCallback((userId) => {
+        return dispatch(fetchEmploymentsByUser(userId));
+    }, [dispatch]);
+
+    const fetchStats = useCallback(() => {
+        return dispatch(fetchEmploymentStats());
+    }, [dispatch]);
+
+    const fetchMy = useCallback(() => {
+        return dispatch(fetchMyEmployment());
+    }, [dispatch]);
+
+    const create = useCallback((data) => {
+        return dispatch(createEmployment(data));
+    }, [dispatch]);
+
+    const update = useCallback((id, data) => {
+        return dispatch(updateEmployment({ id, data }));
+    }, [dispatch]);
+
+    const remove = useCallback((id) => {
+        return dispatch(deleteEmployment(id));
+    }, [dispatch]);
+
+    const transfer = useCallback((data) => {
+        return dispatch(transferEmployee(data));
+    }, [dispatch]);
+
+    const bulkCreate = useCallback((data) => {
+        return dispatch(bulkCreateEmployments(data));
+    }, [dispatch]);
+
+    const clearError = useCallback(() => {
+        dispatch(clearEmploymentError());
+    }, [dispatch]);
+
+    const clearCurrent = useCallback(() => {
+        dispatch(clearEmploymentCurrent());
+    }, [dispatch]);
+
+    const setFilters = useCallback((filters) => {
+        dispatch(setEmploymentFilters(filters));
+    }, [dispatch]);
+
+    const setPagination = useCallback((pagination) => {
+        dispatch(setEmploymentPagination(pagination));
+    }, [dispatch]);
+
+    const reset = useCallback(() => {
+        dispatch(resetEmploymentState());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (autoFetch) {
+            fetchAll(params);
+        }
+    }, [autoFetch, fetchAll, params]);
+
+    return {
+        items,
+        currentItem,
+        currentEmployments,
+        stats,
+        isLoading,
+        error,
+        totalCount,
+        fetchAll,
+        fetchById,
+        fetchCurrent,
+        fetchByUser,
+        fetchStats,
+        fetchMy,
+        create,
+        update,
+        remove,
+        transfer,
+        bulkCreate,
+        clearError,
+        clearCurrent,
+        setFilters,
+        setPagination,
+        reset,
+    };
 };
 
-export const useCurrentEmployments = (filters = {}) => {
-  return useQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.EMPLOYMENTS, 'current', filters],
-    queryFn: () => employmentService.getCurrent(filters),
-    select: normalizeStructureResultsArray,
-    staleTime: 3 * 60 * 1000,
-  });
-};
-
-export const useEmploymentsByUser = (userId, includeHistory = true) => {
-  return useQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.EMPLOYMENTS, 'user', userId, { includeHistory }],
-    queryFn: () => employmentService.getByUser(userId, includeHistory),
-    select: normalizeStructureResultsArray,
-    enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
-export const useEmploymentDepartmentStats = (departmentId) => {
-  return useQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.EMPLOYMENTS, 'stats', departmentId],
-    queryFn: () => employmentService.getDepartmentStats(departmentId),
-    select: normalizeStructureEntity,
-    enabled: !!departmentId,
-    staleTime: 10 * 60 * 1000,
-  });
-};
+export default useEmployments;

@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 class BaseStructureViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
     cache_ttl = 300
+    
     def get_queryset(self):
         queryset = super().get_queryset()
         if hasattr(self.request, 'user') and hasattr(self.request.user, 'tenant_id'):
@@ -68,6 +69,7 @@ class BaseStructureViewSet(viewsets.ModelViewSet):
 
 class BaseStructureReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
     http_method_names = ['get', 'head', 'options']
+    
     def get_queryset(self):
         queryset = super().get_queryset()
         if hasattr(self.request, 'user') and hasattr(self.request.user, 'tenant_id'):

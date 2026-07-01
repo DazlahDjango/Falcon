@@ -2,6 +2,39 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 import re
+from apps.structure.constants import MAX_ORG_DEPTH, LEVEL_ORDER, PARENT_LEVEL_MAP
+
+def validate_no_self_parent(value, instance):
+    if value and value.id == instance.id:
+        raise ValidationError(_("Cannot set self as parent."))
+
+def validate_max_depth(value, instance):
+    if value and value.depth >= MAX_ORG_DEPTH - 1:
+        raise ValidationError(_("Maximum organization depth of {0} exceeded.").format(MAX_ORG_DEPTH))
+
+def validate_parent_level(value, instance):
+    if value and PARENT_LEVEL_MAP.get(instance.level) != value.level:
+        raise ValidationError(_("Parent must be at {0} level.").format(PARENT_LEVEL_MAP.get(instance.level)))
+
+def validate_level_order(value):
+    if value not in LEVEL_ORDER:
+        raise ValidationError(_("Invalid organization level."))
+
+def validate_tenant_match(value, tenant_id):
+    if value and value.tenant_id != tenant_id:
+        raise ValidationError(_("Resource must belong to same tenant."))
+
+def validate_future_date(value):
+    if value and value < timezone.now().date():
+        raise ValidationError(_("Date cannot be in the past."))
+
+def validate_date_range(from_date, to_date):
+    if from_date and to_date and from_date > to_date:
+        raise ValidationError(_("From date cannot be after to date."))
+
+def validate_headcount_limit(value, limit):
+    if limit and value and value > limit:
+        raise ValidationError(_("Headcount exceeds limit of {0}.").format(limit))
 
 def validate_department_code(value):
     pattern = r'^[A-Z0-9][A-Z0-9\-_]{2,49}$'
@@ -23,21 +56,9 @@ def validate_grade(value):
     if not re.match(pattern, value):
         raise ValidationError(_("Grade format: letter(s) followed by numbers (e.g., P4, M2, S3, D1)."))
 
-def validate_reporting_weight(weight):
-    if weight < 0 or weight > 1:
-        raise ValidationError(_("Reporting weight must be between 0 and 1."))
-
-def validate_hierarchy_depth(depth, max_depth=20):
+def validate_hierarchy_depth(depth, max_depth=4):
     if depth > max_depth:
         raise ValidationError(_("Hierarchy depth {depth} exceeds maximum allowed {max_depth}.").format(depth=depth, max_depth=max_depth))
-
-def validate_date_range(start_date, end_date):
-    if start_date and end_date and start_date > end_date:
-        raise ValidationError(_("Start date cannot be after end date."))
-
-def validate_not_future_date(date):
-    if date and date > timezone.now().date():
-        raise ValidationError(_("Date cannot be in the future."))
 
 def validate_employment_period(effective_from, effective_to):
     if effective_from and effective_to and effective_from > effective_to:
@@ -53,13 +74,9 @@ def validate_allocation_percentage(percentage):
     if percentage < 0 or percentage > 100:
         raise ValidationError(_("Allocation percentage must be between 0 and 100."))
 
-def validate_headcount_limit(limit):
+def validate_headcount_limit_positive(limit):
     if limit is not None and limit <= 0:
         raise ValidationError(_("Headcount limit must be positive."))
-
-def validate_team_max_members(max_members):
-    if max_members is not None and max_members <= 0:
-        raise ValidationError(_("Team maximum members must be positive."))
 
 def validate_seating_capacity(capacity):
     if capacity is not None and capacity < 0:
@@ -95,10 +112,17 @@ def validate_required_competencies(competencies):
             if key not in comp:
                 raise ValidationError(_("Competency missing required key: {key}.").format(key=key))
 
-def validate_notification_preferences(preferences):
-    if not isinstance(preferences, dict):
-        raise ValidationError(_("Notification preferences must be a dictionary."))
-    valid_keys = ['email', 'in_app', 'sms', 'webhook']
-    invalid_keys = [k for k in preferences.keys() if k not in valid_keys]
-    if invalid_keys:
-        raise ValidationError(_("Invalid notification preference keys: {keys}.").format(keys=', '.join(invalid_keys)))
+def validate_unit_code(value):
+    pattern = r'^[A-Z0-9][A-Z0-9\-_]{1,49}$'
+    if not re.match(pattern, value):
+        raise ValidationError(_("Unit code must be 2-50 characters: uppercase letters, numbers, hyphens, underscores."))
+
+def validate_section_code(value):
+    pattern = r'^[A-Z0-9][A-Z0-9\-_]{2,49}$'
+    if not re.match(pattern, value):
+        raise ValidationError(_("Section code must be 3-50 characters: uppercase letters, numbers, hyphens, underscores."))
+
+def validate_division_code(value):
+    pattern = r'^[A-Z0-9][A-Z0-9\-_]{2,49}$'
+    if not re.match(pattern, value):
+        raise ValidationError(_("Division code must be 3-50 characters: uppercase letters, numbers, hyphens, underscores."))

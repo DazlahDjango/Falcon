@@ -1,6 +1,4 @@
-export { default as ReportingLineCard } from './ReportingLineCard';
-export { default as ReportingMatrix } from './ReportingMatrix';
-export { default as DottedLineManager } from './DottedLineManager';
-export { default as InterimManagerBadge } from './InterimManagerBadge';
-export { default as ReportingWeightSlider } from './ReportingWeightSlider';
-export { default as ApprovalPermissions } from './ApprovalPermissions';
+export { default as ReportingLineList } from './ReportingLineList';
+export { default as ReportingLineForm } from './ReportingLineForm';
+export { default as ReportingChain } from './ReportingChain';
+export { default as SpanOfControl } from './SpanOfControl'; 

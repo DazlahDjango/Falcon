@@ -3,29 +3,24 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db import models
 from django.utils import timezone
-from ..throttles.structure_limits import HierarchyReadThrottle
-from ..permissions.structure_permissions import CanViewHierarchy
+from apps.structure.api.v1.throttles.structure_limits import HierarchyReadThrottle
+from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanViewOrgChart
 from .base import BaseStructureReadOnlyViewSet
 
 
 class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
-    permission_classes = [CanViewHierarchy]
+    permission_classes = [IsTenantMember, CanViewOrgChart]
     throttle_classes = [HierarchyReadThrottle]
     
     @action(detail=False, methods=['get'], url_path='overview')
     def get_overview(self, request):
         tenant_id = request.user.tenant_id
-        from ....models import Department, Team, Employment, Position, Location, CostCenter
-        # Department stats
-        departments = Department.objects.filter(tenant_id=tenant_id, is_deleted=False)
-        dept_total = departments.count()
-        dept_active = departments.filter(is_active=True).count()
-        dept_root = departments.filter(parent__isnull=True).count()
-        # Team stats
-        teams = Team.objects.filter(tenant_id=tenant_id, is_deleted=False)
-        team_total = teams.count()
-        team_active = teams.filter(is_active=True).count()
-        team_with_leads = teams.filter(team_lead__isnull=False).count()
+        from apps.structure.models import OrganizationalUnit, Employment, Position, Location, CostCenter
+        # Organizational Unit stats
+        units = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        unit_total = units.count()
+        unit_active = units.filter(is_active=True).count()
+        unit_root = units.filter(parent__isnull=True).count()
         # Employment stats
         employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True)
         emp_total = employments.count()
@@ -44,21 +39,22 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
         cost_centers = CostCenter.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True)
         cc_total = cost_centers.count()
         total_budget = cost_centers.aggregate(total=models.Sum('budget_amount'))['total'] or 0
+        # Level distribution
+        from apps.structure.enums.org_level import OrgLevel
+        level_distribution = {}
+        for level in [OrgLevel.DIVISION, OrgLevel.DEPARTMENT, OrgLevel.SECTION, OrgLevel.UNIT]:
+            count = units.filter(level=level, is_deleted=False).count()
+            level_distribution[level] = count
         return Response({
             'tenant_id': str(tenant_id),
             'generated_at': timezone.now().isoformat(),
-            'departments': {
-                'total': dept_total,
-                'active': dept_active,
-                'root_departments': dept_root,
-                'inactive': dept_total - dept_active,
-                'activation_rate': round((dept_active / dept_total * 100), 2) if dept_total > 0 else 0
-            },
-            'teams': {
-                'total': team_total,
-                'active': team_active,
-                'with_team_leads': team_with_leads,
-                'team_lead_coverage': round((team_with_leads / team_total * 100), 2) if team_total > 0 else 0
+            'organizational_units': {
+                'total': unit_total,
+                'active': unit_active,
+                'root_units': unit_root,
+                'inactive': unit_total - unit_active,
+                'activation_rate': round((unit_active / unit_total * 100), 2) if unit_total > 0 else 0,
+                'level_distribution': level_distribution
             },
             'employments': {
                 'total_current': emp_total,
@@ -85,23 +81,19 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
     @action(detail=False, methods=['get'], url_path='hierarchy-health')
     def get_hierarchy_health(self, request):
         tenant_id = request.user.tenant_id
-        from ....services.hierarchy.cycle_detector import CycleDetector
-        from ....services.validation.org_validator import OrgValidatorService
-        from ....services.reporting.span_of_control import SpanOfControlService
-        dept_cycles = CycleDetector.find_all_cycles(tenant_id, 'department')
-        team_cycles = CycleDetector.find_all_cycles(tenant_id, 'team')
+        from apps.structure.services.hierarchy.cycle_detector import CycleDetector
+        from apps.structure.services.validation.org_validator import OrgValidatorService
+        from apps.structure.services.reporting.span_of_control import SpanOfControl
+        cycles = CycleDetector().find_all_cycles(tenant_id)
         validator = OrgValidatorService()
         integrity_check = validator.validate_org_integrity(tenant_id)
-        span_service = SpanOfControlService()
-        managers_with_issue = span_service.identify_managers_with_span_warning(tenant_id, threshold=15)
+        span_service = SpanOfControl()
+        managers_with_issue = span_service.identify_overloaded_managers(tenant_id, threshold=15)
         health_score = 100
         health_issues = []
-        if dept_cycles:
-            health_score -= len(dept_cycles) * 5
-            health_issues.append(f"{len(dept_cycles)} department cycle(s) detected")
-        if team_cycles:
-            health_score -= len(team_cycles) * 5
-            health_issues.append(f"{len(team_cycles)} team cycle(s) detected")
+        if cycles:
+            health_score -= len(cycles) * 5
+            health_issues.append(f"{len(cycles)} cycle(s) detected")
         if not integrity_check['is_valid']:
             health_score -= integrity_check['issue_count'] * 2
             health_issues.append(f"{integrity_check['issue_count']} integrity issue(s) found")
@@ -115,8 +107,7 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
             'status': 'healthy' if health_score >= 80 else 'warning' if health_score >= 50 else 'critical',
             'issues': health_issues,
             'details': {
-                'department_cycles': len(dept_cycles),
-                'team_cycles': len(team_cycles),
+                'cycles': len(cycles),
                 'integrity_issues': integrity_check['issue_count'],
                 'managers_with_span_warning': len(managers_with_issue)
             }
@@ -126,7 +117,7 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
     def get_trends(self, request):
         tenant_id = request.user.tenant_id
         months = int(request.query_params.get('months', 6))
-        from ....models.hierarchy_version import HierarchyVersion
+        from apps.structure.models.hierarchy_version import HierarchyVersion
         versions = HierarchyVersion.objects.filter(
             tenant_id=tenant_id,
             is_deleted=False,
@@ -139,7 +130,7 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
                 trends.append({
                     'date': version.effective_from.date().isoformat(),
                     'version_number': version.version_number,
-                    'departments_count': len(snapshot.get('departments', []))
+                    'units_count': len(snapshot.get('divisions', []))
                 })
         return Response({
             'tenant_id': str(tenant_id),

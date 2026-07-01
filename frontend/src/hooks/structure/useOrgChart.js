@@ -1,61 +1,71 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { orgChartService } from '../../services/structure/orgChart.service';
-import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
-import { showToast } from '../../store/ui/slices/uiSlice';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useCallback, useEffect } from 'react';
+import {
+    fetchOrgChartTree,
+    fetchOrgChartPreview,
+    exportOrgChartJson,
+    exportOrgChartCsv,
+    clearOrgChartError,
+    resetOrgChartState,
+} from '../../store/structure/slice/orgChartSlice';
+import {
+    selectOrgChartTree,
+    selectOrgChartPreview,
+    selectOrgChartLoading,
+    selectOrgChartError,
+} from '../../store/structure/selectors';
 
-export const useOrgChartExport = () => {
-  const dispatch = useDispatch();
-  const exportAsJson = useMutation({
-    mutationFn: ({ format = 'full', rootDepartmentId = null }) => orgChartService.exportAsJson(format, rootDepartmentId),
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Failed to export as JSON', type: 'error' }));
-      throw error;
-    },
-  });
-  const exportAsCsv = useMutation({
-    mutationFn: ({ entity = 'departments', includeInactive = false }) => orgChartService.exportAsCsv(entity, includeInactive),
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Failed to export as CSV', type: 'error' }));
-      throw error;
-    },
-  });
-  const exportAsText = useMutation({
-    mutationFn: ({ rootDepartmentId = null, maxDepth = 10 }) => orgChartService.exportAsText(rootDepartmentId, maxDepth),
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Failed to export as text', type: 'error' }));
-      throw error;
-    },
-  });
-  const exportAsVisio = useMutation({
-    mutationFn: ({ rootDepartmentId = null }) => orgChartService.exportAsVisio(rootDepartmentId),
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Failed to export as Visio', type: 'error' }));
-      throw error;
-    },
-  });
-  return {
-    exportAsJson,
-    exportAsCsv,
-    exportAsText,
-    exportAsVisio,
-    isExportingJson: exportAsJson.isLoading,
-    isExportingCsv: exportAsCsv.isLoading,
-    isExportingText: exportAsText.isLoading,
-    isExportingVisio: exportAsVisio.isLoading,
-  };
+export const useOrgChart = (options = {}) => {
+    const dispatch = useDispatch();
+    const { autoFetch = true } = options;
+
+    const tree = useSelector(selectOrgChartTree);
+    const preview = useSelector(selectOrgChartPreview);
+    const isLoading = useSelector(selectOrgChartLoading);
+    const error = useSelector(selectOrgChartError);
+
+    const fetchTree = useCallback(() => {
+        return dispatch(fetchOrgChartTree());
+    }, [dispatch]);
+
+    const fetchPreview = useCallback(() => {
+        return dispatch(fetchOrgChartPreview());
+    }, [dispatch]);
+
+    const exportJson = useCallback((params) => {
+        return dispatch(exportOrgChartJson(params));
+    }, [dispatch]);
+
+    const exportCsv = useCallback((params) => {
+        return dispatch(exportOrgChartCsv(params));
+    }, [dispatch]);
+
+    const clearError = useCallback(() => {
+        dispatch(clearOrgChartError());
+    }, [dispatch]);
+
+    const reset = useCallback(() => {
+        dispatch(resetOrgChartState());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (autoFetch) {
+            fetchTree();
+        }
+    }, [autoFetch, fetchTree]);
+
+    return {
+        tree,
+        preview,
+        isLoading,
+        error,
+        fetchTree,
+        fetchPreview,
+        exportJson,
+        exportCsv,
+        clearError,
+        reset,
+    };
 };
 
-export const useDownloadExportedFile = () => {
-  const downloadFile = (blob, filename) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  };
-  return { downloadFile };
-};
+export default useOrgChart;

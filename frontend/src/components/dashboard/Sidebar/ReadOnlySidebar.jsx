@@ -1,5 +1,3 @@
-// frontend/src/components/dashboard/Sidebar/ReadOnlySidebar.jsx
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -8,15 +6,20 @@ import {
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
     FiDownload, FiSettings, FiHelpCircle, FiLogOut, FiBell,
     FiGrid, FiPieChart, FiCalendar, FiFileText, FiStar, FiEye,
-    FiActivity, FiBriefcase
+    FiActivity, FiBriefcase, FiGitBranch, FiMapPin, FiDollarSign,
+    FiLayers
 } from 'react-icons/fi';
+import { HiOutlineBuildingOffice } from 'react-icons/hi2';
+import { BsDiagram3, BsPersonBadge } from 'react-icons/bs';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
+import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const ReadOnlySidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
     const [expandedMenus, setExpandedMenus] = useState({
         main: true,
         views: true,
+        structure: true,
         analytics: true,
         exports: false
     });
@@ -36,6 +39,17 @@ const ReadOnlySidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
             { path: DASHBOARD_ROUTES.READ_ONLY.EXECUTIVE_VIEW, name: 'Executive View', icon: FiBriefcase },
             { path: DASHBOARD_ROUTES.READ_ONLY.MANAGER_VIEW, name: 'Manager View', icon: FiUsers },
             { path: DASHBOARD_ROUTES.READ_ONLY.STAFF_VIEW, name: 'Staff View', icon: FiUser },
+        ],
+        structure: [
+            { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Structure Dashboard', icon: FiBarChart2 },
+            { path: STRUCTURE_ROUTES.DEPARTMENTS, name: 'Departments', icon: HiOutlineBuildingOffice },
+            { path: STRUCTURE_ROUTES.DIVISIONS, name: 'Divisions', icon: FiGitBranch },
+            { path: STRUCTURE_ROUTES.POSITIONS, name: 'Positions', icon: FiBriefcase },
+            { path: STRUCTURE_ROUTES.EMPLOYMENTS, name: 'Employments', icon: BsPersonBadge },
+            { path: STRUCTURE_ROUTES.REPORTING_LINES, name: 'Reporting Lines', icon: BsDiagram3 },
+            { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
+            { path: STRUCTURE_ROUTES.COST_CENTERS, name: 'Cost Centers', icon: FiDollarSign },
+            { path: STRUCTURE_ROUTES.LOCATIONS, name: 'Locations', icon: FiMapPin },
         ],
         analytics: [
             { path: DASHBOARD_ROUTES.READ_ONLY.EXECUTIVE_VIEW, name: 'KPIs & Metrics', icon: FiActivity },
@@ -86,7 +100,6 @@ const ReadOnlySidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
 
     return (
         <aside className={`sidebar read-only-sidebar ${isOpen ? 'open' : 'closed'} ${isCollapsed ? 'collapsed' : ''}`}>
-            {/* Logo Area */}
             <div className="sidebar-logo">
                 <NavLink to={DASHBOARD_ROUTES.READ_ONLY.OVERVIEW} className="logo-link">
                     <div className="logo-icon">
@@ -105,7 +118,6 @@ const ReadOnlySidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
                 </button>
             </div>
             
-            {/* Tenant Info */}
             {!isCollapsed && currentTenant && (
                 <div className="sidebar-tenant">
                     <div className="tenant-name">{currentTenant.name}</div>
@@ -113,7 +125,6 @@ const ReadOnlySidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
                 </div>
             )}
             
-            {/* Read-Only Badge */}
             {!isCollapsed && (
                 <div className="readonly-badge">
                     <FiEye size={14} />
@@ -121,10 +132,10 @@ const ReadOnlySidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
                 </div>
             )}
             
-            {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
                 {renderNavGroup('Dashboard Views', navigation.views, 'views')}
+                {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Analytics', navigation.analytics, 'analytics')}
                 {renderNavGroup('Exports', navigation.exports, 'exports')}
             </nav>

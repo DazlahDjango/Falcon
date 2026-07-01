@@ -7,7 +7,7 @@ import { combineReducers } from '@reduxjs/toolkit';
 import authReducer from './accounts/slice/authSlice';
 import userReducer from './accounts/slice/userSlice';
 import roleReducer from './accounts/slice/roleSlice';
-import tenantReducer from './accounts/slice/tenantSlice';  // ← Accounts tenant (different)
+import tenantReducer from './accounts/slice/tenantSlice';
 import permissionReducer from './accounts/slice/permissionSlice';
 import sessionReducer from './accounts/slice/sessionSlice';
 import auditLogReducer from './accounts/slice/auditSlice';
@@ -22,23 +22,13 @@ import accountsSecurityReducer from './accounts/slice/securitySlice';
 import mfaReducer from './accounts/slice/mfaSlice';
 import profileReducer from './accounts/slice/profileSlice';
 import adminMfaReducer from './accounts/slice/adminMfaSlice';
-// =============================================
+
+// ==========================================
 // Structure Reducers
-// =============================================
+// ==========================================
 import structNotificationReducer from './structure/notificationSlice';
-import uiReducer from './ui/slices/uiSlice'
-import {
-    departmentReducer,
-    teamReducer,
-    positionReducer,
-    employmentReducer,
-    reportingReducer,
-    hierarchyReducer,
-    orgChartReducer,
-    costCenterReducer,
-    locationReducer,
-    structureUiReducer,
-} from './structure';
+import uiReducer from './ui/slices/uiSlice';
+import structureReducer from './structure/slice';
 
 // ==========================================
 // KPI Reducers
@@ -46,7 +36,7 @@ import {
 import kpiModuleReducer from './kpi/index';
 
 // ==========================================
-// TENANT APP REDUCERS (ADD THIS)
+// TENANT APP REDUCERS
 // ==========================================
 import {
     tenantReducer as appTenantReducer,
@@ -62,22 +52,26 @@ import {
     connectionReducer,
 } from './tenant/slice';
 
-// ===============================
+// ==========================================
 // Reviews Reducers
-// ===============================
+// ==========================================
 import { reviewsReducer } from './reviews';
+
+// ==========================================
+// Billing Reducers
+// ==========================================
 import { billingReducer } from './billing';
 
-// Config
-// =====================
+// ==========================================
+// Config Reducers
+// ==========================================
 import { configReducer } from './config';
 
 const rootReducer = combineReducers({
-    // Accounts State
     auth: authReducer,
     users: userReducer,
     roles: roleReducer,
-    tenant: tenantReducer,  // ← Accounts tenant (keep as is)
+    tenant: tenantReducer,
     permissions: permissionReducer,
     sessions: sessionReducer,
     auditLogs: auditLogReducer,
@@ -93,46 +87,29 @@ const rootReducer = combineReducers({
     ui: accountsUiReducer,
     accountsSecurity: accountsSecurityReducer,
 
-    // Tenant Reducers
-    appTenant: appTenantReducer,           // Main tenant CRUD
-    tenantResource: tenantResourceReducer, // Resource limits & quotas
-    tenantDomain: tenantDomainReducer,     // Domain management
-    tenantBackup: tenantBackupReducer,     // Backup operations
-    tenantMigration: tenantMigrationReducer, // Migration tracking
-    tenantSchema: tenantSchemaReducer,     // Schema information
-    tenantProvisioning: tenantProvisioningReducer, // Provisioning status
-    tenantAudit: tenantAuditReducer,       // Audit logs
-    tenantDashboard: tenantDashboardReducer, // Dashboard statistics
-    tenantUI: tenantUIReducer,             // UI state (modals, sidebar, filters)
+    appTenant: appTenantReducer,
+    tenantResource: tenantResourceReducer,
+    tenantDomain: tenantDomainReducer,
+    tenantBackup: tenantBackupReducer,
+    tenantMigration: tenantMigrationReducer,
+    tenantSchema: tenantSchemaReducer,
+    tenantProvisioning: tenantProvisioningReducer,
+    tenantAudit: tenantAuditReducer,
+    tenantDashboard: tenantDashboardReducer,
+    tenantUI: tenantUIReducer,
     connections: connectionReducer,
 
-    // Structure State
     structNotifications: structNotificationReducer,
-    structure: combineReducers({
-        departments: departmentReducer,
-        teams: teamReducer,
-        positions: positionReducer,
-        employments: employmentReducer,
-        reporting: reportingReducer,
-        hierarchy: hierarchyReducer,
-        orgChart: orgChartReducer,
-        costCenters: costCenterReducer,
-        locations: locationReducer,
-        ui: structureUiReducer,
-    }),
+    structure: structureReducer,
 
-    // KPI State
     kpi: kpiModuleReducer,
-    kpis: kpiModuleReducer, // Add alias for redundancy
+    kpis: kpiModuleReducer,
 
-    // Billing State
     billing: billingReducer,
 
-    // Reviews State
     reviews: reviewsReducer,
 
-    // Config
-    config: configReducer
+    config: configReducer,
 });
 
 export default rootReducer;

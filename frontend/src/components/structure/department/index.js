@@ -1,7 +1,4 @@
-export { default as DepartmentCard } from './DepartmentCard';
-export { default as DepartmentStats } from './DepartmentStats';
-export { default as DepartmentTreeView } from './DepartmentTreeView';
-export { default as DepartmentSelector } from './DepartmentSelector';
-export { default as DepartmentMoveModal } from './DepartmentMoveModal';
-export { default as DepartmentAncestors } from './DepartmentAncestors';
-export {default as DepartmentFilters } from './DepartmentFilters'
+export { default as DepartmentList } from './DepartmentList';
+export { default as DepartmentForm } from './DepartmentForm';
+export { default as DepartmentDetail } from './DepartmentDetail';
+export { default as DepartmentTree } from './DepartmentTree';

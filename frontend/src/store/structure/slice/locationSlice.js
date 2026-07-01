@@ -1,189 +1,206 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { locationService } from '../../../services/structure/location.service';
-import { initialLocationState, LoadingState } from './structureTypes';
-import { showToast } from '../../ui/slices/uiSlice';
+import { locationService } from '../../../services/structure';
 
-// Async Thunks
+const initialState = {
+  items: [],
+  currentItem: null,
+  headquarters: null,
+  stats: null,
+  isLoading: false,
+  error: null,
+  totalCount: 0,
+  filters: {},
+  pagination: { page: 1, pageSize: 20 },
+};
+
 export const fetchLocations = createAsyncThunk(
-  'structure/locations/fetch',
-  async ({ page = 1, pageSize = 50, filters = {} }, { rejectWithValue }) => {
+  'locations/fetchAll',
+  async (params, { rejectWithValue }) => {
     try {
-      const params = { page, page_size: pageSize, ...filters };
       const response = await locationService.list(params);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch locations';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch locations');
     }
   }
 );
 
 export const fetchLocationById = createAsyncThunk(
-  'structure/locations/fetchById',
+  'locations/fetchById',
   async (id, { rejectWithValue }) => {
     try {
       const response = await locationService.getById(id);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch location';
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-export const fetchLocationTree = createAsyncThunk(
-  'structure/locations/fetchTree',
-  async ({ includeInactive = false } = {}, { rejectWithValue }) => {
-    try {
-      const response = await locationService.getTree(includeInactive);
-      return response.data;
-    } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch location tree';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch location');
     }
   }
 );
 
 export const fetchHeadquarters = createAsyncThunk(
-  'structure/locations/fetchHeadquarters',
+  'locations/fetchHeadquarters',
   async (_, { rejectWithValue }) => {
     try {
       const response = await locationService.getHeadquarters();
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch headquarters';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch headquarters');
+    }
+  }
+);
+
+export const fetchLocationStats = createAsyncThunk(
+  'locations/fetchStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await locationService.getStats();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch location stats');
+    }
+  }
+);
+
+export const fetchLocationSubLocations = createAsyncThunk(
+  'locations/fetchSubLocations',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await locationService.getSubLocations(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch sub-locations');
     }
   }
 );
 
 export const createLocation = createAsyncThunk(
-  'structure/locations/create',
-  async (data, { dispatch, rejectWithValue }) => {
+  'locations/create',
+  async (data, { rejectWithValue }) => {
     try {
       const response = await locationService.create(data);
-      dispatch(showToast({ message: 'Location created successfully', type: 'success' }));
-      dispatch(fetchLocations({}));
-      dispatch(fetchLocationTree());
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to create location';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to create location');
     }
   }
 );
 
 export const updateLocation = createAsyncThunk(
-  'structure/locations/update',
-  async ({ id, data }, { dispatch, rejectWithValue }) => {
+  'locations/update',
+  async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await locationService.update(id, data);
-      dispatch(showToast({ message: 'Location updated successfully', type: 'success' }));
-      dispatch(fetchLocationById(id));
-      dispatch(fetchLocations({}));
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to update location';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to update location');
     }
   }
 );
 
 export const deleteLocation = createAsyncThunk(
-  'structure/locations/delete',
-  async (id, { dispatch, rejectWithValue }) => {
+  'locations/delete',
+  async (id, { rejectWithValue }) => {
     try {
       await locationService.delete(id);
-      dispatch(showToast({ message: 'Location deleted successfully', type: 'success' }));
-      dispatch(fetchLocations({}));
-      dispatch(fetchLocationTree());
       return id;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to delete location';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to delete location');
     }
   }
 );
 
 export const updateLocationOccupancy = createAsyncThunk(
-  'structure/locations/updateOccupancy',
-  async ({ id, currentOccupancy }, { dispatch, rejectWithValue }) => {
+  'locations/updateOccupancy',
+  async ({ id, occupancy }, { rejectWithValue }) => {
     try {
-      const response = await locationService.updateOccupancy(id, currentOccupancy);
-      dispatch(showToast({ message: 'Occupancy updated successfully', type: 'success' }));
-      dispatch(fetchLocationById(id));
+      const response = await locationService.updateOccupancy(id, occupancy);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to update occupancy';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to update location occupancy');
     }
   }
 );
 
 const locationSlice = createSlice({
-  name: 'structure/locations',
-  initialState: initialLocationState,
+  name: 'locations',
+  initialState,
   reducers: {
-    setLocationPage: (state, action) => {
-      state.pagination.page = action.payload;
+    clearLocationError: (state) => {
+      state.error = null;
     },
-    setLocationPageSize: (state, action) => {
-      state.pagination.pageSize = action.payload;
-      state.pagination.page = 1;
+    clearLocationCurrent: (state) => {
+      state.currentItem = null;
     },
     setLocationFilters: (state, action) => {
-      state.filters = { ...state.filters, ...action.payload };
-      state.pagination.page = 1;
+      state.filters = action.payload;
     },
-    clearLocationFilters: (state) => {
-      state.filters = initialLocationState.filters;
-      state.pagination.page = 1;
+    setLocationPagination: (state, action) => {
+      state.pagination = { ...state.pagination, ...action.payload };
     },
-    clearSelectedLocation: (state) => {
-      state.selectedLocation = null;
-    },
+    resetLocationState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLocations.pending, (state) => {
-        state.loading = LoadingState.LOADING;
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(fetchLocations.fulfilled, (state, action) => {
-        state.loading = LoadingState.SUCCEEDED;
-        state.items = action.payload?.results || action.payload || [];
-        state.pagination.total = action.payload?.count || state.items.length;
-        state.pagination.totalPages = Math.ceil(state.pagination.total / state.pagination.pageSize);
+        state.isLoading = false;
+        state.items = action.payload.results || action.payload;
+        state.totalCount = action.payload.count || action.payload.length || 0;
       })
       .addCase(fetchLocations.rejected, (state, action) => {
-        state.loading = LoadingState.FAILED;
+        state.isLoading = false;
         state.error = action.payload;
       })
-      .addCase(fetchLocationById.fulfilled, (state, action) => {
-        state.selectedLocation = action.payload;
+      .addCase(fetchLocationById.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
       })
-      .addCase(fetchLocationTree.fulfilled, (state, action) => {
-        state.tree = action.payload;
+      .addCase(fetchLocationById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentItem = action.payload;
+      })
+      .addCase(fetchLocationById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       })
       .addCase(fetchHeadquarters.fulfilled, (state, action) => {
         state.headquarters = action.payload;
       })
+      .addCase(fetchLocationStats.fulfilled, (state, action) => {
+        state.stats = action.payload;
+      })
+      .addCase(createLocation.fulfilled, (state, action) => {
+        state.items.unshift(action.payload);
+        state.totalCount += 1;
+      })
+      .addCase(updateLocation.fulfilled, (state, action) => {
+        const index = state.items.findIndex(item => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.currentItem?.id === action.payload.id) {
+          state.currentItem = action.payload;
+        }
+      })
       .addCase(deleteLocation.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item.id !== action.payload);
-        if (state.headquarters?.id === action.payload) {
-          state.headquarters = null;
+        state.totalCount -= 1;
+        if (state.currentItem?.id === action.payload) {
+          state.currentItem = null;
         }
       });
   },
 });
+
 export const {
-  setLocationPage,
-  setLocationPageSize,
+  clearLocationError,
+  clearLocationCurrent,
   setLocationFilters,
-  clearLocationFilters,
-  clearSelectedLocation,
+  setLocationPagination,
+  resetLocationState,
 } = locationSlice.actions;
+
 export default locationSlice.reducer;

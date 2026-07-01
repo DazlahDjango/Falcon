@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from django.db import transaction
 from django.utils import timezone
 from ..throttles.structure_limits import BulkOperationThrottle, HierarchyWriteThrottle
-from ..permissions.structure_permissions import CanPerformBulkOperations
+from ..permissions.org_permissions import CanPerformBulkOperations
 from .base import BaseStructureViewSet
 
 
@@ -165,7 +165,7 @@ class BulkOperationViewSet(BaseStructureViewSet):
         if len(data) > 100:
             return Response({'error': 'Maximum 100 reporting lines per bulk operation'}, status=status.HTTP_400_BAD_REQUEST)
         from ....models.reporting_line import ReportingLine
-        from ..serializers.reporting import ReportingLineCreateUpdateSerializer
+        from ..serializers.reporting_line import ReportingLineCreateUpdateSerializer
         results = {
             'created': [],
             'updated': [],

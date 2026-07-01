@@ -1,15 +1,21 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 from uuid import UUID
-from ....models.department import Department
+from apps.structure.models.department import Department
+from apps.structure.enums.org_level import OrgLevel
 from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
 class DepartmentSerializer(BaseStructureSerializer):
+    level_display = serializers.CharField(source='get_level_display', read_only=True)
+    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
+    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
+    
     class Meta:
         model = Department
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'parent_id', 'depth', 'path', 'is_active',
+            'level_display', 'parent_id', 'parent_name',
+            'parent_code', 'depth', 'path', 'is_active',
             'headcount_limit', 'sensitivity_level', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'depth', 'path', 'created_at', 'updated_at']
@@ -19,6 +25,7 @@ class DepartmentTreeSerializer(serializers.Serializer):
     name = serializers.CharField()
     code = serializers.CharField()
     description = serializers.CharField(required=False)
+    level = serializers.CharField()
     depth = serializers.IntegerField()
     path = serializers.CharField()
     parent_id = serializers.UUIDField(allow_null=True)
@@ -28,12 +35,12 @@ class DepartmentTreeSerializer(serializers.Serializer):
     children = serializers.ListField(child=serializers.DictField(), required=False, default=list)
     stats = serializers.DictField(required=False, default=dict)
 
-
 class DepartmentDetailSerializer(BaseStructureDetailSerializer):
+    level_display = serializers.CharField(source='get_level_display', read_only=True)
     parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
     parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
     child_count = serializers.SerializerMethodField()
-    team_count = serializers.SerializerMethodField()
+    section_count = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     full_path = serializers.SerializerMethodField()
     
@@ -41,29 +48,28 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
         model = Department
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'parent_id', 'parent_code', 'parent_name', 'depth', 'path',
-            'cost_center_id', 'budget_code', 'headcount_limit',
-            'sensitivity_level', 'is_active', 'is_deleted',
-            'child_count', 'team_count', 'employee_count', 'full_path',
+            'level_display', 'parent_id', 'parent_code',
+            'parent_name', 'depth', 'path', 'cost_center_id',
+            'budget_code', 'headcount_limit', 'sensitivity_level',
+            'is_active', 'is_deleted', 'child_count', 'section_count',
+            'employee_count', 'full_path',
             'created_at', 'updated_at', 'created_by', 'updated_by',
             'deleted_at', 'deleted_by'
         ]
         read_only_fields = ['id', 'tenant_id', 'depth', 'path', 'created_at', 'updated_at', 'deleted_at']
     
     def get_child_count(self, obj):
-        return obj.children.filter(is_deleted=False).count()
+        return obj.children.filter(is_deleted=False, is_active=True).count()
     
-    def get_team_count(self, obj):
-        from ....models.team import Team
-        return Team.objects.filter(department_id=obj.id, is_deleted=False).count()
+    def get_section_count(self, obj):
+        return obj.children.filter(is_deleted=False, is_active=True).count()
     
     def get_employee_count(self, obj):
-        from ....models.employment import Employment
+        from apps.structure.models.employment import Employment
         return Employment.objects.filter(department_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
     
     def get_full_path(self, obj):
-        from ....services.hierarchy.path_resolver import PathResolver
-        return PathResolver.resolve_department_path(obj.id, obj.tenant_id)
+        return obj.get_full_path()
 
 class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
     parent_id = serializers.UUIDField(required=False, allow_null=True)
@@ -77,7 +83,7 @@ class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_code(self, value):
-        from ....validators import validate_department_code
+        from apps.structure.validators import validate_department_code
         validate_department_code(value)
         request = self.context.get('request')
         tenant_id = getattr(request.user, 'tenant_id', None) if request else None
@@ -89,23 +95,23 @@ class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
     
     def validate_parent_id(self, value):
         if value:
-            from ....services.hierarchy.cycle_detector import CycleDetector
-            from ....exceptions import HierarchyCycleError, SelfParentError
+            from apps.structure.services.hierarchy.cycle_detector import CycleDetector
+            from apps.structure.exceptions import HierarchyCycleError, SelfParentError
             request = self.context.get('request')
             tenant_id = getattr(request.user, 'tenant_id', None) if request else None
             if self.instance and self.instance.id == value:
                 raise serializers.ValidationError(_("Department cannot be its own parent."))
             try:
                 if self.instance:
-                    CycleDetector.validate_assignment(value, self.instance.id, tenant_id, 'department')
+                    CycleDetector.validate_assignment(value, self.instance.id, tenant_id)
             except (HierarchyCycleError, SelfParentError) as e:
                 raise serializers.ValidationError(str(e))
         return value
     
     def validate_headcount_limit(self, value):
-        from ....validators import validate_headcount_limit
+        from apps.structure.validators import validate_headcount_limit_positive
         if value is not None:
-            validate_headcount_limit(value)
+            validate_headcount_limit_positive(value)
         return value
     
     def validate_sensitivity_level(self, value):

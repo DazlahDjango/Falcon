@@ -1,11 +1,11 @@
+from typing import Optional, Dict, Any
 from uuid import UUID
-from typing import Optional
-from .org_chart_generator import OrgChartGeneratorService
+from apps.structure.services.export.org_chart_generator import OrgChartGeneratorService
 
 class VisioExporterService:
     @staticmethod
-    def generate_visio_xml(tenant_id: UUID, root_department_id: Optional[UUID] = None) -> str:
-        org_chart = OrgChartGeneratorService().generate_json_org_chart(tenant_id, root_department_id)
+    def generate_visio_xml(tenant_id: UUID, root_unit_id: Optional[UUID] = None) -> str:
+        org_chart = OrgChartGeneratorService().generate_json_org_chart(tenant_id, root_unit_id)
         xml_parts = []
         xml_parts.append('<?xml version="1.0" encoding="UTF-8"?>')
         xml_parts.append('<VisioDocument xmlns="http://schemas.microsoft.com/visio/2003/core">')
@@ -14,7 +14,7 @@ class VisioExporterService:
         xml_parts.append('      <Shapes>')
         shapes = []
         connectors = []
-        def process_node(node: dict, parent_id: str = None, x: float = 0, y: float = 0, level: int = 0) -> str:
+        def process_node(node: Dict[str, Any], parent_id: str = None, x: float = 0, y: float = 0, level: int = 0) -> str:
             node_id = f"Shape_{len(shapes) + 1}"
             shape_xml = f'''
         <Shape ID="{node_id}" Type="Shape">
@@ -22,12 +22,13 @@ class VisioExporterService:
           <Text>
             <cp IX="0" />
             <tp>{VisioExporterService._escape_xml(node.get('name', ''))}</tp>
+            <tp>{VisioExporterService._escape_xml(node.get('code', ''))}</tp>
           </Text>
           <XForm>
             <PinX>{x}</PinX>
             <PinY>{y}</PinY>
-            <Width>120</Width>
-            <Height>60</Height>
+            <Width>140</Width>
+            <Height>70</Height>
           </XForm>
         </Shape>'''
             shapes.append(shape_xml)
@@ -40,15 +41,15 @@ class VisioExporterService:
         </Shape>'''
                 connectors.append(connector_xml)
             child_x = x - 80 if level % 2 == 0 else x + 80
-            child_y = y - 80
+            child_y = y - 90
             children = node.get('children', [])
             for i, child in enumerate(children):
-                process_node(child, node_id, child_x + (i * 160), child_y, level + 1)
+                process_node(child, node_id, child_x + (i * 180), child_y, level + 1)
             return node_id
         root_name = org_chart.get('name', 'Organization')
         root_children = org_chart.get('children', [])
         for i, child in enumerate(root_children):
-            process_node(child, None, 0, 400 - (i * 100), 0)
+            process_node(child, None, 0, 500 - (i * 120), 0)
         xml_parts.extend(shapes)
         xml_parts.extend(connectors)
         xml_parts.append('      </Shapes>')

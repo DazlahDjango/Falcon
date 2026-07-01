@@ -1,46 +1,146 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
-import { departmentService } from '../../services/structure/department.service';
-import { normalizeStructureListPage } from '../../services/structure/structureResponse';
-import { STRUCTURE_QUERY_KEYS, DEFAULT_PAGE_SIZE } from '../../config/constants/structureConstants';
+import { useDispatch, useSelector } from 'react-redux';
+import { useCallback, useEffect } from 'react';
+import {
+    fetchDepartments,
+    fetchDepartmentById,
+    fetchRootDepartments,
+    fetchDepartmentStats,
+    fetchDepartmentChildren,
+    fetchDepartmentSections,
+    fetchDepartmentEmployments,
+    fetchDepartmentAncestors,
+    createDepartment,
+    updateDepartment,
+    deleteDepartment,
+    moveDepartment,
+    clearDepartmentError,
+    clearDepartmentCurrent,
+    setDepartmentFilters,
+    setDepartmentPagination,
+    resetDepartmentState,
+} from '../../store/structure/slice/departmentSlice';
+import {
+    selectDepartmentsItems,
+    selectDepartmentsCurrent,
+    selectDepartmentsRoot,
+    selectDepartmentsStats,
+    selectDepartmentsLoading,
+    selectDepartmentsError,
+    selectDepartmentsTotal,
+} from '../../store/structure/selectors';
 
-export const useDepartments = (filters = {}, page = 1, pageSize = DEFAULT_PAGE_SIZE) => {
-  const params = { page, page_size: pageSize, ...filters };
+export const useDepartments = (options = {}) => {
+    const dispatch = useDispatch();
+    const { autoFetch = true, params = {} } = options;
 
-  return useQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.DEPARTMENTS, params],
-    queryFn: () => departmentService.list(params),
-    select: normalizeStructureListPage,
-    staleTime: 5 * 60 * 1000,
-    keepPreviousData: true,
-  });
+    const items = useSelector(selectDepartmentsItems);
+    const currentItem = useSelector(selectDepartmentsCurrent);
+    const rootItems = useSelector(selectDepartmentsRoot);
+    const stats = useSelector(selectDepartmentsStats);
+    const isLoading = useSelector(selectDepartmentsLoading);
+    const error = useSelector(selectDepartmentsError);
+    const totalCount = useSelector(selectDepartmentsTotal);
+
+    const fetchAll = useCallback((fetchParams) => {
+        return dispatch(fetchDepartments(fetchParams || params));
+    }, [dispatch, params]);
+
+    const fetchById = useCallback((id) => {
+        return dispatch(fetchDepartmentById(id));
+    }, [dispatch]);
+
+    const fetchRoot = useCallback(() => {
+        return dispatch(fetchRootDepartments());
+    }, [dispatch]);
+
+    const fetchStats = useCallback(() => {
+        return dispatch(fetchDepartmentStats());
+    }, [dispatch]);
+
+    const fetchChildren = useCallback((id) => {
+        return dispatch(fetchDepartmentChildren(id));
+    }, [dispatch]);
+
+    const fetchSections = useCallback((id) => {
+        return dispatch(fetchDepartmentSections(id));
+    }, [dispatch]);
+
+    const fetchEmployments = useCallback((id) => {
+        return dispatch(fetchDepartmentEmployments(id));
+    }, [dispatch]);
+
+    const fetchAncestors = useCallback((id) => {
+        return dispatch(fetchDepartmentAncestors(id));
+    }, [dispatch]);
+
+    const create = useCallback((data) => {
+        return dispatch(createDepartment(data));
+    }, [dispatch]);
+
+    const update = useCallback((id, data) => {
+        return dispatch(updateDepartment({ id, data }));
+    }, [dispatch]);
+
+    const remove = useCallback((id) => {
+        return dispatch(deleteDepartment(id));
+    }, [dispatch]);
+
+    const move = useCallback((id, parentId) => {
+        return dispatch(moveDepartment({ id, parentId }));
+    }, [dispatch]);
+
+    const clearError = useCallback(() => {
+        dispatch(clearDepartmentError());
+    }, [dispatch]);
+
+    const clearCurrent = useCallback(() => {
+        dispatch(clearDepartmentCurrent());
+    }, [dispatch]);
+
+    const setFilters = useCallback((filters) => {
+        dispatch(setDepartmentFilters(filters));
+    }, [dispatch]);
+
+    const setPagination = useCallback((pagination) => {
+        dispatch(setDepartmentPagination(pagination));
+    }, [dispatch]);
+
+    const reset = useCallback(() => {
+        dispatch(resetDepartmentState());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (autoFetch) {
+            fetchAll(params);
+        }
+    }, [autoFetch, fetchAll, params]);
+
+    return {
+        items,
+        currentItem,
+        rootItems,
+        stats,
+        isLoading,
+        error,
+        totalCount,
+        fetchAll,
+        fetchById,
+        fetchRoot,
+        fetchStats,
+        fetchChildren,
+        fetchSections,
+        fetchEmployments,
+        fetchAncestors,
+        create,
+        update,
+        remove,
+        move,
+        clearError,
+        clearCurrent,
+        setFilters,
+        setPagination,
+        reset,
+    };
 };
 
-export const useInfiniteDepartments = (filters = {}) => {
-  return useInfiniteQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.DEPARTMENTS, 'infinite', filters],
-    queryFn: ({ pageParam = 1 }) => departmentService.list({ page: pageParam, page_size: DEFAULT_PAGE_SIZE, ...filters }),
-    getNextPageParam: (lastPage, pages) => {
-      if (lastPage.data?.next) {
-        return pages.length + 1;
-      }
-      return undefined;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
-export const useDepartmentStats = () => {
-  return useQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.DEPARTMENTS, 'stats'],
-    queryFn: () => departmentService.getStats(),
-    staleTime: 10 * 60 * 1000,
-  });
-};
-
-export const useRootDepartments = (includeInactive = false) => {
-  return useQuery({
-    queryKey: [STRUCTURE_QUERY_KEYS.DEPARTMENTS, 'root', { includeInactive }],
-    queryFn: () => departmentService.getRootDepartments({ include_inactive: includeInactive }),
-    staleTime: 5 * 60 * 1000,
-  });
-};
+export default useDepartments;

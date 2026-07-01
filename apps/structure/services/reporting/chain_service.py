@@ -1,126 +1,170 @@
-from typing import List, Optional, Dict, Any, Set
+from typing import List, Optional, Dict, Any
 from uuid import UUID
+from django.db import transaction
+from django.utils import timezone
+from datetime import datetime
 from django.core.cache import cache
-from django.db import models
-from ...models.employment import Employment
-from ...models.reporting_line import ReportingLine
-from ...constants import CACHE_KEY_REPORTING_CHAIN_UP, CACHE_KEY_REPORTING_CHAIN_DOWN, DEFAULT_MAX_CACHE_TTL_SECONDS
-from ...exceptions import MaxDepthExceededError
+from apps.structure.models.employment import Employment
+from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.interim_assignment import InterimAssignment
+from apps.structure.constants import DEFAULT_MAX_CACHE_TTL_SECONDS
+from apps.structure.exceptions import ReportingChainError, SelfReportingError, EmploymentNotFoundError
 
-class ReportingChainService:
-    def __init__(self, max_depth: int = 10):
-        self.max_depth = max_depth
+class ChainService:
+    def __init__(self):
         self._cache = cache
     
-    def get_chain_up(self, user_id: UUID, tenant_id: UUID, include_self: bool = False, use_cache: bool = True) -> List[Dict[str, Any]]:
-        cache_key = CACHE_KEY_REPORTING_CHAIN_UP.format(tenant_id=tenant_id, user_id=user_id)
+    def get_chain_of_command(self, user_id: UUID, tenant_id: UUID, use_cache: bool = True) -> List[Dict[str, Any]]:
+        cache_key = f"structure:reporting_chain:{tenant_id}:{user_id}"
         if use_cache:
             cached = self._cache.get(cache_key)
             if cached:
                 return cached
+        employment = Employment.objects.current_by_user(user_id).first()
+        if not employment:
+            raise EmploymentNotFoundError(user_id)
         chain = []
-        current_user_id = user_id
-        depth = 0
-        if include_self:
-            chain.append(self._get_user_chain_info(current_user_id, tenant_id, 'self'))
-        while current_user_id and depth < self.max_depth:
-            employment = Employment.objects.filter(
-                user_id=current_user_id,
-                tenant_id=tenant_id,
-                is_current=True,
-                is_deleted=False,
-                is_active=True
-            ).first()
-            if not employment:
+        current = employment
+        while current:
+            reporting_line = ReportingLine.objects.filter(employee=current, is_active=True, is_deleted=False).first()
+            if not reporting_line:
                 break
-            manager_user_id = employment.manager_user_id
-            if not manager_user_id:
-                break
-            manager_info = self._get_user_chain_info(manager_user_id, tenant_id, 'manager')
-            manager_info['relation_type'] = 'solid'
-            manager_info['reporting_weight'] = 1.0
-            chain.append(manager_info)
-            current_user_id = manager_user_id
-            depth += 1
-        if depth >= self.max_depth and current_user_id:
-            raise MaxDepthExceededError(depth, self.max_depth)
+            manager = reporting_line.manager
+            interim = InterimAssignment.objects.current_by_employee(manager.id).first()
+            if interim:
+                chain.append({
+                    'user_id': str(interim.interim_manager.user_id),
+                    'employment_id': str(interim.interim_manager.id),
+                    'is_interim': True,
+                    'interim_id': str(interim.id),
+                    'effective_to': interim.effective_to.isoformat() if interim.effective_to else None,
+                    'position': interim.interim_manager.position.title if interim.interim_manager.position else None,
+                    'is_manager': interim.interim_manager.is_manager,
+                    'is_executive': interim.interim_manager.is_executive
+                })
+                current = interim.interim_manager
+            else:
+                chain.append({
+                    'user_id': str(manager.user_id),
+                    'employment_id': str(manager.id),
+                    'is_interim': False,
+                    'interim_id': None,
+                    'effective_to': None,
+                    'position': manager.position.title if manager.position else None,
+                    'is_manager': manager.is_manager,
+                    'is_executive': manager.is_executive
+                })
+                current = manager
         if use_cache:
             self._cache.set(cache_key, chain, DEFAULT_MAX_CACHE_TTL_SECONDS)
         return chain
     
-    def get_chain_down(self, manager_user_id: UUID, tenant_id: UUID, include_indirect: bool = True, max_depth: int = 10, use_cache: bool = True) -> List[Dict[str, Any]]:
-        cache_key = CACHE_KEY_REPORTING_CHAIN_DOWN.format(tenant_id=tenant_id, user_id=manager_user_id)
-        if use_cache:
-            cached = self._cache.get(cache_key)
-            if cached:
-                return cached
-        chain = []
-        def collect_descendants(current_manager_id: UUID, depth: int) -> None:
-            if depth > max_depth:
-                return
-            reporting_lines = ReportingLine.objects.filter(
-                manager__user_id=current_manager_id,
-                relation_type='solid',
-                is_active=True,
-                tenant_id=tenant_id,
-                is_deleted=False
-            ).select_related('employee', 'employee__position')
-            for report in reporting_lines:
-                employee_info = self._get_user_chain_info(report.employee.user_id, tenant_id, 'subordinate')
-                employee_info['relation_type'] = report.relation_type
-                employee_info['reporting_weight'] = float(report.reporting_weight)
-                employee_info['depth'] = depth + 1
-                chain.append(employee_info)
-                if include_indirect:
-                    collect_descendants(report.employee.user_id, depth + 1)
-        collect_descendants(manager_user_id, 0)
-        if use_cache:
-            self._cache.set(cache_key, chain, DEFAULT_MAX_CACHE_TTL_SECONDS)
-        return chain
+    def get_direct_reports(self, user_id: UUID, tenant_id: UUID) -> List[Employment]:
+        employment = Employment.objects.current_by_user(user_id).first()
+        if not employment:
+            raise EmploymentNotFoundError(user_id)
+        reporting_lines = ReportingLine.objects.filter(manager=employment, is_active=True, is_deleted=False)
+        return [rl.employee for rl in reporting_lines]
     
-    def _get_user_chain_info(self, user_id: UUID, tenant_id: UUID, role: str) -> Dict[str, Any]:
-        employment = Employment.objects.filter(
-            user_id=user_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).select_related('position', 'department').first()
-        return {
-            'user_id': str(user_id),
-            'role_in_chain': role,
-            'position_title': employment.position.title if employment and employment.position else None,
-            'position_code': employment.position.job_code if employment and employment.position else None,
-            'department_name': employment.department.name if employment and employment.department else None,
-            'is_manager': employment.is_manager if employment else False,
-            'is_executive': employment.is_executive if employment else False
-        }
+    def get_all_reports(self, user_id: UUID, tenant_id: UUID) -> List[Employment]:
+        direct_reports = self.get_direct_reports(user_id, tenant_id)
+        all_reports = list(direct_reports)
+        for report in direct_reports:
+            all_reports.extend(self.get_all_reports(str(report.user_id), tenant_id))
+        return all_reports
     
-    def get_management_level(self, user_id: UUID, tenant_id: UUID) -> int:
-        chain = self.get_chain_up(user_id, tenant_id, include_self=False, use_cache=True)
+    def get_reporting_depth(self, user_id: UUID, tenant_id: UUID) -> int:
+        chain = self.get_chain_of_command(user_id, tenant_id)
         return len(chain)
     
-    def is_manager_of(self, manager_user_id: UUID, employee_user_id: UUID, tenant_id: UUID) -> bool:
-        if manager_user_id == employee_user_id:
-            return False
-        chain = self.get_chain_up(employee_user_id, tenant_id, include_self=False, use_cache=True)
-        return any(manager['user_id'] == str(manager_user_id) for manager in chain)
-    
-    def get_common_manager(self, user_a_id: UUID, user_b_id: UUID, tenant_id: UUID) -> Optional[Dict[str, Any]]:
-        chain_a = self.get_chain_up(user_a_id, tenant_id, include_self=True, use_cache=True)
-        chain_b = self.get_chain_up(user_b_id, tenant_id, include_self=True, use_cache=True)
-        chain_a_ids = {c['user_id'] for c in chain_a}
-        for manager in chain_b:
-            if manager['user_id'] in chain_a_ids:
-                return manager    
+    def get_effective_manager(self, user_id: UUID, tenant_id: UUID) -> Optional[Employment]:
+        employment = Employment.objects.current_by_user(user_id).first()
+        if not employment:
+            raise EmploymentNotFoundError(user_id)
+        interim = InterimAssignment.objects.current_by_employee(employment.id).first()
+        if interim:
+            return interim.interim_manager
+        reporting_line = ReportingLine.objects.filter(employee=employment, is_active=True, is_deleted=False).first()
+        if reporting_line:
+            return reporting_line.manager
         return None
+    
+    def get_ultimate_manager(self, user_id: UUID, tenant_id: UUID) -> Optional[Dict[str, Any]]:
+        chain = self.get_chain_of_command(user_id, tenant_id)
+        if chain:
+            return chain[-1]
+        return None
+    
+    def get_span_of_control(self, user_id: UUID, tenant_id: UUID) -> Dict[str, Any]:
+        direct_reports = self.get_direct_reports(user_id, tenant_id)
+        return {
+            'direct_count': len(direct_reports),
+            'direct_reports': [str(e.user_id) for e in direct_reports],
+            'total_reports': len(self.get_all_reports(user_id, tenant_id))
+        }
+    
+    def validate_chain_integrity(self, tenant_id: UUID) -> List[Dict[str, Any]]:
+        errors = []
+        employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_active=True, is_deleted=False)
+        for emp in employments:
+            try:
+                chain = self.get_chain_of_command(str(emp.user_id), tenant_id)
+                seen = set()
+                for node in chain:
+                    if node['user_id'] in seen:
+                        errors.append({
+                            'user_id': str(emp.user_id),
+                            'error': 'Circular reference detected in reporting chain'
+                        })
+                        break
+                    seen.add(node['user_id'])
+            except Exception as e:
+                errors.append({
+                    'user_id': str(emp.user_id),
+                    'error': str(e)
+                })
+        return errors
+    
+    def assign_manager(self, employee_id: UUID, manager_id: UUID, effective_from: Optional[datetime] = None, approved_by: Optional[UUID] = None) -> ReportingLine:
+        with transaction.atomic():
+            employee = Employment.objects.get(id=employee_id, is_deleted=False)
+            manager = Employment.objects.get(id=manager_id, is_deleted=False)
+            if employee.user_id == manager.user_id:
+                raise SelfReportingError()
+            if employee.tenant_id != manager.tenant_id:
+                raise ReportingChainError("Employee and manager must be in same tenant.")
+            if not effective_from:
+                effective_from = timezone.now().date()
+            ReportingLine.objects.filter(employee=employee, is_active=True, is_deleted=False).update(is_active=False, effective_to=effective_from)
+            reporting_line = ReportingLine.objects.create(
+                tenant_id=employee.tenant_id,
+                employee=employee,
+                manager=manager,
+                effective_from=effective_from,
+                is_active=True,
+                approved_by_id=approved_by
+            )
+            self._cache.delete(f"structure:reporting_chain:{employee.tenant_id}:{employee.user_id}")
+            return reporting_line
+    
+    def remove_manager(self, employee_id: UUID) -> bool:
+        with transaction.atomic():
+            reporting_line = ReportingLine.objects.filter(
+                employee_id=employee_id,
+                is_active=True,
+                is_deleted=False
+            ).first()
+            if reporting_line:
+                reporting_line.is_active = False
+                reporting_line.effective_to = timezone.now().date()
+                reporting_line.save()
+                self._cache.delete(f"structure:reporting_chain:{reporting_line.tenant_id}:{reporting_line.employee.user_id}")
+            return True
     
     def clear_cache(self, tenant_id: UUID, user_id: Optional[UUID] = None) -> None:
         if user_id:
-            self._cache.delete(CACHE_KEY_REPORTING_CHAIN_UP.format(tenant_id=tenant_id, user_id=user_id))
-            self._cache.delete(CACHE_KEY_REPORTING_CHAIN_DOWN.format(tenant_id=tenant_id, user_id=user_id))
+            self._cache.delete(f"structure:reporting_chain:{tenant_id}:{user_id}")
         else:
-            pattern = f"structure:reporting_*:{tenant_id}:*"
-            keys = self._cache.keys(pattern)
+            keys = self._cache.keys(f"structure:reporting_chain:{tenant_id}:*")
             for key in keys:
                 self._cache.delete(key)

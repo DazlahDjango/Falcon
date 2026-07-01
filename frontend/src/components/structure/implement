@@ -1,0 +1,124 @@
+components/structure/
+├── structure.css                              (Main CSS - imports all others)
+├── index.js                                    (Main export)
+│
+├── common/
+│   ├── index.js
+│   ├── common.css
+│   ├── StructureTable.jsx
+│   ├── StructureForm.jsx
+│   ├── StructureFilters.jsx
+│   ├── StructureSearchBar.jsx
+│   ├── StructurePagination.jsx
+│   ├── StructureStatusBadge.jsx
+│   ├── StructureEmptyState.jsx
+│   ├── StructureLoading.jsx
+│   └── StructureConfirmDialog.jsx
+│
+├── division/
+│   ├── index.js
+│   ├── division.css
+│   ├── DivisionList.jsx
+│   ├── DivisionForm.jsx
+│   └── DivisionDetail.jsx
+│
+├── department/
+│   ├── index.js
+│   ├── department.css
+│   ├── DepartmentList.jsx
+│   ├── DepartmentForm.jsx
+│   ├── DepartmentDetail.jsx
+│   └── DepartmentTree.jsx
+│
+├── section/
+│   ├── index.js
+│   ├── section.css
+│   ├── SectionList.jsx
+│   ├── SectionForm.jsx
+│   └── SectionDetail.jsx
+│
+├── unit/
+│   ├── index.js
+│   ├── unit.css
+│   ├── UnitList.jsx
+│   ├── UnitForm.jsx
+│   └── UnitDetail.jsx
+│
+├── position/
+│   ├── index.js
+│   ├── position.css
+│   ├── PositionList.jsx
+│   ├── PositionForm.jsx
+│   └── PositionDetail.jsx
+│
+├── employment/
+│   ├── index.js
+│   ├── employment.css
+│   ├── EmploymentList.jsx
+│   ├── EmploymentForm.jsx
+│   ├── EmploymentDetail.jsx
+│   └── EmploymentTransfer.jsx
+│
+├── reporting/
+│   ├── index.js
+│   ├── reporting.css
+│   ├── ReportingLineList.jsx
+│   ├── ReportingLineForm.jsx
+│   ├── ReportingChain.jsx
+│   └── SpanOfControl.jsx
+│
+├── interim/
+│   ├── index.js
+│   ├── interim.css
+│   ├── InterimAssignmentList.jsx
+│   ├── InterimAssignmentForm.jsx
+│   └── InterimAssignmentDetail.jsx
+│
+├── costcenter/
+│   ├── index.js
+│   ├── costcenter.css
+│   ├── CostCenterList.jsx
+│   ├── CostCenterForm.jsx
+│   ├── CostCenterDetail.jsx
+│   └── CostCenterUtilization.jsx
+│
+├── location/
+│   ├── index.js
+│   ├── location.css
+│   ├── LocationList.jsx
+│   ├── LocationForm.jsx
+│   └── LocationDetail.jsx
+│
+├── hierarchy/
+│   ├── index.js
+│   ├── hierarchy.css
+│   ├── HierarchyVersionList.jsx
+│   ├── HierarchyVersionDetail.jsx
+│   ├── HierarchySnapshotCapture.jsx
+│   └── HierarchyVersionDiff.jsx
+│
+├── orgchart/
+│   ├── index.js
+│   ├── orgchart.css
+│   ├── OrgChartView.jsx
+│   ├── OrgChartTree.jsx
+│   └── OrgChartExport.jsx
+│
+├── dashboard/
+│   ├── index.js
+│   ├── dashboard.css
+│   ├── StructureDashboard.jsx
+│   └── StructureHealth.jsx
+│
+├── settings/
+│   ├── index.js
+│   ├── settings.css
+│   ├── StructureSettings.jsx
+│   └── ReferenceData.jsx
+│
+└── bulk/
+    ├── index.js
+    ├── bulk.css
+    ├── BulkDepartmentUpload.jsx
+    ├── BulkEmploymentUpload.jsx
+    └── BulkReportingUpload.jsx
