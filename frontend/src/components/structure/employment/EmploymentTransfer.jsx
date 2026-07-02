@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiRefreshCw, FiUser, FiBriefcase, FiCalendar } from 'react-icons/fi';
-import { useEmployments } from '../../../hooks/structure';
+import { FiArrowLeft, FiRefreshCw, FiUser, FiBriefcase, FiCalendar, FiSearch } from 'react-icons/fi';
+import { useEmployments, useDepartments, useUnits, usePositions } from '../../../hooks/structure';
 import { StructureLoading, StructureStatusBadge, StructureConfirmDialog } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './employment.css';
@@ -19,8 +19,18 @@ export const EmploymentTransfer = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [transferResult, setTransferResult] = useState(null);
+  const [userSearch, setUserSearch] = useState('');
 
   const { transfer, isLoading, error, clearError } = useEmployments({ autoFetch: false });
+  const { items: departments, fetchAll: fetchDepartments } = useDepartments({ autoFetch: false });
+  const { items: units, fetchAll: fetchUnits } = useUnits({ autoFetch: false });
+  const { items: positions, fetchAll: fetchPositions } = usePositions({ autoFetch: false });
+
+  useEffect(() => {
+    fetchDepartments({ page_size: 1000 });
+    fetchUnits({ page_size: 1000 });
+    fetchPositions({ page_size: 1000 });
+  }, [fetchDepartments, fetchUnits, fetchPositions]);
 
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -151,40 +161,56 @@ export const EmploymentTransfer = () => {
               </label>
               <div className="input-with-icon">
                 <FiBriefcase className="input-icon" size={16} />
-                <input
+                <select
                   id="position_id"
                   name="position_id"
-                  type="text"
-                  placeholder="New position ID"
                   value={formData.position_id}
                   onChange={handleChange}
                   required
-                />
+                >
+                  <option value="">Select position</option>
+                  {positions.map((position) => (
+                    <option key={position.id} value={position.id}>
+                      {position.title || position.job_code || position.id}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="department_id">New Department</label>
-              <input
+              <select
                 id="department_id"
                 name="department_id"
-                type="text"
-                placeholder="New department ID (optional)"
                 value={formData.department_id}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Select department</option>
+                {departments.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name || department.code || department.id}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
               <label htmlFor="unit_id">New Unit</label>
-              <input
+              <select
                 id="unit_id"
                 name="unit_id"
-                type="text"
-                placeholder="New unit ID (optional)"
                 value={formData.unit_id}
                 onChange={handleChange}
-              />
+                disabled={!formData.department_id}
+              >
+                <option value="">Select unit</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name || unit.code || unit.id}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">

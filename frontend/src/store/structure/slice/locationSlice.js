@@ -147,8 +147,9 @@ const locationSlice = createSlice({
       })
       .addCase(fetchLocations.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchLocations.rejected, (state, action) => {
         state.isLoading = false;
@@ -160,7 +161,7 @@ const locationSlice = createSlice({
       })
       .addCase(fetchLocationById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchLocationById.rejected, (state, action) => {
         state.isLoading = false;
@@ -173,16 +174,18 @@ const locationSlice = createSlice({
         state.stats = action.payload;
       })
       .addCase(createLocation.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newLocation = action.payload.data || action.payload;
+        state.items.unshift(newLocation);
         state.totalCount += 1;
       })
       .addCase(updateLocation.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedLocation = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedLocation.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedLocation;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedLocation.id) {
+          state.currentItem = updatedLocation;
         }
       })
       .addCase(deleteLocation.fulfilled, (state, action) => {

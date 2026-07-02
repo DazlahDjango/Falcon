@@ -26,3 +26,7 @@ export const clearUserMFAOverride = (userId) =>
   request.delete(SECURITY_ENDPOINTS.USER_MFA_POLICY_DETAIL(userId));
 
 export const getUserMFAStatus = (userId) => request.get(SECURITY_ENDPOINTS.USER_MFA_STATUS(userId));
+
+// ============ ADD MISSING EXPORT ============
+
+export const verifyStepUp = (data) => request.post('/security/step-up/verify', data);

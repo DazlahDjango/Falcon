@@ -28,6 +28,20 @@ import { default as securityReducer } from '../accounts/slice/securitySlice';
 import { default as systemSettingsReducer } from '../accounts/slice/systemSettingsSlice';
 import { default as accountsUiReducer } from '../accounts/slice/uiSlice';
 
+import {
+    tenantReducer as appTenantReducer,
+    tenantResourceReducer,
+    tenantDomainReducer,
+    tenantBackupReducer,
+    tenantMigrationReducer,
+    tenantSchemaReducer,
+    tenantProvisioningReducer,
+    tenantAuditReducer,
+    tenantDashboardReducer,
+    tenantUIReducer,
+    connectionReducer,
+} from '../tenant/slice';
+
 /**
  * PMS dashboard state — mounted only via DashboardStoreProvider (not app rootReducer).
  */
@@ -45,7 +59,6 @@ const dashboardRootReducer = combineReducers({
   kpi: kpiModuleReducer,
   kpis: kpiModuleReducer,
   reviews: reviewsReducer,  
-  structure: structureReducer,
   auth: authReducer,
   users: userReducer,
   roles: roleReducer,
@@ -60,6 +73,22 @@ const dashboardRootReducer = combineReducers({
   ui: accountsUiReducer,
   accountsSecurity: securityReducer,
   systemSettings: systemSettingsReducer,
+
+  // Tenant App State
+  appTenant: appTenantReducer,
+  tenantResource: tenantResourceReducer,
+  tenantDomain: tenantDomainReducer,
+  tenantBackup: tenantBackupReducer,
+  tenantMigration: tenantMigrationReducer,
+  tenantSchema: tenantSchemaReducer,
+  tenantProvisioning: tenantProvisioningReducer,
+  tenantAudit: tenantAuditReducer,
+  tenantDashboard: tenantDashboardReducer,
+  tenantUI: tenantUIReducer,
+  connections: connectionReducer,
+
+  // Structure State
+  structure: structureReducer,
 });
 
 export default dashboardRootReducer;

@@ -27,9 +27,7 @@ import { STRUCTURE_ROUTES } from '../../routes/structure.routes';
 const EmploymentList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // Ensure employments is always an array
-  const employmentsRaw = useSelector(selectEmployments);
-  const employments = Array.isArray(employmentsRaw) ? employmentsRaw : [];
+  const employments = useSelector(selectEmployments);
   const loading = useSelector(selectEmploymentsLoading);
   const pagination = useSelector(selectEmploymentPagination);
   const filters = useSelector(selectFilters);

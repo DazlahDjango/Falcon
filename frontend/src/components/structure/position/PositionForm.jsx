@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { usePositions, usePositionForm } from '../../../hooks/structure';
+import PositionSelector from '../position/PositionSelector';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './position.css';
@@ -12,6 +13,7 @@ export const PositionForm = () => {
   const isEditing = !!id;
 
   const {
+    items: positions,
     currentItem,
     isLoading,
     error,
@@ -19,7 +21,7 @@ export const PositionForm = () => {
     create,
     update,
     clearError,
-  } = usePositions({ autoFetch: false });
+  } = usePositions({ autoFetch: true, params: { page: 1, pageSize: 1000 } });
 
   const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = usePositionForm({
     initialValues: {
@@ -185,14 +187,13 @@ export const PositionForm = () => {
 
         <div className="form-group">
           <label htmlFor="reports_to_id">Reports To Position</label>
-          <input
-            id="reports_to_id"
-            name="reports_to_id"
-            type="text"
-            placeholder="Position ID"
-            value={values.reports_to_id || ''}
-            onChange={handleChange}
+          <PositionSelector
+            value={values.reports_to_id}
+            onChange={(value) => setFieldValue('reports_to_id', value)}
+            positions={positions}
+            placeholder="Select reporting position"
             disabled={isSubmitting}
+            className="w-full"
           />
           <span className="form-hint">Leave empty for top-level position</span>
         </div>

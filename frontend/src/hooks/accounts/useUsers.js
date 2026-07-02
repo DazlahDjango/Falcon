@@ -215,6 +215,20 @@ export const useUsers = () => {
     [users]
   );
 
+  const getFullName = useCallback((user) => {
+    if (!user) return '';
+
+    if (typeof user === 'string') return user;
+
+    return (
+      user.full_name ||
+      [user.first_name, user.last_name].filter(Boolean).join(' ').trim() ||
+      user.email ||
+      user.username ||
+      ''
+    );
+  }, []);
+
   return useMemo(
     () => ({
       users,
@@ -232,6 +246,7 @@ export const useUsers = () => {
       myReportingChain,
       invitations,
       getUsers,
+      loadUsers: getUsers,
       getUser,
       create,
       createUser: create,
@@ -256,6 +271,7 @@ export const useUsers = () => {
       clearError,
       getUserById,
       getUsersByRole,
+      getFullName,
     }),
     [
       users,
@@ -294,6 +310,7 @@ export const useUsers = () => {
       clearError,
       getUserById,
       getUsersByRole,
+      getFullName,
     ]
   );
 };

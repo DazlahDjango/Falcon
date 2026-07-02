@@ -122,8 +122,10 @@ const divisionSlice = createSlice({
       })
       .addCase(fetchDivisions.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        const results = responseData.results || [];
+        state.items = Array.isArray(results) ? results : [];
+        state.totalCount = responseData.count || (Array.isArray(results) ? results.length : 0);
       })
       .addCase(fetchDivisions.rejected, (state, action) => {
         state.isLoading = false;
@@ -135,26 +137,28 @@ const divisionSlice = createSlice({
       })
       .addCase(fetchDivisionById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchDivisionById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
       .addCase(fetchDivisionStats.fulfilled, (state, action) => {
-        state.stats = action.payload;
+        state.stats = action.payload.data || action.payload;
       })
       .addCase(createDivision.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newDivision = action.payload.data || action.payload;
+        state.items.unshift(newDivision);
         state.totalCount += 1;
       })
       .addCase(updateDivision.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedDivision = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedDivision.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedDivision;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedDivision.id) {
+          state.currentItem = updatedDivision;
         }
       })
       .addCase(deleteDivision.fulfilled, (state, action) => {

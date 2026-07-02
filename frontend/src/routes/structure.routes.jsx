@@ -100,7 +100,7 @@ const withSuspense = (Component) => (
     </React.Suspense>
 );
 
-// Export route constants for navigation - REMOVED ARROW FUNCTIONS
+// Export route constants for navigation
 export const STRUCTURE_ROUTES = {
     BASE: '/structure',
     DASHBOARD: '/structure/dashboard',

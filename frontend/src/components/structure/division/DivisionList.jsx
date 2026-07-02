@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiLayers, FiUsers, FiActivity } from 'react-icons/fi';
 import { useDivisions } from '../../../hooks/structure';
 import {
   StructureTable,
@@ -160,8 +160,51 @@ export const DivisionList = () => {
     onPageSizeChange: handlePageSizeChange,
   };
 
+  const summaryStats = useMemo(() => {
+    const itemsArray = Array.isArray(items) ? items : [];
+    const activeCount = itemsArray.filter((item) => item.is_active).length;
+    const inactiveCount = itemsArray.filter((item) => !item.is_active).length;
+    const withHeadcount = itemsArray.filter((item) => item.headcount_limit).length;
+
+    return [
+      { label: 'Total divisions', value: totalCount, icon: FiLayers },
+      { label: 'Active', value: activeCount, icon: FiActivity },
+      { label: 'With headcount', value: withHeadcount, icon: FiUsers },
+      { label: 'Inactive', value: inactiveCount, icon: FiRefreshCw },
+    ];
+  }, [items, totalCount]);
+
   return (
     <div className="division-list-container">
+      <div className="division-list-hero">
+        <div className="division-list-hero__content">
+          <div className="division-list-hero__icon">
+            <FiLayers size={22} />
+          </div>
+          <div>
+            <p className="division-list-hero__eyebrow">Structure management</p>
+            <h2>Division overview</h2>
+            <p>Keep major business units consistent with clear naming, active status, and headcount planning.</p>
+          </div>
+        </div>
+        <div className="division-list-hero__stats">
+          {summaryStats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="division-stat-card">
+                <div className="division-stat-card__icon">
+                  <Icon size={16} />
+                </div>
+                <div>
+                  <div className="division-stat-card__value">{stat.value}</div>
+                  <div className="division-stat-card__label">{stat.label}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="division-list-header">
         <div className="header-left">
           <h1>Divisions</h1>

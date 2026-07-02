@@ -28,7 +28,13 @@ const AuthContext = createContext(null);
 export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuthContext must be used within AuthProvider');
+    const error = new Error('useAuthContext must be used within AuthProvider');
+    console.error('[AuthContext] Hook used outside AuthProvider', {
+      message: error.message,
+      stack: error.stack,
+      componentStack: new Error().stack,
+    });
+    throw error;
   }
   return context;
 };

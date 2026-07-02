@@ -122,8 +122,9 @@ const unitSlice = createSlice({
       })
       .addCase(fetchUnits.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchUnits.rejected, (state, action) => {
         state.isLoading = false;
@@ -135,7 +136,7 @@ const unitSlice = createSlice({
       })
       .addCase(fetchUnitById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchUnitById.rejected, (state, action) => {
         state.isLoading = false;
@@ -145,16 +146,18 @@ const unitSlice = createSlice({
         state.stats = action.payload;
       })
       .addCase(createUnit.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newUnit = action.payload.data || action.payload;
+        state.items.unshift(newUnit);
         state.totalCount += 1;
       })
       .addCase(updateUnit.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedUnit = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedUnit.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedUnit;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedUnit.id) {
+          state.currentItem = updatedUnit;
         }
       })
       .addCase(deleteUnit.fulfilled, (state, action) => {

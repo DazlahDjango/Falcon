@@ -140,8 +140,9 @@ const hierarchySlice = createSlice({
       })
       .addCase(fetchHierarchyVersions.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchHierarchyVersions.rejected, (state, action) => {
         state.isLoading = false;
@@ -153,7 +154,7 @@ const hierarchySlice = createSlice({
       })
       .addCase(fetchHierarchyVersionById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchHierarchyVersionById.rejected, (state, action) => {
         state.isLoading = false;

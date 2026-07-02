@@ -159,8 +159,9 @@ const interimAssignmentSlice = createSlice({
       })
       .addCase(fetchInterimAssignments.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchInterimAssignments.rejected, (state, action) => {
         state.isLoading = false;
@@ -172,7 +173,7 @@ const interimAssignmentSlice = createSlice({
       })
       .addCase(fetchInterimAssignmentById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchInterimAssignmentById.rejected, (state, action) => {
         state.isLoading = false;
@@ -185,16 +186,18 @@ const interimAssignmentSlice = createSlice({
         state.expiringItems = action.payload.expiring_soon || action.payload;
       })
       .addCase(createInterimAssignment.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newAssignment = action.payload.data || action.payload;
+        state.items.unshift(newAssignment);
         state.totalCount += 1;
       })
       .addCase(updateInterimAssignment.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedAssignment = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedAssignment.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedAssignment;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedAssignment.id) {
+          state.currentItem = updatedAssignment;
         }
       })
       .addCase(deleteInterimAssignment.fulfilled, (state, action) => {

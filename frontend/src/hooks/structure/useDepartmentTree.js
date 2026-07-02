@@ -13,7 +13,7 @@ import {
     selectDepartmentTree,
     selectDepartmentTreeLoading,
     selectDepartmentTreeError,
-} from '../../store/structure/selectors';
+} from '../../store/structure/slice/structureSelectors';
 
 export const useDepartmentTree = (options = {}) => {
     const dispatch = useDispatch();

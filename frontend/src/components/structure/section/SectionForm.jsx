@@ -1,7 +1,8 @@
 import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { useSections, useStructureForm } from '../../../hooks/structure';
+import { useSections, useSectionForm } from '../../../hooks/structure';
+import ParentUnitSelect from '../common/ParentUnitSelect';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './section.css';
@@ -21,14 +22,12 @@ export const SectionForm = () => {
     clearError,
   } = useSections({ autoFetch: false });
 
-  const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useStructureForm({
+  const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useSectionForm({
     initialValues: {
       code: '',
       name: '',
       description: '',
       parent_id: '',
-      cost_center_id: '',
-      budget_code: '',
       headcount_limit: '',
       is_active: true,
     },
@@ -55,8 +54,6 @@ export const SectionForm = () => {
         name: currentItem.name || '',
         description: currentItem.description || '',
         parent_id: currentItem.parent_id || '',
-        cost_center_id: currentItem.cost_center_id || '',
-        budget_code: currentItem.budget_code || '',
         headcount_limit: currentItem.headcount_limit || '',
         is_active: currentItem.is_active !== undefined ? currentItem.is_active : true,
       });
@@ -161,44 +158,17 @@ export const SectionForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="parent_id">Parent Section</label>
-          <input
-            id="parent_id"
-            name="parent_id"
-            type="text"
-            placeholder="Parent section ID"
-            value={values.parent_id || ''}
-            onChange={handleChange}
+          <label htmlFor="parent_id">Parent Department</label>
+          <ParentUnitSelect
+            value={values.parent_id}
+            onChange={(v) => setFieldValue('parent_id', v)}
+            parentLevel="department"
+            placeholder="Select department or leave blank for root section"
             disabled={isSubmitting}
           />
-          <span className="form-hint">Leave empty for root section</span>
+          <span className="form-hint">Leave empty for top-level section</span>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="cost_center_id">Cost Center</label>
-          <input
-            id="cost_center_id"
-            name="cost_center_id"
-            type="text"
-            placeholder="Cost center ID"
-            value={values.cost_center_id || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="budget_code">Budget Code</label>
-          <input
-            id="budget_code"
-            name="budget_code"
-            type="text"
-            placeholder="Budget code"
-            value={values.budget_code || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
-        </div>
 
         <div className="form-group">
           <label htmlFor="headcount_limit">Headcount Limit</label>

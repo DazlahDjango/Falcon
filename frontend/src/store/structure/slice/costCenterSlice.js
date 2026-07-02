@@ -134,8 +134,9 @@ const costCenterSlice = createSlice({
       })
       .addCase(fetchCostCenters.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchCostCenters.rejected, (state, action) => {
         state.isLoading = false;
@@ -147,7 +148,7 @@ const costCenterSlice = createSlice({
       })
       .addCase(fetchCostCenterById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchCostCenterById.rejected, (state, action) => {
         state.isLoading = false;
@@ -157,16 +158,18 @@ const costCenterSlice = createSlice({
         state.stats = action.payload;
       })
       .addCase(createCostCenter.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newCenter = action.payload.data || action.payload;
+        state.items.unshift(newCenter);
         state.totalCount += 1;
       })
       .addCase(updateCostCenter.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedCenter = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedCenter.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedCenter;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedCenter.id) {
+          state.currentItem = updatedCenter;
         }
       })
       .addCase(deleteCostCenter.fulfilled, (state, action) => {

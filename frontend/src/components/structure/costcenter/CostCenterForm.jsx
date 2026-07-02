@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiDollarSign, FiCalendar, FiPercent } from 'react-icons/fi';
 import { useCostCenters, useStructureForm } from '../../../hooks/structure';
+import ParentUnitSelect from '../common/ParentUnitSelect';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './costcenter.css';
@@ -187,13 +188,10 @@ export const CostCenterForm = () => {
 
         <div className="form-group">
           <label htmlFor="organizational_unit_id">Organizational Unit</label>
-          <input
-            id="organizational_unit_id"
-            name="organizational_unit_id"
-            type="text"
-            placeholder="Org unit ID"
-            value={values.organizational_unit_id || ''}
-            onChange={handleChange}
+          <ParentUnitSelect
+            value={values.organizational_unit_id}
+            onChange={(v) => setFieldValue('organizational_unit_id', v)}
+            placeholder="Select organizational unit"
             disabled={isSubmitting}
           />
           <span className="form-hint">Associate with an organizational unit</span>

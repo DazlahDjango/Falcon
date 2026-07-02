@@ -171,8 +171,9 @@ const employmentSlice = createSlice({
       })
       .addCase(fetchEmployments.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchEmployments.rejected, (state, action) => {
         state.isLoading = false;
@@ -184,7 +185,7 @@ const employmentSlice = createSlice({
       })
       .addCase(fetchEmploymentById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchEmploymentById.rejected, (state, action) => {
         state.isLoading = false;
@@ -197,16 +198,18 @@ const employmentSlice = createSlice({
         state.stats = action.payload;
       })
       .addCase(createEmployment.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newEmployment = action.payload.data || action.payload;
+        state.items.unshift(newEmployment);
         state.totalCount += 1;
       })
       .addCase(updateEmployment.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedEmployment = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedEmployment.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedEmployment;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedEmployment.id) {
+          state.currentItem = updatedEmployment;
         }
       })
       .addCase(deleteEmployment.fulfilled, (state, action) => {

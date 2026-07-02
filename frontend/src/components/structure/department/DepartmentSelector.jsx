@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const DepartmentSelector = ({ value, onChange, departments, placeholder = 'Select department', className = '' }) => {
+const DepartmentSelector = ({ value, onChange, departments, placeholder = 'Select department', disabled = false, className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const selectedDepartment = departments?.find(d => d.id === value);
@@ -18,15 +18,16 @@ const DepartmentSelector = ({ value, onChange, departments, placeholder = 'Selec
     <div className={`relative ${className}`}>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
       >
         <span className={selectedDepartment ? 'text-gray-900' : 'text-gray-500'}>
           {selectedDepartment ? `${selectedDepartment.code} - ${selectedDepartment.name}` : placeholder}
         </span>
         <ChevronDown size={16} className="text-gray-400" />
       </button>
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
           <div className="p-2">
             <input

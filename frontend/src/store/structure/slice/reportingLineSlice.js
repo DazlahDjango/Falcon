@@ -208,8 +208,9 @@ const reportingLineSlice = createSlice({
       })
       .addCase(fetchReportingLines.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchReportingLines.rejected, (state, action) => {
         state.isLoading = false;
@@ -221,7 +222,7 @@ const reportingLineSlice = createSlice({
       })
       .addCase(fetchReportingLineById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchReportingLineById.rejected, (state, action) => {
         state.isLoading = false;
@@ -237,16 +238,18 @@ const reportingLineSlice = createSlice({
         state.organizationSpan = action.payload;
       })
       .addCase(createReportingLine.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newLine = action.payload.data || action.payload;
+        state.items.unshift(newLine);
         state.totalCount += 1;
       })
       .addCase(updateReportingLine.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedLine = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedLine.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedLine;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedLine.id) {
+          state.currentItem = updatedLine;
         }
       })
       .addCase(deleteReportingLine.fulfilled, (state, action) => {

@@ -1,7 +1,11 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiUser, FiBriefcase, FiCalendar } from 'react-icons/fi';
-import { useEmployments, useEmploymentForm } from '../../../hooks/structure';
+import { useEmployments, useEmploymentForm, usePositions, useDepartments } from '../../../hooks/structure';
+import UserSelector from '../../accounts/users/UserSelector';
+import PositionSelector from '../position/PositionSelector';
+import DepartmentSelector from '../department/DepartmentSelector';
+import ParentUnitSelect from '../common/ParentUnitSelect';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './employment.css';
@@ -20,6 +24,11 @@ export const EmploymentForm = () => {
     update,
     clearError,
   } = useEmployments({ autoFetch: false });
+
+  const { data: positionsPage } = usePositions({ page: 1, pageSize: 1000 });
+  const positions = positionsPage?.results ?? [];
+  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
+  const departments = departmentsPage?.results ?? [];
 
   const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useEmploymentForm({
     initialValues: {
@@ -131,67 +140,51 @@ export const EmploymentForm = () => {
       >
         <div className="form-group">
           <label htmlFor="user_id">
-            User ID <span className="required">*</span>
+            User <span className="required">*</span>
           </label>
-          <div className="input-with-icon">
-            <FiUser className="input-icon" size={16} />
-            <input
-              id="user_id"
-              name="user_id"
-              type="text"
-              placeholder="Enter user ID"
-              value={values.user_id || ''}
-              onChange={handleChange}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <span className="form-hint">The user's unique identifier</span>
+          <UserSelector
+            value={values.user_id}
+            onChange={(value) => setFieldValue('user_id', value)}
+            disabled={isEditing || isSubmitting}
+            className="w-full"
+          />
+          <span className="form-hint">Select the user for this employment</span>
         </div>
 
         <div className="form-group">
           <label htmlFor="position_id">
             Position <span className="required">*</span>
           </label>
-          <div className="input-with-icon">
-            <FiBriefcase className="input-icon" size={16} />
-            <input
-              id="position_id"
-              name="position_id"
-              type="text"
-              placeholder="Position ID"
-              value={values.position_id || ''}
-              onChange={handleChange}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <span className="form-hint">The position being filled</span>
+          <PositionSelector
+            value={values.position_id}
+            onChange={(value) => setFieldValue('position_id', value)}
+            positions={positions}
+            placeholder="Select position"
+            className="w-full"
+          />
+          <span className="form-hint">Choose the role assigned to the employee</span>
         </div>
 
         <div className="form-group">
           <label htmlFor="department_id">Department</label>
-          <input
-            id="department_id"
-            name="department_id"
-            type="text"
-            placeholder="Department ID"
-            value={values.department_id || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
+          <DepartmentSelector
+            value={values.department_id}
+            onChange={(value) => setFieldValue('department_id', value)}
+            departments={departments}
+            placeholder="Select department"
+            className="w-full"
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="unit_id">Unit</label>
-          <input
-            id="unit_id"
-            name="unit_id"
-            type="text"
-            placeholder="Unit ID"
-            value={values.unit_id || ''}
-            onChange={handleChange}
+          <ParentUnitSelect
+            value={values.unit_id}
+            onChange={(value) => setFieldValue('unit_id', value)}
+            parentLevel="unit"
+            placeholder="Select unit"
             disabled={isSubmitting}
+            className="w-full"
           />
         </div>
 

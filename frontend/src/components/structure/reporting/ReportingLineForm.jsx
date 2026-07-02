@@ -1,7 +1,7 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiUser, FiUsers, FiCalendar } from 'react-icons/fi';
-import { useReportingLines, useStructureForm } from '../../../hooks/structure';
+import { useReportingLines, useStructureForm, useEmployments } from '../../../hooks/structure';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './reporting.css';
@@ -56,6 +56,26 @@ export const ReportingLineForm = () => {
       });
     }
   }, [currentItem, isEditing, resetForm]);
+
+  const { items: employments } = useEmployments({ autoFetch: true, params: { filters: { is_current: 'true' }, page: 1, pageSize: 1000 } });
+
+  const employeeOptions = useMemo(
+    () => employments?.map((employment) => ({
+      value: employment.id,
+      label: `${employment.user_name || employment.user_id} • ${employment.position?.title || employment.position_id || 'No position'}`,
+    })) || [],
+    [employments],
+  );
+
+  const managerOptions = useMemo(
+    () => employments
+      ?.filter((employment) => employment.is_manager || employment.is_executive)
+      .map((employment) => ({
+        value: employment.id,
+        label: `${employment.user_name || employment.user_id} • ${employment.position?.title || employment.position_id || 'Manager'}`,
+      })) || [],
+    [employments],
+  );
 
   const handleCancel = useCallback(() => {
     navigate(STRUCTURE_ROUTES.REPORTING_LINES);
@@ -112,40 +132,44 @@ export const ReportingLineForm = () => {
           <label htmlFor="employee_id">
             Employee <span className="required">*</span>
           </label>
-          <div className="input-with-icon">
-            <FiUser className="input-icon" size={16} />
-            <input
-              id="employee_id"
-              name="employee_id"
-              type="text"
-              placeholder="Employee employment ID"
-              value={values.employee_id || ''}
-              onChange={handleChange}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <span className="form-hint">The employment ID of the employee</span>
+          <select
+            id="employee_id"
+            name="employee_id"
+            value={values.employee_id || ''}
+            onChange={handleChange}
+            required
+            disabled={isEditing || isSubmitting}
+          >
+            <option value="">Select employee</option>
+            {employeeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <span className="form-hint">Select the employee for this reporting line</span>
         </div>
 
         <div className="form-group">
           <label htmlFor="manager_id">
             Manager <span className="required">*</span>
           </label>
-          <div className="input-with-icon">
-            <FiUsers className="input-icon" size={16} />
-            <input
-              id="manager_id"
-              name="manager_id"
-              type="text"
-              placeholder="Manager employment ID"
-              value={values.manager_id || ''}
-              onChange={handleChange}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <span className="form-hint">The employment ID of the manager</span>
+          <select
+            id="manager_id"
+            name="manager_id"
+            value={values.manager_id || ''}
+            onChange={handleChange}
+            required
+            disabled={isSubmitting}
+          >
+            <option value="">Select manager</option>
+            {managerOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <span className="form-hint">Select the manager for this reporting line</span>
         </div>
 
         <div className="form-group">

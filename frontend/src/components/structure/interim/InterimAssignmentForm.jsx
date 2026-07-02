@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiUser, FiCalendar, FiClock } from 'react-icons/fi';
 import { useInterimAssignments, useStructureForm } from '../../../hooks/structure';
+import { useEmployments } from '../../../hooks/structure'; // Add this import
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './interim.css';
@@ -20,6 +21,12 @@ export const InterimAssignmentForm = () => {
     update,
     clearError,
   } = useInterimAssignments({ autoFetch: false });
+
+  // Fetch employments for the dropdowns
+  const { items: employments, isLoading: isLoadingEmployments } = useEmployments({ 
+    autoFetch: true, 
+    params: { filters: { is_current: 'true' }, page: 1, pageSize: 1000 } 
+  });
 
   const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useStructureForm({
     initialValues: {
@@ -72,7 +79,8 @@ export const InterimAssignmentForm = () => {
     { value: 'project', label: 'Project' },
   ];
 
-  if (isLoading) {
+  // Show loading while fetching interim assignment or employments
+  if (isLoading || isLoadingEmployments) {
     return (
       <div className="interim-form-loading">
         <StructureLoading text="Loading interim assignment..." />
@@ -123,19 +131,25 @@ export const InterimAssignmentForm = () => {
           <label htmlFor="employee_id">
             Employee <span className="required">*</span>
           </label>
-          <div className="input-with-icon">
-            <FiUser className="input-icon" size={16} />
-            <input
-              id="employee_id"
-              name="employee_id"
-              type="text"
-              placeholder="Employee employment ID"
-              value={values.employee_id || ''}
-              onChange={handleChange}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+          <select
+            id="employee_id"
+            name="employee_id"
+            value={values.employee_id || ''}
+            onChange={handleChange}
+            required
+            disabled={isSubmitting || isLoadingEmployments}
+          >
+            <option value="">Select employee</option>
+            {employments && employments.length > 0 ? (
+              employments.map((employment) => (
+                <option key={employment.id} value={employment.id}>
+                  {employment.user_name || employment.user_id} • {employment.position?.title || employment.position_id}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>No employees available</option>
+            )}
+          </select>
           <span className="form-hint">The employment ID of the employee receiving interim management</span>
         </div>
 
@@ -143,19 +157,25 @@ export const InterimAssignmentForm = () => {
           <label htmlFor="interim_manager_id">
             Interim Manager <span className="required">*</span>
           </label>
-          <div className="input-with-icon">
-            <FiUser className="input-icon" size={16} />
-            <input
-              id="interim_manager_id"
-              name="interim_manager_id"
-              type="text"
-              placeholder="Interim manager employment ID"
-              value={values.interim_manager_id || ''}
-              onChange={handleChange}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+          <select
+            id="interim_manager_id"
+            name="interim_manager_id"
+            value={values.interim_manager_id || ''}
+            onChange={handleChange}
+            required
+            disabled={isSubmitting || isLoadingEmployments}
+          >
+            <option value="">Select interim manager</option>
+            {employments && employments.length > 0 ? (
+              employments.map((employment) => (
+                <option key={employment.id} value={employment.id}>
+                  {employment.user_name || employment.user_id} • {employment.position?.title || employment.position_id}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>No employees available</option>
+            )}
+          </select>
           <span className="form-hint">The employment ID of the interim manager</span>
         </div>
 

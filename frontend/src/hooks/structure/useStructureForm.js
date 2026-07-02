@@ -180,6 +180,109 @@ export const useDepartmentForm = ({ onSubmit, initialValues = {} }) => {
     });
 };
 
+export const useDivisionForm = ({ onSubmit, initialValues = {} }) => {
+    const validateDivision = useCallback(async (values) => {
+        const errors = {};
+
+        if (!values.code?.trim()) {
+            errors.code = 'Division code is required';
+        } else if (!/^[A-Z0-9][A-Z0-9\-_]{2,49}$/.test(values.code)) {
+            errors.code = 'Code must be 3-50 characters: uppercase letters, numbers, hyphens, underscores';
+        }
+
+        if (!values.name?.trim()) {
+            errors.name = 'Division name is required';
+        }
+
+        if (values.headcount_limit && values.headcount_limit < 0) {
+            errors.headcount_limit = 'Headcount limit must be positive';
+        }
+
+        return errors;
+    }, []);
+
+    return useStructureForm({
+        initialValues: {
+            code: '',
+            name: '',
+            description: '',
+            headcount_limit: '',
+            is_active: true,
+            ...initialValues,
+        },
+        validationSchema: validateDivision,
+        onSubmit,
+    });
+};
+
+export const useSectionForm = ({ onSubmit, initialValues = {} }) => {
+    const validateSection = useCallback(async (values) => {
+        const errors = {};
+
+        if (!values.code?.trim()) {
+            errors.code = 'Section code is required';
+        }
+
+        if (!values.name?.trim()) {
+            errors.name = 'Section name is required';
+        }
+
+        if (values.headcount_limit && values.headcount_limit < 0) {
+            errors.headcount_limit = 'Headcount limit must be positive';
+        }
+
+        return errors;
+    }, []);
+
+    return useStructureForm({
+        initialValues: {
+            code: '',
+            name: '',
+            description: '',
+            parent_id: '',
+            headcount_limit: '',
+            is_active: true,
+            ...initialValues,
+        },
+        validationSchema: validateSection,
+        onSubmit,
+    });
+};
+
+export const useUnitForm = ({ onSubmit, initialValues = {} }) => {
+    const validateUnit = useCallback(async (values) => {
+        const errors = {};
+
+        if (!values.code?.trim()) {
+            errors.code = 'Unit code is required';
+        }
+
+        if (!values.name?.trim()) {
+            errors.name = 'Unit name is required';
+        }
+
+        if (values.headcount_limit && values.headcount_limit < 0) {
+            errors.headcount_limit = 'Headcount limit must be positive';
+        }
+
+        return errors;
+    }, []);
+
+    return useStructureForm({
+        initialValues: {
+            code: '',
+            name: '',
+            description: '',
+            parent_id: '',
+            headcount_limit: '',
+            is_active: true,
+            ...initialValues,
+        },
+        validationSchema: validateUnit,
+        onSubmit,
+    });
+};
+
 export const usePositionForm = ({ onSubmit, initialValues = {} }) => {
     const validatePosition = useCallback(async (values) => {
         const errors = {};

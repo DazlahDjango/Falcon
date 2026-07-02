@@ -16,6 +16,7 @@ import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConsta
 import { STRUCTURE_MESSAGES } from '../../../config/constants/structureConstants';
 import './department.css';
 
+
 const COLUMNS = [
   { key: 'code', header: 'Code', width: '120px' },
   { key: 'name', header: 'Name', width: '200px' },

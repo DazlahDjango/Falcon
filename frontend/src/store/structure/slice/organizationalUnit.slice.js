@@ -135,8 +135,9 @@ const organizationalUnitSlice = createSlice({
       })
       .addCase(fetchOrganizationalUnits.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchOrganizationalUnits.rejected, (state, action) => {
         state.isLoading = false;
@@ -148,7 +149,7 @@ const organizationalUnitSlice = createSlice({
       })
       .addCase(fetchOrganizationalUnitById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchOrganizationalUnitById.rejected, (state, action) => {
         state.isLoading = false;
@@ -173,16 +174,18 @@ const organizationalUnitSlice = createSlice({
         state.items = action.payload.units || action.payload;
       })
       .addCase(createOrganizationalUnit.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newUnit = action.payload.data || action.payload;
+        state.items.unshift(newUnit);
         state.totalCount += 1;
       })
       .addCase(updateOrganizationalUnit.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedUnit = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedUnit.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedUnit;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedUnit.id) {
+          state.currentItem = updatedUnit;
         }
       })
       .addCase(deleteOrganizationalUnit.fulfilled, (state, action) => {

@@ -1,7 +1,8 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiSearch } from 'react-icons/fi';
+import { FiArrowLeft } from 'react-icons/fi';
 import { useDepartments, useDepartmentForm } from '../../../hooks/structure';
+import ParentUnitSelect from '../common/ParentUnitSelect';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './department.css';
@@ -10,7 +11,6 @@ export const DepartmentForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
-  const [parentSearch, setParentSearch] = useState('');
 
   const {
     currentItem,
@@ -28,8 +28,6 @@ export const DepartmentForm = () => {
       name: '',
       description: '',
       parent_id: '',
-      cost_center_id: '',
-      budget_code: '',
       headcount_limit: '',
       sensitivity_level: 'internal',
       is_active: true,
@@ -57,8 +55,7 @@ export const DepartmentForm = () => {
         name: currentItem.name || '',
         description: currentItem.description || '',
         parent_id: currentItem.parent_id || '',
-        cost_center_id: currentItem.cost_center_id || '',
-        budget_code: currentItem.budget_code || '',
+        // cost_center_id and budget_code intentionally omitted
         headcount_limit: currentItem.headcount_limit || '',
         sensitivity_level: currentItem.sensitivity_level || 'internal',
         is_active: currentItem.is_active !== undefined ? currentItem.is_active : true,
@@ -171,47 +168,18 @@ export const DepartmentForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="parent_id">Parent Department</label>
-          <div className="parent-search-wrapper">
-            <FiSearch className="search-icon" size={16} />
-            <input
-              id="parent_id"
-              name="parent_id"
-              type="text"
-              placeholder="Enter parent department ID"
-              value={values.parent_id || ''}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-          </div>
-          <span className="form-hint">Leave empty for root department</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="cost_center_id">Cost Center</label>
-          <input
-            id="cost_center_id"
-            name="cost_center_id"
-            type="text"
-            placeholder="Cost center ID"
-            value={values.cost_center_id || ''}
-            onChange={handleChange}
+          <label htmlFor="parent_id">Parent Division</label>
+          <ParentUnitSelect
+            value={values.parent_id}
+            onChange={(v) => setFieldValue('parent_id', v)}
+            parentLevel="division"
+            placeholder="Select division or leave blank for root department"
             disabled={isSubmitting}
           />
+          <span className="form-hint">Leave empty for top-level department</span>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="budget_code">Budget Code</label>
-          <input
-            id="budget_code"
-            name="budget_code"
-            type="text"
-            placeholder="Budget code"
-            value={values.budget_code || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
-        </div>
+        {/* Cost center and budget code removed — not required for Departments */}
 
         <div className="form-group">
           <label htmlFor="headcount_limit">Headcount Limit</label>

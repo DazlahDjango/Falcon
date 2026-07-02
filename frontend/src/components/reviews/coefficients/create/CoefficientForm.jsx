@@ -4,7 +4,7 @@ import { useEmployees } from '../../../../hooks/accounts';
 import { useDepartments, usePositions } from '../../../../hooks/structure';
 
 const CoefficientForm = ({ data, onChange }) => {
-  const { data: employees, loading: employeesLoading } = useEmployees();
+  const { data: users, loading: usersLoading } = useEmployees();
   const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
   const { data: positionsPage } = usePositions({ page: 1, pageSize: 1000 });
   const departments = departmentsPage?.results;
@@ -88,12 +88,12 @@ const CoefficientForm = ({ data, onChange }) => {
             className="coefficient-form-select"
             value={formData.user || ''}
             onChange={(e) => handleChange('user', e.target.value)}
-            disabled={employeesLoading}
+            disabled={usersLoading}
           >
             <option value="">Select user...</option>
-            {employees?.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.full_name} ({emp.email})
+            {users?.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.full_name} ({user.email})
               </option>
             ))}
           </select>

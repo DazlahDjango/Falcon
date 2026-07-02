@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiMapPin, FiGlobe, FiPhone, FiMail } from 'react-icons/fi';
 import { useLocations, useStructureForm } from '../../../hooks/structure';
+import ParentUnitSelect from '../common/ParentUnitSelect';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './location.css';
@@ -19,7 +20,7 @@ export const LocationForm = () => {
     create,
     update,
     clearError,
-  } = useLocations({ autoFetch: false });
+  } = useLocations({ autoFetch: true, params: { page: 1, pageSize: 1000 } });
 
   const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useStructureForm({
     initialValues: {
@@ -219,28 +220,30 @@ export const LocationForm = () => {
 
         <div className="form-group">
           <label htmlFor="organizational_unit_id">Organizational Unit</label>
-          <input
-            id="organizational_unit_id"
-            name="organizational_unit_id"
-            type="text"
-            placeholder="Org unit ID"
-            value={values.organizational_unit_id || ''}
-            onChange={handleChange}
+          <ParentUnitSelect
+            value={values.organizational_unit_id}
+            onChange={(v) => setFieldValue('organizational_unit_id', v)}
+            placeholder="Select organizational unit"
             disabled={isSubmitting}
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="parent_id">Parent Location</label>
-          <input
+          <select
             id="parent_id"
             name="parent_id"
-            type="text"
-            placeholder="Parent location ID"
             value={values.parent_id || ''}
             onChange={handleChange}
             disabled={isSubmitting}
-          />
+          >
+            <option value="">No parent location</option>
+            {items.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name || location.code || location.id}
+              </option>
+            ))}
+          </select>
           <span className="form-hint">Leave empty for top-level location</span>
         </div>
 

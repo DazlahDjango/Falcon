@@ -109,8 +109,9 @@ const sectionSlice = createSlice({
       })
       .addCase(fetchSections.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.results || action.payload;
-        state.totalCount = action.payload.count || action.payload.length || 0;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchSections.rejected, (state, action) => {
         state.isLoading = false;
@@ -122,23 +123,25 @@ const sectionSlice = createSlice({
       })
       .addCase(fetchSectionById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload;
+        state.currentItem = action.payload.data || action.payload;
       })
       .addCase(fetchSectionById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
       .addCase(createSection.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newSection = action.payload.data || action.payload;
+        state.items.unshift(newSection);
         state.totalCount += 1;
       })
       .addCase(updateSection.fulfilled, (state, action) => {
-        const index = state.items.findIndex(item => item.id === action.payload.id);
+        const updatedSection = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedSection.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = updatedSection;
         }
-        if (state.currentItem?.id === action.payload.id) {
-          state.currentItem = action.payload;
+        if (state.currentItem?.id === updatedSection.id) {
+          state.currentItem = updatedSection;
         }
       })
       .addCase(deleteSection.fulfilled, (state, action) => {

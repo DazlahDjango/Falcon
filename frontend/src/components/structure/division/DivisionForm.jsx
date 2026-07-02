@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft } from 'react-icons/fi';
-import { useDivisions, useStructureForm } from '../../../hooks/structure';
+import { FiArrowLeft, FiLayers, FiTarget, FiUsers, FiInfo } from 'react-icons/fi';
+import { useDivisions, useDivisionForm } from '../../../hooks/structure';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './division.css';
@@ -21,13 +21,11 @@ export const DivisionForm = () => {
     clearError,
   } = useDivisions({ autoFetch: false });
 
-  const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useStructureForm({
+  const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useDivisionForm({
     initialValues: {
       code: '',
       name: '',
       description: '',
-      cost_center_id: '',
-      budget_code: '',
       headcount_limit: '',
       is_active: true,
     },
@@ -53,8 +51,6 @@ export const DivisionForm = () => {
         code: currentItem.code || '',
         name: currentItem.name || '',
         description: currentItem.description || '',
-        cost_center_id: currentItem.cost_center_id || '',
-        budget_code: currentItem.budget_code || '',
         headcount_limit: currentItem.headcount_limit || '',
         is_active: currentItem.is_active !== undefined ? currentItem.is_active : true,
       });
@@ -105,6 +101,33 @@ export const DivisionForm = () => {
         <h1>{isEditing ? 'Edit Division' : 'Create Division'}</h1>
       </div>
 
+      <div className="division-form-hero">
+        <div className="division-form-hero__content">
+          <div className="division-form-hero__icon">
+            <FiLayers size={20} />
+          </div>
+          <div>
+            <p className="division-form-hero__eyebrow">Strategic unit setup</p>
+            <h2>{isEditing ? 'Refine this division' : 'Create a division that teams can follow'}</h2>
+            <p>Give each division a clear identity, sensible headcount scope, and an active status that reflects how it should appear across the organization.</p>
+          </div>
+        </div>
+        <div className="division-form-hero__tips">
+          <div className="division-form-tip">
+            <FiTarget size={16} />
+            Keep names concise and role-based
+          </div>
+          <div className="division-form-tip">
+            <FiUsers size={16} />
+            Set a headcount limit to guide staffing
+          </div>
+          <div className="division-form-tip">
+            <FiInfo size={16} />
+            Use active/inactive to control visibility
+          </div>
+        </div>
+      </div>
+
       <StructureForm
         title={isEditing ? `Editing: ${currentItem?.name}` : 'New Division'}
         onSubmit={handleSubmit}
@@ -112,104 +135,88 @@ export const DivisionForm = () => {
         isLoading={isSubmitting}
         isEditing={isEditing}
       >
-        <div className="form-group">
-          <label htmlFor="code">
-            Code <span className="required">*</span>
-          </label>
-          <input
-            id="code"
-            name="code"
-            type="text"
-            placeholder="e.g., DIV-001"
-            value={values.code || ''}
-            onChange={handleChange}
-            required
-            disabled={isSubmitting}
-          />
-          <span className="form-hint">Unique identifier for the division</span>
-        </div>
+        <div className="division-form-section">
+          <div className="division-form-section__title">Basic details</div>
+          <div className="division-form-grid">
+            <div className="form-group">
+              <label htmlFor="code">
+                Code <span className="required">*</span>
+              </label>
+              <input
+                id="code"
+                name="code"
+                type="text"
+                placeholder="e.g., DIV-001"
+                value={values.code || ''}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+              />
+              <span className="form-hint">Unique identifier for the division</span>
+            </div>
 
-        <div className="form-group">
-          <label htmlFor="name">
-            Name <span className="required">*</span>
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            placeholder="e.g., Corporate Strategy"
-            value={values.name || ''}
-            onChange={handleChange}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
+            <div className="form-group">
+              <label htmlFor="name">
+                Name <span className="required">*</span>
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="e.g., Corporate Strategy"
+                value={values.name || ''}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
 
-        <div className="form-group form-group-full">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            placeholder="Describe the division's purpose and responsibilities..."
-            rows="4"
-            value={values.description || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="cost_center_id">Cost Center</label>
-          <input
-            id="cost_center_id"
-            name="cost_center_id"
-            type="text"
-            placeholder="Cost center ID"
-            value={values.cost_center_id || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="budget_code">Budget Code</label>
-          <input
-            id="budget_code"
-            name="budget_code"
-            type="text"
-            placeholder="Budget code"
-            value={values.budget_code || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="headcount_limit">Headcount Limit</label>
-          <input
-            id="headcount_limit"
-            name="headcount_limit"
-            type="number"
-            placeholder="Maximum headcount"
-            value={values.headcount_limit || ''}
-            onChange={handleChange}
-            min="0"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="form-group checkbox-group">
-          <label className="checkbox-label">
-            <input
-              name="is_active"
-              type="checkbox"
-              checked={values.is_active || false}
+          <div className="form-group form-group-full">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              placeholder="Describe the division's purpose and responsibilities..."
+              rows="4"
+              value={values.description || ''}
               onChange={handleChange}
               disabled={isSubmitting}
             />
-            <span>Active</span>
-          </label>
-          <span className="form-hint">Inactive divisions will be hidden from most views</span>
+          </div>
+        </div>
+
+        <div className="division-form-section">
+          <div className="division-form-section__title">Configuration</div>
+          <div className="division-form-grid">
+            <div className="form-group">
+              <label htmlFor="headcount_limit">Headcount Limit</label>
+              <input
+                id="headcount_limit"
+                name="headcount_limit"
+                type="number"
+                placeholder="Maximum headcount"
+                value={values.headcount_limit || ''}
+                onChange={handleChange}
+                min="0"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="form-group checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  name="is_active"
+                  type="checkbox"
+                  checked={values.is_active || false}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                />
+                <span>Active</span>
+              </label>
+              <span className="form-hint">Inactive divisions will be hidden from most views</span>
+            </div>
+          </div>
         </div>
       </StructureForm>
     </div>

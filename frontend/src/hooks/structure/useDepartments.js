@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
     fetchDepartments,
     fetchDepartmentById,
@@ -32,6 +32,8 @@ import {
 export const useDepartments = (options = {}) => {
     const dispatch = useDispatch();
     const { autoFetch = true, params = {} } = options;
+    const hasFetched = useRef(false);
+    const prevParamsRef = useRef(params);
 
     const items = useSelector(selectDepartmentsItems);
     const currentItem = useSelector(selectDepartmentsCurrent);
@@ -109,11 +111,22 @@ export const useDepartments = (options = {}) => {
         dispatch(resetDepartmentState());
     }, [dispatch]);
 
+    const refetch = useCallback((newParams) => {
+        const fetchParams = newParams || params;
+        hasFetched.current = true;
+        prevParamsRef.current = fetchParams;
+        return dispatch(fetchDepartments(fetchParams));
+    }, [dispatch, params]);
+
+    const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+
     useEffect(() => {
-        if (autoFetch) {
+        if (autoFetch && (!hasFetched.current || paramsChanged)) {
+            hasFetched.current = true;
+            prevParamsRef.current = params;
             fetchAll(params);
         }
-    }, [autoFetch, fetchAll, params]);
+    }, [autoFetch, fetchAll, params, paramsChanged]);
 
     return {
         items,
@@ -140,6 +153,7 @@ export const useDepartments = (options = {}) => {
         setFilters,
         setPagination,
         reset,
+        refetch,
     };
 };
 

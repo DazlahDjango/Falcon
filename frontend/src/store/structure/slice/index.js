@@ -1,3 +1,5 @@
+import { combineReducers } from '@reduxjs/toolkit';
+
 import organizationalUnitReducer from './organizationalUnit.slice';
 import divisionReducer from './divisionslice';
 import departmentReducer from './departmentSlice';
@@ -17,7 +19,8 @@ import healthReducer from './healthSlice';
 import settingsReducer from './settingSlice';
 import referenceDataReducer from './referenceDataSlice';
 
-const structureReducer = {
+
+const structureReducer = combineReducers({
   organizationalUnits: organizationalUnitReducer,
   divisions: divisionReducer,
   departments: departmentReducer,
@@ -36,7 +39,7 @@ const structureReducer = {
   health: healthReducer,
   settings: settingsReducer,
   referenceData: referenceDataReducer,
-};
+});
 
 export default structureReducer;
 export {
