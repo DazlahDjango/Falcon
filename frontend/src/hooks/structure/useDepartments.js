@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import {
     fetchDepartments,
     fetchDepartmentById,
@@ -31,9 +31,17 @@ import {
 
 export const useDepartments = (options = {}) => {
     const dispatch = useDispatch();
-    const { autoFetch = true, params = {} } = options;
+    const { autoFetch = true, params: initialParams = {} } = options;
+    
+    // Use a ref to track the first render
+    const isFirstRender = useRef(true);
     const hasFetched = useRef(false);
-    const prevParamsRef = useRef(params);
+    const prevParamsRef = useRef(initialParams);
+    
+    // Memoize params to prevent unnecessary re-renders
+    const params = useMemo(() => initialParams, [
+        JSON.stringify(initialParams)
+    ]);
 
     const items = useSelector(selectDepartmentsItems);
     const currentItem = useSelector(selectDepartmentsCurrent);
@@ -43,8 +51,10 @@ export const useDepartments = (options = {}) => {
     const error = useSelector(selectDepartmentsError);
     const totalCount = useSelector(selectDepartmentsTotal);
 
+    // Stable fetch function - memoized with params
     const fetchAll = useCallback((fetchParams) => {
-        return dispatch(fetchDepartments(fetchParams || params));
+        const paramsToUse = fetchParams || params;
+        return dispatch(fetchDepartments(paramsToUse));
     }, [dispatch, params]);
 
     const fetchById = useCallback((id) => {
@@ -113,20 +123,40 @@ export const useDepartments = (options = {}) => {
 
     const refetch = useCallback((newParams) => {
         const fetchParams = newParams || params;
-        hasFetched.current = true;
         prevParamsRef.current = fetchParams;
         return dispatch(fetchDepartments(fetchParams));
     }, [dispatch, params]);
 
-    const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
-
+    // Auto-fetch on mount and when params change
     useEffect(() => {
-        if (autoFetch && (!hasFetched.current || paramsChanged)) {
+        // Skip auto-fetch if disabled
+        if (!autoFetch) {
+            return;
+        }
+
+        // Check if params have changed
+        const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+        
+        if (!hasFetched.current || paramsChanged) {
             hasFetched.current = true;
             prevParamsRef.current = params;
-            fetchAll(params);
+            dispatch(fetchDepartments(params));
         }
-    }, [autoFetch, fetchAll, params, paramsChanged]);
+    }, [autoFetch, params, dispatch]);
+
+    // Reset hasFetched when component unmounts
+    useEffect(() => {
+        return () => {
+            hasFetched.current = false;
+            isFirstRender.current = true;
+        };
+    }, []);
+
+    // Helper to force a fresh fetch with current params
+    const forceFetch = useCallback(() => {
+        hasFetched.current = true;
+        return dispatch(fetchDepartments(params));
+    }, [dispatch, params]);
 
     return {
         items,
@@ -154,6 +184,9 @@ export const useDepartments = (options = {}) => {
         setPagination,
         reset,
         refetch,
+        forceFetch,
+        // Expose the hasFetched state for debugging
+        _hasFetched: hasFetched.current,
     };
 };
 
