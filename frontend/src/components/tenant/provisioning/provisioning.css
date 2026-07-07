@@ -1,395 +1,544 @@
-/* frontend/src/components/tenant/provisioning/provisioning.css */
+/* components/tenant/provisioning/provisioning.css
+   Aligned with organization.css design tokens (#0f172a, #64748b, #e2e8f0, #3b82f6) */
 
-/* Provisioning Container */
-.provisioning-container {
-    padding: 1.5rem;
+/* ── Page layout (uses org-container inside tenant-app) ── */
+.prov-page-header,
+.prov-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.provisioning-header {
-    margin-bottom: 1.5rem;
+.prov-page-title,
+.prov-detail-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
-.provisioning-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #111827;
+.prov-page-subtitle,
+.prov-detail-timestamps {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
 }
 
-.provisioning-subtitle {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-top: 0.25rem;
+.prov-detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-/* Provisioning Card */
-.provisioning-card {
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    margin-bottom: 1.5rem;
+.prov-detail-timestamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 12px;
 }
 
-.provisioning-card-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    background-color: #f9fafb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
+.prov-detail-timestamps strong {
+  color: #475569;
 }
 
-.provisioning-card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #111827;
+/* ── Stats grid ── */
+.prov-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.provisioning-card-content {
-    padding: 1.5rem;
+.prov-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* Provisioning Status Badge */
-.provisioning-status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
+.prov-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.provisioning-status-pending {
-    background-color: #fef3c7;
-    color: #92400e;
+.prov-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
 }
 
-.provisioning-status-provisioning {
-    background-color: #dbeafe;
-    color: #1e40af;
+.prov-stat-card-failed .prov-stat-value { color: #ef4444; }
+.prov-stat-card-running .prov-stat-value { color: #3b82f6; }
+.prov-stat-card-active .prov-stat-value { color: #22c55e; }
+
+/* ── Tabs ── */
+.prov-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 20px;
 }
 
-.provisioning-status-completed {
-    background-color: #d1fae5;
-    color: #065f46;
+.prov-tab {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
 }
 
-.provisioning-status-failed {
-    background-color: #fee2e2;
-    color: #991b1b;
+.prov-tab:hover { color: #0f172a; }
+.prov-tab-active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
 }
 
-/* Provisioning Progress */
+/* ── Cards grid ── */
+.prov-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.prov-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.prov-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.prov-card-pending { border-left: 3px solid #f59e0b; }
+.prov-card-provisioning { border-left: 3px solid #3b82f6; }
+.prov-card-active { border-left: 3px solid #22c55e; }
+.prov-card-failed { border-left: 3px solid #ef4444; }
+.prov-card-suspended { border-left: 3px solid #64748b; }
+.prov-card-archived { border-left: 3px solid #94a3b8; }
+
+.prov-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.prov-card-org-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.prov-card-org-slug {
+  font-size: 12px;
+  color: #94a3b8;
+  font-family: ui-monospace, monospace;
+}
+
+.prov-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.prov-card-meta-label {
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.prov-card-tier {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.prov-card-tier-free { background: #f1f5f9; color: #475569; }
+.prov-card-tier-basic { background: #fef9c3; color: #854d0e; }
+.prov-card-tier-professional { background: #dbeafe; color: #1e40af; }
+.prov-card-tier-enterprise { background: #ede9fe; color: #5b21b6; }
+
+/* ── Progress ── */
+.prov-progress-wrap,
 .provisioning-progress-container {
-    margin: 1.5rem 0;
+  margin: 16px 0;
 }
 
+.prov-progress-bar,
 .provisioning-progress-bar {
-    width: 100%;
-    background-color: #e5e7eb;
-    border-radius: 9999px;
-    height: 0.75rem;
-    overflow: hidden;
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  height: 8px;
+  overflow: hidden;
 }
 
+.prov-progress-fill,
 .provisioning-progress-fill {
-    background-color: #3b82f6;
-    height: 0.75rem;
-    border-radius: 9999px;
-    transition: width 0.3s ease;
+  background: #3b82f6;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
 }
 
+.prov-progress-fill-success,
 .provisioning-progress-fill-completed {
-    background-color: #10b981;
+  background: #22c55e;
 }
 
+.prov-progress-fill-failed,
 .provisioning-progress-fill-failed {
-    background-color: #ef4444;
+  background: #ef4444;
+}
+
+.prov-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 6px;
 }
 
 .provisioning-progress-percentage {
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-top: 0.5rem;
-    color: #3b82f6;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 8px;
+  color: #3b82f6;
 }
 
 .provisioning-progress-label {
-    text-align: center;
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.25rem;
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
 }
 
-/* Provisioning Steps */
-.provisioning-steps {
-    margin: 1.5rem 0;
+/* ── Status badges ── */
+.prov-status-badge,
+.provisioning-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
 }
+
+.prov-status-pending,
+.provisioning-status-pending { background: #fef9c3; color: #854d0e; }
+.prov-status-provisioning,
+.provisioning-status-provisioning { background: #dbeafe; color: #1e40af; }
+.prov-status-active,
+.provisioning-status-completed { background: #dcfce7; color: #166534; }
+.prov-status-failed,
+.provisioning-status-failed { background: #fee2e2; color: #991b1b; }
+.prov-status-suspended,
+.provisioning-status-suspended { background: #f1f5f9; color: #475569; }
+.prov-status-archived,
+.provisioning-status-archived { background: #e2e8f0; color: #64748b; }
+
+/* ── Steps ── */
+.provisioning-steps { margin: 16px 0; }
 
 .provisioning-step {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    margin-bottom: 0.5rem;
-    transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
 }
 
-.provisioning-step-active {
-    background-color: #eff6ff;
-}
-
-.provisioning-step-completed {
-    background-color: #ecfdf5;
-}
-
-.provisioning-step-pending {
-    background-color: #f9fafb;
-}
-
-.provisioning-step-failed {
-    background-color: #fef2f2;
-}
+.provisioning-step-active { background: #eff6ff; border-color: #bfdbfe; }
+.provisioning-step-completed { background: #f0fdf4; border-color: #bbf7d0; }
+.provisioning-step-pending { background: #f8fafc; }
+.provisioning-step-failed { background: #fef2f2; border-color: #fecaca; }
 
 .provisioning-step-icon {
-    width: 2rem;
-    height: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9999px;
-    font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
-.provisioning-step-icon-active {
-    background-color: #3b82f6;
-    color: white;
-}
+.provisioning-step-icon-active { background: #3b82f6; color: #ffffff; }
+.provisioning-step-icon-completed { background: #22c55e; color: #ffffff; }
+.provisioning-step-icon-pending { background: #e2e8f0; color: #64748b; }
+.provisioning-step-icon-failed { background: #ef4444; color: #ffffff; }
 
-.provisioning-step-icon-completed {
-    background-color: #10b981;
-    color: white;
-}
+.provisioning-step-content { flex: 1; }
+.provisioning-step-title { font-size: 14px; font-weight: 500; color: #0f172a; }
+.provisioning-step-description { font-size: 12px; color: #64748b; margin-top: 2px; }
+.provisioning-step-status { font-size: 12px; font-weight: 500; }
 
-.provisioning-step-icon-pending {
-    background-color: #e5e7eb;
-    color: #6b7280;
-}
+.provisioning-step-status-active { color: #3b82f6; }
+.provisioning-step-status-completed { color: #22c55e; }
+.provisioning-step-status-pending { color: #64748b; }
+.provisioning-step-status-failed { color: #ef4444; }
 
-.provisioning-step-icon-failed {
-    background-color: #ef4444;
-    color: white;
-}
-
-.provisioning-step-content {
-    flex: 1;
-}
-
-.provisioning-step-title {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #111827;
-}
-
-.provisioning-step-description {
-    font-size: 0.7rem;
-    color: #6b7280;
-    margin-top: 0.125rem;
-}
-
-.provisioning-step-status {
-    font-size: 0.7rem;
-    font-weight: 500;
-}
-
-.provisioning-step-status-active {
-    color: #3b82f6;
-}
-
-.provisioning-step-status-completed {
-    color: #10b981;
-}
-
-.provisioning-step-status-pending {
-    color: #6b7280;
-}
-
-.provisioning-step-status-failed {
-    color: #ef4444;
-}
-
-/* Provisioning Logs */
+/* ── Logs terminal ── */
 .provisioning-logs {
-    margin-top: 1.5rem;
-    background-color: #1e1e2e;
-    border-radius: 0.5rem;
-    overflow: hidden;
+  margin-top: 0;
+  background: #0f172a;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #1e293b;
 }
 
 .provisioning-logs-header {
-    padding: 0.75rem 1rem;
-    background-color: #18181b;
-    border-bottom: 1px solid #27272a;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  padding: 10px 16px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .provisioning-logs-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #a1a1aa;
-    text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .provisioning-logs-clear {
-    background: none;
-    border: none;
-    color: #a1a1aa;
-    cursor: pointer;
-    font-size: 0.7rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 12px;
 }
 
-.provisioning-logs-clear:hover {
-    color: white;
-}
+.provisioning-logs-clear:hover { color: #ffffff; }
 
 .provisioning-logs-content {
-    padding: 0.75rem;
-    max-height: 200px;
-    overflow-y: auto;
-    font-family: monospace;
-    font-size: 0.7rem;
+  padding: 12px 16px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
 }
 
 .provisioning-log-entry {
-    padding: 0.25rem 0;
-    border-bottom: 1px solid #27272a;
-    color: #d4d4d8;
+  padding: 4px 0;
+  border-bottom: 1px solid #1e293b;
+  color: #cbd5e1;
 }
 
 .provisioning-log-time {
-    color: #71717a;
-    margin-right: 0.75rem;
+  color: #64748b;
+  margin-right: 12px;
 }
 
-.provisioning-log-info {
-    color: #3b82f6;
+.provisioning-log-info { color: #60a5fa; }
+.provisioning-log-error { color: #f87171; }
+.provisioning-log-success { color: #4ade80; }
+.provisioning-log-warning { color: #fbbf24; }
+
+/* ── Detail cards ── */
+.prov-detail-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
-.provisioning-log-error {
-    color: #ef4444;
+.prov-detail-card-title {
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
-.provisioning-log-success {
-    color: #10b981;
+.prov-detail-card-body {
+  padding: 20px;
 }
 
-.provisioning-log-warning {
-    color: #f59e0b;
+/* ── Banners ── */
+.prov-success-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  background: #dcfce7;
+  border-radius: 12px;
+  border: 1px solid #bbf7d0;
+  text-align: center;
+  margin-bottom: 16px;
 }
 
-/* Provisioning Action Buttons */
-.provisioning-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
+.prov-success-banner-title { font-size: 18px; font-weight: 700; color: #166534; }
+.prov-success-banner-sub { font-size: 14px; color: #15803d; }
+
+.prov-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  margin-bottom: 16px;
 }
 
-.provisioning-btn-primary {
-    background-color: #3b82f6;
-    color: white;
-    border: none;
+.prov-error-banner-title { font-size: 14px; font-weight: 600; color: #991b1b; }
+.prov-error-banner-msg { font-size: 14px; color: #b91c1c; margin-top: 2px; }
+
+.prov-card-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fee2e2;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #991b1b;
 }
 
-.provisioning-btn-primary:hover {
-    background-color: #2563eb;
+/* ── Actions ── */
+.prov-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
 }
 
-.provisioning-btn-secondary {
-    background-color: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
+.prov-actions-note {
+  font-size: 14px;
+  color: #64748b;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
-.provisioning-btn-secondary:hover {
-    background-color: #e5e7eb;
+.prov-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
 }
 
-.provisioning-btn-danger {
-    background-color: #ef4444;
-    color: white;
-    border: none;
-}
-
-.provisioning-btn-danger:hover {
-    background-color: #dc2626;
-}
-
-.provisioning-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Provisioning Modal */
+/* ── Modal (matches org-modal) ── */
+.prov-modal-overlay,
 .provisioning-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 
+.prov-modal,
 .provisioning-modal {
-    background-color: white;
-    border-radius: 0.5rem;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 16px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
+.prov-modal-header,
 .provisioning-modal-header {
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
+.prov-modal-title,
 .provisioning-modal-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #111827;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
 }
 
+.prov-modal-close,
 .provisioning-modal-close {
-    color: #6b7280;
-    cursor: pointer;
-    font-size: 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 18px;
 }
 
-.provisioning-modal-close:hover {
-    color: #111827;
-}
-
+.prov-modal-body,
 .provisioning-modal-body {
-    padding: 1rem;
+  padding: 20px 24px;
+  font-size: 14px;
+  color: #475569;
 }
 
+.prov-modal-danger-text { color: #991b1b; font-weight: 500; }
+
+.prov-modal-force-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #475569;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.prov-modal-footer,
 .provisioning-modal-footer {
-    padding: 1rem;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .prov-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .prov-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

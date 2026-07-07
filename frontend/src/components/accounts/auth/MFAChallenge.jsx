@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   FiShield,
   FiKey,
@@ -15,7 +15,7 @@ import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstant
 export const MFAChallenge = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { verifyMfa, isLoading, error, clearAuthError, user } = useAuth();
+  const { verifyMfa, isLoading, error, clearAuthError } = useAuth();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [formError, setFormError] = useState(null);
@@ -24,6 +24,7 @@ export const MFAChallenge = () => {
   const inputRefs = useRef([]);
 
   const mfaToken = location.state?.mfaToken;
+  const mfaSetupRequired = location.state?.mfaSetupRequired || false;
 
   useEffect(() => {
     if (!mfaToken) {
@@ -114,6 +115,45 @@ export const MFAChallenge = () => {
   const handleBack = () => {
     navigate(ACCOUNTS_ROUTES.LOGIN);
   };
+
+  const handleSetupMFA = () => {
+    navigate(ACCOUNTS_ROUTES.MFA_SETUP, {
+      state: { mfaToken },
+    });
+  };
+
+  if (mfaSetupRequired) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card mfa-card">
+          <button className="auth-back-btn" onClick={handleBack}>
+            <FiArrowLeft /> Back to Login
+          </button>
+
+          <div className="auth-header">
+            <div className="mfa-icon-wrapper">
+              <FiSmartphone className="mfa-icon" />
+            </div>
+            <h1 className="auth-title">Set Up Two-Factor Authentication</h1>
+            <p className="auth-subtitle">
+              Two-factor authentication is required for your account.
+              Please set it up to continue.
+            </p>
+          </div>
+
+          <div className="mfa-actions">
+            <button
+              className="auth-btn primary"
+              onClick={handleSetupMFA}
+              disabled={isLoading}
+            >
+              <FiShield /> Set Up MFA
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">

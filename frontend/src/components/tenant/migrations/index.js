@@ -1,6 +1,4 @@
-// frontend/src/components/tenant/migrations/index.js
-export { MigrationSummaryCard } from './MigrationSummaryCard';
-export { MigrationListTable } from './MigrationListTable';
-export { MigrationStatusBadge } from './MigrationStatusBadge';
-export { MigrationDetailsModal } from './MigrationDetailsModal';
-export { MigrationFilterBar } from './MigrationFilterBar';
+// components/tenant/migrations/index.js
+export { default as MigrationList } from './MigrationList';
+export { default as MigrationTable } from './MigrationTable';
+export { default as MigrationStatusBadge } from './MigrationStatusBadge';

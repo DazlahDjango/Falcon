@@ -1,25 +1,26 @@
-// frontend/src/components/tenant/provisioning/ProvisioningRetryButton.jsx
 import React, { useState } from 'react';
-import './provisioning.css';
 
 export const ProvisioningRetryButton = ({ onRetry, isLoading = false, disabled = false }) => {
-    const [isRetrying, setIsRetrying] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const loading = isLoading || isRetrying;
 
-    const handleClick = async () => {
-        setIsRetrying(true);
-        await onRetry();
-        setIsRetrying(false);
-    };
+  const handleClick = async () => {
+    setIsRetrying(true);
+    try {
+      await onRetry?.();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
-    const loading = isLoading || isRetrying;
-
-    return (
-        <button
-            onClick={handleClick}
-            disabled={loading || disabled}
-            className="provisioning-btn provisioning-btn-primary"
-        >
-            {loading ? '⟳ Retrying...' : '⟳ Retry Provisioning'}
-        </button>
-    );
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading || disabled}
+      className="org-btn org-btn-primary"
+    >
+      {loading ? 'Retrying...' : 'Retry Provisioning'}
+    </button>
+  );
 };

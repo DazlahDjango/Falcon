@@ -22,11 +22,6 @@ class MigrationRunner:
         - Tracks which migrations have been applied
         - Handles migration failures and rollbacks
         - Supports per-tenant migration tracking
-
-    Usage:
-        runner = MigrationRunner(tenant)
-        runner.run_migrations()
-        runner.run_migrations_for_app('kpi')
     """
 
     def __init__(self, tenant):
@@ -34,7 +29,7 @@ class MigrationRunner:
         Initialize migration runner with tenant.
 
         Args:
-            tenant: Tenant object
+            tenant: Tenant/Organization object
         """
         self.tenant = tenant
         self.schema_name = getattr(tenant, 'schema_name', None)
@@ -97,14 +92,13 @@ class MigrationRunner:
             app_name: Name of app migrated
         """
         try:
-            from apps.tenant.models import TenantMigration
-            from apps.tenant.constants import MigrationStatus
+            from apps.tenant.models import OrganizationMigration
 
-            TenantMigration.objects.create(
-                tenant_id=self.tenant.id,
+            OrganizationMigration.objects.create(
+                organization_id=self.tenant.id,
                 migration_name='all_migrations',
                 app_name=app_name or 'all',
-                status=MigrationStatus.COMPLETED,
+                status='COMPLETED',
                 completed_at=timezone.now(),
                 execution_time_ms=0,
             )
@@ -120,14 +114,13 @@ class MigrationRunner:
             error_message: Error description
         """
         try:
-            from apps.tenant.models import TenantMigration
-            from apps.tenant.constants import MigrationStatus
+            from apps.tenant.models import OrganizationMigration
 
-            TenantMigration.objects.create(
-                tenant_id=self.tenant.id,
+            OrganizationMigration.objects.create(
+                organization_id=self.tenant.id,
                 migration_name='failed_migration',
                 app_name=app_name or 'all',
-                status=MigrationStatus.FAILED,
+                status='FAILED',
                 error_message=error_message,
                 completed_at=timezone.now(),
             )
@@ -143,11 +136,11 @@ class MigrationRunner:
         """
         from django.db.migrations.executor import MigrationExecutor
 
-        executor = MigrationExecutor(connection)
-        plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
-
         if self.schema_name:
             self._set_search_path()
+
+        executor = MigrationExecutor(connection)
+        plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
 
         return [migration[0].name for migration in plan]
 
@@ -169,11 +162,12 @@ class MigrationRunner:
             'is_up_to_date': len(pending) == 0,
         }
 
-    def rollback_migration(self, migration_name):
+    def rollback_migration(self, app_name, migration_name):
         """
         Rollback a specific migration.
 
         Args:
+            app_name: Name of app
             migration_name: Name of migration to rollback
 
         Returns:

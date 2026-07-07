@@ -1,85 +1,118 @@
-# apps/tenant/api/v1/serializers/__init__.py
-"""
-Serializers for Tenant API v1.
-"""
-
-from .tenant import (
-    TenantSerializer,
-    TenantCreateSerializer,
-    TenantUpdateSerializer,
-    TenantDetailSerializer,
-    TenantListSerializer,
+from .organization_serializers import (
+    OrganizationSerializer,
+    OrganizationCreateSerializer,
+    OrganizationUpdateSerializer,
+    OrganizationDetailSerializer,
+    OrganizationListSerializer,
+    OrganizationOnboardSerializer,
 )
-from .domain import (
+from .domain_serializers import (
     DomainSerializer,
     DomainCreateSerializer,
-    DomainVerifySerializer,
+    DomainUpdateSerializer,
     DomainDetailSerializer,
+    DomainVerifySerializer,
 )
-from .backup import (
-    BackupSerializer,
-    BackupCreateSerializer,
-    BackupDetailSerializer,
-)
-from .resource import (
-    ResourceSerializer,
-    ResourceUpdateSerializer,
-    ResourceBulkUpdateSerializer,
-    ResourceSummarySerializer,
-)
-from .schema import (
+from .schema_serializers import (
     SchemaSerializer,
+    SchemaCreateSerializer,
+    SchemaUpdateSerializer,
     SchemaDetailSerializer,
 )
-from .migration import (
-    MigrationSerializer,
-    MigrationDetailSerializer,
-    MigrationRunSerializer,
+from .resource_serializers import (
+    ResourceSerializer,
+    ResourceCreateSerializer,
+    ResourceUpdateSerializer,
+    ResourceDetailSerializer,
+    ResourceUsageSummarySerializer,
+    ResourceAnalyticsSerializer,
+    ResourceSnapshotSerializer,
+    ResourceBulkIncrementSerializer,
+    ResourceSyncResponseSerializer,
 )
-from .connection import (
+from .connection_serializers import (
+    ConnectionSerializer,
+    ConnectionDetailSerializer,
+    ConnectionCreateSerializer,
+    ConnectionUpdateSerializer,
     ConnectionStatusSerializer,
-    ConnectionPoolListSerializer,
-    ConnectionPoolDetailSerializer,
-    ConnectionPoolCreateSerializer,
     ConnectionMetricsSerializer,
     ConnectionHealthCheckSerializer,
-    ConnectionManagerActionSerializer
+    ConnectionActionSerializer,
+)
+from .migration_serializers import (
+    MigrationSerializer,
+    MigrationDetailSerializer,
+    MigrationCreateSerializer,
+    MigrationUpdateSerializer,
+    MigrationStatusSerializer,
+    MigrationStatsSerializer,
+)
+from .settings_serializers import SettingsSerializer, SettingsUpdateSerializer
+from .dashboard_serializers import (
+    SuperAdminDashboardSerializer,
+    ClientAdminDashboardSerializer,
+    OrganizationStatsSerializer,
+    DomainStatsSerializer,
+    ResourceStatsSerializer,
+)
+from .sector import OrganizationSectorSerializer
+from .provisioning_serializers import (
+    ProvisioningStatusSerializer,
+    ProvisioningListSerializer,
+    ProvisioningTriggerSerializer,
+    ProvisioningRetrySerializer,
 )
 
 __all__ = [
-    # Tenant
-    'TenantSerializer',
-    'TenantCreateSerializer',
-    'TenantUpdateSerializer',
-    'TenantDetailSerializer',
-    'TenantListSerializer',
-    # Domain
+    'OrganizationSerializer',
+    'OrganizationCreateSerializer',
+    'OrganizationUpdateSerializer',
+    'OrganizationDetailSerializer',
+    'OrganizationListSerializer',
+    'OrganizationOnboardSerializer',
     'DomainSerializer',
     'DomainCreateSerializer',
-    'DomainVerifySerializer',
+    'DomainUpdateSerializer',
     'DomainDetailSerializer',
-    # Backup
-    'BackupSerializer',
-    'BackupCreateSerializer',
-    'BackupDetailSerializer',
-    # Resource
-    'ResourceSerializer',
-    'ResourceUpdateSerializer',
-    'ResourceBulkUpdateSerializer',
-    'ResourceSummarySerializer',
-    # Schema
+    'DomainVerifySerializer',
     'SchemaSerializer',
+    'SchemaCreateSerializer',
+    'SchemaUpdateSerializer',
     'SchemaDetailSerializer',
-    # Migration
-    'MigrationSerializer',
-    'MigrationDetailSerializer',
-    'MigrationRunSerializer',
-    # Connection
+    'ResourceSerializer',
+    'ResourceCreateSerializer',
+    'ResourceUpdateSerializer',
+    'ResourceDetailSerializer',
+    'ResourceUsageSummarySerializer',
+    'ResourceAnalyticsSerializer',
+    'ResourceSnapshotSerializer',
+    'ResourceBulkIncrementSerializer',
+    'ResourceSyncResponseSerializer',
+    'ConnectionSerializer',
+    'ConnectionDetailSerializer',
+    'ConnectionCreateSerializer',
+    'ConnectionUpdateSerializer',
     'ConnectionStatusSerializer',
-    'ConnectionPoolListSerializer',
-    'ConnectionPoolDetailSerializer',
-    'ConnectionPoolCreateSerializer',
     'ConnectionMetricsSerializer',
     'ConnectionHealthCheckSerializer',
-    'ConnectionManagerActionSerializer',
+    'ConnectionActionSerializer',
+    'MigrationSerializer',
+    'MigrationDetailSerializer',
+    'MigrationCreateSerializer',
+    'MigrationUpdateSerializer',
+    'MigrationStatusSerializer',
+    'MigrationStatsSerializer',
+    'SettingsSerializer',
+    'SettingsUpdateSerializer',
+    'SuperAdminDashboardSerializer',
+    'ClientAdminDashboardSerializer',
+    'OrganizationStatsSerializer',
+    'DomainStatsSerializer',
+    'ResourceStatsSerializer',
+    'OrganizationSectorSerializer',
+    'ProvisioningStatusSerializer',
+    'ProvisioningListSerializer',
+    'ProvisioningTriggerSerializer',
+    'ProvisioningRetrySerializer',
 ]

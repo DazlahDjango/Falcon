@@ -2,7 +2,7 @@ import logging
 from typing import Optional, List, Dict, Any, Tuple
 from django.core.cache import cache
 from apps.accounts.models import User
-from apps.tenant.models import Client
+from apps.tenant.models import Organization
 logger = logging.getLogger(__name__)
 
 class TenantAccessService:
@@ -62,7 +62,7 @@ class TenantAccessService:
 
     def get_accessible_tenants(self, user: User) -> List[str]:
         if user.is_superuser or user.role == 'super_admin':
-            return [str(t.id) for t in Client.objects.filter(is_deleted=False)]
+            return [str(t.id) for t in Organization.objects.filter(is_deleted=False)]
         return [str(user.tenant_id)] if user.tenant_id else []
     
     def validate_cross_tenant_operations(self, user: User, target_tenant_id: str, operation: str) -> Tuple[bool, str]:

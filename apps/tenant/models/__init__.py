@@ -1,28 +1,23 @@
 from .base import BaseModel
-from .tenant import Client
-from .domain import DomainStatus, CustomDomain
-from .backup import TenantBackup, BackupType, BackupStatus
-from .schema import TenantSchema, SchemaStatus
-from .resource import TenantResource, ResourceType
-from .connection import ConnectionPool, ConnectionStatus
-from .migration import TenantMigration, MigrationStatus
-from .system_settings import TenantSystemSettings
+from .organization import Organization
+from .sector import OrganizationSector
+from .domain import OrganizationDomain
+from .schema import OrganizationSchema
+from .resource import OrganizationResource
+from .resource_snapshot import ResourceUsageSnapshot
+from .connection import OrganizationConnection
+from .migration import OrganizationMigration
+from .system_settings import OrganizationSettings
 
 __all__ = [
     'BaseModel',
-    'Client',
-    'CustomDomain',
-    'DomainStatus',
-    'TenantBackup',
-    'BackupType',
-    'BackupStatus',
-    'TenantSchema',
-    'SchemaStatus',
-    'TenantResource',
-    'ResourceType',
-    'ConnectionPool',
-    'ConnectionStatus',
-    'TenantMigration',
-    'MigrationStatus',
-    'TenantSystemSettings',
+    'Organization',
+    'OrganizationSector',
+    'OrganizationDomain',
+    'OrganizationSchema',
+    'OrganizationResource',
+    'ResourceUsageSnapshot',
+    'OrganizationConnection',
+    'OrganizationMigration',
+    'OrganizationSettings',
 ]

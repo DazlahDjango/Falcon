@@ -47,8 +47,8 @@ class RenewalService:
 
     def _charge_with_auth_code(self, subscription: Subscription, invoice: Invoice) -> Dict[str, Any]:
         try:
-            from apps.tenant.models import Client
-            tenant = Client.objects.get(id=subscription.tenant_id)
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=subscription.tenant_id)
             email = tenant.contact_email or f"tenant-{subscription.tenant_id}@falconpms.com"
             response = self.paystack_client.initialize_transaction(email=email, amount=invoice.total_amount, reference=None, metadata={'tenant_id': str(subscription.tenant_id), 'subscription_code': subscription.subscription_code, 'invoice_id': str(invoice.id), 'renewal': True})
             charge_response = self.paystack_client._request('POST', '/transaction/charge_authorization', data={'authorization_code': subscription.paystack_authorization_code, 'email': email, 'amount': invoice.total_amount, 'reference': response.get('reference')})
@@ -97,9 +97,9 @@ class RenewalService:
         return sent_count
 
     def _send_renewal_reminder(self, subscription: Subscription, days_left: int):
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.get(id=subscription.tenant_id)
+            tenant = Organization.objects.get(id=subscription.tenant_id)
             email = tenant.contact_email
             if not email:
                 return
@@ -111,9 +111,9 @@ class RenewalService:
             logger.warning(f"Tenant not found for subscription {subscription.subscription_code}")
 
     def _send_renewal_failed_notification(self, subscription: Subscription):
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.get(id=subscription.tenant_id)
+            tenant = Organization.objects.get(id=subscription.tenant_id)
             email = tenant.contact_email
             if not email:
                 return
@@ -124,14 +124,14 @@ class RenewalService:
             logger.warning(f"Tenant not found for subscription {subscription.subscription_code}")
 
     def _send_renewal_invoice_notification(self, subscription: Subscription, invoice: Invoice):
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.get(id=subscription.tenant_id)
+            tenant = Organization.objects.get(id=subscription.tenant_id)
             email = tenant.contact_email
             if not email:
                 return
             subject = f"Subscription Renewal Invoice Ready - {invoice.invoice_number}"
             message = f"Dear {tenant.name},\n\nYour {subscription.plan.name} subscription is due for renewal.\n\nInvoice Amount: {invoice.total_amount/100} {invoice.currency}\nDue Date: {invoice.due_date.strftime('%B %d, %Y')}\n\nPlease pay your invoice at:\n{getattr(settings, 'BASE_URL', '')}/invoices/{invoice.id}\n\nBest regards,\nFalcon PMS Team"
             send_mail(subject=subject, message=message, from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'billing@falconpms.com'), recipient_list=[email], fail_silently=True)
-        except Client.DoesNotExist:
+        except Organization.DoesNotExist:
             logger.warning(f"Tenant not found for subscription {subscription.subscription_code}")

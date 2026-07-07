@@ -30,9 +30,10 @@ class TenantMiddleware(MiddlewareMixin):
             logger.debug(f"[TenantMiddleware] Set current_tenant_id from token: {tenant_id}")
         else:
             if hasattr(request, 'user') and request.user.is_authenticated:
-                request.current_tenant_id = str(request.user.tenant_id)
-                cache.set(CacheKeys.CURRENT_TENANT, request.current_tenant_id, timeout=3600)
-                logger.debug(f"[TenantMiddleware] Set current_tenant_id from user: {request.current_tenant_id}")
+                if request.user.tenant_id is not None:
+                    request.current_tenant_id = str(request.user.tenant_id)
+                    cache.set(CacheKeys.CURRENT_TENANT, request.current_tenant_id, timeout=3600)
+                    logger.debug(f"[TenantMiddleware] Set current_tenant_id from user: {request.current_tenant_id}")
         
         return None
     

@@ -1,82 +1,181 @@
 // frontend/src/pages/tenant/TenantResourcesPage.jsx
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { ResourceUsageDashboard, ResourceLimitTable, ResourceLimitForm } from '../../components/tenant/resources';
-import { fetchTenantResources, updateResourceLimit, syncTenantResources, selectResources, selectTenantLoading } from '../../store/tenant/slice';
+import React, { useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FiEdit2, FiX } from 'react-icons/fi';
+import {
+  ResourceUsageDashboard,
+  ResourceLimitTable,
+  ResourceLimitForm,
+} from '../../components/tenant/resources';
+import { useResources } from '../../hooks/tenant';
+import { TENANT_ROUTES } from '../../config/constants/tenantRouteConstants';
 
 export const TenantResourcesPage = () => {
-    const { tenantId } = useParams();
-    const dispatch = useDispatch();
-    const resources = useSelector(selectResources) || [];
-    const loading = useSelector(selectTenantLoading);
-    const [editingResource, setEditingResource] = useState(null);
+  const { tenantId, orgId } = useParams();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        if (tenantId) {
-            dispatch(fetchTenantResources({ tenantId }));
-        }
-    }, [dispatch, tenantId]);
+  // Prefer orgId from org-scoped URL, fallback to tenantId
+  const organizationId = orgId || tenantId;
 
-    const handleEditResource = (resource) => {
-        setEditingResource(resource);
-    };
+  const {
+    resources,
+    loading,
+    update,
+    increment,
+    decrement,
+    snapshot,
+    syncFromBilling,
+    fetchList,
+  } = useResources({
+    autoFetch: !!organizationId,
+    filters: organizationId ? { organization_id: organizationId } : {},
+  });
 
-    const handleSaveResource = async (data) => {
-        await dispatch(updateResourceLimit({
-            tenantId: tenantId,
-            resourceType: editingResource.resource_type,
-            limitValue: data.limit_value
-        }));
-        setEditingResource(null);
-    };
+  const [editingResource, setEditingResource] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
-    const usageData = resources.map(r => ({
-        resource_type: r.resource_type,
-        current_value: r.current_value,
-        limit_value: r.limit_value,
-        percentage: r.limit_value > 0 ? (r.current_value / r.limit_value) * 100 : 0,
-    }));
+  const handleEditResource = useCallback((resource) => {
+    setEditingResource(resource);
+    setSaveError(null);
+  }, []);
 
-    return (
-        <div className="p-6">
-            <div className="mb-6 flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Resource Management</h1>
-                    <p className="text-sm text-gray-500 mt-1">Monitor and manage tenant resource limits</p>
-                </div>
-                <button
-                    onClick={() => dispatch(syncTenantResources(tenantId))}
-                    disabled={loading}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
-                >
-                    Sync Live Data
-                </button>
-            </div>
+  const handleSaveResource = useCallback(async (data) => {
+    if (!editingResource) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await update(editingResource.id, {
+        limit_value: data.limit_value,
+        soft_limit: data.soft_limit ?? null,
+        hard_limit: data.hard_limit ?? null,
+        warning_threshold: data.warning_threshold,
+        burst_allowed: data.burst_allowed,
+      });
+      setEditingResource(null);
+      fetchList();
+    } catch (err) {
+      setSaveError(err?.message || 'Failed to save resource');
+    } finally {
+      setSaving(false);
+    }
+  }, [editingResource, update, fetchList]);
 
-            <ResourceUsageDashboard resources={usageData} loading={loading} />
+  const handleIncrement = useCallback(async (id, amount = 1) => {
+    try { await increment(id, amount); }
+    catch (err) { console.error('Increment failed:', err); }
+  }, [increment]);
 
-            <div className="mt-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Resource Limits</h2>
-                <ResourceLimitTable
-                    resources={resources}
-                    onEdit={handleEditResource}
-                    loading={loading}
-                />
-            </div>
+  const handleDecrement = useCallback(async (id, amount = 1) => {
+    try { await decrement(id, amount); }
+    catch (err) { console.error('Decrement failed:', err); }
+  }, [decrement]);
 
-            {editingResource && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 className="text-lg font-semibold mb-4">Edit Resource Limit</h3>
-                        <ResourceLimitForm
-                            resource={editingResource}
-                            onSubmit={handleSaveResource}
-                            onCancel={() => setEditingResource(null)}
-                        />
-                    </div>
-                </div>
-            )}
+  const handleSnapshot = useCallback(async (id) => {
+    try { await snapshot(id, 'manual'); }
+    catch (err) { console.error('Snapshot failed:', err); }
+  }, [snapshot]);
+
+  return (
+    <div className="p-6">
+      {/* Page header */}
+      <div className="mb-6 flex justify-between items-center" style={{ flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+            Resource Management
+          </h1>
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+            Monitor and manage organization resource limits
+          </p>
         </div>
-    );
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => syncFromBilling(organizationId || null).catch(() => {})}
+            disabled={loading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', background: '#6366f1', color: '#fff',
+              border: 'none', borderRadius: '8px', fontWeight: 600,
+              fontSize: '13px', cursor: 'pointer', opacity: loading ? 0.6 : 1,
+            }}
+          >
+            Sync from Billing
+          </button>
+          {organizationId && (
+            <button
+              onClick={() => navigate(TENANT_ROUTES.RESOURCES_ORGANIZATION(organizationId))}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '8px 16px', background: '#f1f5f9', color: '#475569',
+                border: '1px solid #e2e8f0', borderRadius: '8px', fontWeight: 500,
+                fontSize: '13px', cursor: 'pointer',
+              }}
+            >
+              Full Resource Page
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Usage dashboard — self-managing component */}
+      <ResourceUsageDashboard
+        organizationId={organizationId}
+        loading={loading}
+      />
+
+      {/* Resource limits table */}
+      <div style={{ marginTop: '28px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a', marginBottom: '14px' }}>
+          Resource Limits Detail
+        </h2>
+        <ResourceLimitTable
+          resources={resources}
+          onEdit={handleEditResource}
+          onIncrement={handleIncrement}
+          onDecrement={handleDecrement}
+          onSnapshot={handleSnapshot}
+          loading={loading}
+        />
+      </div>
+
+      {/* Edit resource modal */}
+      {editingResource && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50,
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '12px', padding: '28px',
+            width: '100%', maxWidth: '480px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FiEdit2 size={16} style={{ color: '#6366f1' }} />
+                Edit Resource Limit
+              </h3>
+              <button
+                onClick={() => setEditingResource(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            {saveError && (
+              <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px' }}>
+                {saveError}
+              </div>
+            )}
+
+            <ResourceLimitForm
+              resource={editingResource}
+              onSubmit={handleSaveResource}
+              onCancel={() => setEditingResource(null)}
+              isLoading={saving}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };

@@ -1,117 +1,72 @@
-# apps/tenant/consumers/provisioning.py
-"""
-WebSocket consumer for real-time provisioning progress.
-Shows step-by-step progress when creating a new tenant.
-"""
-
 import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from django.utils import timezone
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
 class ProvisioningConsumer(AsyncWebsocketConsumer):
-    """
-    WebSocket consumer for tenant provisioning progress.
-
-    Connection URL: ws://domain/ws/tenant/provisioning/{task_id}/
-
-    What it sends:
-        - Step-by-step progress (25%, 50%, 75%, 100%)
-        - Current step name (creating schema, running migrations, etc.)
-        - Error messages if provisioning fails
-        - Completion notification
-    """
-
     async def connect(self):
-        """Called when client initiates WebSocket connection"""
-
-        self.task_id = self.scope['url_route']['kwargs'].get('task_id')
-        self.room_group_name = f'provisioning_{self.task_id}'
-
-        # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-
+        self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+        self.org_id = self.scope['url_route']['kwargs'].get('organization_id')
+        if not self.org_id:
+            await self.close()
+            return
+        if not await self._has_access(self.user, self.org_id):
+            await self.close()
+            return
+        self.room_group_name = f"org_{self.org_id}_provisioning"
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
-        logger.info(f"ProvisioningConsumer connected for task {self.task_id}")
-
     async def disconnect(self, close_code):
-        """Called when client disconnects"""
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        logger.info(
-            f"ProvisioningConsumer disconnected for task {self.task_id}")
-
-    async def receive(self, text_data):
-        """Called when client sends a message"""
-
-        try:
-            data = json.loads(text_data)
-            action = data.get('action')
-
-            if action == 'get_status':
-                await self.send_progress({'progress': 0, 'step': 'Checking status...'})
-
-        except json.JSONDecodeError:
-            logger.error(f"Invalid JSON received: {text_data}")
-
-    async def send_progress(self, progress_data):
-        """Send progress update to client"""
-
+    async def provisioning_started(self, event):
         await self.send(text_data=json.dumps({
-            'type': 'progress_update',
-            'data': progress_data,
-            'timestamp': str(timezone.now())
+            'type': 'provisioning_started',
+            'organization_id': str(event['organization_id']),
+            'timestamp': event['timestamp']
         }))
 
-    async def provisioning_progress(self, event):
-        """
-        Called when provisioning progress updates (from Celery task).
-        Sends progress to connected client.
-        """
-
+    async def provisioning_step(self, event):
         await self.send(text_data=json.dumps({
-            'type': 'provisioning_progress',
-            'progress': event['progress'],
+            'type': 'provisioning_step',
+            'organization_id': str(event['organization_id']),
             'step': event['step'],
-            'step_number': event.get('step_number', 0),
-            'total_steps': event.get('total_steps', 4),
-            'message': event.get('message', ''),
-            'timestamp': event.get('timestamp', str(timezone.now()))
+            'step_name': event['step_name'],
+            'progress': event['progress'],
+            'message': event['message'],
+            'timestamp': event['timestamp']
         }))
 
-    async def provisioning_complete(self, event):
-        """
-        Called when provisioning completes successfully.
-        """
-
+    async def provisioning_completed(self, event):
         await self.send(text_data=json.dumps({
-            'type': 'provisioning_complete',
-            'tenant_id': event['tenant_id'],
-            'tenant_name': event.get('tenant_name', ''),
-            'message': event.get('message', 'Provisioning completed successfully!'),
-            'timestamp': event.get('timestamp', str(timezone.now()))
+            'type': 'provisioning_completed',
+            'organization_id': str(event['organization_id']),
+            'message': event['message'],
+            'timestamp': event['timestamp']
         }))
 
     async def provisioning_failed(self, event):
-        """
-        Called when provisioning fails.
-        """
-
         await self.send(text_data=json.dumps({
             'type': 'provisioning_failed',
+            'organization_id': str(event['organization_id']),
             'error': event['error'],
-            'step': event.get('step', ''),
-            'message': event.get('message', 'Provisioning failed. Please check logs.'),
-            'timestamp': event.get('timestamp', str(timezone.now()))
+            'timestamp': event['timestamp']
         }))
+
+    @database_sync_to_async
+    def _has_access(self, user, org_id):
+        if user.is_superuser or getattr(user, 'role', '') == 'super_admin':
+            return True
+        if hasattr(user, 'organization_id') and user.organization_id:
+            return str(user.organization_id) == str(org_id)
+        return False

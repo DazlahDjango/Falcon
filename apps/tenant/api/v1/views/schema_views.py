@@ -1,75 +1,90 @@
-"""
-Schema management views for tenant database schemas.
-"""
-
 from rest_framework import viewsets, status
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from apps.tenant.models import OrganizationSchema
+from apps.tenant.api.v1.serializers import (
+    SchemaSerializer,
+    SchemaCreateSerializer,
+    SchemaUpdateSerializer,
+    SchemaDetailSerializer,
+)
+from apps.tenant.api.v1.permissions import CanManageSchema, IsSuperAdmin
+from apps.tenant.api.v1.throttles import OrganizationApiThrottle
+from apps.tenant.api.v1.filters import SchemaFilter
+from apps.tenant.services import SchemaService
 
-from apps.tenant.models import TenantSchema
-from apps.tenant.api.v1.serializers import SchemaSerializer, SchemaDetailSerializer
-from apps.tenant.api.v1.permissions import IsTenantAdmin
 
-
-class SchemaViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for TenantSchema operations (read-only).
-    
-    The nested router (/tenants/{tenant_pk}/schemas/) provides tenant-scoped access.
-    """
-
-    queryset = TenantSchema.objects.filter(is_deleted=False)
-    serializer_class = SchemaSerializer
-    permission_classes = [IsAuthenticated, IsTenantAdmin]
+class SchemaViewSet(viewsets.ModelViewSet):
+    queryset = OrganizationSchema.objects.all()
+    permission_classes = [IsAuthenticated, CanManageSchema]
+    throttle_classes = [OrganizationApiThrottle]
+    filterset_class = SchemaFilter
+    ordering_fields = ['schema_name', 'created_at', 'status']
+    ordering = ['-created_at']
 
     def get_serializer_class(self):
-        return SchemaDetailSerializer if self.action == 'retrieve' else SchemaSerializer
+        action_serializers = {
+            'create': SchemaCreateSerializer,
+            'update': SchemaUpdateSerializer,
+            'partial_update': SchemaUpdateSerializer,
+            'retrieve': SchemaDetailSerializer,
+            'list': SchemaSerializer,
+        }
+        return action_serializers.get(self.action, SchemaSerializer)
+
+    def get_permissions(self):
+        if self.action in ['provision', 'drop']:
+            self.permission_classes = [IsAuthenticated, IsSuperAdmin]
+        else:
+            self.permission_classes = [IsAuthenticated, CanManageSchema]
+        return super().get_permissions()
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
-        # Nested router provides tenant_pk
-        if hasattr(self.request, 'tenant_pk'):
-            queryset = queryset.filter(tenant_id=self.request.tenant_pk)
-        elif tenant_id := self.request.query_params.get('tenant_id'):
-            queryset = queryset.filter(tenant_id=tenant_id)
-        
-        # Additional filters
-        if status_filter := self.request.query_params.get('status'):
-            queryset = queryset.filter(status=status_filter)
-        
-        if is_ready := self.request.query_params.get('is_ready'):
-            queryset = queryset.filter(is_ready=is_ready.lower() == 'true')
-        
+        if self.request.query_params.get('organization_id'):
+            queryset = queryset.filter(organization_id=self.request.query_params.get('organization_id'))
+        if self.request.query_params.get('status'):
+            queryset = queryset.filter(status=self.request.query_params.get('status'))
+        if self.request.query_params.get('is_ready') is not None:
+            queryset = queryset.filter(is_ready=self.request.query_params.get('is_ready').lower() == 'true')
         return queryset
 
-    @action(detail=False, methods=['get'], url_path='current')
-    def current_schema(self, request):
-        """
-        GET /schemas/current/?tenant_id=xxx - Get current active schema for tenant.
-        Alternative to the separate TenantSchemaView.
-        """
-        tenant_id = (request.tenant_pk if hasattr(request, 'tenant_pk') 
-                     else request.query_params.get('tenant_id'))
-        
-        if not tenant_id:
-            return Response(
-                {'error': 'tenant_id is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        schema = self.get_queryset().filter(tenant_id=tenant_id).first()
-        if not schema:
-            return Response(
-                {'error': 'No schema found for this tenant'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        serializer = SchemaDetailSerializer(schema)
+    @action(detail=True, methods=['post'])
+    def provision(self, request, pk=None):
+        schema = self.get_object()
+        if schema.status == 'ACTIVE':
+            return Response({'error': f'Schema {schema.schema_name} is already active'}, status=status.HTTP_400_BAD_REQUEST)
+        service = SchemaService()
+        result = service.provision_schema(schema.id)
         return Response({
-            'tenant_id': tenant_id,
-            'schema': serializer.data,
-            'is_active': schema.status == 'active' and schema.is_ready,
-            'size_display': f"{schema.size_mb} MB" if schema.size_mb else "Unknown"
+            'success': True,
+            'message': f'Schema {result.schema_name} provisioned',
+            'schema_id': str(result.id),
+            'status': result.status
+        })
+
+    @action(detail=True, methods=['post'])
+    def drop(self, request, pk=None):
+        schema = self.get_object()
+        if schema.status == 'DELETED':
+            return Response({'error': f'Schema {schema.schema_name} is already deleted'}, status=status.HTTP_400_BAD_REQUEST)
+        service = SchemaService()
+        result = service.drop_schema(schema.id)
+        return Response({
+            'success': True,
+            'message': f'Schema {result.schema_name} dropped',
+            'schema_id': str(result.id)
+        })
+
+    @action(detail=True, methods=['post'])
+    def update_stats(self, request, pk=None):
+        schema = self.get_object()
+        service = SchemaService()
+        result = service.update_schema_stats(schema.id)
+        return Response({
+            'success': True,
+            'schema_id': str(result.id),
+            'table_count': result.table_count,
+            'size_mb': result.size_mb
         })

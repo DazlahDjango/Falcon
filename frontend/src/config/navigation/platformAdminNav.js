@@ -1,3 +1,4 @@
+// config/constants/navigationConstants.js
 import {
   FiHome,
   FiBarChart2,
@@ -40,17 +41,21 @@ import {
   FiUserCheck,
   FiUserX,
   FiUser,
+  FiGlobe,
+  FiLink,
 } from 'react-icons/fi';
 import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
 import { BsBriefcase, BsPersonBadge, BsDiagram3 } from 'react-icons/bs';
+import { ArrowRightLeft } from 'lucide-react';
 
 import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { BILLING_ROUTES } from '../constants/billingRouteConstants';
-import { ROUTES } from '../constants';
+import { ROUTES } from '../constants/routeConstants';
 import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../constants/kpiRouteConstants';
 import { ACCOUNTS_ROUTES } from '../constants/accountsRouteConstants';
+import { TENANT_ROUTES } from '../constants/tenantRouteConstants';
 
 // ============================================
 // MFA ROUTES
@@ -61,6 +66,112 @@ export const MFA_ROUTES = {
   ACTIVITY: '/security/mfa-activity',
   SETUP: '/mfa/setup',
   VERIFY: '/mfa/verify',
+};
+
+// ============================================
+// TENANT NAVIGATION ITEMS
+// ============================================
+export const TENANT_NAV_ITEMS = {
+  SUPER_ADMIN: [
+    { path: TENANT_ROUTES.DASHBOARD, name: 'Dashboard', icon: FiHome },
+    { path: TENANT_ROUTES.ADMIN_ORGANIZATIONS, name: 'Organizations', icon: MdBusiness },
+    { path: TENANT_ROUTES.DOMAINS, name: 'Domains', icon: FiGlobe },
+    { path: '/tenant/sectors', name: 'Sectors', icon: FiBriefcase },
+    { path: TENANT_ROUTES.SCHEMAS, name: 'Schemas', icon: MdSchema },
+    { path: TENANT_ROUTES.RESOURCES, name: 'Resources', icon: FiDatabase },
+    { path: TENANT_ROUTES.CONNECTIONS, name: 'Connections', icon: FiLink },
+    { path: TENANT_ROUTES.MIGRATIONS, name: 'Migrations', icon: ArrowRightLeft },
+    { path: TENANT_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+    { path: TENANT_ROUTES.HEALTH, name: 'Health', icon: FiActivity },
+  ],
+  CLIENT_ADMIN: [
+    { path: TENANT_ROUTES.DASHBOARD, name: 'Dashboard', icon: FiHome },
+    { path: TENANT_ROUTES.ORGANIZATIONS, name: 'Organization', icon: MdBusiness },
+    { path: TENANT_ROUTES.DOMAINS, name: 'Domains', icon: FiGlobe },
+    { path: TENANT_ROUTES.RESOURCES, name: 'Resources', icon: FiDatabase },
+    { path: TENANT_ROUTES.CONNECTIONS, name: 'Connections', icon: FiLink },
+    { path: TENANT_ROUTES.MIGRATIONS, name: 'Migrations', icon: ArrowRightLeft },
+    { path: TENANT_ROUTES.SETTINGS, name: 'Settings', icon: FiSettings },
+  ],
+};
+
+// ============================================
+// TENANT NAVIGATION GROUPS - SUPER ADMIN
+// ============================================
+export const TENANT_SUPER_ADMIN_NAV_GROUPS = {
+  main: [
+    { path: TENANT_ROUTES.DASHBOARD, name: 'Dashboard', icon: FiHome, end: true },
+  ],
+  management: [
+    { path: TENANT_ROUTES.ADMIN_ORGANIZATIONS, name: 'Organizations', icon: MdBusiness },
+    { path: TENANT_ROUTES.DOMAINS, name: 'Domains', icon: FiGlobe },
+    { path: '/tenant/sectors', name: 'Sectors', icon: FiBriefcase },
+  ],
+  infrastructure: [
+    { path: TENANT_ROUTES.SCHEMAS, name: 'Schemas', icon: MdSchema },
+    { path: TENANT_ROUTES.RESOURCES, name: 'Resources', icon: FiDatabase },
+    { path: TENANT_ROUTES.CONNECTIONS, name: 'Connections', icon: FiLink },
+    { path: TENANT_ROUTES.MIGRATIONS, name: 'Migrations', icon: ArrowRightLeft },
+  ],
+  system: [
+    { path: TENANT_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+    { path: TENANT_ROUTES.HEALTH, name: 'Health', icon: FiActivity },
+  ],
+};
+
+// ============================================
+// TENANT NAVIGATION GROUPS - CLIENT ADMIN
+// ============================================
+export const TENANT_CLIENT_ADMIN_NAV_GROUPS = {
+  main: [
+    { path: TENANT_ROUTES.DASHBOARD, name: 'Dashboard', icon: FiHome, end: true },
+  ],
+  management: [
+    { path: TENANT_ROUTES.ORGANIZATIONS, name: 'Organization', icon: MdBusiness },
+    { path: TENANT_ROUTES.DOMAINS, name: 'Domains', icon: FiGlobe },
+  ],
+  infrastructure: [
+    { path: TENANT_ROUTES.RESOURCES, name: 'Resources', icon: FiDatabase },
+    { path: TENANT_ROUTES.CONNECTIONS, name: 'Connections', icon: FiLink },
+    { path: TENANT_ROUTES.MIGRATIONS, name: 'Migrations', icon: ArrowRightLeft },
+  ],
+  system: [
+    { path: TENANT_ROUTES.SETTINGS, name: 'Settings', icon: FiSettings },
+  ],
+};
+
+// ============================================
+// TENANT GROUP LABELS
+// ============================================
+export const TENANT_SUPER_ADMIN_GROUP_LABELS = {
+  main: 'Main',
+  management: 'Management',
+  infrastructure: 'Infrastructure',
+  system: 'System',
+};
+
+export const TENANT_CLIENT_ADMIN_GROUP_LABELS = {
+  main: 'Main',
+  management: 'Management',
+  infrastructure: 'Infrastructure',
+  system: 'System',
+};
+
+// ============================================
+// TENANT DEFAULT EXPANDED
+// ============================================
+export const TENANT_SUPER_ADMIN_DEFAULT_EXPANDED = {
+  main: true,
+  management: true,
+  infrastructure: false,
+  system: false,
+};
+
+export const TENANT_CLIENT_ADMIN_DEFAULT_EXPANDED = {
+  main: true,
+  management: true,
+  infrastructure: false,
+  system: false,
 };
 
 // ============================================
@@ -231,7 +342,7 @@ export const ACCOUNTS_CLIENT_ADMIN_NAV_ITEMS = [
 ];
 
 // ============================================
-// SUPER ADMIN NAVIGATION GROUPS - UPDATED WITH ACCOUNTS
+// SUPER ADMIN NAVIGATION GROUPS - UPDATED WITH TENANT
 // ============================================
 export const SUPER_ADMIN_NAV_GROUPS = {
   main: [
@@ -240,22 +351,34 @@ export const SUPER_ADMIN_NAV_GROUPS = {
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.PLATFORM_METRICS, name: 'Platform Metrics', icon: FiBarChart2 },
     { path: DASHBOARD_ROUTES.SUPER_ADMIN.SYSTEM_HEALTH, name: 'PMS System Health', icon: FiActivity },
   ],
-  tenants: [
-    { path: '/tenants', name: 'All Tenants', icon: MdBusiness },
-    { path: '/tenants/dashboard', name: 'Tenant Dashboard', icon: FiGrid },
-    { path: '/tenants/platform-settings', name: 'Platform Settings', icon: FiSettings },
-    { path: '/tenants/connections', name: 'Connection Dashboard', icon: FiActivity },
-    { path: '/tenants/connections/metrics', name: 'Connection Metrics', icon: FiBarChart2 },
-    { path: '/tenants/connections/health', name: 'Connection Health', icon: FiShield },
+
+  tenant_main: [
+    { path: TENANT_ROUTES.DASHBOARD, name: 'Tenant Dashboard', icon: FiHome, end: true },
+  ],
+  tenant_management: [
+    { path: TENANT_ROUTES.ADMIN_ORGANIZATIONS, name: 'Organizations', icon: MdBusiness },
+    { path: TENANT_ROUTES.DOMAINS, name: 'Domains', icon: FiGlobe },
+    { path: '/tenant/sectors', name: 'Sectors', icon: FiBriefcase },
+  ],
+  tenant_infrastructure: [
+    { path: TENANT_ROUTES.SCHEMAS, name: 'Schemas', icon: MdSchema },
+    { path: TENANT_ROUTES.RESOURCES, name: 'Resources', icon: FiDatabase },
+    { path: TENANT_ROUTES.RESOURCE_DASHBOARD, name: 'Resource Dashboard', icon: FiBarChart2 },
+    { path: TENANT_ROUTES.RESOURCE_ANALYTICS, name: 'Resource Analytics', icon: FiActivity },
+    { path: TENANT_ROUTES.CONNECTIONS, name: 'Connections', icon: FiLink },
+    { path: TENANT_ROUTES.MIGRATIONS, name: 'Migrations', icon: ArrowRightLeft },
+    { path: TENANT_ROUTES.PROVISIONING, name: 'Provisioning', icon: FiDownload },
+  ],
+  tenant_system: [
+    { path: TENANT_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
+    { path: TENANT_ROUTES.HEALTH, name: 'Health', icon: FiActivity },
   ],
   billing: ADMIN_BILLING_NAV_ITEMS,
-
   kpiAdmin: KPI_ADMIN_NAV_ITEMS,
   kpiManagement: KPI_MANAGEMENT_NAV_ITEMS,
   kpiAnalytics: KPI_ANALYTICS_NAV_ITEMS,
   kpiOperations: KPI_OPERATIONS_NAV_ITEMS,
   kpiDashboards: KPI_DASHBOARDS_NAV_ITEMS,
-
   structure: [
     { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
     { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
@@ -297,13 +420,28 @@ export const SUPER_ADMIN_NAV_GROUPS = {
 };
 
 // ============================================
-// CLIENT ADMIN NAVIGATION GROUPS - UPDATED WITH ACCOUNTS
+// CLIENT ADMIN NAVIGATION GROUPS - UPDATED WITH TENANT
 // ============================================
 export const CLIENT_ADMIN_NAV_GROUPS = {
   main: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.TENANT, name: 'Tenant Overview', icon: FiServer },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.KPI_BREAKDOWN, name: 'KPI Breakdown', icon: FiBarChart2 },
+  ],
+  tenant_main: [
+    { path: TENANT_ROUTES.DASHBOARD, name: 'Dashboard', icon: FiHome, end: true },
+  ],
+  tenant_management: [
+    { path: TENANT_ROUTES.ORGANIZATIONS, name: 'Organization', icon: MdBusiness },
+    { path: TENANT_ROUTES.DOMAINS, name: 'Domains', icon: FiGlobe },
+  ],
+  tenant_infrastructure: [
+    { path: TENANT_ROUTES.RESOURCES, name: 'Resources', icon: FiDatabase },
+    { path: TENANT_ROUTES.CONNECTIONS, name: 'Connections', icon: FiLink },
+    { path: TENANT_ROUTES.MIGRATIONS, name: 'Migrations', icon: ArrowRightLeft },
+  ],
+  tenant_system: [
+    { path: TENANT_ROUTES.SETTINGS, name: 'Settings', icon: FiSettings },
   ],
   billing: BILLING_NAV_ITEMS,
   oversight: [
@@ -338,11 +476,14 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
 };
 
 // ============================================
-// EXPANDED STATES - UPDATED WITH ACCOUNTS
+// EXPANDED STATES - UPDATED WITH TENANT
 // ============================================
 export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   main: true,
-  tenants: false,
+  tenant_main: true,
+  tenant_management: true,
+  tenant_infrastructure: false,
+  tenant_system: false,
   billing: false,
   kpiAdmin: true,
   kpiManagement: true,
@@ -359,6 +500,10 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
 
 export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   main: true,
+  tenant_main: true,
+  tenant_management: true,
+  tenant_infrastructure: false,
+  tenant_system: false,
   billing: false,
   oversight: true,
   kpiAdmin: false,
@@ -372,11 +517,14 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
 };
 
 // ============================================
-// GROUP LABELS - UPDATED WITH ACCOUNTS
+// GROUP LABELS - UPDATED WITH TENANT
 // ============================================
 export const SUPER_ADMIN_GROUP_LABELS = {
   main: 'Main',
-  tenants: 'Tenant Ops & Connections',
+  tenant_main: '🏢 TENANT MANAGEMENT',
+  tenant_management: 'Management',
+  tenant_infrastructure: 'Infrastructure',
+  tenant_system: 'System',
   billing: 'Billing Administration',
   kpiAdmin: '🏗️ KPI System Admin',
   kpiManagement: '📊 KPI Management',
@@ -393,6 +541,10 @@ export const SUPER_ADMIN_GROUP_LABELS = {
 
 export const CLIENT_ADMIN_GROUP_LABELS = {
   main: 'Main',
+  tenant_main: '🏢 ORGANIZATION',
+  tenant_management: 'Management',
+  tenant_infrastructure: 'Infrastructure',
+  tenant_system: 'System',
   billing: 'Billing & Payments',
   oversight: 'Oversight',
   kpiAdmin: '🏗️ KPI System Admin',
@@ -444,6 +596,31 @@ export const isAccountsRouteActive = (path, currentPath) => {
     /^\/admin\/mfa\/users\/[\w-]+$/,
     /^\/profiles\/[\w-]+$/,
     /^\/profiles\/[\w-]+\/edit$/,
+  ];
+
+  return patterns.some((pattern) => pattern.test(currentPath));
+};
+
+export const isTenantRouteActive = (path, currentPath) => {
+  if (path === currentPath) return true;
+
+  const patterns = [
+    /^\/tenant\/organizations\/[\w-]+$/,
+    /^\/tenant\/organizations\/[\w-]+\/edit$/,
+    /^\/tenant\/organizations\/[\w-]+\/onboard$/,
+    /^\/tenant\/organizations\/[\w-]+\/usage$/,
+    /^\/tenant\/organizations\/[\w-]+\/provisioning$/,
+    /^\/tenant\/domains\/[\w-]+$/,
+    /^\/tenant\/domains\/[\w-]+\/edit$/,
+    /^\/tenant\/domains\/[\w-]+\/verify$/,
+    /^\/tenant\/schemas\/[\w-]+$/,
+    /^\/tenant\/schemas\/[\w-]+\/provision$/,
+    /^\/tenant\/resources\/[\w-]+$/,
+    /^\/tenant\/resources\/[\w-]+\/edit$/,
+    /^\/tenant\/connections\/[\w-]+$/,
+    /^\/tenant\/migrations\/[\w-]+$/,
+    /^\/tenant\/sectors\/[\w-]+\/edit$/,
+    /^\/tenant\/admin\/organizations\/[\w-]+$/,
   ];
 
   return patterns.some((pattern) => pattern.test(currentPath));

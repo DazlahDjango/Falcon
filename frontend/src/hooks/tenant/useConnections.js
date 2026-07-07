@@ -1,582 +1,442 @@
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    fetchConnections,
-    fetchTenantConnections,
-    fetchConnectionDetails,
-    fetchConnectionMetrics,
-    performHealthCheck,
-    updateConnectionStatus,
-    closeConnection,
-    executeManagerAction,
-    closeIdleConnections,
-    setConnectionFilters,
-    clearConnectionFilters,
-    setConnectionPage,
-    setConnectionPageSize,
-    updateRealtimeData,
-    batchUpdateHealthStatus,
-} from '../../store/tenant/slice/connectionSlice';
+  fetchConnections,
+  fetchConnection,
+  createConnection,
+  updateConnection,
+  deleteConnection,
+  closeConnection,
+  fetchConnectionStatus,
+  executeConnectionAction,
+  fetchConnectionMetrics,
+  runHealthCheck,
+  fetchTenantConnections,
+  closeTenantConnection,
+  fetchTenantConnectionStatus,
+  clearCurrentConnection,
+  clearErrors,
+  setFilters,
+  resetFilters,
+  setPagination,
+  clearMetrics,
+  clearTenantConnections,
+  clearAllConnections,
+  pauseConnection,
+  resumeConnection,
+  fetchDebugTraces,
+} from '../../store/tenant/slice/connection.slice';
+
 import {
-    selectConnections,
-    selectCurrentConnection,
-    selectMetrics,
-    selectHealthStatus,
-    selectFilters,
-    selectPagination,
-    selectLoading,
-    selectError,
-    selectFilteredConnections,
-    selectConnectionsByStatus,
-    selectConnectionStats,
-    selectHealthSummary,
-    selectIsStale,
-} from '../../store/tenant/slice/connectionSelectors';
-import { connectionService } from '../../services/tenant/connection.service';
+  selectConnections,
+  selectCurrentConnection,
+  selectConnectionLoading,
+  selectConnectionDetailsLoading,
+  selectConnectionSubmitting,
+  selectConnectionError,
+  selectConnectionPagination,
+  selectConnectionPage,
+  selectConnectionTotal,
+  selectConnectionTotalPages,
+  selectConnectionFilters,
+  selectConnectionMetrics,
+  selectHealthStatus,
+  selectActionResult,
+  selectTenantConnections,
+  selectConnectionById,
+  selectActiveConnections,
+  selectIdleConnections,
+  selectErrorConnections,
+  selectClosedConnections,
+  selectConnectionsByOrganization,
+  selectConnectionCount,
+  selectActiveConnectionCount,
+  selectIdleConnectionCount,
+  selectErrorConnectionCount,
+  selectHasConnections,
+  selectHasTenantConnections,
+  selectConnectionMetricsSummary,
+  selectConnectionHealth,
+  selectDebugTraces,
+  selectDebugLoading,
+} from '../../store/tenant/selectors/connection.selectors';
 
-/**
- * Hook for managing connection list with auto-refresh
- */
 export const useConnections = (options = {}) => {
-    const {
-        autoRefresh = false,
-        refreshInterval = 30000,
-        tenantId = null,
-    } = options;
+  const {
+    autoFetch = true,
+    filters: initialFilters = {},
+    page = 1,
+    pageSize = 20,
+  } = options;
 
-    const dispatch = useDispatch();
-    const connections = useSelector(selectConnections) || [];
-    const filteredConnections = useSelector(selectFilteredConnections) || [];
-    const stats = useSelector(selectConnectionsByStatus) || {
-        active: 0,
-        idle: 0,
-        closed: 0,
-        errored: 0
+  const dispatch = useDispatch();
+  const fetchCalled = useRef(false);
+
+  const connections = useSelector(selectConnections);
+  const currentConnection = useSelector(selectCurrentConnection);
+  const loading = useSelector(selectConnectionLoading);
+  const loadingDetails = useSelector(selectConnectionDetailsLoading);
+  const submitting = useSelector(selectConnectionSubmitting);
+  const error = useSelector(selectConnectionError);
+  const pagination = useSelector(selectConnectionPagination);
+  const pageNum = useSelector(selectConnectionPage);
+  const total = useSelector(selectConnectionTotal);
+  const totalPages = useSelector(selectConnectionTotalPages);
+  const filters = useSelector(selectConnectionFilters);
+  const metrics = useSelector(selectConnectionMetrics);
+  const healthStatus = useSelector(selectHealthStatus);
+  const actionResult = useSelector(selectActionResult);
+  const count = useSelector(selectConnectionCount);
+  const activeCount = useSelector(selectActiveConnectionCount);
+  const idleCount = useSelector(selectIdleConnectionCount);
+  const errorCount = useSelector(selectErrorConnectionCount);
+  const hasConnections = useSelector(selectHasConnections);
+  const metricsSummary = useSelector(selectConnectionMetricsSummary);
+  const connectionHealth = useSelector(selectConnectionHealth);
+  const debugTraces = useSelector(selectDebugTraces);
+  const debugLoading = useSelector(selectDebugLoading);
+
+  const fetchList = useCallback((params = {}) => {
+    const mergedParams = {
+      ...filters,
+      page: pageNum,
+      pageSize,
+      ...params,
     };
-    const metrics = useSelector(selectMetrics) || {
-        total_connections: 0,
-        active_connections: 0,
-        connection_rate: 0,
-        avg_response_time: 0
-    };
-    const filters = useSelector(selectFilters) || {};
-    const pagination = useSelector(selectPagination) || { page: 1, page_size: 20, total: 0 };
-    const loading = useSelector(selectLoading) || false;
-    const error = useSelector(selectError);
-    const isStale = useSelector(selectIsStale) || false;
+    return dispatch(fetchConnections(mergedParams)).unwrap();
+  }, [dispatch, filters, pageNum, pageSize]);
 
-    const refreshTimer = useRef(null);
-    const mounted = useRef(true);
+  const fetchOne = useCallback((id) => {
+    if (!id) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(fetchConnection(id)).unwrap();
+  }, [dispatch]);
 
-    const loadConnections = useCallback(async () => {
-        if (!mounted.current) return;
+  const create = useCallback((data) => {
+    if (!data) return Promise.reject(new Error('Connection data is required'));
+    if (!data.organization_id) return Promise.reject(new Error('Organization ID is required'));
+    return dispatch(createConnection(data)).unwrap();
+  }, [dispatch]);
 
-        try {
-            if (tenantId) {
-                await dispatch(fetchTenantConnections({ tenantId, params: filters }));
-            } else {
-                await dispatch(fetchConnections(filters));
-            }
-        } catch (err) {
-            console.error('Failed to load connections:', err);
-        }
-    }, [dispatch, tenantId, filters]);
+  const update = useCallback((id, data) => {
+    if (!id) return Promise.reject(new Error('Connection ID is required'));
+    if (!data) return Promise.reject(new Error('Update data is required'));
+    return dispatch(updateConnection({ id, data })).unwrap();
+  }, [dispatch]);
 
-    const loadMetrics = useCallback(async () => {
-        if (!mounted.current) return;
+  const remove = useCallback((id) => {
+    if (!id) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(deleteConnection(id)).unwrap();
+  }, [dispatch]);
 
-        try {
-            await dispatch(fetchConnectionMetrics(filters));
-        } catch (err) {
-            console.error('Failed to load metrics:', err);
-        }
-    }, [dispatch, filters]);
+  const close = useCallback((id) => {
+    if (!id) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(closeConnection(id)).unwrap();
+  }, [dispatch]);
 
-    const refresh = useCallback(async () => {
-        await Promise.allSettled([loadConnections(), loadMetrics()]);
-    }, [loadConnections, loadMetrics]);
+  const fetchStatus = useCallback((id) => {
+    if (!id) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(fetchConnectionStatus(id)).unwrap();
+  }, [dispatch]);
 
-    useEffect(() => {
-        if (autoRefresh && mounted.current) {
-            refresh();
-            refreshTimer.current = setInterval(refresh, refreshInterval);
-        }
+  const executeAction = useCallback((data) => {
+    if (!data) return Promise.reject(new Error('Action data is required'));
+    if (!data.action) return Promise.reject(new Error('Action is required'));
+    return dispatch(executeConnectionAction(data)).unwrap();
+  }, [dispatch]);
 
-        return () => {
-            if (refreshTimer.current) {
-                clearInterval(refreshTimer.current);
-            }
-            mounted.current = false;
-        };
-    }, [autoRefresh, refresh, refreshInterval]);
+  const fetchMetrics = useCallback((params = {}) => {
+    return dispatch(fetchConnectionMetrics(params)).unwrap();
+  }, [dispatch]);
 
-    useEffect(() => {
-        if (mounted.current) {
-            loadConnections();
-        }
-    }, [filters.page, filters.page_size]);
+  const healthCheck = useCallback((data = {}) => {
+    return dispatch(runHealthCheck(data)).unwrap();
+  }, [dispatch]);
 
-    const updateFilters = useCallback((newFilters) => {
-        dispatch(setConnectionFilters(newFilters));
-    }, [dispatch]);
+  const fetchTenant = useCallback((tenantId, params = {}) => {
+    if (!tenantId) return Promise.reject(new Error('Tenant ID is required'));
+    return dispatch(fetchTenantConnections({ tenantId, params })).unwrap();
+  }, [dispatch]);
 
-    const resetFilters = useCallback(() => {
-        dispatch(clearConnectionFilters());
-    }, [dispatch]);
+  const closeTenant = useCallback((tenantId, connectionId) => {
+    if (!tenantId) return Promise.reject(new Error('Tenant ID is required'));
+    if (!connectionId) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(closeTenantConnection({ tenantId, connectionId })).unwrap();
+  }, [dispatch]);
 
-    const changePage = useCallback((page) => {
-        dispatch(setConnectionPage(page));
-    }, [dispatch]);
+  const fetchTenantStatus = useCallback((tenantId, connectionId) => {
+    if (!tenantId) return Promise.reject(new Error('Tenant ID is required'));
+    if (!connectionId) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(fetchTenantConnectionStatus({ tenantId, connectionId })).unwrap();
+  }, [dispatch]);
 
-    const changePageSize = useCallback((pageSize) => {
-        dispatch(setConnectionPageSize(pageSize));
-    }, [dispatch]);
+  const pause = useCallback((organizationId) => {
+    if (!organizationId) return Promise.reject(new Error('Organization ID is required'));
+    return dispatch(pauseConnection(organizationId)).unwrap();
+  }, [dispatch]);
 
-    const healthCheck = useCallback(async (targetTenantId) => {
-        if (!targetTenantId) {
-            console.warn('No tenant ID provided for health check');
-            return null;
-        }
+  const resume = useCallback((organizationId) => {
+    if (!organizationId) return Promise.reject(new Error('Organization ID is required'));
+    return dispatch(resumeConnection(organizationId)).unwrap();
+  }, [dispatch]);
 
-        try {
-            const result = await dispatch(performHealthCheck(targetTenantId));
-            return result.payload;
-        } catch (err) {
-            console.error(`Health check failed for tenant ${targetTenantId}:`, err);
-            return null;
-        }
-    }, [dispatch]);
+  const fetchDebug = useCallback(() => {
+    return dispatch(fetchDebugTraces()).unwrap();
+  }, [dispatch]);
 
-    return {
-        connections,
-        filteredConnections,
-        stats,
-        metrics,
-        filters,
-        pagination,
-        loading,
-        error,
-        isStale,
-        refresh,
-        updateFilters,
-        resetFilters,
-        changePage,
-        changePageSize,
-        healthCheck,
-    };
+  const updateFilters = useCallback((newFilters) => {
+    const nf = { ...newFilters };
+    if (nf.status && typeof nf.status === 'string') nf.status = nf.status.toUpperCase();
+    dispatch(setFilters(nf));
+  }, [dispatch]);
+
+  const resetAllFilters = useCallback(() => {
+    dispatch(resetFilters());
+  }, [dispatch]);
+
+  const updatePagination = useCallback((newPagination) => {
+    dispatch(setPagination(newPagination));
+  }, [dispatch]);
+
+  const clearCurrent = useCallback(() => {
+    dispatch(clearCurrentConnection());
+  }, [dispatch]);
+
+  const clearAllErrors = useCallback(() => {
+    dispatch(clearErrors());
+  }, [dispatch]);
+
+  const clearAllMetrics = useCallback(() => {
+    dispatch(clearMetrics());
+  }, [dispatch]);
+
+  const clearAll = useCallback(() => {
+    dispatch(clearAllConnections());
+  }, [dispatch]);
+
+  const getById = useCallback((id) => {
+    return useSelector((state) => selectConnectionById(state, id));
+  }, []);
+
+  const getActive = useCallback(() => {
+    return useSelector(selectActiveConnections);
+  }, []);
+
+  const getIdle = useCallback(() => {
+    return useSelector(selectIdleConnections);
+  }, []);
+
+  const getError = useCallback(() => {
+    return useSelector(selectErrorConnections);
+  }, []);
+
+  const getClosed = useCallback(() => {
+    return useSelector(selectClosedConnections);
+  }, []);
+
+  const getByOrg = useCallback((orgId) => {
+    return useSelector((state) => selectConnectionsByOrganization(state, orgId));
+  }, []);
+
+  const getTenantConnections = useCallback((tenantId) => {
+    return useSelector((state) => selectTenantConnections(state, tenantId));
+  }, []);
+
+  const hasTenantConnections = useCallback((tenantId) => {
+    return useSelector((state) => selectHasTenantConnections(state, tenantId));
+  }, []);
+
+  useEffect(() => {
+    if (autoFetch && !fetchCalled.current) {
+      fetchCalled.current = true;
+      fetchList(initialFilters);
+    }
+  }, [autoFetch, initialFilters, fetchList]);
+
+  return useMemo(() => ({
+    connections,
+    currentConnection,
+    loading,
+    loadingDetails,
+    submitting,
+    error,
+    pagination,
+    page: pageNum,
+    pageSize,
+    total,
+    totalPages,
+    filters,
+    metrics,
+    healthStatus,
+    actionResult,
+    count,
+    activeCount,
+    idleCount,
+    errorCount,
+    hasConnections,
+    metricsSummary,
+    connectionHealth,
+    debugTraces,
+    debugLoading,
+    fetchList,
+    fetchOne,
+    create,
+    update,
+    remove,
+    close,
+    fetchStatus,
+    executeAction,
+    fetchMetrics,
+    healthCheck,
+    fetchTenant,
+    closeTenant,
+    fetchTenantStatus,
+    pause,
+    resume,
+    fetchDebug,
+    updateFilters,
+    resetAllFilters,
+    updatePagination,
+    clearCurrent,
+    clearAllErrors,
+    clearAllMetrics,
+    clearAll,
+    getById,
+    getActive,
+    getIdle,
+    getError,
+    getClosed,
+    getByOrg,
+    getTenantConnections,
+    hasTenantConnections,
+  }), [
+    connections,
+    currentConnection,
+    loading,
+    loadingDetails,
+    submitting,
+    error,
+    pagination,
+    pageNum,
+    pageSize,
+    total,
+    totalPages,
+    filters,
+    metrics,
+    healthStatus,
+    actionResult,
+    count,
+    activeCount,
+    idleCount,
+    errorCount,
+    hasConnections,
+    metricsSummary,
+    connectionHealth,
+    debugTraces,
+    debugLoading,
+    fetchList,
+    fetchOne,
+    create,
+    update,
+    remove,
+    close,
+    fetchStatus,
+    executeAction,
+    fetchMetrics,
+    healthCheck,
+    fetchTenant,
+    closeTenant,
+    fetchTenantStatus,
+    pause,
+    resume,
+    fetchDebug,
+    updateFilters,
+    resetAllFilters,
+    updatePagination,
+    clearCurrent,
+    clearAllErrors,
+    clearAllMetrics,
+    clearAll,
+    getById,
+    getActive,
+    getIdle,
+    getError,
+    getClosed,
+    getByOrg,
+    getTenantConnections,
+    hasTenantConnections,
+  ]);
 };
 
-/**
- * Hook for managing single connection
- */
-export const useConnection = (connectionId) => {
-    const dispatch = useDispatch();
-    const connection = useSelector(selectCurrentConnection);
-    const loading = useSelector(selectLoading) || false;
-    const error = useSelector(selectError);
+export const useConnection = (id, options = {}) => {
+  const { autoFetch = true } = options;
+  const dispatch = useDispatch();
+  const fetchCalled = useRef(false);
 
-    const loadConnection = useCallback(async () => {
-        if (connectionId) {
-            try {
-                await dispatch(fetchConnectionDetails(connectionId));
-            } catch (err) {
-                console.error(`Failed to load connection ${connectionId}:`, err);
-            }
-        }
-    }, [dispatch, connectionId]);
+  const connection = useSelector((state) => selectConnectionById(state, id));
+  const currentConnection = useSelector(selectCurrentConnection);
+  const loading = useSelector(selectConnectionDetailsLoading);
+  const error = useSelector(selectConnectionError);
 
-    const updateStatus = useCallback(async (status, errorMessage = '') => {
-        if (!connectionId) return null;
+  const fetchOne = useCallback((connectionId) => {
+    if (!connectionId) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(fetchConnection(connectionId)).unwrap();
+  }, [dispatch]);
 
-        try {
-            const result = await dispatch(updateConnectionStatus({
-                connectionId,
-                statusData: { status, error_message: errorMessage },
-            }));
-            return result.payload;
-        } catch (err) {
-            console.error(`Failed to update status for connection ${connectionId}:`, err);
-            return null;
-        }
-    }, [dispatch, connectionId]);
+  const updateOne = useCallback((connectionId, data) => {
+    if (!connectionId) return Promise.reject(new Error('Connection ID is required'));
+    if (!data) return Promise.reject(new Error('Update data is required'));
+    return dispatch(updateConnection({ id: connectionId, data })).unwrap();
+  }, [dispatch]);
 
-    const close = useCallback(async () => {
-        if (!connectionId) return null;
+  const removeOne = useCallback((connectionId) => {
+    if (!connectionId) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(deleteConnection(connectionId)).unwrap();
+  }, [dispatch]);
 
-        try {
-            const result = await dispatch(closeConnection(connectionId));
-            return result.payload;
-        } catch (err) {
-            console.error(`Failed to close connection ${connectionId}:`, err);
-            return null;
-        }
-    }, [dispatch, connectionId]);
+  const closeOne = useCallback((connectionId) => {
+    if (!connectionId) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(closeConnection(connectionId)).unwrap();
+  }, [dispatch]);
 
-    const getRealtimeStatus = useCallback(async () => {
-        if (!connectionId) return null;
+  const fetchStatusOne = useCallback((connectionId) => {
+    if (!connectionId) return Promise.reject(new Error('Connection ID is required'));
+    return dispatch(fetchConnectionStatus(connectionId)).unwrap();
+  }, [dispatch]);
 
-        try {
-            const result = await connectionService.getConnectionStatus(connectionId);
-            if (result.success && result.data?.manager_status) {
-                dispatch(updateRealtimeData({
-                    connectionId,
-                    data: result.data.manager_status,
-                }));
-            }
-            return result;
-        } catch (err) {
-            console.error(`Failed to get realtime status for connection ${connectionId}:`, err);
-            return null;
-        }
-    }, [dispatch, connectionId]);
+  const clearCurrent = useCallback(() => {
+    dispatch(clearCurrentConnection());
+  }, [dispatch]);
 
-    useEffect(() => {
-        if (connectionId) {
-            loadConnection();
-        }
-    }, [connectionId, loadConnection]);
-
-    return {
-        connection,
-        loading,
-        error,
-        loadConnection,
-        updateStatus,
-        close,
-        getRealtimeStatus,
+  useEffect(() => {
+    if (autoFetch && id && !fetchCalled.current) {
+      fetchCalled.current = true;
+      fetchOne(id);
+    }
+    return () => {
+      clearCurrent();
     };
-};
+  }, [autoFetch, id, fetchOne, clearCurrent]);
 
-/**
- * Hook for connection manager operations (admin only)
- */
-export const useConnectionManager = () => {
-    const dispatch = useDispatch();
-    const loading = useSelector(selectLoading) || false;
-    const healthSummary = useSelector(selectHealthSummary) || {
-        healthy: 0,
-        unhealthy: 0,
-        avg_response_time: 0,
-        total_checked: 0,
-        last_check: null
-    };
-    const stats = useSelector(selectConnectionStats) || {
-        total_connections: 0,
-        active_connections: 0,
-        idle_connections: 0,
-        connection_rate: 0
-    };
-
-    const closeTenantConnection = useCallback(async (tenantId) => {
-        if (!tenantId) return null;
-
-        try {
-            const result = await dispatch(executeManagerAction({
-                action: 'close',
-                tenant_id: tenantId,
-            }));
-            return result.payload;
-        } catch (err) {
-            console.error(`Failed to close connection for tenant ${tenantId}:`, err);
-            return null;
-        }
-    }, [dispatch]);
-
-    const resetTenantConnection = useCallback(async (tenantId) => {
-        if (!tenantId) return null;
-
-        try {
-            const result = await dispatch(executeManagerAction({
-                action: 'reset',
-                tenant_id: tenantId,
-            }));
-            return result.payload;
-        } catch (err) {
-            console.error(`Failed to reset connection for tenant ${tenantId}:`, err);
-            return null;
-        }
-    }, [dispatch]);
-
-    const recycleAllConnections = useCallback(async () => {
-        try {
-            const result = await dispatch(executeManagerAction({
-                action: 'recycle',
-            }));
-            return result.payload;
-        } catch (err) {
-            console.error('Failed to recycle all connections:', err);
-            return null;
-        }
-    }, [dispatch]);
-
-    const closeIdle = useCallback(async (idleMinutes = 30) => {
-        try {
-            const result = await dispatch(closeIdleConnections(idleMinutes));
-            return result.payload;
-        } catch (err) {
-            console.error(`Failed to close idle connections (${idleMinutes} mins):`, err);
-            return null;
-        }
-    }, [dispatch]);
-
-    const getHealthCheck = useCallback(async (tenantId) => {
-        if (!tenantId) return null;
-
-        try {
-            const result = await dispatch(performHealthCheck(tenantId));
-            return result.payload;
-        } catch (err) {
-            console.error(`Health check failed for tenant ${tenantId}:`, err);
-            return null;
-        }
-    }, [dispatch]);
-
-    const bulkHealthCheck = useCallback(async (tenantIds) => {
-        if (!tenantIds || !Array.isArray(tenantIds) || tenantIds.length === 0) {
-            console.warn('No tenant IDs provided for bulk health check');
-            return [];
-        }
-
-        try {
-            const response = await connectionService.batchHealthCheck(tenantIds);
-            if (response.success && response.data && Array.isArray(response.data)) {
-                dispatch(batchUpdateHealthStatus(response.data));
-                return response.data;
-            }
-            return [];
-        } catch (err) {
-            console.error('Batch health check failed:', err);
-
-            const results = [];
-            for (const tenantId of tenantIds) {
-                try {
-                    const result = await dispatch(performHealthCheck(tenantId));
-                    if (result.payload) {
-                        results.push(result.payload);
-                    }
-                } catch (error) {
-                    console.error(`Health check failed for tenant ${tenantId}:`, error);
-                    results.push({
-                        tenant_id: tenantId,
-                        is_healthy: false,
-                        error_message: error.message,
-                        response_time_ms: null,
-                        last_successful_check: null
-                    });
-                }
-            }
-            return results;
-        }
-    }, [dispatch]);
-
-    return {
-        closeTenantConnection,
-        resetTenantConnection,
-        recycleAllConnections,
-        closeIdle,
-        getHealthCheck,
-        bulkHealthCheck,
-        healthSummary,
-        stats,
-        loading,
-    };
-};
-
-/**
- * Hook for connection monitoring and real-time updates
- */
-export const useConnectionMonitor = (connectionIds = [], interval = 5000) => {
-    const dispatch = useDispatch();
-    const timer = useRef(null);
-    const mounted = useRef(true);
-
-    const updateStatuses = useCallback(async () => {
-        if (!mounted.current || !connectionIds || connectionIds.length === 0) return;
-
-        for (const connectionId of connectionIds) {
-            try {
-                const response = await connectionService.getConnectionStatus(connectionId);
-                if (response.success && response.data?.manager_status) {
-                    dispatch(updateRealtimeData({
-                        connectionId,
-                        data: response.data.manager_status,
-                    }));
-                }
-            } catch (error) {
-                console.error(`Failed to fetch status for connection ${connectionId}:`, error);
-            }
-        }
-    }, [dispatch, connectionIds]);
-
-    useEffect(() => {
-        if (connectionIds && connectionIds.length > 0 && mounted.current) {
-            updateStatuses();
-            timer.current = setInterval(updateStatuses, interval);
-        }
-
-        return () => {
-            if (timer.current) {
-                clearInterval(timer.current);
-            }
-            mounted.current = false;
-        };
-    }, [connectionIds, interval, updateStatuses]);
-
-    return { isMonitoring: !!timer.current };
-};
-
-/**
- * Hook for connection health dashboard with proper safety checks
- */
-export const useHealthDashboard = () => {
-    const dispatch = useDispatch();
-
-    const healthStatus = useSelector(selectHealthStatus) || {};
-    const healthSummary = useSelector(selectHealthSummary) || {
-        healthy: 0,
-        unhealthy: 0,
-        avg_response_time: 0,
-        total_checked: 0,
-        last_check: null
-    };
-    const loading = useSelector(selectLoading) || false;
-    const stats = useSelector(selectConnectionStats) || {};
-
-    const [checkingTenants, setCheckingTenants] = useState(new Set());
-    const [checkErrors, setCheckErrors] = useState({});
-
-    const getUnhealthyTenants = useCallback(() => {
-        if (!healthStatus || typeof healthStatus !== 'object') {
-            return [];
-        }
-        try {
-            return Object.values(healthStatus).filter(h => h && !h.is_healthy);
-        } catch (err) {
-            console.error('Error getting unhealthy tenants:', err);
-            return [];
-        }
-    }, [healthStatus]);
-
-    const getHealthyTenants = useCallback(() => {
-        if (!healthStatus || typeof healthStatus !== 'object') {
-            return [];
-        }
-        try {
-            return Object.values(healthStatus).filter(h => h && h.is_healthy);
-        } catch (err) {
-            console.error('Error getting healthy tenants:', err);
-            return [];
-        }
-    }, [healthStatus]);
-
-    const checkAllTenants = useCallback(async (tenantIds) => {
-        if (!tenantIds || !Array.isArray(tenantIds) || tenantIds.length === 0) {
-            console.warn('No tenant IDs provided for health check');
-            return [];
-        }
-
-        const checkingSet = new Set(tenantIds);
-        setCheckingTenants(checkingSet);
-
-        try {
-            const response = await connectionService.batchHealthCheck(tenantIds);
-
-            if (response.success && response.data && Array.isArray(response.data)) {
-                dispatch(batchUpdateHealthStatus(response.data));
-                return response.data;
-            }
-
-            return [];
-        } catch (error) {
-            console.error('Batch health check failed:', error);
-            return [];
-        } finally {
-            setCheckingTenants(new Set());
-            setTimeout(() => setCheckErrors({}), 5000);
-        }
-    }, [dispatch]);
-
-    const checkTenant = useCallback(async (tenantId) => {
-        if (!tenantId) {
-            console.warn('No tenant ID provided for health check');
-            return null;
-        }
-
-        setCheckingTenants(prev => new Set([...prev, tenantId]));
-
-        try {
-            const result = await dispatch(performHealthCheck(tenantId)).unwrap();
-            return result;
-        } catch (err) {
-            console.error(`Health check failed for tenant ${tenantId}:`, err);
-            setCheckErrors(prev => ({
-                ...prev,
-                [tenantId]: err.message
-            }));
-            return {
-                tenant_id: tenantId,
-                is_healthy: false,
-                error_message: err.message,
-                response_time_ms: null,
-                last_successful_check: null
-            };
-        } finally {
-            setCheckingTenants(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(tenantId);
-                return newSet;
-            });
-            setTimeout(() => {
-                setCheckErrors(prev => {
-                    const newErrors = { ...prev };
-                    delete newErrors[tenantId];
-                    return newErrors;
-                });
-            }, 5000);
-        }
-    }, [dispatch]);
-
-    const getTenantHealth = useCallback((tenantId) => {
-        if (!healthStatus || !tenantId) return null;
-        return healthStatus[tenantId] || null;
-    }, [healthStatus]);
-
-    const isTenantHealthy = useCallback((tenantId) => {
-        if (!healthStatus || !tenantId) return false;
-        return healthStatus[tenantId]?.is_healthy || false;
-    }, [healthStatus]);
-
-    const isChecking = useCallback((tenantId) => {
-        return checkingTenants.has(tenantId);
-    }, [checkingTenants]);
-
-    const getCheckError = useCallback((tenantId) => {
-        return checkErrors[tenantId] || null;
-    }, [checkErrors]);
-
-    const getHealthPercentage = useCallback(() => {
-        const total = (healthSummary?.healthy || 0) + (healthSummary?.unhealthy || 0);
-        if (total === 0) return 0;
-        return ((healthSummary?.healthy || 0) / total) * 100;
-    }, [healthSummary]);
-
-    return {
-        healthStatus,
-        healthSummary,
-        loading,
-        stats,
-        checkAllTenants,
-        checkTenant,
-        getUnhealthyTenants,
-        getHealthyTenants,
-        getTenantHealth,
-        isTenantHealthy,
-        isChecking,
-        getCheckError,
-        getHealthPercentage,
-        hasUnhealthy: getUnhealthyTenants().length > 0,
-        totalChecked: Object.keys(healthStatus).length,
-        healthyCount: healthSummary?.healthy || 0,
-        unhealthyCount: healthSummary?.unhealthy || 0,
-    };
+  return useMemo(() => ({
+    connection: connection || currentConnection,
+    loading,
+    error,
+    fetchOne,
+    update: updateOne,
+    remove: removeOne,
+    close: closeOne,
+    fetchStatus: fetchStatusOne,
+    clearCurrent,
+  }), [
+    connection,
+    currentConnection,
+    loading,
+    error,
+    fetchOne,
+    updateOne,
+    removeOne,
+    closeOne,
+    fetchStatusOne,
+    clearCurrent,
+  ]);
 };

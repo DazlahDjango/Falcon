@@ -1,255 +1,459 @@
-// constants/tenantConstants.js
-// Tenant Management API Endpoints
-// Version: 1.1.0
-// Last Updated: 2026-05-09
+// ============================================
+// TENANT Constants - Organization Management
+// ============================================
 
-/**
- * API Base Configuration for Tenant Module
- */
-export const TENANT_API_CONFIG = {
-    BASE_URL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/tenant` : '/api/v1/tenant',
-    TIMEOUT: 30000,
-    RETRY_ATTEMPTS: 3,
+// ============================================
+// 1. ORGANIZATION STATUS
+// ============================================
+
+export const ORGANIZATION_STATUS = {
+    PENDING: 'PENDING',
+    ACTIVE: 'ACTIVE',
+    SUSPENDED: 'SUSPENDED',
+    ARCHIVED: 'ARCHIVED',
 };
 
-/**
- * Tenant Core Endpoints
- * Multi-tenant architecture management
- */
-export const TENANT_ENDPOINTS = {
-    // ==================== Tenant CRUD Operations ====================
-    LIST: '/tenants/',
-    CREATE: '/tenants/',
-    DETAIL: (id) => `/tenants/${id}/`,
-    UPDATE: (id) => `/tenants/${id}/`,
-    DELETE: (id) => `/tenants/${id}/`,
-
-    // ==================== Tenant Actions ====================
-    SUSPEND: (id) => `/tenants/${id}/suspend/`,
-    ACTIVATE: (id) => `/tenants/${id}/activate/`,
-    USAGE: (id) => `/tenants/${id}/usage/`,  // Detailed usage with date filters
-    USAGE_SUMMARY: (id) => `/tenants/${id}/usage-summary/`,  // High-level summary
-    RESOURCES: (id) => `/tenants/${id}/resources/`,
-    UPDATE_LIMITS: (id) => `/tenants/${id}/update-limits/`,
-    PROVISIONING_STATUS: (id) => `/tenants/${id}/provisioning-status/`,
-    SYNC_RESOURCES: (id) => `/tenants/${id}/sync-resources/`,
-
-    SYSTEM_SETTINGS: '/system-settings/',
-    SYSTEM_SETTINGS_RESET: '/system-settings/reset/',
-    REFERENCE_DATA: '/reference-data/',
-};
-
-/**
- * Domain Management Endpoints
- * Custom domain configuration
- */
-export const DOMAIN_ENDPOINTS = {
-    // ==================== Domain CRUD Operations ====================
-    LIST: '/domains/',
-    CREATE: '/domains/',
-    DETAIL: (id) => `/domains/${id}/`,
-    UPDATE: (id) => `/domains/${id}/`,
-    DELETE: (id) => `/domains/${id}/`,
-
-    // ==================== Domain Actions ====================
-    VERIFY: (id) => `/domains/${id}/verify/`,
-    SET_PRIMARY: (id) => `/domains/${id}/set-primary/`,
-    VERIFICATION_INFO: (id) => `/domains/${id}/verification-info/`,
-
-    // ==================== Tenant-Specific Domain Endpoints (Nested Router) ====================
-    TENANT_DOMAINS: (tenantId) => `/tenants/${tenantId}/domains/`,
-    TENANT_DOMAIN_CREATE: (tenantId) => `/tenants/${tenantId}/domains/`,
-    TENANT_DOMAIN_DETAIL: (tenantId, domainId) => `/tenants/${tenantId}/domains/${domainId}/`,
-    TENANT_DOMAIN_UPDATE: (tenantId, domainId) => `/tenants/${tenantId}/domains/${domainId}/`,
-    TENANT_DOMAIN_DELETE: (tenantId, domainId) => `/tenants/${tenantId}/domains/${domainId}/`,
-    TENANT_DOMAIN_VERIFY: (tenantId, domainId) => `/tenants/${tenantId}/domains/${domainId}/verify/`,
-    TENANT_DOMAIN_SET_PRIMARY: (tenantId, domainId) => `/tenants/${tenantId}/domains/${domainId}/set-primary/`,
-};
-
-/**
- * Backup Management Endpoints
- * Tenant backup operations
- */
-export const BACKUP_ENDPOINTS = {
-    // ==================== Backup CRUD Operations ====================
-    LIST: '/backups/',
-    CREATE: '/backups/',
-    DETAIL: (id) => `/backups/${id}/`,
-    UPDATE: (id) => `/backups/${id}/`,
-    DELETE: (id) => `/backups/${id}/`,
-
-    // ==================== Backup Actions ====================
-    RESTORE: (id) => `/backups/${id}/restore/`,
-    DOWNLOAD: (id) => `/backups/${id}/download/`,
-
-    // ==================== Tenant-Specific Backup Endpoints (Nested Router) ====================
-    TENANT_BACKUPS: (tenantId) => `/tenants/${tenantId}/backups/`,
-    TENANT_BACKUP_CREATE: (tenantId) => `/tenants/${tenantId}/backups/`,
-    TENANT_BACKUP_DETAIL: (tenantId, backupId) => `/tenants/${tenantId}/backups/${backupId}/`,
-    TENANT_BACKUP_RESTORE: (tenantId, backupId) => `/tenants/${tenantId}/backups/${backupId}/restore/`,
-    TENANT_BACKUP_DOWNLOAD: (tenantId, backupId) => `/tenants/${tenantId}/backups/${backupId}/download/`,
-};
-
-/**
- * Migration Tracking Endpoints
- * Database migration history
- */
-export const MIGRATION_ENDPOINTS = {
-    // ==================== Migration Read-Only Operations ====================
-    LIST: '/migrations/',
-    DETAIL: (id) => `/migrations/${id}/`,
-    
-    /**
-     * Get migration summary with counts (uses @action)
-     * GET /api/v1/tenant/migrations/summary/?tenant_id={tenantId}
-     */
-    SUMMARY: (tenantId) => `/migrations/summary/?tenant_id=${tenantId}`,
-
-    // ==================== Tenant-Specific Migration Endpoints (Nested Router) ====================
-    TENANT_MIGRATIONS: (tenantId) => `/tenants/${tenantId}/migrations/`,
-    TENANT_MIGRATION_DETAIL: (tenantId, migrationId) => `/tenants/${tenantId}/migrations/${migrationId}/`,
-    TENANT_MIGRATIONS_SUMMARY: (tenantId) => `/tenants/${tenantId}/migrations/summary/`,
-};
-
-/**
- * Schema Management Endpoints
- * Database schema management
- */
-export const SCHEMA_ENDPOINTS = {
-    // ==================== Schema Read-Only Operations ====================
-    LIST: '/schemas/',
-    DETAIL: (id) => `/schemas/${id}/`,
-    
-    /**
-     * Get current active schema for a tenant (uses @action)
-     * GET /api/v1/tenant/schemas/current/?tenant_id={tenantId}
-     */
-    CURRENT: (tenantId) => `/schemas/current/?tenant_id=${tenantId}`,
-
-    // ==================== Tenant-Specific Schema Endpoints (Nested Router) ====================
-    TENANT_SCHEMAS: (tenantId) => `/tenants/${tenantId}/schemas/`,
-    TENANT_SCHEMA_DETAIL: (tenantId, schemaId) => `/tenants/${tenantId}/schemas/${schemaId}/`,
-    
-    /**
-     * Get current schema via nested route
-     * GET /api/v1/tenant/tenants/{tenantId}/schemas/current/
-     */
-    TENANT_SCHEMA_CURRENT: (tenantId) => `/tenants/${tenantId}/schemas/current/`,
-};
-
-/**
- * Connection Pool Endpoints
- * Database connection management
- */
-export const CONNECTION_ENDPOINTS = {
-    // ==================== Connection CRUD ====================
-    LIST: '/connections/',
-    DETAIL: (id) => `/connections/${id}/`,
-    
-    // ==================== Connection Actions ====================
-    CLOSE: (id) => `/connections/${id}/close/`,
-    STATUS: (id) => `/connections/${id}/status/`,
-    UPDATE_STATUS: (id) => `/connections/${id}/update-status/`,
-    
-    // ==================== Pool Management ====================
-    METRICS: '/connections/metrics/',
-    HEALTH_CHECK: '/connections/health-check/',
-    MANAGER_ACTION: '/connections/manager-action/',
-    CLOSE_IDLE: '/connections/close-idle/',
-};
-
-/**
- * Health Check Endpoints
- */
-export const HEALTH_ENDPOINTS = {
-    BASE: '/health/',
-    TENANTS: '/health/tenants/',
-};
-
-/**
- * Complete Tenant API Endpoints
- * Grouped by resource type
- */
-export const TENANT_API_ENDPOINTS = {
-    TENANT: TENANT_ENDPOINTS,
-    DOMAIN: DOMAIN_ENDPOINTS,
-    BACKUP: BACKUP_ENDPOINTS,
-    MIGRATION: MIGRATION_ENDPOINTS,
-    SCHEMA: SCHEMA_ENDPOINTS,
-    CONNECTION: CONNECTION_ENDPOINTS,
-    HEALTH: HEALTH_ENDPOINTS,
-};
-
-/**
- * Query Parameter Helpers
- */
-export const TENANT_QUERY_PARAMS = {
-    TENANT_STATUS: {
-        ACTIVE: 'active',
-        SUSPENDED: 'suspended',
-        INACTIVE: 'inactive',
+export const ORGANIZATION_STATUS_CONFIG = {
+    [ORGANIZATION_STATUS.PENDING]: {
+        label: 'Pending',
+        color: 'bg-yellow-100 text-yellow-800',
+        badge: 'warning',
+        icon: 'FiClock',
     },
-    SUBSCRIPTION_PLAN: {
-        TRIAL: 'trial',
-        BASIC: 'basic',
-        PREMIUM: 'premium',
-        ENTERPRISE: 'enterprise',
+    [ORGANIZATION_STATUS.ACTIVE]: {
+        label: 'Active',
+        color: 'bg-green-100 text-green-800',
+        badge: 'success',
+        icon: 'FiCheckCircle',
     },
-    DOMAIN_STATUS: {
-        PENDING: 'pending',
-        VERIFIED: 'verified',
-        FAILED: 'failed',
+    [ORGANIZATION_STATUS.SUSPENDED]: {
+        label: 'Suspended',
+        color: 'bg-red-100 text-red-800',
+        badge: 'danger',
+        icon: 'FiXCircle',
     },
-    BACKUP_TYPE: {
-        FULL: 'full',
-        INCREMENTAL: 'incremental',
-        CONFIG_ONLY: 'config_only',
-    },
-    BACKUP_STATUS: {
-        PENDING: 'pending',
-        COMPLETED: 'completed',
-        FAILED: 'failed',
-    },
-    MIGRATION_STATUS: {
-        PENDING: 'pending',
-        RUNNING: 'running',
-        COMPLETED: 'completed',
-        FAILED: 'failed',
-    },
-    SCHEMA_STATUS: {
-        ACTIVE: 'active',
-        INACTIVE: 'inactive',
-        MAINTENANCE: 'maintenance',
+    [ORGANIZATION_STATUS.ARCHIVED]: {
+        label: 'Archived',
+        color: 'bg-gray-100 text-gray-800',
+        badge: 'secondary',
+        icon: 'FiArchive',
     },
 };
 
-// Direct exports for commonly used constants
-export const SUBSCRIPTION_PLAN = TENANT_QUERY_PARAMS.SUBSCRIPTION_PLAN;
-export const TENANT_STATUS = TENANT_QUERY_PARAMS.TENANT_STATUS;
-export const DOMAIN_STATUS = TENANT_QUERY_PARAMS.DOMAIN_STATUS;
-export const BACKUP_STATUS = TENANT_QUERY_PARAMS.BACKUP_STATUS;
-export const MISSION_STATUS = TENANT_QUERY_PARAMS.MIGRATION_STATUS;
-export const SCHEMA_STATUS = TENANT_QUERY_PARAMS.SCHEMA_STATUS;
+// ============================================
+// 2. SUBSCRIPTION TIERS
+// ============================================
 
-// Pagination constants
-export const DEFAULT_PAGE_SIZE = 20;
-export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
-
-// Quota warning thresholds
-export const QUOTA_WARNING_THRESHOLDS = {
-    WARNING: 75,
-    CRITICAL: 90,
-    BLOCK: 100,
+export const SUBSCRIPTION_TIERS = {
+    FREE: 'free',
+    PREMIUM: 'premium',
+    ENTERPRISE: 'enterprise',
 };
 
-// Resource types
+export const SUBSCRIPTION_CONFIG = {
+    [SUBSCRIPTION_TIERS.FREE]: {
+        label: 'Free',
+        color: 'bg-gray-100 text-gray-800',
+        features: [
+            'Up to 10 users',
+            '5 active KPIs',
+            'Basic reports',
+            'Email support',
+        ],
+        limits: {
+            users: 10,
+            kpis: 5,
+            storage_mb: 100,
+            api_calls_per_day: 1000,
+        },
+    },
+    [SUBSCRIPTION_TIERS.PREMIUM]: {
+        label: 'Premium',
+        color: 'bg-blue-100 text-blue-800',
+        features: [
+            'Up to 50 users',
+            '20 active KPIs',
+            'Advanced reports',
+            'Priority support',
+            'Custom dashboards',
+        ],
+        limits: {
+            users: 50,
+            kpis: 20,
+            storage_mb: 500,
+            api_calls_per_day: 5000,
+        },
+    },
+    [SUBSCRIPTION_TIERS.ENTERPRISE]: {
+        label: 'Enterprise',
+        color: 'bg-purple-100 text-purple-800',
+        features: [
+            'Unlimited users',
+            'Unlimited KPIs',
+            'Custom reports',
+            '24/7 dedicated support',
+            'Custom dashboards',
+            'SSO integration',
+            'Advanced analytics',
+            'Custom development',
+        ],
+        limits: {
+            users: -1, // Unlimited
+            kpis: -1, // Unlimited
+            storage_mb: -1, // Unlimited
+            api_calls_per_day: -1, // Unlimited
+        },
+    },
+};
+
+// ============================================
+// 3. DOMAIN STATUS
+// ============================================
+
+export const DOMAIN_STATUS = {
+    PENDING: 'PENDING',
+    VERIFYING: 'VERIFYING',
+    ACTIVE: 'ACTIVE',
+    FAILED: 'FAILED',
+    EXPIRED: 'EXPIRED',
+    REMOVED: 'REMOVED',
+};
+
+export const DOMAIN_STATUS_CONFIG = {
+    [DOMAIN_STATUS.PENDING]: {
+        label: 'Pending',
+        color: 'bg-yellow-100 text-yellow-800',
+        badge: 'warning',
+        icon: 'FiClock',
+    },
+    [DOMAIN_STATUS.VERIFYING]: {
+        label: 'Verifying',
+        color: 'bg-blue-100 text-blue-800',
+        badge: 'info',
+        icon: 'FiRefreshCw',
+    },
+    [DOMAIN_STATUS.ACTIVE]: {
+        label: 'Active',
+        color: 'bg-green-100 text-green-800',
+        badge: 'success',
+        icon: 'FiCheckCircle',
+    },
+    [DOMAIN_STATUS.FAILED]: {
+        label: 'Failed',
+        color: 'bg-red-100 text-red-800',
+        badge: 'danger',
+        icon: 'FiXCircle',
+    },
+    [DOMAIN_STATUS.EXPIRED]: {
+        label: 'Expired',
+        color: 'bg-orange-100 text-orange-800',
+        badge: 'warning',
+        icon: 'FiAlertTriangle',
+    },
+    [DOMAIN_STATUS.REMOVED]: {
+        label: 'Removed',
+        color: 'bg-gray-100 text-gray-800',
+        badge: 'secondary',
+        icon: 'FiTrash2',
+    },
+};
+
+// ============================================
+// 4. SCHEMA STATUS
+// ============================================
+
+export const SCHEMA_STATUS = {
+    PENDING: 'PENDING',
+    CREATING: 'CREATING',
+    ACTIVE: 'ACTIVE',
+    MIGRATING: 'MIGRATING',
+    FAILED: 'FAILED',
+    DELETED: 'DELETED',
+};
+
+export const SCHEMA_STATUS_CONFIG = {
+    [SCHEMA_STATUS.PENDING]: {
+        label: 'Pending',
+        color: 'bg-yellow-100 text-yellow-800',
+        badge: 'warning',
+    },
+    [SCHEMA_STATUS.CREATING]: {
+        label: 'Creating',
+        color: 'bg-blue-100 text-blue-800',
+        badge: 'info',
+    },
+    [SCHEMA_STATUS.ACTIVE]: {
+        label: 'Active',
+        color: 'bg-green-100 text-green-800',
+        badge: 'success',
+    },
+    [SCHEMA_STATUS.MIGRATING]: {
+        label: 'Migrating',
+        color: 'bg-purple-100 text-purple-800',
+        badge: 'info',
+    },
+    [SCHEMA_STATUS.FAILED]: {
+        label: 'Failed',
+        color: 'bg-red-100 text-red-800',
+        badge: 'danger',
+    },
+    [SCHEMA_STATUS.DELETED]: {
+        label: 'Deleted',
+        color: 'bg-gray-100 text-gray-800',
+        badge: 'secondary',
+    },
+};
+
+// ============================================
+// 5. RESOURCE TYPES
+// ============================================
+
 export const RESOURCE_TYPES = {
-    USERS: 'users',
-    STORAGE_MB: 'storage_mb',
-    API_CALLS_PER_DAY: 'api_calls_per_day',
-    KPIS: 'kpis',
-    DEPARTMENTS: 'departments',
-    CONCURRENT_SESSIONS: 'concurrent_sessions',
+    USERS: 'USERS',
+    STORAGE_MB: 'STORAGE_MB',
+    API_CALLS_PER_DAY: 'API_CALLS_PER_DAY',
+    DEPARTMENTS: 'DEPARTMENTS',
+    CONCURRENT_SESSIONS: 'CONCURRENT_SESSIONS',
 };
 
-export default TENANT_API_ENDPOINTS;
+export const RESOURCE_TYPE_CONFIG = {
+    [RESOURCE_TYPES.USERS]: {
+        label: 'Users',
+        icon: 'FiUsers',
+        unit: 'users',
+        color: 'blue',
+        description: 'Number of active users',
+    },
+    [RESOURCE_TYPES.STORAGE_MB]: {
+        label: 'Storage',
+        icon: 'FiHardDrive',
+        unit: 'MB',
+        color: 'green',
+        description: 'Storage space used',
+    },
+    [RESOURCE_TYPES.API_CALLS_PER_DAY]: {
+        label: 'API Calls',
+        icon: 'FiTrendingUp',
+        unit: 'calls/day',
+        color: 'purple',
+        description: 'API calls per day',
+    },
+    [RESOURCE_TYPES.DEPARTMENTS]: {
+        label: 'Departments',
+        icon: 'FiBriefcase',
+        unit: 'departments',
+        color: 'orange',
+        description: 'Number of departments',
+    },
+    [RESOURCE_TYPES.CONCURRENT_SESSIONS]: {
+        label: 'Concurrent Sessions',
+        icon: 'FiUsers',
+        unit: 'sessions',
+        color: 'red',
+        description: 'Concurrent user sessions',
+    },
+};
+
+// ============================================
+// 6. CONNECTION STATUS
+// ============================================
+
+export const CONNECTION_STATUS = {
+    ACTIVE: 'ACTIVE',
+    IDLE: 'IDLE',
+    CLOSED: 'CLOSED',
+    ERROR: 'ERROR',
+};
+
+export const CONNECTION_STATUS_CONFIG = {
+    [CONNECTION_STATUS.ACTIVE]: {
+        label: 'Active',
+        color: 'bg-green-100 text-green-800',
+        badge: 'success',
+        icon: 'FiZap',
+    },
+    [CONNECTION_STATUS.IDLE]: {
+        label: 'Idle',
+        color: 'bg-yellow-100 text-yellow-800',
+        badge: 'warning',
+        icon: 'FiClock',
+    },
+    [CONNECTION_STATUS.CLOSED]: {
+        label: 'Closed',
+        color: 'bg-gray-100 text-gray-800',
+        badge: 'secondary',
+        icon: 'FiX',
+    },
+    [CONNECTION_STATUS.ERROR]: {
+        label: 'Error',
+        color: 'bg-red-100 text-red-800',
+        badge: 'danger',
+        icon: 'FiAlertCircle',
+    },
+};
+
+// ============================================
+// 7. MIGRATION STATUS
+// ============================================
+
+export const MIGRATION_STATUS = {
+    PENDING: 'PENDING',
+    RUNNING: 'RUNNING',
+    COMPLETED: 'COMPLETED',
+    FAILED: 'FAILED',
+    ROLLED_BACK: 'ROLLED_BACK',
+};
+
+export const MIGRATION_STATUS_CONFIG = {
+    [MIGRATION_STATUS.PENDING]: {
+        label: 'Pending',
+        color: 'bg-yellow-100 text-yellow-800',
+        badge: 'warning',
+    },
+    [MIGRATION_STATUS.RUNNING]: {
+        label: 'Running',
+        color: 'bg-blue-100 text-blue-800',
+        badge: 'info',
+    },
+    [MIGRATION_STATUS.COMPLETED]: {
+        label: 'Completed',
+        color: 'bg-green-100 text-green-800',
+        badge: 'success',
+    },
+    [MIGRATION_STATUS.FAILED]: {
+        label: 'Failed',
+        color: 'bg-red-100 text-red-800',
+        badge: 'danger',
+    },
+    [MIGRATION_STATUS.ROLLED_BACK]: {
+        label: 'Rolled Back',
+        color: 'bg-orange-100 text-orange-800',
+        badge: 'warning',
+    },
+};
+
+// ============================================
+// 8. SECTOR TYPES
+// ============================================
+
+export const SECTOR_TYPES = {
+    COMMERCIAL: 'COMMERCIAL',
+    NGO: 'NGO',
+    PUBLIC: 'PUBLIC',
+    CONSULTING: 'CONSULTING',
+};
+
+export const SECTOR_TYPE_CONFIG = {
+    [SECTOR_TYPES.COMMERCIAL]: {
+        label: 'Commercial',
+        icon: 'FiBriefcase',
+        color: 'blue',
+    },
+    [SECTOR_TYPES.NGO]: {
+        label: 'Non-Profit',
+        icon: 'FiHeart',
+        color: 'green',
+    },
+    [SECTOR_TYPES.PUBLIC]: {
+        label: 'Public Sector',
+        icon: 'FiGlobe',
+        color: 'purple',
+    },
+    [SECTOR_TYPES.CONSULTING]: {
+        label: 'Consulting',
+        icon: 'FiTrendingUp',
+        color: 'orange',
+    },
+};
+
+// ============================================
+// 9. ORGANIZATION SETTINGS DEFAULTS
+// ============================================
+
+export const DEFAULT_ORGANIZATION_SETTINGS = {
+    isolation: {
+        enforce_schema_isolation: true,
+        enforce_domain_isolation: true,
+    },
+    quotas: {
+        block_on_exceeded: true,
+        send_warning_emails: true,
+        warning_threshold_percent: 80,
+    },
+    branding: {
+        primary_color: '#2563EB',
+        secondary_color: '#7C3AED',
+        logo_url: null,
+        favicon_url: null,
+    },
+    features: {
+        custom_domains: true,
+        ssl_auto_renew: true,
+        multi_factor_auth: false,
+        audit_logs: true,
+    },
+    notifications: {
+        daily_summary: true,
+        weekly_report: true,
+        monthly_report: true,
+        alerts: {
+            resource_warning: true,
+            ssl_expiry: true,
+            migration_complete: true,
+            domain_verified: true,
+        },
+    },
+};
+
+// ============================================
+// 10. ORGANIZATION STATS KEYS
+// ============================================
+
+export const ORGANIZATION_STATS_KEYS = {
+    TOTAL: 'total',
+    PENDING: 'pending',
+    ACTIVE: 'active',
+    SUSPENDED: 'suspended',
+    ARCHIVED: 'archived',
+};
+
+export const DOMAIN_STATS_KEYS = {
+    TOTAL: 'total',
+    ACTIVE: 'active',
+    PENDING: 'pending',
+    FAILED: 'failed',
+    EXPIRING_SOON: 'expiring_soon',
+};
+
+export const RESOURCE_STATS_KEYS = {
+    TOTAL: 'total',
+    EXCEEDED: 'exceeded',
+    WARNING: 'warning',
+};
+
+// ============================================
+// 11. DEFAULT EXPORT
+// ============================================
+
+export default {
+    ORGANIZATION_STATUS,
+    ORGANIZATION_STATUS_CONFIG,
+    SUBSCRIPTION_TIERS,
+    SUBSCRIPTION_CONFIG,
+    DOMAIN_STATUS,
+    DOMAIN_STATUS_CONFIG,
+    SCHEMA_STATUS,
+    SCHEMA_STATUS_CONFIG,
+    RESOURCE_TYPES,
+    RESOURCE_TYPE_CONFIG,
+    CONNECTION_STATUS,
+    CONNECTION_STATUS_CONFIG,
+    MIGRATION_STATUS,
+    MIGRATION_STATUS_CONFIG,
+    SECTOR_TYPES,
+    SECTOR_TYPE_CONFIG,
+    DEFAULT_ORGANIZATION_SETTINGS,
+    ORGANIZATION_STATS_KEYS,
+    DOMAIN_STATS_KEYS,
+    RESOURCE_STATS_KEYS,
+};

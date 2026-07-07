@@ -2,7 +2,7 @@ from typing import Dict
 import logging
 from celery import shared_task
 from django.utils import timezone
-from apps.tenant.models import Client
+from apps.tenant.models import Organization
 from .calculations import calculate_period_scores_task
 from .notifications import send_missing_data_reminders_task, send_red_alert_check_task
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @shared_task(bind=True)
 def scheduled_calculation_task(self) -> Dict:
     now = timezone.now()
-    tenants = Client.objects.filter(is_active=True)
+    tenants = Organization.objects.filter(is_active=True)
     scheduled = 0
 
     for tenant in tenants:
@@ -32,7 +32,7 @@ def scheduled_reminder_task(self) -> Dict:
     now = timezone.now()
     # Send reminders on the 5th day of the month
     if now.day >= 5:
-        tenants = Client.objects.filter(is_active=True)
+        tenants = Organization.objects.filter(is_active=True)
         scheduled = 0
 
         for tenant in tenants:
@@ -53,7 +53,7 @@ def scheduled_reminder_task(self) -> Dict:
 @shared_task(bind=True)
 def scheduled_red_alert_task(self) -> Dict:
     now = timezone.now()
-    tenants = Client.objects.filter(is_active=True)
+    tenants = Organization.objects.filter(is_active=True)
     scheduled = 0
 
     for tenant in tenants:

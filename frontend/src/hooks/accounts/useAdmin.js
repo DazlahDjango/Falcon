@@ -41,6 +41,7 @@ import {
   // ============ END NEW ============
   setAdminFilters,
   setAdminPage,
+  setAdminPageSize,
   clearSelectedAdminUser,
   clearSelectedAdminRole,
   clearSelectedAdminPermission,

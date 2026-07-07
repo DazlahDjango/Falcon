@@ -4,7 +4,7 @@ import {
     FiZap, FiClock, FiDatabase, FiServer, FiAlertCircle 
 } from 'react-icons/fi';
 import { useConnections } from '../../../hooks/tenant';
-import ConnectionHealthChart from '../../../components/tenant/connection/ConnectionHealthChart';
+import ConnectionHealthChart from '../../../components/tenant/connections/ConnectionHealthChart';
 
 export const ConnectionMetricsPage = () => {
     const { 

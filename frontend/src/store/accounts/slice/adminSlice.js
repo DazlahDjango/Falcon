@@ -779,6 +779,7 @@ export const {
   clearAdminError,
   setAdminFilters,
   setAdminPage,
+  setAdminPageSize,
   clearSelectedAdminUser,
   clearSelectedAdminRole,
   clearSelectedAdminPermission,

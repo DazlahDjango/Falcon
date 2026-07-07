@@ -1,45 +1,49 @@
-# apps/tenant/api/v1/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested import routers
 from .views import (
-    TenantViewSet, DomainViewSet, BackupViewSet, MigrationViewSet,
-    SchemaViewSet, ConnectionPoolViewSet,
-    HealthCheckView, TenantsHealthView,
+    OrganizationViewSet,
+    DomainViewSet,
+    SchemaViewSet,
+    ResourceViewSet,
+    ConnectionViewSet,
+    MigrationViewSet,
+    SettingsViewSet,
+    DashboardViewSet,
+    AdminOrganizationViewSet,
+    SectorViewSet,
+    ProvisioningViewSet,
 )
-from .views.system_settings_views import (
-    TenantSystemSettingsView,
-    TenantSystemSettingsResetView,
-)
-from .views.reference_data import TenantReferenceDataView
+from .views.settings_views import SettingsViewSet as SystemSettingsView
+from .views.health_views import HealthCheckView, OrganizationsHealthView
 
-app_name = 'tenant_app'
+app_name = 'organization'
 
-# Main router
 router = DefaultRouter()
-router.register(r'tenants', TenantViewSet, basename='tenant')
+router.register(r'organizations', OrganizationViewSet, basename='organization')
 router.register(r'domains', DomainViewSet, basename='domain')
-router.register(r'backups', BackupViewSet, basename='backup')
-router.register(r'migrations', MigrationViewSet, basename='migration')
 router.register(r'schemas', SchemaViewSet, basename='schema')
-router.register(r'connections', ConnectionPoolViewSet, basename='connection')
+router.register(r'resources', ResourceViewSet, basename='resource')
+router.register(r'connections', ConnectionViewSet, basename='connection')
+router.register(r'migrations', MigrationViewSet, basename='migration')
+router.register(r'settings', SettingsViewSet, basename='settings')
+router.register(r'dashboard', DashboardViewSet, basename='dashboard')
+router.register(r'admin/organizations', AdminOrganizationViewSet, basename='admin-organization')
+router.register(r'sectors', SectorViewSet, basename='sector')
+router.register(r'provisioning', ProvisioningViewSet, basename='provisioning')
 
-# Nested router - provides /tenants/{tenant_pk}/domains/ etc.
-tenant_router = routers.NestedDefaultRouter(router, r'tenants', lookup='tenant')
-tenant_router.register(r'domains', DomainViewSet, basename='tenant-domains')
-tenant_router.register(r'backups', BackupViewSet, basename='tenant-backups')
-tenant_router.register(r'migrations', MigrationViewSet, basename='tenant-migrations')
-tenant_router.register(r'schemas', SchemaViewSet, basename='tenant-schemas')
+org_router = routers.NestedDefaultRouter(router, r'organizations', lookup='organization')
+org_router.register(r'domains', DomainViewSet, basename='organization-domains')
+org_router.register(r'schemas', SchemaViewSet, basename='organization-schemas')
+org_router.register(r'resources', ResourceViewSet, basename='organization-resources')
+org_router.register(r'connections', ConnectionViewSet, basename='organization-connections')
+org_router.register(r'migrations', MigrationViewSet, basename='organization-migrations')
 
 urlpatterns = [
-    path('system-settings/', TenantSystemSettingsView.as_view(), name='tenant-system-settings'),
-    path('system-settings/reset/', TenantSystemSettingsResetView.as_view(), name='tenant-system-settings-reset'),
-    path('reference-data/', TenantReferenceDataView.as_view(), name='tenant-reference-data'),
-    # All CRUD + @action endpoints
+    path('system-settings/', SystemSettingsView.as_view({'get': 'list', 'post': 'update'}), name='system-settings'),
+    path('system-settings/reset/', SystemSettingsView.as_view({'post': 'reset'}), name='system-settings-reset'),
     path('', include(router.urls)),
-    path('', include(tenant_router.urls)),
-    
-    # Standalone health endpoints
+    path('', include(org_router.urls)),
     path('health/', HealthCheckView.as_view(), name='health'),
-    path('health/tenants/', TenantsHealthView.as_view(), name='tenants-health'),
+    path('health/organizations/', OrganizationsHealthView.as_view(), name='organizations-health'),
 ]

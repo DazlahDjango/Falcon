@@ -1,6 +1,4 @@
-"""Canonical defaults for persisted tenant platform settings (CIA: Integrity via versioning)."""
-
-DEFAULT_TENANT_SYSTEM_SETTINGS = {
+DEFAULT_ORGANIZATION_SETTINGS = {
     'isolation': {
         'enforce_schema_isolation': True,
         'connection_pool_max': 20,
@@ -20,12 +18,23 @@ DEFAULT_TENANT_SYSTEM_SETTINGS = {
     'security': {
         'require_verified_domain_for_sso': True,
         'suspend_on_subscription_expiry': True,
-        'audit_tenant_admin_actions': True,
+        'audit_admin_actions': True,
+        'mfa_required_for_super_admin': True,
     },
     'realtime': {
         'websocket_enabled': True,
         'push_status_changes': True,
         'push_quota_warnings': True,
         'push_resource_usage': True,
+    },
+    'branding': {
+        'allow_custom_logo': True,
+        'allow_custom_colors': True,
+        'allow_custom_domains': True,
+    },
+    'domains': {
+        'auto_issue_ssl': True,
+        'ssl_renewal_days_before_expiry': 30,
+        'max_custom_domains_per_organization': 10,
     },
 }

@@ -1,58 +1,92 @@
-look at my django audit earlier it created a user from frontend and it was successfull.
+# Intro
+Good afternoon, I'm gladi having you to help me today with something here on tenants app, we'll be going module by module today, I have several modules/elements in tenant
+Today we're focusing only in a single module and that's migrations module, as you can see in those picture schema is showing but the migration part is no migrations
 
-{"time": "2026-06-21 09:44:30,159", "level": "INFO", "module": "signals", "message": "Profile created for user: kim@gmail.com"}
-{"time": "2026-06-21 09:44:30,331", "level": "INFO", "module": "signals", "message": "Preferences created for user: kim@gmail.com"}
-{"time": "2026-06-21 09:44:30,580", "level": "DEBUG", "module": "logger", "message": "Audit log created: user.created for user kim@gmail.com (Staff)"}
-{"time": "2026-06-21 09:44:30,639", "level": "INFO", "module": "signals", "message": "User created: kim@gmail.com (ID: 68a033c1-e74d-47b4-be3d-aa38b8e6869a)"}
-{"time": "2026-06-21 09:44:49,729", "level": "INFO", "module": "basehttp", "message": "\"POST /api/v1/admin/users/ HTTP/1.1\" 201 199"}
+# To-Do list
+1. Review all the tenant backend files and make sure my migrations file is good enough, solid, production ready, enterprise production ready scaling all types of migrations/databases migrations, secured(Anywhere you might think I need encryption, I have all the Django/python libraries for encryption i.e cryptography etc)
+2. We can try if you think this is good for the migrations files to achieve the following that I've researched on:
+        *** My Research ***
+        Enterprise-Grade Migration Checklist
+    1. Migration Files Structure
+    Separate up and down migrations - Always provide rollback capability for every migration
 
-later I came to check with the django shell and it was in the shell too.
-In [1]: from apps.accounts.models import User
+    2. Version Control
+    Semantic versioning - Use YYYYMMDD_HHMMSS_description.sql format for easy tracking
 
-{"time": "2026-06-21 11:46:29,177", "level": "DEBUG", "module": "proactor_events", "message": "Using proactor: IocpProactor"}
-In [2]: users = User.objects.all()
+    3. Pre-Migration Checks
+    Validate schema exists before applying any migration to a tenant
 
-{"time": "2026-06-21 11:46:31,684", "level": "DEBUG", "module": "proactor_events", "message": "Using proactor: IocpProactor"}
-In [3]: for user in users:
-   ...:     print(f"ID: {user.id} | Name: {user.get_full_name() or user.username} | Email: {user.email} | Tenant ID: {u
-      ⋮ ser.tenant_id}")
-   ...:
-ID: 83f08538-34aa-4121-8dfc-c0ab2a9f39aa | Name: AnonymousUser | Email: AnonymousUser | Tenant ID: 83d58535-dfcd-44d9-8f1c-4bc6874bb8fc
-ID: 8b6fe530-6533-4213-90c9-a8164b0336ea | Name: labo@gmail.com | Email: labo@gmail.com | Tenant ID: 15f5128c-d156-4141-9304-0c65f57a82e7
-ID: 68a033c1-e74d-47b4-be3d-aa38b8e6869a | Name: Kim Jun | Email: kim@gmail.com | Tenant ID: 15f5128c-d156-4141-9304-0c65f57a82e7
-ID: 1568c6fe-7c55-4150-86f2-8ce125d6ed70 | Name: donl@gmail.com | Email: donl@gmail.com | Tenant ID: 15f5128c-d156-4141-9304-0c65f57a82e7
+    4. Post-Migration Verification
+    Verify migration success by checking row counts or data integrity after execution
 
-{"time": "2026-06-21 11:46:38,599", "level": "DEBUG", "module": "proactor_events", "message": "Using proactor: IocpProactor"}
-In [4]:
+    5. Dry-Run Mode
+    Preview SQL before executing to catch errors in production
+
+    6. Error Handling & Rollback
+    Atomic transactions - Rollback entire migration if any step fails
+
+    7. Idempotency
+    Check if migration already applied before running (prevent duplicate execution)
+
+    8. Database Locking Strategy
+    Use advisory locks or FOR UPDATE to prevent concurrent migrations on same tenant
+
+    9. Audit Logging
+    Log who applied the migration, when, and execution time for compliance
+
+    10. Monitoring & Alerts
+    Alert on migration failures via email/Slack for immediate action
+
+    11. Batch Processing for Large Tenants
+    Process data in chunks (e.g., 1000 rows at a time) to avoid timeouts
+
+    12. Tenant-Specific Configurations
+    Allow per-tenant migration overrides (some tenants may skip certain migrations)
+
+    13. Parallel Execution Management
+    Run migrations for different tenants in parallel but sequential per tenant
+
+    14. Performance Optimization
+    Add proper indexes before running large data migrations
+
+    15. Database Compatibility
+    Support multiple database backends (PostgreSQL, MySQL, SQLite) if needed though here I'm based on Postures only 
+
+    16. Sensitive Data Protection
+    Never store passwords, API keys, or PII in migration files - use environment variables or runtime generation
+
+    17. Migration Dependencies
+    Define dependency tree so migrations run in correct order (app-level + cross-app)
+
+    18. Scheduled vs Manual Migrations
+    Auto-apply non-breaking migrations (e.g., new fields) but require approval for breaking changes
+
+    21. Data Migration vs Schema Migration
+    Separate schema changes (DDL) from data migrations (DML) for better control
+
+    22. Backup Strategy
+    Create database backup before running any migration on production
+    N/B -> This is being handled by the config app though
+
+    23. Migration Metadata
+    Store execution time, affected rows, and status for each migration run
+
+    24. User Notification
+    Notify admins when migrations complete or require manual intervention
+
+    25. Rollback Plan
+    Always have a tested rollback plan ready for every migration
+
+3. Make sure we're just working with migrations files only and nothing else please that'd be good if we maintain it only 
+4. You can finalize by telling what you changed, all improvements and how it satisfys all my requirements 
 
 
-But now in my user page or user management page, it displays nothing, I don't know why.
-here is my console:
-
-[AdminUserManager] useEffect triggered, loading users...
-AdminUserManager.jsx:63 🔄 Users changed: []
-AdminUserManager.jsx:64 📊 Users length: 0
-AdminUserManager.jsx:65 ⏳ Loading state: false
-AdminUserManager.jsx:66 📈 Pagination: {page: 1, pageSize: 20, total: 0, totalPages: 1, hasNext: false, …}
-AdminUserManager.jsx:71 [AdminUserManager] loadUsers called
-adminSlice.js:54 [fetchAdminUsers] Calling getAdminUsers with params: {limit: 20, offset: 0, page: 1, pageSize: 20, search: undefined}
-AdminUserManager.jsx:62 [AdminUserManager] useEffect triggered, loading users...
-AdminUserManager.jsx:63 🔄 Users changed: []
-AdminUserManager.jsx:64 📊 Users length: 0
-AdminUserManager.jsx:65 ⏳ Loading state: false
-AdminUserManager.jsx:66 📈 Pagination: {page: 1, pageSize: 20, total: 0, totalPages: 1, hasNext: false, …}
-AdminUserManager.jsx:71 [AdminUserManager] loadUsers called
-adminSlice.js:54 [fetchAdminUsers] Calling getAdminUsers with params: {limit: 20, offset: 0, page: 1, pageSize: 20, search: undefined}
-
-[fetchAdminUsers] RAW RESPONSE: {data: {…}, status: 200, statusText: 'OK', headers: AxiosHeaders, config: {…}, …}
-adminSlice.js:58 [fetchAdminUsers] RESPONSE DATA: {count: 4, next: null, previous: null, results: Array(4)}
-adminSlice.js:59 [fetchAdminUsers] RESPONSE STATUS: 200
-adminSlice.js:63 [fetchAdminUsers] ✅ Success! Returning data
-adminSlice.js:57 [fetchAdminUsers] RAW RESPONSE: {data: {…}, status: 200, statusText: 'OK', headers: AxiosHeaders, config: {…}, …}
-adminSlice.js:58 [fetchAdminUsers] RESPONSE DATA: {count: 4, next: null, previous: null, results: Array(4)}
-adminSlice.js:59 [fetchAdminUsers] RESPONSE STATUS: 200
-adminSlice.js:63 [fetchAdminUsers] ✅ Success! Returning data
-loggerMiddleware.js:4 [Redux] billing/analytics/fetchSummary/pending
-loggerMiddleware.js:5 Action: {type: 'billing/analytics/fetchSummary/pending', payload: undefined, meta: {…}}
-loggerMiddleware.js:6 Prev State: {auth: {…}, users: {…}, roles: {…}, permissions: {…}, sessions: {…}, …}
-loggerMiddleware.js:9 Next State: {auth: {…}, users: {…}, roles: {…}, permissions: {…}, sessions: {…}, …}
+## - Task 2:
+We've finished fixing backend now it's time for frontend, make sure my frontend migrations files now satistfy what we've updated in the backend
+where to get the files
+API calling is in the config/constants/tenantApiConstants
+services/tenant/migration.service.js
+store/tenant/slice/migration.slice.js
+store/tenant/selectors/migration.selectors.js
+components/tenant/migrations/ directory(here you can add more files you need if you don't mind, it's not a must you use the ones that I have onyl, you can add as many as you want, in a way that we can have detail files and all the actions needed for migrations with full migrations files) then it's tyle file is in the same directory migrations.css
+Lets start

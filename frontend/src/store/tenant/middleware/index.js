@@ -1,15 +1,18 @@
-// frontend/src/store/tenant/middleware/index.js
-import tenantMiddleware from './tenantMiddleware';
-import webSocketMiddleware from './tenantWebSocketMiddleware';
-import cacheMiddleware from './tenantCacheMiddleware';
+import { tenantContextMiddleware } from './tenantContext.middleware';
+import { paginationMiddlewareInstance } from './pagination.middleware';
+import { cacheMiddlewareInstance } from './cache.middleware';
+import { errorHandlerMiddlewareInstance } from './errorHandler.middleware';
 
 export const tenantMiddlewares = [
-    tenantMiddleware,
-    webSocketMiddleware,
-    cacheMiddleware,
+  tenantContextMiddleware,
+  paginationMiddlewareInstance,
+  cacheMiddlewareInstance,
+  errorHandlerMiddlewareInstance,
 ];
 
-export { getCachedTenants, getCachedTenant } from './tenantCacheMiddleware';
-export { default as tenantMiddleware } from './tenantMiddleware';
-export { default as webSocketMiddleware } from './tenantWebSocketMiddleware';
-export { default as cacheMiddleware } from './tenantCacheMiddleware';
+export {
+  tenantContextMiddleware,
+  paginationMiddlewareInstance,
+  cacheMiddlewareInstance,
+  errorHandlerMiddlewareInstance,
+};

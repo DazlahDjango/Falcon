@@ -18,9 +18,9 @@ class ClientAdminDashboardService(BaseDashboardService):
         cached = self.cache_service.get_dashboard_data(self.user_id, DashboardType.CLIENT_ADMIN)
         if cached:
             return cached
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         
-        client = Client.objects.filter(id=self.tenant_id).first()
+        client = Organization.objects.filter(id=self.tenant_id).first()
         
         tenant_overview = self._get_tenant_overview()
         

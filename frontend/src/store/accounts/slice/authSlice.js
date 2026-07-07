@@ -10,15 +10,16 @@ import {
 } from '../../../services/accounts/storage/secureStorage';
 
 const initialState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  isInitialized: false,
-  error: null,
-  requiresMfa: false,
-  mfaToken: null,
-  mfaPending: false,
-  sessionId: null,
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    isInitialized: false,
+    error: null,
+    requiresMfa: false,
+    mfaToken: null,
+    mfaPending: false,
+    mfaSetupRequired: false,
+    sessionId: null,
 };
 
 // ============ Existing Thunks ============
@@ -211,9 +212,10 @@ const authSlice = createSlice({
       state.error = null;
     },
     clearMfaState: (state) => {
-      state.requiresMfa = false;
-      state.mfaToken = null;
-      state.mfaPending = false;
+        state.requiresMfa = false;
+        state.mfaToken = null;
+        state.mfaPending = false;
+        state.mfaSetupRequired = false;
     },
     setAuthenticated: (state, action) => {
       state.isAuthenticated = action.payload;
@@ -239,9 +241,10 @@ const authSlice = createSlice({
         state.isLoading = false;
         const data = action.payload;
         if (data.requires_mfa) {
-          state.requiresMfa = true;
-          state.mfaToken = data.mfa_token;
-          state.mfaPending = true;
+            state.requiresMfa = true;
+            state.mfaToken = data.mfa_token;
+            state.mfaPending = true;
+            state.mfaSetupRequired = data.mfa_setup_required || false;
         } else {
           state.isAuthenticated = true;
           state.requiresMfa = false;

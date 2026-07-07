@@ -10,6 +10,7 @@ import championDashboardReducer from './slices/championDashboardSlice';
 import readOnlyDashboardReducer from './slices/readOnlyDashboardSlice';
 
 import kpiModuleReducer from '../kpi/index';
+import { tenantReducers } from '../tenant/index';
 
 import { default as adminReducer } from '../accounts/slice/adminSlice';
 import { default as authReducer} from '../accounts/slice/authSlice';
@@ -56,6 +57,7 @@ const dashboardRootReducer = combineReducers({
   ui: accountsUiReducer,
   accountsSecurity: securityReducer,
   systemSettings: systemSettingsReducer,
+  tenant: tenantReducers,
 });
 
 export default dashboardRootReducer;

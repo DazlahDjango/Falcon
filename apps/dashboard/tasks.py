@@ -35,14 +35,14 @@ def warm_all_tenant_dashboards(tenant_id):
 
 @shared_task(name="dashboard.refresh_tenant_snapshots")
 def refresh_tenant_snapshots():
-    from apps.tenant.models import Client
+    from apps.tenant.models import Organization
     from apps.dashboard.services import SuperAdminDashboardService
     from apps.accounts.models import User
     super_user = User.objects.filter(is_superuser=True).first()
     if not super_user:
         logger.error("No super user found for snapshot refresh")
         return {'status': 'error', 'error': 'No super user found'}
-    tenants = Client.objects.filter(is_active=True)
+    tenants = Organization.objects.filter(is_active=True)
     service = SuperAdminDashboardService(super_user, None)
     results = []
     for tenant in tenants:
@@ -135,8 +135,8 @@ def check_alerts():
             should_trigger = red_kpis > 0
             alert_data = {'red_kpi_count': red_kpis}
         elif alert.alert_type == 'tenant_expiry':
-            from apps.tenant.models import Client
-            tenant = Client.objects.filter(id=alert.tenant_id).first()
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.filter(id=alert.tenant_id).first()
             if tenant and hasattr(tenant, 'subscription_expires_at'):
                 days_left = (tenant.subscription_expires_at - timezone.now()).days
                 should_trigger = days_left <= 30

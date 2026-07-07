@@ -1,122 +1,107 @@
-"""
-Domain management views for custom domains.
-"""
-
 from rest_framework import viewsets, status
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
-
-from apps.tenant.models import CustomDomain
+from django.db.models import Q
+from apps.tenant.models import OrganizationDomain
 from apps.tenant.api.v1.serializers import (
-    DomainSerializer, DomainCreateSerializer, DomainDetailSerializer
+    DomainSerializer,
+    DomainCreateSerializer,
+    DomainUpdateSerializer,
+    DomainDetailSerializer,
+    DomainVerifySerializer,
 )
-from apps.tenant.api.v1.permissions import IsTenantAdmin
-from apps.tenant.api.v1.throttles import TenantApiThrottle
-from apps.tenant.services.domain.domain_service import DomainService
+from apps.tenant.api.v1.permissions import CanManageDomain, IsSuperAdmin
+from apps.tenant.api.v1.throttles import OrganizationApiThrottle
+from apps.tenant.api.v1.filters import DomainFilter
+from apps.tenant.services import DomainService
 
 
 class DomainViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for CustomDomain CRUD + custom actions.
-    
-    Provides complete domain management including verification and primary domain setup.
-    The nested router (/tenants/{tenant_pk}/domains/) handles tenant scoping automatically.
-    """
-
-    queryset = CustomDomain.objects.filter(is_deleted=False)
-    permission_classes = [IsAuthenticated, IsTenantAdmin]
-    throttle_classes = [TenantApiThrottle]
+    queryset = OrganizationDomain.objects.filter(is_deleted=False)
+    permission_classes = [IsAuthenticated, CanManageDomain]
+    throttle_classes = [OrganizationApiThrottle]
+    filterset_class = DomainFilter
+    search_fields = ['domain', 'organization__name']
+    ordering_fields = ['domain', 'created_at', 'status']
+    ordering = ['-created_at']
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            return DomainCreateSerializer
-        elif self.action == 'retrieve':
-            return DomainDetailSerializer
-        return DomainSerializer
+        action_serializers = {
+            'create': DomainCreateSerializer,
+            'update': DomainUpdateSerializer,
+            'partial_update': DomainUpdateSerializer,
+            'retrieve': DomainDetailSerializer,
+            'list': DomainSerializer,
+            'verify': DomainVerifySerializer,
+        }
+        return action_serializers.get(self.action, DomainSerializer)
+
+    def get_permissions(self):
+        if self.action in ['verify', 'set_primary']:
+            self.permission_classes = [IsAuthenticated, IsSuperAdmin]
+        else:
+            self.permission_classes = [IsAuthenticated, CanManageDomain]
+        return super().get_permissions()
 
     def get_queryset(self):
-        """Filter domains based on tenant context from nested router or query params."""
         queryset = super().get_queryset()
-        
-        # Nested router provides tenant_pk automatically
-        if hasattr(self.request, 'tenant_pk'):
-            queryset = queryset.filter(tenant_id=self.request.tenant_pk)
-        # Fallback to query param for top-level access
-        elif tenant_id := self.request.query_params.get('tenant_id'):
-            queryset = queryset.filter(tenant_id=tenant_id)
-        
-        # Additional filters
-        if status_filter := self.request.query_params.get('status'):
-            queryset = queryset.filter(status=status_filter)
-        
-        if is_primary := self.request.query_params.get('is_primary'):
+        org_id = self.request.query_params.get('organization_id')
+        if org_id:
+            queryset = queryset.filter(organization_id=org_id)
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        is_primary = self.request.query_params.get('is_primary')
+        if is_primary is not None:
             queryset = queryset.filter(is_primary=is_primary.lower() == 'true')
-        
         return queryset
 
-    def perform_create(self, serializer):
-        """Create domain using domain service."""
-        service = DomainService()
-        domain = service.add_domain(
-            tenant_id=self.request.tenant_pk if hasattr(self.request, 'tenant_pk') 
-                     else self.request.data.get('tenant_id'),
-            domain_name=serializer.validated_data['domain'],
-            is_primary=serializer.validated_data.get('is_primary', False)
-        )
-        serializer.instance = domain
-
-    @action(detail=True, methods=['post'], url_path='verify')
+    @action(detail=True, methods=['post'])
     def verify(self, request, pk=None):
-        """POST /domains/{id}/verify/ - Verify domain ownership via DNS."""
         domain = self.get_object()
+        if domain.status in ['ACTIVE', 'VERIFYING']:
+            return Response(
+                {'error': f'Domain {domain.domain} is already being verified or active'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         service = DomainService()
-        
-        if service.verify_domain(domain.id):
-            return Response({
-                'status': 'success',
-                'message': f'Domain {domain.domain} verified successfully',
-                'domain_id': str(domain.id),
-                'verified_at': timezone.now()
-            })
-        
+        result = service.verify_domain(domain.id)
         return Response({
-            'status': 'failed',
-            'message': 'Verification failed. Check DNS records.',
-            'domain_id': str(domain.id),
-            'verification_token': str(domain.verification_token),
-            'dns_record': f"falcon-domain-verification={domain.verification_token.hex}"
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=['post'], url_path='set-primary')
-    def set_primary(self, request, pk=None):
-        """POST /domains/{id}/set-primary/ - Set as primary domain for tenant."""
-        domain = self.get_object()
-        service = DomainService()
-        service.set_as_primary(domain.id)
-        
-        return Response({
-            'status': 'success',
-            'message': f'Domain {domain.domain} is now the primary domain',
-            'domain_id': str(domain.id)
+            'success': result.status == 'ACTIVE',
+            'domain': result.domain,
+            'status': result.status,
+            'message': 'Domain verified successfully' if result.status == 'ACTIVE' else 'Domain verification failed'
         })
 
-    @action(detail=True, methods=['get'], url_path='verification-info')
-    def verification_info(self, request, pk=None):
-        """GET /domains/{id}/verification-info/ - Get DNS verification instructions."""
+    @action(detail=True, methods=['post'])
+    def set_primary(self, request, pk=None):
         domain = self.get_object()
-        
+        if domain.status != 'ACTIVE':
+            return Response(
+                {'error': f'Domain {domain.domain} must be active to set as primary'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        service = DomainService()
+        result = service.set_primary_domain(domain.id)
         return Response({
-            'domain_id': str(domain.id),
-            'domain': domain.domain,
-            'status': domain.status,
-            'verification_token': str(domain.verification_token),
-            'dns_record': f"falcon-domain-verification={domain.verification_token.hex}",
-            'instructions': {
-                'record_type': 'TXT',
-                'record_name': '@',
-                'record_value': f'falcon-domain-verification={domain.verification_token.hex}',
-                'propagation_time': '5-10 minutes'
-            }
+            'success': True,
+            'message': f'Domain {result.domain} set as primary',
+            'domain_id': str(result.id)
+        })
+
+    @action(detail=True, methods=['post'])
+    def renew_ssl(self, request, pk=None):
+        domain = self.get_object()
+        if domain.status != 'ACTIVE':
+            return Response(
+                {'error': f'Domain {domain.domain} is not active'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        service = DomainService()
+        result = service.renew_ssl(domain.id)
+        return Response({
+            'success': True,
+            'message': f'SSL renewed for {result.domain}',
+            'expires_at': result.ssl_expires_at
         })

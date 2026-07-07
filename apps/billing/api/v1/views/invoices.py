@@ -54,8 +54,8 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         email = request.data.get('email')
         if not email:
             tenant_id = request.tenant_id if hasattr(request, 'tenant_id') else request.user.tenant_id
-            from apps.tenant.models import Client
-            tenant = Client.objects.get(id=tenant_id)
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=tenant_id)
             email = tenant.contact_email or tenant.email
         service = InvoiceService()
         service.send_invoice_email(invoice.id, email)

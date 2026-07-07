@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
-from apps.core.models import Client
+from apps.core.models import Organization
 from apps.accounts.models import UserPreference, Profile
 from apps.accounts.constants import UserRoles
 
@@ -38,13 +38,13 @@ class Command(BaseCommand):
         
         if tenant_id:
             try:
-                tenant = Client.objects.get(id=tenant_id, is_deleted=False)
+                tenant = Organization.objects.get(id=tenant_id, is_deleted=False)
                 tenants = [tenant]
-            except Client.DoesNotExist:
+            except Organization.DoesNotExist:
                 self.stdout.write(self.style.ERROR(f'Tenant with ID {tenant_id} not found'))
                 return
         else:
-            tenants = Client.objects.filter(is_deleted=False)
+            tenants = Organization.objects.filter(is_deleted=False)
         
         for tenant in tenants:
             self.stdout.write(_(f'\nSeeding data for tenant: {tenant.name}'))

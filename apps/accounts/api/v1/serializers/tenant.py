@@ -1,18 +1,18 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
-from apps.tenant.models import Client
+from apps.tenant.models import Organization
 from .base import DynamicFieldsModelSerializer, AuditSerializer
 
 
 class TenantMinimalSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Client
+        model = Organization
         fields = ['id', 'name', 'slug']
 
 class TenantListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
     user_count = serializers.SerializerMethodField()
     class Meta:
-        model = Client
+        model = Organization
         fields = [
             'id', 'name', 'slug', 'domain', 'is_active', 'subscription_plan',
             'user_count', 'created_at', 'updated_at'
@@ -33,7 +33,7 @@ class TenantDetailSerializer(TenantListSerializer):
 
 class TenantCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Client
+        model = Organization
         fields = ['name', 'slug', 'domain', 'subscription_plan', 'settings', 'branding']
     def validate_slug(self, value):
         if Client.objects.filter(slug=value).exists():
@@ -42,11 +42,11 @@ class TenantCreateSerializer(serializers.ModelSerializer):
 
 class TenantUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Client
+        model = Organization
         fields = ['name', 'domain', 'is_active', 'settings', 'branding']
 
 class TenantSerializer(DynamicFieldsModelSerializer):
     class Meta:
-        model = Client
+        model = Organization
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']

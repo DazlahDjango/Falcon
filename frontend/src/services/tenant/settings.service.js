@@ -1,16 +1,56 @@
-import api from '../api';
+import { BaseTenantService } from './tenantBase.service';
+import { SETTINGS_ENDPOINTS } from '../../config/constants/tenantApiConstants';
 
-const BASE = '/tenant/system-settings';
+class SettingsService extends BaseTenantService {
+  constructor() {
+    super('settings');
+  }
 
-export const getTenantSystemSettings = () => api.get(`${BASE}/`);
+  async getSettings() {
+    return this.withRetry(() =>
+      this.apiClient.get(SETTINGS_ENDPOINTS.LIST)
+    );
+  }
 
-export const updateTenantSystemSettings = (settings) => api.patch(`${BASE}/`, { settings });
+  async getSettingsSection(section) {
+    if (!section) throw new Error('Section name is required');
+    return this.withRetry(() =>
+      this.apiClient.get(SETTINGS_ENDPOINTS.SECTION, { params: { section } })
+    );
+  }
 
-export const resetTenantSystemSettings = () => api.post(`${BASE}/reset/`);
+  async updateSettings(data) {
+    if (!data) throw new Error('Settings data is required');
+    return this.withRetry(() =>
+      this.apiClient.post(SETTINGS_ENDPOINTS.UPDATE_SETTINGS, { settings: data })
+    );
+  }
 
-export const getTenantReferenceData = (tenantId, include = 'users,departments,kpis,sessions') => api.get(
-    '/tenant/reference-data/',
-    { params: { tenant_id: tenantId, include } },
-);
+  async updateSettingsSection(section, patch) {
+    if (!section) throw new Error('Section name is required');
+    if (!patch) throw new Error('Patch data is required');
+    return this.withRetry(() =>
+      this.apiClient.post(SETTINGS_ENDPOINTS.UPDATE_SECTION, { section, patch })
+    );
+  }
 
-export const syncTenantResources = (tenantId) => api.post(`/tenant/tenants/${tenantId}/sync-resources/`);
+  async resetSettings() {
+    return this.withRetry(() =>
+      this.apiClient.post(SETTINGS_ENDPOINTS.RESET)
+    );
+  }
+
+  async getSystemSettings() {
+    return this.withRetry(() =>
+      this.apiClient.get(SETTINGS_ENDPOINTS.SYSTEM_SETTINGS)
+    );
+  }
+
+  async resetSystemSettings() {
+    return this.withRetry(() =>
+      this.apiClient.post(SETTINGS_ENDPOINTS.SYSTEM_SETTINGS_RESET)
+    );
+  }
+}
+
+export const settingsService = new SettingsService();

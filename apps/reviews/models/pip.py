@@ -30,7 +30,7 @@ class PIP(ReviewBaseModel, ReviewStatusMixin):
         RESIGNED = 'resigned', 'Resigned'
     
     # ========== Relationships ==========
-    tenant = models.ForeignKey('tenant.Client', on_delete=models.CASCADE, related_name='pips')
+    tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE, related_name='pips')
     employee = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='pips_as_employee')
     owner = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='pips_as_owner')
     review_cycle = models.ForeignKey('ReviewCycle', on_delete=models.SET_NULL, null=True, blank=True)

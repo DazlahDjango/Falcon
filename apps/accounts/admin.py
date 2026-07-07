@@ -13,8 +13,8 @@ class TenantFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         if request.user.is_superuser:
-            from apps.core.models import Client
-            return [(str(t.id), t.name) for t in Client.objects.filter(is_deleted=False)]
+            from apps.tenant.models import Organization
+            return [(str(t.id), t.name) for t in Organization.objects.filter(is_deleted=False)]
         if hasattr(request.user, 'tenant_id') and request.user.tenant_id:
             return [(str(request.user.tenant_id), 'My Tenant')]
         return []

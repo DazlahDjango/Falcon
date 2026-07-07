@@ -162,7 +162,12 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 # Connection Management Settings
 ENABLE_CONNECTION_MIDDLEWARE = True
 CONNECTION_IDLE_TIMEOUT_MINUTES = 30
+CONNECTION_MAX_LIFETIME_MINUTES = 120
 CONNECTION_POOL_MAX_SIZE = 20
+CONNECTION_WAIT_TIMEOUT_SECONDS = 5
+CONNECTION_RETRY_COUNT = 3
+CONNECTION_RETRY_BACKOFF_BASE_SECONDS = 0.2
+CONNECTION_CLEANUP_INTERVAL_SECONDS = 60
 CONNECTION_MIDDLEWARE_EXCLUDED_PATHS = [
     '/health/',
     '/metrics/',
@@ -201,9 +206,15 @@ MIDDLEWARE = [
     'apps.kpi.middleware.KPIRequestAuditMiddleware',
     'apps.kpi.middleware.KPIThrottleMiddleware',
     'apps.kpi.middleware.CalculationCacheMiddleware',
-    # Tenant
-    'apps.tenant.middleware.connection.ConnectionManagementMiddleware',
-    'apps.tenant.middleware.connection.TenantConnectionHealthCheckMiddleware',
+    # Organization middlewares (order matters!)
+    # Organization middlewares (order matters!)
+    # 'apps.tenant.middleware.OrganizationResolutionMiddleware',       # 1st - identify org
+    # 'apps.tenant.middleware.OrganizationContextMiddleware',           # 2nd - set context
+    # 'apps.tenant.middleware.OrganizationPathIsolationMiddleware',     # 3rd - path-based isolation
+    # 'apps.tenant.middleware.OrganizationIsolationMiddleware',         # 4th - enforce isolation
+    # 'apps.tenant.middleware.OrganizationLimitsMiddleware',            # 5th - rate limits
+    # 'apps.tenant.middleware.ConnectionManagementMiddleware',          # 6th - DB connections
+    # 'apps.tenant.middleware.FileIsolationMiddleware',                # 7th - file isolation               # 6th - file isolation
     # Structure
     'apps.structure.middleware.StructureContextMiddleware',
     'apps.structure.middleware.StructureCacheMiddleware',
@@ -280,7 +291,7 @@ DATABASES = {
 
 
 DATABASE_ROUTERS = [
-    'apps.tenant.services.isolation.db_router.TenantDatabaseRouter',
+    'apps.tenant.services.router_service.OrganizationDatabaseRouter',
 ]
 
 # ============================================================
@@ -309,7 +320,7 @@ FRONTEND_INVITE_URL = os.environ.get(
 # AUTHENTICATION
 # ----------------------------------------
 AUTH_USER_MODEL = 'accounts.User'
-AUTH_TENANT_MODEL = 'tenant.Client'
+AUTH_TENANT_MODEL = 'tenant.Organization'
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',  # Must be first for axes
     'django.contrib.auth.backends.ModelBackend',
@@ -584,6 +595,7 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-tenant-id',
+    'x-organization-id',
     'x-request-id',
     'x-correlation-id',
     'x-request-time',

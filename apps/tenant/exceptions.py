@@ -1,68 +1,152 @@
-class TenantException(Exception):
-    """Base exception for all tenant-related errors"""
+class OrganizationException(Exception):
     pass
 
 
-class TenantNotFoundError(TenantException):
-    """Raised when a tenant cannot be found"""
+
+class OrganizationNotFoundError(OrganizationException):
+    pass
+
+class OrganizationError(OrganizationException):
+    pass
+
+class OrganizationAlreadyExistsError(OrganizationException):
     pass
 
 
-class TenantAlreadyExistsError(TenantException):
-    """Raised when trying to create a tenant that already exists"""
+class OrganizationInvalidError(OrganizationException):
     pass
 
 
-class TenantInvalidError(TenantException):
-    """Raised when tenant data is invalid"""
+class OrganizationAccessDeniedError(OrganizationException):
     pass
 
 
-class TenantAccessDeniedError(TenantException):
-    """Raised when user does not have access to a tenant"""
+class OrganizationProvisioningError(OrganizationException):
     pass
 
 
-class TenantProvisioningError(TenantException):
-    """Raised when tenant provisioning fails"""
+class SchemaError(OrganizationException):
     pass
 
 
-class SchemaCreationError(TenantProvisioningError):
-    """Raised when database schema creation fails"""
+class SchemaCreationError(OrganizationProvisioningError):
     pass
 
 
-class MigrationError(TenantProvisioningError):
-    """Raised when tenant migrations fail"""
+class SchemaNotFoundError(OrganizationException):
     pass
 
 
-class TenantIsolationError(TenantException):
-    """Raised when cross-tenant access is detected"""
+class SchemaAlreadyExistsError(OrganizationException):
     pass
 
 
-class TenantQuotaExceededError(TenantException):
-    """Raised when a tenant exceeds resource limits"""
+class SchemaMigrationError(OrganizationProvisioningError):
     pass
 
 
-class TenantMaintenanceError(TenantException):
-    """Raised when trying to access a tenant in maintenance mode"""
+class MigrationError(OrganizationProvisioningError):
     pass
 
 
-class DomainValidationError(TenantException):
-    """Raised when custom domain validation fails"""
+class MigrationNotFoundError(OrganizationException):
     pass
 
 
-class DomainNotFoundError(TenantException):
-    """Raised when a domain cannot be found"""
+class MigrationAlreadyAppliedError(OrganizationException):
     pass
 
 
-class BackupError(TenantException):
-    """Raised when backup operations fail"""
+class IsolationError(OrganizationException):
+    pass
+
+
+class QuotaExceededError(OrganizationException):
+    pass
+
+
+class ResourceNotFoundError(OrganizationException):
+    pass
+
+
+class ResourceAlreadyExistsError(OrganizationException):
+    pass
+
+
+class ResourceError(OrganizationException):
+    pass
+
+
+class MaintenanceError(OrganizationException):
+    pass
+
+
+class DomainValidationError(OrganizationException):
+    pass
+
+class DomainError(OrganizationException):
+    """Base error for domain-related operations."""
+    pass
+
+class DomainNotFoundError(OrganizationException):
+    pass
+
+
+class DomainAlreadyExistsError(OrganizationException):
+    pass
+
+
+class DomainVerificationError(OrganizationException):
+    pass
+
+
+class DomainSSLError(OrganizationException):
+    pass
+
+
+class ConnectionError(OrganizationException):
+    pass
+
+
+class ConnectionNotFoundError(OrganizationException):
+    pass
+
+
+class ConnectionPoolExhaustedError(OrganizationException):
+    pass
+
+
+class ProvisioningError(OrganizationException):
+    pass
+
+
+class HealthCheckError(OrganizationException):
+    pass
+
+
+class SettingsError(OrganizationException):
+    pass
+
+
+class SettingsNotFoundError(OrganizationException):
+    pass
+
+
+class SettingsValidationError(OrganizationException):
+    pass
+
+
+class PermissionDeniedError(OrganizationException):
+    pass
+
+
+class InvalidOperationError(OrganizationException):
+    pass
+
+
+class ConfigurationError(OrganizationException):
+    pass
+
+
+class DependencyError(OrganizationException):
     pass

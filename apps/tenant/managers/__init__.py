@@ -1,17 +1,21 @@
-from .base import BaseManager, TenantAwareManager
-from .active import ActiveManager, ActiveTenantManager
-from .tenant import TenantManager
+from .base import BaseManager
+from .organization import OrganizationManager
+from .domain import DomainManager
 from .schema import SchemaManager
 from .resource import ResourceManager
-from .domain import DomainManager
+from .resource_snapshot import ResourceSnapshotManager
+from .connection import ConnectionManager
+from .migration import MigrationManager
+from .sector import SectorManager
 
 __all__ = [
     'BaseManager',
-    'TenantAwareManager',
-    'ActiveManager',
-    'ActiveTenantManager',
-    'TenantManager',
+    'OrganizationManager',
+    'DomainManager',
     'SchemaManager',
     'ResourceManager',
-    'DomainManager',
+    'ResourceSnapshotManager',
+    'ConnectionManager',
+    'MigrationManager',
+    'SectorManager',
 ]

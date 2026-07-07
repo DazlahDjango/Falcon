@@ -36,20 +36,7 @@
   APP CSS IMPORTS
    ============================================ */
 /* Tenant Core Components */
-@import './components/tenant/tenant/tenant.css';
-@import './components/tenant/resources/resources.css';
-@import './components/tenant/domains/domains.css';
-@import './components/tenant/backups/backups.css';
-@import './components/tenant/migrations/migrations.css';
-@import './components/tenant/schema/schema.css';
-@import './components/tenant/provisioning/provisioning.css';
-@import './components/tenant/audit/audit.css';
-@import './components/tenant/dashboard/dashboard.css';
-@import './components/tenant/tenant-users/tenant-users.css';
-@import './components/tenant/tenant-settings/tenant-settings.css';
-@import './components/tenant/billing/billing.css';
-@import './styles/tenants/connections.css';
-@import './styles//tenants/connections-pages.css';
+@import './components/tenant/tenant.css';
 
 /* Accounts index css */
 @import './components/accounts/accounts.css';

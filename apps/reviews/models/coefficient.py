@@ -27,7 +27,7 @@ class Coefficient(ReviewBaseModel):
     
     # Tenant isolation
     tenant = models.ForeignKey(
-        'tenant.Client',
+        'tenant.Organization',
         on_delete=models.CASCADE,
         related_name='coefficients'
     )

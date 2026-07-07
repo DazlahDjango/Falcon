@@ -1,103 +1,106 @@
-// frontend/src/services/tenant/schema.service.js
-import BaseTenantService from './tenantBase.service';
+import { BaseTenantService } from './tenantBase.service';
+import { SCHEMA_ENDPOINTS } from '../../config/constants/tenantApiConstants';
 
 class SchemaService extends BaseTenantService {
-    constructor() {
-        super('schemas');
-    }
+  constructor() {
+    super('schemas');
+  }
 
-    // ==================== Schema Read-Only Operations ====================
+  async getSchemas(params = {}) {
+    return this.withRetry(() =>
+      this.apiClient.get(SCHEMA_ENDPOINTS.LIST, { params })
+    );
+  }
 
-    /**
-     * Get all schemas (optionally filtered by tenant)
-     * @param {string|number} tenantId - Optional tenant ID to filter by
-     * @param {Object} params - Additional query parameters (status, is_ready)
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getSchemas(tenantId = null, params = {}) {
-        if (tenantId) {
-            return this.listForTenant(tenantId, params);
-        }
-        return this.list(params);
-    }
+  async getSchema(id, params = {}) {
+    if (!id) throw new Error('Schema ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(SCHEMA_ENDPOINTS.DETAIL(id), { params })
+    );
+  }
 
-    /**
-     * Get single schema by ID
-     * @param {string|number} id - Schema ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getSchema(id) {
-        return this.getById(id);
-    }
+  async createSchema(data) {
+    if (!data) throw new Error('Schema data is required');
+    if (!data.schema_name) throw new Error('Schema name is required');
+    if (!data.organization_id) throw new Error('Organization ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(SCHEMA_ENDPOINTS.CREATE, data)
+    );
+  }
 
-    /**
-     * Get schema for specific tenant (primary schema)
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getSchemaForTenant(tenantId) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/schema/`);
-        return response;
-    }
+  async updateSchema(id, data) {
+    if (!id) throw new Error('Schema ID is required');
+    if (!data) throw new Error('Update data is required');
+    return this.withRetry(() =>
+      this.apiClient.patch(SCHEMA_ENDPOINTS.UPDATE(id), data)
+    );
+  }
 
-    /**
-     * Get all schemas for specific tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getTenantSchemas(tenantId) {
-        return this.listForTenant(tenantId);
-    }
+  async deleteSchema(id) {
+    if (!id) throw new Error('Schema ID is required');
+    return this.withRetry(() =>
+      this.apiClient.delete(SCHEMA_ENDPOINTS.DELETE(id))
+    );
+  }
 
-    // ==================== Schema Information ====================
+  async provisionSchema(id) {
+    if (!id) throw new Error('Schema ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(SCHEMA_ENDPOINTS.PROVISION(id))
+    );
+  }
 
-    /**
-     * Get schema status (active, maintenance, etc.)
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { status, is_ready }
-     */
-    async getSchemaStatus(tenantId) {
-        const response = await this.getSchemaForTenant(tenantId);
-        return {
-            status: response.data.status,
-            is_ready: response.data.is_ready
-        };
-    }
+  async dropSchema(id) {
+    if (!id) throw new Error('Schema ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(SCHEMA_ENDPOINTS.DROP(id))
+    );
+  }
 
-    /**
-     * Get schema size in MB
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { size_mb, size_display }
-     */
-    async getSchemaSize(tenantId) {
-        const response = await this.getSchemaForTenant(tenantId);
-        return {
-            size_mb: response.data.size_mb,
-            size_display: response.data.size_display
-        };
-    }
+  async updateSchemaStats(id) {
+    if (!id) throw new Error('Schema ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(SCHEMA_ENDPOINTS.UPDATE_STATS(id))
+    );
+  }
 
-    /**
-     * Get list of tables in schema
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getSchemaTables(tenantId) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/schema/tables/`);
-        return response;
-    }
+  async getTenantSchemas(tenantId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.listForTenant(tenantId, params);
+  }
 
-    // ==================== Schema Actions ====================
+  async getTenantSchema(tenantId, schemaId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!schemaId) throw new Error('Schema ID is required');
+    return this.getForTenant(tenantId, schemaId, params);
+  }
 
-    /**
-     * Refresh schema statistics (table count, size, etc.)
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async refreshSchemaStats(tenantId) {
-        const response = await this.apiClient.post(`/tenants/${tenantId}/schema/refresh/`);
-        return response;
-    }
+  async createTenantSchema(tenantId, data) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!data) throw new Error('Schema data is required');
+    return this.createForTenant(tenantId, data);
+  }
+
+  async provisionTenantSchema(tenantId, schemaId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!schemaId) throw new Error('Schema ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(this.getTenantEndpoint(tenantId, `${schemaId}/provision/`))
+    );
+  }
+
+  async dropTenantSchema(tenantId, schemaId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!schemaId) throw new Error('Schema ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(this.getTenantEndpoint(tenantId, `${schemaId}/drop/`))
+    );
+  }
+
+  async getSchemaStats(tenantId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.getStats({ tenant_id: tenantId });
+  }
 }
 
-export default new SchemaService();
+export const schemaService = new SchemaService();

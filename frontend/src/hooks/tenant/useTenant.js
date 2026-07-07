@@ -1,101 +1,83 @@
-// frontend/src/hooks/tenant/useTenant.js
-import { useState, useEffect, useCallback } from 'react';
-import { tenantService } from '../../services/tenant/tenant.service';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  selectCurrentOrganization,
+  selectOrganizationLoading,
+  selectOrganizationError,
+} from '../../store/tenant/selectors/organization.selectors';
 
-export const useTenant = (tenantId) => {
-    const [tenant, setTenant] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+export const useTenant = () => {
+  const currentOrganization = useSelector(selectCurrentOrganization);
+  const loading = useSelector(selectOrganizationLoading);
+  const error = useSelector(selectOrganizationError);
 
-    // Fetch basic tenant data
-    const fetchTenant = useCallback(async () => {
-        if (!tenantId) {
-            setLoading(false);
-            return;
-        }
+  const tenantId = useMemo(() => {
+    return currentOrganization?.id || null;
+  }, [currentOrganization]);
 
-        setLoading(true);
-        setError(null);
+  const tenantSlug = useMemo(() => {
+    return currentOrganization?.slug || null;
+  }, [currentOrganization]);
 
-        try {
-            // ✅ Fix: Use getTenant (not getTenantById)
-            const response = await tenantService.getTenant(tenantId);
-            if (response.success) {
-                setTenant(response.data);
-            } else {
-                setError(response.message);
-            }
-        } catch (err) {
-            setError(err.message || 'Failed to load tenant');
-        } finally {
-            setLoading(false);
-        }
-    }, [tenantId]);
+  const tenantName = useMemo(() => {
+    return currentOrganization?.name || null;
+  }, [currentOrganization]);
 
-    // Fetch detailed tenant data (includes related info)
-    const fetchTenantDetail = useCallback(async () => {
-        if (!tenantId) return;
+  const tenantStatus = useMemo(() => {
+    return currentOrganization?.status || null;
+  }, [currentOrganization]);
 
-        setLoading(true);
-        try {
-            // ✅ Fix: Use getTenantDetails
-            const response = await tenantService.getTenantDetails(tenantId);
-            if (response.success) {
-                setTenant(response.data);
-            }
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [tenantId]);
+  const isActive = useMemo(() => {
+    return currentOrganization?.is_active === true;
+  }, [currentOrganization]);
 
-    // Refresh tenant data
-    const refresh = useCallback(() => {
-        fetchTenant();
-    }, [fetchTenant]);
+  const isOnboarded = useMemo(() => {
+    return currentOrganization?.is_onboarded === true;
+  }, [currentOrganization]);
 
-    // Get provisioning status
-    const getProvisioningStatus = useCallback(async () => {
-        if (!tenantId) return null;
+  const subscriptionTier = useMemo(() => {
+    return currentOrganization?.subscription_tier || null;
+  }, [currentOrganization]);
 
-        try {
-            const response = await tenantService.getProvisioningStatus(tenantId);
-            if (response.success) {
-                return response.data;
-            }
-            return null;
-        } catch (err) {
-            console.error('Failed to get provisioning status:', err);
-            return null;
-        }
-    }, [tenantId]);
+  const primaryColor = useMemo(() => {
+    return currentOrganization?.primary_color || '#2563EB';
+  }, [currentOrganization]);
 
-    // ✅ Fix: Use is_active field, not status
-    const isActive = tenant?.is_active === true;
-    const isSuspended = tenant?.is_active === false;
-    const isProvisioning = tenant?.provisioned_at === null && tenant?.is_active === false;
-    const isReady = tenant?.is_active === true && tenant?.provisioned_at !== null;
+  const secondaryColor = useMemo(() => {
+    return currentOrganization?.secondary_color || '#7C3AED';
+  }, [currentOrganization]);
 
-    useEffect(() => {
-        fetchTenant();
-    }, [fetchTenant]);
+  const hasTenant = useMemo(() => {
+    return currentOrganization !== null;
+  }, [currentOrganization]);
 
-    return {
-        // Data
-        tenant,
-        loading,
-        error,
-
-        // Actions
-        refresh,
-        fetchTenantDetail,
-        getProvisioningStatus,
-
-        // Helper booleans
-        isActive,
-        isSuspended,
-        isProvisioning,
-        isReady,
-    };
+  return useMemo(() => ({
+    tenant: currentOrganization,
+    tenantId,
+    tenantSlug,
+    tenantName,
+    tenantStatus,
+    isActive,
+    isOnboarded,
+    subscriptionTier,
+    primaryColor,
+    secondaryColor,
+    hasTenant,
+    loading,
+    error,
+  }), [
+    currentOrganization,
+    tenantId,
+    tenantSlug,
+    tenantName,
+    tenantStatus,
+    isActive,
+    isOnboarded,
+    subscriptionTier,
+    primaryColor,
+    secondaryColor,
+    hasTenant,
+    loading,
+    error,
+  ]);
 };

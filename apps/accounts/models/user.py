@@ -9,7 +9,7 @@ import uuid
 
 class User(BaseModel, AbstractUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, default=uuid.uuid4, help_text=_("The unique UUID of the Tenant this user belongs to."))
+    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, null=True, blank=True, default=uuid.uuid4, help_text=_("The unique UUID of the Tenant this user belongs to."))
     email = models.EmailField(_('email address'), unique=True, db_index=True, validators=[EmailValidator()])
     username = models.CharField(_('username'), max_length=50, unique=True, db_index=True, validators=[RegexValidator(r'^[\w.@+-]+\Z', 'Enter a valid username.')])
     phone_number = models.CharField(_('phone number'), max_length=20, blank=True, validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter valid phone number')])
@@ -45,7 +45,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     
     # Auth Fields
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'tenant_id']
+    REQUIRED_FIELDS = ['username']
     
     # Security
     last_login_ip = models.GenericIPAddressField(_('last login IP'), null=True, blank=True)

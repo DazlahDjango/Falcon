@@ -19,9 +19,9 @@ class SuperAdminDashboardService(BaseDashboardService):
         cached = self.cache_service.get_dashboard_data(self.user_id, DashboardType.SUPER_ADMIN)
         if cached:
             return cached
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         from apps.dashboard.models import TenantOverviewSnapshot
-        tenants = Client.objects.filter(is_active=True)
+        tenants = Organization.objects.filter(is_active=True)
         tenant_summaries = []
         for tenant in tenants:
             snapshot = TenantOverviewSnapshot.objects.filter(

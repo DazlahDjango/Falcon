@@ -16,6 +16,8 @@ export const selectMfaToken = (state) => state.auth?.mfaToken || null;
 
 export const selectMfaPending = (state) => state.auth?.mfaPending || false;
 
+export const selectMfaSetupRequired = (state) => state.auth?.mfaSetupRequired || false;
+
 export const selectSessionId = (state) => state.auth?.sessionId || null;
 
 export const selectUserId = (state) => state.auth?.user?.id || null;
@@ -43,5 +45,7 @@ export const selectAuthState = (state) => ({
   isInitialized: state.auth?.isInitialized || false,
   error: state.auth?.error || null,
   requiresMfa: state.auth?.requiresMfa || false,
+  mfaToken: state.auth?.mfaToken || null,
   mfaPending: state.auth?.mfaPending || false,
+  mfaSetupRequired: state.auth?.mfaSetupRequired || false,
 });

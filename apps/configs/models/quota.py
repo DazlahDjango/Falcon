@@ -3,7 +3,7 @@ from .base import BaseConfigModel
 from .registered_app import RegisteredApp
 
 class BackupQuota(BaseConfigModel):
-    tenant = models.ForeignKey('tenant.Client', on_delete=models.CASCADE, related_name='backup_quotas', null=True, blank=True, help_text="Null means system-wide default")
+    tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE, related_name='backup_quotas', null=True, blank=True, help_text="Null means system-wide default")
     app = models.ForeignKey(RegisteredApp, on_delete=models.CASCADE, related_name='quotas', null=True, blank=True, help_text="Null means applies to all apps")
     total_backup_storage_bytes = models.BigIntegerField(default=107374182400, help_text="Default 100GB", db_index=True)
     used_backup_storage_bytes = models.BigIntegerField(default=0)

@@ -95,8 +95,8 @@ def send_invoice_emails():
         sent = 0
         for invoice in invoices:
             try:
-                from apps.tenant.models import Client
-                tenant = Client.objects.get(id=invoice.tenant_id)
+                from apps.tenant.models import Organization
+                tenant = Organization.objects.get(id=invoice.tenant_id)
                 email = tenant.contact_email
                 if email:
                     invoice_service = InvoiceService()
@@ -152,8 +152,8 @@ def send_payment_confirmation(transaction_id):
         tx = Transaction.objects.get_by_id(transaction_id)
         if not tx or tx.status != TransactionStatus.SUCCESS:
             return {'status': 'skipped'}
-        from apps.tenant.models import Client
-        tenant = Client.objects.get(id=tx.tenant_id)
+        from apps.tenant.models import Organization
+        tenant = Organization.objects.get(id=tx.tenant_id)
         email = tenant.contact_email
         if not email:
             return {'status': 'skipped', 'reason': 'no_email'}

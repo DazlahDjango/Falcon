@@ -27,18 +27,22 @@ class AuthenticationService:
         email = email.lower().strip()
         user = User.objects.filter(email=email).first()
         tenant_id = str(user.tenant_id) if user else None
-        if self._is_rate_limited(email, ip_address, tenant_id=tenant_id):
-            LoginAttempt.record_attempt(
-                identifier=email, user=user, result='locked', failure_reason='rate_limit', request=request, ip_address=ip_address, user_agent=user_agent
-            )
-            return None, None, 'Too many attempts. Please try again later'
-        if user and user.is_locked():
-            LoginAttempt.record_attempt(
-                identifier=email, user=user, result='locked',
-                failure_reason='account_locked', request=request,
-                ip_address=ip_address, user_agent=user_agent
-            )
-            return None, None, 'Account is locked due to many failed attempts.'
+        
+        # Skip lockout/rate limits for super admins
+        if not (user and user.role == 'super_admin'):
+            if self._is_rate_limited(email, ip_address, tenant_id=tenant_id):
+                LoginAttempt.record_attempt(
+                    identifier=email, user=user, result='locked', failure_reason='rate_limit', request=request, ip_address=ip_address, user_agent=user_agent
+                )
+                return None, None, 'Too many attempts. Please try again later'
+            if user and user.is_locked():
+                LoginAttempt.record_attempt(
+                    identifier=email, user=user, result='locked',
+                    failure_reason='account_locked', request=request,
+                    ip_address=ip_address, user_agent=user_agent
+                )
+                return None, None, 'Account is locked due to many failed attempts.'
+        
         try:
             user = authenticate(request, username=email, password=password)
             if user is None:
@@ -47,7 +51,7 @@ class AuthenticationService:
                     failure_reason='wrong_password', request=request,
                     ip_address=ip_address, user_agent=user_agent
                 )
-                if user:
+                if user and user.role != 'super_admin':
                     user.increment_login_attempts()
                 return None, None, "Invalid email or password"
             if not user.is_active:
@@ -64,16 +68,14 @@ class AuthenticationService:
                 )
                 partial_token = self.jwt_service.create_mfa_token(user)
                 return user, {'requires_mfa': True, 'mfa_token': partial_token}, None
-            if AccountsPolicyService.user_requires_mfa(user):
+            if user.role != 'super_admin' and AccountsPolicyService.user_requires_mfa(user):
+                # Allow user to set up MFA first
                 LoginAttempt.record_attempt(
-                    identifier=email, user=user, result='failure',
-                    failure_reason='mfa_required', request=request,
-                    ip_address=ip_address, user_agent=user_agent
+                    identifier=email, user=user, result='success',
+                    request=request, ip_address=ip_address, user_agent=user_agent
                 )
-                return None, None, (
-                    'Multi-factor authentication is required for your role. '
-                    'Please enroll MFA before signing in.'
-                )
+                partial_token = self.jwt_service.create_mfa_token(user)
+                return user, {'requires_mfa': True, 'mfa_token': partial_token, 'mfa_setup_required': True}, None
             LoginAttempt.record_attempt(
                 identifier=email, user=user, result='success',
                 request=request, ip_address=ip_address, user_agent=user_agent

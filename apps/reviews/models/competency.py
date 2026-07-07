@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from .base import ReviewBaseModel
 
 class CompetencyCategory(ReviewBaseModel):
-    tenant = models.ForeignKey('tenant.Client', on_delete=models.CASCADE, related_name='competency_categories', db_column='tenant_id_id')
+    tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE, related_name='competency_categories', db_column='tenant_id_id')
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     order = models.IntegerField(default=0)
@@ -29,7 +29,7 @@ class Competency(ReviewBaseModel):
         CUSTOMER = 'customer', 'Customer Focus'
         INNOVATION = 'innovation', 'Innovation'
         TEAMWORK = 'teamwork', 'Teamwork & Collaboration'
-    tenant = models.ForeignKey('tenant.Client', on_delete=models.CASCADE, related_name='competencies', db_column='tenant_id_id')
+    tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE, related_name='competencies', db_column='tenant_id_id')
     name = models.CharField(max_length=100)
     description = models.TextField()
     category = models.ForeignKey(CompetencyCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='competencies')

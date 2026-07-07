@@ -9,7 +9,6 @@ import kpiModuleReducer from './kpi/index';
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
 import { loggerMiddleware } from './middleware';
 // Tenant Middlewares
-import { tenantMiddlewares } from './tenant/middleware';
 // Billing
 import { billingMiddlewares } from './billing/middleware';
 
@@ -90,7 +89,6 @@ export const store = configureStore({
         }).concat(
             authMiddleware,
             loggerMiddleware,
-            ...tenantMiddlewares,
             backupMiddleware,
             maintenanceMiddleware,
             ...billingMiddlewares

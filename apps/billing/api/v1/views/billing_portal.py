@@ -16,8 +16,8 @@ class BillingPortalView(APIView):
         tenant_id = request.tenant_id if hasattr(request, 'tenant_id') else request.user.tenant_id
         serializer = BillingPortalAccessSerializer(data=request.data, context={'tenant_id': tenant_id})
         serializer.is_valid(raise_exception=True)
-        from apps.tenant.models import Client
-        tenant = Client.objects.get(id=tenant_id)
+        from apps.tenant.models import Organization
+        tenant = Organization.objects.get(id=tenant_id)
         portal_url = f"{getattr(settings, 'BASE_URL', '')}/billing/portal/session?tenant={tenant_id}"
         return Response(BillingPortalResponseSerializer({'portal_url': portal_url, 'session_id': str(tenant_id), 'expires_at': timezone.now() + timedelta(hours=1)}).data)
     

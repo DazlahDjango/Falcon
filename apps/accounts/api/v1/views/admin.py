@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from apps.accounts.models import User, Role, Permission, AuditLog
-from apps.tenant.models import Client
+from apps.tenant.models import Organization
 from apps.accounts.api.v1.serializers import (
     UserSerializer, UserCreationSerializer, UserUpdateSerializer, RoleSerializer, RoleCreateSerializer, RoleUpdateSerializer, RoleListSerializer,
     PermissionSerializer, PermissionListSerializer, TenantSerializer, TenantCreateSerializer, TenantUpdateSerializer
@@ -136,7 +136,7 @@ class AdminPermissionViewSet(BaseModelViewset):
     
 class AdminTenantViewSet(BaseModelViewset):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
-    queryset = Client.objects.all()
+    queryset = Organization.objects.all()
     search_fields = ['name', 'slug', 'domain']
     ordering_fields = ['name', 'created_at']
     ordering = ['-created_at']
@@ -196,13 +196,13 @@ class AdminTenantViewSet(BaseModelViewset):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
-        total_tenants = Client.objects.count()
-        active_tenants = Client.objects.filter(is_active=True).count()
+        total_tenants = Organization.objects.count()
+        active_tenants = Organization.objects.filter(is_active=True).count()
         # Tenants by plan
         plans = ['trial', 'basic', 'professional', 'enterprise']
         tenants_by_plan = {}
         for plan in plans:
-            tenants_by_plan[plan] = Client.objects.filter(subscription_plan=plan).count()
+            tenants_by_plan[plan] = Organization.objects.filter(subscription_plan=plan).count()
         return Response({
             'total_tenants': total_tenants,
             'active_tenants': active_tenants,
@@ -222,7 +222,7 @@ class AdminSystemView(viewsets.ViewSet):
         except Exception:
             cache_status = 'disconnected'
         total_users = User.objects.count()
-        total_tenants = Client.objects.count()
+        total_tenants = Organization.objects.count()
         total_audit_logs = AuditLog.objects.count()
         yesterday = timezone.now() - timezone.timedelta(hours=24)
         recent_logins = AuditLog.objects.filter(

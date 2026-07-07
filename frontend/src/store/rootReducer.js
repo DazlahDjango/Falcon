@@ -44,19 +44,7 @@ import kpiModuleReducer from './kpi/index';
 // ==========================================
 // TENANT APP REDUCERS (ADD THIS)
 // ==========================================
-import {
-    tenantReducer as appTenantReducer,
-    tenantResourceReducer,
-    tenantDomainReducer,
-    tenantBackupReducer,
-    tenantMigrationReducer,
-    tenantSchemaReducer,
-    tenantProvisioningReducer,
-    tenantAuditReducer,
-    tenantDashboardReducer,
-    tenantUIReducer,
-    connectionReducer,
-} from './tenant/slice';
+import { tenantReducers } from './tenant/index';
 
 // ===============================
 // Reviews Reducers
@@ -86,17 +74,7 @@ const rootReducer = combineReducers({
     systemSettings: systemSettingsReducer,
 
     // Tenant Reducers
-    appTenant: appTenantReducer,           // Main tenant CRUD
-    tenantResource: tenantResourceReducer, // Resource limits & quotas
-    tenantDomain: tenantDomainReducer,     // Domain management
-    tenantBackup: tenantBackupReducer,     // Backup operations
-    tenantMigration: tenantMigrationReducer, // Migration tracking
-    tenantSchema: tenantSchemaReducer,     // Schema information
-    tenantProvisioning: tenantProvisioningReducer, // Provisioning status
-    tenantAudit: tenantAuditReducer,       // Audit logs
-    tenantDashboard: tenantDashboardReducer, // Dashboard statistics
-    tenantUI: tenantUIReducer,             // UI state (modals, sidebar, filters)
-    connections: connectionReducer,
+    tenant: tenantReducers,
 
     // Structure State
     structNotifications: structNotificationReducer,
