@@ -38,6 +38,13 @@ class AdminUserViewSet(BaseModelViewset):
         elif self.action in ['update', 'partial_update']:
             return UserUpdateSerializer
         return UserSerializer
+
+    def perform_create(self, serializer):
+        tenant_id = serializer.validated_data.get('tenant_id')
+        serializer.save(
+            created_by=self.request.user,
+            tenant_id=tenant_id
+        )
     
     @action(detail=True, methods=['post'], url_path='impersonate')
     def impersonate(self, request, pk=None):
@@ -84,6 +91,160 @@ class AdminUserViewSet(BaseModelViewset):
             'mfa_enabled_users': mfa_enabled_users,
             'users_by_role': users_by_role
         }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='bulk-import')
+    def bulk_import(self, request):
+        file_obj = request.FILES.get('file')
+        tenant_id = request.data.get('tenant_id') or request.query_params.get('tenant_id')
+        if not file_obj:
+            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+        if not tenant_id:
+            return Response({'error': 'tenant_id is required for superadmin bulk import'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            file_content = file_obj.read().decode('utf-8')
+        except Exception as e:
+            return Response({'error': f'Failed to decode file: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        from apps.accounts.services.registration.bulk import BulkUserImportService
+        service = BulkUserImportService()
+        success_count, errors, imported_data = service.import_users_from_csv(
+            file_content=file_content,
+            tenant_id=tenant_id,
+            request_user=request.user,
+            request=request
+        )
+        return Response({
+            'success_count': success_count,
+            'errors': errors,
+            'imported_users': imported_data
+        }, status=status.HTTP_200_OK if success_count > 0 or not errors else status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='bulk-export')
+    def bulk_export(self, request):
+        import csv
+        from django.http import HttpResponse
+        
+        tenant_id = request.query_params.get('tenant_id')
+        if not tenant_id:
+            return Response({'error': 'tenant_id is required for superadmin bulk export'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        users = User.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="tenant_{tenant_id}_users_export.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['email', 'username', 'first_name', 'last_name', 'role', 'employee_id', 'department', 'title', 'is_active', 'is_verified', 'created_at'])
+        
+        for u in users:
+            writer.writerow([
+                u.email, u.username, u.first_name, u.last_name, u.role,
+                u.employee_id, u.department, u.title, u.is_active, u.is_verified,
+                u.created_at.isoformat() if u.created_at else ''
+            ])
+            
+        return response
+
+    @action(detail=True, methods=['post'], url_path='activate')
+    def activate(self, request, pk=None):
+        user = self.get_object()
+        if user.is_active:
+            return Response(
+                {'message': 'User is already active'},
+                status=status.HTTP_200_OK
+            )
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+        AuditService().log(
+            user=request.user,
+            action='user.activated',
+            action_type='update',
+            request=request,
+            severity='info',
+            metadata={'target_user_id': str(user.id), 'target_email': user.email, 'context': 'superadmin'}
+        )
+        return Response({'message': 'User activated successfully'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='deactivate')
+    def deactivate(self, request, pk=None):
+        user = self.get_object()
+        if not user.is_active:
+            return Response(
+                {'message': 'User is already deactivated'},
+                status=status.HTTP_200_OK
+            )
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+        from apps.accounts.services.auth.session import SessionService
+        session_service = SessionService()
+        terminated = session_service.terminate_all_sessions(user)
+        AuditService().log(
+            user=request.user,
+            action='user.deactivated',
+            action_type='update',
+            request=request,
+            severity='warning',
+            metadata={
+                'target_user_id': str(user.id),
+                'target_email': user.email,
+                'sessions_terminated': terminated,
+                'context': 'superadmin'
+            }
+        )
+        try:
+            from apps.accounts.services.realtime import AccountsEventBroadcaster
+            AccountsEventBroadcaster.user_deactivated(
+                user_id=str(user.id),
+                tenant_id=str(user.tenant_id),
+                email=user.email,
+                deactivated_by_id=str(request.user.id),
+                sessions_terminated=terminated,
+            )
+        except ImportError:
+            pass
+        return Response({
+            'message': 'User deactivated successfully',
+            'sessions_terminated': terminated,
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='unlock')
+    def unlock(self, request, pk=None):
+        user = self.get_object()
+        if not user.is_locked():
+            return Response(
+                {'message': 'User account is not locked'},
+                status=status.HTTP_200_OK
+            )
+        user.reset_login_attempts()
+        AuditService().log(
+            user=request.user,
+            action='user.unlocked',
+            action_type='update',
+            request=request,
+            severity='info',
+            metadata={'target_user_id': str(user.id), 'target_email': user.email, 'context': 'superadmin'}
+        )
+        return Response({'message': 'User unlocked successfully'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='verify')
+    def verify(self, request, pk=None):
+        user = self.get_object()
+        if user.is_verified:
+            return Response(
+                {'message': 'User is already verified'},
+                status=status.HTTP_200_OK
+            )
+        user.is_verified = True
+        user.save(update_fields=['is_verified'])
+        AuditService().log(
+            user=request.user,
+            action='user.verified',
+            action_type='update',
+            request=request,
+            severity='info',
+            metadata={'target_user_id': str(user.id), 'target_email': user.email, 'context': 'superadmin'}
+        )
+        return Response({'message': 'User verified successfully'}, status=status.HTTP_200_OK)
     
 class AdminRoleViewSet(BaseModelViewset):
     permission_classes = [IsAuthenticated, IsSuperAdmin]

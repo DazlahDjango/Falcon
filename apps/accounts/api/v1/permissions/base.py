@@ -33,3 +33,21 @@ class IsAuthenticatedOrReadOnly(BasePermission):
         return bool(
             request.method in SAFE_METHODS or (request.user and request.user.is_authenticated)
         )
+
+class IsPasswordChangeCompleted(BasePermission):
+    message = _("Password change is required before accessing other resources.")
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return True
+        if request.user.password_change_required:
+            allowed_paths = [
+                '/api/v1/auth/me/change-password/',
+                '/api/v1/auth/logout/',
+                '/api/v1/auth/refresh/',
+                '/api/v1/auth/me/',
+            ]
+            path = request.path.rstrip('/') + '/'
+            if any(path == p or path.startswith(p) for p in allowed_paths):
+                return True
+            return False
+        return True

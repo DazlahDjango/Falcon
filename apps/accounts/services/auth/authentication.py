@@ -21,16 +21,33 @@ class AuthenticationService:
         self.session_service = SessionService()
         self.audit_service = AuditService()
 
-    def authenticate(self, email: str, password: str, ip_address: str, user_agent: str, request=None) -> Tuple[Optional[User], Optional[Dict], Optional[str]]:
+    def authenticate(self, email: str, password: str, ip_address: str, user_agent: str, tenant_id: str = None, request=None) -> Tuple[Optional[User], Optional[Dict], Optional[str]]:
+        if request is None:
+            from django.http import HttpRequest
+            request = HttpRequest()
+            request.META = {
+                'REMOTE_ADDR': ip_address,
+                'HTTP_USER_AGENT': user_agent
+            }
+        if not hasattr(request, 'session'):
+            from django.contrib.sessions.backends.db import SessionStore
+            request.session = SessionStore()
         if not email or not password:
             return None, None, 'Email and password required'
         email = email.lower().strip()
         user = User.objects.filter(email=email).first()
-        tenant_id = str(user.tenant_id) if user else None
+        user_tenant_id = str(user.tenant_id) if user else None
+        
+        # Enforce tenant_id check for non-super-admins
+        if user and user.role != 'super_admin':
+            if not tenant_id:
+                return None, None, 'Organization Tenant ID is required'
+            if str(tenant_id) != user_tenant_id:
+                return None, None, 'Invalid Organization Tenant ID for this user'
         
         # Skip lockout/rate limits for super admins
         if not (user and user.role == 'super_admin'):
-            if self._is_rate_limited(email, ip_address, tenant_id=tenant_id):
+            if self._is_rate_limited(email, ip_address, tenant_id=user_tenant_id):
                 LoginAttempt.record_attempt(
                     identifier=email, user=user, result='locked', failure_reason='rate_limit', request=request, ip_address=ip_address, user_agent=user_agent
                 )
@@ -125,6 +142,7 @@ class AuthenticationService:
             # 3. Generate tokens
             tokens = self.jwt_service.create_token(user)
             tokens['session_id'] = str(session.id)
+            tokens['password_change_required'] = user.password_change_required
             logger.debug("JWT tokens generated")
 
             # 4. Record successful login attempt

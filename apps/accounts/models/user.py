@@ -53,9 +53,8 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     login_attempts = models.PositiveSmallIntegerField(_('login attempts'), default=0)
     locked_until = models.DateTimeField(_('locked until'), null=True, blank=True)
     password_last_changed = models.DateTimeField(default=timezone.now)
-    
-    # MFA fields - ForeignKey relationship exists in MFADevice model (related_name='auth_devices')
-    # REMOVED: mfa_devices = models.ManyToManyField(...) - duplicate relationship
+    password_change_required = models.BooleanField(_('password change required'), default=False)
+    password_history = models.JSONField(_('password history'), default=list, blank=True)
     mfa_enabled = models.BooleanField(_('MFA enabled'), default=False)
     mfa_secret = models.CharField(_('MFA secret'), max_length=32, blank=True)
     mfa_backup_codes = models.JSONField(_('backup codes'), default=list, blank=True)

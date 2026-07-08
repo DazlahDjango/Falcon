@@ -1,6 +1,7 @@
 from .base import BaseModelViewset, BaseViewset, BaseReadOnlyViewset
 from .auth import AuthViewSet, LoginView, MFAAuthView, MFASetupView, MFADeviceView, MFABackupCodesView, RefreshTokenView, LogoutView
-from .user import UserViewSet, UserProfileView, CurrentUserView, UserChangePasswordView, UserInvitationsView, InvitationAcceptView
+from .user import UserViewSet, UserProfileView, CurrentUserView, UserInvitationsView, InvitationAcceptView
+from .password import PasswordChangeView, PasswordResetRequestView, PasswordResetConfirmView
 from .profiles import ProfileViewSet
 from .roles import RoleViewSet
 from .permission import PermissionViewSet
@@ -13,6 +14,7 @@ from .system_settings_views import AccountsSystemSettingsView, AccountsSystemSet
 from .security_views import LoginAttemptViewSet, TenantPolicyView, LockoutSummaryView
 from .admin_mfa_views import AdminMfaResetView, AdminMfaDeviceClearView, AdminMFAStatusView
 from .step_up_views import StepUpVerifyView
+from .reports import ReportViewSet
 
 __all__ = [
     'BaseModelViewset',
@@ -29,7 +31,9 @@ __all__ = [
     'UserViewSet',
     'UserProfileView',
     'CurrentUserView',
-    'UserChangePasswordView',
+    'PasswordChangeView',
+    'PasswordResetRequestView',
+    'PasswordResetConfirmView',
     'UserInvitationsView',
     'InvitationAcceptView',
     'ProfileViewSet',
@@ -59,4 +63,5 @@ __all__ = [
     'AdminMfaDeviceClearView',
     'AdminMFAStatusView',
     'StepUpVerifyView',
+    'ReportViewSet',
 ]

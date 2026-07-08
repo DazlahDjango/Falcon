@@ -11,14 +11,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.models import User
 from apps.accounts.managers import UserManager
 from apps.accounts.services import (
-    PasswordService, InvitationService, RBACService, 
+    InvitationService, RBACService, 
     AuthenticationService, SessionService, AuditService
 )
 from apps.accounts.api.v1.throttles import AnonRateThrottle
 from apps.accounts.api.v1.serializers import (
     UserSerializer, UserCreationSerializer, UserUpdateSerializer, 
     UserListSerializer, UserMinimalSerializer, UserDetailSerializer, 
-    UserProfileSerializer, PasswordChangeSerializer, InvitationSerializer
+    UserProfileSerializer, InvitationSerializer
 )
 from apps.accounts.api.v1.serializers.registration import InvitationAcceptSerializer
 from apps.accounts.api.v1.filters import UserFilter
@@ -183,6 +183,26 @@ class UserViewSet(BaseModelViewset):
             metadata={'target_user_id': str(user.id), 'target_email': user.email}
         )
         return Response({'message': 'User unlocked successfully'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='verify')
+    def verify(self, request, pk=None):
+        user = self.get_object()
+        if user.is_verified:
+            return Response(
+                {'message': 'User is already verified'},
+                status=status.HTTP_200_OK
+            )
+        user.is_verified = True
+        user.save(update_fields=['is_verified'])
+        AuditService().log(
+            user=request.user,
+            action='user.verified',
+            action_type='update',
+            request=request,
+            severity='info',
+            metadata={'target_user_id': str(user.id), 'target_email': user.email}
+        )
+        return Response({'message': 'User verified successfully'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['get'], url_path='team')
     def team(self, request, pk=None):
@@ -285,6 +305,54 @@ class UserViewSet(BaseModelViewset):
             'reporting_chain': chain
         }, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['post'], url_path='bulk-import')
+    def bulk_import(self, request):
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            file_content = file_obj.read().decode('utf-8')
+        except Exception as e:
+            return Response({'error': f'Failed to decode file: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tenant_id = str(request.user.tenant_id)
+        from apps.accounts.services.registration.bulk import BulkUserImportService
+        service = BulkUserImportService()
+        success_count, errors, imported_data = service.import_users_from_csv(
+            file_content=file_content,
+            tenant_id=tenant_id,
+            request_user=request.user,
+            request=request
+        )
+        return Response({
+            'success_count': success_count,
+            'errors': errors,
+            'imported_users': imported_data
+        }, status=status.HTTP_200_OK if success_count > 0 or not errors else status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='bulk-export')
+    def bulk_export(self, request):
+        import csv
+        from django.http import HttpResponse
+        
+        users = User.objects.filter(tenant_id=request.user.tenant_id, is_deleted=False)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="tenant_users_export.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['email', 'username', 'first_name', 'last_name', 'role', 'employee_id', 'department', 'title', 'is_active', 'is_verified', 'created_at'])
+        
+        for u in users:
+            writer.writerow([
+                u.email, u.username, u.first_name, u.last_name, u.role,
+                u.employee_id, u.department, u.title, u.is_active, u.is_verified,
+                u.created_at.isoformat() if u.created_at else ''
+            ])
+            
+        return response
+
+
 # Rest of the file remains the same...
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
@@ -319,21 +387,6 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class UserChangePasswordView(APIView):
-    permission_classes = [IsAuthenticated]
-    def post(self, request):
-        serializer = PasswordChangeSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        password_service = PasswordService()
-        success, message = password_service.change_password(
-            user=request.user,
-            old_password=serializer.validated_data['old_password'],
-            new_password=serializer.validated_data['new_password'],
-            request=request
-        )
-        if not success:
-            return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'message': message}, status=status.HTTP_200_OK)
 
 class UserInvitationsView(APIView):
     permission_classes = [IsAuthenticated]
