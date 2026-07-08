@@ -1,68 +1,45 @@
 import { BaseStructureService, withRetry } from './base.service';
+import { LOCATION_ENDPOINTS } from '../../config/constants/structureApiConstants';
 
-export class LocationService extends BaseStructureService {
+class LocationService extends BaseStructureService {
   constructor() {
     super('locations');
   }
 
   async getByCode(code) {
     if (!code) throw new Error('Location code is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(`/locations/by-code/${code}/`);
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(LOCATION_ENDPOINTS.BY_CODE(code)));
   }
 
   async getByCountry(country) {
     if (!country) throw new Error('Country is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(`/locations/by-country/${country}/`);
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(LOCATION_ENDPOINTS.BY_COUNTRY(country)));
   }
- 
+
+  async getByOrgUnit(orgUnitId) {
+    if (!orgUnitId) throw new Error('Organization unit ID is required');
+    return withRetry(() => this.apiClient.get(LOCATION_ENDPOINTS.BY_ORG_UNIT(orgUnitId)));
+  }
+
   async getHeadquarters() {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/locations/headquarters/');
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(LOCATION_ENDPOINTS.HEADQUARTERS));
   }
-  
+
+  async getStats() {
+    return withRetry(() => this.apiClient.get(LOCATION_ENDPOINTS.STATS));
+  }
+
   async getSubLocations(id) {
-    if (!id) throw new Error('Location ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(this.getEndpoint(`${id}/sub-locations/`));
-      return response;
-    });
+    if (!id) throw new Error('ID is required');
+    return withRetry(() => this.apiClient.get(LOCATION_ENDPOINTS.SUB_LOCATIONS(id)));
   }
 
-  async updateOccupancy(id, currentOccupancy) {
-    if (!id) throw new Error('Location ID is required');
-    if (currentOccupancy === undefined) throw new Error('Current occupancy is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post(this.getEndpoint(`${id}/update-occupancy/`), {
-        current_occupancy: currentOccupancy,
-      });
-      return response;
-    });
-  }
-
-  async getTree(includeInactive = false) {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/locations/tree/', {
-        params: { include_inactive: includeInactive },
-      });
-      return response;
-    });
-  }
-
-  async validate(data) {
-    if (!data) throw new Error('Data is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post('/locations/validate/', data);
-      return response;
-    });
+  async updateOccupancy(id, occupancy) {
+    if (!id) throw new Error('ID is required');
+    if (occupancy === undefined || occupancy === null) throw new Error('Occupancy is required');
+    return withRetry(() => this.apiClient.post(LOCATION_ENDPOINTS.UPDATE_OCCUPANCY(id), { current_occupancy: occupancy }));
   }
 }
 
 export const locationService = new LocationService();
+export { LocationService };

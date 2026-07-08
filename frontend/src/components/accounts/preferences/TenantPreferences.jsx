@@ -43,6 +43,9 @@ export const TenantPreferences = () => {
     password_expiry_days: 90,
     session_timeout_minutes: 480,
     max_concurrent_sessions: 5,
+    default_password_mode: 'system_generated',
+    default_password_custom_value: '',
+    force_password_change_on_first_login: true,
   });
   const [submitted, setSubmitted] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -65,6 +68,9 @@ export const TenantPreferences = () => {
         password_expiry_days: tenantPreferences.password_expiry_days || 90,
         session_timeout_minutes: tenantPreferences.session_timeout_minutes || 480,
         max_concurrent_sessions: tenantPreferences.max_concurrent_sessions || 5,
+        default_password_mode: tenantPreferences.default_password_mode || 'system_generated',
+        default_password_custom_value: tenantPreferences.default_password_custom_value || '',
+        force_password_change_on_first_login: tenantPreferences.force_password_change_on_first_login !== false,
       });
     }
   }, [tenantPreferences]);
@@ -120,6 +126,9 @@ export const TenantPreferences = () => {
         password_expiry_days: tenantPreferences.password_expiry_days || 90,
         session_timeout_minutes: tenantPreferences.session_timeout_minutes || 480,
         max_concurrent_sessions: tenantPreferences.max_concurrent_sessions || 5,
+        default_password_mode: tenantPreferences.default_password_mode || 'system_generated',
+        default_password_custom_value: tenantPreferences.default_password_custom_value || '',
+        force_password_change_on_first_login: tenantPreferences.force_password_change_on_first_login !== false,
       });
       setEditing(false);
     }
@@ -151,7 +160,7 @@ export const TenantPreferences = () => {
     { value: 'read_only', label: 'Read Only' },
   ];
 
-  const canEdit = isSuperAdmin();
+  const canEdit = isSuperAdmin() || user?.role === 'client_admin';
 
   if (isLoading && !tenantPreferences) {
     return (
@@ -256,6 +265,53 @@ export const TenantPreferences = () => {
                 min={1}
                 max={365}
               />
+            </div>
+          </div>
+        </div>
+
+        <div className="preferences-section">
+          <h3><FiKey /> Default Password Configurations</h3>
+          <div className="preferences-grid">
+            <div className="preference-item">
+              <label className="preference-label">Default Password Mode</label>
+              <select
+                className="preference-select"
+                value={formData.default_password_mode}
+                onChange={(e) => handleChange('default_password_mode', e.target.value)}
+                disabled={!editing || !canEdit}
+              >
+                <option value="system_generated">System-Generated Strong Password</option>
+                <option value="custom_value">Client-Provided Default Password</option>
+                <option value="invite_only">No Default Password (Invite-Only Flow)</option>
+              </select>
+            </div>
+
+            {formData.default_password_mode === 'custom_value' && (
+              <div className="preference-item">
+                <label className="preference-label">Custom Default Password Value</label>
+                <input
+                  type="text"
+                  className="preference-input"
+                  value={formData.default_password_custom_value}
+                  onChange={(e) => handleChange('default_password_custom_value', e.target.value)}
+                  disabled={!editing || !canEdit}
+                  placeholder="e.g. Welcome123!"
+                  required
+                />
+              </div>
+            )}
+
+            <div className="preference-item flex items-center mt-6">
+              <label className="flex items-center space-x-2 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.force_password_change_on_first_login}
+                  onChange={(e) => handleChange('force_password_change_on_first_login', e.target.checked)}
+                  disabled={!editing || !canEdit}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>Force password change on first login</span>
+              </label>
             </div>
           </div>
         </div>

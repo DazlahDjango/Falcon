@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { TenantService, ResourceService } from '../../../services/tenant';
+import { TenantService } from '../../../services/tenant';
 
 // Async Thunks
 export const fetchTenantResources = createAsyncThunk(
     'tenantResource/fetchTenantResources',
-    async ({ tenantId, refresh = false }, { rejectWithValue }) => {
+    async (tenantId, { rejectWithValue }) => {
         try {
-            const response = await TenantService.getTenantResources(tenantId, refresh);
+            const response = await TenantService.getTenantResources(tenantId);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -18,7 +18,6 @@ export const updateResourceLimit = createAsyncThunk(
     'tenantResource/updateResourceLimit',
     async ({ tenantId, resourceType, limitValue }, { rejectWithValue }) => {
         try {
-            // Re-route update to the working update-limits endpoint
             await TenantService.updateResourceLimits(tenantId, {
                 [resourceType]: limitValue
             });
@@ -60,8 +59,7 @@ export const fetchTenantUsage = createAsyncThunk(
 
 // Initial State
 const initialState = {
-    resources: null, // Stores full object { tenant_id, tenant_name, resources, summary }
-    usage: null,     // Stores normalized usage stats
+    resources: null,
     loading: false,
     error: null,
 };
@@ -83,21 +81,7 @@ const tenantResourceSlice = createSlice({
             })
             .addCase(fetchTenantResources.fulfilled, (state, action) => {
                 state.loading = false;
-                if (action.payload) {
-                    const originalList = action.payload.resources || (Array.isArray(action.payload) ? action.payload : []);
-                    const mappedResources = originalList.map(r => ({
-                        ...r,
-                        resource_type: r.resource_type || r.type,
-                        limit_value: r.limit_value !== undefined ? r.limit_value : r.limit,
-                        current_value: r.current_value !== undefined ? r.current_value : r.current,
-                    }));
-                    state.resources = {
-                        ...action.payload,
-                        resources: mappedResources
-                    };
-                } else {
-                    state.resources = null;
-                }
+                state.resources = action.payload?.resources || action.payload;
             })
             .addCase(fetchTenantResources.rejected, (state, action) => {
                 state.loading = false;
@@ -110,12 +94,19 @@ const tenantResourceSlice = createSlice({
             .addCase(updateResourceLimit.fulfilled, (state, action) => {
                 state.loading = false;
                 if (state.resources && action.payload) {
-                    const list = state.resources.resources || (Array.isArray(state.resources) ? state.resources : null);
-                    if (list) {
-                        const res = list.find(r => r.resource_type === action.payload.resource_type || r.type === action.payload.resource_type);
-                        if (res) {
-                            res.limit_value = action.payload.limit_value;
-                        }
+                    const { resource_type, limit_value } = action.payload;
+                    const index = state.resources.findIndex(
+                        r => (r.resource_type || r.type) === resource_type
+                    );
+                    if (index !== -1) {
+                        state.resources[index] = {
+                            ...state.resources[index],
+                            limit_value: limit_value,
+                            limit: limit_value,
+                            percentage: limit_value > 0 
+                                ? (state.resources[index].current_value / limit_value) * 100 
+                                : 0
+                        };
                     }
                 }
             })
@@ -180,13 +171,21 @@ const tenantResourceSlice = createSlice({
 export const { clearResourceError } = tenantResourceSlice.actions;
 
 // Selectors
-export const selectResources = (state) => {
-    const resState = state.tenantResource?.resources;
-    if (!resState) return [];
-    return resState.resources || (Array.isArray(resState) ? resState : []);
-};
+export const selectResources = (state) => state.tenantResource?.resources || [];
 export const selectResourceLoading = (state) => state.tenantResource?.loading || false;
 export const selectResourceError = (state) => state.tenantResource?.error;
 
 export default tenantResourceSlice.reducer;
 
+// Add this thunk for quota warnings
+export const fetchQuotaWarnings = createAsyncThunk(
+    'tenantResource/fetchQuotaWarnings',
+    async (tenantId, { rejectWithValue }) => {
+        try {
+            const response = await TenantService.getQuotaWarnings(tenantId);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);

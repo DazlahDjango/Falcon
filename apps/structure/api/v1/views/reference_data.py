@@ -6,28 +6,37 @@ from rest_framework.views import APIView
 
 from apps.accounts.api.v1.permissions import IsTenantMember
 from apps.accounts.models import User
-from apps.structure.models import Department, Team, Employment, Position
+from apps.structure.models import OrganizationalUnit, Employment, Position
 
 
 class StructureReferenceDataView(APIView):
     """
-    GET /api/v1/structure/reference-data/?include=users,departments,counts
+    GET /api/v1/structure/reference-data/?include=users,org_units,counts
     """
 
     permission_classes = [IsAuthenticated, IsTenantMember]
 
     def get(self, request):
-        include = request.query_params.get('include', 'counts,departments').split(',')
+        include = request.query_params.get('include', 'counts,org_units').split(',')
         tenant_id = request.user.tenant_id
         payload = {'tenant_id': str(tenant_id)}
 
         if 'counts' in include:
             payload['counts'] = {
-                'departments': Department.objects.filter(
+                'organizational_units': OrganizationalUnit.objects.filter(
                     tenant_id=tenant_id, is_deleted=False,
                 ).count(),
-                'teams': Team.objects.filter(
-                    tenant_id=tenant_id, is_deleted=False,
+                'divisions': OrganizationalUnit.objects.filter(
+                    tenant_id=tenant_id, is_deleted=False, level='division',
+                ).count(),
+                'departments': OrganizationalUnit.objects.filter(
+                    tenant_id=tenant_id, is_deleted=False, level='department',
+                ).count(),
+                'sections': OrganizationalUnit.objects.filter(
+                    tenant_id=tenant_id, is_deleted=False, level='section',
+                ).count(),
+                'units': OrganizationalUnit.objects.filter(
+                    tenant_id=tenant_id, is_deleted=False, level='unit',
                 ).count(),
                 'positions': Position.objects.filter(
                     tenant_id=tenant_id, is_deleted=False,
@@ -40,18 +49,21 @@ class StructureReferenceDataView(APIView):
                 ).count(),
             }
 
-        if 'departments' in include:
-            departments = Department.objects.filter(
+        if 'org_units' in include:
+            units = OrganizationalUnit.objects.filter(
                 tenant_id=tenant_id, is_deleted=False, is_active=True,
-            ).order_by('name')[:500]
-            payload['departments'] = [
+            ).order_by('level', 'name')[:500]
+            payload['organizational_units'] = [
                 {
-                    'id': str(d.id),
-                    'name': d.name,
-                    'code': getattr(d, 'code', '') or '',
-                    'parent_id': str(d.parent_id) if d.parent_id else None,
+                    'id': str(u.id),
+                    'name': u.name,
+                    'code': u.code,
+                    'level': u.level,
+                    'parent_id': str(u.parent_id) if u.parent_id else None,
+                    'depth': u.depth,
+                    'path': u.path,
                 }
-                for d in departments
+                for u in units
             ]
 
         if 'users' in include:

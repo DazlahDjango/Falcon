@@ -1,14 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { orgChartService } from '../../../services/structure/orgChart.service';
-import { initialOrgChartState, LoadingState } from './structureTypes';
-import { showToast } from '../../ui/slices/uiSlice';
+import { orgChartService } from '../../../services/structure';
 
-// Async Thunks
+const initialState = {
+  tree: null,
+  preview: null,
+  jsonData: null,
+  isLoading: false,
+  error: null,
+};
+
 export const fetchOrgChartTree = createAsyncThunk(
-  'structure/orgChart/fetchTree',
-  async ({ includeInactive = false } = {}, { rejectWithValue }) => {
+  'orgCharts/fetchTree',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await orgChartService.getTreeView(includeInactive);
+      const response = await orgChartService.getTree();
       return response.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch org chart tree');
@@ -16,32 +21,8 @@ export const fetchOrgChartTree = createAsyncThunk(
   }
 );
 
-export const fetchFullOrgChart = createAsyncThunk(
-  'structure/orgChart/fetchFull',
-  async ({ rootDepartmentId = null } = {}, { rejectWithValue }) => {
-    try {
-      const response = await orgChartService.getFullOrgChart(rootDepartmentId);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch full org chart');
-    }
-  }
-);
-
-export const fetchFlatOrgChart = createAsyncThunk(
-  'structure/orgChart/fetchFlat',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await orgChartService.getFlatOrgChart();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch flat org chart');
-    }
-  }
-);
-
 export const fetchOrgChartPreview = createAsyncThunk(
-  'structure/orgChart/fetchPreview',
+  'orgCharts/fetchPreview',
   async (_, { rejectWithValue }) => {
     try {
       const response = await orgChartService.getPreview();
@@ -52,85 +33,74 @@ export const fetchOrgChartPreview = createAsyncThunk(
   }
 );
 
-export const exportOrgChart = createAsyncThunk(
-  'structure/orgChart/export',
-  async ({ format, includeInactive = false, maxDepth = 10 }, { dispatch, rejectWithValue }) => {
+export const exportOrgChartJson = createAsyncThunk(
+  'orgCharts/exportJson',
+  async (params, { rejectWithValue }) => {
     try {
-      let response;
-      switch (format) {
-        case 'json':
-          response = await orgChartService.exportAsJson('full');
-          break;
-        case 'csv':
-          response = await orgChartService.exportAsCsv('departments', includeInactive);
-          break;
-        case 'text':
-          response = await orgChartService.exportAsText(null, maxDepth);
-          break;
-        case 'visio':
-          response = await orgChartService.exportAsVisio();
-          break;
-        default:
-          response = await orgChartService.exportAsJson('full');
-      }
-      dispatch(showToast({ message: 'Export completed successfully', type: 'success' }));
-      return { format, data: response };
+      const response = await orgChartService.exportJson(params);
+      return response.data;
     } catch (error) {
-      dispatch(showToast({ message: error.message || 'Export failed', type: 'error' }));
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to export org chart as JSON');
+    }
+  }
+);
+
+export const exportOrgChartCsv = createAsyncThunk(
+  'orgCharts/exportCsv',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await orgChartService.exportCsv(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to export org chart as CSV');
     }
   }
 );
 
 const orgChartSlice = createSlice({
-  name: 'structure/orgChart',
-  initialState: initialOrgChartState,
+  name: 'orgCharts',
+  initialState,
   reducers: {
-    setExportFormat: (state, action) => {
-      state.exportFormat = action.payload;
+    clearOrgChartError: (state) => {
+      state.error = null;
     },
-    clearOrgChartData: (state) => {
-      state.treeData = null;
-      state.flatData = [];
-      state.previewData = null;
-    },
-    resetExportState: (state) => {
-      state.isExporting = false;
-      state.exportFormat = 'json';
-    },
+    resetOrgChartState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchOrgChartTree.pending, (state) => {
-        state.loading = LoadingState.LOADING;
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(fetchOrgChartTree.fulfilled, (state, action) => {
-        state.loading = LoadingState.SUCCEEDED;
-        state.treeData = action.payload;
+        state.isLoading = false;
+        state.tree = action.payload.tree || action.payload;
       })
       .addCase(fetchOrgChartTree.rejected, (state, action) => {
-        state.loading = LoadingState.FAILED;
+        state.isLoading = false;
         state.error = action.payload;
       })
-      .addCase(fetchFullOrgChart.fulfilled, (state, action) => {
-        state.treeData = action.payload;
-      })
-      .addCase(fetchFlatOrgChart.fulfilled, (state, action) => {
-        state.flatData = action.payload?.departments || action.payload || [];
+      .addCase(fetchOrgChartPreview.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(fetchOrgChartPreview.fulfilled, (state, action) => {
-        state.previewData = action.payload;
+        state.isLoading = false;
+        state.preview = action.payload.preview || action.payload;
       })
-      .addCase(exportOrgChart.pending, (state) => {
-        state.isExporting = true;
+      .addCase(fetchOrgChartPreview.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       })
-      .addCase(exportOrgChart.fulfilled, (state) => {
-        state.isExporting = false;
-      })
-      .addCase(exportOrgChart.rejected, (state) => {
-        state.isExporting = false;
+      .addCase(exportOrgChartJson.fulfilled, (state, action) => {
+        state.jsonData = action.payload;
       });
   },
 });
-export const { setExportFormat, clearOrgChartData, resetExportState } = orgChartSlice.actions;
+
+export const {
+  clearOrgChartError,
+  resetOrgChartState,
+} = orgChartSlice.actions;
+
 export default orgChartSlice.reducer;

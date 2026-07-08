@@ -127,7 +127,7 @@ export const {
 // ADDED: Selectors (for TenantProvisioningPage)
 // ============================================
 export const selectProvisioningStatus = (state) => state.tenantProvisioning?.status;
-export const selectProvisioningProgress = (state) => state.tenantProvisioning?.progress;
+export const selectProvisioningProgress = (state) => state.tenantProvisioning?.progress || { steps: {}, current_step: null, message: '' };
 export const selectProvisioningProgressPercentage = (state) => state.tenantProvisioning?.progressPercentage || 0;
 export const selectIsProvisioning = (state) => state.tenantProvisioning?.isProvisioning || false;
 export const selectIsProvisioned = (state) => state.tenantProvisioning?.isProvisioned || false;

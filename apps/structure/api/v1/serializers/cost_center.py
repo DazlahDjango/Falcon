@@ -1,58 +1,61 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from ....models.cost_center import CostCenter
+from apps.structure.models.cost_center import CostCenter
 from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
-
 class CostCenterSerializer(BaseStructureSerializer):
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
+    organizational_unit_code = serializers.CharField(source='organizational_unit.code', read_only=True, allow_null=True)
+    organizational_unit_name = serializers.CharField(source='organizational_unit.name', read_only=True, allow_null=True)
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    
     class Meta:
         model = CostCenter
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'parent_id', 'parent_code', 'category', 'budget_amount',
-            'fiscal_year', 'allocation_percentage', 'is_active',
-            'is_shared', 'created_at'
+            'organizational_unit_id', 'organizational_unit_code',
+            'organizational_unit_name', 'category', 'category_display',
+            'budget_amount', 'fiscal_year', 'allocation_percentage',
+            'is_active', 'is_shared', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at']
 
 class CostCenterDetailSerializer(BaseStructureDetailSerializer):
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
-    child_count = serializers.SerializerMethodField()
+    organizational_unit_code = serializers.CharField(source='organizational_unit.code', read_only=True, allow_null=True)
+    organizational_unit_name = serializers.CharField(source='organizational_unit.name', read_only=True, allow_null=True)
+    organizational_unit_level = serializers.CharField(source='organizational_unit.level', read_only=True, allow_null=True)
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
     remaining_budget = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    
     class Meta:
         model = CostCenter
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'parent_id', 'parent_code', 'parent_name', 'category',
-            'budget_amount', 'remaining_budget', 'fiscal_year',
-            'allocation_percentage', 'is_active', 'is_shared',
-            'requires_budget_approval', 'authorized_approver_ids',
-            'is_deleted', 'child_count',
+            'organizational_unit_id', 'organizational_unit_code',
+            'organizational_unit_name', 'organizational_unit_level',
+            'category', 'category_display', 'budget_amount',
+            'remaining_budget', 'fiscal_year', 'allocation_percentage',
+            'is_active', 'is_shared', 'requires_budget_approval',
+            'authorized_approver_ids', 'is_deleted',
             'created_at', 'updated_at', 'created_by', 'updated_by',
             'deleted_at', 'deleted_by'
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at', 'deleted_at']
-    def get_child_count(self, obj):
-        return obj.children.filter(is_deleted=False).count()
-
 
 class CostCenterCreateUpdateSerializer(serializers.ModelSerializer):
-    parent_id = serializers.UUIDField(required=False, allow_null=True)
+    organizational_unit_id = serializers.UUIDField(required=False, allow_null=True)
     
     class Meta:
         model = CostCenter
         fields = [
-            'code', 'name', 'description', 'parent_id', 'category',
-            'budget_amount', 'fiscal_year', 'allocation_percentage',
-            'is_active', 'is_shared', 'requires_budget_approval',
-            'authorized_approver_ids'
+            'code', 'name', 'description', 'organizational_unit_id',
+            'category', 'budget_amount', 'fiscal_year',
+            'allocation_percentage', 'is_active', 'is_shared',
+            'requires_budget_approval', 'authorized_approver_ids'
         ]
     
     def validate_code(self, value):
-        from ....validators import validate_cost_center_code
+        from apps.structure.validators import validate_cost_center_code
         validate_cost_center_code(value)
         request = self.context.get('request')
         tenant_id = getattr(request.user, 'tenant_id', None) if request else None
@@ -63,13 +66,13 @@ class CostCenterCreateUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_budget_amount(self, value):
-        from ....validators import validate_budget_amount
+        from apps.structure.validators import validate_budget_amount
         if value is not None:
             validate_budget_amount(value)
         return value
     
     def validate_allocation_percentage(self, value):
-        from ....validators import validate_allocation_percentage
+        from apps.structure.validators import validate_allocation_percentage
         validate_allocation_percentage(value)
         return value
     

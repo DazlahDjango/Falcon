@@ -17,6 +17,9 @@ export const impersonateUser = (id) => request.post(ADMIN_ENDPOINTS.USER_IMPERSO
 export const forcePasswordReset = (id) =>
   request.post(ADMIN_ENDPOINTS.USER_FORCE_PASSWORD_RESET(id));
 
+export const verifyAdminUser = (id) =>
+  request.post(ADMIN_ENDPOINTS.USER_VERIFY(id));
+
 export const getAdminUserStats = () => request.get(ADMIN_ENDPOINTS.USER_STATS);
 
 // ============ Admin Roles ============

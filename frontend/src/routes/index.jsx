@@ -29,23 +29,20 @@ const ServerError = React.lazy(() => import('../pages/accounts/ServerError'));
 // ✅ FIXED: Convert route arrays to JSX elements - properly handles all cases
 const renderRoutes = (routes) => {
     return routes.map((route, index) => {
-        // ✅ Handle index routes
         if (route.index) {
             return <Route key={`index-${index}`} index element={route.element} />;
         }
-        
-        // ✅ Handle routes with children
+        const routePath = typeof route.path === 'function' ? route.path() : route.path;
+        const key = typeof routePath === 'string' ? routePath : `route-${index}`;
         if (route.children) {
             return (
-                <Route key={route.path || `route-${index}`} path={route.path}>
+                <Route key={key} path={routePath}>
                     {renderRoutes(route.children)}
                 </Route>
             );
         }
-        
-        // ✅ Handle regular routes - ensure path is a string
-        const path = typeof route.path === 'string' ? route.path : undefined;
-        return <Route key={route.path || `route-${index}`} path={path} element={route.element} />;
+        const path = typeof routePath === 'string' ? routePath : undefined;
+        return <Route key={key} path={path} element={route.element} />;
     });
 };
 

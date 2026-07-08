@@ -21,7 +21,9 @@ import {
   setUserPageSize,
   clearSelectedUser,
   clearUserError,
+  verifyUser,
 } from '../../store/accounts/slice/userSlice';
+import { bulkImportUsers, bulkExportUsers } from '../../services/accounts/api/users';
 import {
   selectUsers,
   selectSelectedUser,
@@ -125,6 +127,14 @@ export const useUsers = () => {
     [dispatch]
   );
 
+  const verify = useCallback(
+    async (id) => {
+      const result = await dispatch(verifyUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
   const assignRole = useCallback(
     async (id, role) => {
       const result = await dispatch(assignUserRole({ id, role })).unwrap();
@@ -215,6 +225,37 @@ export const useUsers = () => {
     [users]
   );
 
+  const getFullName = useCallback((user) => {
+    if (!user) return '';
+
+    if (typeof user === 'string') return user;
+
+    return (
+      user.full_name ||
+      [user.first_name, user.last_name].filter(Boolean).join(' ').trim() ||
+      user.email ||
+      user.username ||
+      ''
+    );
+  }, []);
+
+  const importUsers = useCallback(async (formData) => {
+    const response = await bulkImportUsers(formData);
+    return response.data;
+  }, []);
+
+  const exportUsers = useCallback(async () => {
+    const response = await bulkExportUsers();
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'users_export.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  }, []);
+
   return useMemo(
     () => ({
       users,
@@ -232,6 +273,7 @@ export const useUsers = () => {
       myReportingChain,
       invitations,
       getUsers,
+      loadUsers: getUsers,
       getUser,
       create,
       createUser: create,
@@ -241,6 +283,7 @@ export const useUsers = () => {
       activate,
       deactivate,
       unlock,
+      verify,
       assignRole,
       getTeam,
       getReportingChain,
@@ -248,6 +291,8 @@ export const useUsers = () => {
       getMyReportingChain,
       getInvitations,
       invite,
+      importUsers,
+      exportUsers,
       setFilters,
       setPage,
       setPageSize,
@@ -256,6 +301,7 @@ export const useUsers = () => {
       clearError,
       getUserById,
       getUsersByRole,
+      getFullName,
     }),
     [
       users,
@@ -280,6 +326,7 @@ export const useUsers = () => {
       activate,
       deactivate,
       unlock,
+      verify,
       assignRole,
       getTeam,
       getReportingChain,
@@ -287,6 +334,8 @@ export const useUsers = () => {
       getMyReportingChain,
       getInvitations,
       invite,
+      importUsers,
+      exportUsers,
       setFilters,
       setPage,
       setPageSize,
@@ -294,6 +343,7 @@ export const useUsers = () => {
       clearError,
       getUserById,
       getUsersByRole,
+      getFullName,
     ]
   );
 };

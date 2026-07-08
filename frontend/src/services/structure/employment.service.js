@@ -1,88 +1,38 @@
 import { BaseStructureService, withRetry } from './base.service';
+import { EMPLOYMENT_ENDPOINTS } from '../../config/constants/structureApiConstants';
 
-export class EmploymentService extends BaseStructureService {
+class EmploymentService extends BaseStructureService {
   constructor() {
     super('employments');
   }
 
-  async getCurrent(params = {}) {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/employments/current/', { params });
-      return response;
-    });
+  async getCurrent(params) {
+    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.CURRENT, { params }));
   }
 
-  async getByUser(userId, includeHistory = true) {
+  async getByUser(userId) {
     if (!userId) throw new Error('User ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(`/employments/by-user/${userId}/`);
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.BY_USER(userId)));
   }
-  
+
+  async getStats() {
+    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.STATS));
+  }
+
+  async transfer(data) {
+    if (!data) throw new Error('Transfer data is required');
+    return withRetry(() => this.apiClient.post(EMPLOYMENT_ENDPOINTS.TRANSFER, data));
+  }
+
+  async bulkCreate(data) {
+    if (!data) throw new Error('Bulk data is required');
+    return withRetry(() => this.apiClient.post(EMPLOYMENT_ENDPOINTS.BULK_CREATE, data));
+  }
+
   async getMyEmployment() {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/me/');
-      return response;
-    });
-  }
-
-  async transferEmployee(transferData) {
-    if (!transferData.user_id) throw new Error('User ID is required');
-    if (!transferData.department_id) throw new Error('Department ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post('/employments/transfer/', transferData);
-      return response;
-    });
-  }
-
-  async bulkCreate(employments) {
-    if (!employments || !employments.length) throw new Error('Employments array is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post('/employments/bulk-create/', { employments });
-      return response;
-    });
-  }
-
-  async endEmployment(userId, endDate, reason = '') {
-    if (!userId) throw new Error('User ID is required');
-    if (!endDate) throw new Error('End date is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post(`/employments/${userId}/end/`, {
-        end_date: endDate,
-        reason,
-      });
-      return response;
-    });
-  }
-
-  async getTeamMembers(managerId, includeIndirect = true) {
-    if (!managerId) throw new Error('Manager ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(`/reporting-lines/team/${managerId}/`, {
-        params: { include_indirect: includeIndirect },
-      });
-      return response;
-    });
-  }
-
-  async validate(data) {
-    if (!data) throw new Error('Data is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post('/employments/validate/', data);
-      return response;
-    });
-  }
-
-  async getDepartmentStats(departmentId) {
-    if (!departmentId) throw new Error('Department ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/employments/stats/', {
-        params: { department_id: departmentId },
-      });
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.ME));
   }
 }
 
 export const employmentService = new EmploymentService();
+export { EmploymentService };

@@ -5,18 +5,29 @@ import storage from 'redux-persist/lib/storage';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import rootReducer from './rootReducer';
 import kpiModuleReducer from './kpi/index';
-// Accounts Middlewares
+
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
 import { loggerMiddleware } from './middleware';
 // Tenant Middlewares
 // Billing
 import { billingMiddlewares } from './billing/middleware';
-
 import { backupMiddleware, maintenanceMiddleware } from './config';
+
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['auth', 'tenant', 'appTenant', 'theme', 'organisation', 'subscription', 'tenantDomain', 'tenantBackup', 'reviews'],
+    whitelist: [
+        'auth',
+        'tenant',
+        'appTenant',
+        'theme',
+        'organisation',
+        'subscription',
+        'tenantDomain',
+        'tenantBackup',
+        'reviews',
+        'structure'
+    ],
     blacklist: [
         'ui',
         'notifications',
@@ -31,7 +42,9 @@ const persistConfig = {
         'users',
         'tenantUI',
         'tenantAudit',
-        'billing'
+        'billing',
+        'structNotifications',
+        'kpis'
     ],
     transforms: [
         encryptTransform({
@@ -46,9 +59,8 @@ const persistConfig = {
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const appReducer = (state, action) => {
-  const newState = persistedReducer(state, action);
-  
-  return newState;
+    const newState = persistedReducer(state, action);
+    return newState;
 };
 
 export const store = configureStore({
@@ -57,7 +69,8 @@ export const store = configureStore({
         getDefaultMiddleware({
             serializableCheck: {
                 ignoredActions: [
-                    'persist/PERSIST', 'persist/REHYDRATE',
+                    'persist/PERSIST',
+                    'persist/REHYDRATE',
                     'websocket/message',
                     'websocket/connect',
                     'websocket/disconnect'
@@ -68,7 +81,6 @@ export const store = configureStore({
                     'payload.request',
                     'payload.headers',
                     'payload.originalArgs',
-                    // WebSocket payload paths
                     'payload.data.raw_payload',
                     'payload.raw_payload'
                 ],
@@ -78,7 +90,6 @@ export const store = configureStore({
                     'kpi.detail.loading',
                     'kpi.list.loading',
                     'actual.detail.loading',
-                    // WebSocket paths
                     'billing.checkout.currentCheckout',
                     'billing.webhooks.lastMessage'
                 ]
@@ -97,5 +108,7 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+
 export const selectRootState = (state) => state;
+
 export default store;

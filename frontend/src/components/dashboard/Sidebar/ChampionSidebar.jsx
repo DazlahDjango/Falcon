@@ -4,10 +4,14 @@ import {
     FiHome, FiBarChart2, FiUsers, FiTrendingUp, FiAlertCircle, 
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
     FiDownload, FiSettings, FiBell, FiGrid, FiPieChart, FiFileText,
-    FiTarget, FiCheckCircle, FiClock, FiShield, FiActivity, FiDatabase
+    FiTarget, FiCheckCircle, FiClock, FiShield, FiActivity, FiDatabase,
+    FiGitBranch, FiMapPin, FiDollarSign, FiLayers, FiBriefcase
 } from 'react-icons/fi';
+import { HiOutlineBuildingOffice } from 'react-icons/hi2';
+import { BsDiagram3, BsPersonBadge } from 'react-icons/bs';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
 import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../../../config/constants/kpiRouteConstants';
+import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
@@ -16,6 +20,7 @@ const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
         oversight: true,
         kpiAdmin: false,
         kpiManagement: false,
+        structure: false,
         reports: false,
         settings: false
     });
@@ -52,6 +57,18 @@ const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
             { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiBarChart2 },
             { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiCheckCircle },
             { path: '/bulk-upload', name: 'Bulk Upload', icon: FiDownload },
+        ],
+        structure: [
+            { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Structure Dashboard', icon: FiBarChart2 },
+            { path: STRUCTURE_ROUTES.DEPARTMENTS, name: 'Departments', icon: HiOutlineBuildingOffice },
+            { path: STRUCTURE_ROUTES.DIVISIONS, name: 'Divisions', icon: FiGitBranch },
+            { path: STRUCTURE_ROUTES.SECTIONS, name: 'Sections', icon: FiLayers },
+            { path: STRUCTURE_ROUTES.POSITIONS, name: 'Positions', icon: FiBriefcase },
+            { path: STRUCTURE_ROUTES.EMPLOYMENTS, name: 'Employments', icon: BsPersonBadge },
+            { path: STRUCTURE_ROUTES.REPORTING_LINES, name: 'Reporting Lines', icon: BsDiagram3 },
+            { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
+            { path: STRUCTURE_ROUTES.COST_CENTERS, name: 'Cost Centers', icon: FiDollarSign },
+            { path: STRUCTURE_ROUTES.LOCATIONS, name: 'Locations', icon: FiMapPin },
         ],
         reports: [
             { path: KPI_ROUTES.KPI_ANALYTICS, name: 'Analytics Insights', icon: FiTrendingUp },
@@ -103,7 +120,6 @@ const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
 
     return (
         <aside className={`sidebar champion-sidebar ${isOpen ? 'open' : 'closed'} ${isCollapsed ? 'collapsed' : ''}`}>
-            {/* Logo Area */}
             <div className="sidebar-logo">
                 <NavLink to={DASHBOARD_ROUTES.CHAMPION.OVERVIEW} className="logo-link">
                     <div className="logo-icon">
@@ -121,7 +137,6 @@ const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
                 </button>
             </div>
             
-            {/* Tenant Info */}
             {!isCollapsed && currentTenant && (
                 <div className="sidebar-tenant">
                     <div className="tenant-name">{currentTenant.name}</div>
@@ -129,12 +144,12 @@ const ChampionSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
                 </div>
             )}
             
-            {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
                 {renderNavGroup('Oversight', navigation.oversight, 'oversight')}
                 {renderNavGroup('KPI System Admin', navigation.kpiAdmin, 'kpiAdmin')}
                 {renderNavGroup('KPI Management', navigation.kpiManagement, 'kpiManagement')}
+                {renderNavGroup('Organization Structure', navigation.structure, 'structure')}
                 {renderNavGroup('Reports & Analytics', navigation.reports, 'reports')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>

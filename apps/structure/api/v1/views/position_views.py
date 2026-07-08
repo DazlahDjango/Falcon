@@ -4,18 +4,16 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import models
 from uuid import UUID
-from ....models import Position
-from ..serializers.position import PositionSerializer, PositionDetailSerializer, PositionCreateUpdateSerializer
-from ..filters.position_filter import PositionFilter
-from ..throttles.structure_limits import HierarchyReadThrottle, HierarchyWriteThrottle
-from ..permissions.structure_permissions import (
-    CanViewPosition, CanEditPosition, CanDeletePosition
-)
+from apps.structure.models.position import Position
+from apps.structure.api.v1.serializers.position import PositionSerializer, PositionDetailSerializer, PositionCreateUpdateSerializer
+from apps.structure.api.v1.filters.position_filter import PositionFilter
+from apps.structure.api.v1.throttles.structure_limits import HierarchyReadThrottle, HierarchyWriteThrottle
+from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanManageDepartment, CanViewOrgChart
 from .base import BaseStructureViewSet
 
 
 class PositionViewSet(BaseStructureViewSet):
-    queryset = Position.objects.select_related('reports_to', 'default_department').all()
+    queryset = Position.objects.select_related('reports_to').all()
     filterset_class = PositionFilter
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['job_code', 'title', 'grade']
@@ -30,12 +28,10 @@ class PositionViewSet(BaseStructureViewSet):
         return PositionSerializer
     
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            self.permission_classes = [CanEditPosition]
-        elif self.action == 'destroy':
-            self.permission_classes = [CanDeletePosition]
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsTenantMember, CanManageDepartment]
         else:
-            self.permission_classes = [CanViewPosition]
+            self.permission_classes = [IsTenantMember, CanViewOrgChart]
         return super().get_permissions()
     
     def get_throttles(self):
@@ -48,21 +44,23 @@ class PositionViewSet(BaseStructureViewSet):
     @action(detail=True, methods=['get'], url_path='incumbents')
     def get_incumbents(self, request, pk=None):
         position = self.get_object()
-        from ....models.employment import Employment
+        from apps.structure.models.employment import Employment
         incumbents = Employment.objects.filter(
             position_id=position.id,
             tenant_id=position.tenant_id,
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('user')
+        ).select_related('position')
         incumbent_data = []
         for incumbent in incumbents:
             incumbent_data.append({
                 'user_id': str(incumbent.user_id),
                 'employment_id': str(incumbent.id),
                 'effective_from': incumbent.effective_from,
-                'is_manager': incumbent.is_manager
+                'is_manager': incumbent.is_manager,
+                'unit': incumbent.unit.name if incumbent.unit else None,
+                'department': incumbent.department.name if incumbent.department else None
             })
         return Response({
             'position_id': str(position.id),
@@ -91,7 +89,8 @@ class PositionViewSet(BaseStructureViewSet):
         positions = Position.objects.filter(
             tenant_id=tenant_id,
             is_deleted=False,
-            current_incumbents_count=0
+            current_incumbents_count=0,
+            is_active=True
         )
         serializer = PositionSerializer(positions, many=True, context={'request': request})
         return Response({
@@ -101,19 +100,15 @@ class PositionViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='reporting-chain/(?P<position_id>[0-9a-f-]+)')
     def get_reporting_chain(self, request, position_id=None):
-        from ....managers.position import PositionManager
+        from apps.structure.managers.position import PositionManager
         tenant_id = request.user.tenant_id
         manager = PositionManager()
-        chain_up = manager.get_reporting_chain_up(UUID(position_id), tenant_id)
-        chain_down = manager.get_reporting_chain_down(UUID(position_id), tenant_id, max_depth=5)
+        chain_up = manager.get_reporting_chain(position_id)
         chain_up_serializer = PositionSerializer(chain_up, many=True, context={'request': request})
-        chain_down_serializer = PositionSerializer(chain_down, many=True, context={'request': request})
         return Response({
             'position_id': position_id,
             'managers_above': chain_up_serializer.data,
-            'subordinates_below': chain_down_serializer.data,
-            'level_above_count': len(chain_up),
-            'level_below_count': len(chain_down)
+            'level_above_count': len(chain_up)
         })
     
     @action(detail=False, methods=['get'], url_path='stats')

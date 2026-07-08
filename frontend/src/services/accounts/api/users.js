@@ -44,3 +44,21 @@ export const getUserMFADevices = (userId) =>
 
 export const getUserPreferences = (userId) =>
   request.get(USER_NESTED_ENDPOINTS.PREFERENCES(userId));
+
+// ============ ADD MISSING EXPORTS ============
+
+export const getInvitations = () => request.get(USER_ENDPOINTS.INVITATIONS);
+
+export const sendInvitation = (data) => request.post(USER_ENDPOINTS.INVITATIONS, data);
+
+export const bulkImportUsers = (formData) => {
+    return request.post('/users/bulk_import/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};
+
+export const bulkExportUsers = () => {
+    return request.get('/users/bulk_export/', { responseType: 'blob' });
+};
+
+export const verifyUser = (id) => request.post(USER_ENDPOINTS.VERIFY(id));

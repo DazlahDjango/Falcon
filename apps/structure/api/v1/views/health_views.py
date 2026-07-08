@@ -5,21 +5,26 @@ from django.db import connection, models
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
-from ..throttles.structure_limits import HierarchyReadThrottle
-from ..permissions.structure_permissions import CanViewHierarchy
-from ....models import Department, Team, Employment, Position, ReportingLine, CostCenter, Location
+from apps.structure.api.v1.throttles.structure_limits import HierarchyReadThrottle
+from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanViewOrgChart
+from apps.structure.models.organizational_unit import OrganizationalUnit
+from apps.structure.models.employment import Employment
+from apps.structure.models.position import Position
+from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.cost_center import CostCenter
+from apps.structure.models.location import Location
 from .base import BaseStructureReadOnlyViewSet
 
 class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
-    permission_classes = [CanViewHierarchy]
+    permission_classes = [IsTenantMember, CanViewOrgChart]
     throttle_classes = [HierarchyReadThrottle]
+    
     @action(detail=False, methods=['get'], url_path='database')
     def database_health(self, request):
         try:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
                 cursor.fetchone()
-            # Check structure tables exist
             table_check = """
                 SELECT COUNT(*) FROM information_schema.tables 
                 WHERE table_name LIKE 'structure_%' AND table_schema = 'public'
@@ -67,23 +72,29 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
     def services_health(self, request):
         services_status = {}
         try:
-            from ....services.hierarchy.tree_builder import TreeBuilder
+            from apps.structure.services.hierarchy.tree_builder import TreeBuilder
             TreeBuilder()
             services_status['hierarchy_service'] = 'healthy'
         except Exception as e:
             services_status['hierarchy_service'] = f'unhealthy: {str(e)}'
         try:
-            from ....services.reporting.chain_service import ReportingChainService
-            ReportingChainService()
+            from apps.structure.services.reporting.chain_service import ChainService
+            ChainService()
             services_status['reporting_service'] = 'healthy'
         except Exception as e:
             services_status['reporting_service'] = f'unhealthy: {str(e)}'
         try:
-            from ....services.security.hierarchy_access import HierarchyAccessEnforcer
+            from apps.structure.services.security.hierarchy_access import HierarchyAccessEnforcer
             HierarchyAccessEnforcer()
             services_status['security_service'] = 'healthy'
         except Exception as e:
             services_status['security_service'] = f'unhealthy: {str(e)}'
+        try:
+            from apps.structure.services.reporting.interim_manager import InterimManagerService
+            InterimManagerService()
+            services_status['interim_service'] = 'healthy'
+        except Exception as e:
+            services_status['interim_service'] = f'unhealthy: {str(e)}'
         overall = 'healthy' if all('healthy' in str(v) for v in services_status.values()) else 'degraded'
         return Response({
             'status': overall,
@@ -92,14 +103,14 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='admin')
     def admin_health(self, request):
-        tenant_id = getattr(request.user, 'tenant_id', None) if hasattr(request.user, 'tenant_id') else None
+        tenant_id = request.user.tenant_id
         anomalies = []
-        depts_no_path = Department.objects.filter(tenant_id=tenant_id, is_deleted=False, path__isnull=True).count()
-        if depts_no_path > 0:
-            anomalies.append(f"{depts_no_path} departments missing path")
-        orphaned_teams = Team.objects.filter(tenant_id=tenant_id, is_deleted=False, department__isnull=True).count()
-        if orphaned_teams > 0:
-            anomalies.append(f"{orphaned_teams} teams without department")
+        units_no_path = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False, path__isnull=True).count()
+        if units_no_path > 0:
+            anomalies.append(f"{units_no_path} organizational units missing path")
+        orphaned_units = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False, parent__isnull=False).exclude(parent__is_deleted=False).count()
+        if orphaned_units > 0:
+            anomalies.append(f"{orphaned_units} units with deleted parent")
         dup_employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False).values('user_id').annotate(count=models.Count('id')).filter(count__gt=1).count()
         if dup_employments > 0:
             anomalies.append(f"{dup_employments} users have multiple current employments")
@@ -111,14 +122,14 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
         if orphaned_reporting > 0:
             anomalies.append(f"{orphaned_reporting} orphaned reporting lines")
         return Response({
-            'tenant_id': str(tenant_id) if tenant_id else None,
+            'tenant_id': str(tenant_id),
             'status': 'healthy' if len(anomalies) == 0 else 'has_warnings',
             'anomalies': anomalies,
             'anomaly_count': len(anomalies),
             'recommendations': [
                 "Run repair scripts for any anomalies found",
                 "Schedule regular integrity checks",
-                "Review department hierarchy periodically"
+                "Review organization hierarchy periodically"
             ] if anomalies else []
         })
     
@@ -129,8 +140,11 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
             'tenant_id': str(tenant_id),
             'timestamp': timezone.now().isoformat(),
             'counts': {
-                'departments': Department.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
-                'teams': Team.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
+                'organizational_units': OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
+                'divisions': OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='division', is_deleted=False).count(),
+                'departments': OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='department', is_deleted=False).count(),
+                'sections': OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='section', is_deleted=False).count(),
+                'units': OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='unit', is_deleted=False).count(),
                 'employments': Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
                 'current_employments': Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False).count(),
                 'positions': Position.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
@@ -140,13 +154,13 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
                 'locations': Location.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
             },
             'ratios': {
-                'avg_teams_per_department': self._safe_division(
-                    Team.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
-                    Department.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
+                'avg_units_per_department': self._safe_division(
+                    OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='unit', is_deleted=False).count(),
+                    OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='department', is_deleted=False).count()
                 ),
-                'avg_employees_per_team': self._safe_division(
+                'avg_employees_per_unit': self._safe_division(
                     Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False).count(),
-                    Team.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count()
+                    OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='unit', is_deleted=False, is_active=True).count()
                 ),
                 'reporting_line_activation_rate': self._safe_division(
                     ReportingLine.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count(),

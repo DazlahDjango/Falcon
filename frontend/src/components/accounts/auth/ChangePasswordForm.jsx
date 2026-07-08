@@ -63,6 +63,11 @@ export const ChangePasswordForm = ({ onSuccess }) => {
 
   return (
     <div className="change-password-container">
+      <div className="change-password-header">
+        <h2 className="change-password-title">Change Password</h2>
+        <p className="change-password-subtitle">Update your account password to keep your account secure.</p>
+      </div>
+
       {success && (
         <div className="auth-alert success">
           <FiCheckCircle className="alert-icon" />

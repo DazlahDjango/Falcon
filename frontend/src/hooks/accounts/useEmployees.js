@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectEmployments, selectEmploymentsLoading } from '../../store/structure';
+import { fetchEmployments } from '../../store/structure/slice/employmentSlice';
 import { selectUsersTotal, selectUsersLoading } from '../../store/accounts';
 import { fetchUsers } from '../../store/accounts/slice/userSlice';
-import { fetchEmployments, selectEmployments, selectEmploymentsLoading } from '../../store/structure';
 
 export const useEmployees = () => {
   const dispatch = useDispatch();
   const users = useSelector(selectUsersTotal) || [];
   const usersLoading = useSelector(selectUsersLoading);
+  
   
   const employments = useSelector(selectEmployments) || [];
   const employmentsLoading = useSelector(selectEmploymentsLoading);

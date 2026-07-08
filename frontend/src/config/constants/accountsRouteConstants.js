@@ -150,6 +150,21 @@ export const ACCOUNTS_ROUTES = {
     // ============================================
     INVITATIONS: '/invitations',
     INVITATION_ACCEPT: '/invitation/accept',
+    
+    // Reports
+    REPORTS: '/reports',
+    REPORT_USER_DIRECTORY: '/reports/user-directory',
+    REPORT_ROLE_DISTRIBUTION: '/reports/role-distribution',
+    REPORT_DEPARTMENT_DISTRIBUTION: '/reports/department-distribution',
+    REPORT_INACTIVE_USERS: '/reports/inactive-users',
+    REPORT_RECENTLY_ADDED: '/reports/recently-added',
+    REPORT_ACTIVITY_SUMMARY: '/reports/activity-summary',
+    REPORT_AUDIT_TRAIL: '/reports/audit-trail',
+    REPORT_LOGIN_ACTIVITY: '/reports/login-activity',
+    REPORT_PASSWORD_CHANGES: '/reports/password-changes',
+    REPORT_ROLE_CHANGES: '/reports/role-changes',
+    REPORT_SUSPENSION_LOG: '/reports/suspension-log',
+    REPORT_COMPLIANCE_SUMMARY: '/reports/compliance-summary',
 };
 
 // ============================================

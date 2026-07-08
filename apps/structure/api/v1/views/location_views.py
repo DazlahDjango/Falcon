@@ -3,16 +3,16 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import models
-from ....models import Location
-from ..serializers.location import LocationSerializer, LocationDetailSerializer, LocationCreateUpdateSerializer
-from ..filters.location_filter import LocationFilter
-from ..throttles.structure_limits import HierarchyReadThrottle, HierarchyWriteThrottle
-from ..permissions.structure_permissions import CanViewDepartment, CanEditDepartment
+from apps.structure.models.location import Location
+from apps.structure.api.v1.serializers.location import LocationSerializer, LocationDetailSerializer, LocationCreateUpdateSerializer
+from apps.structure.api.v1.filters.location_filter import LocationFilter
+from apps.structure.api.v1.throttles.structure_limits import HierarchyReadThrottle, HierarchyWriteThrottle
+from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanManageDepartment, CanViewOrgChart
 from .base import BaseStructureViewSet
 
 
 class LocationViewSet(BaseStructureViewSet):
-    queryset = Location.objects.select_related('parent').all()
+    queryset = Location.objects.select_related('organizational_unit', 'parent').all()
     filterset_class = LocationFilter
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['code', 'name', 'city', 'country']
@@ -28,9 +28,9 @@ class LocationViewSet(BaseStructureViewSet):
     
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            self.permission_classes = [CanEditDepartment]
+            self.permission_classes = [IsTenantMember, CanManageDepartment]
         else:
-            self.permission_classes = [CanViewDepartment]
+            self.permission_classes = [IsTenantMember, CanViewOrgChart]
         return super().get_permissions()
     
     def get_throttles(self):
@@ -57,10 +57,31 @@ class LocationViewSet(BaseStructureViewSet):
             tenant_id=tenant_id,
             is_deleted=False,
             is_active=True
-        ).select_related('parent')
+        ).select_related('organizational_unit', 'parent')
         serializer = LocationSerializer(locations, many=True, context={'request': request})
         return Response({
             'country': country,
+            'locations': serializer.data,
+            'count': locations.count()
+        })
+    
+    @action(detail=False, methods=['get'], url_path='by-org-unit/(?P<org_unit_id>[0-9a-f-]+)')
+    def get_by_org_unit(self, request, org_unit_id=None):
+        from uuid import UUID
+        tenant_id = request.user.tenant_id
+        try:
+            org_unit_id = UUID(org_unit_id)
+        except ValueError:
+            return Response({'error': 'Invalid organization unit ID'}, status=status.HTTP_400_BAD_REQUEST)
+        locations = Location.objects.filter(
+            organizational_unit_id=org_unit_id,
+            tenant_id=tenant_id,
+            is_deleted=False,
+            is_active=True
+        ).select_related('organizational_unit', 'parent')
+        serializer = LocationSerializer(locations, many=True, context={'request': request})
+        return Response({
+            'organizational_unit_id': str(org_unit_id),
             'locations': serializer.data,
             'count': locations.count()
         })
@@ -111,7 +132,7 @@ class LocationViewSet(BaseStructureViewSet):
     @action(detail=True, methods=['get'], url_path='sub-locations')
     def get_sub_locations(self, request, pk=None):
         location = self.get_object()
-        children = location.sub_locations.filter(is_deleted=False)
+        children = location.sub_locations.filter(is_deleted=False, is_active=True)
         serializer = LocationSerializer(children, many=True, context={'request': request})
         return Response({
             'parent_id': str(location.id),

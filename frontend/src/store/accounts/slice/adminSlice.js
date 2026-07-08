@@ -51,25 +51,15 @@ export const fetchAdminUsers = createAsyncThunk(
         ...params,
       };
 
-      console.log('[fetchAdminUsers] Calling getAdminUsers with params:', queryParams);
       const response = await adminApi.getAdminUsers(queryParams);
 
-      console.log('[fetchAdminUsers] RAW RESPONSE:', response);
-      console.log('[fetchAdminUsers] RESPONSE DATA:', response?.data);
-      console.log('[fetchAdminUsers] RESPONSE STATUS:', response?.status);
-
-      // ✅ Check if response is successful
       if (response?.status === 200) {
-        console.log('[fetchAdminUsers] ✅ Success! Returning data');
         return response.data;
       } else {
-        console.error('[fetchAdminUsers] ❌ Response status not 200:', response?.status);
         return rejectWithValue(`Failed with status: ${response?.status}`);
       }
 
     } catch (error) {
-      console.error('[fetchAdminUsers] ❌ CATCH ERROR:', error);
-      console.error('[fetchAdminUsers] Error response:', error.response);
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin users');
     }
   }
@@ -143,6 +133,18 @@ export const forcePasswordReset = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || 'Failed to force password reset');
+    }
+  }
+);
+
+export const verifyAdminUser = createAsyncThunk(
+  'admin/verifyAdminUser',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.verifyAdminUser(id);
+      return { id, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to verify admin user');
     }
   }
 );
@@ -654,6 +656,15 @@ const adminSlice = createSlice({
       .addCase(deleteAdminUser.rejected, (state, action) => {
         state.isDeleting = false;
         state.error = action.payload;
+      })
+      .addCase(verifyAdminUser.fulfilled, (state, action) => {
+        const index = state.users.findIndex(u => u.id === action.payload.id);
+        if (index !== -1) {
+          state.users[index] = { ...state.users[index], is_verified: true };
+        }
+        if (state.selectedAdminUser?.id === action.payload.id) {
+          state.selectedAdminUser = { ...state.selectedAdminUser, is_verified: true };
+        }
       })
 
       // ============ ROLE MANAGEMENT ============

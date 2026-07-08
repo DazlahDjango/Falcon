@@ -39,14 +39,15 @@ import {
   clearUserCache,
   clearTenantCache,
   // ============ END NEW ============
-  setAdminFilters,
-  setAdminPage,
-  setAdminPageSize,
   clearSelectedAdminUser,
   clearSelectedAdminRole,
   clearSelectedAdminPermission,
   clearSelectedAdminTenant,
   clearAdminError,
+  verifyAdminUser,
+  setAdminFilters,
+  setAdminPage,
+  setAdminPageSize,
 } from '../../store/accounts/slice/adminSlice';
 import {
   activateUser as activateAdminUser,
@@ -158,6 +159,14 @@ export const useAdmin = () => {
   const forceReset = useCallback(
     async (id) => {
       const result = await dispatch(forcePasswordReset(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  const verifyUser = useCallback(
+    async (id) => {
+      const result = await dispatch(verifyAdminUser(id)).unwrap();
       return result;
     },
     [dispatch]
@@ -512,6 +521,7 @@ export const useAdmin = () => {
       clearError,
       impersonateUser: impersonate,
       forcePasswordReset: forceReset,
+      verifyUser,
     }),
     [
       users,
@@ -544,6 +554,7 @@ export const useAdmin = () => {
       deactivateUser,
       impersonate,
       forceReset,
+      verifyUser,
       getUserStats,
       getRoles,
       getRole,

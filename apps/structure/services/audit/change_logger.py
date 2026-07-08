@@ -58,8 +58,24 @@ class ChangeLoggerService:
             }
             cache.set(cache_key, pending_log, 3600)
     
+    def log_org_unit_change(self, tenant_id: UUID, user_id: UUID, unit_id: UUID, action: str, changes: Dict[str, Any], **kwargs) -> None:
+        from apps.structure.models.organizational_unit import OrganizationalUnit
+        unit = OrganizationalUnit.objects.filter(id=unit_id).first()
+        unit_repr = f"{unit.code} - {unit.name}" if unit else str(unit_id)
+        self.log_change(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            action=action,
+            model_name='structure.OrganizationalUnit',
+            object_id=str(unit_id),
+            object_repr=unit_repr,
+            changes=changes,
+            ip_address=kwargs.get('ip_address'),
+            user_agent=kwargs.get('user_agent')
+        )
+    
     def log_department_change(self, tenant_id: UUID, user_id: UUID, department_id: UUID, action: str, changes: Dict[str, Any], **kwargs) -> None:
-        from ...models.department import Department
+        from apps.structure.models.department import Department
         dept = Department.objects.filter(id=department_id).first()
         dept_repr = f"{dept.code} - {dept.name}" if dept else str(department_id)
         self.log_change(
@@ -69,22 +85,6 @@ class ChangeLoggerService:
             model_name='structure.Department',
             object_id=str(department_id),
             object_repr=dept_repr,
-            changes=changes,
-            ip_address=kwargs.get('ip_address'),
-            user_agent=kwargs.get('user_agent')
-        )
-    
-    def log_team_change(self, tenant_id: UUID, user_id: UUID, team_id: UUID, action: str, changes: Dict[str, Any], **kwargs) -> None:
-        from ...models.team import Team
-        team = Team.objects.filter(id=team_id).first()
-        team_repr = f"{team.code} - {team.name}" if team else str(team_id)
-        self.log_change(
-            tenant_id=tenant_id,
-            user_id=user_id,
-            action=action,
-            model_name='structure.Team',
-            object_id=str(team_id),
-            object_repr=team_repr,
             changes=changes,
             ip_address=kwargs.get('ip_address'),
             user_agent=kwargs.get('user_agent')

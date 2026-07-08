@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiUsers,
   FiPlus,
   FiSearch,
-  FiFilter,
   FiGrid,
   FiList,
   FiChevronLeft,
   FiChevronRight,
   FiRefreshCw,
   FiUserPlus,
+  FiDownload,
 } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 import { useUsers } from '../../../hooks/accounts/useUsers';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 import { usePagination } from '../../../hooks/accounts/usePagination';
@@ -35,11 +36,43 @@ export const UserList = () => {
     setPage,
     setPageSize,
     clearError,
+    importUsers,
+    exportUsers,
   } = useUsers();
 
   const [viewMode, setViewMode] = useState('table');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const fileInputRef = useRef(null);
+
+  const handleExport = async () => {
+    try {
+      toast.loading('Exporting users...', { id: 'export-toast' });
+      await exportUsers();
+      toast.success('Users exported successfully!', { id: 'export-toast' });
+    } catch (err) {
+      toast.error('Failed to export users', { id: 'export-toast' });
+    }
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      toast.loading('Importing users...', { id: 'import-toast' });
+      const result = await importUsers(formData);
+      toast.success('Users imported successfully!', { id: 'import-toast' });
+      handleRefresh();
+    } catch (err) {
+      toast.error(err || 'Failed to import users', { id: 'import-toast' });
+    } finally {
+      e.target.value = '';
+    }
+  };
 
   const pagination = usePagination({
     initialPage: storePagination.page || 1,
@@ -97,12 +130,33 @@ export const UserList = () => {
         </div>
         <div className="user-list-actions">
           {canInvite && (
-            <button
-              className="btn-primary"
-              onClick={() => setShowInviteModal(true)}
-            >
-              <FiUserPlus /> Invite User
-            </button>
+            <>
+              <button
+                className="btn-primary"
+                onClick={() => setShowInviteModal(true)}
+              >
+                <FiUserPlus /> Invite User
+              </button>
+              <button
+                className="btn-secondary flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FiPlus /> Import CSV
+              </button>
+              <button
+                className="btn-secondary flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300"
+                onClick={handleExport}
+              >
+                <FiDownload /> Export CSV
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImport}
+                accept=".csv"
+                style={{ display: 'none' }}
+              />
+            </>
           )}
           <button className="btn-icon" onClick={handleRefresh}>
             <FiRefreshCw className={isLoading ? 'spinning' : ''} />

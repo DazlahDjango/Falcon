@@ -1,9 +1,13 @@
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-
 class StructureException(Exception):
     pass
+
+class ReportingChainError(StructureException):
+    """Base exception for reporting chain errors."""
+    def __init__(self, message=None):
+        super().__init__(message or _("Reporting chain error occurred."))
 
 class HierarchyCycleError(StructureException, ValidationError):
     def __init__(self, message=None, cycle_path=None):
@@ -41,11 +45,10 @@ class EmploymentActiveError(StructureException, ValidationError):
         super().__init__(_("User {user} already has an active employment.").format(user=user_id))
 
 class ReportingCycleExistsError(StructureException, ValidationError):
-    def __init__(self, employee_id, manager_id, relation_type):
+    def __init__(self, employee_id, manager_id):
         self.employee_id = employee_id
         self.manager_id = manager_id
-        self.relation_type = relation_type
-        super().__init__(_("Reporting relationship {employee} -> {manager} ({type}) already exists.").format(employee=employee_id, manager=manager_id, type=relation_type))
+        super().__init__(_("Reporting relationship {employee} -> {manager} already exists.").format(employee=employee_id, manager=manager_id))
 
 class SelfReportingError(StructureException, ValidationError):
     def __init__(self):
@@ -64,11 +67,6 @@ class InvalidDateRangeError(StructureException, ValidationError):
         self.to_date = to_date
         super().__init__(_("Start date {from_date} cannot be after end date {to_date}.").format(from_date=from_date, to_date=to_date))
 
-class InvalidReportingWeightError(StructureException, ValidationError):
-    def __init__(self, weight):
-        self.weight = weight
-        super().__init__(_("Reporting weight {weight} must be between 0 and 1.").format(weight=weight))
-
 class BudgetExceededError(StructureException, ValidationError):
     def __init__(self, cost_center_code, requested, available):
         self.cost_center_code = cost_center_code
@@ -77,11 +75,11 @@ class BudgetExceededError(StructureException, ValidationError):
         super().__init__(_("Budget exceeded for cost center {code}. Requested: {req}, Available: {avail}.").format(code=cost_center_code, req=requested, avail=available))
 
 class HeadcountLimitExceededError(StructureException):
-    def __init__(self, department_code, limit, current):
-        self.department_code = department_code
+    def __init__(self, unit_code, limit, current):
+        self.unit_code = unit_code
         self.limit = limit
         self.current = current
-        super().__init__(_("Headcount limit {limit} exceeded for department {dept}. Current: {current}.").format(limit=limit, dept=department_code, current=current))
+        super().__init__(_("Headcount limit {limit} exceeded for unit {unit}. Current: {current}.").format(limit=limit, unit=unit_code, current=current))
 
 class InvalidHierarchyOperationError(StructureException):
     def __init__(self, operation, reason):
@@ -98,3 +96,17 @@ class SnapshotHashCollisionError(StructureException):
     def __init__(self, snapshot_hash):
         self.snapshot_hash = snapshot_hash
         super().__init__(_("Snapshot hash collision detected: {hash}.").format(hash=snapshot_hash))
+
+class InvalidLevelError(StructureException):
+    def __init__(self, level):
+        self.level = level
+        super().__init__(_("Invalid organization level: {level}.").format(level=level))
+
+class InterimAssignmentError(StructureException):
+    def __init__(self, message):
+        super().__init__(message)
+
+class EmploymentNotFoundError(StructureException):
+    def __init__(self, user_id):
+        self.user_id = user_id
+        super().__init__(_("Employment not found for user: {user}.").format(user=user_id))

@@ -1,58 +1,45 @@
 import { BaseStructureService, withRetry } from './base.service';
+import { COST_CENTER_ENDPOINTS } from '../../config/constants/structureApiConstants';
 
-export class CostCenterService extends BaseStructureService {
+class CostCenterService extends BaseStructureService {
   constructor() {
     super('cost-centers');
   }
 
   async getByCode(code) {
     if (!code) throw new Error('Cost center code is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(`/cost-centers/by-code/${code}/`);
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(COST_CENTER_ENDPOINTS.BY_CODE(code)));
   }
 
   async getByFiscalYear(year) {
     if (!year) throw new Error('Fiscal year is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(`/cost-centers/by-fiscal-year/${year}/`);
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(COST_CENTER_ENDPOINTS.BY_FISCAL_YEAR(year)));
+  }
+
+  async getByOrgUnit(orgUnitId) {
+    if (!orgUnitId) throw new Error('Organization unit ID is required');
+    return withRetry(() => this.apiClient.get(COST_CENTER_ENDPOINTS.BY_ORG_UNIT(orgUnitId)));
+  }
+
+  async getByLevel(level) {
+    if (!level) throw new Error('Level is required');
+    return withRetry(() => this.apiClient.get(COST_CENTER_ENDPOINTS.BY_LEVEL(level)));
+  }
+
+  async getStats() {
+    return withRetry(() => this.apiClient.get(COST_CENTER_ENDPOINTS.STATS));
   }
 
   async getChildren(id) {
-    if (!id) throw new Error('Cost center ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(this.getEndpoint(`${id}/children/`));
-      return response;
-    });
-  }
-  
-  async getTree(includeInactive = false) {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/cost-centers/tree/', {
-        params: { include_inactive: includeInactive },
-      });
-      return response;
-    });
-  }
-  
-  async getBudgetUtilization(id) {
-    if (!id) throw new Error('Cost center ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(this.getEndpoint(`${id}/budget-utilization/`));
-      return response;
-    });
+    if (!id) throw new Error('ID is required');
+    return withRetry(() => this.apiClient.get(COST_CENTER_ENDPOINTS.CHILDREN(id)));
   }
 
-  async validate(data) {
-    if (!data) throw new Error('Data is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post('/cost-centers/validate/', data);
-      return response;
-    });
+  async getUtilization(id) {
+    if (!id) throw new Error('ID is required');
+    return withRetry(() => this.apiClient.get(COST_CENTER_ENDPOINTS.UTILIZATION(id)));
   }
 }
 
 export const costCenterService = new CostCenterService();
+export { CostCenterService };

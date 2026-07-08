@@ -1,5 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from apps.structure.enums.org_level import OrgLevel
+from apps.structure.enums.reporting_type import ReportingType
+from apps.structure.enums.assignment_status import AssignmentStatus
 
 class DepartmentSensitivity(models.TextChoices):
     PUBLIC = 'public', _('Public')
@@ -14,13 +17,6 @@ class EmploymentType(models.TextChoices):
     INTERN = 'intern', _('Intern')
     CONSULTANT = 'consultant', _('Consultant')
     TEMPORARY = 'temporary', _('Temporary')
-
-class ReportingRelationType(models.TextChoices):
-    SOLID = 'solid', _('Solid Line (Direct Manager)')
-    DOTTED = 'dotted', _('Dotted Line (Functional Lead)')
-    INTERIM = 'interim', _('Interim/Temporary')
-    PROJECT = 'project', _('Project-Based')
-    MATRIX = 'matrix', _('Matrix Manager')
 
 class CostCenterCategory(models.TextChoices):
     OPERATIONAL = 'operational', _('Operational')
@@ -51,19 +47,36 @@ class EmploymentStatus(models.TextChoices):
     RESIGNED = 'resigned', _('Resigned')
     ON_LEAVE = 'on_leave', _('On Leave')
 
-# Default values
-DEFAULT_MAX_HIERARCHY_DEPTH = 20
+MAX_ORG_DEPTH = 4
+VALID_LEVELS = [OrgLevel.DIVISION, OrgLevel.DEPARTMENT, OrgLevel.SECTION, OrgLevel.UNIT]
+LEVEL_ORDER = {
+    OrgLevel.DIVISION: 1,
+    OrgLevel.DEPARTMENT: 2,
+    OrgLevel.SECTION: 3,
+    OrgLevel.UNIT: 4,
+}
+PARENT_LEVEL_MAP = {
+    OrgLevel.DIVISION: None,
+    OrgLevel.DEPARTMENT: OrgLevel.DIVISION,
+    OrgLevel.SECTION: OrgLevel.DEPARTMENT,
+    OrgLevel.UNIT: OrgLevel.SECTION,
+}
+CHILD_LEVEL_MAP = {
+    OrgLevel.DIVISION: OrgLevel.DEPARTMENT,
+    OrgLevel.DEPARTMENT: OrgLevel.SECTION,
+    OrgLevel.SECTION: OrgLevel.UNIT,
+    OrgLevel.UNIT: None,
+}
+
+DEFAULT_MAX_HIERARCHY_DEPTH = 4
 DEFAULT_MAX_DIRECT_REPORTS = 50
 DEFAULT_HEADCOUNT_LIMIT = 1000
 DEFAULT_BUDGET_AMOUNT = 0.00
 DEFAULT_ALLOCATION_PERCENTAGE = 100.00
-DEFAULT_REPORTING_WEIGHT = 1.00
 DEFAULT_MAX_CACHE_TTL_SECONDS = 3600
 DEFAULT_HIERARCHY_VERSION_KEEP_COUNT = 10
 DEFAULT_MANAGEMENT_CHAIN_MAX_DEPTH = 10
-DEFAULT_TEAM_MAX_MEMBERS = 100
 
-# Error messages
 ERROR_CIRCULAR_REFERENCE = _("Cannot create circular reference in hierarchy.")
 ERROR_SELF_PARENT = _("Cannot set an object as its own parent.")
 ERROR_TENANT_MISMATCH = _("Related object must belong to the same tenant.")
@@ -74,14 +87,12 @@ ERROR_MAX_INCUMBENTS_EXCEEDED = _("Maximum incumbents for this position has been
 ERROR_EMPLOYMENT_ACTIVE = _("User already has an active employment.")
 ERROR_REPORTING_CYCLE = _("Reporting cycle already exists for this relationship.")
 ERROR_DELETE_WITH_CHILDREN = _("Cannot delete object with existing children.")
-ERROR_INVALID_WEIGHT = _("Reporting weight must be between 0 and 1.")
 ERROR_BUDGET_EXCEEDED = _("Budget allocation exceeds available budget.")
+ERROR_INVALID_LEVEL = _("Invalid organization level.")
 
-# Cache keys
 CACHE_KEY_DEPARTMENT_TREE = "structure:dept_tree:{tenant_id}"
-CACHE_KEY_TEAM_TREE = "structure:team_tree:{tenant_id}:{department_id}"
+CACHE_KEY_ORG_TREE = "structure:org_tree:{tenant_id}"
 CACHE_KEY_REPORTING_CHAIN_UP = "structure:reporting_up:{tenant_id}:{user_id}"
 CACHE_KEY_REPORTING_CHAIN_DOWN = "structure:reporting_down:{tenant_id}:{user_id}"
 CACHE_KEY_EMPLOYMENT_CURRENT = "structure:employment:{tenant_id}:{user_id}"
 CACHE_KEY_MANAGER_OF = "structure:manager_of:{tenant_id}:{manager_id}:{employee_id}"
-CACHE_KEY_ORG_TREE = "structure:org_tree:{tenant_id}"

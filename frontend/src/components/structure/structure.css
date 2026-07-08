@@ -1,0 +1,165 @@
+/* ============================================
+   STRUCTURE APP - MAIN CSS
+   ============================================
+   This file imports all component styles   ============================================ */
+
+/* Common Components */
+@import './common/common.css';
+
+/* Entity Components */
+@import './division/division.css';
+@import './department/department.css';
+@import './section/section.css';
+@import './unit/unit.css';
+@import './position/position.css';
+@import './employment/employment.css';
+@import './reporting/reporting.css';
+@import './interim/interim.css';
+@import './costcenter/costcenter.css';
+@import './location/location.css';
+
+/* Feature Components */
+@import './hierarchy/hierarchy.css';
+@import './orgchart/orgchart.css';
+@import './dashboard/dashboard.css';
+@import './settings/settings.css';
+@import './bulk/bulk.css';
+
+/* ============================================
+   ROOT VARIABLES
+   ============================================ */
+:root {
+  /* Colors - Light Theme */
+  --bg-page: #f8fafc;
+  --bg-white: #ffffff;
+  --bg-gray-50: #f8fafc;
+  --bg-gray-100: #f1f5f9;
+  --bg-gray-200: #e5e7eb;
+  --bg-gray-800: #1f2937;
+
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Border Colors */
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+
+  /* Status Colors */
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #eff6ff;
+
+  --success: #10b981;
+  --success-light: #ecfdf5;
+
+  --warning: #f59e0b;
+  --warning-light: #fffbeb;
+
+  --danger: #ef4444;
+  --danger-dark: #dc2626;
+  --danger-light: #fef2f2;
+
+  --info: #06b6d4;
+  --info-light: #ecfeff;
+
+  --secondary: #6b7280;
+  --secondary-light: #f1f5f9;
+}
+
+/* ============================================
+   RESET & BASE STYLES
+   ============================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* ============================================
+   SCROLLBAR STYLES
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-gray-50);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.mt-1 { margin-top: 4px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mt-5 { margin-top: 24px; }
+
+.mb-1 { margin-bottom: 4px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-3 { margin-bottom: 12px; }
+.mb-4 { margin-bottom: 16px; }
+.mb-5 { margin-bottom: 24px; }
+
+.p-1 { padding: 4px; }
+.p-2 { padding: 8px; }
+.p-3 { padding: 12px; }
+.p-4 { padding: 16px; }
+.p-5 { padding: 24px; }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+
+.rounded { border-radius: 8px; }
+.rounded-lg { border-radius: 12px; }
+.rounded-full { border-radius: 50%; }
+
+.shadow { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
+.shadow-lg { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+
+/* ============================================
+   RESPONSIVE HELPERS
+   ============================================ */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop { display: none !important; }
+}

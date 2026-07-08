@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Briefcase } from 'lucide-react';
 
-const PositionSelector = ({ value, onChange, positions, placeholder = 'Select position', className = '' }) => {
+const PositionSelector = ({ value, onChange, positions, placeholder = 'Select position', disabled = false, className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const selectedPosition = positions?.find(p => p.id === value);
@@ -19,8 +19,9 @@ const PositionSelector = ({ value, onChange, positions, placeholder = 'Select po
     <div className={`relative ${className}`}>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
       >
         <div className="flex items-center gap-2">
           <Briefcase size={14} className="text-gray-400" />
@@ -30,7 +31,7 @@ const PositionSelector = ({ value, onChange, positions, placeholder = 'Select po
         </div>
         <ChevronDown size={16} className="text-gray-400" />
       </button>
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
           <div className="p-2 border-b">
             <input

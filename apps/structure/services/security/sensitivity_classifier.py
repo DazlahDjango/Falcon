@@ -1,10 +1,8 @@
 from typing import Optional, List, Dict, Any
 from uuid import UUID
-from django.core.cache import cache
-from ...models.employment import Employment
-from ...models.reporting_line import ReportingLine
-from ...constants import DEFAULT_MAX_CACHE_TTL_SECONDS
-from .hierarchy_access import HierarchyAccessEnforcer
+from apps.structure.models.employment import Employment
+from apps.structure.models.department import Department
+from apps.structure.models.position import Position
 
 class SensitivityClassifierService:
     SENSITIVITY_LEVELS = {
@@ -15,19 +13,31 @@ class SensitivityClassifierService:
     }
     
     @staticmethod
-    def classify_department(department) -> str:
+    def classify_org_unit(org_unit) -> str:
+        if not org_unit:
+            return 'public'
+        if hasattr(org_unit, 'sensitivity_level') and org_unit.sensitivity_level:
+            return org_unit.sensitivity_level
+        if org_unit.name.lower() in ['hr', 'human resources', 'finance', 'legal', 'audit']:
+            return 'confidential'
+        if org_unit.name.lower() in ['executive', 'board', 'ceo', 'president']:
+            return 'restricted'
+        return 'internal'
+    
+    @staticmethod
+    def classify_department(department: Department) -> str:
         if not department:
             return 'public'
         if department.sensitivity_level:
             return department.sensitivity_level
-        if department.name.lower() in ['hr', 'human resources', 'finance', 'legal']:
+        if department.name.lower() in ['hr', 'human resources', 'finance', 'legal', 'audit']:
             return 'confidential'
         if department.name.lower() in ['executive', 'board', 'ceo']:
             return 'restricted'
         return 'internal'
     
     @staticmethod
-    def classify_position(position) -> str:
+    def classify_position(position: Position) -> str:
         if not position:
             return 'public'
         if position.level <= 3:
@@ -39,7 +49,7 @@ class SensitivityClassifierService:
         return 'public'
     
     @staticmethod
-    def classify_user_data(user_employment) -> str:
+    def classify_user_data(user_employment: Employment) -> str:
         if not user_employment:
             return 'public'
         if user_employment.is_executive or user_employment.is_board_member:
@@ -54,7 +64,6 @@ class SensitivityClassifierService:
     def can_access_sensitivity(user_clearance: str, data_sensitivity: str) -> bool:
         user_level = SensitivityClassifierService.SENSITIVITY_LEVELS.get(user_clearance, 0)
         data_level = SensitivityClassifierService.SENSITIVITY_LEVELS.get(data_sensitivity, 0)
-        
         return user_level >= data_level
     
     @staticmethod
@@ -65,7 +74,8 @@ class SensitivityClassifierService:
             'salary_report': 'confidential',
             'performance_reviews': 'confidential',
             'board_report': 'restricted',
-            'pip_documents': 'restricted'
+            'pip_documents': 'restricted',
+            'org_structure': 'internal',
+            'reporting_chain': 'internal'
         }
-        
         return export_requirements.get(data_type, 'internal')

@@ -3,7 +3,7 @@ from typing import List, Dict
 from django.db.models import Sum, Avg, Q, Count
 from django.db import transaction
 from apps.kpi.models import AggregatedScore, Score, KPIWeight, TrafficLight, MonthlyActual
-from apps.structure.models import Team, Department, ReportingLine
+from apps.structure.models import Unit, Department, ReportingLine  # Changed Team to Unit
 from .formulas import WeightedAverageFormula
 
 class IndividualAggregator:
@@ -45,6 +45,7 @@ class IndividualAggregator:
                 }
             )
         return aggregated_score
+    
     def _get_scores_with_weights(self, user_id: str, year: int, month: int) -> List[Dict]:
         """Get scores with their weights."""
         scores = Score.objects.filter(
@@ -72,15 +73,16 @@ class IndividualAggregator:
         return result
 
 
-class TeamAggregator:
+class UnitAggregator:  # Changed from TeamAggregator
     def __init__(self):
         self.weighted_avg = WeightedAverageFormula()
-    def aggregate_for_team(self, team_id: str, team_name: str, tenant_id: str, member_ids: List[str], year: int, month: int, force: bool = False) -> Decimal:        
+    
+    def aggregate_for_unit(self, unit_id: str, unit_name: str, tenant_id: str, member_ids: List[str], year: int, month: int, force: bool = False) -> Decimal:
         # Check if already aggregated
         if not force:
             existing = AggregatedScore.objects.filter(
-                level='TEAM',
-                entity_id=team_id,
+                level='UNIT',  # Changed from TEAM
+                entity_id=unit_id,
                 year=year,
                 month=month
             ).first()
@@ -97,32 +99,33 @@ class TeamAggregator:
             return Decimal('0')
         # Calculate average
         scores_list = [s.aggregated_score for s in individual_scores]
-        team_score = sum(scores_list) / len(scores_list)
+        unit_score = sum(scores_list) / len(scores_list)
         # Store aggregated score
         with transaction.atomic():
             AggregatedScore.objects.update_or_create(
                 tenant_id=tenant_id,
-                level='TEAM',
-                entity_id=team_id,
+                level='UNIT',  # Changed from TEAM
+                entity_id=unit_id,
                 year=year,
                 month=month,
                 defaults={
-                    'entity_name': team_name,
-                    'aggregated_score': team_score,
+                    'entity_name': unit_name,
+                    'aggregated_score': unit_score,
                     'member_count': len(member_ids),
                     'kpi_count': individual_scores.aggregate(total=Sum('kpi_count'))['total'] or 0,
                     'calculation_method': 'average'
                 }
             )
-        return team_score
-    def get_team_distribution(self, team_id: str, year: int, month: int) -> Dict[str, any]:
-        team_aggregate = AggregatedScore.objects.filter(
-            level='TEAM',
-            entity_id=team_id,
+        return unit_score
+    
+    def get_unit_distribution(self, unit_id: str, year: int, month: int) -> Dict[str, any]:
+        unit_aggregate = AggregatedScore.objects.filter(
+            level='UNIT',  # Changed from TEAM
+            entity_id=unit_id,
             year=year,
             month=month
         ).first()
-        if not team_aggregate:
+        if not unit_aggregate:
             return {}
         individual_scores = AggregatedScore.objects.filter(
             level='INDIVIDUAL',
@@ -138,28 +141,31 @@ class TeamAggregator:
         for item in traffic_counts:
             distribution[item['status']] = item['count']
         return {
-            'team_score': team_aggregate.aggregated_score,
-            'member_count': team_aggregate.member_count,
+            'unit_score': unit_aggregate.aggregated_score,  # Changed from team_score
+            'member_count': unit_aggregate.member_count,
             'distribution': distribution,
-            'top_performers': self._get_top_performers(team_id, year, month, limit=3),
-            'needs_attention': self._get_needs_attention(team_id, year, month, limit=3)
+            'top_performers': self._get_top_performers(unit_id, year, month, limit=3),
+            'needs_attention': self._get_needs_attention(unit_id, year, month, limit=3)
         }
-    def _get_top_performers(self, team_id: str, year: int, month: int, limit: int = 3) -> List[Dict]:
+    
+    def _get_top_performers(self, unit_id: str, year: int, month: int, limit: int = 3) -> List[Dict]:
         return AggregatedScore.objects.filter(
             level='INDIVIDUAL',
             year=year,
             month=month
         ).order_by('-aggregated_score')[:limit].values('entity_name', 'aggregated_score')
-    def _get_needs_attention(self, team_id: str, year: int, month: int, limit: int = 3) -> List[Dict]:
+    
+    def _get_needs_attention(self, unit_id: str, year: int, month: int, limit: int = 3) -> List[Dict]:
         return AggregatedScore.objects.filter(
             level='INDIVIDUAL',
             year=year,
             month=month,
             aggregated_score__lt=50
         ).order_by('aggregated_score')[:limit].values('entity_name', 'aggregated_score')
-    
+
+
 class DepartmentAggregator:
-    def aggregate_for_department(self, dept_id: str, dept_name: str, tenant_id: str, team_ids: List[str], year: int, month: int, force: bool = False) -> Decimal:
+    def aggregate_for_department(self, dept_id: str, dept_name: str, tenant_id: str, unit_ids: List[str], year: int, month: int, force: bool = False) -> Decimal:
         if not force:
             existing = AggregatedScore.objects.filter(
                 level='DEPARTMENT',
@@ -168,14 +174,14 @@ class DepartmentAggregator:
                 month=month
             ).first()
             if existing:
-                return existing.aggregated_score()
-        team_scores = AggregatedScore.objects.filter(
-            level='TEAM',
-            entity_id__in=team_ids,
+                return existing.aggregated_score
+        unit_scores = AggregatedScore.objects.filter(
+            level='UNIT',  # Changed from TEAM
+            entity_id__in=unit_ids,
             year=year,
             month=month
         )
-        if not team_scores:
+        if not unit_scores:
             individual_scores = AggregatedScore.objects.filter(
                 level='INDIVIDUAL',
                 year=year,
@@ -190,16 +196,16 @@ class DepartmentAggregator:
         else:
             scores_list = []
             weights = []
-            for team in team_scores:
-                scores_list.append(team.aggregated_score)
-                weights.append(team.member_count)
+            for unit in unit_scores:
+                scores_list.append(unit.aggregated_score)
+                weights.append(unit.member_count)
             total_weight = sum(weights)
             if total_weight > 0:
                 dept_score = sum(s * w for s, w in zip(scores_list, weights)) / total_weight
             else:
                 dept_score = Decimal('0')
-            member_count = team_scores.aggregate(total=Sum('member_count'))['total'] or 0
-            kpi_count = team_scores.aggregate(total=Sum('kpi_count'))['total'] or 0
+            member_count = unit_scores.aggregate(total=Sum('member_count'))['total'] or 0
+            kpi_count = unit_scores.aggregate(total=Sum('kpi_count'))['total'] or 0
         with transaction.atomic():
             AggregatedScore.objects.update_or_create(
                 tenant_id=tenant_id,
@@ -216,6 +222,7 @@ class DepartmentAggregator:
                 }
             )
         return dept_score
+    
     def get_department_ranking(self, tenant_id: str, year: int, month: int) -> List[Dict]:
         return AggregatedScore.objects.filter(
             level='DEPARTMENT',
@@ -223,6 +230,7 @@ class DepartmentAggregator:
             year=year,
             month=month
         ).values('entity_id', 'entity_name', 'aggregated_score').order_by('-aggregated_score')
+
 
 class OrganizationAggregator:
     def aggregate_for_organization(self, tenant_id: str, tenant_name: str, year: int, month: int, force: bool = False) -> Decimal:
@@ -284,6 +292,7 @@ class OrganizationAggregator:
                 }
             )
         return org_score
+    
     def get_organization_health_summary(self, tenant_id: str, year: int, month: int) -> Dict:
         org_score = self.aggregate_for_organization(tenant_id, '', year, month)
         # Get department breakdown
@@ -326,6 +335,7 @@ class OrganizationAggregator:
             'department_breakdown': list(dept_scores),
             'risk_level': self._get_risk_level(org_score, red_percentage)
         }
+    
     def _get_risk_level(self, health_score: Decimal, red_percentage: Decimal) -> str:
         """Determine organization risk level."""
         if health_score >= 85 and red_percentage < 10:
@@ -335,61 +345,83 @@ class OrganizationAggregator:
         else:
             return 'HIGH'
 
+
 class HierarchyAggregator:
     def __init__(self):
         self.individual = IndividualAggregator()
-        self.team = TeamAggregator()
+        self.unit = UnitAggregator()  # Changed from team
         self.department = DepartmentAggregator()
         self.organization = OrganizationAggregator()
+    
     def aggregate_for_user(self, user_id: str, year: int, month: int, force: bool = False) -> Decimal:
         return self.individual.aggregate_for_user(user_id, year, month, force)
-    def aggregate_for_teams(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
-        teams = Team.objects.filter(tenant_id=tenant_id, is_active=True).prefetch_related('members')
-        all_member_ids = [member.id for team in teams for member in team.members.all()]
-        member_scores = AggregatedScore.objects.filter(
-            level='INDIVIDUAL',
-            entity_id__in=all_member_ids,
-            year=year,
-            month=month
-        ).values_list('entity_id', 'aggregated_score')
-        score_map = dict(member_scores)
+    
+    def aggregate_for_units(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
+        """Aggregate for all units in the tenant."""
+        units = Unit.objects.filter(tenant_id=tenant_id, is_active=True)
         results = {}
-        for team in teams:
-            member_ids = [str(m.id) for m in team.members.all()]
-            scores = [score_map.get(mid, Decimal('0')) for mid in member_ids]
-            team_score = sum(scores) / len(scores) if scores else Decimal('0')
-            results[str(team.id)] = team_score
+        for unit in units:
+            member_ids = self._get_unit_member_ids(unit.id)
+            score = self.unit.aggregate_for_unit(
+                str(unit.id), unit.name, tenant_id, member_ids, year, month, force
+            )
+            results[str(unit.id)] = score
         return results
+    
+    def _get_unit_member_ids(self, unit_id: str) -> List[str]:
+        """Get all member IDs for a unit."""
+        from apps.structure.models import Employment
+        employments = Employment.objects.filter(
+            unit_id=unit_id,
+            is_current=True,
+            is_active=True,
+            is_deleted=False
+        )
+        return [str(emp.user_id) for emp in employments]
+    
     def aggregate_for_departments(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
         results = {}
         departments = Department.objects.filter(tenant_id=tenant_id, is_active=True)
         for dept in departments:
-            team_ids = dept.get_team_ids()
+            unit_ids = self._get_department_unit_ids(dept.id)
             score = self.department.aggregate_for_department(
-                str(dept.id), dept.name, tenant_id, team_ids, year, month, force
+                str(dept.id), dept.name, tenant_id, unit_ids, year, month, force
             )
             results[str(dept.id)] = score
         return results
+    
+    def _get_department_unit_ids(self, department_id: str) -> List[str]:
+        """Get all unit IDs for a department."""
+        units = Unit.objects.filter(
+            department_id=department_id,
+            is_active=True,
+            is_deleted=False
+        )
+        return [str(unit.id) for unit in units]
+    
     def aggregate_for_organization(self, tenant_id: str, year: int, month: int, 
                                     tenant_name: str = "", force: bool = False) -> Decimal:
         """Aggregate for the entire organization."""
         return self.organization.aggregate_for_organization(
             tenant_id, tenant_name, year, month, force
         )
+    
     def get_hierarchy_dashboard(self, user_id: str, year: int, month: int) -> Dict:
         # Get user's own score
         user_score = self.aggregate_for_user(user_id, year, month)
         
         # Get direct reports
         direct_reports = ReportingLine.objects.filter(
-            manager_id=user_id
+            manager_id=user_id,
+            is_active=True,
+            is_deleted=False
         ).select_related('employee')
         reports_data = []
         for report in direct_reports:
             report_score = self.aggregate_for_user(report.employee_id, year, month)
             reports_data.append({
                 'user_id': str(report.employee.id),
-                'name': report.employee.get_full_name(),
+                'name': report.employee.get_full_name() if hasattr(report.employee, 'get_full_name') else str(report.employee.id),
                 'score': report_score,
                 'traffic_light': self._get_traffic_light(report_score)
             })
@@ -398,9 +430,10 @@ class HierarchyAggregator:
             'user_score': user_score,
             'user_traffic_light': self._get_traffic_light(user_score),
             'direct_reports': reports_data,
-            'team_count': len(reports_data),
+            'team_count': len(reports_data),  # Keeping as team_count for compatibility
             'avg_team_score': sum(r['score'] for r in reports_data) / len(reports_data) if reports_data else 0
         }
+    
     def get_full_org_hierarchy(self, tenant_id: str, year: int, month: int) -> Dict:
         # Get organization health
         org_score = self.aggregate_for_organization(tenant_id, year, month)
@@ -408,28 +441,30 @@ class HierarchyAggregator:
         departments = Department.objects.filter(tenant_id=tenant_id, is_active=True)
         dept_data = []
         for dept in departments:
+            unit_ids = self._get_department_unit_ids(dept.id)
             dept_score = self.department.aggregate_for_department(
-                str(dept.id), dept.name, tenant_id, dept.get_team_ids(), year, month
+                str(dept.id), dept.name, tenant_id, unit_ids, year, month
             )
-            # Get teams in department
-            teams = Team.objects.filter(department=dept, is_active=True)
-            team_data = []
-            for team in teams:
-                team_score = self.team.aggregate_for_team(
-                    str(team.id), team.name, tenant_id, team.get_member_ids(), year, month
+            # Get units in department
+            units = Unit.objects.filter(department=dept, is_active=True, is_deleted=False)
+            unit_data = []
+            for unit in units:
+                member_ids = self._get_unit_member_ids(unit.id)
+                unit_score = self.unit.aggregate_for_unit(
+                    str(unit.id), unit.name, tenant_id, member_ids, year, month
                 )
-                team_data.append({
-                    'id': str(team.id),
-                    'name': team.name,
-                    'score': team_score,
-                    'traffic_light': self._get_traffic_light(team_score)
+                unit_data.append({
+                    'id': str(unit.id),
+                    'name': unit.name,
+                    'score': unit_score,
+                    'traffic_light': self._get_traffic_light(unit_score)
                 })
             dept_data.append({
                 'id': str(dept.id),
                 'name': dept.name,
                 'score': dept_score,
                 'traffic_light': self._get_traffic_light(dept_score),
-                'teams': team_data
+                'units': unit_data  # Changed from teams
             })
         return {
             'tenant_id': tenant_id,
@@ -437,10 +472,10 @@ class HierarchyAggregator:
             'organization_traffic_light': self._get_traffic_light(org_score),
             'departments': dept_data
         }
+    
     def _get_traffic_light(self, score: Decimal) -> str:
         if score >= 90:
             return 'GREEN'
         elif score >= 50:
             return 'YELLOW'
         return 'RED'
-    

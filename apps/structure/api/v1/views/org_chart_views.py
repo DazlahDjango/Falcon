@@ -3,13 +3,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.http import HttpResponse
 from django.utils import timezone
-from ..throttles.structure_limits import OrgChartExportThrottle, HierarchyReadThrottle
-from ..permissions.structure_permissions import CanExportOrgChart, CanViewHierarchy
+from apps.structure.api.v1.throttles.structure_limits import OrgChartExportThrottle, HierarchyReadThrottle
+from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanViewOrgChart
 from .base import BaseStructureReadOnlyViewSet
 
 
 class OrgChartViewSet(BaseStructureReadOnlyViewSet):
-    permission_classes = [CanViewHierarchy]
+    permission_classes = [IsTenantMember, CanViewOrgChart]
+    
     def get_throttles(self):
         if self.action in ['export_json', 'export_csv', 'export_text', 'export_visio']:
             self.throttle_classes = [OrgChartExportThrottle]
@@ -19,19 +20,19 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='json')
     def export_json(self, request):
-        from ....services.export.org_chart_generator import OrgChartGeneratorService
-        from ....services.export.json_exporter import JSONExporterService
+        from apps.structure.services.export.org_chart_generator import OrgChartGeneratorService
+        from apps.structure.services.export.json_exporter import JSONExporterService
         tenant_id = request.user.tenant_id
         format_type = request.query_params.get('format', 'full')
-        root_dept_id = request.query_params.get('root_department_id')
+        root_unit_id = request.query_params.get('root_unit_id')
         if format_type == 'flat':
             data = OrgChartGeneratorService().generate_flat_org_chart(tenant_id)
         elif format_type == 'full':
             from uuid import UUID
-            root_id = UUID(root_dept_id) if root_dept_id else None
+            root_id = UUID(root_unit_id) if root_unit_id else None
             data = OrgChartGeneratorService().generate_json_org_chart(tenant_id, root_id)
         else:
-            data = JSONExporterService.export_full_org(tenant_id)
+            data = JSONExporterService().export_full_org(tenant_id)
             if isinstance(data, str):
                 return HttpResponse(data, content_type='application/json')
         return Response({
@@ -43,16 +44,25 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='csv')
     def export_csv(self, request):
-        from ....services.export.csv_exporter import CSVExporterService
-        entity = request.query_params.get('entity', 'departments')
+        from apps.structure.services.export.csv_exporter import CSVExporterService
+        entity = request.query_params.get('entity', 'org_units')
         include_inactive = request.query_params.get('include_inactive', 'false').lower() == 'true'
         tenant_id = request.user.tenant_id
-        if entity == 'departments':
+        if entity == 'org_units':
+            csv_data = CSVExporterService.export_org_units(tenant_id, include_inactive)
+            filename = f"org_units_{tenant_id}_{timezone.now().date()}.csv"
+        elif entity == 'divisions':
+            csv_data = CSVExporterService.export_divisions(tenant_id, include_inactive)
+            filename = f"divisions_{tenant_id}_{timezone.now().date()}.csv"
+        elif entity == 'departments':
             csv_data = CSVExporterService.export_departments(tenant_id, include_inactive)
             filename = f"departments_{tenant_id}_{timezone.now().date()}.csv"
-        elif entity == 'teams':
-            csv_data = CSVExporterService.export_teams(tenant_id, include_inactive)
-            filename = f"teams_{tenant_id}_{timezone.now().date()}.csv"
+        elif entity == 'sections':
+            csv_data = CSVExporterService.export_sections(tenant_id, include_inactive)
+            filename = f"sections_{tenant_id}_{timezone.now().date()}.csv"
+        elif entity == 'units':
+            csv_data = CSVExporterService.export_units(tenant_id, include_inactive)
+            filename = f"units_{tenant_id}_{timezone.now().date()}.csv"
         elif entity == 'employments':
             current_only = request.query_params.get('current_only', 'true').lower() == 'true'
             csv_data = CSVExporterService.export_employments(tenant_id, current_only)
@@ -72,13 +82,12 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='text')
     def export_text(self, request):
-        """Export organization chart as text (ASCII tree)"""
-        from ....services.export.org_chart_generator import OrgChartGeneratorService
+        from apps.structure.services.export.org_chart_generator import OrgChartGeneratorService
         tenant_id = request.user.tenant_id
-        root_dept_id = request.query_params.get('root_department_id')
-        max_depth = int(request.query_params.get('max_depth', 10))
+        root_unit_id = request.query_params.get('root_unit_id')
+        max_depth = int(request.query_params.get('max_depth', 4))
         from uuid import UUID
-        root_id = UUID(root_dept_id) if root_dept_id else None
+        root_id = UUID(root_unit_id) if root_unit_id else None
         text_chart = OrgChartGeneratorService().generate_text_org_chart(tenant_id, root_id, max_depth)
         response = HttpResponse(text_chart, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename="org_chart_{tenant_id}_{timezone.now().date()}.txt"'
@@ -86,11 +95,11 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='visio')
     def export_visio(self, request):
-        from ....services.export.visio_exporter import VisioExporterService
+        from apps.structure.services.export.visio_exporter import VisioExporterService
         tenant_id = request.user.tenant_id
-        root_dept_id = request.query_params.get('root_department_id')
+        root_unit_id = request.query_params.get('root_unit_id')
         from uuid import UUID
-        root_id = UUID(root_dept_id) if root_dept_id else None
+        root_id = UUID(root_unit_id) if root_unit_id else None
         visio_xml = VisioExporterService.generate_visio_xml(tenant_id, root_id)
         response = HttpResponse(visio_xml, content_type='application/xml')
         response['Content-Disposition'] = f'attachment; filename="org_chart_{tenant_id}_{timezone.now().date()}.vdx"'
@@ -98,23 +107,20 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='tree')
     def get_tree_view(self, request):
-        from ....services.hierarchy.tree_builder import TreeBuilder
+        from apps.structure.services.hierarchy.tree_builder import TreeBuilder
         tenant_id = request.user.tenant_id
-        include_inactive = request.query_params.get('include_inactive', 'false').lower() == 'true'
         tree_builder = TreeBuilder()
-        tree = tree_builder.build_department_tree(tenant_id, include_inactive)
+        tree = tree_builder.build_full_tree(tenant_id)
         return Response({
             'tenant_id': str(tenant_id),
             'tree': tree,
             'metadata': {
                 'generated_at': timezone.now().isoformat(),
-                'include_inactive': include_inactive,
-                'total_departments': self._count_nodes(tree)
+                'total_divisions': len(tree.get('divisions', []))
             }
         })
     
     def _count_nodes(self, tree):
-        """Count total nodes in tree"""
         count = len(tree)
         for node in tree:
             if node.get('children'):
@@ -123,30 +129,30 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='preview')
     def get_preview(self, request):
-        from ....services.hierarchy.tree_builder import TreeBuilder
+        from apps.structure.services.hierarchy.tree_builder import TreeBuilder
         tenant_id = request.user.tenant_id
         tree_builder = TreeBuilder()
-        tree = tree_builder.build_department_tree(tenant_id, include_inactive=False)
+        tree = tree_builder.build_full_tree(tenant_id)
         preview = []
-        for dept in tree:
-            preview_dept = {
-                'id': dept['id'],
-                'name': dept['name'],
-                'code': dept['code'],
-                'children': [
+        for division in tree.get('divisions', [])[:3]:
+            preview_division = {
+                'id': division['id'],
+                'name': division['name'],
+                'code': division['code'],
+                'departments': [
                     {
-                        'id': child['id'],
-                        'name': child['name'],
-                        'code': child['code'],
-                        'has_children': len(child.get('children', [])) > 0
+                        'id': dept['id'],
+                        'name': dept['name'],
+                        'code': dept['code'],
+                        'has_sections': len(dept.get('sections', [])) > 0
                     }
-                    for child in dept.get('children', [])[:5]
+                    for dept in division.get('departments', [])[:3]
                 ],
-                'has_more_children': len(dept.get('children', [])) > 5
+                'has_more': len(division.get('departments', [])) > 3
             }
-            preview.append(preview_dept)
+            preview.append(preview_division)
         return Response({
             'tenant_id': str(tenant_id),
             'preview': preview,
-            'total_departments': len(tree)
+            'total_divisions': len(tree.get('divisions', []))
         })

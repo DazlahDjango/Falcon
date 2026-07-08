@@ -39,6 +39,7 @@ export const AdminUserManager = () => {
     forcePasswordReset,
     createUser,
     updateUser,
+    verifyUser,
     isCreating,
     isUpdating,
   } = useAdmin();
@@ -190,6 +191,19 @@ export const AdminUserManager = () => {
       setActiveMenu(null);
     }
   }, [forcePasswordReset]);
+
+  const handleVerify = useCallback(async (userId) => {
+    setActionLoading(true);
+    try {
+      await verifyUser(userId);
+      loadUsers();
+    } catch (err) {
+      console.error('Failed to verify user:', err);
+    } finally {
+      setActionLoading(false);
+      setActiveMenu(null);
+    }
+  }, [verifyUser, loadUsers]);
 
   const handleMenuToggle = useCallback((userId, e) => {
     e.stopPropagation();
@@ -453,6 +467,11 @@ export const AdminUserManager = () => {
                         <button onClick={() => handleForceReset(user.id)}>
                           <FiShield /> Force Password Reset
                         </button>
+                        {!user.is_verified && (
+                          <button onClick={() => handleVerify(user.id)}>
+                            <FiUserCheck /> Verify Account
+                          </button>
+                        )}
                         <hr />
                         <button className="danger" onClick={() => handleDelete(user.id)}>
                           <FiTrash2 /> Delete

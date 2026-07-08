@@ -1,240 +1,304 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { departmentService } from '../../../services/structure/department.service';
-import { initialDepartmentState, LoadingState } from './structureTypes';
-import { showToast } from '../../ui/slices/uiSlice';
+import { departmentService } from '../../../services/structure';
 
-// Fetch departments with pagination and filters
+const initialState = {
+  items: [],
+  currentItem: null,
+  rootItems: [],
+  stats: null,
+  isLoading: false,
+  error: null,
+  totalCount: 0,
+  filters: {},
+  pagination: { page: 1, pageSize: 20 },
+  hasFetched: false,
+};
+
 export const fetchDepartments = createAsyncThunk(
-  'structure/departments/fetch',
-  async ({ page = 1, pageSize = 50, filters = {} }, { rejectWithValue }) => {
+  'departments/fetchAll',
+  async (params, { rejectWithValue }) => {
     try {
-      const params = { page, page_size: pageSize, ...filters };
       const response = await departmentService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch departments';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch departments');
     }
   }
 );
 
 export const fetchDepartmentById = createAsyncThunk(
-  'structure/departments/fetchById',
+  'departments/fetchById',
   async (id, { rejectWithValue }) => {
     try {
       const response = await departmentService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch department';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch department');
     }
   }
 );
 
-export const fetchDepartmentTree = createAsyncThunk(
-  'structure/departments/fetchTree',
-  async ({ includeInactive = false } = {}, { rejectWithValue }) => {
+export const fetchRootDepartments = createAsyncThunk(
+  'departments/fetchRoot',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await departmentService.getTree({ include_inactive: includeInactive });
-      return response.data;
+      const response = await departmentService.getRootDepartments();
+      return response;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch department tree';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch root departments');
     }
   }
 );
 
 export const fetchDepartmentStats = createAsyncThunk(
-  'structure/departments/fetchStats',
+  'departments/fetchStats',
   async (_, { rejectWithValue }) => {
     try {
       const response = await departmentService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch department stats';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch department stats');
+    }
+  }
+);
+
+export const fetchDepartmentChildren = createAsyncThunk(
+  'departments/fetchChildren',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await departmentService.getChildren(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch department children');
+    }
+  }
+);
+
+export const fetchDepartmentSections = createAsyncThunk(
+  'departments/fetchSections',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await departmentService.getSections(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch department sections');
+    }
+  }
+);
+
+export const fetchDepartmentEmployments = createAsyncThunk(
+  'departments/fetchEmployments',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await departmentService.getEmployments(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch department employments');
+    }
+  }
+);
+
+export const fetchDepartmentAncestors = createAsyncThunk(
+  'departments/fetchAncestors',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await departmentService.getAncestors(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch department ancestors');
     }
   }
 );
 
 export const createDepartment = createAsyncThunk(
-  'structure/departments/create',
-  async (data, { dispatch, rejectWithValue }) => {
+  'departments/create',
+  async (data, { rejectWithValue }) => {
     try {
       const response = await departmentService.create(data);
-      dispatch(showToast({ message: 'Department created successfully', type: 'success' }));
-      dispatch(fetchDepartments({}));
-      dispatch(fetchDepartmentTree({}));
-      return response.data;
+      return response;
     } catch (error) {
-      console.log('Full error object in createDepartment:', error);
-      console.log('Raw error response data:', error?.rawResponse);
-      // For envelope-style errors from structureApiClient
-      let errorMessage = 'Failed to create department';
-      if (error?.message && error.message !== 'An error occurred') {
-        errorMessage = error.message;
-      } else if (error?.errors && Object.keys(error.errors).length > 0) {
-        const firstKey = Object.keys(error.errors)[0];
-        const firstError = error.errors[firstKey];
-        errorMessage = `${firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
-      } else if (error?.rawResponse) {
-        const firstKey = Object.keys(error.rawResponse)[0];
-        const firstError = error.rawResponse[firstKey];
-        errorMessage = `${firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
-      }
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to create department');
     }
   }
 );
 
 export const updateDepartment = createAsyncThunk(
-  'structure/departments/update',
-  async ({ id, data }, { dispatch, rejectWithValue }) => {
+  'departments/update',
+  async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await departmentService.update(id, data);
-      dispatch(showToast({ message: 'Department updated successfully', type: 'success' }));
-      dispatch(fetchDepartmentById(id));
-      dispatch(fetchDepartments({}));
-      dispatch(fetchDepartmentTree({}));
-      return response.data;
+      return response;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to update department';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to update department');
     }
   }
 );
 
 export const deleteDepartment = createAsyncThunk(
-  'structure/departments/delete',
-  async (id, { dispatch, rejectWithValue }) => {
+  'departments/delete',
+  async (id, { rejectWithValue }) => {
     try {
       await departmentService.delete(id);
-      dispatch(showToast({ message: 'Department deleted successfully', type: 'success' }));
-      dispatch(fetchDepartments({}));
-      dispatch(fetchDepartmentTree({}));
       return id;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to delete department';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to delete department');
     }
   }
 );
 
 export const moveDepartment = createAsyncThunk(
-  'structure/departments/move',
-  async ({ id, parentId }, { dispatch, rejectWithValue }) => {
+  'departments/move',
+  async ({ id, parentId }, { rejectWithValue }) => {
     try {
       const response = await departmentService.moveDepartment(id, parentId);
-      dispatch(showToast({ message: 'Department moved successfully', type: 'success' }));
-      dispatch(fetchDepartmentById(id));
-      dispatch(fetchDepartmentTree({}));
-      return response.data;
+      return response;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to move department';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-export const bulkCreateDepartments = createAsyncThunk(
-  'structure/departments/bulkCreate',
-  async (departments, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await departmentService.bulkCreate(departments);
-      dispatch(showToast({ 
-        message: `${response.data?.created_count || 0} departments created, ${response.data?.failed_count || 0} failed`,
-        type: response.data?.failed_count > 0 ? 'warning' : 'success' 
-      }));
-      dispatch(fetchDepartments({}));
-      dispatch(fetchDepartmentTree({}));
-      return response.data;
-    } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Bulk create failed';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to move department');
     }
   }
 );
 
 const departmentSlice = createSlice({
-  name: 'structure/departments',
-  initialState: initialDepartmentState,
+  name: 'departments',
+  initialState,
   reducers: {
+    clearDepartmentError: (state) => {
+      state.error = null;
+    },
+    clearDepartmentCurrent: (state) => {
+      state.currentItem = null;
+    },
     setDepartmentFilters: (state, action) => {
-      state.filters = { ...state.filters, ...action.payload };
+      state.filters = action.payload;
       state.pagination.page = 1;
     },
-    clearDepartmentFilters: (state) => {
-      state.filters = initialDepartmentState.filters;
-      state.pagination.page = 1;
+    setDepartmentPagination: (state, action) => {
+      state.pagination = { ...state.pagination, ...action.payload };
     },
-    setDepartmentPage: (state, action) => {
-      state.pagination.page = action.payload;
-    },
-    setDepartmentPageSize: (state, action) => {
-      state.pagination.pageSize = action.payload;
-      state.pagination.page = 1;
-    },
-    clearSelectedDepartment: (state) => {
-      state.selectedDepartment = null;
-    },
+    resetDepartmentState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDepartments.pending, (state) => {
-        state.loading = LoadingState.LOADING;
+        state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchDepartments.fulfilled, (state, action) => {
-        state.loading = LoadingState.SUCCEEDED;
-        state.items = action.payload?.results || action.payload || [];
-        state.pagination.total = action.payload?.count || state.items.length;
-        state.pagination.totalPages = Math.ceil(state.pagination.total / state.pagination.pageSize);
+        state.isLoading = false;
+        state.hasFetched = true;
+        state.items = action.payload.results || action.payload || [];
+        state.totalCount = action.payload.count || action.payload.length || 0;
       })
       .addCase(fetchDepartments.rejected, (state, action) => {
-        state.loading = LoadingState.FAILED;
+        state.isLoading = false;
         state.error = action.payload;
       })
-    .addCase(fetchDepartmentById.pending, (state) => {
-      state.loading = LoadingState.LOADING;
-    })
-    .addCase(fetchDepartmentById.fulfilled, (state, action) => {
-      state.loading = LoadingState.SUCCEEDED;
-      state.selectedDepartment = action.payload;
-    })
-    .addCase(fetchDepartmentById.rejected, (state, action) => {
-      state.loading = LoadingState.FAILED;
-      state.error = action.payload;
-    })
-    .addCase(fetchDepartmentTree.fulfilled, (state, action) => {
-      state.tree = action.payload;
-    })
-    .addCase(fetchDepartmentStats.fulfilled, (state, action) => {
-      state.stats = action.payload;
-    })
-    .addCase(updateDepartment.fulfilled, (state, action) => {
-      const index = state.items.findIndex(item => item.id === action.payload?.id);
-      if (index !== -1) {
-        state.items[index] = action.payload;
-      }
-    })
-    .addCase(deleteDepartment.fulfilled, (state, action) => {
-      state.items = state.items.filter(item => item.id !== action.payload);
-      state.pagination.total = state.items.length;
-    });
+      .addCase(fetchDepartmentById.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDepartmentById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentItem = action.payload;
+      })
+      .addCase(fetchDepartmentById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchRootDepartments.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchRootDepartments.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.rootItems = action.payload.root_departments || action.payload || [];
+      })
+      .addCase(fetchRootDepartments.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchDepartmentStats.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDepartmentStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.stats = action.payload;
+      })
+      .addCase(fetchDepartmentStats.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(createDepartment.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createDepartment.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.items.unshift(action.payload);
+        state.totalCount += 1;
+      })
+      .addCase(createDepartment.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateDepartment.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateDepartment.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const index = state.items.findIndex(item => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.currentItem?.id === action.payload.id) {
+          state.currentItem = action.payload;
+        }
+      })
+      .addCase(updateDepartment.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteDepartment.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteDepartment.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.items = state.items.filter(item => item.id !== action.payload);
+        state.totalCount -= 1;
+        if (state.currentItem?.id === action.payload) {
+          state.currentItem = null;
+        }
+      })
+      .addCase(deleteDepartment.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(moveDepartment.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(moveDepartment.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (state.currentItem?.id === action.payload.department_id) {
+          state.currentItem.parent_id = action.payload.new_parent_id;
+        }
+      })
+      .addCase(moveDepartment.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
   },
 });
 
-// Export actions
 export const {
+  clearDepartmentError,
+  clearDepartmentCurrent,
   setDepartmentFilters,
-  clearDepartmentFilters,
-  setDepartmentPage,
-  setDepartmentPageSize,
-  clearSelectedDepartment,
+  setDepartmentPagination,
+  resetDepartmentState,
 } = departmentSlice.actions;
+
 export default departmentSlice.reducer;

@@ -3,11 +3,13 @@ from .hierarchy.path_resolver import PathResolver
 from .hierarchy.cycle_detector import CycleDetector
 from .hierarchy.subtree_extractor import SubtreeExtractor
 from .hierarchy.lca_finder import LCAByIdFinder, LCAByPathFinder
+from .hierarchy.org_validator import OrgValidator
 
-from .reporting.chain_service import ReportingChainService
-from .reporting.span_of_control import SpanOfControlService
-from .reporting.matrix_support import MatrixSupportService
+from .reporting.chain_service import ChainService
 from .reporting.interim_manager import InterimManagerService
+from .reporting.delegation_service import DelegationService
+from .reporting.span_of_control import SpanOfControl
+from .reporting.chain_validator import ChainValidator
 
 from .security.hierarchy_access import HierarchyAccessEnforcer
 from .security.scope_enforcer import ScopeEnforcerService
@@ -16,11 +18,11 @@ from .security.sensitivity_classifier import SensitivityClassifierService
 
 from .validation.org_validator import OrgValidatorService
 from .validation.max_depth_validator import MaxDepthValidatorService
-from .validation.budget_validator import BudgetValidatorService
+from .validation.budget_validator import BudgetValidatorService  # CHANGED THIS
 from .validation.headcount_validator import HeadcountValidatorService
 
 from .sync.cache_warmer import CacheWarmerService
-from .sync.index_rebuilder import IndexRebuilderService
+from .sync.index_rebuilder import IndexRebuilder
 from .sync.event_publisher import EventPublisherService
 from .sync.view_refresher import ViewRefresherService
 
@@ -33,8 +35,6 @@ from .audit.change_logger import ChangeLoggerService
 from .audit.diff_calculator import DiffCalculatorService
 from .audit.compliance_reporter import ComplianceReporterService
 
-from .position import PositionService
-
 __all__ = [
     'TreeBuilder',
     'PathResolver',
@@ -42,20 +42,22 @@ __all__ = [
     'SubtreeExtractor',
     'LCAByIdFinder',
     'LCAByPathFinder',
-    'ReportingChainService',
-    'SpanOfControlService',
-    'MatrixSupportService',
+    'OrgValidator',
+    'ChainService',
     'InterimManagerService',
+    'DelegationService',
+    'SpanOfControl',
+    'ChainValidator',
     'HierarchyAccessEnforcer',
     'ScopeEnforcerService',
     'DataFirewallService',
     'SensitivityClassifierService',
     'OrgValidatorService',
     'MaxDepthValidatorService',
-    'BudgetValidatorService',
+    'BudgetValidatorService',  # CHANGED THIS
     'HeadcountValidatorService',
     'CacheWarmerService',
-    'IndexRebuilderService',
+    'IndexRebuilder',
     'EventPublisherService',
     'ViewRefresherService',
     'OrgChartGeneratorService',
@@ -65,5 +67,4 @@ __all__ = [
     'ChangeLoggerService',
     'DiffCalculatorService',
     'ComplianceReporterService',
-    'PositionService'
 ]

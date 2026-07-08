@@ -1,212 +1,233 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { employmentService } from '../../../services/structure/employment.service';
-import { initialEmploymentState, LoadingState } from './structureTypes';
-import { showToast } from '../../ui/slices/uiSlice';
+import { employmentService } from '../../../services/structure';
 
-// Async Thunks
+const initialState = {
+  items: [],
+  currentItem: null,
+  currentEmployments: [],
+  stats: null,
+  isLoading: false,
+  error: null,
+  totalCount: 0,
+  filters: {},
+  pagination: { page: 1, pageSize: 20 },
+};
+
 export const fetchEmployments = createAsyncThunk(
-  'structure/employments/fetch',
-  async ({ page = 1, pageSize = 50, filters = {} }, { rejectWithValue }) => {
+  'employments/fetchAll',
+  async (params, { rejectWithValue }) => {
     try {
-      const params = { page, page_size: pageSize, ...filters };
       const response = await employmentService.list(params);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch employments';
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-export const fetchCurrentEmployments = createAsyncThunk(
-  'structure/employments/fetchCurrent',
-  async (filters = {}, { rejectWithValue }) => {
-    try {
-      const response = await employmentService.getCurrent(filters);
-      return response.data;
-    } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch current employments';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch employments');
     }
   }
 );
 
 export const fetchEmploymentById = createAsyncThunk(
-  'structure/employments/fetchById',
+  'employments/fetchById',
   async (id, { rejectWithValue }) => {
     try {
       const response = await employmentService.getById(id);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch employment';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch employment');
+    }
+  }
+);
+
+export const fetchCurrentEmployments = createAsyncThunk(
+  'employments/fetchCurrent',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await employmentService.getCurrent(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch current employments');
     }
   }
 );
 
 export const fetchEmploymentsByUser = createAsyncThunk(
-  'structure/employments/fetchByUser',
-  async ({ userId, includeHistory = true }, { rejectWithValue }) => {
+  'employments/fetchByUser',
+  async (userId, { rejectWithValue }) => {
     try {
-      const response = await employmentService.getByUser(userId, includeHistory);
+      const response = await employmentService.getByUser(userId);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch user employments';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch employments by user');
+    }
+  }
+);
+
+export const fetchEmploymentStats = createAsyncThunk(
+  'employments/fetchStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await employmentService.getStats();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch employment stats');
     }
   }
 );
 
 export const fetchMyEmployment = createAsyncThunk(
-  'structure/employments/fetchMy',
+  'employments/fetchMy',
   async (_, { rejectWithValue }) => {
     try {
       const response = await employmentService.getMyEmployment();
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to fetch current employment';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to fetch my employment');
     }
   }
 );
 
 export const createEmployment = createAsyncThunk(
-  'structure/employments/create',
-  async (data, { dispatch, rejectWithValue }) => {
+  'employments/create',
+  async (data, { rejectWithValue }) => {
     try {
       const response = await employmentService.create(data);
-      dispatch(showToast({ message: 'Employment created successfully', type: 'success' }));
-      dispatch(fetchEmployments({}));
-      dispatch(fetchCurrentEmployments({}));
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to create employment';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to create employment');
     }
   }
 );
 
 export const updateEmployment = createAsyncThunk(
-  'structure/employments/update',
-  async ({ id, data }, { dispatch, rejectWithValue }) => {
+  'employments/update',
+  async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await employmentService.update(id, data);
-      dispatch(showToast({ message: 'Employment updated successfully', type: 'success' }));
-      dispatch(fetchEmploymentById(id));
-      dispatch(fetchEmployments({}));
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to update employment';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to update employment');
     }
   }
 );
 
 export const deleteEmployment = createAsyncThunk(
-  'structure/employments/delete',
-  async (id, { dispatch, rejectWithValue }) => {
+  'employments/delete',
+  async (id, { rejectWithValue }) => {
     try {
       await employmentService.delete(id);
-      dispatch(showToast({ message: 'Employment deleted successfully', type: 'success' }));
-      dispatch(fetchEmployments({}));
-      dispatch(fetchMyEmployment());
       return id;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to delete employment';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to delete employment');
     }
   }
 );
 
 export const transferEmployee = createAsyncThunk(
-  'structure/employments/transfer',
-  async (data, { dispatch, rejectWithValue }) => {
+  'employments/transfer',
+  async (data, { rejectWithValue }) => {
     try {
-      const response = await employmentService.transferEmployee(data);
-      dispatch(showToast({ message: 'Employee transferred successfully', type: 'success' }));
-      dispatch(fetchEmployments({}));
-      dispatch(fetchMyEmployment());
+      const response = await employmentService.transfer(data);
       return response.data;
     } catch (error) {
-      const errorMessage = error?.message || error?.data?.message || 'Failed to transfer employee';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || 'Failed to transfer employee');
+    }
+  }
+);
+
+export const bulkCreateEmployments = createAsyncThunk(
+  'employments/bulkCreate',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await employmentService.bulkCreate(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to bulk create employments');
     }
   }
 );
 
 const employmentSlice = createSlice({
-  name: 'structure/employments',
-  initialState: initialEmploymentState,
+  name: 'employments',
+  initialState,
   reducers: {
-    setEmploymentPageSize: (state, action) => {
-      state.pagination.pageSize = action.payload;
-      state.pagination.page = 1;
+    clearEmploymentError: (state) => {
+      state.error = null;
+    },
+    clearEmploymentCurrent: (state) => {
+      state.currentItem = null;
     },
     setEmploymentFilters: (state, action) => {
-      state.filters = { ...state.filters, ...action.payload };
-      state.pagination.page = 1;
+      state.filters = action.payload;
     },
-    clearEmploymentFilters: (state) => {
-      state.filters = initialEmploymentState.filters;
-      state.pagination.page = 1;
+    setEmploymentPagination: (state, action) => {
+      state.pagination = { ...state.pagination, ...action.payload };
     },
-    setEmploymentPage: (state, action) => {
-      state.pagination.page = action.payload;
-    },
-    clearSelectedEmployment: (state) => {
-      state.selectedEmployment = null;
-    },
-    clearCurrentEmployment: (state) => {
-      state.currentEmployment = null;
-    },
+    resetEmploymentState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchEmployments.pending, (state) => {
-        state.loading = LoadingState.LOADING;
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(fetchEmployments.fulfilled, (state, action) => {
-        state.loading = LoadingState.SUCCEEDED;
-        state.items = action.payload?.results || action.payload || [];
-        state.pagination.total = action.payload?.count || state.items.length;
-        state.pagination.totalPages = Math.ceil(state.pagination.total / state.pagination.pageSize);
+        state.isLoading = false;
+        const responseData = action.payload.data || action.payload;
+        state.items = responseData.results || responseData || [];
+        state.totalCount = responseData.count || responseData.length || 0;
       })
       .addCase(fetchEmployments.rejected, (state, action) => {
-        state.loading = LoadingState.FAILED;
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchEmploymentById.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmploymentById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentItem = action.payload.data || action.payload;
+      })
+      .addCase(fetchEmploymentById.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload;
       })
       .addCase(fetchCurrentEmployments.fulfilled, (state, action) => {
-        state.items = action.payload?.results || action.payload || [];
+        state.currentEmployments = action.payload.employments || action.payload;
       })
-      .addCase(fetchEmploymentById.fulfilled, (state, action) => {
-        state.selectedEmployment = action.payload;
+      .addCase(fetchEmploymentStats.fulfilled, (state, action) => {
+        state.stats = action.payload;
       })
-      .addCase(fetchMyEmployment.fulfilled, (state, action) => {
-        state.currentEmployment = action.payload;
+      .addCase(createEmployment.fulfilled, (state, action) => {
+        const newEmployment = action.payload.data || action.payload;
+        state.items.unshift(newEmployment);
+        state.totalCount += 1;
+      })
+      .addCase(updateEmployment.fulfilled, (state, action) => {
+        const updatedEmployment = action.payload.data || action.payload;
+        const index = state.items.findIndex(item => item.id === updatedEmployment.id);
+        if (index !== -1) {
+          state.items[index] = updatedEmployment;
+        }
+        if (state.currentItem?.id === updatedEmployment.id) {
+          state.currentItem = updatedEmployment;
+        }
       })
       .addCase(deleteEmployment.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item.id !== action.payload);
-        if (state.currentEmployment?.id === action.payload) {
-          state.currentEmployment = null;
+        state.totalCount -= 1;
+        if (state.currentItem?.id === action.payload) {
+          state.currentItem = null;
         }
-      })
-      .addCase(transferEmployee.fulfilled, (state) => {
-        state.currentEmployment = null;
       });
   },
 });
 
 export const {
-  setEmploymentPageSize,
+  clearEmploymentError,
+  clearEmploymentCurrent,
   setEmploymentFilters,
-  clearEmploymentFilters,
-  setEmploymentPage,
-  clearSelectedEmployment,
-  clearCurrentEmployment,
+  setEmploymentPagination,
+  resetEmploymentState,
 } = employmentSlice.actions;
 
 export default employmentSlice.reducer;

@@ -1,10 +1,10 @@
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 from django.core.cache import cache
-from ...models.employment import Employment
-from ...models.reporting_line import ReportingLine
-from ...constants import DEFAULT_MAX_CACHE_TTL_SECONDS
-
+from apps.structure.models.employment import Employment
+from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.interim_assignment import InterimAssignment
+from apps.structure.constants import DEFAULT_MAX_CACHE_TTL_SECONDS
 
 class HierarchyAccessEnforcer:
     ACCESS_LEVELS = {
@@ -46,8 +46,8 @@ class HierarchyAccessEnforcer:
             result = True
         elif self._is_manager_of(viewer_user_id, target_user_id, tenant_id):
             result = True
-        elif self._is_in_same_department(viewer_employment, target_employment):
-            result = self._get_department_access_level(viewer_user_id, tenant_id) >= self.ACCESS_LEVELS['subtree']
+        elif self._is_in_same_org_unit(viewer_employment, target_employment):
+            result = self._get_org_unit_access_level(viewer_user_id, tenant_id) >= self.ACCESS_LEVELS['subtree']
         else:
             result = False
         if use_cache:
@@ -103,7 +103,6 @@ class HierarchyAccessEnforcer:
         return ReportingLine.objects.filter(
             employee_id=employee_emp.id,
             manager_id=manager_emp.id,
-            relation_type='solid',
             is_active=True,
             tenant_id=tenant_id,
             is_deleted=False
@@ -113,12 +112,15 @@ class HierarchyAccessEnforcer:
         viewer_descendants = self._get_all_descendants(viewer_user_id, tenant_id)
         return target_user_id in viewer_descendants
     
-    def _is_in_same_department(self, viewer_employment: Employment, target_employment: Employment) -> bool:
+    def _is_in_same_org_unit(self, viewer_employment: Employment, target_employment: Employment) -> bool:
         if not viewer_employment or not target_employment:
             return False
-        return viewer_employment.department_id == target_employment.department_id
+        return (viewer_employment.unit_id == target_employment.unit_id or
+                viewer_employment.section_id == target_employment.section_id or
+                viewer_employment.department_id == target_employment.department_id or
+                viewer_employment.division_id == target_employment.division_id)
     
-    def _get_department_access_level(self, viewer_user_id: UUID, tenant_id: UUID) -> int:
+    def _get_org_unit_access_level(self, viewer_user_id: UUID, tenant_id: UUID) -> int:
         viewer_employment = Employment.objects.filter(
             user_id=viewer_user_id,
             tenant_id=tenant_id,
@@ -144,7 +146,6 @@ class HierarchyAccessEnforcer:
             return []
         reporting_lines = ReportingLine.objects.filter(
             manager_id=manager_emp.id,
-            relation_type='solid',
             is_active=True,
             tenant_id=tenant_id,
             is_deleted=False
@@ -155,7 +156,6 @@ class HierarchyAccessEnforcer:
         def collect_descendants(current_manager_id: UUID, visited: set, depth: int = 0) -> List[UUID]:
             if current_manager_id in visited or depth > 20:
                 return []
-            
             visited.add(current_manager_id)
             descendants = []
             current_emp = Employment.objects.filter(
@@ -169,7 +169,6 @@ class HierarchyAccessEnforcer:
                 return []
             direct = ReportingLine.objects.filter(
                 manager_id=current_emp.id,
-                relation_type='solid',
                 is_active=True,
                 tenant_id=tenant_id,
                 is_deleted=False
@@ -178,7 +177,6 @@ class HierarchyAccessEnforcer:
                 descendants.append(report.employee.user_id)
                 descendants.extend(collect_descendants(report.employee.user_id, visited, depth + 1))
             return descendants
-            
         visited_ids = set()
         all_descendants = collect_descendants(manager_user_id, visited_ids)
         direct = self._get_direct_reports(manager_user_id, tenant_id)
@@ -190,10 +188,17 @@ class HierarchyAccessEnforcer:
         return direct + indirect
     
     def _is_hr_or_admin(self, user_id: UUID, tenant_id: UUID) -> bool:
-        """Check if user has HR or Admin role"""
-        # This should integrate with accounts module
-        # For now, returning False, will be overridden by actual role check
-        return False
+        from apps.structure.models.employment import Employment
+        employment = Employment.objects.filter(
+            user_id=user_id,
+            tenant_id=tenant_id,
+            is_current=True,
+            is_deleted=False,
+            is_active=True
+        ).first()
+        if not employment:
+            return False
+        return employment.is_executive or employment.is_board_member
     
     def clear_cache(self, tenant_id: UUID, viewer_user_id: Optional[UUID] = None) -> None:
         if viewer_user_id:

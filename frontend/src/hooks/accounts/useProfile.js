@@ -6,11 +6,11 @@ import {
   updateProfile,
   uploadAvatar,
   deleteAvatar,
-  addSkill,
-  updateSkill,
-  removeSkill,
-  addCertification,
-  removeCertification,
+  addSkill as addSkillThunk,
+  updateSkill as updateSkillThunk,
+  removeSkill as removeSkillThunk,
+  addCertification as addCertificationThunk,
+  removeCertification as removeCertificationThunk,
   fetchMyProfile,
   updateMyProfile,
   setProfileFilters,
@@ -90,7 +90,7 @@ export const useProfile = () => {
 
   const addSkill = useCallback(
     async (id, data) => {
-      const result = await dispatch(addSkill({ id, data })).unwrap();
+      const result = await dispatch(addSkillThunk({ id, data })).unwrap();
       return result;
     },
     [dispatch]
@@ -98,7 +98,7 @@ export const useProfile = () => {
 
   const updateSkill = useCallback(
     async (id, skillName, data) => {
-      const result = await dispatch(updateSkill({ id, skillName, data })).unwrap();
+      const result = await dispatch(updateSkillThunk({ id, skillName, data })).unwrap();
       return result;
     },
     [dispatch]
@@ -106,7 +106,7 @@ export const useProfile = () => {
 
   const removeSkill = useCallback(
     async (id, skillName) => {
-      const result = await dispatch(removeSkill({ id, skillName })).unwrap();
+      const result = await dispatch(removeSkillThunk({ id, skillName })).unwrap();
       return result;
     },
     [dispatch]
@@ -114,7 +114,7 @@ export const useProfile = () => {
 
   const addCertification = useCallback(
     async (id, data) => {
-      const result = await dispatch(addCertification({ id, data })).unwrap();
+      const result = await dispatch(addCertificationThunk({ id, data })).unwrap();
       return result;
     },
     [dispatch]
@@ -122,7 +122,7 @@ export const useProfile = () => {
 
   const removeCertification = useCallback(
     async (id, certName) => {
-      const result = await dispatch(removeCertification({ id, certName })).unwrap();
+      const result = await dispatch(removeCertificationThunk({ id, certName })).unwrap();
       return result;
     },
     [dispatch]

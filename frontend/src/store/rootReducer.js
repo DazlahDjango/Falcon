@@ -18,23 +18,13 @@ import securityReducer from './accounts/slice/securitySlice';
 import systemSettingsReducer from './accounts/slice/systemSettingsSlice';
 import accountsUiReducer from './accounts/slice/uiSlice';
 import { default as adminReducer } from './accounts/slice/adminSlice'
+import reportReducer from './accounts/slice/reportSlice';
 // =============================================
 // Structure Reducers
-// =============================================
+// ==========================================
 import structNotificationReducer from './structure/notificationSlice';
-import uiReducer from './ui/slices/uiSlice'
-import {
-    departmentReducer,
-    teamReducer,
-    positionReducer,
-    employmentReducer,
-    reportingReducer,
-    hierarchyReducer,
-    orgChartReducer,
-    costCenterReducer,
-    locationReducer,
-    structureUiReducer,
-} from './structure';
+import uiReducer from './ui/slices/uiSlice';
+import structureReducer from './structure/slice';
 
 // ==========================================
 // KPI Reducers
@@ -42,22 +32,26 @@ import {
 import kpiModuleReducer from './kpi/index';
 
 // ==========================================
-// TENANT APP REDUCERS (ADD THIS)
+// TENANT APP REDUCERS
 // ==========================================
 import { tenantReducers } from './tenant/index';
 
-// ===============================
+// ==========================================
 // Reviews Reducers
-// ===============================
+// ==========================================
 import { reviewsReducer } from './reviews';
+
+// ==========================================
+// Billing Reducers
+// ==========================================
 import { billingReducer } from './billing';
 
-// Config
-// =====================
+// ==========================================
+// Config Reducers
+// ==========================================
 import { configReducer } from './config';
 
 const rootReducer = combineReducers({
-    // Accounts State
     auth: authReducer,
     users: userReducer,
     roles: roleReducer,
@@ -68,41 +62,26 @@ const rootReducer = combineReducers({
     preferences: preferenceReducer,
     mfa: mfaReducer,
     adminMfa: adminMfaReducer,
-    profile: profileReducer,
+    profiles: profileReducer,
     ui: accountsUiReducer,
     accountsSecurity: securityReducer,
     systemSettings: systemSettingsReducer,
+    reports: reportReducer,
 
     // Tenant Reducers
     tenant: tenantReducers,
-
-    // Structure State
+    // Structure
     structNotifications: structNotificationReducer,
-    structure: combineReducers({
-        departments: departmentReducer,
-        teams: teamReducer,
-        positions: positionReducer,
-        employments: employmentReducer,
-        reporting: reportingReducer,
-        hierarchy: hierarchyReducer,
-        orgChart: orgChartReducer,
-        costCenters: costCenterReducer,
-        locations: locationReducer,
-        ui: structureUiReducer,
-    }),
-
-    // KPI State
+    structure: structureReducer,
+    // KPI
     kpi: kpiModuleReducer,
-    kpis: kpiModuleReducer, // Add alias for redundancy
-
-    // Billing State
+    kpis: kpiModuleReducer,
+    // Billing
     billing: billingReducer,
-
-    // Reviews State
+    // Reviews
     reviews: reviewsReducer,
-
     // Config
-    config: configReducer
+    config: configReducer,
 });
 
 export default rootReducer;

@@ -2,7 +2,7 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .constants import CACHE_KEY_DEPARTMENT_TREE, CACHE_KEY_EMPLOYMENT_CURRENT, DEFAULT_MAX_CACHE_TTL_SECONDS
+from .constants import CACHE_KEY_ORG_TREE, CACHE_KEY_EMPLOYMENT_CURRENT, DEFAULT_MAX_CACHE_TTL_SECONDS, MAX_ORG_DEPTH, LEVEL_ORDER, PARENT_LEVEL_MAP
 import hashlib
 import json
 from decimal import Decimal, ROUND_HALF_UP
@@ -25,12 +25,12 @@ def compute_snapshot_hash(snapshot_data):
     normalized = json.dumps(snapshot_data, sort_keys=True, default=str)
     return hashlib.sha256(normalized.encode()).hexdigest()
 
-def cache_department_tree(tenant_id, tree_data, ttl=DEFAULT_MAX_CACHE_TTL_SECONDS):
-    cache_key = CACHE_KEY_DEPARTMENT_TREE.format(tenant_id=tenant_id)
+def cache_org_tree(tenant_id, tree_data, ttl=DEFAULT_MAX_CACHE_TTL_SECONDS):
+    cache_key = CACHE_KEY_ORG_TREE.format(tenant_id=tenant_id)
     cache.set(cache_key, tree_data, ttl)
 
-def get_cached_department_tree(tenant_id):
-    cache_key = CACHE_KEY_DEPARTMENT_TREE.format(tenant_id=tenant_id)
+def get_cached_org_tree(tenant_id):
+    cache_key = CACHE_KEY_ORG_TREE.format(tenant_id=tenant_id)
     return cache.get(cache_key)
 
 def invalidate_tenant_cache(tenant_id, pattern='structure:*'):
@@ -38,7 +38,6 @@ def invalidate_tenant_cache(tenant_id, pattern='structure:*'):
     if pattern == '*':
         caches['default'].clear()
     else:
-        cache_key_pattern = f"*{tenant_id}*"
         pass
 
 def cache_current_employment(tenant_id, user_id, employment_data, ttl=DEFAULT_MAX_CACHE_TTL_SECONDS):
@@ -87,12 +86,6 @@ def safe_decimal(value, default=Decimal('0.00')):
     except (ValueError, TypeError, Decimal.InvalidOperation):
         return default
 
-def aggregate_weights(weights):
-    total = sum(Decimal(str(w)) for w in weights)
-    if total != Decimal('1.00'):
-        return [Decimal(str(w)) / total for w in weights]
-    return list(weights)
-
 def get_current_fiscal_year():
     today = timezone.now().date()
     if today.month >= 7:
@@ -137,16 +130,86 @@ def chunk_list(input_list, chunk_size=500):
         yield input_list[i:i + chunk_size]
 
 def get_redis_connection():
-    from django.core.cache import caches
-    return caches['default'].client.get_client()
+    """
+    Get Redis connection if available, otherwise return None.
+    This handles cases where cache backend is not Redis.
+    """
+    try:
+        from django.core.cache import caches
+        cache = caches['default']
+        # Check if the cache backend has a client attribute with get_client method
+        if hasattr(cache, 'client'):
+            if hasattr(cache.client, 'get_client'):
+                return cache.client.get_client()
+            # Some Redis backends expose the client directly
+            elif hasattr(cache.client, 'connection_pool'):
+                return cache.client
+        return None
+    except Exception:
+        return None
 
 def publish_org_change(tenant_id, change_type, data):
+    """
+    Publish organization change event to Redis if available.
+    If Redis is not available, log the event instead.
+    """
     redis_client = get_redis_connection()
     if redis_client:
-        channel = f"org_changes:{tenant_id}"
-        message = json.dumps({
-            'type': change_type,
-            'data': data,
-            'timestamp': timezone.now().isoformat(),
-        })
-        redis_client.publish(channel, message)
+        try:
+            channel = f"org_changes:{tenant_id}"
+            message = json.dumps({
+                'type': change_type,
+                'data': data,
+                'timestamp': timezone.now().isoformat(),
+            })
+            redis_client.publish(channel, message)
+        except Exception as e:
+            # Log the error but don't crash
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to publish event to Redis: {e}")
+    else:
+        # Redis not available, log the event
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"EVENT (simulated): tenant={tenant_id}, type={change_type}, data={data}")
+
+def get_level_order(level):
+    return LEVEL_ORDER.get(level, 99)
+
+def is_higher_level(level1, level2):
+    return get_level_order(level1) < get_level_order(level2)
+
+def is_lower_level(level1, level2):
+    return get_level_order(level1) > get_level_order(level2)
+
+def get_org_level_from_depth(depth):
+    from apps.structure.enums.org_level import OrgLevel
+    level_map = {
+        0: OrgLevel.DIVISION,
+        1: OrgLevel.DEPARTMENT,
+        2: OrgLevel.SECTION,
+        3: OrgLevel.UNIT,
+    }
+    return level_map.get(depth)
+
+def is_valid_org_level(level):
+    from apps.structure.enums.org_level import OrgLevel
+    return level in [choice[0] for choice in OrgLevel.choices]
+
+def build_path_from_ancestors(ancestors, code):
+    path_parts = [a.code for a in ancestors] + [code]
+    return '/'.join(path_parts)
+
+def validate_org_structure(tenant_id):
+    from apps.structure.models.organizational_unit import OrganizationalUnit
+    units = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False)
+    for unit in units:
+        if unit.parent and unit.parent.level != PARENT_LEVEL_MAP.get(unit.level):
+            return False
+        if unit.depth != unit.parent.depth + 1 if unit.parent else 0:
+            return False
+        expected_path = build_path_from_ancestors(unit.get_ancestors(), unit.code)
+        if unit.path != expected_path:
+            return False
+    return True

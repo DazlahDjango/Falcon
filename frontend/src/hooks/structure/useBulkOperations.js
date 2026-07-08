@@ -1,136 +1,139 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { bulkService } from '../../services/structure/bulk.service';
-import { STRUCTURE_QUERY_KEYS } from '../../config/constants/structureConstants';
-import { showToast } from '../../store/ui/slices/uiSlice';
 import { useDispatch } from 'react-redux';
-import { useState } from 'react';
+import { useCallback } from 'react';
+import { bulkService } from '../../services/structure/bulk.service';
+import { showToast } from '../../store/ui/slices/uiSlice';
 
-export const useBulkDepartmentOperations = () => {
-  const queryClient = useQueryClient();
+export const useBulkOperations = () => {
   const dispatch = useDispatch();
-  const [progress, setProgress] = useState({ current: 0, total: 0, status: 'idle' });
-  const bulkCreate = useMutation({
-    mutationFn: (departments) => bulkService.processDepartments(departments, 'create'),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.DEPARTMENTS]);
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.DEPARTMENT_TREE]);
-      dispatch(showToast({
-        message: `${response.data?.results?.created_count || 0} departments created, ${response.data?.results?.failed_count || 0} failed`,
-        type: response.data?.results?.failed_count > 0 ? 'warning' : 'success',
-      }));
-      return response;
-    },
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Bulk create failed', type: 'error' }));
-      throw error;
-    },
-  });
-  const bulkUpdate = useMutation({
-    mutationFn: (departments) => bulkService.processDepartments(departments, 'update'),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.DEPARTMENTS]);
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.DEPARTMENT_TREE]);
-      dispatch(showToast({
-        message: `${response.data?.results?.updated_count || 0} departments updated, ${response.data?.results?.failed_count || 0} failed`,
-        type: response.data?.results?.failed_count > 0 ? 'warning' : 'success',
-      }));
-      return response;
-    },
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Bulk update failed', type: 'error' }));
-      throw error;
-    },
-  });
-  return {
-    bulkCreate,
-    bulkUpdate,
-    isCreating: bulkCreate.isLoading,
-    isUpdating: bulkUpdate.isLoading,
-    progress,
-  };
-};
 
-export const useBulkEmploymentOperations = () => {
-  const queryClient = useQueryClient();
-  const dispatch = useDispatch();
-  const bulkCreate = useMutation({
-    mutationFn: (employments) => bulkService.processEmployments(employments),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.EMPLOYMENTS]);
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.CURRENT_EMPLOYMENT]);
-      dispatch(showToast({
-        message: `${response.data?.success_count || 0} employments created, ${response.data?.error_count || 0} failed`,
-        type: response.data?.error_count > 0 ? 'warning' : 'success',
-      }));
+  const bulkDepartments = useCallback(async (data) => {
+    try {
+      const response = await bulkService.processDepartments(data.departments, data.action);
+      if (response.data?.results?.failed_count === 0) {
+        dispatch(showToast({
+          message: `Successfully processed ${response.data?.results?.total || 0} departments`,
+          type: 'success',
+        }));
+      } else {
+        dispatch(showToast({
+          message: `Processed ${response.data?.results?.total || 0} departments with ${response.data?.results?.failed_count || 0} failures`,
+          type: 'warning',
+        }));
+      }
       return response;
-    },
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Bulk create failed', type: 'error' }));
-      throw error;
-    },
-  });
-  const bulkReassignManager = useMutation({
-    mutationFn: ({ employeeIds, newManagerId, effectiveDate }) => bulkService.reassignManager(employeeIds, newManagerId, effectiveDate),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.REPORTING_LINES]);
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.REPORTING_CHAIN]);
+    } catch (error) {
       dispatch(showToast({
-        message: `${response.data?.updated_count || 0} employees reassigned, ${response.data?.failed_count || 0} failed`,
-        type: response.data?.failed_count > 0 ? 'warning' : 'success',
+        message: error.message || 'Bulk department operation failed',
+        type: 'error',
       }));
-      return response;
-    },
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Bulk reassign failed', type: 'error' }));
       throw error;
-    },
-  });
-  const bulkTransfer = useMutation({
-    mutationFn: ({ employeeIds, newDepartmentId, newTeamId, effectiveDate }) => bulkService.bulkTransfer(employeeIds, newDepartmentId, newTeamId, effectiveDate),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.EMPLOYMENTS]);
+    }
+  }, [dispatch]);
+
+  const bulkEmployments = useCallback(async (data) => {
+    try {
+      const response = await bulkService.processEmployments(data.employments);
+      if (response.data?.error_count === 0) {
+        dispatch(showToast({
+          message: `Successfully created ${response.data?.success_count || 0} employments`,
+          type: 'success',
+        }));
+      } else {
+        dispatch(showToast({
+          message: `Created ${response.data?.success_count || 0} employments with ${response.data?.error_count || 0} failures`,
+          type: 'warning',
+        }));
+      }
+      return response;
+    } catch (error) {
       dispatch(showToast({
-        message: `${response.data?.updated_count || 0} employees transferred, ${response.data?.failed_count || 0} failed`,
-        type: response.data?.failed_count > 0 ? 'warning' : 'success',
+        message: error.message || 'Bulk employment operation failed',
+        type: 'error',
       }));
-      return response;
-    },
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Bulk transfer failed', type: 'error' }));
       throw error;
-    },
-  });
+    }
+  }, [dispatch]);
+
+  const bulkReportingLines = useCallback(async (data) => {
+    try {
+      const response = await bulkService.processReportingLines(data.reporting_lines, data.action);
+      if (response.data?.results?.failed_count === 0) {
+        dispatch(showToast({
+          message: `Successfully processed ${response.data?.results?.total || 0} reporting lines`,
+          type: 'success',
+        }));
+      } else {
+        dispatch(showToast({
+          message: `Processed ${response.data?.results?.total || 0} reporting lines with ${response.data?.results?.failed_count || 0} failures`,
+          type: 'warning',
+        }));
+      }
+      return response;
+    } catch (error) {
+      dispatch(showToast({
+        message: error.message || 'Bulk reporting line operation failed',
+        type: 'error',
+      }));
+      throw error;
+    }
+  }, [dispatch]);
+
+  const reassignManager = useCallback(async (employeeIds, newManagerId, effectiveDate) => {
+    try {
+      const response = await bulkService.reassignManager(employeeIds, newManagerId, effectiveDate);
+      if (response.data?.failed_count === 0) {
+        dispatch(showToast({
+          message: `Successfully reassigned ${response.data?.updated_count || 0} employees`,
+          type: 'success',
+        }));
+      } else {
+        dispatch(showToast({
+          message: `Reassigned ${response.data?.updated_count || 0} employees with ${response.data?.failed_count || 0} failures`,
+          type: 'warning',
+        }));
+      }
+      return response;
+    } catch (error) {
+      dispatch(showToast({
+        message: error.message || 'Bulk reassignment failed',
+        type: 'error',
+      }));
+      throw error;
+    }
+  }, [dispatch]);
+
+  const bulkTransfer = useCallback(async (employeeIds, newDepartmentId, newUnitId, effectiveDate) => {
+    try {
+      const response = await bulkService.bulkTransfer(employeeIds, newDepartmentId, newUnitId, effectiveDate);
+      if (response.data?.failed_count === 0) {
+        dispatch(showToast({
+          message: `Successfully transferred ${response.data?.updated_count || 0} employees`,
+          type: 'success',
+        }));
+      } else {
+        dispatch(showToast({
+          message: `Transferred ${response.data?.updated_count || 0} employees with ${response.data?.failed_count || 0} failures`,
+          type: 'warning',
+        }));
+      }
+      return response;
+    } catch (error) {
+      dispatch(showToast({
+        message: error.message || 'Bulk transfer failed',
+        type: 'error',
+      }));
+      throw error;
+    }
+  }, [dispatch]);
+
   return {
-    bulkCreate,
-    bulkReassignManager,
+    bulkDepartments,
+    bulkEmployments,
+    bulkReportingLines,
+    reassignManager,
     bulkTransfer,
-    isCreating: bulkCreate.isLoading,
-    isReassigning: bulkReassignManager.isLoading,
-    isTransferring: bulkTransfer.isLoading,
+    isCreating: false,
   };
 };
 
-export const useBulkReportingOperations = () => {
-  const queryClient = useQueryClient();
-  const dispatch = useDispatch();
-  const bulkCreate = useMutation({
-    mutationFn: (reportingLines) => bulkService.processReportingLines(reportingLines, 'create'),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.REPORTING_LINES]);
-      queryClient.invalidateQueries([STRUCTURE_QUERY_KEYS.REPORTING_CHAIN]);
-      dispatch(showToast({
-        message: `${response.data?.created_count || 0} reporting lines created, ${response.data?.failed_count || 0} failed`,
-        type: response.data?.failed_count > 0 ? 'warning' : 'success',
-      }));
-      return response;
-    },
-    onError: (error) => {
-      dispatch(showToast({ message: error.message || 'Bulk create failed', type: 'error' }));
-      throw error;
-    },
-  });
-  return {
-    bulkCreate,
-    isCreating: bulkCreate.isLoading,
-  };
-};
+export default useBulkOperations;

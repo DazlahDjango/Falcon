@@ -2,178 +2,227 @@ from django.db import models
 from django.core.cache import cache
 from typing import Dict, List, Optional, Any
 from uuid import UUID
-from ...models.department import Department
-from ...models.team import Team
-from ...models.employment import Employment
-from ...constants import CACHE_KEY_DEPARTMENT_TREE, DEFAULT_MAX_CACHE_TTL_SECONDS
+from apps.structure.models.division import Division
+from apps.structure.models.department import Department
+from apps.structure.models.section import Section
+from apps.structure.models.unit import Unit
+from apps.structure.models.employment import Employment
+from apps.structure.models.organizational_unit import OrganizationalUnit
+from apps.structure.constants import CACHE_KEY_ORG_TREE, DEFAULT_MAX_CACHE_TTL_SECONDS
 
 
 class TreeBuilder:
     def __init__(self):
         self._cache = cache
     
-    def build_department_tree(self, tenant_id: UUID, include_inactive: bool = False, use_cache: bool = True) -> List[Dict[str, Any]]:
-        cache_key = CACHE_KEY_DEPARTMENT_TREE.format(tenant_id=tenant_id)
+    def build_full_tree(self, tenant_id: UUID, use_cache: bool = True) -> Dict[str, Any]:
+        cache_key = CACHE_KEY_ORG_TREE.format(tenant_id=tenant_id)
         if use_cache:
             cached = self._cache.get(cache_key)
             if cached:
                 return cached
-        departments = Department.objects.filter(
-            tenant_id=tenant_id,
-            is_deleted=False
-        )
-        if not include_inactive:
-            departments = departments.filter(is_active=True)
-        departments = departments.select_related('parent').order_by('code')
-        dept_map: Dict[UUID, Dict[str, Any]] = {}
-        tree: List[Dict[str, Any]] = []
-        for dept in departments:
-            dept_dict = {
-                'id': str(dept.id),
-                'name': dept.name,
-                'code': dept.code,
-                'description': dept.description,
-                'depth': dept.depth,
-                'path': dept.path,
-                'parent_id': str(dept.parent_id) if dept.parent_id else None,
-                'headcount_limit': dept.headcount_limit,
-                'sensitivity_level': dept.sensitivity_level,
-                'is_active': dept.is_active,
-                'children': [],
-                'stats': {
-                    'team_count': 0,
-                    'employee_count': 0,
-                    'sub_department_count': 0
-                }
-            }
-            dept_map[dept.id] = dept_dict
-        for dept in departments:
-            if dept.parent_id and dept.parent_id in dept_map:
-                dept_map[dept.parent_id]['children'].append(dept_map[dept.id])
-                dept_map[dept.parent_id]['stats']['sub_department_count'] += 1
-            else:
-                tree.append(dept_map[dept.id])
-        for dept in departments:
-            team_count = Team.objects.filter(department_id=dept.id, tenant_id=tenant_id, is_deleted=False).count()
-            dept_map[dept.id]['stats']['team_count'] = team_count
+        tree = {
+            'tenant_id': str(tenant_id),
+            'divisions': self._build_divisions(tenant_id)
+        }
         if use_cache:
             self._cache.set(cache_key, tree, DEFAULT_MAX_CACHE_TTL_SECONDS)
-        self._enrich_with_employee_counts(tenant_id, dept_map)
         return tree
     
-    def _enrich_with_employee_counts(self, tenant_id: UUID, dept_map: Dict[UUID, Dict[str, Any]]) -> None:
-        employments = Employment.objects.filter(
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).values('department_id').annotate(count=models.Count('user_id'))
-        for emp in employments:
-            dept_id = emp['department_id']
-            if dept_id in dept_map:
-                dept_map[dept_id]['stats']['employee_count'] = emp['count']
-        def propagate_counts(node: Dict[str, Any]) -> int:
-            total = node['stats']['employee_count']
-            for child in node['children']:
-                total += propagate_counts(child)
-            node['stats']['total_employees'] = total
-            return total
-        for node in list(dept_map.values()):
-            if node['parent_id'] is None:
-                propagate_counts(node)
+    def _build_divisions(self, tenant_id: UUID) -> List[Dict[str, Any]]:
+        divisions = Division.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True)
+        return [self._build_division_node(div) for div in divisions]
     
-    def build_team_tree(self, department_id: UUID, tenant_id: UUID, include_inactive: bool = False) -> List[Dict[str, Any]]:
-        teams = Team.objects.filter(
-            department_id=department_id,
-            tenant_id=tenant_id,
-            is_deleted=False
-        )
-        if not include_inactive:
-            teams = teams.filter(is_active=True)
-        teams = teams.select_related('parent_team', 'department').order_by('code')
-        team_map: Dict[UUID, Dict[str, Any]] = {}
-        tree: List[Dict[str, Any]] = []
-        for team in teams:
-            team_dict = {
-                'id': str(team.id),
-                'name': team.name,
-                'code': team.code,
-                'description': team.description,
-                'department_id': str(team.department_id),
-                'parent_team_id': str(team.parent_team_id) if team.parent_team_id else None,
-                'team_lead': str(team.team_lead) if team.team_lead else None,
-                'max_members': team.max_members,
-                'is_active': team.is_active,
-                'children': [],
-                'member_count': 0
-            }
-            team_map[team.id] = team_dict
-        for team in teams:
-            if team.parent_team_id and team.parent_team_id in team_map:
-                team_map[team.parent_team_id]['children'].append(team_map[team.id])
-            else:
-                tree.append(team_map[team.id])
-        employments = Employment.objects.filter(
-            department_id=department_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True,
-            team__isnull=False
-        ).values('team_id').annotate(count=models.Count('user_id'))
-        for emp in employments:
-            team_id = emp['team_id']
-            if team_id in team_map:
-                team_map[team_id]['member_count'] = emp['count']
-        return tree
-    
-    def build_full_org_tree(self, tenant_id: UUID) -> Dict[str, Any]:
-        department_tree = self.build_department_tree(tenant_id)
-        for dept in department_tree:
-            dept['teams'] = self.build_team_tree(UUID(dept['id']), tenant_id)
-            for team in dept['teams']:
-                team['members'] = self._get_team_members(UUID(team['id']), tenant_id)
+    def _build_division_node(self, division: Division) -> Dict[str, Any]:
         return {
-            'tenant_id': str(tenant_id),
-            'departments': department_tree,
-            'built_at': models.DateTimeField(auto_now=True).name
+            'id': str(division.id),
+            'code': division.code,
+            'name': division.name,
+            'description': division.description,
+            'level': division.level,
+            'depth': division.depth,
+            'path': division.path,
+            'cost_center_id': division.cost_center_id,
+            'budget_code': division.budget_code,
+            'headcount_limit': division.headcount_limit,
+            'is_active': division.is_active,
+            'departments': self._build_departments(division.id),
+            'employments': self._get_employments(division.id, 'division_id'),
+            'locations': self._get_locations(division.id),
+            'cost_centers': self._get_cost_centers(division.id),
+            'children_count': division.get_children_count()
         }
     
-    def _get_team_members(self, team_id: UUID, tenant_id: UUID) -> List[Dict[str, Any]]:
-        employments = Employment.objects.filter(
-            team_id=team_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).select_related('position')
+    def _build_departments(self, division_id: UUID) -> List[Dict[str, Any]]:
+        departments = Department.objects.filter(parent_id=division_id, is_deleted=False, is_active=True)
+        return [self._build_department_node(dept) for dept in departments]
+    
+    def _build_department_node(self, department: Department) -> Dict[str, Any]:
+        return {
+            'id': str(department.id),
+            'code': department.code,
+            'name': department.name,
+            'description': department.description,
+            'level': department.level,
+            'depth': department.depth,
+            'path': department.path,
+            'cost_center_id': department.cost_center_id,
+            'budget_code': department.budget_code,
+            'headcount_limit': department.headcount_limit,
+            'is_active': department.is_active,
+            'sensitivity_level': department.sensitivity_level,
+            'sections': self._build_sections(department.id),
+            'employments': self._get_employments(department.id, 'department_id'),
+            'children_count': department.get_children_count()
+        }
+    
+    def _build_sections(self, department_id: UUID) -> List[Dict[str, Any]]:
+        sections = Section.objects.filter(parent_id=department_id, is_deleted=False, is_active=True)
+        return [self._build_section_node(section) for section in sections]
+    
+    def _build_section_node(self, section: Section) -> Dict[str, Any]:
+        return {
+            'id': str(section.id),
+            'code': section.code,
+            'name': section.name,
+            'description': section.description,
+            'level': section.level,
+            'depth': section.depth,
+            'path': section.path,
+            'cost_center_id': section.cost_center_id,
+            'budget_code': section.budget_code,
+            'headcount_limit': section.headcount_limit,
+            'is_active': section.is_active,
+            'units': self._build_units(section.id),
+            'employments': self._get_employments(section.id, 'section_id'),
+            'children_count': section.get_children_count()
+        }
+    
+    def _build_units(self, section_id: UUID) -> List[Dict[str, Any]]:
+        units = Unit.objects.filter(parent_id=section_id, is_deleted=False, is_active=True)
+        return [self._build_unit_node(unit) for unit in units]
+    
+    def _build_unit_node(self, unit: Unit) -> Dict[str, Any]:
+        return {
+            'id': str(unit.id),
+            'code': unit.code,
+            'name': unit.name,
+            'description': unit.description,
+            'level': unit.level,
+            'depth': unit.depth,
+            'path': unit.path,
+            'cost_center_id': unit.cost_center_id,
+            'budget_code': unit.budget_code,
+            'headcount_limit': unit.headcount_limit,
+            'is_active': unit.is_active,
+            'employments': self._get_employments(unit.id, 'unit_id'),
+            'children_count': unit.get_children_count()
+        }
+    
+    def _get_employments(self, org_id: UUID, field_name: str) -> List[Dict[str, Any]]:
+        filter_kwargs = {field_name: org_id, 'is_deleted': False, 'is_active': True, 'is_current': True}
+        employments = Employment.objects.filter(**filter_kwargs).select_related('position')
         return [{
+            'id': str(emp.id),
             'user_id': str(emp.user_id),
-            'position': emp.position.title if emp.position else None,
-            'position_code': emp.position.job_code if emp.position else None,
+            'position': {
+                'id': str(emp.position.id),
+                'job_code': emp.position.job_code,
+                'title': emp.position.title,
+                'grade': emp.position.grade,
+                'level': emp.position.level
+            },
+            'employment_type': emp.employment_type,
             'is_manager': emp.is_manager,
-            'is_executive': emp.is_executive
+            'is_executive': emp.is_executive,
+            'is_board_member': emp.is_board_member,
+            'effective_from': emp.effective_from.isoformat() if emp.effective_from else None,
+            'effective_to': emp.effective_to.isoformat() if emp.effective_to else None,
+            'manager_user_id': emp.manager_user_id,
+            'interim_manager_user_id': emp.interim_manager_user_id,
+            'effective_manager_user_id': emp.effective_manager_user_id
         } for emp in employments]
     
-    def get_branch(self, root_department_id: UUID, tenant_id: UUID) -> Dict[str, Any]:
-        root_department = Department.objects.filter(
-            id=root_department_id,
-            tenant_id=tenant_id,
-            is_deleted=False
-        ).first()
-        if not root_department:
-            return {}
-        full_tree = self.build_department_tree(tenant_id)
-        def find_branch(nodes: List[Dict[str, Any]], target_id: str) -> Optional[Dict[str, Any]]:
-            for node in nodes:
-                if node['id'] == target_id:
-                    return node
-                found = find_branch(node['children'], target_id)
-                if found:
-                    return found
+    def _get_locations(self, org_id: UUID) -> List[Dict[str, Any]]:
+        from apps.structure.models.location import Location
+        locations = Location.objects.filter(organizational_unit_id=org_id, is_deleted=False, is_active=True)
+        return [{
+            'id': str(loc.id),
+            'code': loc.code,
+            'name': loc.name,
+            'type': loc.type,
+            'city': loc.city,
+            'country': loc.country,
+            'full_address': loc.full_address,
+            'is_headquarters': loc.is_headquarters
+        } for loc in locations]
+    
+    def _get_cost_centers(self, org_id: UUID) -> List[Dict[str, Any]]:
+        from apps.structure.models.cost_center import CostCenter
+        cost_centers = CostCenter.objects.filter(organizational_unit_id=org_id, is_deleted=False, is_active=True)
+        return [{
+            'id': str(cc.id),
+            'code': cc.code,
+            'name': cc.name,
+            'category': cc.category,
+            'budget_amount': float(cc.budget_amount) if cc.budget_amount else None,
+            'fiscal_year': cc.fiscal_year,
+            'allocation_percentage': float(cc.allocation_percentage)
+        } for cc in cost_centers]
+    
+    def build_subtree(self, org_id: UUID, org_type: str) -> Optional[Dict[str, Any]]:
+        model_map = {
+            'division': Division,
+            'department': Department,
+            'section': Section,
+            'unit': Unit
+        }
+        model = model_map.get(org_type)
+        if not model:
             return None
-        return find_branch(full_tree, str(root_department_id)) or {}
+        try:
+            node = model.objects.get(id=org_id, is_deleted=False)
+            return self._build_node_by_type(node, org_type)
+        except model.DoesNotExist:
+            return None
+    
+    def _build_node_by_type(self, node, org_type: str) -> Dict[str, Any]:
+        if org_type == 'division':
+            return self._build_division_node(node)
+        elif org_type == 'department':
+            return self._build_department_node(node)
+        elif org_type == 'section':
+            return self._build_section_node(node)
+        elif org_type == 'unit':
+            return self._build_unit_node(node)
+        return {}
+    
+    def get_branch(self, root_id: UUID, tenant_id: UUID, org_type: str) -> Dict[str, Any]:
+        full_tree = self.build_full_tree(tenant_id, use_cache=True)
+        if org_type == 'division':
+            for div in full_tree.get('divisions', []):
+                if div['id'] == str(root_id):
+                    return div
+        elif org_type == 'department':
+            for div in full_tree.get('divisions', []):
+                for dept in div.get('departments', []):
+                    if dept['id'] == str(root_id):
+                        return dept
+        elif org_type == 'section':
+            for div in full_tree.get('divisions', []):
+                for dept in div.get('departments', []):
+                    for section in dept.get('sections', []):
+                        if section['id'] == str(root_id):
+                            return section
+        elif org_type == 'unit':
+            for div in full_tree.get('divisions', []):
+                for dept in div.get('departments', []):
+                    for section in dept.get('sections', []):
+                        for unit in section.get('units', []):
+                            if unit['id'] == str(root_id):
+                                return unit
+        return {}
     
     def clear_cache(self, tenant_id: UUID) -> None:
-        cache_key = CACHE_KEY_DEPARTMENT_TREE.format(tenant_id=tenant_id)
+        cache_key = CACHE_KEY_ORG_TREE.format(tenant_id=tenant_id)
         self._cache.delete(cache_key)

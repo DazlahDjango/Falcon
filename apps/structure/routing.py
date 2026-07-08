@@ -22,14 +22,25 @@ websocket_urlpatterns = [
         name='structure-permissions'
     ),
     re_path(
+        r'^ws/structure/(?P<tenant_id>[0-9a-f-]+)/divisions/(?P<division_id>[0-9a-f-]+)/$',
+        consumers.OrgEventsConsumer.as_asgi(),
+        name='structure-division-events'
+    ),
+    re_path(
         r'^ws/structure/(?P<tenant_id>[0-9a-f-]+)/departments/(?P<department_id>[0-9a-f-]+)/$',
         consumers.OrgEventsConsumer.as_asgi(),
         name='structure-department-events'
     ),
     re_path(
-        r'^ws/structure/(?P<tenant_id>[0-9a-f-]+)/teams/(?P<team_id>[0-9a-f-]+)/$',
+        r'^ws/structure/(?P<tenant_id>[0-9a-f-]+)/sections/(?P<section_id>[0-9a-f-]+)/$',
         consumers.OrgEventsConsumer.as_asgi(),
-        name='structure-team-events'
+        name='structure-section-events'
+    ),
+    re_path(
+        r'^ws/structure/(?P<tenant_id>[0-9a-f-]+)/units/(?P<unit_id>[0-9a-f-]+)/$',
+        consumers.OrgEventsConsumer.as_asgi(),
+        name='structure-unit-events'
     ),
 ]
+
 __all__ = ['websocket_urlpatterns']

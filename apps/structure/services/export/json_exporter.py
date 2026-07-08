@@ -1,11 +1,68 @@
+import json
 from uuid import UUID
-from apps.structure.models import Department, Team, Employment
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
+from apps.structure.models.division import Division
+from apps.structure.models.department import Department
+from apps.structure.models.section import Section
+from apps.structure.models.unit import Unit
+from apps.structure.models.organizational_unit import OrganizationalUnit
+from apps.structure.models.employment import Employment
+from apps.structure.services.hierarchy.tree_builder import TreeBuilder
 
 class JSONExporterService:
-    @staticmethod
-    def export_departments(tenant_id: UUID, include_inactive: bool = False) -> str:
-        import json
-        from django.core.serializers.json import DjangoJSONEncoder
+    def __init__(self):
+        self.tree_builder = TreeBuilder()
+    
+    def export_full_org(self, tenant_id: UUID, include_inactive: bool = False) -> str:
+        tree = self.tree_builder.build_full_tree(tenant_id)
+        org_data = {
+            'tenant_id': str(tenant_id),
+            'export_date': timezone.now().isoformat(),
+            'organization': tree
+        }
+        return json.dumps(org_data, cls=DjangoJSONEncoder, indent=2)
+    
+    def export_org_units(self, tenant_id: UUID, include_inactive: bool = False) -> str:
+        units = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        if not include_inactive:
+            units = units.filter(is_active=True)
+        data = []
+        for unit in units:
+            data.append({
+                'id': str(unit.id),
+                'code': unit.code,
+                'name': unit.name,
+                'description': unit.description,
+                'level': unit.level,
+                'depth': unit.depth,
+                'path': unit.path,
+                'parent_id': str(unit.parent_id) if unit.parent_id else None,
+                'headcount_limit': unit.headcount_limit,
+                'is_active': unit.is_active,
+                'created_at': unit.created_at.isoformat() if unit.created_at else None
+            })
+        return json.dumps(data, cls=DjangoJSONEncoder, indent=2)
+    
+    def export_divisions(self, tenant_id: UUID, include_inactive: bool = False) -> str:
+        divisions = Division.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        if not include_inactive:
+            divisions = divisions.filter(is_active=True)
+        data = []
+        for div in divisions:
+            data.append({
+                'id': str(div.id),
+                'code': div.code,
+                'name': div.name,
+                'description': div.description,
+                'depth': div.depth,
+                'path': div.path,
+                'headcount_limit': div.headcount_limit,
+                'is_active': div.is_active
+            })
+        return json.dumps(data, cls=DjangoJSONEncoder, indent=2)
+    
+    def export_departments(self, tenant_id: UUID, include_inactive: bool = False) -> str:
         departments = Department.objects.filter(tenant_id=tenant_id, is_deleted=False)
         if not include_inactive:
             departments = departments.filter(is_active=True)
@@ -21,50 +78,42 @@ class JSONExporterService:
                 'path': dept.path,
                 'headcount_limit': dept.headcount_limit,
                 'sensitivity_level': dept.sensitivity_level,
-                'is_active': dept.is_active,
-                'created_at': dept.created_at.isoformat() if dept.created_at else None
+                'is_active': dept.is_active
             })
         return json.dumps(data, cls=DjangoJSONEncoder, indent=2)
     
-    @staticmethod
-    def export_full_org(tenant_id: UUID, include_inactive: bool = False) -> str:
-        import json
-        from django.core.serializers.json import DjangoJSONEncoder
-        departments = Department.objects.filter(tenant_id=tenant_id, is_deleted=False)
-        if not include_inactive:
-            departments = departments.filter(is_active=True)
-        root_departments = [d for d in departments if not d.parent_id]
-        def build_dept_json(dept: Department) -> dict:
-            children = [build_dept_json(child) for child in departments if child.parent_id == dept.id]
-            teams = Team.objects.filter(department_id=dept.id, tenant_id=tenant_id, is_deleted=False)
-            if not include_inactive:
-                teams = teams.filter(is_active=True)
-            teams_json = []
-            for team in teams:
-                team_members = Employment.objects.filter(team_id=team.id, tenant_id=tenant_id, is_current=True, is_deleted=False)
-                teams_json.append({
-                    'id': str(team.id),
-                    'code': team.code,
-                    'name': team.name,
-                    'description': team.description,
-                    'team_lead': str(team.team_lead) if team.team_lead else None,
-                    'max_members': team.max_members,
-                    'members': [{'user_id': str(m.user_id)} for m in team_members]
-                })
-            return {
-                'id': str(dept.id),
-                'code': dept.code,
-                'name': dept.name,
-                'description': dept.description,
-                'headcount_limit': dept.headcount_limit,
-                'teams': teams_json,
-                'children': children
-            }
-        org_data = {
-            'tenant_id': str(tenant_id),
-            'export_date': None,
-            'departments': [build_dept_json(dept) for dept in root_departments]
-        }
-        from django.utils import timezone
-        org_data['export_date'] = timezone.now().isoformat()
-        return json.dumps(org_data, cls=DjangoJSONEncoder, indent=2)
+    def export_employments(self, tenant_id: UUID, current_only: bool = True) -> str:
+        employments = Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('position', 'division', 'department', 'section', 'unit')
+        if current_only:
+            employments = employments.filter(is_current=True, is_active=True)
+        data = []
+        for emp in employments:
+            data.append({
+                'user_id': str(emp.user_id),
+                'position': {
+                    'id': str(emp.position.id) if emp.position else None,
+                    'job_code': emp.position.job_code if emp.position else None,
+                    'title': emp.position.title if emp.position else None
+                },
+                'division': str(emp.division_id) if emp.division_id else None,
+                'department': str(emp.department_id) if emp.department_id else None,
+                'section': str(emp.section_id) if emp.section_id else None,
+                'unit': str(emp.unit_id) if emp.unit_id else None,
+                'employment_type': emp.employment_type,
+                'is_manager': emp.is_manager,
+                'is_executive': emp.is_executive,
+                'effective_from': emp.effective_from.isoformat() if emp.effective_from else None,
+                'effective_to': emp.effective_to.isoformat() if emp.effective_to else None,
+                'is_current': emp.is_current
+            })
+        return json.dumps(data, cls=DjangoJSONEncoder, indent=2)
+    
+    def export_reporting_chain(self, tenant_id: UUID) -> str:
+        from apps.structure.services.reporting.chain_service import ChainService
+        chain_service = ChainService()
+        employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_active=True, is_deleted=False)
+        data = {}
+        for emp in employments:
+            chain = chain_service.get_chain_of_command(str(emp.user_id), tenant_id)
+            data[str(emp.user_id)] = chain
+        return json.dumps(data, cls=DjangoJSONEncoder, indent=2)

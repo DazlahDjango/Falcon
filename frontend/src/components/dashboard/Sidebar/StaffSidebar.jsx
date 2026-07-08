@@ -4,10 +4,13 @@ import {
     FiHome, FiBarChart2, FiTrendingUp, FiAlertCircle, 
     FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp,
     FiDownload, FiSettings, FiBell, FiFileText, FiTarget,
-    FiCheckCircle, FiClock, FiAward, FiCalendar
+    FiCheckCircle, FiClock, FiAward, FiCalendar, FiUser,
+    FiBriefcase, FiGitBranch
 } from 'react-icons/fi';
+import { BsPersonBadge } from 'react-icons/bs';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
 import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
+import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import { SidebarUserPanel } from '../common/SidebarUserPanel';
 
 const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, currentPath, wsConnected }) => {
@@ -15,6 +18,7 @@ const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, curr
         main: true,
         performance: true,
         tasks: true,
+        structure: false,
         history: false,
         settings: false
     });
@@ -41,6 +45,12 @@ const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, curr
             { path: KPI_ROUTES.ACTUAL_SUBMIT, name: 'Submit Actuals', icon: FiCheckCircle },
             { path: KPI_ROUTES.ACTUALS, name: 'My Submissions', icon: FiClock },
             { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alerts', icon: FiAlertCircle },
+        ],
+        structure: [
+            { path: STRUCTURE_ROUTES.MY_EMPLOYMENT, name: 'My Employment', icon: BsPersonBadge },
+            { path: STRUCTURE_ROUTES.POSITIONS, name: 'Positions', icon: FiBriefcase },
+            { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
+            { path: STRUCTURE_ROUTES.MY_CHAIN, name: 'My Reporting Chain', icon: FiGitBranch },
         ],
         history: [
             { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'Performance History', icon: FiAward },
@@ -90,7 +100,6 @@ const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, curr
 
     return (
         <aside className={`sidebar staff-sidebar ${isOpen ? 'open' : 'closed'} ${isCollapsed ? 'collapsed' : ''}`}>
-            {/* Logo Area */}
             <div className="sidebar-logo">
                 <NavLink to={DASHBOARD_ROUTES.STAFF.OVERVIEW} className="logo-link">
                     <div className="logo-icon">
@@ -108,7 +117,6 @@ const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, curr
                 </button>
             </div>
             
-            {/* Tenant Info */}
             {!isCollapsed && currentTenant && (
                 <div className="sidebar-tenant">
                     <div className="tenant-name">{currentTenant.name}</div>
@@ -116,11 +124,11 @@ const StaffSidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, curr
                 </div>
             )}
             
-            {/* Navigation Menu */}
             <nav className="sidebar-nav">
                 {renderNavGroup('Main', navigation.main, 'main')}
                 {renderNavGroup('My Performance', navigation.performance, 'performance')}
                 {renderNavGroup('Tasks & Submissions', navigation.tasks, 'tasks')}
+                {renderNavGroup('Organization', navigation.structure, 'structure')}
                 {renderNavGroup('History', navigation.history, 'history')}
                 {renderNavGroup('Settings', navigation.settings, 'settings')}
             </nav>

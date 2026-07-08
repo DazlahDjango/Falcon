@@ -1,26 +1,34 @@
-import { BaseStructureService } from './base.service';
+import { BaseStructureService, withRetry } from './base.service';
+import { DASHBOARD_ENDPOINTS } from '../../config/constants/structureApiConstants';
 
-class DashboardService extends BaseStructureService {
+class StructureDashboardService extends BaseStructureService {
   constructor() {
-    super('dashboard');  // This creates /api/v1/structure/dashboard/
+    super('dashboard');
   }
-  
+
   async getOverview() {
-    return this.apiClient.get('/dashboard/overview/');
+    return withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.OVERVIEW));
   }
-  
+
   async getHierarchyHealth() {
-    return this.apiClient.get('/dashboard/hierarchy-health/');
+    return withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.HIERARCHY_HEALTH));
   }
-  
+
   async getTrends(months = 6) {
-    return this.apiClient.get('/dashboard/trends/', { params: { months } });
+    return withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.TRENDS, { 
+      params: { [DASHBOARD_ENDPOINTS.QUERY_PARAMS.MONTHS]: months } 
+    }));
   }
-  
-  async getMetrics() {
-    // Alias for getOverview() to maintain compatibility
-    return this.getOverview();
+
+  async getAllDashboardData(months = 6) {
+    const [overview, health, trends] = await Promise.all([
+      this.getOverview(),
+      this.getHierarchyHealth(),
+      this.getTrends(months)
+    ]);
+    return { overview: overview.data, health: health.data, trends: trends.data };
   }
 }
 
-export const dashboardService = new DashboardService();
+export const structureDashboardService = new StructureDashboardService();
+export { StructureDashboardService };

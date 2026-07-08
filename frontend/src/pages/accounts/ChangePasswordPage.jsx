@@ -16,3 +16,5 @@ export const ChangePasswordPage = () => {
     </div>
   );
 };
+
+export default ChangePasswordPage;

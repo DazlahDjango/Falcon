@@ -1,89 +1,35 @@
 import { BaseStructureService, withRetry } from './base.service';
+import { ORG_CHART_ENDPOINTS } from '../../config/constants/structureApiConstants';
 
-export class OrgChartService extends BaseStructureService {
+class OrgChartService extends BaseStructureService {
   constructor() {
     super('org-charts');
   }
 
-  async exportAsJson(format = 'full', rootDepartmentId = null) {
-    return withRetry(async () => {
-      const params = { format };
-      if (rootDepartmentId) params.root_department_id = rootDepartmentId;
-      
-      const response = await this.apiClient.get('/org-charts/json/', { params });
-      return response;
-    });
-  }
-  
-  async exportAsCsv(entity = 'departments', includeInactive = false) {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/org-charts/csv/', {
-        params: { entity, include_inactive: includeInactive },
-        responseType: 'blob',
-      });
-      return response;
-    });
+  async exportJson(params) {
+    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.JSON, { params }));
   }
 
-  async exportAsText(rootDepartmentId = null, maxDepth = 10) {
-    return withRetry(async () => {
-      const params = { max_depth: maxDepth };
-      if (rootDepartmentId) params.root_department_id = rootDepartmentId;
-      const response = await this.apiClient.get('/org-charts/text/', {
-        params,
-        responseType: 'text',
-      });
-      return response;
-    });
+  async exportCsv(params) {
+    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.CSV, { params, responseType: 'blob' }));
   }
 
-  async exportAsVisio(rootDepartmentId = null) {
-    return withRetry(async () => {
-      const params = {};
-      if (rootDepartmentId) params.root_department_id = rootDepartmentId;
-      const response = await this.apiClient.get('/org-charts/visio/', {
-        params,
-        responseType: 'blob',
-      });
-      return response;
-    });
+  async exportText(params) {
+    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.TEXT, { params, responseType: 'text' }));
   }
 
-  async getTreeView(includeInactive = false) {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/org-charts/tree/', {
-        params: { include_inactive: includeInactive },
-      });
-      return response;
-    });
+  async exportVisio(params) {
+    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.VISIO, { params, responseType: 'blob' }));
+  }
+
+  async getTree() {
+    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.TREE));
   }
 
   async getPreview() {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/org-charts/preview/');
-      return response;
-    });
-  }
-
-  async getFlatOrgChart() {
-    return withRetry(async () => {
-      const response = await this.apiClient.get('/org-charts/json/', {
-        params: { format: 'flat' },
-      });
-      return response;
-    });
-  }
-
-  async getFullOrgChart(rootDepartmentId = null) {
-    return withRetry(async () => {
-      const params = {};
-      if (rootDepartmentId) params.root_department_id = rootDepartmentId;
-      const response = await this.apiClient.get('/org-charts/json/', {
-        params: { format: 'full', ...params },
-      });
-      return response;
-    });
+    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.PREVIEW));
   }
 }
 
 export const orgChartService = new OrgChartService();
+export { OrgChartService };

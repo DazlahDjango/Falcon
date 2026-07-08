@@ -1,17 +1,16 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
-from ....models.position import Position
+from apps.structure.models.position import Position
 from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
 class PositionSerializer(BaseStructureSerializer):
     reports_to_code = serializers.CharField(source='reports_to.job_code', read_only=True, allow_null=True)
-    default_department_code = serializers.CharField(source='default_department.code', read_only=True, allow_null=True)
+    
     class Meta:
         model = Position
         fields = [
             'id', 'tenant_id', 'job_code', 'title', 'grade', 'level',
-            'reports_to_id', 'reports_to_code', 'default_department_id',
-            'default_department_code', 'default_reporting_type',
+            'reports_to_id', 'reports_to_code',
             'is_single_incumbent', 'current_incumbents_count',
             'max_incumbents', 'created_at'
         ]
@@ -20,45 +19,42 @@ class PositionSerializer(BaseStructureSerializer):
 class PositionDetailSerializer(BaseStructureDetailSerializer):
     reports_to_code = serializers.CharField(source='reports_to.job_code', read_only=True, allow_null=True)
     reports_to_title = serializers.CharField(source='reports_to.title', read_only=True, allow_null=True)
-    default_department_code = serializers.CharField(source='default_department.code', read_only=True, allow_null=True)
-    default_department_name = serializers.CharField(source='default_department.name', read_only=True, allow_null=True)
     is_vacant = serializers.BooleanField(read_only=True)
     is_over_occupied = serializers.BooleanField(read_only=True)
     direct_report_count = serializers.SerializerMethodField()
+    
     class Meta:
         model = Position
         fields = [
             'id', 'tenant_id', 'job_code', 'title', 'grade', 'level',
             'reports_to_id', 'reports_to_code', 'reports_to_title',
-            'default_department_id', 'default_department_code', 'default_department_name',
-            'default_reporting_type', 'min_tenure_months',
-            'required_competencies', 'is_single_incumbent',
-            'current_incumbents_count', 'max_incumbents',
-            'requires_supervisor_approval', 'is_deleted',
-            'is_vacant', 'is_over_occupied', 'direct_report_count',
+            'min_tenure_months', 'required_competencies',
+            'is_single_incumbent', 'current_incumbents_count',
+            'max_incumbents', 'requires_supervisor_approval',
+            'is_deleted', 'is_vacant', 'is_over_occupied',
+            'direct_report_count',
             'created_at', 'updated_at', 'created_by', 'updated_by',
             'deleted_at', 'deleted_by'
         ]
         read_only_fields = ['id', 'tenant_id', 'current_incumbents_count', 'created_at', 'updated_at', 'deleted_at']
+    
     def get_direct_report_count(self, obj):
-        return obj.direct_reports.filter(is_deleted=False).count()
+        return obj.direct_reports.filter(is_deleted=False, is_active=True).count()
 
 class PositionCreateUpdateSerializer(serializers.ModelSerializer):
     reports_to_id = serializers.UUIDField(required=False, allow_null=True)
-    default_department_id = serializers.UUIDField(required=False, allow_null=True)
     
     class Meta:
         model = Position
         fields = [
             'job_code', 'title', 'grade', 'level', 'reports_to_id',
-            'default_department_id', 'default_reporting_type',
             'min_tenure_months', 'required_competencies',
             'is_single_incumbent', 'max_incumbents',
             'requires_supervisor_approval'
         ]
     
     def validate_job_code(self, value):
-        from ....validators import validate_position_job_code
+        from apps.structure.validators import validate_position_job_code
         validate_position_job_code(value)
         request = self.context.get('request')
         tenant_id = getattr(request.user, 'tenant_id', None) if request else None
@@ -69,12 +65,12 @@ class PositionCreateUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_level(self, value):
-        from ....validators import validate_position_level
+        from apps.structure.validators import validate_position_level
         validate_position_level(value)
         return value
     
     def validate_grade(self, value):
-        from ....validators import validate_grade
+        from apps.structure.validators import validate_grade
         if value:
             validate_grade(value)
         return value
@@ -85,7 +81,7 @@ class PositionCreateUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_required_competencies(self, value):
-        from ....validators import validate_required_competencies
+        from apps.structure.validators import validate_required_competencies
         if value:
             validate_required_competencies(value)
         return value

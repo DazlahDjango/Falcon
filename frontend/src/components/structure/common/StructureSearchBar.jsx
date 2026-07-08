@@ -1,89 +1,84 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { FiSearch, FiX } from 'react-icons/fi';
 
-const StructureSearchBar = ({ onSearch, onSelect, placeholder = 'Search departments, teams, positions...', className = '' }) => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const searchRef = useRef(null);
+export const StructureSearchBar = ({
+  value = '',
+  onChange,
+  onSearch,
+  placeholder = 'Search...',
+  debounce = 300,
+  className = '',
+  autoFocus = false,
+}) => {
+  const [searchValue, setSearchValue] = useState(value);
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef(null);
+  const debounceTimer = useRef(null);
+
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowResults(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-  const handleSearch = async (value) => {
-    setQuery(value);
-    if (value.length >= 2 && onSearch) {
-      setIsLoading(true);
-      try {
-        const searchResults = await onSearch(value);
-        setResults(searchResults || []);
-        setShowResults(true);
-      } catch (error) {
-        console.error('Search error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setResults([]);
-      setShowResults(false);
+    setSearchValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
     }
-  };
-  const handleSelect = (item) => {
-    setQuery('');
-    setResults([]);
-    setShowResults(false);
-    if (onSelect) {
-      onSelect(item);
+  }, [autoFocus]);
+
+  const handleChange = useCallback((e) => {
+    const newValue = e.target.value;
+    setSearchValue(newValue);
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
-  };
-  const clearSearch = () => {
-    setQuery('');
-    setResults([]);
-    setShowResults(false);
-  };
+
+    debounceTimer.current = setTimeout(() => {
+      if (onChange) {
+        onChange(newValue);
+      }
+      if (onSearch) {
+        onSearch(newValue);
+      }
+    }, debounce);
+  }, [onChange, onSearch, debounce]);
+
+  const handleClear = useCallback(() => {
+    setSearchValue('');
+    if (onChange) onChange('');
+    if (onSearch) onSearch('');
+    if (inputRef.current) inputRef.current.focus();
+  }, [onChange, onSearch]);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter') {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      if (onSearch) {
+        onSearch(searchValue);
+      }
+    }
+  }, [searchValue, onSearch]);
 
   return (
-    <div ref={searchRef} className={`structure-search-bar ${className}`}>
-      <Search size={16} className="structure-search-icon" />
+    <div className={`structure-search-bar ${className} ${isFocused ? 'focused' : ''}`}>
+      <FiSearch className="search-icon" size={18} />
       <input
+        ref={inputRef}
         type="text"
-        value={query}
-        onChange={(e) => handleSearch(e.target.value)}
         placeholder={placeholder}
-        className="structure-search-input"
+        value={searchValue}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        className="search-input"
       />
-      {query && (
-        <button onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-          <X size={14} />
+      {searchValue && (
+        <button onClick={handleClear} className="clear-btn">
+          <FiX size={16} />
         </button>
-      )}
-      {showResults && (
-        <div className="structure-search-results">
-          {isLoading && (
-            <div className="p-3 text-center text-gray-500">Searching...</div>
-          )}
-          {!isLoading && results.length === 0 && query.length >= 2 && (
-            <div className="p-3 text-center text-gray-500">No results found</div>
-          )}
-          {results.map((result, index) => (
-            <div
-              key={result.id || index}
-              className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-              onClick={() => handleSelect(result)}
-            >
-              <div className="font-medium text-sm">{result.name || result.title}</div>
-              <div className="text-xs text-gray-500">
-                {result.type} • {result.code || result.job_code}
-              </div>
-            </div>
-          ))}
-        </div>
       )}
     </div>
   );

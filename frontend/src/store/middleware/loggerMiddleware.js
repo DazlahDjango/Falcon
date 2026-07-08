@@ -1,12 +1,13 @@
 const loggerMiddleware = (store) => (next) => (action) => {
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.MODE === 'development') {
     const prevState = store.getState();
-    console.group(`[Redux] ${action.type}`);
-    console.log('Action:', action);
-    console.log('Prev State:', prevState);
+    console.groupCollapsed(`[Redux] ${action.type}`);
+    console.log('[ReduxLogger] Action:', action);
+    console.log('[ReduxLogger] Previous State:', prevState);
     const result = next(action);
     const nextState = store.getState();
-    console.log('Next State:', nextState);
+    console.log('[ReduxLogger] Next State:', nextState);
+    console.log('[ReduxLogger] Stack:', new Error().stack);
     console.groupEnd();
     return result;
   }

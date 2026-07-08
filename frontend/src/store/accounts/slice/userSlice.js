@@ -138,6 +138,18 @@ export const unlockUser = createAsyncThunk(
   }
 );
 
+export const verifyUser = createAsyncThunk(
+  'users/verifyUser',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await usersApi.verifyUser(id);
+      return { id, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to verify user');
+    }
+  }
+);
+
 export const assignUserRole = createAsyncThunk(
   'users/assignUserRole',
   async ({ id, role }, { rejectWithValue }) => {
@@ -348,6 +360,15 @@ const userSlice = createSlice({
         }
         if (state.selectedUser?.id === action.payload.id) {
           state.selectedUser = { ...state.selectedUser, locked_until: null, login_attempts: 0 };
+        }
+      })
+      .addCase(verifyUser.fulfilled, (state, action) => {
+        const index = state.users.findIndex(u => u.id === action.payload.id);
+        if (index !== -1) {
+          state.users[index] = { ...state.users[index], is_verified: true };
+        }
+        if (state.selectedUser?.id === action.payload.id) {
+          state.selectedUser = { ...state.selectedUser, is_verified: true };
         }
       })
       .addCase(assignUserRole.fulfilled, (state, action) => {
