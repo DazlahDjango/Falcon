@@ -110,6 +110,15 @@ class OrganizationDatabaseRouter:
 
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
+        # If this thread is running a tenant migration, block all global apps
+        if getattr(self._thread_local, 'is_tenant_migration', False):
+            # Normalize app label to compare short name
+            short_app = app_label.split('.')[-1]
+            global_short_apps = {a.split('.')[-1] for a in self.GLOBAL_APPS}
+            if short_app in global_short_apps or short_app in ['auth', 'contenttypes', 'sessions', 'admin', 'tenant', 'core', 'configs']:
+                return False
+            return True
+
         if app_label in self.GLOBAL_APPS:
             return db == 'default'
         if app_label in self.ORG_APPS:

@@ -245,6 +245,63 @@ class AdminUserViewSet(BaseModelViewset):
             metadata={'target_user_id': str(user.id), 'target_email': user.email, 'context': 'superadmin'}
         )
         return Response({'message': 'User verified successfully'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='map-to-organization')
+    def map_to_organization(self, request, pk=None):
+        """
+        Map a user to a specific organization (tenant).
+        Updates tenant_id on User, Profile, UserPreference, and UserSession.
+        """
+        user = self.get_object()
+        organization_id = request.data.get('organization_id')
+        if not organization_id:
+            return Response({'error': 'organization_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            org = Organization.objects.get(id=organization_id, is_deleted=False)
+        except (Organization.DoesNotExist, ValueError):
+            return Response({'error': 'Invalid or non-existent organization_id'}, status=status.HTTP_404_NOT_FOUND)
+            
+        old_tenant_id = user.tenant_id
+        
+        from django.db import transaction
+        from apps.accounts.models import Profile, UserPreference, UserSession
+        
+        with transaction.atomic():
+            # Update User
+            user.tenant_id = org.id
+            user.save(update_fields=['tenant_id'])
+            
+            # Update Profile
+            Profile.objects.filter(user=user).update(tenant_id=org.id)
+            
+            # Update UserPreference
+            UserPreference.objects.filter(user=user).update(tenant_id=org.id)
+            
+            # Update UserSession
+            UserSession.objects.filter(user=user).update(tenant_id=org.id)
+            
+        AuditService().log(
+            user=request.user,
+            action='user.mapped_to_organization',
+            action_type='update',
+            request=request,
+            severity='warning',
+            metadata={
+                'target_user_id': str(user.id),
+                'target_email': user.email,
+                'old_tenant_id': str(old_tenant_id) if old_tenant_id else None,
+                'new_tenant_id': str(org.id),
+                'organization_name': org.name,
+                'context': 'superadmin'
+            }
+        )
+        
+        return Response({
+            'message': f"User {user.email} successfully mapped to organization {org.name}",
+            'user_id': str(user.id),
+            'organization_id': str(org.id)
+        }, status=status.HTTP_200_OK)
     
 class AdminRoleViewSet(BaseModelViewset):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -322,6 +379,63 @@ class AdminTenantViewSet(BaseModelViewset):
         tenant.is_active = True
         tenant.save(update_fields=['is_active'])
         return Response({'message': f'Tenant {tenant.name} activated'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='map-user')
+    def map_user(self, request, pk=None):
+        """
+        Map a specific user to this organization.
+        Updates tenant_id on User, Profile, UserPreference, and UserSession.
+        """
+        org = self.get_object()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            user = User.objects.get(id=user_id, is_deleted=False)
+        except (User.DoesNotExist, ValueError):
+            return Response({'error': 'Invalid or non-existent user_id'}, status=status.HTTP_404_NOT_FOUND)
+            
+        old_tenant_id = user.tenant_id
+        
+        from django.db import transaction
+        from apps.accounts.models import Profile, UserPreference, UserSession
+        
+        with transaction.atomic():
+            # Update User
+            user.tenant_id = org.id
+            user.save(update_fields=['tenant_id'])
+            
+            # Update Profile
+            Profile.objects.filter(user=user).update(tenant_id=org.id)
+            
+            # Update UserPreference
+            UserPreference.objects.filter(user=user).update(tenant_id=org.id)
+            
+            # Update UserSession
+            UserSession.objects.filter(user=user).update(tenant_id=org.id)
+            
+        AuditService().log(
+            user=request.user,
+            action='organization.user_mapped',
+            action_type='update',
+            request=request,
+            severity='warning',
+            metadata={
+                'target_user_id': str(user.id),
+                'target_email': user.email,
+                'old_tenant_id': str(old_tenant_id) if old_tenant_id else None,
+                'new_tenant_id': str(org.id),
+                'organization_name': org.name,
+                'context': 'superadmin'
+            }
+        )
+        
+        return Response({
+            'message': f"User {user.email} successfully mapped to organization {org.name}",
+            'user_id': str(user.id),
+            'organization_id': str(org.id)
+        }, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], url_path='create-with-admin')
     def create_with_admin(self, request):

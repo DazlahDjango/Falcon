@@ -350,6 +350,7 @@ export const ADMIN_ENDPOINTS = {
     USER_FORCE_PASSWORD_RESET: (id) => `${API_BASE}/admin/users/${id}/force-password-reset/`,
     USER_VERIFY: (id) => `${API_BASE}/admin/users/${id}/verify/`,
     USER_STATS: `${API_BASE}/admin/users/stats/`,
+    USER_MAP_TO_ORGANIZATION: (id) => `${API_BASE}/admin/users/${id}/map-to-organization/`,
     
     // Roles
     ROLES: `${API_BASE}/admin/roles/`,
@@ -368,6 +369,7 @@ export const ADMIN_ENDPOINTS = {
     TENANT_SUSPEND: (id) => `${API_BASE}/admin/tenants/${id}/suspend/`,
     TENANT_ACTIVATE: (id) => `${API_BASE}/admin/tenants/${id}/activate/`,
     TENANT_STATS: `${API_BASE}/admin/tenants/stats/`,
+    TENANT_MAP_USER: (id) => `${API_BASE}/admin/tenants/${id}/map-user/`,
     
     // System
     SYSTEM: `${API_BASE}/admin/system/`,

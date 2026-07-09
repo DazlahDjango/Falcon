@@ -451,6 +451,31 @@ export const fetchAdminTenantStats = createAsyncThunk(
   }
 );
 
+export const mapUserToOrganization = createAsyncThunk(
+  'admin/mapUserToOrganization',
+  async ({ userId, organizationId }, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.mapUserToOrganization(userId, organizationId);
+      return { userId, organizationId, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to map user to organization');
+    }
+  }
+);
+
+export const mapTenantUser = createAsyncThunk(
+  'admin/mapTenantUser',
+  async ({ tenantId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await adminApi.mapTenantUser(tenantId, userId);
+      return { tenantId, userId, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to map tenant user');
+    }
+  }
+);
+
+
 export const fetchSystemInfo = createAsyncThunk(
   'admin/fetchSystemInfo',
   async (_, { rejectWithValue }) => {
@@ -665,6 +690,44 @@ const adminSlice = createSlice({
         if (state.selectedAdminUser?.id === action.payload.id) {
           state.selectedAdminUser = { ...state.selectedAdminUser, is_verified: true };
         }
+      })
+      .addCase(mapUserToOrganization.pending, (state) => {
+        state.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(mapUserToOrganization.fulfilled, (state, action) => {
+        state.isUpdating = false;
+        const { userId, organizationId } = action.payload;
+        const index = state.users.findIndex(u => u.id === userId);
+        if (index !== -1) {
+          state.users[index] = { ...state.users[index], tenant_id: organizationId };
+        }
+        if (state.selectedAdminUser?.id === userId) {
+          state.selectedAdminUser = { ...state.selectedAdminUser, tenant_id: organizationId };
+        }
+      })
+      .addCase(mapUserToOrganization.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload;
+      })
+      .addCase(mapTenantUser.pending, (state) => {
+        state.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(mapTenantUser.fulfilled, (state, action) => {
+        state.isUpdating = false;
+        const { tenantId, userId } = action.payload;
+        const index = state.users.findIndex(u => u.id === userId);
+        if (index !== -1) {
+          state.users[index] = { ...state.users[index], tenant_id: tenantId };
+        }
+        if (state.selectedAdminUser?.id === userId) {
+          state.selectedAdminUser = { ...state.selectedAdminUser, tenant_id: tenantId };
+        }
+      })
+      .addCase(mapTenantUser.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload;
       })
 
       // ============ ROLE MANAGEMENT ============

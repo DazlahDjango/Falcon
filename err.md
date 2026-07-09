@@ -1,28 +1,16 @@
-# Intro
-Good afternoon, I'm glad having you to help me today with something here on tenants app, we'll be going module by module today, I have several modules/elements in tenant
-Today we're focusing only in a single module and that's Reource management module, here you need to import most of the things from the billing app though cause it's the one handli9ng all the resources, billing, plan management and subscriptions
-# N/B you can view the billing app files just make sure we aren't causing duplication between this resources thing and the billing app, and if we realy need th resource module then implement it well as the billing app, like it should also call from the billing app, cause you can see the resource file will be counting like number of users in the organization over the total number of users subscription required and yet the plans are customized, definitely I've not created even one. Though I think you know what to do. And also if we're integrating resources, it can also import from billing app some elements i.e the usage sarvice, the grace period etc, just view the billing services files then you'll see how resource file kinda need to be
+I want you to help me with the tenant app, start with reading the base directory file accounts.md to see how my two base accounts users have their roles, I have integrated everything their, now I just remain with one thing in tenant app to make my account app complete on user management
+in that accounts.md file theirs a part where I'm saying client_admin onbording should happen during the tenant onboarding, like I should create the client_admin when I'm creating the tenant, and all my the client/tenant/organization users will inherit his/her tenant id
 
-1. View all the resources files from the managers, models, service file, and the API directory then you can proceed to the requirement on the N/B above and the requirements below on my research but being honest you can look at what i have in billing app service files first
+# To-DO task
+1. Read the backend tenant app files, understand and unlyze it very well,
+2. Read the accounts backend file mostly in user management and the admin management to understand how admin manage users in both roles(super and client admin) though super_admin is optional to have the tenant isolation IDs
 
-🔍 Honest Assessment: Resource Service - Enterprise Level?
-Current Score: 6.5/10 (Good, but NOT Enterprise Ready)
-Aspect	Current Status	Enterprise Need	Gap
-Basic CRUD	✅ Yes	✅ Yes	None
-Quota Checking	✅ Yes	✅ Yes	None
-Usage Tracking	✅ Yes	✅ Yes	None
-Daily Reset	✅ Yes	✅ Yes	None
-Audit Logging	❌ Missing	✅ Required	CRITICAL
-Alerting/Notifications	❌ Missing	✅ Required	CRITICAL
-Historical Tracking	❌ Missing	✅ Required	HIGH
-Resource Forecasting	❌ Missing	✅ Nice to have	MEDIUM
-Burst Limits	❌ Missing	✅ Nice to have	MEDIUM
-Soft/Hard Limits	❌ Missing	✅ Required	HIGH
-Resource Tiering	❌ Missing	✅ Required	HIGH
-Usage Analytics	❌ Missing	✅ Nice to have	MEDIUM
-Concurrent Tracking	⚠️ Partial	✅ Required	MEDIUM
-Distributed Locking	❌ Missing	✅ Required	HIGH
-Batch Operations	❌ Missing	✅ Nice to have	LOW
-WebSocket Updates	❌ Missing	✅ Nice to have	LOW
-Export/Reporting	❌ Missing	✅ Nice to have	LOW
-Self-Service UI	❌ Missing	✅ Required	HIGH
+# Requirements:
+1. Client admin should be created during the tenant onboarding process,
+2. All the client/tenant/organization users will inherit his/her tenant id from the client_admin(though already this is satisfied by the accounts app, cause I've tried even loging in with a client with no tenant ID and definitely it failed)
+3. I want to have another file/function/class where when I click an organization or users as super admin I can map them to a specific organization
+4. Those two 3 listed-to-do are the primary for now, then we'll proceed with others as we move on, but make sure you have the tenant app in memory because it's my priority today
+
+# NOTE:
+My tenant app on what I have now is working very perfect and have everything and all the modules works great, from connections, migrations etc
+Mostly focus on the user-mapping for the super-admin to the clients, that's our primary for this 10 to 30 mins

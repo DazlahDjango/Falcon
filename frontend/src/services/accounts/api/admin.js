@@ -20,6 +20,9 @@ export const forcePasswordReset = (id) =>
 export const verifyAdminUser = (id) =>
   request.post(ADMIN_ENDPOINTS.USER_VERIFY(id));
 
+export const mapUserToOrganization = (userId, organizationId) =>
+  request.post(ADMIN_ENDPOINTS.USER_MAP_TO_ORGANIZATION(userId), { organization_id: organizationId });
+
 export const getAdminUserStats = () => request.get(ADMIN_ENDPOINTS.USER_STATS);
 
 // ============ Admin Roles ============
@@ -69,6 +72,9 @@ export const createTenantWithAdmin = (data) =>
 export const suspendTenant = (id, data) => request.post(ADMIN_ENDPOINTS.TENANT_SUSPEND(id), data);
 
 export const activateTenant = (id) => request.post(ADMIN_ENDPOINTS.TENANT_ACTIVATE(id));
+
+export const mapTenantUser = (tenantId, userId) =>
+  request.post(ADMIN_ENDPOINTS.TENANT_MAP_USER(tenantId), { user_id: userId });
 
 export const getAdminTenantStats = () => request.get(ADMIN_ENDPOINTS.TENANT_STATS);
 

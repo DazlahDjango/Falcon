@@ -42,7 +42,8 @@ class AuditService:
             log_data['referer'] = request.META.get('HTTP_REFERER', '')[:500]
             log_data['request_method'] = request.method
             log_data['request_path'] = request.path[:500]
-            log_data['session_key'] = request.session.session_key or ''
+            session_obj = getattr(request, 'session', None)
+            log_data['session_key'] = (session_obj.session_key if session_obj else '') or ''
         else:
             log_data['ip_address'] = '0.0.0.0'
             log_data['user_agent'] = 'system'

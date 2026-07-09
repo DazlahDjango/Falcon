@@ -42,6 +42,7 @@ class ProvisioningService:
         schema_name = None
         
         try:
+            # 1. Initialize schema record (Atomic)
             with transaction.atomic():
                 # Acquire advisory lock inside transaction
                 with connection.cursor() as cursor:
@@ -50,14 +51,13 @@ class ProvisioningService:
                 # Fetch organization with locking
                 org = Organization.objects.select_for_update().get(id=organization_id)
                 
-                # 1. Idempotency Check
+                # Idempotency Check
                 if org.is_provisioned:
                     self.logger.info(f"Organization {org.name} is already provisioned/active.")
                     return org
                 
                 schema_name = org.schema_name
                 
-                # 2. Validation
                 # Postgres schema name constraint validation
                 if not re.match(r'^[a-z_][a-z0-9_]{0,62}$', schema_name):
                     raise ProvisioningError(
@@ -71,7 +71,7 @@ class ProvisioningService:
                 # Update status to PROVISIONING
                 org.mark_provisioning()
                 
-                # 3. Create & Activate Schema
+                # Create & Activate Schema
                 self._update_progress(org, 'CREATING_SCHEMA', 'Creating Schema', 20, f"Creating database schema '{schema_name}'...")
                 
                 # Verify schema doesn't exist in DB already
@@ -80,38 +80,47 @@ class ProvisioningService:
                 
                 schema = self.schema_service.create_schema(org.id, schema_name)
                 self.schema_service.provision_schema(schema.id)
+
+            # 2. Sync & Apply Migrations (NON-ATOMIC)
+            org = Organization.objects.get(id=organization_id)
+            self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40, "Syncing and running database migrations...")
+            
+            self.migration_service.sync_tenant_migrations(org.id)
+            pending_migrations = self.migration_service.get_pending_migrations(org.id)
+            
+            total_migrations = pending_migrations.count()
+            self.logger.info(f"Found {total_migrations} pending migrations for organization '{org.name}'")
+            
+            for idx, migration in enumerate(pending_migrations, 1):
+                msg = f"Applying migration {idx}/{total_migrations}: {migration.app_name}.{migration.migration_name}"
+                self._update_progress(
+                    org,
+                    'MIGRATING',
+                    'Applying Migrations',
+                    40 + int((idx / total_migrations) * 25), # spans from 40% to 65%
+                    msg
+                )
+                self.migration_service.apply_migration(org.id, migration.app_name, migration.migration_name)
+            
+            # Ensure connection search path is restored to public
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO "public"')
+
+            # 3. Resource Quotas, Seeding, Admin user creation (Atomic)
+            with transaction.atomic():
+                org = Organization.objects.select_for_update().get(id=organization_id)
                 
-                # 4. Sync & Apply Migrations
-                self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40, "Syncing and running database migrations...")
-                
-                self.migration_service.sync_tenant_migrations(org.id)
-                pending_migrations = self.migration_service.get_pending_migrations(org.id)
-                
-                total_migrations = pending_migrations.count()
-                self.logger.info(f"Found {total_migrations} pending migrations for organization '{org.name}'")
-                
-                for idx, migration in enumerate(pending_migrations, 1):
-                    msg = f"Applying migration {idx}/{total_migrations}: {migration.app_name}.{migration.migration_name}"
-                    self._update_progress(
-                        org,
-                        'MIGRATING',
-                        'Applying Migrations',
-                        40 + int((idx / total_migrations) * 25), # spans from 40% to 65%
-                        msg
-                    )
-                    self.migration_service.apply_migration(org.id, migration.app_name, migration.migration_name)
-                
-                # Ensure connection search path is restored to public
-                with connection.cursor() as cursor:
-                    cursor.execute('SET search_path TO "public"')
-                
-                # 5. Resource Limits Creation
+                # Resource Limits Creation
                 self._update_progress(org, 'PROVISIONING_RESOURCES', 'Provisioning Resource Limits', 75, "Setting up resource quotas and limits...")
                 self._create_default_resources(org)
                 
-                # 6. Seed Default Data
+                # Seed Default Data
                 self._update_progress(org, 'SEEDING', 'Seeding Default Data', 85, "Seeding default system roles and configurations...")
                 self.seeder_service.seed_default_data(org)
+                
+                # Create Client Admin
+                self._update_progress(org, 'CREATING_ADMIN', 'Creating Client Admin', 92, "Creating organization client administrator...")
+                self._create_client_admin(org)
                 
                 # Finalize Onboarding
                 org.mark_onboarded()
@@ -286,3 +295,86 @@ class ProvisioningService:
             )
         except Exception as exc:
             self.logger.error("Failed to update organization status during rollback: %s", exc)
+
+    def _create_client_admin(self, org):
+        """Create the default client admin user for the organization."""
+        from django.contrib.auth import get_user_model
+        from apps.accounts.models import Profile, UserPreference
+        from django.conf import settings
+        from django.core.mail import send_mail
+        from django.template.loader import render_to_string
+        import secrets
+
+        # Ensure search path is pointing to public for global user creation
+        with connection.cursor() as cursor:
+            cursor.execute('SET search_path TO "public"')
+
+        User = get_user_model()
+        email = org.contact_email.lower().strip()
+
+        # Check if client admin user already exists
+        admin_user = User.objects.filter(email__iexact=email).first()
+        if admin_user:
+            self.logger.info(f"Client admin user with email {email} already exists. Skipping creation.")
+            if admin_user.tenant_id != org.id:
+                admin_user.tenant_id = org.id
+                admin_user.save(update_fields=['tenant_id'])
+            return admin_user
+
+        # Generate a unique username
+        username = email.split('@')[0]
+        if User.objects.filter(username__iexact=username).exists():
+            username = email
+
+        # Generate a strong temporary password
+        temp_password = secrets.token_urlsafe(12)
+
+        # Create user
+        admin_user = User.objects.create_user(
+            email=email,
+            username=username,
+            tenant_id=org.id,
+            password=temp_password,
+            first_name='Admin',
+            last_name='User',
+            role=User.ROLE_CLIENT_ADMIN,
+            is_active=True,
+            is_verified=True,
+            is_onboarded=True,
+            is_staff=True
+        )
+
+        # Force password change at first login
+        admin_user.password_change_required = True
+        admin_user.save(update_fields=['password_change_required'])
+
+        # Create Profile and UserPreference
+        Profile.objects.get_or_create(user=admin_user, defaults={'tenant_id': org.id})
+        UserPreference.objects.get_or_create(user=admin_user, defaults={'tenant_id': org.id})
+
+        # Send welcome email with temporary password
+        try:
+            subject = f'Welcome to Falcon PMS - {org.name}'
+            context = {
+                'user': admin_user,
+                'company_name': org.name,
+                'temp_password': temp_password,
+                'dashboard_url': f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')}/login",
+                'setup_guide_url': f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')}/docs/setup"
+            }
+            html_content = render_to_string('accounts/email/tenant_welcome.html', context)
+            text_content = f"Welcome to Falcon PMS! Your login email is {email} and temporary password is {temp_password}."
+            
+            send_mail(
+                subject=subject,
+                message=text_content,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@falconpms.com'),
+                recipient_list=[email],
+                html_message=html_content,
+                fail_silently=False
+            )
+            self.logger.info(f"Welcome email sent successfully to {email}")
+        except Exception as e:
+            self.logger.error(f"Failed to send welcome email to {email}: {str(e)}")
+
+        return admin_user

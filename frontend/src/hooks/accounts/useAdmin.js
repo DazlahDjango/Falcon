@@ -48,6 +48,8 @@ import {
   setAdminFilters,
   setAdminPage,
   setAdminPageSize,
+  mapUserToOrganization,
+  mapTenantUser,
 } from '../../store/accounts/slice/adminSlice';
 import {
   activateUser as activateAdminUser,
@@ -167,6 +169,22 @@ export const useAdmin = () => {
   const verifyUser = useCallback(
     async (id) => {
       const result = await dispatch(verifyAdminUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  const mapUserToOrg = useCallback(
+    async (userId, organizationId) => {
+      const result = await dispatch(mapUserToOrganization({ userId, organizationId })).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  const mapTenantUsr = useCallback(
+    async (tenantId, userId) => {
+      const result = await dispatch(mapTenantUser({ tenantId, userId })).unwrap();
       return result;
     },
     [dispatch]
@@ -522,6 +540,8 @@ export const useAdmin = () => {
       impersonateUser: impersonate,
       forcePasswordReset: forceReset,
       verifyUser,
+      mapUserToOrganization: mapUserToOrg,
+      mapTenantUser: mapTenantUsr,
     }),
     [
       users,
@@ -555,6 +575,8 @@ export const useAdmin = () => {
       impersonate,
       forceReset,
       verifyUser,
+      mapUserToOrg,
+      mapTenantUsr,
       getUserStats,
       getRoles,
       getRole,

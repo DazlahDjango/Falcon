@@ -68,6 +68,10 @@ class OrganizationService:
                 status=OrganizationStatus.PENDING,
                 metadata=self._build_initial_metadata(data),
             )
+            
+            if not auto_provision:
+                org.metadata.setdefault('provisioning', {})['auto_dispatch'] = False
+
             if data.get('logo'):
                 org.logo = data['logo']
             if data.get('favicon'):
@@ -80,10 +84,6 @@ class OrganizationService:
             })
 
             self.logger.info("Created organization %s — %s", org.id, org.name)
-
-            if not auto_provision:
-                org.metadata.setdefault('provisioning', {})['auto_dispatch'] = False
-                org.save(update_fields=['metadata', 'updated_at'])
 
             return org
 
