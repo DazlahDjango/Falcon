@@ -7,30 +7,36 @@ class EmploymentService extends BaseStructureService {
   }
 
   async getCurrent(params) {
-    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.CURRENT, { params }));
+    const response = await withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.CURRENT, { params }));
+    return this.unwrap(response);
   }
 
   async getByUser(userId) {
     if (!userId) throw new Error('User ID is required');
-    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.BY_USER(userId)));
+    const response = await withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.BY_USER(userId)));
+    return this.unwrap(response);
   }
 
   async getStats() {
-    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.STATS));
+    const response = await withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.STATS));
+    return this.unwrap(response);
   }
 
   async transfer(data) {
     if (!data) throw new Error('Transfer data is required');
-    return withRetry(() => this.apiClient.post(EMPLOYMENT_ENDPOINTS.TRANSFER, data));
+    const response = await withRetry(() => this.apiClient.post(EMPLOYMENT_ENDPOINTS.TRANSFER, data));
+    return this.unwrap(response);
   }
 
   async bulkCreate(data) {
     if (!data) throw new Error('Bulk data is required');
-    return withRetry(() => this.apiClient.post(EMPLOYMENT_ENDPOINTS.BULK_CREATE, data));
+    const response = await withRetry(() => this.apiClient.post(EMPLOYMENT_ENDPOINTS.BULK_CREATE, data));
+    return this.unwrap(response);
   }
 
   async getMyEmployment() {
-    return withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.ME));
+    const response = await withRetry(() => this.apiClient.get(EMPLOYMENT_ENDPOINTS.ME));
+    return this.unwrap(response);
   }
 }
 

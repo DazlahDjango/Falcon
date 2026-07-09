@@ -10,6 +10,8 @@ import {
   FiCalendar,
   FiUsers,
   FiAward,
+  FiGitBranch,
+  FiRepeat,
 } from 'react-icons/fi';
 import { useEmployments } from '../../../hooks/structure';
 import {
@@ -48,6 +50,16 @@ export const EmploymentDetail = () => {
   const handleEdit = useCallback(() => {
     navigate(STRUCTURE_ROUTES.EMPLOYMENT_EDIT(id));
   }, [navigate, id]);
+
+  const handleTransfer = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.EMPLOYMENT_TRANSFER + '?employment_id=' + id);
+  }, [navigate, id]);
+
+  const handleViewChain = useCallback(() => {
+    if (currentItem && currentItem.user_id) {
+      navigate(STRUCTURE_ROUTES.REPORTING_CHAIN(currentItem.user_id));
+    }
+  }, [navigate, currentItem]);
 
   const handleDeleteClick = useCallback(() => {
     setShowDeleteConfirm(true);
@@ -149,6 +161,16 @@ export const EmploymentDetail = () => {
           </span>
         </div>
         <div className="header-right">
+          {currentItem && currentItem.user_id && (
+            <button onClick={handleViewChain} className="btn btn-secondary" title="View Reporting Chain">
+              <FiGitBranch size={16} />
+              <span className="hidden-sm">View Chain</span>
+            </button>
+          )}
+          <button onClick={handleTransfer} className="btn btn-secondary" title="Transfer Employee">
+            <FiRepeat size={16} />
+            <span className="hidden-sm">Transfer</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>

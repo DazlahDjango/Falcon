@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import {
     fetchPositions,
     fetchPositionById,
@@ -28,7 +28,15 @@ import {
 
 export const usePositions = (options = {}) => {
     const dispatch = useDispatch();
-    const { autoFetch = true, params = {} } = options;
+    const { autoFetch = true, params: initialParams = {} } = options;
+
+    const isFirstRender = useRef(true);
+    const hasFetched = useRef(false);
+    const prevParamsRef = useRef(initialParams);
+
+    const params = useMemo(() => initialParams, [
+        JSON.stringify(initialParams)
+    ]);
 
     const items = useSelector(selectPositionsItems);
     const currentItem = useSelector(selectPositionsCurrent);
@@ -39,7 +47,8 @@ export const usePositions = (options = {}) => {
     const totalCount = useSelector(selectPositionsTotal);
 
     const fetchAll = useCallback((fetchParams) => {
-        return dispatch(fetchPositions(fetchParams || params));
+        const paramsToUse = fetchParams || params;
+        return dispatch(fetchPositions(paramsToUse));
     }, [dispatch, params]);
 
     const fetchById = useCallback((id) => {
@@ -94,11 +103,37 @@ export const usePositions = (options = {}) => {
         dispatch(resetPositionState());
     }, [dispatch]);
 
+    const refetch = useCallback((newParams) => {
+        const fetchParams = newParams || params;
+        prevParamsRef.current = fetchParams;
+        return dispatch(fetchPositions(fetchParams));
+    }, [dispatch, params]);
+
     useEffect(() => {
-        if (autoFetch) {
-            fetchAll(params);
+        if (!autoFetch) {
+            return;
         }
-    }, [autoFetch, fetchAll, params]);
+
+        const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+        
+        if (!hasFetched.current || paramsChanged) {
+            hasFetched.current = true;
+            prevParamsRef.current = params;
+            dispatch(fetchPositions(params));
+        }
+    }, [autoFetch, params, dispatch]);
+
+    useEffect(() => {
+        return () => {
+            hasFetched.current = false;
+            isFirstRender.current = true;
+        };
+    }, []);
+
+    const forceFetch = useCallback(() => {
+        hasFetched.current = true;
+        return dispatch(fetchPositions(params));
+    }, [dispatch, params]);
 
     return {
         items,
@@ -122,6 +157,9 @@ export const usePositions = (options = {}) => {
         setFilters,
         setPagination,
         reset,
+        refetch,
+        forceFetch,
+        _hasFetched: hasFetched.current,
     };
 };
 

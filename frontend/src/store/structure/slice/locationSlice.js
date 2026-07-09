@@ -18,7 +18,7 @@ export const fetchLocations = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await locationService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch locations');
     }
@@ -30,7 +30,7 @@ export const fetchLocationById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await locationService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch location');
     }
@@ -42,7 +42,7 @@ export const fetchHeadquarters = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await locationService.getHeadquarters();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch headquarters');
     }
@@ -54,7 +54,7 @@ export const fetchLocationStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await locationService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch location stats');
     }
@@ -66,7 +66,7 @@ export const fetchLocationSubLocations = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await locationService.getSubLocations(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch sub-locations');
     }
@@ -78,7 +78,7 @@ export const createLocation = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await locationService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create location');
     }
@@ -90,7 +90,7 @@ export const updateLocation = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await locationService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update location');
     }
@@ -114,7 +114,7 @@ export const updateLocationOccupancy = createAsyncThunk(
   async ({ id, occupancy }, { rejectWithValue }) => {
     try {
       const response = await locationService.updateOccupancy(id, occupancy);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update location occupancy');
     }

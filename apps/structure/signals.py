@@ -9,7 +9,6 @@ from .models.department import Department
 from .models.section import Section
 from .models.unit import Unit
 from .models.employment import Employment
-from .models.reporting_line import ReportingLine
 from .models.position import Position
 from .models.interim_assignment import InterimAssignment
 from .constants import CACHE_KEY_REPORTING_CHAIN_UP, CACHE_KEY_REPORTING_CHAIN_DOWN, CACHE_KEY_EMPLOYMENT_CURRENT
@@ -232,29 +231,6 @@ def employment_post_save(sender, instance, created, **kwargs):
         )
     cache_warmer.invalidate_tenant_cache(instance.tenant_id)
 
-
-@receiver(post_save, sender=ReportingLine)
-def reporting_line_post_save(sender, instance, created, **kwargs):
-    if instance.employee and instance.manager:
-        cache_keys = [
-            CACHE_KEY_REPORTING_CHAIN_UP.format(tenant_id=instance.tenant_id, user_id=instance.employee.user_id),
-            CACHE_KEY_REPORTING_CHAIN_DOWN.format(tenant_id=instance.tenant_id, user_id=instance.manager.user_id)
-        ]
-        for key in cache_keys:
-            cache.delete(key)
-    if created:
-        logger.info(f"Reporting line created: {instance.employee.user_id} → {instance.manager.user_id}")
-        event_publisher.publish_reporting_change(
-            instance.tenant_id, instance.employee.user_id, instance.manager.user_id,
-            'created', new_data={}
-        )
-    else:
-        logger.info(f"Reporting line updated: {instance.id} (Tenant: {instance.tenant_id})")
-        event_publisher.publish_reporting_change(
-            instance.tenant_id, instance.employee.user_id, instance.manager.user_id,
-            'updated', new_data={'is_active': instance.is_active}
-        )
-    cache_warmer.invalidate_tenant_cache(instance.tenant_id)
 
 
 @receiver(post_save, sender=InterimAssignment)

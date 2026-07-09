@@ -14,7 +14,7 @@ export const fetchOrgChartTree = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await orgChartService.getTree();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch org chart tree');
     }
@@ -26,7 +26,7 @@ export const fetchOrgChartPreview = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await orgChartService.getPreview();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch org chart preview');
     }
@@ -38,7 +38,7 @@ export const exportOrgChartJson = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await orgChartService.exportJson(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to export org chart as JSON');
     }
@@ -50,7 +50,7 @@ export const exportOrgChartCsv = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await orgChartService.exportCsv(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to export org chart as CSV');
     }

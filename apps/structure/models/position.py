@@ -10,6 +10,17 @@ class Position(BaseStructureModel):
     grade = models.CharField(_('grade level'), max_length=20, blank=True, db_index=True)
     level = models.PositiveSmallIntegerField(_('hierarchy level'), default=99, validators=[MinValueValidator(1), MaxValueValidator(20)])
     reports_to = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='direct_reports', verbose_name=_('reports to position'))
+    
+    # Organizational Placement
+    division = models.ForeignKey('structure.Division', on_delete=models.PROTECT, null=True, blank=True, related_name='positions', verbose_name=_('division'))
+    department = models.ForeignKey('structure.Department', on_delete=models.PROTECT, null=True, blank=True, related_name='positions', verbose_name=_('department'))
+    section = models.ForeignKey('structure.Section', on_delete=models.PROTECT, null=True, blank=True, related_name='positions', verbose_name=_('section'))
+    unit = models.ForeignKey('structure.Unit', on_delete=models.PROTECT, null=True, blank=True, related_name='positions', verbose_name=_('unit'))
+    
+    # Financial Placement
+    cost_center = models.ForeignKey('structure.CostCenter', on_delete=models.SET_NULL, null=True, blank=True, related_name='positions', verbose_name=_('cost center'))
+    fte = models.DecimalField(_('FTE'), max_digits=4, decimal_places=2, default=1.00)
+    
     min_tenure_months = models.PositiveSmallIntegerField(_('minimum tenure months'), default=0)
     required_competencies = models.JSONField(_('required competencies'), default=list, blank=True)
     is_single_incumbent = models.BooleanField(_('single incumbent only'), default=False, help_text=_("Only one person can hold this position"))

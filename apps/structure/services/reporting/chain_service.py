@@ -5,7 +5,7 @@ from django.utils import timezone
 from datetime import datetime
 from django.core.cache import cache
 from apps.structure.models.employment import Employment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.models.interim_assignment import InterimAssignment
 from apps.structure.constants import DEFAULT_MAX_CACHE_TTL_SECONDS
 from apps.structure.exceptions import ReportingChainError, SelfReportingError, EmploymentNotFoundError
@@ -26,10 +26,10 @@ class ChainService:
         chain = []
         current = employment
         while current:
-            reporting_line = ReportingLine.objects.filter(employee=current, is_active=True, is_deleted=False).first()
-            if not reporting_line:
+            employment = Employment.objects.filter(employee=current, is_active=True, is_deleted=False).first()
+            if not employment:
                 break
-            manager = reporting_line.manager
+            manager = employment.manager
             interim = InterimAssignment.objects.current_by_employee(manager.id).first()
             if interim:
                 chain.append({
@@ -63,8 +63,8 @@ class ChainService:
         employment = Employment.objects.current_by_user(user_id).first()
         if not employment:
             raise EmploymentNotFoundError(user_id)
-        reporting_lines = ReportingLine.objects.filter(manager=employment, is_active=True, is_deleted=False)
-        return [rl.employee for rl in reporting_lines]
+        employments = Employment.objects.filter(manager=employment, is_active=True, is_deleted=False)
+        return [rl.employee for rl in employments]
     
     def get_all_reports(self, user_id: UUID, tenant_id: UUID) -> List[Employment]:
         direct_reports = self.get_direct_reports(user_id, tenant_id)
@@ -84,9 +84,9 @@ class ChainService:
         interim = InterimAssignment.objects.current_by_employee(employment.id).first()
         if interim:
             return interim.interim_manager
-        reporting_line = ReportingLine.objects.filter(employee=employment, is_active=True, is_deleted=False).first()
-        if reporting_line:
-            return reporting_line.manager
+        employment = Employment.objects.filter(employee=employment, is_active=True, is_deleted=False).first()
+        if employment:
+            return employment.manager
         return None
     
     def get_ultimate_manager(self, user_id: UUID, tenant_id: UUID) -> Optional[Dict[str, Any]]:
@@ -125,7 +125,7 @@ class ChainService:
                 })
         return errors
     
-    def assign_manager(self, employee_id: UUID, manager_id: UUID, effective_from: Optional[datetime] = None, approved_by: Optional[UUID] = None) -> ReportingLine:
+    def assign_manager(self, employee_id: UUID, manager_id: UUID, effective_from: Optional[datetime] = None, approved_by: Optional[UUID] = None) -> Employment:
         with transaction.atomic():
             employee = Employment.objects.get(id=employee_id, is_deleted=False)
             manager = Employment.objects.get(id=manager_id, is_deleted=False)
@@ -135,8 +135,8 @@ class ChainService:
                 raise ReportingChainError("Employee and manager must be in same tenant.")
             if not effective_from:
                 effective_from = timezone.now().date()
-            ReportingLine.objects.filter(employee=employee, is_active=True, is_deleted=False).update(is_active=False, effective_to=effective_from)
-            reporting_line = ReportingLine.objects.create(
+            Employment.objects.filter(employee=employee, is_active=True, is_deleted=False).update(is_active=False, effective_to=effective_from)
+            employment = Employment.objects.create(
                 tenant_id=employee.tenant_id,
                 employee=employee,
                 manager=manager,
@@ -145,20 +145,20 @@ class ChainService:
                 approved_by_id=approved_by
             )
             self._cache.delete(f"structure:reporting_chain:{employee.tenant_id}:{employee.user_id}")
-            return reporting_line
+            return employment
     
     def remove_manager(self, employee_id: UUID) -> bool:
         with transaction.atomic():
-            reporting_line = ReportingLine.objects.filter(
+            employment = Employment.objects.filter(
                 employee_id=employee_id,
                 is_active=True,
                 is_deleted=False
             ).first()
-            if reporting_line:
-                reporting_line.is_active = False
-                reporting_line.effective_to = timezone.now().date()
-                reporting_line.save()
-                self._cache.delete(f"structure:reporting_chain:{reporting_line.tenant_id}:{reporting_line.employee.user_id}")
+            if employment:
+                employment.is_active = False
+                employment.effective_to = timezone.now().date()
+                employment.save()
+                self._cache.delete(f"structure:reporting_chain:{employment.tenant_id}:{employment.employee.user_id}")
             return True
     
     def clear_cache(self, tenant_id: UUID, user_id: Optional[UUID] = None) -> None:

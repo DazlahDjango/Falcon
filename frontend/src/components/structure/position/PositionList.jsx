@@ -11,6 +11,7 @@ import {
   StructureLoading,
   StructureEmptyState,
   StructureConfirmDialog,
+  StructureSummaryCards,
 } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import { STRUCTURE_MESSAGES } from '../../../config/constants/structureConstants';
@@ -24,6 +25,18 @@ const COLUMNS = [
     header: 'Grade',
     width: '80px',
     render: (item) => item.grade || '-',
+  },
+  {
+    key: 'department_name',
+    header: 'Department',
+    width: '150px',
+    render: (item) => item.department_name || '-',
+  },
+  {
+    key: 'division_name',
+    header: 'Division',
+    width: '150px',
+    render: (item) => item.division_name || '-',
   },
   {
     key: 'level',
@@ -47,11 +60,31 @@ const COLUMNS = [
     key: 'is_vacant',
     header: 'Status',
     width: '120px',
+    render: (item) => {
+      const isVacant = item.is_vacant !== undefined ? item.is_vacant : item.current_incumbents_count === 0;
+      return (
+        <StructureStatusBadge
+          status={isVacant ? 'inactive' : 'active'}
+          customLabel={isVacant ? 'Vacant' : 'Occupied'}
+        />
+      );
+    },
+  },
+  {
+    key: 'employments',
+    header: 'Employments',
+    width: '120px',
     render: (item) => (
-      <StructureStatusBadge
-        status={item.is_vacant ? 'inactive' : 'active'}
-        customLabel={item.is_vacant ? 'Vacant' : 'Occupied'}
-      />
+      <a 
+        href={`${STRUCTURE_ROUTES.EMPLOYMENTS}?position=${item.id}`} 
+        className="text-primary hover:underline"
+        style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: '500', textDecoration: 'none' }}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        View Staff
+      </a>
     ),
   },
 ];
@@ -70,10 +103,16 @@ export const PositionList = () => {
     isLoading,
     error,
     totalCount,
+    stats,
     fetchAll,
+    fetchStats,
     remove,
     clearError,
   } = usePositions({ autoFetch: false });
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   useEffect(() => {
     const params = {
@@ -192,6 +231,37 @@ export const PositionList = () => {
         </div>
       </div>
 
+      <StructureSummaryCards
+        loading={!stats && isLoading}
+        items={[
+          {
+            title: 'Total Positions',
+            value: stats?.total_positions || 0,
+            variant: 'default',
+            description: 'Defined in structure'
+          },
+          {
+            title: 'Vacant Positions',
+            value: stats?.vacant_positions || 0,
+            variant: 'warning',
+            description: 'Require candidates'
+          },
+          {
+            title: 'Occupied Positions',
+            value: stats?.occupied_positions || 0,
+            variant: 'success',
+            description: 'Currently filled'
+          },
+          {
+            title: 'Occupancy Rate',
+            value: stats?.occupancy_rate || 0,
+            suffix: '%',
+            variant: 'default',
+            description: 'Total fulfillment'
+          }
+        ]}
+      />
+
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -244,7 +314,7 @@ export const PositionList = () => {
         debounce={400}
       />
 
-      <StructureTable
+      <StructureTable hideEmptyState={true}
         columns={COLUMNS}
         data={items}
         loading={isLoading}

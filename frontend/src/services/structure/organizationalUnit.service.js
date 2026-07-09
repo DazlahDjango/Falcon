@@ -8,39 +8,47 @@ class OrganizationalUnitService extends BaseStructureService {
 
   async getByLevel(level) {
     if (!level) throw new Error('Level is required');
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.BY_LEVEL(level)));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.BY_LEVEL(level)));
+    return this.unwrap(response);
   }
 
   async getByPath(path) {
     if (!path) throw new Error('Path is required');
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.BY_PATH(path)));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.BY_PATH(path)));
+    return this.unwrap(response);
   }
 
   async getRootUnits() {
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.ROOT));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.ROOT));
+    return this.unwrap(response);
   }
 
   async getStats() {
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.STATS));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.STATS));
+    return this.unwrap(response);
   }
 
   async getSubtree(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.SUBTREE(id)));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.SUBTREE(id)));
+    return this.unwrap(response);
   }
 
   async getChildren(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.CHILDREN(id)));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.CHILDREN(id)));
+    return this.unwrap(response);
   }
 
   async getEmployments(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.EMPLOYMENTS(id)));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.EMPLOYMENTS(id)));
+    return this.unwrap(response);
   }
 
   async getHierarchyTree(tenantId) {
-    return withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.TREE, { params: { tenant_id: tenantId } }));
+    const response = await withRetry(() => this.apiClient.get(ORGANIZATIONAL_UNIT_ENDPOINTS.TREE, { params: { tenant_id: tenantId } }));
+    return this.unwrap(response);
   }
 }
 

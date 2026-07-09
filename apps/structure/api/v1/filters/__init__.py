@@ -4,7 +4,6 @@ from .department_filter import DepartmentFilter, DepartmentTreeFilter
 from .employment_filter import EmploymentFilter, EmploymentCurrentFilter
 from .location_filter import LocationFilter
 from .position_filter import PositionFilter
-from .reporting_filter import ReportingLineFilter
 
 __all__ = [
     'OrgUnitFilter',
@@ -18,5 +17,4 @@ __all__ = [
     'EmploymentCurrentFilter',
     'LocationFilter',
     'PositionFilter',
-    'ReportingLineFilter',
 ]

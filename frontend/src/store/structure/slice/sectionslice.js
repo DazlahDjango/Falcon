@@ -16,7 +16,7 @@ export const fetchSections = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await sectionService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch sections');
     }
@@ -28,7 +28,7 @@ export const fetchSectionById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await sectionService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch section');
     }
@@ -40,7 +40,7 @@ export const fetchSectionUnits = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await sectionService.getUnits(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch section units');
     }
@@ -52,7 +52,7 @@ export const createSection = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await sectionService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create section');
     }
@@ -64,7 +64,7 @@ export const updateSection = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await sectionService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update section');
     }

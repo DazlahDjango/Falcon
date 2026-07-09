@@ -202,7 +202,7 @@ export const SectionList = () => {
         debounce={400}
       />
 
-      <StructureTable
+      <StructureTable 
         columns={COLUMNS}
         data={items}
         loading={isLoading}
@@ -210,6 +210,7 @@ export const SectionList = () => {
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
         pagination={paginationProps}
+        hideEmptyState={true}
       />
 
       {!isLoading && items.length === 0 && (

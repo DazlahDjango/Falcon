@@ -1,8 +1,9 @@
 import React, { useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useSections, useSectionForm } from '../../../hooks/structure';
 import ParentUnitSelect from '../common/ParentUnitSelect';
+import UserSelector from '../../accounts/users/UserSelector';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './section.css';
@@ -10,6 +11,7 @@ import './section.css';
 export const SectionForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const isEditing = !!id;
 
   const {
@@ -27,15 +29,26 @@ export const SectionForm = () => {
       code: '',
       name: '',
       description: '',
-      parent_id: '',
+      department_id: searchParams.get('department_id') || '',
+      section_lead_id: '',
       headcount_limit: '',
       is_active: true,
     },
     onSubmit: async (formData) => {
+      const submitData = { ...formData };
+      if (submitData.department_id === '') {
+        submitData.department_id = null;
+      }
+      if (submitData.headcount_limit === '') {
+        submitData.headcount_limit = null;
+      }
+      if (submitData.section_lead_id === '') {
+        submitData.section_lead_id = null;
+      }
       if (isEditing) {
-        await update(id, formData);
+        await update(id, submitData).unwrap();
       } else {
-        await create(formData);
+        await create(submitData).unwrap();
       }
       navigate(STRUCTURE_ROUTES.SECTIONS);
     },
@@ -53,7 +66,8 @@ export const SectionForm = () => {
         code: currentItem.code || '',
         name: currentItem.name || '',
         description: currentItem.description || '',
-        parent_id: currentItem.parent_id || '',
+        department_id: currentItem.department_id || '',
+        section_lead_id: currentItem.section_lead_id || '',
         headcount_limit: currentItem.headcount_limit || '',
         is_active: currentItem.is_active !== undefined ? currentItem.is_active : true,
       });
@@ -64,7 +78,7 @@ export const SectionForm = () => {
     navigate(STRUCTURE_ROUTES.SECTIONS);
   }, [navigate]);
 
-  if (isLoading) {
+  if (isEditing && isLoading) {
     return (
       <div className="section-form-loading">
         <StructureLoading text="Loading section..." />
@@ -158,17 +172,27 @@ export const SectionForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="parent_id">Parent Department</label>
+          <label htmlFor="department_id">Parent Department</label>
           <ParentUnitSelect
-            value={values.parent_id}
-            onChange={(v) => setFieldValue('parent_id', v)}
+            value={values.department_id}
+            onChange={(v) => setFieldValue('department_id', v)}
             parentLevel="department"
             placeholder="Select department or leave blank for root section"
             disabled={isSubmitting}
           />
-          <span className="form-hint">Leave empty for top-level section</span>
+          <span className="form-hint">Leave empty for top-level root section</span>
         </div>
 
+        <div className="form-group">
+          <label htmlFor="section_lead_id">Section Lead</label>
+          <UserSelector
+            value={values.section_lead_id}
+            onChange={(value) => setFieldValue('section_lead_id', value)}
+            disabled={isSubmitting}
+            className="w-full"
+          />
+          <span className="form-hint">Select the lead for this section</span>
+        </div>
 
         <div className="form-group">
           <label htmlFor="headcount_limit">Headcount Limit</label>

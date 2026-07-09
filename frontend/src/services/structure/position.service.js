@@ -8,30 +8,36 @@ class PositionService extends BaseStructureService {
 
   async getByCode(jobCode) {
     if (!jobCode) throw new Error('Job code is required');
-    return withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.BY_CODE(jobCode)));
+    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.BY_CODE(jobCode)));
+    return this.unwrap(response);
   }
 
   async getVacant() {
-    return withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.VACANT));
+    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.VACANT));
+    return this.unwrap(response);
   }
 
   async getStats() {
-    return withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.STATS));
+    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.STATS));
+    return this.unwrap(response);
   }
 
   async getIncumbents(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.INCUMBENTS(id)));
+    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.INCUMBENTS(id)));
+    return this.unwrap(response);
   }
 
   async getReportingChain(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.REPORTING_CHAIN(id)));
+    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.REPORTING_CHAIN(id)));
+    return this.unwrap(response);
   }
 
   async getReports(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.REPORTS(id)));
+    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.REPORTS(id)));
+    return this.unwrap(response);
   }
 }
 

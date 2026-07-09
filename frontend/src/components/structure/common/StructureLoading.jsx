@@ -6,23 +6,17 @@ export const StructureLoading = ({
   fullPage = false,
   className = '',
 }) => {
-  const sizeClass = `loading-${size}`;
-
-  if (fullPage) {
-    return (
-      <div className={`structure-loading-full ${className}`}>
-        <div className="loading-content">
-          <div className={`loading-spinner ${sizeClass}`} />
-          {text && <p className="loading-text">{text}</p>}
-        </div>
-      </div>
-    );
-  }
+  const sizeMap = {
+    sm: 'h-6 w-6 border-b-2',
+    md: 'h-8 w-8 border-b-2',
+    lg: 'h-12 w-12 border-b-2',
+  };
+  const spinnerSize = sizeMap[size] || sizeMap.md;
 
   return (
-    <div className={`structure-loading ${className}`}>
-      <div className={`loading-spinner ${sizeClass}`} />
-      {text && <p className="loading-text">{text}</p>}
+    <div className={`flex flex-col justify-center items-center gap-3 p-8 ${fullPage ? 'fixed inset-0 bg-white/80 backdrop-blur-sm z-50' : ''} ${className}`}>
+      <div className={`animate-spin rounded-full border-blue-600 ${spinnerSize}`} />
+      {text && <p className="text-sm text-gray-500 font-medium">{text}</p>}
     </div>
   );
 };

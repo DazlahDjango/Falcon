@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiUser, FiBriefcase, FiCalendar } from 'react-icons/fi';
-import { useEmployments, useEmploymentForm, usePositions, useDepartments } from '../../../hooks/structure';
+import { useEmployments, useEmploymentForm, usePositions } from '../../../hooks/structure';
 import UserSelector from '../../accounts/users/UserSelector';
 import PositionSelector from '../position/PositionSelector';
 import DepartmentSelector from '../department/DepartmentSelector';
@@ -25,30 +25,40 @@ export const EmploymentForm = () => {
     clearError,
   } = useEmployments({ autoFetch: false });
 
-  const { data: positionsPage } = usePositions({ page: 1, pageSize: 1000 });
-  const positions = positionsPage?.results ?? [];
-  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
-  const departments = departmentsPage?.results ?? [];
+  const { items: positions = [] } = usePositions();
 
-  const { values, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useEmploymentForm({
+  const { values, errors, touched, handleChange, handleSubmit, setFieldValue, resetForm, isSubmitting } = useEmploymentForm({
     initialValues: {
       user_id: '',
       position_id: '',
-      department_id: '',
-      unit_id: '',
+      
+      
+      
+      
       employment_type: 'permanent',
       effective_from: new Date().toISOString().split('T')[0],
       effective_to: '',
       is_manager: false,
       is_executive: false,
       is_board_member: false,
+      is_team_lead: false,
       change_reason: '',
     },
     onSubmit: async (formData) => {
+      const cleanData = { ...formData };
+      
+      // Convert empty strings to null for optional UUID and Date fields
+      const optionalFields = ['effective_to'];
+      optionalFields.forEach(field => {
+        if (cleanData[field] === '') {
+          cleanData[field] = null;
+        }
+      });
+
       if (isEditing) {
-        await update(id, formData);
+        await update(id, cleanData).unwrap();
       } else {
-        await create(formData);
+        await create(cleanData).unwrap();
       }
       navigate(STRUCTURE_ROUTES.EMPLOYMENTS);
     },
@@ -65,14 +75,17 @@ export const EmploymentForm = () => {
       resetForm({
         user_id: currentItem.user_id || '',
         position_id: currentItem.position_id || '',
-        department_id: currentItem.department_id || '',
-        unit_id: currentItem.unit_id || '',
+        
+        
+        
+        
         employment_type: currentItem.employment_type || 'permanent',
         effective_from: currentItem.effective_from || new Date().toISOString().split('T')[0],
         effective_to: currentItem.effective_to || '',
         is_manager: currentItem.is_manager || false,
         is_executive: currentItem.is_executive || false,
         is_board_member: currentItem.is_board_member || false,
+        is_team_lead: currentItem.is_team_lead || false,
         change_reason: currentItem.change_reason || '',
       });
     }
@@ -91,7 +104,7 @@ export const EmploymentForm = () => {
     { value: 'temporary', label: 'Temporary' },
   ];
 
-  if (isLoading) {
+  if (isEditing && isLoading) {
     return (
       <div className="employment-form-loading">
         <StructureLoading text="Loading employment..." />
@@ -146,9 +159,13 @@ export const EmploymentForm = () => {
             value={values.user_id}
             onChange={(value) => setFieldValue('user_id', value)}
             disabled={isEditing || isSubmitting}
-            className="w-full"
+            className={`w-full ${touched.user_id && errors.user_id ? 'error-input' : ''}`}
           />
-          <span className="form-hint">Select the user for this employment</span>
+          {touched.user_id && errors.user_id ? (
+            <span className="form-error" style={{ color: 'var(--danger-600)', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.user_id}</span>
+          ) : (
+            <span className="form-hint">Select the user for this employment</span>
+          )}
         </div>
 
         <div className="form-group">
@@ -160,33 +177,16 @@ export const EmploymentForm = () => {
             onChange={(value) => setFieldValue('position_id', value)}
             positions={positions}
             placeholder="Select position"
-            className="w-full"
+            className={`w-full ${touched.position_id && errors.position_id ? 'error-input' : ''}`}
           />
-          <span className="form-hint">Choose the role assigned to the employee</span>
+          {touched.position_id && errors.position_id ? (
+            <span className="form-error" style={{ color: 'var(--danger-600)', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.position_id}</span>
+          ) : (
+            <span className="form-hint">Choose the role assigned to the employee</span>
+          )}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="department_id">Department</label>
-          <DepartmentSelector
-            value={values.department_id}
-            onChange={(value) => setFieldValue('department_id', value)}
-            departments={departments}
-            placeholder="Select department"
-            className="w-full"
-          />
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="unit_id">Unit</label>
-          <ParentUnitSelect
-            value={values.unit_id}
-            onChange={(value) => setFieldValue('unit_id', value)}
-            parentLevel="unit"
-            placeholder="Select unit"
-            disabled={isSubmitting}
-            className="w-full"
-          />
-        </div>
 
         <div className="form-group">
           <label htmlFor="employment_type">
@@ -222,8 +222,12 @@ export const EmploymentForm = () => {
               onChange={handleChange}
               required
               disabled={isSubmitting}
+              className={touched.effective_from && errors.effective_from ? 'error-input' : ''}
             />
           </div>
+          {touched.effective_from && errors.effective_from && (
+            <span className="form-error" style={{ color: 'var(--danger-600)', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.effective_from}</span>
+          )}
         </div>
 
         <div className="form-group">
@@ -237,9 +241,14 @@ export const EmploymentForm = () => {
               value={values.effective_to || ''}
               onChange={handleChange}
               disabled={isSubmitting}
+              className={touched.effective_to && errors.effective_to ? 'error-input' : ''}
             />
           </div>
-          <span className="form-hint">Leave empty for current/ongoing employment</span>
+          {touched.effective_to && errors.effective_to ? (
+            <span className="form-error" style={{ color: 'var(--danger-600)', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.effective_to}</span>
+          ) : (
+            <span className="form-hint">Leave empty for current/ongoing employment</span>
+          )}
         </div>
 
         <div className="form-group checkbox-group">
@@ -278,6 +287,19 @@ export const EmploymentForm = () => {
               disabled={isSubmitting}
             />
             <span>Is Board Member</span>
+          </label>
+        </div>
+
+        <div className="form-group checkbox-group">
+          <label className="checkbox-label">
+            <input
+              name="is_team_lead"
+              type="checkbox"
+              checked={values.is_team_lead || false}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+            <span>Is Team Lead</span>
           </label>
         </div>
 

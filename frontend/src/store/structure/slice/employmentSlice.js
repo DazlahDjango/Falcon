@@ -18,7 +18,7 @@ export const fetchEmployments = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await employmentService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch employments');
     }
@@ -30,7 +30,7 @@ export const fetchEmploymentById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await employmentService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch employment');
     }
@@ -42,7 +42,7 @@ export const fetchCurrentEmployments = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await employmentService.getCurrent(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch current employments');
     }
@@ -54,7 +54,7 @@ export const fetchEmploymentsByUser = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await employmentService.getByUser(userId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch employments by user');
     }
@@ -66,7 +66,7 @@ export const fetchEmploymentStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await employmentService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch employment stats');
     }
@@ -78,7 +78,7 @@ export const fetchMyEmployment = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await employmentService.getMyEmployment();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch my employment');
     }
@@ -90,7 +90,7 @@ export const createEmployment = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await employmentService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create employment');
     }
@@ -102,7 +102,7 @@ export const updateEmployment = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await employmentService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update employment');
     }
@@ -126,7 +126,7 @@ export const transferEmployee = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await employmentService.transfer(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to transfer employee');
     }
@@ -138,7 +138,7 @@ export const bulkCreateEmployments = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await employmentService.bulkCreate(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to bulk create employments');
     }

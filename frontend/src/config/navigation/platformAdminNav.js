@@ -246,8 +246,8 @@ export const STRUCTURE_NAV_ITEMS = [
   { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Structure Dashboard', icon: FiBarChart2 },
   { path: STRUCTURE_ROUTES.DASHBOARD_HEALTH, name: 'Structure Health', icon: FiActivity },
   
-  // Organizational Units
-  { path: STRUCTURE_ROUTES.ORG_UNITS, name: 'Organizational Units', icon: FiLayers },
+  // Master list of Org Units is intentionally excluded from sidebar to reduce clutter, 
+  // but remains accessible via Dashboard cards.
   { path: STRUCTURE_ROUTES.DIVISIONS, name: 'Divisions', icon: FiGitBranch },
   { path: STRUCTURE_ROUTES.DEPARTMENTS, name: 'Departments', icon: HiOutlineBuildingOffice },
   { path: STRUCTURE_ROUTES.SECTIONS, name: 'Sections', icon: FiFolder },
@@ -268,14 +268,19 @@ export const STRUCTURE_NAV_ITEMS = [
   { path: STRUCTURE_ROUTES.COST_CENTERS, name: 'Cost Centers', icon: FiDollarSign },
   { path: STRUCTURE_ROUTES.LOCATIONS, name: 'Locations', icon: FiMapPin },
   
+  // Visualization
+  { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
+  { path: STRUCTURE_ROUTES.ORG_CHART_TREE, name: 'Org Tree', icon: FiLayers },
+];
+
+// ============================================
+// STRUCTURE ADMINISTRATION ITEMS
+// ============================================
+export const STRUCTURE_ADMIN_NAV_ITEMS = [
   // Hierarchy
   { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, name: 'Current Hierarchy', icon: FiDatabase },
   { path: STRUCTURE_ROUTES.HIERARCHY_HISTORY, name: 'Version History', icon: FiClock },
   { path: STRUCTURE_ROUTES.HIERARCHY_VALIDATE, name: 'Validate Hierarchy', icon: FiCheckCircle },
-  
-  // Visualization
-  { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
-  { path: STRUCTURE_ROUTES.ORG_CHART_TREE, name: 'Org Tree', icon: FiLayers },
   
   // Bulk Operations
   { path: STRUCTURE_ROUTES.BULK_DEPARTMENTS, name: 'Bulk Departments', icon: FiDatabase },
@@ -406,6 +411,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
   
   // Structure Group - NEW
   structure: STRUCTURE_NAV_ITEMS,
+  structureAdmin: STRUCTURE_ADMIN_NAV_ITEMS,
   
   // Reviews - Full access for Super Admin
   reviews: REVIEWS_NAV_ITEMS,
@@ -448,6 +454,7 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
   
   // Structure Group - NEW for Client Admin
   structure: STRUCTURE_NAV_ITEMS,
+  structureAdmin: STRUCTURE_ADMIN_NAV_ITEMS,
   
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
@@ -487,6 +494,7 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   kpiOperations: false,
   kpiDashboards: false,
   structure: true,  // Structure expanded by default for Super Admin
+  structureAdmin: false,
   reviews: true,
   accounts: true,
   mfa: false,
@@ -503,6 +511,7 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   kpiAnalytics: false,
   kpiOperations: false,
   structure: true,  // Structure expanded by default for Client Admin
+  structureAdmin: false,
   management: true,
   reviews: true,
   mfa: false,
@@ -523,6 +532,7 @@ export const SUPER_ADMIN_GROUP_LABELS = {
   kpiOperations: '⚙️ Operations',
   kpiDashboards: '📺 Dashboards',
   structure: '🏛️ Organization Structure',  // Structure label for Super Admin
+  structureAdmin: '⚙️ Structure Administration',
   reviews: '⭐ Performance Reviews',
   accounts: '👥 Accounts Management',
   mfa: 'Multi-Factor Authentication',
@@ -539,6 +549,7 @@ export const CLIENT_ADMIN_GROUP_LABELS = {
   kpiAnalytics: '📈 Analytics & Reports',
   kpiOperations: '⚙️ Operations',
   structure: '🏛️ Organization Structure',  // Structure label for Client Admin
+  structureAdmin: '⚙️ Structure Administration',
   management: 'Management',
   reviews: '⭐ Performance Reviews',
   mfa: 'Multi-Factor Authentication',

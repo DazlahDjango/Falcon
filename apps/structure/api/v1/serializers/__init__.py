@@ -6,7 +6,6 @@ from .section import SectionSerializer, SectionDetailSerializer
 from .unit import UnitSerializer, UnitDetailSerializer
 from .position import PositionSerializer, PositionDetailSerializer, PositionCreateUpdateSerializer
 from .employment import EmploymentSerializer, EmploymentDetailSerializer, EmploymentCreateUpdateSerializer, EmploymentBulkSerializer
-from .reporting_line import ReportingLineSerializer, ReportingLineDetailSerializer, ReportingLineCreateUpdateSerializer
 from .interim_assignment import InterimAssignmentSerializer, InterimAssignmentDetailSerializer
 from .cost_center import CostCenterSerializer, CostCenterDetailSerializer, CostCenterCreateUpdateSerializer
 from .location import LocationSerializer, LocationDetailSerializer, LocationCreateUpdateSerializer
@@ -35,9 +34,6 @@ __all__ = [
     'EmploymentDetailSerializer',
     'EmploymentCreateUpdateSerializer',
     'EmploymentBulkSerializer',
-    'ReportingLineSerializer',
-    'ReportingLineDetailSerializer',
-    'ReportingLineCreateUpdateSerializer',
     'InterimAssignmentSerializer',
     'InterimAssignmentDetailSerializer',
     'CostCenterSerializer',

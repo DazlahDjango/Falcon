@@ -7,15 +7,15 @@ from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
 class DepartmentSerializer(BaseStructureSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
+    parent_name = serializers.CharField(source='division.name', read_only=True, allow_null=True)
+    parent_code = serializers.CharField(source='division.code', read_only=True, allow_null=True)
     
     class Meta:
         model = Department
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
             'level_display', 'parent_id', 'parent_name',
-            'parent_code', 'depth', 'path', 'is_active',
+            'parent_code', 'division_id', 'depth', 'path', 'is_active',
             'headcount_limit', 'sensitivity_level', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'depth', 'path', 'created_at', 'updated_at']
@@ -37,8 +37,8 @@ class DepartmentTreeSerializer(serializers.Serializer):
 
 class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
+    parent_code = serializers.CharField(source='division.code', read_only=True, allow_null=True)
+    parent_name = serializers.CharField(source='division.name', read_only=True, allow_null=True)
     child_count = serializers.SerializerMethodField()
     section_count = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
@@ -48,8 +48,8 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
         model = Department
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'level_display', 'parent_id', 'parent_code',
-            'parent_name', 'depth', 'path', 'cost_center_id',
+            'level_display', 'parent_id', 'division_id', 'parent_code',
+            'parent_name', 'depth', 'path', 'cost_center_id', 'manager_id',
             'budget_code', 'headcount_limit', 'sensitivity_level',
             'is_active', 'is_deleted', 'child_count', 'section_count',
             'employee_count', 'full_path',
@@ -72,13 +72,13 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
         return obj.get_full_path()
 
 class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
-    parent_id = serializers.UUIDField(required=False, allow_null=True)
+    division_id = serializers.UUIDField(required=False, allow_null=True)
     
     class Meta:
         model = Department
         fields = [
-            'code', 'name', 'description', 'parent_id',
-            'cost_center_id', 'budget_code', 'headcount_limit',
+            'code', 'name', 'description', 'division_id',
+            'cost_center_id', 'manager_id', 'budget_code', 'headcount_limit',
             'sensitivity_level', 'is_active'
         ]
     
@@ -93,21 +93,7 @@ class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Department with this code already exists."))
         return value
     
-    def validate_parent_id(self, value):
-        if value:
-            from apps.structure.services.hierarchy.cycle_detector import CycleDetector
-            from apps.structure.exceptions import HierarchyCycleError, SelfParentError
-            request = self.context.get('request')
-            tenant_id = getattr(request.user, 'tenant_id', None) if request else None
-            if self.instance and self.instance.id == value:
-                raise serializers.ValidationError(_("Department cannot be its own parent."))
-            try:
-                if self.instance:
-                    CycleDetector.validate_assignment(value, self.instance.id, tenant_id)
-            except (HierarchyCycleError, SelfParentError) as e:
-                raise serializers.ValidationError(str(e))
-        return value
-    
+
     def validate_headcount_limit(self, value):
         from apps.structure.validators import validate_headcount_limit_positive
         if value is not None:

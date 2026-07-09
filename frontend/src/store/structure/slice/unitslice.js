@@ -17,7 +17,7 @@ export const fetchUnits = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await unitService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch units');
     }
@@ -29,7 +29,7 @@ export const fetchUnitById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await unitService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch unit');
     }
@@ -41,7 +41,7 @@ export const fetchUnitStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await unitService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch unit stats');
     }
@@ -53,7 +53,7 @@ export const fetchUnitEmployments = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await unitService.getEmployments(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch unit employments');
     }
@@ -65,7 +65,7 @@ export const createUnit = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await unitService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create unit');
     }
@@ -77,7 +77,7 @@ export const updateUnit = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await unitService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update unit');
     }

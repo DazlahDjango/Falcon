@@ -1,14 +1,12 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import {
-  StructureDashboard,
-  StructureHealth,
-} from '../../components/structure/dashboard';
+import { StructurePage } from './StructurePage';
+import { StructureHealth } from '../../components/structure/dashboard';
 
 export const DashboardPages = () => {
   return (
     <Routes>
-      <Route index element={<StructureDashboard />} />
+      <Route index element={<StructurePage />} />
       <Route path="health" element={<StructureHealth />} />
     </Routes>
   );

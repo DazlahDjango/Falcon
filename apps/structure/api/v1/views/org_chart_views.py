@@ -72,8 +72,8 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
             filename = f"positions_{tenant_id}_{timezone.now().date()}.csv"
         elif entity == 'reporting':
             active_only = request.query_params.get('active_only', 'true').lower() == 'true'
-            csv_data = CSVExporterService.export_reporting_lines(tenant_id, active_only)
-            filename = f"reporting_lines_{tenant_id}_{timezone.now().date()}.csv"
+            csv_data = CSVExporterService.export_employments(tenant_id, active_only)
+            filename = f"employments_{tenant_id}_{timezone.now().date()}.csv"
         else:
             return Response({'error': f'Invalid entity: {entity}'}, status=status.HTTP_400_BAD_REQUEST)
         response = HttpResponse(csv_data, content_type='text/csv')

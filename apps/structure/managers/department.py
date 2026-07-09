@@ -4,9 +4,7 @@ from apps.structure.enums.org_level import OrgLevel
 
 class DepartmentManager(OrganizationalUnitManager):
     def get_queryset(self):
-        # Department model doesn't have a 'level' field
-        # Use depth=1 to identify departments (Division=0, Department=1, Section=2, Unit=3)
-        return super().get_queryset().filter(depth=1)
+        return super().get_queryset()
     
     def with_cost_center(self, cost_center_id):
         return self.filter(cost_center_id=cost_center_id, is_deleted=False)

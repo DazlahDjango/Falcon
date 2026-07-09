@@ -16,7 +16,7 @@ export const fetchDatabaseHealth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureHealthService.getDatabaseHealth();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch database health');
     }
@@ -28,7 +28,7 @@ export const fetchCacheHealth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureHealthService.getCacheHealth();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch cache health');
     }
@@ -40,7 +40,7 @@ export const fetchServicesHealth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureHealthService.getServicesHealth();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch services health');
     }
@@ -52,7 +52,7 @@ export const fetchAdminHealth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureHealthService.getAdminHealth();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch admin health');
     }
@@ -64,7 +64,7 @@ export const fetchHealthMetrics = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureHealthService.getMetrics();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch health metrics');
     }

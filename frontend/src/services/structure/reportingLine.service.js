@@ -8,44 +8,53 @@ class ReportingLineService extends BaseStructureService {
 
   async getByEmployee(userId) {
     if (!userId) throw new Error('Employee user ID is required');
-    return withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.BY_EMPLOYEE(userId)));
+    const response = await withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.BY_EMPLOYEE(userId)));
+    return this.unwrap(response);
   }
 
   async getByManager(userId) {
     if (!userId) throw new Error('Manager user ID is required');
-    return withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.BY_MANAGER(userId)));
+    const response = await withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.BY_MANAGER(userId)));
+    return this.unwrap(response);
   }
 
   async getChain(userId) {
     if (!userId) throw new Error('User ID is required');
-    return withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.CHAIN(userId)));
+    const response = await withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.CHAIN(userId)));
+    return this.unwrap(response);
   }
 
   async getSpanOfControl(managerId) {
     if (!managerId) throw new Error('Manager ID is required');
-    return withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.SPAN_OF_CONTROL(managerId)));
+    const response = await withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.SPAN_OF_CONTROL(managerId)));
+    return this.unwrap(response);
   }
 
   async getOrganizationSpan() {
-    return withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.ORGANIZATION_SPAN));
+    const response = await withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.ORGANIZATION_SPAN));
+    return this.unwrap(response);
   }
 
   async assignManager(data) {
     if (!data) throw new Error('Assignment data is required');
-    return withRetry(() => this.apiClient.post(REPORTING_LINE_ENDPOINTS.ASSIGN_MANAGER, data));
+    const response = await withRetry(() => this.apiClient.post(REPORTING_LINE_ENDPOINTS.ASSIGN_MANAGER, data));
+    return this.unwrap(response);
   }
 
   async removeManager(data) {
     if (!data) throw new Error('Removal data is required');
-    return withRetry(() => this.apiClient.post(REPORTING_LINE_ENDPOINTS.REMOVE_MANAGER, data));
+    const response = await withRetry(() => this.apiClient.post(REPORTING_LINE_ENDPOINTS.REMOVE_MANAGER, data));
+    return this.unwrap(response);
   }
 
   async getMyChain() {
-    return withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.MY_CHAIN));
+    const response = await withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.MY_CHAIN));
+    return this.unwrap(response);
   }
 
   async getMyTeam() {
-    return withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.MY_TEAM));
+    const response = await withRetry(() => this.apiClient.get(REPORTING_LINE_ENDPOINTS.MY_TEAM));
+    return this.unwrap(response);
   }
 }
 

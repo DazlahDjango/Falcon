@@ -6,16 +6,17 @@ from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
 class SectionSerializer(BaseStructureSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
+    parent_name = serializers.CharField(source='department.name', read_only=True, allow_null=True)
+    parent_code = serializers.CharField(source='department.code', read_only=True, allow_null=True)
     children_count = serializers.IntegerField(read_only=True)
+    department_id = serializers.UUIDField(required=False, allow_null=True)
     
     class Meta:
         model = Section
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'level', 'level_display', 'parent_id', 'parent_name',
-            'parent_code', 'depth', 'path', 'cost_center_id',
+            'level', 'level_display', 'department_id', 'parent_name',
+            'parent_code', 'depth', 'path', 'cost_center_id', 'manager_id',
             'budget_code', 'headcount_limit', 'is_active', 'is_deleted',
             'children_count', 'created_at'
         ]
@@ -23,8 +24,8 @@ class SectionSerializer(BaseStructureSerializer):
 
 class SectionDetailSerializer(BaseStructureDetailSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
+    parent_name = serializers.CharField(source='department.name', read_only=True, allow_null=True)
+    parent_code = serializers.CharField(source='department.code', read_only=True, allow_null=True)
     child_count = serializers.SerializerMethodField()
     unit_count = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
@@ -34,8 +35,8 @@ class SectionDetailSerializer(BaseStructureDetailSerializer):
         model = Section
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'level', 'level_display', 'parent_id', 'parent_name',
-            'parent_code', 'depth', 'path', 'cost_center_id',
+            'level', 'level_display', 'department_id', 'parent_name',
+            'parent_code', 'depth', 'path', 'cost_center_id', 'manager_id',
             'budget_code', 'headcount_limit', 'is_active', 'is_deleted',
             'child_count', 'unit_count', 'employee_count', 'full_path',
             'created_at', 'updated_at', 'created_by', 'updated_by',

@@ -10,6 +10,7 @@ import {
   FiCalendar,
   FiUsers,
   FiPieChart,
+  FiActivity,
 } from 'react-icons/fi';
 import { useCostCenters } from '../../../hooks/structure';
 import {
@@ -47,6 +48,10 @@ export const CostCenterDetail = () => {
 
   const handleEdit = useCallback(() => {
     navigate(STRUCTURE_ROUTES.COST_CENTER_EDIT(id));
+  }, [navigate, id]);
+
+  const handleViewUtilization = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.COST_CENTER_UTILIZATION(id));
   }, [navigate, id]);
 
   const handleDeleteClick = useCallback(() => {
@@ -152,6 +157,10 @@ export const CostCenterDetail = () => {
           </span>
         </div>
         <div className="header-right">
+          <button onClick={handleViewUtilization} className="btn btn-secondary" title="View Utilization">
+            <FiActivity size={16} />
+            <span className="hidden-sm">Utilization</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>

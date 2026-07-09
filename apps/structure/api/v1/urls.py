@@ -15,7 +15,6 @@ from .views import (
     UnitViewSet,
     PositionViewSet,
     EmploymentViewSet,
-    ReportingLineViewSet,
     InterimAssignmentViewSet,
     HierarchyViewSet,
     OrgChartViewSet,
@@ -36,7 +35,7 @@ router.register(r'sections', SectionViewSet, basename='sections')
 router.register(r'units', UnitViewSet, basename='units')
 router.register(r'positions', PositionViewSet, basename='positions')
 router.register(r'employments', EmploymentViewSet, basename='employments')
-router.register(r'reporting-lines', ReportingLineViewSet, basename='reporting-lines')
+
 router.register(r'interim-assignments', InterimAssignmentViewSet, basename='interim-assignments')
 router.register(r'hierarchy', HierarchyViewSet, basename='hierarchy')
 router.register(r'org-charts', OrgChartViewSet, basename='org-charts')
@@ -78,7 +77,7 @@ positions_router.register(r'reports', PositionViewSet, basename='position-report
 
 # Employments - reporting lines
 employments_router = routers.NestedDefaultRouter(router, r'employments', lookup='employment')
-employments_router.register(r'reporting-lines', ReportingLineViewSet, basename='employment-reporting')
+
 employments_router.register(r'interim-assignments', InterimAssignmentViewSet, basename='employment-interim')
 
 urlpatterns = [
@@ -103,8 +102,7 @@ urlpatterns = [
     
     # Custom endpoints
     path('me/', EmploymentViewSet.as_view({'get': 'get_current_employments'}), name='my-employment'),
-    path('my-chain/', ReportingLineViewSet.as_view({'get': 'get_reporting_chain'}), name='my-chain'),
-    path('my-team/', ReportingLineViewSet.as_view({'get': 'get_team_members'}), name='my-team'),
+
     path('search/', OrganizationalUnitViewSet.as_view({'get': 'list'}), name='structure-search'),
 ]
 

@@ -16,7 +16,7 @@ export const fetchDepartmentTree = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await departmentTreeService.getTree();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch department tree');
     }
@@ -31,7 +31,7 @@ export const fetchDepartmentBranch = createAsyncThunk(
     }
     try {
       const response = await departmentTreeService.getBranch(departmentId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch department branch');
     }
@@ -46,7 +46,7 @@ export const fetchDepartmentPath = createAsyncThunk(
     }
     try {
       const response = await departmentTreeService.getPath(departmentId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch department path');
     }
@@ -61,7 +61,7 @@ export const fetchDepartmentSubtree = createAsyncThunk(
     }
     try {
       const response = await departmentTreeService.getSubtree(departmentId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch department subtree');
     }
@@ -76,7 +76,7 @@ export const fetchDepartmentLCA = createAsyncThunk(
     }
     try {
       const response = await departmentTreeService.findLCA(deptA, deptB);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch LCA');
     }

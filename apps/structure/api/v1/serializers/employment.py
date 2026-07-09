@@ -7,14 +7,14 @@ from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 class EmploymentSerializer(BaseStructureSerializer):
     position_code = serializers.CharField(source='position.job_code', read_only=True, allow_null=True)
     position_title = serializers.CharField(source='position.title', read_only=True, allow_null=True)
-    division_code = serializers.CharField(source='division.code', read_only=True, allow_null=True)
-    division_name = serializers.CharField(source='division.name', read_only=True, allow_null=True)
-    department_code = serializers.CharField(source='department.code', read_only=True, allow_null=True)
-    department_name = serializers.CharField(source='department.name', read_only=True, allow_null=True)
-    section_code = serializers.CharField(source='section.code', read_only=True, allow_null=True)
-    section_name = serializers.CharField(source='section.name', read_only=True, allow_null=True)
-    unit_code = serializers.CharField(source='unit.code', read_only=True, allow_null=True)
-    unit_name = serializers.CharField(source='unit.name', read_only=True, allow_null=True)
+    division_code = serializers.CharField(source='position.division.code', read_only=True, allow_null=True)
+    division_name = serializers.CharField(source='position.division.name', read_only=True, allow_null=True)
+    department_code = serializers.CharField(source='position.department.code', read_only=True, allow_null=True)
+    department_name = serializers.CharField(source='position.department.name', read_only=True, allow_null=True)
+    section_code = serializers.CharField(source='position.section.code', read_only=True, allow_null=True)
+    section_name = serializers.CharField(source='position.section.name', read_only=True, allow_null=True)
+    unit_code = serializers.CharField(source='position.unit.code', read_only=True, allow_null=True)
+    unit_name = serializers.CharField(source='position.unit.name', read_only=True, allow_null=True)
     manager_user_id = serializers.UUIDField(read_only=True)
     effective_manager_user_id = serializers.UUIDField(read_only=True)
     user_name = serializers.SerializerMethodField()
@@ -28,10 +28,11 @@ class EmploymentSerializer(BaseStructureSerializer):
             'id', 'tenant_id', 'user_id', 'user_name', 'user_email',
             'user_first_name', 'user_last_name',
             'position_id', 'position_code', 'position_title',
-            'division_id', 'division_code', 'division_name',
-            'department_id', 'department_code', 'department_name',
-            'section_id', 'section_code', 'section_name',
-            'unit_id', 'unit_code', 'unit_name',
+            'fte_allocation', 'is_primary',
+            'division_code', 'division_name',
+            'department_code', 'department_name',
+            'section_code', 'section_name',
+            'unit_code', 'unit_name',
             'employment_type', 'effective_from', 'effective_to',
             'is_current', 'is_manager', 'is_executive', 'is_board_member',
             'is_active', 'manager_user_id', 'effective_manager_user_id',
@@ -69,14 +70,14 @@ class EmploymentDetailSerializer(BaseStructureDetailSerializer):
     position_code = serializers.CharField(source='position.job_code', read_only=True, allow_null=True)
     position_title = serializers.CharField(source='position.title', read_only=True, allow_null=True)
     position_level = serializers.IntegerField(source='position.level', read_only=True, allow_null=True)
-    division_code = serializers.CharField(source='division.code', read_only=True, allow_null=True)
-    division_name = serializers.CharField(source='division.name', read_only=True, allow_null=True)
-    department_code = serializers.CharField(source='department.code', read_only=True, allow_null=True)
-    department_name = serializers.CharField(source='department.name', read_only=True, allow_null=True)
-    section_code = serializers.CharField(source='section.code', read_only=True, allow_null=True)
-    section_name = serializers.CharField(source='section.name', read_only=True, allow_null=True)
-    unit_code = serializers.CharField(source='unit.code', read_only=True, allow_null=True)
-    unit_name = serializers.CharField(source='unit.name', read_only=True, allow_null=True)
+    division_code = serializers.CharField(source='position.division.code', read_only=True, allow_null=True)
+    division_name = serializers.CharField(source='position.division.name', read_only=True, allow_null=True)
+    department_code = serializers.CharField(source='position.department.code', read_only=True, allow_null=True)
+    department_name = serializers.CharField(source='position.department.name', read_only=True, allow_null=True)
+    section_code = serializers.CharField(source='position.section.code', read_only=True, allow_null=True)
+    section_name = serializers.CharField(source='position.section.name', read_only=True, allow_null=True)
+    unit_code = serializers.CharField(source='position.unit.code', read_only=True, allow_null=True)
+    unit_name = serializers.CharField(source='position.unit.name', read_only=True, allow_null=True)
     manager_user_id = serializers.UUIDField(read_only=True)
     interim_manager_user_id = serializers.UUIDField(read_only=True)
     effective_manager_user_id = serializers.UUIDField(read_only=True)
@@ -132,28 +133,20 @@ class EmploymentDetailSerializer(BaseStructureDetailSerializer):
 
 class EmploymentCreateUpdateSerializer(serializers.ModelSerializer):
     position_id = serializers.UUIDField(required=True)
-    division_id = serializers.UUIDField(required=False, allow_null=True)
-    department_id = serializers.UUIDField(required=False, allow_null=True)
-    section_id = serializers.UUIDField(required=False, allow_null=True)
-    unit_id = serializers.UUIDField(required=False, allow_null=True)
+    fte_allocation = serializers.DecimalField(max_digits=4, decimal_places=2, required=False)
+    is_primary = serializers.BooleanField(required=False)
     approved_by_id = serializers.UUIDField(required=False, allow_null=True)
     
     class Meta:
         model = Employment
         fields = [
-            'user_id', 'position_id', 'division_id', 'department_id',
-            'section_id', 'unit_id', 'employment_type',
+            'user_id', 'position_id', 'fte_allocation', 'is_primary', 'employment_type',
             'effective_from', 'effective_to', 'is_manager',
             'is_executive', 'is_board_member', 'change_reason',
             'approved_by_id'
         ]
     
     def validate_user_id(self, value):
-        request = self.context.get('request')
-        tenant_id = getattr(request.user, 'tenant_id', None) if request else None
-        if Employment.objects.filter(user_id=value, tenant_id=tenant_id, is_current=True, is_deleted=False).exists():
-            if not self.instance or self.instance.user_id != value:
-                raise serializers.ValidationError(_("User already has an active employment."))
         return value
     
     def validate_position_id(self, value):
@@ -169,46 +162,7 @@ class EmploymentCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error)
         return value
     
-    def validate_division_id(self, value):
-        if value:
-            from apps.structure.models.division import Division
-            request = self.context.get('request')
-            tenant_id = getattr(request.user, 'tenant_id', None) if request else None
-            division = Division.objects.filter(id=value, tenant_id=tenant_id, is_deleted=False).first()
-            if not division:
-                raise serializers.ValidationError(_("Division not found."))
-        return value
-    
-    def validate_department_id(self, value):
-        if value:
-            from apps.structure.models.department import Department
-            request = self.context.get('request')
-            tenant_id = getattr(request.user, 'tenant_id', None) if request else None
-            department = Department.objects.filter(id=value, tenant_id=tenant_id, is_deleted=False).first()
-            if not department:
-                raise serializers.ValidationError(_("Department not found."))
-        return value
-    
-    def validate_section_id(self, value):
-        if value:
-            from apps.structure.models.section import Section
-            request = self.context.get('request')
-            tenant_id = getattr(request.user, 'tenant_id', None) if request else None
-            section = Section.objects.filter(id=value, tenant_id=tenant_id, is_deleted=False).first()
-            if not section:
-                raise serializers.ValidationError(_("Section not found."))
-        return value
-    
-    def validate_unit_id(self, value):
-        if value:
-            from apps.structure.models.unit import Unit
-            request = self.context.get('request')
-            tenant_id = getattr(request.user, 'tenant_id', None) if request else None
-            unit = Unit.objects.filter(id=value, tenant_id=tenant_id, is_deleted=False).first()
-            if not unit:
-                raise serializers.ValidationError(_("Unit not found."))
-        return value
-    
+
     def validate_effective_from(self, value):
         if value and value > timezone.now().date():
             raise serializers.ValidationError(_("Effective from date cannot be in the future."))

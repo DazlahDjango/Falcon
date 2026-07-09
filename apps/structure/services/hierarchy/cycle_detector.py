@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple, Dict, Any
 from uuid import UUID
 from apps.structure.models.organizational_unit import OrganizationalUnit
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.exceptions import HierarchyCycleError, SelfParentError
 
 class CycleDetector:
@@ -87,16 +87,16 @@ class CycleDetector:
             if str(current) == str(manager_id):
                 return True
             try:
-                reporting_line = ReportingLine.objects.filter(
+                employment = Employment.objects.filter(
                     employee_id=current,
                     tenant_id=tenant_id,
                     is_active=True,
                     is_deleted=False
                 ).first()
-                if not reporting_line:
+                if not employment:
                     break
-                current = reporting_line.manager_id
-            except ReportingLine.DoesNotExist:
+                current = employment.manager_id
+            except Employment.DoesNotExist:
                 break
         return False
     
@@ -110,15 +110,15 @@ class CycleDetector:
                 path.append(str(manager_id))
                 return path
             try:
-                reporting_line = ReportingLine.objects.filter(
+                employment = Employment.objects.filter(
                     employee_id=current,
                     tenant_id=tenant_id,
                     is_active=True,
                     is_deleted=False
                 ).first()
-                if not reporting_line:
+                if not employment:
                     break
-                current = reporting_line.manager_id
-            except ReportingLine.DoesNotExist:
+                current = employment.manager_id
+            except Employment.DoesNotExist:
                 break
         return None

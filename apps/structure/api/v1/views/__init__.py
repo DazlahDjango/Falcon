@@ -7,7 +7,6 @@ from .section_views import SectionViewSet
 from .unit_views import UnitViewSet
 from .position_views import PositionViewSet
 from .employment_views import EmploymentViewSet
-from .reporting_views import ReportingLineViewSet
 from .interim_views import InterimAssignmentViewSet
 from .org_chart_views import OrgChartViewSet
 from .bulk_views import BulkOperationViewSet
@@ -26,7 +25,7 @@ __all__ = [
     'UnitViewSet',
     'PositionViewSet',
     'EmploymentViewSet',
-    'ReportingLineViewSet',
+    'EmploymentViewSet',
     'InterimAssignmentViewSet',
     'OrgChartViewSet',
     'BulkOperationViewSet',

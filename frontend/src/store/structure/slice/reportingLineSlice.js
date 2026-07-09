@@ -19,7 +19,7 @@ export const fetchReportingLines = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reporting lines');
     }
@@ -31,7 +31,7 @@ export const fetchReportingLineById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reporting line');
     }
@@ -43,7 +43,7 @@ export const fetchReportingLinesByEmployee = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getByEmployee(userId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reporting lines by employee');
     }
@@ -55,7 +55,7 @@ export const fetchReportingLinesByManager = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getByManager(userId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reporting lines by manager');
     }
@@ -67,7 +67,7 @@ export const fetchReportingChain = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getChain(userId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reporting chain');
     }
@@ -79,7 +79,7 @@ export const fetchSpanOfControl = createAsyncThunk(
   async (managerId, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getSpanOfControl(managerId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch span of control');
     }
@@ -91,7 +91,7 @@ export const fetchOrganizationSpan = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getOrganizationSpan();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch organization span');
     }
@@ -103,7 +103,7 @@ export const fetchMyChain = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getMyChain();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch my chain');
     }
@@ -115,7 +115,7 @@ export const fetchMyTeam = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.getMyTeam();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch my team');
     }
@@ -127,7 +127,7 @@ export const createReportingLine = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create reporting line');
     }
@@ -139,7 +139,7 @@ export const updateReportingLine = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update reporting line');
     }
@@ -163,7 +163,7 @@ export const assignManager = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.assignManager(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to assign manager');
     }
@@ -175,7 +175,7 @@ export const removeManager = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await reportingLineService.removeManager(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to remove manager');
     }

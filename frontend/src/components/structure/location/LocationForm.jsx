@@ -2,7 +2,8 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiMapPin, FiGlobe, FiPhone, FiMail } from 'react-icons/fi';
 import { useLocations, useStructureForm } from '../../../hooks/structure';
-import ParentUnitSelect from '../common/ParentUnitSelect';
+import CostCenterSelect from '../common/CostCenterSelect';
+import GenericAllocationsEditor from '../common/GenericAllocationsEditor';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './location.css';
@@ -13,6 +14,7 @@ export const LocationForm = () => {
   const isEditing = !!id;
 
   const {
+    items,
     currentItem,
     isLoading,
     error,
@@ -27,8 +29,9 @@ export const LocationForm = () => {
       code: '',
       name: '',
       type: 'branch',
-      organizational_unit_id: '',
+      cost_center_id: '',
       parent_id: '',
+      allocations: [],
       address_line1: '',
       address_line2: '',
       city: '',
@@ -70,8 +73,9 @@ export const LocationForm = () => {
         code: currentItem.code || '',
         name: currentItem.name || '',
         type: currentItem.type || 'branch',
-        organizational_unit_id: currentItem.organizational_unit_id || '',
+        cost_center_id: currentItem.cost_center_id || '',
         parent_id: currentItem.parent_id || '',
+        allocations: currentItem.allocations || [],
         address_line1: currentItem.address_line1 || '',
         address_line2: currentItem.address_line2 || '',
         city: currentItem.city || '',
@@ -118,7 +122,7 @@ export const LocationForm = () => {
     'Pacific/Auckland',
   ];
 
-  if (isLoading) {
+  if (isEditing && isLoading) {
     return (
       <div className="location-form-loading">
         <StructureLoading text="Loading location..." />
@@ -219,11 +223,19 @@ export const LocationForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="organizational_unit_id">Organizational Unit</label>
-          <ParentUnitSelect
-            value={values.organizational_unit_id}
-            onChange={(v) => setFieldValue('organizational_unit_id', v)}
-            placeholder="Select organizational unit"
+          <label htmlFor="cost_center_id">Cost Center</label>
+          <CostCenterSelect
+            value={values.cost_center_id}
+            onChange={(v) => setFieldValue('cost_center_id', v)}
+            placeholder="Select primary cost center"
+            disabled={isSubmitting}
+          />
+        </div>
+        
+        <div className="form-group form-group-full">
+          <GenericAllocationsEditor
+            allocations={values.allocations}
+            onChange={(newAllocations) => setFieldValue('allocations', newAllocations)}
             disabled={isSubmitting}
           />
         </div>

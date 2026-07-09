@@ -7,17 +7,20 @@ class DivisionService extends BaseStructureService {
   }
 
   async getStats() {
-    return withRetry(() => this.apiClient.get(DIVISION_ENDPOINTS.STATS));
+    const response = await withRetry(() => this.apiClient.get(DIVISION_ENDPOINTS.STATS));
+    return this.unwrap(response);
   }
 
   async getDepartments(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(DIVISION_ENDPOINTS.DEPARTMENTS(id)));
+    const response = await withRetry(() => this.apiClient.get(DIVISION_ENDPOINTS.DEPARTMENTS(id)));
+    return this.unwrap(response);
   }
 
   async getEmployments(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(DIVISION_ENDPOINTS.EMPLOYMENTS(id)));
+    const response = await withRetry(() => this.apiClient.get(DIVISION_ENDPOINTS.EMPLOYMENTS(id)));
+    return this.unwrap(response);
   }
 }
 

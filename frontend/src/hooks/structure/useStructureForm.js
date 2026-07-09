@@ -169,7 +169,10 @@ export const useDepartmentForm = ({ onSubmit, initialValues = {} }) => {
             code: '',
             name: '',
             description: '',
-            parent_id: '',
+            division_id: '',
+            cost_center_id: '',
+            budget_code: '',
+            manager_id: '',
             headcount_limit: '',
             sensitivity_level: 'internal',
             is_active: true,
@@ -239,7 +242,7 @@ export const useSectionForm = ({ onSubmit, initialValues = {} }) => {
             code: '',
             name: '',
             description: '',
-            parent_id: '',
+            department_id: '',
             headcount_limit: '',
             is_active: true,
             ...initialValues,
@@ -273,7 +276,7 @@ export const useUnitForm = ({ onSubmit, initialValues = {} }) => {
             code: '',
             name: '',
             description: '',
-            parent_id: '',
+            section_id: '',
             headcount_limit: '',
             is_active: true,
             ...initialValues,
@@ -337,10 +340,6 @@ export const useEmploymentForm = ({ onSubmit, initialValues = {} }) => {
 
         if (!values.position_id) {
             errors.position_id = 'Position is required';
-        }
-
-        if (!values.department_id) {
-            errors.department_id = 'Department is required';
         }
 
         if (!values.effective_from) {

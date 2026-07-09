@@ -11,6 +11,7 @@ import {
   FiMail,
   FiUsers,
   FiClock,
+  FiPlus,
 } from 'react-icons/fi';
 import { useLocations } from '../../../hooks/structure';
 import {
@@ -48,6 +49,10 @@ export const LocationDetail = () => {
 
   const handleEdit = useCallback(() => {
     navigate(STRUCTURE_ROUTES.LOCATION_EDIT(id));
+  }, [navigate, id]);
+
+  const handleAddSubLocation = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.LOCATION_CREATE + '?parent_id=' + id);
   }, [navigate, id]);
 
   const handleDeleteClick = useCallback(() => {
@@ -166,6 +171,10 @@ export const LocationDetail = () => {
           </span>
         </div>
         <div className="header-right">
+          <button onClick={handleAddSubLocation} className="btn btn-secondary" title="Add Sub-Location">
+            <FiPlus size={16} />
+            <span className="hidden-sm">Add Sub-Location</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>

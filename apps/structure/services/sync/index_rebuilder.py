@@ -9,7 +9,7 @@ from apps.structure.models.unit import Unit
 from apps.structure.models.organizational_unit import OrganizationalUnit
 from apps.structure.models.position import Position
 from apps.structure.models.employment import Employment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 
 class IndexRebuilder:
     def __init__(self):
@@ -43,10 +43,10 @@ class IndexRebuilder:
                 "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_employment_department_current ON structure_employment (department_id, is_current) WHERE is_current = true;",
                 "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_employment_tenant_active ON structure_employment (tenant_id, is_active, is_current);"
             ],
-            'reporting_line': [
-                "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reporting_employee_manager ON structure_reporting_line (employee_id, manager_id) WHERE is_active = true;",
-                "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reporting_manager_active ON structure_reporting_line (manager_id, is_active);",
-                "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reporting_employee_active ON structure_reporting_line (employee_id, is_active);"
+            'employment': [
+                "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reporting_employee_manager ON structure_employment (employee_id, manager_id) WHERE is_active = true;",
+                "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reporting_manager_active ON structure_employment (manager_id, is_active);",
+                "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reporting_employee_active ON structure_employment (employee_id, is_active);"
             ],
             'position': [
                 "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_position_level_tenant ON structure_position (level, tenant_id);",
@@ -98,7 +98,7 @@ class IndexRebuilder:
         return True
     
     def rebuild_all_indices(self) -> Dict[str, bool]:
-        models = [Division, Department, Section, Unit, OrganizationalUnit, Employment, ReportingLine, Position]
+        models = [Division, Department, Section, Unit, OrganizationalUnit, Employment, Employment, Position]
         results = {}
         for model in models:
             results[model.__name__] = self.rebuild_indices(model)

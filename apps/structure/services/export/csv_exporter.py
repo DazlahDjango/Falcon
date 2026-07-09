@@ -172,9 +172,9 @@ class CSVExporterService:
         return output.getvalue()
     
     @staticmethod
-    def export_reporting_lines(tenant_id: UUID, active_only: bool = True) -> str:
-        from apps.structure.models.reporting_line import ReportingLine
-        lines = ReportingLine.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('employee', 'manager')
+    def export_employments(tenant_id: UUID, active_only: bool = True) -> str:
+        from apps.structure.models.employment import Employment
+        lines = Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('employee', 'manager')
         if active_only:
             lines = lines.filter(is_active=True)
         output = StringIO()

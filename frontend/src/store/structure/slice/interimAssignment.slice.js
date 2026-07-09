@@ -18,7 +18,7 @@ export const fetchInterimAssignments = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch interim assignments');
     }
@@ -30,7 +30,7 @@ export const fetchInterimAssignmentById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch interim assignment');
     }
@@ -42,7 +42,7 @@ export const fetchActiveInterimAssignments = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.getActive();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch active interim assignments');
     }
@@ -54,7 +54,7 @@ export const fetchExpiringInterimAssignments = createAsyncThunk(
   async (days, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.getExpiringSoon(days);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch expiring interim assignments');
     }
@@ -66,7 +66,7 @@ export const fetchInterimAssignmentsByEmployee = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.getByEmployee(userId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch interim assignments by employee');
     }
@@ -78,7 +78,7 @@ export const createInterimAssignment = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create interim assignment');
     }
@@ -90,7 +90,7 @@ export const updateInterimAssignment = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update interim assignment');
     }
@@ -114,7 +114,7 @@ export const assignInterim = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.assign(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to assign interim');
     }
@@ -126,7 +126,7 @@ export const endInterim = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await interimAssignmentService.end(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to end interim assignment');
     }

@@ -228,7 +228,7 @@ export const HierarchyVersionList = () => {
         debounce={400}
       />
 
-      <StructureTable
+      <StructureTable hideEmptyState={true}
         columns={COLUMNS}
         data={items}
         loading={isLoading}

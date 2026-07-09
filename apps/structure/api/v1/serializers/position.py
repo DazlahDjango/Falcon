@@ -5,14 +5,20 @@ from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
 class PositionSerializer(BaseStructureSerializer):
     reports_to_code = serializers.CharField(source='reports_to.job_code', read_only=True, allow_null=True)
+    is_vacant = serializers.BooleanField(read_only=True)
+    
+    department_name = serializers.CharField(source='department.name', read_only=True, allow_null=True)
+    cost_center_name = serializers.CharField(source='cost_center.name', read_only=True, allow_null=True)
     
     class Meta:
         model = Position
         fields = [
             'id', 'tenant_id', 'job_code', 'title', 'grade', 'level',
             'reports_to_id', 'reports_to_code',
+            'division_id', 'department_id', 'department_name', 'section_id', 'unit_id',
+            'cost_center_id', 'cost_center_name', 'fte',
             'is_single_incumbent', 'current_incumbents_count',
-            'max_incumbents', 'created_at'
+            'max_incumbents', 'is_vacant', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'current_incumbents_count', 'created_at', 'updated_at']
 
@@ -23,11 +29,16 @@ class PositionDetailSerializer(BaseStructureDetailSerializer):
     is_over_occupied = serializers.BooleanField(read_only=True)
     direct_report_count = serializers.SerializerMethodField()
     
+    department_name = serializers.CharField(source='department.name', read_only=True, allow_null=True)
+    cost_center_name = serializers.CharField(source='cost_center.name', read_only=True, allow_null=True)
+    
     class Meta:
         model = Position
         fields = [
             'id', 'tenant_id', 'job_code', 'title', 'grade', 'level',
             'reports_to_id', 'reports_to_code', 'reports_to_title',
+            'division_id', 'department_id', 'department_name', 'section_id', 'unit_id',
+            'cost_center_id', 'cost_center_name', 'fte',
             'min_tenure_months', 'required_competencies',
             'is_single_incumbent', 'current_incumbents_count',
             'max_incumbents', 'requires_supervisor_approval',
@@ -44,10 +55,18 @@ class PositionDetailSerializer(BaseStructureDetailSerializer):
 class PositionCreateUpdateSerializer(serializers.ModelSerializer):
     reports_to_id = serializers.UUIDField(required=False, allow_null=True)
     
+    division_id = serializers.UUIDField(required=False, allow_null=True)
+    department_id = serializers.UUIDField(required=False, allow_null=True)
+    section_id = serializers.UUIDField(required=False, allow_null=True)
+    unit_id = serializers.UUIDField(required=False, allow_null=True)
+    cost_center_id = serializers.UUIDField(required=False, allow_null=True)
+    
     class Meta:
         model = Position
         fields = [
             'job_code', 'title', 'grade', 'level', 'reports_to_id',
+            'division_id', 'department_id', 'section_id', 'unit_id',
+            'cost_center_id', 'fte',
             'min_tenure_months', 'required_competencies',
             'is_single_incumbent', 'max_incumbents',
             'requires_supervisor_approval'

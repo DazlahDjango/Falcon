@@ -14,6 +14,10 @@ import {
   FiBarChart2,
   FiActivity,
 } from 'react-icons/fi';
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Legend
+} from 'recharts';
 import { useStructureDashboard } from '../../../hooks/structure';
 import { StructureLoading, StructureEmptyState, StructureStatusBadge } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
@@ -88,6 +92,21 @@ export const StructureDashboard = () => {
     if (score >= 50) return 'Warning';
     return 'Critical';
   };
+
+  // Prepare data for the Overview Donut Chart
+  const distributionData = [
+    { name: 'Divisions', value: orgUnits.level_distribution?.division || 0, color: '#3b82f6' },
+    { name: 'Departments', value: orgUnits.level_distribution?.department || 0, color: '#10b981' },
+    { name: 'Sections', value: orgUnits.level_distribution?.section || 0, color: '#f59e0b' },
+    { name: 'Units', value: orgUnits.level_distribution?.unit || 0, color: '#6b7280' },
+  ].filter(item => item.value > 0);
+
+  // Prepare data for the Trends Line Chart
+  const trendChartData = (trendsData.trends || []).map(t => ({
+    date: t.date,
+    version: `v${t.version_number}`,
+    units: t.units_count
+  })).reverse(); // Assuming backend sends newest first, reverse for chronological order left-to-right
 
   return (
     <div className="dashboard-container">
@@ -185,6 +204,39 @@ export const StructureDashboard = () => {
               color="primary"
               onClick={() => handleViewAll(STRUCTURE_ROUTES.EMPLOYMENTS)}
             />
+          </div>
+
+          <div className="dash-section">
+            <div className="dash-section-header">
+              <h2>Structure Distribution</h2>
+            </div>
+            <div style={{ width: '100%', height: 300, backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+              {distributionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={distributionData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={80}
+                      outerRadius={110}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {distributionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value, name) => [`${value} Units`, name]} />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: '#6b7280' }}>No distribution data available</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="dash-section">
@@ -349,21 +401,26 @@ export const StructureDashboard = () => {
               <span className="trend-period">Last 6 months</span>
             </div>
 
-            {trendsData.trends && trendsData.trends.length > 0 ? (
-              <div className="trends-list">
-                {trendsData.trends.map((trend, index) => (
-                  <div key={index} className="trend-item">
-                    <div className="trend-date">{trend.date}</div>
-                    <div className="trend-details">
-                      <span className="trend-label">Version {trend.version_number}</span>
-                      <span className="trend-value">{trend.units_count} units</span>
-                    </div>
-                  </div>
-                ))}
+            {trendChartData.length > 0 ? (
+              <div style={{ width: '100%', height: 350, backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb', marginBottom: '2rem' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 12 }} tickMargin={10} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      formatter={(value) => [`${value} Units`, 'Total Units']}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Legend />
+                    <Line type="monotone" dataKey="units" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 8 }} name="Total Organizational Units" />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             ) : (
               <div className="trends-empty">
-                <p>No trend data available</p>
+                <p>No trend data available for visualization</p>
               </div>
             )}
 

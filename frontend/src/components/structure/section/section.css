@@ -7,6 +7,62 @@
   min-height: 100vh;
 }
 
+/* ============================================
+   EMPTY STATE STYLING (Specific to module if globals aren't applying)
+   ============================================ */
+.structure-empty-state {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 64px 32px !important;
+  background: var(--bg-white, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+  border-radius: var(--radius-lg, 16px) !important;
+  margin: 24px 0 !important;
+  box-shadow: var(--shadow-sm) !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.structure-empty-state .empty-state-icon {
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 50% !important;
+  border: 2px dashed var(--border-color, #cbd5e1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--primary, #3b82f6) !important;
+  margin-bottom: 24px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.structure-empty-state .empty-state-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary, #1e293b) !important;
+  margin: 0 0 8px 0 !important;
+}
+
+.structure-empty-state .empty-state-description {
+  font-size: 14px !important;
+  color: var(--text-secondary, #64748b) !important;
+  margin: 0 0 24px 0 !important;
+  max-width: 400px !important;
+  text-align: center !important;
+}
+
+.structure-empty-state .empty-state-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 24px !important;
+}
+
+
 .section-list-header {
   display: flex;
   justify-content: space-between;

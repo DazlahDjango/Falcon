@@ -6,7 +6,7 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, templateUrl, isUploading =
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState('');
-  if (!isOpen) return null;
+
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -16,6 +16,7 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, templateUrl, isUploading =
       setDragActive(false);
     }
   }, []);
+  
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -30,6 +31,7 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, templateUrl, isUploading =
       setError('Please upload a CSV or Excel file');
     }
   }, []);
+  
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -38,6 +40,7 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, templateUrl, isUploading =
       setPreview({ rows: 10, columns: ['code', 'name', 'parent_code'] });
     }
   };
+  
   const handleUpload = async () => {
     if (!file) {
       setError('Please select a file');
@@ -45,11 +48,14 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, templateUrl, isUploading =
     }
     await onUpload(file);
   };
+  
   const downloadTemplate = () => {
     if (templateUrl) {
       window.open(templateUrl, '_blank');
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose}>

@@ -17,7 +17,7 @@ export const fetchDivisions = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await divisionService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch divisions');
     }
@@ -29,7 +29,7 @@ export const fetchDivisionById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await divisionService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch division');
     }
@@ -41,7 +41,7 @@ export const fetchDivisionStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await divisionService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch division stats');
     }
@@ -65,7 +65,7 @@ export const createDivision = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await divisionService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create division');
     }
@@ -77,7 +77,7 @@ export const updateDivision = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await divisionService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update division');
     }

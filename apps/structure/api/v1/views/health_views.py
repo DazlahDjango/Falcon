@@ -10,7 +10,7 @@ from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, Ca
 from apps.structure.models.organizational_unit import OrganizationalUnit
 from apps.structure.models.employment import Employment
 from apps.structure.models.position import Position
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.models.cost_center import CostCenter
 from apps.structure.models.location import Location
 from .base import BaseStructureReadOnlyViewSet
@@ -114,7 +114,7 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
         dup_employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False).values('user_id').annotate(count=models.Count('id')).filter(count__gt=1).count()
         if dup_employments > 0:
             anomalies.append(f"{dup_employments} users have multiple current employments")
-        orphaned_reporting = ReportingLine.objects.filter(
+        orphaned_reporting = Employment.objects.filter(
             tenant_id=tenant_id, is_deleted=False, is_active=True
         ).filter(
             models.Q(employee__isnull=True) | models.Q(manager__isnull=True)
@@ -148,8 +148,8 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
                 'employments': Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
                 'current_employments': Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False).count(),
                 'positions': Position.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
-                'reporting_lines': ReportingLine.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
-                'active_reporting_lines': ReportingLine.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count(),
+                'employments': Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
+                'active_employments': Employment.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count(),
                 'cost_centers': CostCenter.objects.filter(tenant_id=tenant_id, is_deleted=False).count(),
                 'locations': Location.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
             },
@@ -162,9 +162,9 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
                     Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False).count(),
                     OrganizationalUnit.objects.filter(tenant_id=tenant_id, level='unit', is_deleted=False, is_active=True).count()
                 ),
-                'reporting_line_activation_rate': self._safe_division(
-                    ReportingLine.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count(),
-                    ReportingLine.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
+                'employment_activation_rate': self._safe_division(
+                    Employment.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count(),
+                    Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
                 ) * 100
             }
         }

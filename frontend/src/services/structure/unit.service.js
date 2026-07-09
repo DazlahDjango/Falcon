@@ -8,16 +8,19 @@ class UnitService extends BaseStructureService {
 
   async getByCode(code) {
     if (!code) throw new Error('Unit code is required');
-    return withRetry(() => this.apiClient.get(UNIT_ENDPOINTS.BY_CODE(code)));
+    const response = await withRetry(() => this.apiClient.get(UNIT_ENDPOINTS.BY_CODE(code)));
+    return this.unwrap(response);
   }
 
   async getStats() {
-    return withRetry(() => this.apiClient.get(UNIT_ENDPOINTS.STATS));
+    const response = await withRetry(() => this.apiClient.get(UNIT_ENDPOINTS.STATS));
+    return this.unwrap(response);
   }
 
   async getEmployments(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(UNIT_ENDPOINTS.EMPLOYMENTS(id)));
+    const response = await withRetry(() => this.apiClient.get(UNIT_ENDPOINTS.EMPLOYMENTS(id)));
+    return this.unwrap(response);
   }
 }
 

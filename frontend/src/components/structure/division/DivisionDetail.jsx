@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiEdit, FiTrash2, FiRefreshCw, FiChevronRight } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit, FiTrash2, FiRefreshCw, FiChevronRight, FiPlus, FiUserPlus, FiGitBranch } from 'react-icons/fi';
 import { useDivisions } from '../../../hooks/structure';
 import {
   StructureLoading,
@@ -8,6 +8,7 @@ import {
   StructureStatusBadge,
   StructureConfirmDialog,
 } from '../common';
+import UserSelector from '../../accounts/users/UserSelector';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './division.css';
 
@@ -15,12 +16,16 @@ export const DivisionDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDirectorModal, setShowDirectorModal] = useState(false);
+  const [selectedDirectorId, setSelectedDirectorId] = useState('');
+  const [isUpdatingDirector, setIsUpdatingDirector] = useState(false);
 
   const {
     currentItem,
     isLoading,
     error,
     fetchById,
+    update,
     remove,
     clearError,
   } = useDivisions({ autoFetch: false });
@@ -45,10 +50,11 @@ export const DivisionDetail = () => {
 
   const handleDeleteConfirm = useCallback(async () => {
     try {
-      await remove(id);
+      await remove(id).unwrap();
       navigate(STRUCTURE_ROUTES.DIVISIONS);
     } catch (err) {
       console.error('Delete failed:', err);
+      setShowDeleteConfirm(false);
     }
   }, [id, remove, navigate]);
 
@@ -61,6 +67,28 @@ export const DivisionDetail = () => {
       fetchById(id);
     }
   }, [id, fetchById]);
+
+  const handleAddDepartment = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.DEPARTMENT_CREATE + '?division_id=' + id);
+  }, [navigate, id]);
+
+  const handleViewOrgChart = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.ORG_CHART_TREE + '?root_id=' + id);
+  }, [navigate, id]);
+
+  const handleAssignDirectorSubmit = useCallback(async () => {
+    if (!selectedDirectorId) return;
+    setIsUpdatingDirector(true);
+    try {
+      await update(id, { director_id: selectedDirectorId });
+      setShowDirectorModal(false);
+      fetchById(id);
+    } catch (err) {
+      console.error('Failed to assign director:', err);
+    } finally {
+      setIsUpdatingDirector(false);
+    }
+  }, [id, selectedDirectorId, update, fetchById]);
 
   if (isLoading) {
     return (
@@ -114,6 +142,18 @@ export const DivisionDetail = () => {
           />
         </div>
         <div className="header-right">
+          <button onClick={handleAddDepartment} className="btn btn-secondary" title="Quick Add Department">
+            <FiPlus size={16} />
+            <span className="hidden-sm">Add Dept</span>
+          </button>
+          <button onClick={() => { setSelectedDirectorId(currentItem.director_id || ''); setShowDirectorModal(true); }} className="btn btn-secondary" title="Assign Director">
+            <FiUserPlus size={16} />
+            <span className="hidden-sm">Assign Director</span>
+          </button>
+          <button onClick={handleViewOrgChart} className="btn btn-secondary" title="View Org Chart">
+            <FiGitBranch size={16} />
+            <span className="hidden-sm">Org Chart</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
@@ -144,8 +184,6 @@ export const DivisionDetail = () => {
         <div className="detail-section">
           <h3>Configuration</h3>
           <div className="detail-grid">
-            <DetailRow label="Cost Center ID" value={currentItem.cost_center_id} />
-            <DetailRow label="Budget Code" value={currentItem.budget_code} />
             <DetailRow label="Headcount Limit" value={currentItem.headcount_limit || 'Unlimited'} />
             <DetailRow label="Created At" value={new Date(currentItem.created_at).toLocaleDateString()} />
             <DetailRow label="Updated At" value={currentItem.updated_at ? new Date(currentItem.updated_at).toLocaleDateString() : '-'} />
@@ -200,6 +238,39 @@ export const DivisionDetail = () => {
         type="danger"
         confirmLabel="Delete"
       />
+
+      {showDirectorModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px', padding: '24px', borderRadius: '8px', backgroundColor: 'var(--bg-surface)' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Assign Director</h3>
+            <div className="form-group" style={{ marginBottom: '24px' }}>
+              <label>Select Director</label>
+              <UserSelector
+                value={selectedDirectorId}
+                onChange={setSelectedDirectorId}
+                disabled={isUpdatingDirector}
+                className="w-full"
+              />
+            </div>
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setShowDirectorModal(false)} 
+                className="btn btn-secondary"
+                disabled={isUpdatingDirector}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAssignDirectorSubmit} 
+                className="btn btn-primary"
+                disabled={!selectedDirectorId || isUpdatingDirector}
+              >
+                {isUpdatingDirector ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

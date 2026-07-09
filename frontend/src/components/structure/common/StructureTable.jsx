@@ -14,11 +14,16 @@ export const StructureTable = ({
   onRowClick,
   actions = true,
   pagination = null,
+  emptyStateProps = null,
+  hideEmptyState = false,
   className = '',
 }) => {
   if (loading) return <StructureLoading />;
   if (error) return <div className="structure-table-error">{error}</div>;
-  if (!data || data.length === 0) return <StructureEmptyState />;
+  if (!data || data.length === 0) {
+    if (hideEmptyState) return null;
+    return <StructureEmptyState {...emptyStateProps} />;
+  }
 
   const handleRowClick = (item) => {
     if (onRowClick) onRowClick(item);

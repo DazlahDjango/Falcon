@@ -18,11 +18,13 @@ class Department(BaseStructureModel):
     parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='children', verbose_name=_('parent department'))
     path = models.CharField(_('materialized path'), max_length=255, db_index=True, blank=True)
     depth = models.PositiveSmallIntegerField(_('depth'), default=0)
-    cost_center_id = models.CharField(_('cost center ID'), max_length=50, blank=True, db_index=True)
+    
     budget_code = models.CharField(_('budget code'), max_length=50, blank=True)
     headcount_limit = models.PositiveIntegerField(_('headcount limit'), null=True, blank=True)
     is_active = models.BooleanField(_('active'), default=True, db_index=True)
     sensitivity_level = models.CharField(_('sensitivity level'), max_length=20, choices=SENSITIVITY_CHOICES, default='internal')
+    manager_id = models.UUIDField(_('manager user ID'), null=True, blank=True, help_text=_("User ID of the department manager"))
+    division = models.ForeignKey('structure.Division', on_delete=models.PROTECT, null=True, blank=True, related_name='departments', verbose_name=_('parent division'))
 
     objects = DepartmentManager()
 
@@ -37,7 +39,7 @@ class Department(BaseStructureModel):
             models.Index(fields=['path']),
             models.Index(fields=['tenant_id', 'parent', 'is_active']),
             models.Index(fields=['tenant_id', 'code']),
-            models.Index(fields=['cost_center_id']),
+            
         ]
 
     def __str__(self):
@@ -80,6 +82,11 @@ class Department(BaseStructureModel):
         if self.parent:
             return f"{self.parent.full_path} / {self.name}"
         return self.name
+
+    def get_full_path(self, separator=' / '):
+        ancestors = self.get_ancestors()
+        path_parts = [a.name for a in reversed(ancestors)] + [self.name]
+        return separator.join(path_parts)
 
     @property
     def level(self):

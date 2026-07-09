@@ -9,6 +9,9 @@ import {
   FiUsers,
   FiLayers,
   FiGrid,
+  FiPlus,
+  FiUserPlus,
+  FiGitBranch,
 } from 'react-icons/fi';
 import { useDepartments } from '../../../hooks/structure';
 import {
@@ -17,6 +20,7 @@ import {
   StructureStatusBadge,
   StructureConfirmDialog,
 } from '../common';
+import UserSelector from '../../accounts/users/UserSelector';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './department.css';
 
@@ -24,12 +28,16 @@ export const DepartmentDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showManagerModal, setShowManagerModal] = useState(false);
+  const [selectedManagerId, setSelectedManagerId] = useState('');
+  const [isUpdatingManager, setIsUpdatingManager] = useState(false);
 
   const {
     currentItem,
     isLoading,
     error,
     fetchById,
+    update,
     remove,
     clearError,
   } = useDepartments({ autoFetch: false });
@@ -70,6 +78,32 @@ export const DepartmentDetail = () => {
       fetchById(id);
     }
   }, [id, fetchById]);
+
+  const handleAddSection = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.SECTION_CREATE + '?department_id=' + id);
+  }, [navigate, id]);
+
+  const handleViewOrgChart = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.ORG_CHART_TREE + '?root_id=' + id);
+  }, [navigate, id]);
+
+  const handleViewEmployees = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.EMPLOYMENTS + '?department_id=' + id);
+  }, [navigate, id]);
+
+  const handleAssignManagerSubmit = useCallback(async () => {
+    if (!selectedManagerId) return;
+    setIsUpdatingManager(true);
+    try {
+      await update(id, { manager_id: selectedManagerId });
+      setShowManagerModal(false);
+      fetchById(id);
+    } catch (err) {
+      console.error('Failed to assign manager:', err);
+    } finally {
+      setIsUpdatingManager(false);
+    }
+  }, [id, selectedManagerId, update, fetchById]);
 
   if (isLoading) {
     return (
@@ -148,6 +182,22 @@ export const DepartmentDetail = () => {
           </span>
         </div>
         <div className="header-right">
+          <button onClick={handleAddSection} className="btn btn-secondary" title="Quick Add Section">
+            <FiPlus size={16} />
+            <span className="hidden-sm">Add Section</span>
+          </button>
+          <button onClick={() => { setSelectedManagerId(currentItem.manager_id || ''); setShowManagerModal(true); }} className="btn btn-secondary" title="Assign Manager">
+            <FiUserPlus size={16} />
+            <span className="hidden-sm">Assign Manager</span>
+          </button>
+          <button onClick={handleViewOrgChart} className="btn btn-secondary" title="View Org Chart">
+            <FiGitBranch size={16} />
+            <span className="hidden-sm">Org Chart</span>
+          </button>
+          <button onClick={handleViewEmployees} className="btn btn-secondary" title="View Employees">
+            <FiUsers size={16} />
+            <span className="hidden-sm">Employees</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
@@ -224,6 +274,39 @@ export const DepartmentDetail = () => {
         type="danger"
         confirmLabel="Delete"
       />
+
+      {showManagerModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px', padding: '24px', borderRadius: '8px', backgroundColor: 'var(--bg-surface)' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Assign Manager</h3>
+            <div className="form-group" style={{ marginBottom: '24px' }}>
+              <label>Select Manager</label>
+              <UserSelector
+                value={selectedManagerId}
+                onChange={setSelectedManagerId}
+                disabled={isUpdatingManager}
+                className="w-full"
+              />
+            </div>
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setShowManagerModal(false)} 
+                className="btn btn-secondary"
+                disabled={isUpdatingManager}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAssignManagerSubmit} 
+                className="btn btn-primary"
+                disabled={!selectedManagerId || isUpdatingManager}
+              >
+                {isUpdatingManager ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

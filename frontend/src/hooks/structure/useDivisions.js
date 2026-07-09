@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import {
     fetchDivisions,
     fetchDivisionById,
@@ -25,7 +25,15 @@ import {
 
 export const useDivisions = (options = {}) => {
     const dispatch = useDispatch();
-    const { autoFetch = true, params = {} } = options;
+    const { autoFetch = true, params: initialParams = {} } = options;
+    
+    const isFirstRender = useRef(true);
+    const hasFetched = useRef(false);
+    const prevParamsRef = useRef(initialParams);
+    
+    const params = useMemo(() => initialParams, [
+        JSON.stringify(initialParams)
+    ]);
 
     const items = useSelector(selectDivisionsItems);
     const currentItem = useSelector(selectDivisionsCurrent);
@@ -35,7 +43,8 @@ export const useDivisions = (options = {}) => {
     const totalCount = useSelector(selectDivisionsTotal);
 
     const fetchAll = useCallback((fetchParams) => {
-        return dispatch(fetchDivisions(fetchParams || params));
+        const paramsToUse = fetchParams || params;
+        return dispatch(fetchDivisions(paramsToUse));
     }, [dispatch, params]);
 
     const fetchById = useCallback((id) => {
@@ -82,11 +91,37 @@ export const useDivisions = (options = {}) => {
         dispatch(resetDivisionState());
     }, [dispatch]);
 
+    const refetch = useCallback((newParams) => {
+        const fetchParams = newParams || params;
+        prevParamsRef.current = fetchParams;
+        return dispatch(fetchDivisions(fetchParams));
+    }, [dispatch, params]);
+
     useEffect(() => {
-        if (autoFetch) {
-            fetchAll(params);
+        if (!autoFetch) {
+            return;
         }
-    }, [autoFetch, fetchAll, params]);
+
+        const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+        
+        if (!hasFetched.current || paramsChanged) {
+            hasFetched.current = true;
+            prevParamsRef.current = params;
+            dispatch(fetchDivisions(params));
+        }
+    }, [autoFetch, params, dispatch]);
+
+    useEffect(() => {
+        return () => {
+            hasFetched.current = false;
+            isFirstRender.current = true;
+        };
+    }, []);
+
+    const forceFetch = useCallback(() => {
+        hasFetched.current = true;
+        return dispatch(fetchDivisions(params));
+    }, [dispatch, params]);
 
     return {
         items,
@@ -107,6 +142,9 @@ export const useDivisions = (options = {}) => {
         setFilters,
         setPagination,
         reset,
+        refetch,
+        forceFetch,
+        _hasFetched: hasFetched.current,
     };
 };
 

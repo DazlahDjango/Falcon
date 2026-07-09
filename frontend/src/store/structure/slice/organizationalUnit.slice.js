@@ -18,7 +18,7 @@ export const fetchOrganizationalUnits = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await organizationalUnitService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch organizational units');
     }
@@ -30,7 +30,7 @@ export const fetchOrganizationalUnitById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await organizationalUnitService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch organizational unit');
     }
@@ -42,7 +42,7 @@ export const fetchRootOrganizationalUnits = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await organizationalUnitService.getRootUnits();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch root organizational units');
     }
@@ -54,7 +54,7 @@ export const fetchOrganizationalUnitStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await organizationalUnitService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch organizational unit stats');
     }
@@ -66,7 +66,7 @@ export const fetchOrganizationalUnitsByLevel = createAsyncThunk(
   async (level, { rejectWithValue }) => {
     try {
       const response = await organizationalUnitService.getByLevel(level);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || `Failed to fetch organizational units by level: ${level}`);
     }
@@ -78,7 +78,7 @@ export const createOrganizationalUnit = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await organizationalUnitService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create organizational unit');
     }
@@ -90,7 +90,7 @@ export const updateOrganizationalUnit = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await organizationalUnitService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update organizational unit');
     }

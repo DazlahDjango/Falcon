@@ -18,7 +18,7 @@ export const fetchPositions = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await positionService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch positions');
     }
@@ -30,7 +30,7 @@ export const fetchPositionById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await positionService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch position');
     }
@@ -42,7 +42,7 @@ export const fetchVacantPositions = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await positionService.getVacant();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch vacant positions');
     }
@@ -54,7 +54,7 @@ export const fetchPositionStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await positionService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch position stats');
     }
@@ -66,7 +66,7 @@ export const fetchPositionIncumbents = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await positionService.getIncumbents(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch position incumbents');
     }
@@ -78,7 +78,7 @@ export const fetchPositionReportingChain = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await positionService.getReportingChain(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch position reporting chain');
     }
@@ -90,7 +90,7 @@ export const createPosition = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await positionService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create position');
     }
@@ -102,7 +102,7 @@ export const updatePosition = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await positionService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update position');
     }

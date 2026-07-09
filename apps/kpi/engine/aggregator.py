@@ -3,7 +3,7 @@ from typing import List, Dict
 from django.db.models import Sum, Avg, Q, Count
 from django.db import transaction
 from apps.kpi.models import AggregatedScore, Score, KPIWeight, TrafficLight, MonthlyActual
-from apps.structure.models import Unit, Department, ReportingLine  # Changed Team to Unit
+from apps.structure.models import Unit, Department  # Changed Team to Unit
 from .formulas import WeightedAverageFormula
 
 class IndividualAggregator:
@@ -411,11 +411,7 @@ class HierarchyAggregator:
         user_score = self.aggregate_for_user(user_id, year, month)
         
         # Get direct reports
-        direct_reports = ReportingLine.objects.filter(
-            manager_id=user_id,
-            is_active=True,
-            is_deleted=False
-        ).select_related('employee')
+        direct_reports = []
         reports_data = []
         for report in direct_reports:
             report_score = self.aggregate_for_user(report.employee_id, year, month)

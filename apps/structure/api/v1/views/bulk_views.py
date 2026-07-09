@@ -158,14 +158,14 @@ class BulkOperationViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['post'], url_path='reporting-lines')
     @transaction.atomic
-    def bulk_reporting_lines(self, request):
-        data = request.data.get('reporting_lines', [])
+    def bulk_employments(self, request):
+        data = request.data.get('employments', [])
         if not data:
             return Response({'error': 'No reporting lines provided'}, status=status.HTTP_400_BAD_REQUEST)
         if len(data) > 100:
             return Response({'error': 'Maximum 100 reporting lines per bulk operation'}, status=status.HTTP_400_BAD_REQUEST)
-        from ....models.reporting_line import ReportingLine
-        from ..serializers.reporting_line import ReportingLineCreateUpdateSerializer
+        from ....models.employment import Employment
+        from ..serializers.employment import EmploymentCreateUpdateSerializer
         results = {
             'created': [],
             'updated': [],
@@ -175,13 +175,13 @@ class BulkOperationViewSet(BaseStructureViewSet):
         for item in data:
             try:
                 if not item.get('id'):
-                    serializer = ReportingLineCreateUpdateSerializer(data=item, context={'request': request})
+                    serializer = EmploymentCreateUpdateSerializer(data=item, context={'request': request})
                     if serializer.is_valid():
-                        reporting_line = serializer.save()
+                        employment = serializer.save()
                         results['created'].append({
-                            'id': str(reporting_line.id),
-                            'employee_id': str(reporting_line.employee_id),
-                            'manager_id': str(reporting_line.manager_id)
+                            'id': str(employment.id),
+                            'employee_id': str(employment.employee_id),
+                            'manager_id': str(employment.manager_id)
                         })
                     else:
                         results['failed'].append({
@@ -189,13 +189,13 @@ class BulkOperationViewSet(BaseStructureViewSet):
                             'errors': serializer.errors
                         })
                 else:
-                    reporting_line = ReportingLine.objects.filter(
+                    employment = Employment.objects.filter(
                         id=item.get('id'),
                         tenant_id=request.user.tenant_id,
                         is_deleted=False
                     ).first()
-                    if reporting_line:
-                        serializer = ReportingLineCreateUpdateSerializer(reporting_line, data=item, partial=True, context={'request': request})
+                    if employment:
+                        serializer = EmploymentCreateUpdateSerializer(employment, data=item, partial=True, context={'request': request})
                         if serializer.is_valid():
                             updated = serializer.save()
                             results['updated'].append({
@@ -234,7 +234,7 @@ class BulkOperationViewSet(BaseStructureViewSet):
         if not employee_ids or not new_manager_id:
             return Response({'error': 'employee_ids and new_manager_id are required'}, status=status.HTTP_400_BAD_REQUEST)
         from ....models.employment import Employment
-        from ....models.reporting_line import ReportingLine
+        from ....models.employment import Employment
         tenant_id = request.user.tenant_id
         manager_employment = Employment.objects.filter(
             user_id=new_manager_id,
@@ -265,7 +265,7 @@ class BulkOperationViewSet(BaseStructureViewSet):
                         'error': 'Employee employment not found'
                     })
                     continue
-                ReportingLine.objects.filter(
+                Employment.objects.filter(
                     employee_id=employee_employment.id,
                     relation_type='solid',
                     is_active=True,
@@ -275,7 +275,7 @@ class BulkOperationViewSet(BaseStructureViewSet):
                     effective_to=effective_date,
                     change_reason=f"Bulk reassigned to {new_manager_id} on {effective_date}"
                 )
-                ReportingLine.objects.create(
+                Employment.objects.create(
                     tenant_id=tenant_id,
                     employee_id=employee_employment.id,
                     manager_id=manager_employment.id,

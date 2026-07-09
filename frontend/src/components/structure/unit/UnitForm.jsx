@@ -1,7 +1,9 @@
-import React, { useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useCallback, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useUnits, useStructureForm } from '../../../hooks/structure';
+import UserSelector from '../../accounts/users/UserSelector';
+import ParentUnitSelect from '../common/ParentUnitSelect';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './unit.css';
@@ -10,6 +12,7 @@ export const UnitForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
+  const [searchParams] = useSearchParams();
 
   const {
     currentItem,
@@ -26,17 +29,26 @@ export const UnitForm = () => {
       code: '',
       name: '',
       description: '',
-      parent_id: '',
-      cost_center_id: '',
-      budget_code: '',
+      section_id: searchParams.get('section_id') || '',
+      unit_lead_id: '',
       headcount_limit: '',
       is_active: true,
     },
     onSubmit: async (formData) => {
+      const submitData = { ...formData };
+      if (submitData.section_id === '') {
+        submitData.section_id = null;
+      }
+      if (submitData.headcount_limit === '') {
+        submitData.headcount_limit = null;
+      }
+      if (submitData.unit_lead_id === '') {
+        submitData.unit_lead_id = null;
+      }
       if (isEditing) {
-        await update(id, formData);
+        await update(id, submitData);
       } else {
-        await create(formData);
+        await create(submitData);
       }
       navigate(STRUCTURE_ROUTES.UNITS);
     },
@@ -54,9 +66,8 @@ export const UnitForm = () => {
         code: currentItem.code || '',
         name: currentItem.name || '',
         description: currentItem.description || '',
-        parent_id: currentItem.parent_id || '',
-        cost_center_id: currentItem.cost_center_id || '',
-        budget_code: currentItem.budget_code || '',
+        section_id: currentItem.section_id || '',
+        unit_lead_id: currentItem.unit_lead_id || '',
         headcount_limit: currentItem.headcount_limit || '',
         is_active: currentItem.is_active !== undefined ? currentItem.is_active : true,
       });
@@ -67,7 +78,7 @@ export const UnitForm = () => {
     navigate(STRUCTURE_ROUTES.UNITS);
   }, [navigate]);
 
-  if (isLoading) {
+  if (isEditing && isLoading) {
     return (
       <div className="unit-form-loading">
         <StructureLoading text="Loading unit..." />
@@ -161,43 +172,26 @@ export const UnitForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="parent_id">Parent Unit</label>
-          <input
-            id="parent_id"
-            name="parent_id"
-            type="text"
-            placeholder="Parent unit ID"
-            value={values.parent_id || ''}
-            onChange={handleChange}
+          <label htmlFor="section_id">Parent Section</label>
+          <ParentUnitSelect
+            value={values.section_id}
+            onChange={(v) => setFieldValue('section_id', v)}
+            parentLevel="section"
+            placeholder="Select section or leave blank for root unit"
             disabled={isSubmitting}
           />
-          <span className="form-hint">Leave empty for root unit</span>
+          <span className="form-hint">Leave empty for top-level root unit</span>
         </div>
 
         <div className="form-group">
-          <label htmlFor="cost_center_id">Cost Center</label>
-          <input
-            id="cost_center_id"
-            name="cost_center_id"
-            type="text"
-            placeholder="Cost center ID"
-            value={values.cost_center_id || ''}
-            onChange={handleChange}
+          <label htmlFor="unit_lead_id">Unit Lead</label>
+          <UserSelector
+            value={values.unit_lead_id}
+            onChange={(value) => setFieldValue('unit_lead_id', value)}
             disabled={isSubmitting}
+            className="w-full"
           />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="budget_code">Budget Code</label>
-          <input
-            id="budget_code"
-            name="budget_code"
-            type="text"
-            placeholder="Budget code"
-            value={values.budget_code || ''}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
+          <span className="form-hint">Select the lead/manager for this unit</span>
         </div>
 
         <div className="form-group">

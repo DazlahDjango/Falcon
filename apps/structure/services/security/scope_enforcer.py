@@ -6,7 +6,7 @@ from apps.structure.models.division import Division
 from apps.structure.models.department import Department
 from apps.structure.models.section import Section
 from apps.structure.models.unit import Unit
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.services.security.hierarchy_access import HierarchyAccessEnforcer
 
 class ScopeEnforcerService:
