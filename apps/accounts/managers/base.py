@@ -75,8 +75,13 @@ class TenantAwareManager(BaseManager):
     def get_queryset(self):
         qs = TenantAwareQuerySet(self.model, using=self._db)
         if hasattr(self.model, 'tenant_id'):
-            from django.core.cache import cache
-            current_tenant = cache.get('current_tenant_id')
+            # Use thread-local (not shared cache) for per-request tenant isolation.
+            # Falls back gracefully to None in shell/management command context.
+            try:
+                from apps.tenant.context import get_current_tenant_id
+                current_tenant = get_current_tenant_id()
+            except ImportError:
+                current_tenant = None
             if current_tenant:
                 qs = qs.filter(tenant_id=current_tenant)
         return qs

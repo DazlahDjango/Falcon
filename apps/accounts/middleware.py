@@ -8,6 +8,7 @@ from django.urls import resolve
 from .models import UserSession, AuditLog
 from .services import JWTServices, TenantAccessService, AuditService
 from .constants import CacheKeys
+from apps.tenant.context import set_current_tenant_id, get_current_tenant_id, clear_current_tenant_id
 
 logger = logging.getLogger(__name__)
 jwt_service = JWTServices()
@@ -15,34 +16,49 @@ tenant_service = TenantAccessService()
 audit_service = AuditService()
 
 
-class TenantMiddleware(MiddlewareMixin):
-    """Middleware to extract and set tenant context for the request."""
-    
+class TenantContextMiddleware(MiddlewareMixin):
+    """
+    Middleware to extract and set tenant context for the request.
+
+    Sources (in priority order):
+      1. JWT Bearer token payload → tenant_id claim
+      2. Authenticated user's tenant_id field
+
+    Stores the resolved tenant_id in:
+      - request.current_tenant_id  (for view/serializer access)
+      - Thread-local via set_current_tenant_id()  (for ORM manager filtering)
+
+    On response, clears the thread-local to prevent state leaking to the
+    next request on the same thread.
+    """
+
     def process_request(self, request):
         if self._is_public_path(request.path):
             return None
-        
+
         tenant_id = self._extract_tenant_from_token(request)
-        if tenant_id:
-            cache.set(CacheKeys.CURRENT_TENANT, tenant_id, timeout=3600)
-            request.current_tenant_id = tenant_id
-            # ✅ FIXED: Use logger instead of print
-            logger.debug(f"[TenantMiddleware] Set current_tenant_id from token: {tenant_id}")
-        else:
+
+        if not tenant_id:
+            # Fallback: authenticated user already has tenant_id on their record
             if hasattr(request, 'user') and request.user.is_authenticated:
-                if request.user.tenant_id is not None:
-                    request.current_tenant_id = str(request.user.tenant_id)
-                    cache.set(CacheKeys.CURRENT_TENANT, request.current_tenant_id, timeout=3600)
-                    logger.debug(f"[TenantMiddleware] Set current_tenant_id from user: {request.current_tenant_id}")
-        
+                if getattr(request.user, 'tenant_id', None):
+                    tenant_id = str(request.user.tenant_id)
+
+        if tenant_id:
+            request.current_tenant_id = tenant_id
+            set_current_tenant_id(tenant_id)   # ← thread-local, NOT shared cache
+            logger.debug(f"[TenantContext] Resolved tenant_id={tenant_id} for {request.path}")
+        else:
+            # Super admin or unauthenticated — no tenant context
+            logger.debug(f"[TenantContext] No tenant_id resolved for {request.path}")
+
         return None
-    
+
     def process_response(self, request, response):
-        # Only clear if we set it (don't clear if it was already there)
-        if hasattr(request, 'current_tenant_id'):
-            cache.delete(CacheKeys.CURRENT_TENANT)
+        # Always clear thread-local on response to prevent cross-request leakage
+        clear_current_tenant_id()
         return response
-    
+
     def _is_public_path(self, path):
         public_paths = [
             '/api/v1/auth/login',
@@ -50,23 +66,32 @@ class TenantMiddleware(MiddlewareMixin):
             '/api/v1/auth/password-reset',
             '/api/v1/auth/verify-email',
             '/api/v1/auth/accept-invitation',
+            '/api/v1/auth/refresh/',
             '/api/v1/health',
             '/admin/',
             '/static/',
             '/media/',
-            '/api/v1/auth/refresh/',  # ✅ Added refresh endpoint
         ]
         return any(path.startswith(p) for p in public_paths)
-    
+
     def _extract_tenant_from_token(self, request):
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         if not auth_header.startswith('Bearer '):
             return None
         token = auth_header.split(' ')[1]
-        payload = jwt_service.verify_token(token)
-        if payload and payload.get('tenant_id'):
-            return payload['tenant_id']
+        try:
+            payload = jwt_service.verify_token(token)
+            if payload and payload.get('tenant_id'):
+                tid = payload['tenant_id']
+                # Guard against the string 'None' being stored in old tokens
+                return tid if tid and tid != 'None' else None
+        except Exception:
+            pass
         return None
+
+
+# Backwards-compatible alias — settings.py can keep 'TenantMiddleware'
+TenantMiddleware = TenantContextMiddleware
 
 
 class SessionMiddleware(MiddlewareMixin):

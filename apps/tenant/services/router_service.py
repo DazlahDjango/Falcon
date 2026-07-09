@@ -36,18 +36,37 @@ class OrganizationDatabaseRouter:
         return 'default'
 
     def _get_current_org_id(self, model, **hints):
+        """
+        Resolve the current organisation/tenant ID from (in priority order):
+          1. Explicit 'organization_id' hint passed by the caller
+          2. Model instance attributes (tenant_id or organization_id)
+          3. Thread-local set by TenantContextMiddleware for the current request
+        """
         if getattr(self._thread_local, 'is_resolving', False):
             return None
         self._thread_local.is_resolving = True
         try:
+            # Priority 1: explicit hint
             if 'organization_id' in hints:
                 return hints['organization_id']
+
+            # Priority 2: model instance carries the id
             if 'instance' in hints:
                 instance = hints['instance']
-                if hasattr(instance, 'organization_id'):
-                    return getattr(instance, 'organization_id', None)
-                if hasattr(instance, 'organization'):
-                    return getattr(instance, 'organization_id', None)
+                for attr in ('tenant_id', 'organization_id'):
+                    val = getattr(instance, attr, None)
+                    if val:
+                        return str(val)
+
+            # Priority 3: thread-local context (set per-request by middleware)
+            try:
+                from apps.tenant.context import get_current_tenant_id
+                tid = get_current_tenant_id()
+                if tid:
+                    return tid
+            except ImportError:
+                pass
+
         finally:
             self._thread_local.is_resolving = False
         return None

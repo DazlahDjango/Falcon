@@ -2,8 +2,13 @@
 """
 Database Routing Middleware - Routes queries to correct tenant database.
 
-This middleware runs FOURTH. It tells Django which database or schema
-to use for the current tenant (shared schema, separate schema, or separate DB).
+This middleware runs AFTER TenantContextMiddleware. It tells Django which
+PostgreSQL schema to use for the current tenant's data (KPI, reviews, etc.).
+
+For shared-schema models (accounts_user) this has no effect — those are
+isolated via the tenant_id column. For tenant-specific schemas (org_airtel,
+org_safaricom, etc.) this sets the PostgreSQL search_path so that all queries
+in that request transparently hit the correct schema.
 """
 
 import logging
@@ -15,42 +20,44 @@ logger = logging.getLogger(__name__)
 
 class TenantDatabaseRouterMiddleware(MiddlewareMixin):
     """
-    Routes database queries to the correct tenant database/schema.
-    
-    This is OPTIONAL - only needed if using separate schemas or databases.
-    For shared schema (tenant_id column), you don't need this.
+    Sets the PostgreSQL search_path for every request that has a resolved
+    tenant context.
+
+    IMPORTANT: Must run AFTER TenantContextMiddleware in the MIDDLEWARE list
+    so that request.current_tenant_id is already set.
     """
-    
+
     def process_request(self, request):
-        """
-        Set database connection details based on tenant.
-        """
-        
-        tenant_id = getattr(request, 'tenant_id', None)
-        
+        tenant_id = getattr(request, 'current_tenant_id', None)
         if not tenant_id:
             return None
-        
-        # Set search path for PostgreSQL schema isolation
         self._set_schema_path(tenant_id)
-        
         return None
-    
+
+    def process_response(self, request, response):
+        # Reset to public schema so the connection is clean for the next request
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO "public"')
+        except Exception as e:
+            logger.debug(f"Could not reset search_path to public: {e}")
+        return response
+
     def _set_schema_path(self, tenant_id):
         """
-        Set PostgreSQL search path to tenant's schema.
-        
-        This makes all queries automatically use the correct schema.
+        Resolve the Organisation's schema_name and set PostgreSQL search_path.
+        Uses org.schema_name property (e.g. 'org_airtel') not org.slug.
         """
-        from apps.tenant.models import Client
-        
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.filter(id=tenant_id).first()
-            
-            schema_name = getattr(tenant, 'schema_name', None)
-            if tenant and schema_name:
-                with connection.cursor() as cursor:
-                    cursor.execute(f'SET search_path TO "{schema_name}", public')
-                    logger.debug(f"Set search path to {schema_name}")
+            org = Organization.objects.filter(id=tenant_id, is_active=True).first()
+            if not org:
+                logger.debug(f"[DBRouting] No active org for tenant_id={tenant_id}")
+                return
+            schema_name = org.schema_name   # e.g. 'org_airtel'
+            with connection.cursor() as cursor:
+                cursor.execute(f'SET search_path TO "{schema_name}", public')
+                logger.debug(f"[DBRouting] search_path → {schema_name}")
         except Exception as e:
-            logger.debug(f"Could not set schema path: {e}")
+            logger.warning(f"[DBRouting] Could not set schema path: {e}")
+

@@ -29,7 +29,7 @@ class OrganizationLimitsMiddleware(MiddlewareMixin):
         if self._is_tenant_in_maintenance(tenant_id):
             logger.info(f"Tenant {tenant_id} is in maintenance mode")
             return JsonResponse({'error': 'Organization is under maintenance. Please try again later.'}, status=503)
-        if not self._check_api_limit(org_id, request.path):
+        if not self._check_api_limit(tenant_id, request.path):
             return HttpResponseTooManyRequests("API limit exceeded for today. Please try again later.")
         return None
 
@@ -61,14 +61,14 @@ class OrganizationLimitsMiddleware(MiddlewareMixin):
             return False
         cache.set(cache_key, current + 1, 86400)
         if (current + 1) % 100 == 0:
-            self._sync_api_count(org_id, current + 1)
+            self._sync_api_count(tenant_id, current + 1)
         return True
 
     def _get_api_limit(self, tenant_id):
-        from apps.tenant.models import TenantResource
+        from apps.tenant.models import OrganizationResource
         try:
-            resource = TenantResource.objects.filter(
-                tenant_id=tenant_id,
+            resource = OrganizationResource.objects.filter(
+                organization_id=tenant_id,
                 resource_type=ResourceType.API_CALLS_PER_DAY
             ).first()
             return resource.limit_value if resource else 10000
@@ -88,7 +88,7 @@ class OrganizationLimitsMiddleware(MiddlewareMixin):
     def _is_tenant_suspended(self, tenant_id):
         from apps.tenant.models import Organization
         try:
-            org = Organization.objects.filter(id=org_id).first()
+            org = Organization.objects.filter(id=tenant_id).first()
             return org and org.status == 'SUSPENDED'
         except Exception:
             return False

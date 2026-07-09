@@ -10,21 +10,37 @@ class OrganizationIsolationMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if self._should_skip(request):
             return None
-        requested_org_id = getattr(request, 'organization_id', None)
+        
+        # Check all possible attributes for backward compatibility
+        requested_org_id = (
+            getattr(request, 'tenant_id', None) or
+            getattr(request, 'organization_id', None) or
+            getattr(request, 'current_organization_id', None)
+        )
+        
         if not requested_org_id:
             return None
+        
         user = getattr(request, 'user', None)
         if not user or isinstance(user, AnonymousUser):
             logger.debug(f"Anonymous access for organization {requested_org_id}")
             return None
+        
         user_org_id = self._get_user_org_id(user)
+        
         if self._is_super_admin(user):
             logger.info(f"Super admin {user.email} accessing organization {requested_org_id}")
             return None
+        
         if user_org_id and str(user_org_id) != str(requested_org_id):
             logger.warning(f"ISOLATION VIOLATION: User {user.email} (org {user_org_id}) attempted org {requested_org_id}")
             return HttpResponseForbidden("Access denied: You do not belong to this organization.")
+        
+        # Set all request attributes for compatibility
         request.organization_id = requested_org_id
+        request.tenant_id = requested_org_id
+        request.current_organization_id = requested_org_id
+        
         return None
 
     def _should_skip(self, request):
@@ -40,8 +56,10 @@ class OrganizationIsolationMiddleware(MiddlewareMixin):
         return False
 
     def _get_user_org_id(self, user):
-        if hasattr(user, 'organization_id') and user.organization_id:
-            return user.organization_id
+        # Check both tenant_id and organization_id for compatibility
+        user_tenant_id = getattr(user, 'tenant_id', None) or getattr(user, 'organization_id', None)
+        if user_tenant_id:
+            return user_tenant_id
         if hasattr(user, 'organization') and user.organization:
             return user.organization.id
         return None
@@ -101,7 +119,7 @@ class OrganizationPathIsolationMiddleware(MiddlewareMixin):
         return any(path.startswith(p) for p in skip_paths)
     
     def _extract_org_from_path(self, path):
-        """Extract organization ID from URL path patterns."""
+        """Extract organization ID from URL path patterns (supports both org_id and tenant_id patterns)."""
         parts = path.split('/')
         
         # Pattern 1: /api/v1/organizations/{org_id}/...
@@ -123,10 +141,11 @@ class OrganizationPathIsolationMiddleware(MiddlewareMixin):
         except ValueError:
             pass
         
-        # Pattern 3: /api/v1/organizations/{org_id}/domains/...
+        
+        # Pattern 3: /api/v1/tenants/{tenant_id}/... (for backward compatibility)
         try:
-            if 'organizations' in parts:
-                idx = parts.index('organizations')
+            if 'tenants' in parts:
+                idx = parts.index('tenants')
                 if idx + 1 < len(parts) and parts[idx + 1]:
                     return parts[idx + 1]
         except ValueError:
@@ -135,8 +154,10 @@ class OrganizationPathIsolationMiddleware(MiddlewareMixin):
         return None
     
     def _get_user_org_id(self, user):
-        if hasattr(user, 'organization_id') and user.organization_id:
-            return user.organization_id
+        # Check both tenant_id and organization_id for compatibility
+        user_tenant_id = getattr(user, 'tenant_id', None) or getattr(user, 'organization_id', None)
+        if user_tenant_id:
+            return user_tenant_id
         if hasattr(user, 'organization') and user.organization:
             return user.organization.id
         return None

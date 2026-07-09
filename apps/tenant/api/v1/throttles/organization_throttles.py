@@ -21,9 +21,9 @@ class OrganizationRateThrottle(SimpleRateThrottle):
         return f"throttle_org_{org_id}_{today}"
 
     def _get_org_id(self, request):
-        org_id = request.headers.get('X-Organization-ID')
+        org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if not org_id:
-            org_id = getattr(request, 'organization_id', None)
+            org_id = getattr(request, 'tenant_id', None) or getattr(request, 'organization_id', None)
         if not org_id:
             org = getattr(request, 'organization', None)
             if org:
@@ -103,9 +103,9 @@ class OrganizationUserCreationThrottle(SimpleRateThrottle):
         return f"throttle_user_creation_org_{org_id}_{today}"
 
     def _get_org_id(self, request):
-        org_id = request.headers.get('X-Organization-ID')
+        org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if not org_id:
-            org_id = getattr(request, 'organization_id', None)
+            org_id = getattr(request, 'tenant_id', None) or getattr(request, 'organization_id', None)
         if not org_id:
             org = getattr(request, 'organization', None)
             if org:
@@ -183,9 +183,9 @@ class BurstRateThrottle(SimpleRateThrottle):
     rate = '60/minute'
 
     def get_cache_key(self, request, view):
-        org_id = request.headers.get('X-Organization-ID')
+        org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if not org_id:
-            org_id = getattr(request, 'organization_id', None)
+            org_id = getattr(request, 'tenant_id', None) or getattr(request, 'organization_id', None)
         if not org_id:
             return None
         current_minute = timezone.now().strftime('%Y%m%d%H%M')
@@ -215,9 +215,9 @@ class AdminOperationThrottle(SimpleRateThrottle):
     ]
 
     def get_cache_key(self, request, view):
-        org_id = request.headers.get('X-Organization-ID')
+        org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if not org_id:
-            org_id = getattr(request, 'organization_id', None)
+            org_id = getattr(request, 'tenant_id', None) or getattr(request, 'organization_id', None)
         if not org_id:
             return None
         current_hour = timezone.now().strftime('%Y%m%d%H')

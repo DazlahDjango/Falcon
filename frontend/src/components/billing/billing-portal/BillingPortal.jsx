@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiCreditCard, FiFileText, FiActivity, FiSettings, FiShield, FiBell, FiCalendar, FiDollarSign, FiUsers, FiArrowRight, FiCheckCircle, FiAlertCircle, FiClock } from 'react-icons/fi';
+import { FiCreditCard, FiFileText, FiActivity, FiSettings, FiShield, FiBell, FiCalendar, FiDollarSign, FiUsers, FiArrowRight, FiCheckCircle, FiAlertCircle, FiClock, FiRefreshCw } from 'react-icons/fi';
 import { BillingShell } from '../common/BillingShell';
 import { BillingCard } from '../shared/BillingCard';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -25,7 +25,7 @@ export const BillingPortal = () => {
     const { invoices, loading: invLoading, fetchAll: fetchInvoices } = useInvoices({ autoFetch: true });
     const { transactions, loading: txLoading, fetchAll: fetchTransactions } = useTransactions({ autoFetch: true });
     const { paymentMethods, loading: pmLoading, fetchAll: fetchPaymentMethods } = usePaymentMethods({ autoFetch: true });
-    const { getPortalOverview, portalOverview } = useBillingPortal();
+    const { getOverview, portalOverview } = useBillingPortal();
     const [activeTab, setActiveTab] = useState('overview');
     const [refreshing, setRefreshing] = useState(false);
 
@@ -35,13 +35,13 @@ export const BillingPortal = () => {
             fetchInvoices({ page: 1, pageSize: 5 });
             fetchTransactions({ page: 1, pageSize: 5 });
             fetchPaymentMethods();
-            getPortalOverview();
+            getOverview();
         }
     }, [permissions.canViewBilling]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
-        await Promise.all([fetchCurrent(), fetchInvoices({ page: 1, pageSize: 5 }), fetchTransactions({ page: 1, pageSize: 5 }), fetchPaymentMethods(), getPortalOverview()]);
+        await Promise.all([fetchCurrent(), fetchInvoices({ page: 1, pageSize: 5 }), fetchTransactions({ page: 1, pageSize: 5 }), fetchPaymentMethods(), getOverview()]);
         setRefreshing(false);
     };
 

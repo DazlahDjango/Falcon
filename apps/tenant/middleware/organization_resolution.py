@@ -11,10 +11,11 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
         if self._should_skip(request):
             return None
         org_id = None
-        org_id = request.headers.get('X-Organization-ID')
+        org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if org_id:
             logger.debug(f"Organization identified via header: {org_id}")
             request.organization_id = org_id
+            request.tenant_id = org_id
             return None
         host = request.get_host().split(':')[0]
         parts = host.split('.')
@@ -24,14 +25,16 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
             if org_id:
                 logger.debug(f"Organization identified via subdomain: {subdomain}")
                 request.organization_id = org_id
+                request.tenant_id = org_id
                 return None
         org_id = self._get_org_id_from_domain(host)
         if org_id:
             logger.debug(f"Organization identified via custom domain: {host}")
             request.organization_id = org_id
+            request.tenant_id = org_id
             return None
         logger.warning(f"No organization identified for request: {request.path}")
-        return HttpResponseBadRequest("Unable to identify organization. Please provide X-Organization-ID header.")
+        return HttpResponseBadRequest("Unable to identify organization. Please provide X-Tenant-ID header.")
 
     def _should_skip(self, request):
         skip_paths = [

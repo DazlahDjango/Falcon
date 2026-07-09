@@ -61,13 +61,15 @@ class ConnectionManagementMiddleware(MiddlewareMixin):
         return None
 
     def _get_org_id(self, request):
-        org_id = request.headers.get('X-Organization-ID')
+        org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if org_id:
             return org_id
         if hasattr(request, 'user') and request.user.is_authenticated:
-            if hasattr(request.user, 'organization_id') and request.user.organization_id:
-                return str(request.user.organization_id)
-        return getattr(request, 'organization_id', None)
+            # Check both tenant_id and organization_id for compatibility
+            user_org_id = getattr(request.user, 'tenant_id', None) or getattr(request.user, 'organization_id', None)
+            if user_org_id:
+                return str(user_org_id)
+        return getattr(request, 'tenant_id', None) or getattr(request, 'organization_id', None)
 
     def _skip_middleware(self, request):
         excluded = getattr(settings, 'CONNECTION_MIDDLEWARE_EXCLUDED_PATHS', [

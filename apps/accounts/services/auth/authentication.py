@@ -36,14 +36,16 @@ class AuthenticationService:
             return None, None, 'Email and password required'
         email = email.lower().strip()
         user = User.objects.filter(email=email).first()
-        user_tenant_id = str(user.tenant_id) if user else None
-        
-        # Enforce tenant_id check for non-super-admins
+        user_tenant_id = str(user.tenant_id) if user and user.tenant_id else None
+
+        # Tenant validation for non-super-admins
         if user and user.role != 'super_admin':
-            if not tenant_id:
-                return None, None, 'Organization Tenant ID is required'
-            if str(tenant_id) != user_tenant_id:
-                return None, None, 'Invalid Organization Tenant ID for this user'
+            if tenant_id and str(tenant_id) != user_tenant_id:
+                # Caller supplied a tenant_id but it doesn't match — reject (security).
+                # We do NOT reveal whether the user exists; keep message generic.
+                return None, None, 'Invalid credentials or organisation'
+            # If tenant_id not supplied — that is OK, we read it from the user record.
+
         
         # Skip lockout/rate limits for super admins
         if not (user and user.role == 'super_admin'):

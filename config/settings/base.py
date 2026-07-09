@@ -195,26 +195,24 @@ MIDDLEWARE = [
     # Rate limiting
     'django_ratelimit.middleware.RatelimitMiddleware',
     # Custom middleware
-    # Accounts
-    'apps.accounts.middleware.TenantMiddleware',
+    # Accounts middlewares (non-tenant-specific)
     'apps.accounts.middleware.SessionMiddleware',
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
-    'apps.accounts.middleware.TenantAccessMiddleware',
+    # Tenant middlewares (starts with context setting)
+    'apps.tenant.middleware.organization_context.OrganizationContextMiddleware',
+    'apps.tenant.middleware.organization_resolution.OrganizationResolutionMiddleware',
+    'apps.tenant.middleware.organization_isolation.OrganizationIsolationMiddleware',
+    'apps.tenant.middleware.organization_isolation.OrganizationPathIsolationMiddleware',
+    'apps.tenant.middleware.organization_limits.OrganizationLimitsMiddleware',
+    'apps.tenant.middleware.db_routing.TenantDatabaseRouterMiddleware',
+    'apps.tenant.middleware.connection_management.ConnectionManagementMiddleware',
+    'apps.tenant.middleware.file_isolation.FileIsolationMiddleware',
     # KPI
     'apps.kpi.middleware.KPIContextMiddleware',
     'apps.kpi.middleware.KPIRequestAuditMiddleware',
     'apps.kpi.middleware.KPIThrottleMiddleware',
     'apps.kpi.middleware.CalculationCacheMiddleware',
-    # Organization middlewares (order matters!)
-    # Organization middlewares (order matters!)
-    # 'apps.tenant.middleware.OrganizationResolutionMiddleware',       # 1st - identify org
-    # 'apps.tenant.middleware.OrganizationContextMiddleware',           # 2nd - set context
-    # 'apps.tenant.middleware.OrganizationPathIsolationMiddleware',     # 3rd - path-based isolation
-    # 'apps.tenant.middleware.OrganizationIsolationMiddleware',         # 4th - enforce isolation
-    # 'apps.tenant.middleware.OrganizationLimitsMiddleware',            # 5th - rate limits
-    # 'apps.tenant.middleware.ConnectionManagementMiddleware',          # 6th - DB connections
-    # 'apps.tenant.middleware.FileIsolationMiddleware',                # 7th - file isolation               # 6th - file isolation
     # Structure
     'apps.structure.middleware.StructureContextMiddleware',
     'apps.structure.middleware.StructureCacheMiddleware',
@@ -239,7 +237,6 @@ MIDDLEWARE = [
     'apps.configs.middleware.partial_maintenance_blocker.PartialMaintenanceBlockerMiddleware',
     'apps.configs.middleware.config_access_middleware.ConfigAccessMiddleware',
     'apps.configs.middleware.maintenance_notice_injector.MaintenanceNoticeInjectorMiddleware',
-    
 ]
 
 ROOT_URLCONF = 'config.urls'

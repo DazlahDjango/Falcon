@@ -14,10 +14,11 @@ class FileIsolationMiddleware:
             tenant_match = re.match(r'/media/organizations/([^/]+)/', request.path)
             if tenant_match:
                 file_org_id = tenant_match.group(1)
-                request_org_id = request.headers.get('X-Organization-ID')
+                # Check both headers for backward compatibility
+                request_org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
                 if not request_org_id:
                     logger.warning(f"FILE ACCESS DENIED: No org header for {request.path}")
-                    return HttpResponseBadRequest("X-Organization-ID header is required")
+                    return HttpResponseBadRequest("X-Tenant-ID header is required")
                 if request_org_id != file_org_id:
                     is_super_admin = request.user.is_superuser if hasattr(request, 'user') and request.user.is_authenticated else False
                     if not is_super_admin:
