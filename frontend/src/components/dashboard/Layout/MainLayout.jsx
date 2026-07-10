@@ -91,7 +91,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className={`main-layout dashboard-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <div className={`ent-main-layout ent-dashboard-layout ${sidebarCollapsed ? 'ent-sidebar-collapsed' : ''}`}>
       <Suspense fallback={<div className="sidebar-loading" />}>
         <SidebarComponent
           isOpen={sidebarOpen}
@@ -103,7 +103,7 @@ const MainLayout = () => {
           wsConnected={wsConnected}
         />
       </Suspense>
-      <div className={`main-content ${!sidebarOpen ? 'sidebar-closed' : ''}`}>
+      <div className={`ent-main-content ${!sidebarOpen ? 'ent-sidebar-closed' : ''}`}>
         <Suspense fallback={<div className="header-loading" />}>
           <Header
             user={displayUser}
@@ -119,7 +119,7 @@ const MainLayout = () => {
         <GlobalSecurityBanner />
         <GlobalKpiBanner />
         <GlobalTenantQuotaBanner />
-        <main className="content-wrapper">
+        <main className="ent-content-wrapper">
           <Suspense fallback={<LoadingScreen message="Loading..." />}>
             <Outlet />
           </Suspense>

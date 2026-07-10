@@ -179,7 +179,7 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
 
     const statusClassNames = useMemo(() => {
         const isOn = user?.is_active != null ? user.is_active : wsConnected;
-        return `dashboard-header-live ${isOn ? 'dashboard-header-live--on' : ''}`.trim();
+        return `ent-header-live ${isOn ? 'ent-live-on' : ''}`.trim();
     }, [user?.is_active, wsConnected]);
 
     const handleSearch = (e) => {
@@ -222,22 +222,22 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
     };
 
     return (
-        <header className="app-header">
-            <div className="header-left">
+        <header className="ent-app-header">
+            <div className="ent-header-left">
                 <button 
-                    className="header-toggle-btn" 
+                    className="ent-header-toggle-btn" 
                     onClick={onToggleSidebar}
                     aria-label="Toggle sidebar"
                 >
                     <FiMenu size={20} />
                 </button>
                 
-                <div className="header-breadcrumb">
+                <div className="ent-header-breadcrumb">
                     {breadcrumbs.map((item, index) => (
                         <React.Fragment key={`${item.path}-${index}`}>
-                            {index > 0 && <span className="breadcrumb-separator">/</span>}
+                            {index > 0 && <span className="ent-breadcrumb-separator">/</span>}
                             <button 
-                                className={`breadcrumb-item ${index === breadcrumbs.length - 1 ? 'active' : ''}`}
+                                className={`ent-breadcrumb-item ${index === breadcrumbs.length - 1 ? 'active' : ''}`}
                                 onClick={() => navigate(item.path)}
                             >
                                 {item.name}
@@ -247,20 +247,20 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                 </div>
             </div>
             
-            <div className="header-center">
-                <form className="search-form" onSubmit={handleSearch}>
-                    <FiSearch className="search-icon" />
+            <div className="ent-header-center">
+                <form className="ent-search-form" onSubmit={handleSearch}>
+                    <FiSearch className="ent-search-icon" />
                     <input
                         type="text"
                         placeholder="Search users, KPIs, reports..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="search-input"
+                        className="ent-search-input"
                     />
                 </form>
             </div>
             
-            <div className="header-right">
+            <div className="ent-header-right">
                 <span
                   className={statusClassNames}
                   title={statusTitle}
@@ -269,59 +269,59 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                   {statusText}
                 </span>
                 <button 
-                    className="dashboard-quick-btn"
+                    className="ent-quick-btn"
                     onClick={handleDashboardClick}
                     title="Dashboard"
                 >
                     <FiGrid size={18} />
                 </button>
                 
-                <div className="header-notifications" ref={notificationsRef}>
+                <div className="ent-header-notifications" ref={notificationsRef}>
                     <button 
-                        className="notification-btn"
+                        className="ent-notification-btn"
                         onClick={() => setShowNotifications(!showNotifications)}
                         aria-label="Notifications"
                     >
                         <FiBell size={20} />
                         {unreadCount > 0 && (
-                            <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                            <span className="ent-notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                         )}
                     </button>
                     
                     {showNotifications && (
-                        <div className="notification-dropdown">
-                            <div className="notification-header">
+                        <div className="ent-notification-dropdown">
+                            <div className="ent-notification-header">
                                 <h3>Notifications</h3>
                                 {unreadCount > 0 && (
-                                    <button onClick={handleMarkAllRead} className="mark-all-read">
+                                    <button onClick={handleMarkAllRead} className="ent-mark-all-read">
                                         Mark all read
                                     </button>
                                 )}
                             </div>
                             
-                            <div className="notification-list">
+                            <div className="ent-notification-list">
                                 {notifications?.slice(0, 5).map((notif) => (
-                                    <div key={notif.id} className={`notification-item ${!notif.read ? 'unread' : ''}`}>
-                                        <div className={`notification-icon notification-${notif.level}`}>
+                                    <div key={notif.id} className={`ent-notification-item ${!notif.read ? 'unread' : ''}`}>
+                                        <div className={`ent-notification-icon ent-notification-${notif.level}`}>
                                             {getNotificationIcon(notif.level)}
                                         </div>
-                                        <div className="notification-content">
-                                            <div className="notification-title">{notif.title}</div>
-                                            <div className="notification-message">{notif.message}</div>
-                                            <div className="notification-time">{formatDate(notif.created_at)}</div>
+                                        <div className="ent-notification-content">
+                                            <div className="ent-notification-title">{notif.title}</div>
+                                            <div className="ent-notification-message">{notif.message}</div>
+                                            <div className="ent-notification-time">{formatDate(notif.created_at)}</div>
                                         </div>
                                     </div>
                                 ))}
                                 
                                 {(!notifications || notifications.length === 0) && (
-                                    <div className="notification-empty">
+                                    <div className="ent-notification-empty">
                                         <p>No notifications</p>
                                     </div>
                                 )}
                             </div>
                             
-                            <div className="notification-footer">
-                                <button onClick={handleViewAllNotifications} className="view-all-btn">
+                            <div className="ent-notification-footer">
+                                <button onClick={handleViewAllNotifications} className="ent-view-all-btn">
                                     View all notifications
                                 </button>
                             </div>
@@ -329,54 +329,54 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                     )}
                 </div>
                 
-                <div className="header-user" ref={userMenuRef}>
+                <div className="ent-header-user" ref={userMenuRef}>
                     <button 
-                        className="user-menu-btn"
+                        className="ent-user-menu-btn"
                         onClick={() => setShowUserMenu(!showUserMenu)}
                         aria-label="User menu"
                     >
-                        <div className="user-avatar-small">
+                        <div className="ent-user-avatar-small">
                             {user?.avatar_url ? (
                                 <img 
                                     src={user.avatar_url} 
                                     alt={user.username}
                                 />
                             ) : (
-                                <div className="avatar-placeholder">
+                                <div className="ent-avatar-placeholder">
                                     {user?.username?.charAt(0).toUpperCase() || 'U'}
                                 </div>
                             )}
                         </div>
-                        <div className="user-info">
-                            <span className="user-name">{user?.first_name || user?.username}</span>
+                        <div className="ent-user-info">
+                            <span className="ent-user-name">{user?.first_name || user?.username}</span>
                         </div>
-                        <FiChevronDown size={16} className="user-menu-arrow" />
+                        <FiChevronDown size={16} className="ent-user-menu-arrow" />
                     </button>
                     
                     {showUserMenu && (
-                        <div className="user-dropdown">
-                            <div className="user-dropdown-header">
-                                <div className="user-avatar">
+                        <div className="ent-user-dropdown">
+                            <div className="ent-user-dropdown-header">
+                                <div className="ent-user-avatar">
                                     {user?.avatar_url ? (
                                         <img 
                                             src={user.avatar_url} 
                                             alt={user.username}
                                         />
                                     ) : (
-                                        <div className="avatar-placeholder large">
+                                        <div className="ent-avatar-placeholder ent-large">
                                             {user?.username?.charAt(0).toUpperCase() || 'U'}
                                         </div>
                                     )}
                                 </div>
-                                <div className="user-details">
-                                    <div className="user-name">{user?.first_name} {user?.last_name}</div>
-                                    <div className="user-email">{user?.email}</div>
+                                <div className="ent-user-details">
+                                    <div className="ent-user-name">{user?.first_name} {user?.last_name}</div>
+                                    <div className="ent-user-email">{user?.email}</div>
                                 </div>
                             </div>
                             
-                            <div className="user-dropdown-divider"></div>
+                            <div className="ent-user-dropdown-divider"></div>
                             
-                            <div className="user-dropdown-menu">
+                            <div className="ent-user-dropdown-menu">
                                 <button onClick={() => { navigate('/profile'); setShowUserMenu(false); }}>
                                     <FiUser size={16} />
                                     <span>My Profile</span>
@@ -391,9 +391,9 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                                 </button>
                             </div>
                             
-                            <div className="user-dropdown-divider"></div>
+                            <div className="ent-user-dropdown-divider"></div>
                             
-                            <button className="logout-btn" onClick={onLogout}>
+                            <button className="ent-logout-btn" onClick={onLogout}>
                                 <FiLogOut size={16} />
                                 <span>Logout</span>
                             </button>
