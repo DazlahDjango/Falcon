@@ -46,7 +46,6 @@ const ReadOnlySidebar = ({ isOpen, isCollapsed, onToggle, user, currentTenant, c
             { path: STRUCTURE_ROUTES.DIVISIONS, name: 'Divisions', icon: FiGitBranch },
             { path: STRUCTURE_ROUTES.POSITIONS, name: 'Positions', icon: FiBriefcase },
             { path: STRUCTURE_ROUTES.EMPLOYMENTS, name: 'Employments', icon: BsPersonBadge },
-            { path: STRUCTURE_ROUTES.REPORTING_LINES, name: 'Reporting Lines', icon: BsDiagram3 },
             { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
             { path: STRUCTURE_ROUTES.COST_CENTERS, name: 'Cost Centers', icon: FiDollarSign },
             { path: STRUCTURE_ROUTES.LOCATIONS, name: 'Locations', icon: FiMapPin },

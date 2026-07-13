@@ -52,7 +52,7 @@ class SectionDetailSerializer(BaseStructureDetailSerializer):
     
     def get_employee_count(self, obj):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(section_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
+        return Employment.objects.filter(position__section_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
     
     def get_full_path(self, obj):
         return obj.get_full_path()

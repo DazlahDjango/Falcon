@@ -70,20 +70,24 @@ class UnitViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
         tenant_id = request.user.tenant_id
+        from apps.structure.models.employment import Employment
         total = Unit.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count()
         with_employments = Unit.objects.filter(
             tenant_id=tenant_id,
-            employments__is_current=True,
-            employments__is_deleted=False,
-            employments__is_active=True,
+            positions__employments__is_current=True,
+            positions__employments__is_deleted=False,
+            positions__employments__is_active=True,
             is_deleted=False,
             is_active=True
         ).distinct().count()
-        total_headcount = 0
-        units = Unit.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True)
-        for unit in units:
-            headcount = unit.employments.filter(is_current=True, is_deleted=False, is_active=True).count()
-            total_headcount += headcount
+        total_headcount = Employment.objects.filter(
+            position__unit__tenant_id=tenant_id,
+            position__unit__is_deleted=False,
+            position__unit__is_active=True,
+            is_current=True,
+            is_deleted=False,
+            is_active=True
+        ).count()
         return Response({
             'total_units': total,
             'units_with_employments': with_employments,

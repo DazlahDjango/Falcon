@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiDollarSign, FiPieChart } from 'react-icons/fi';
 import { useCostCenters } from '../../../hooks/structure';
@@ -16,54 +16,6 @@ import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConsta
 import { STRUCTURE_MESSAGES } from '../../../config/constants/structureConstants';
 import './costcenter.css';
 
-const COLUMNS = [
-  { key: 'code', header: 'Code', width: '120px' },
-  { key: 'name', header: 'Name', width: '200px' },
-  {
-    key: 'category',
-    header: 'Category',
-    width: '140px',
-    render: (item) => (
-      <span className={`category-badge category-${item.category}`}>
-        {item.category || 'operational'}
-      </span>
-    ),
-  },
-  {
-    key: 'fiscal_year',
-    header: 'Fiscal Year',
-    width: '100px',
-    render: (item) => item.fiscal_year || '-',
-  },
-  {
-    key: 'budget_amount',
-    header: 'Budget',
-    width: '140px',
-    render: (item) => (
-      <span className="budget-amount">
-        {item.budget_amount ? `$${Number(item.budget_amount).toLocaleString()}` : '-'}
-      </span>
-    ),
-  },
-  {
-    key: 'organizational_unit_name',
-    header: 'Org Unit',
-    width: '160px',
-    render: (item) => item.organizational_unit_name || '-',
-  },
-  {
-    key: 'is_active',
-    header: 'Status',
-    width: '100px',
-    render: (item) => (
-      <StructureStatusBadge
-        status={item.is_active ? 'active' : 'inactive'}
-        size="sm"
-      />
-    ),
-  },
-];
-
 export const CostCenterList = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -79,9 +31,80 @@ export const CostCenterList = () => {
     error,
     totalCount,
     fetchAll,
+    update,
     remove,
     clearError,
   } = useCostCenters({ autoFetch: false });
+
+  const handleToggleActive = useCallback(async (item, e) => {
+    e.stopPropagation();
+    try {
+      await update(item.id, { is_active: !item.is_active });
+      const params = {
+        page,
+        page_size: pageSize,
+        search: searchTerm,
+        ...filters,
+      };
+      fetchAll(params);
+    } catch (err) {
+      console.error('Failed to toggle status:', err);
+    }
+  }, [update, fetchAll, page, pageSize, searchTerm, filters]);
+
+  const COLUMNS = useMemo(() => [
+    { key: 'code', header: 'Code', width: '120px' },
+    { key: 'name', header: 'Name', width: '200px' },
+    {
+      key: 'category',
+      header: 'Category',
+      width: '140px',
+      render: (item) => (
+        <span className={`category-badge category-${item.category}`}>
+          {item.category || 'operational'}
+        </span>
+      ),
+    },
+    {
+      key: 'fiscal_year',
+      header: 'Fiscal Year',
+      width: '100px',
+      render: (item) => item.fiscal_year || '-',
+    },
+    {
+      key: 'budget_amount',
+      header: 'Budget',
+      width: '140px',
+      render: (item) => (
+        <span className="budget-amount">
+          {item.budget_amount ? `$${Number(item.budget_amount).toLocaleString()}` : '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'organizational_unit_name',
+      header: 'Org Unit',
+      width: '160px',
+      render: (item) => item.organizational_unit_name || '-',
+    },
+    {
+      key: 'is_active',
+      header: 'Status',
+      width: '100px',
+      render: (item) => (
+        <div 
+          onClick={(e) => handleToggleActive(item, e)} 
+          style={{ cursor: 'pointer', display: 'inline-block' }}
+          title={item.is_active ? "Click to deactivate" : "Click to activate"}
+        >
+          <StructureStatusBadge
+            status={item.is_active ? 'active' : 'inactive'}
+            size="sm"
+          />
+        </div>
+      ),
+    },
+  ], [handleToggleActive]);
 
   useEffect(() => {
     const params = {

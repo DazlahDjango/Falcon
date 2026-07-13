@@ -160,14 +160,41 @@ const hierarchySlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      .addCase(fetchCurrentHierarchyVersion.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(fetchCurrentHierarchyVersion.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.currentVersion = action.payload;
       })
+      .addCase(fetchCurrentHierarchyVersion.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchHierarchyHistory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(fetchHierarchyHistory.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.history = action.payload.versions || action.payload;
       })
+      .addCase(fetchHierarchyHistory.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(validateHierarchy.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(validateHierarchy.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.validationResult = action.payload;
+      })
+      .addCase(validateHierarchy.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       })
       .addCase(captureHierarchySnapshot.fulfilled, (state, action) => {
         if (action.payload.version) {

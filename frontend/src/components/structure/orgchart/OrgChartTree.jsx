@@ -43,7 +43,12 @@ export const OrgChartTree = () => {
 
   useEffect(() => {
     if (tree) {
-      setTreeData(tree.departments || tree.divisions || []);
+      setTreeData([
+        ...(tree.divisions || []),
+        ...(tree.departments || []),
+        ...(tree.sections || []),
+        ...(tree.units || [])
+      ]);
     }
   }, [tree]);
 

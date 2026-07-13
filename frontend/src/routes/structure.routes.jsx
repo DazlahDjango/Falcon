@@ -62,10 +62,12 @@ const LocationForm = React.lazy(() => import('../components/structure/location/L
 const LocationDetail = React.lazy(() => import('../components/structure/location/LocationDetail').then(module => ({ default: module.LocationDetail })));
 
 // Hierarchy Pages
-const HierarchyVersionList = React.lazy(() => import('../components/structure/hierarchy/HierarchyVersionList').then(module => ({ default: module.HierarchyVersionList })));
-const HierarchyVersionDetail = React.lazy(() => import('../components/structure/hierarchy/HierarchyVersionDetail').then(module => ({ default: module.HierarchyVersionDetail })));
-const HierarchySnapshotCapture = React.lazy(() => import('../components/structure/hierarchy/HierarchySnapshotCapture').then(module => ({ default: module.HierarchySnapshotCapture })));
-const HierarchyVersionDiff = React.lazy(() => import('../components/structure/hierarchy/HierarchyVersionDiff').then(module => ({ default: module.HierarchyVersionDiff })));
+const HierarchyVersionList = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyVersionList })));
+const HierarchyCurrent = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyCurrent })));
+const HierarchyValidate = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyValidate })));
+const HierarchyVersionDetail = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyVersionDetail })));
+const HierarchySnapshotCapture = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchySnapshotCapture })));
+const HierarchyVersionDiff = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyVersionDiff })));
 
 // Org Chart Pages
 const OrgChartView = React.lazy(() => import('../components/structure/orgchart/OrgChartView').then(module => ({ default: module.OrgChartView })));
@@ -190,9 +192,9 @@ const structureRoutes = [
     { path: STRUCTURE_ROUTES.HIERARCHY_CAPTURE, element: withSuspense(HierarchySnapshotCapture) },
     { path: STRUCTURE_ROUTES.HIERARCHY_DIFF(), element: withSuspense(HierarchyVersionDiff) },
     { path: STRUCTURE_ROUTES.HIERARCHY_DETAIL, element: withSuspense(HierarchyVersionDetail) },
-    { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, element: withSuspense(HierarchyVersionList) },
+    { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, element: withSuspense(HierarchyCurrent) },
     { path: STRUCTURE_ROUTES.HIERARCHY_HISTORY, element: withSuspense(HierarchyVersionList) },
-    { path: STRUCTURE_ROUTES.HIERARCHY_VALIDATE, element: withSuspense(HierarchyVersionList) },
+    { path: STRUCTURE_ROUTES.HIERARCHY_VALIDATE, element: withSuspense(HierarchyValidate) },
     
     // Org Charts
     { path: STRUCTURE_ROUTES.ORG_CHARTS, element: withSuspense(OrgChartView) },

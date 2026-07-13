@@ -7,35 +7,42 @@ class HierarchyService extends BaseStructureService {
   }
 
   async getCurrent() {
-    return withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.CURRENT));
+    const response = await withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.CURRENT));
+    return this.unwrap(response);
   }
 
   async getHistory(limit) {
-    return withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.HISTORY, { params: { limit } }));
+    const response = await withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.HISTORY, { params: { limit } }));
+    return this.unwrap(response);
   }
 
   async capture(data) {
     if (!data) throw new Error('Capture data is required');
-    return withRetry(() => this.apiClient.post(HIERARCHY_ENDPOINTS.CAPTURE, data));
+    const response = await withRetry(() => this.apiClient.post(HIERARCHY_ENDPOINTS.CAPTURE, data));
+    return this.unwrap(response);
   }
 
   async autoCapture() {
-    return withRetry(() => this.apiClient.post(HIERARCHY_ENDPOINTS.AUTO_CAPTURE));
+    const response = await withRetry(() => this.apiClient.post(HIERARCHY_ENDPOINTS.AUTO_CAPTURE));
+    return this.unwrap(response);
   }
 
   async restore(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.post(HIERARCHY_ENDPOINTS.RESTORE(id)));
+    const response = await withRetry(() => this.apiClient.post(HIERARCHY_ENDPOINTS.RESTORE(id)));
+    return this.unwrap(response);
   }
 
   async diff(id, compareToId) {
     if (!id) throw new Error('ID is required');
     if (!compareToId) throw new Error('Compare ID is required');
-    return withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.DIFF(id, compareToId)));
+    const response = await withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.DIFF(id, compareToId)));
+    return this.unwrap(response);
   }
 
   async validate() {
-    return withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.VALIDATE));
+    const response = await withRetry(() => this.apiClient.get(HIERARCHY_ENDPOINTS.VALIDATE));
+    return this.unwrap(response);
   }
 }
 

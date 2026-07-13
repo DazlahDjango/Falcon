@@ -216,11 +216,13 @@ export const EmploymentDetail = () => {
         <div className="detail-section">
           <h3>Employment Information</h3>
           <div className="detail-grid">
-            <DetailRow label="User ID" value={currentItem.user_id} />
+            <DetailRow label="Employee Name" value={currentItem.user_name} />
+            <DetailRow label="Employee Email" value={currentItem.user_email} />
             <DetailRow label="Position" value={currentItem.position_title || currentItem.position_id} />
             <DetailRow label="Department" value={currentItem.department_name || currentItem.department_id || 'N/A'} />
             <DetailRow label="Unit" value={currentItem.unit_name || currentItem.unit_id || 'N/A'} />
             <DetailRow label="Employment Type" value={currentItem.employment_type} />
+            <DetailRow label="User ID" value={currentItem.user_id} />
           </div>
         </div>
 

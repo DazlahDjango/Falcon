@@ -13,7 +13,7 @@ const initialState = {
 };
 
 export const fetchDivisions = createAsyncThunk(
-  'divisions/fetchAll',
+  'divisions/fetchAll', 
   async (params, { rejectWithValue }) => {
     try {
       const response = await divisionService.list(params);

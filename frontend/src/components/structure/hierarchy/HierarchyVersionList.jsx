@@ -75,7 +75,6 @@ export const HierarchyVersionList = () => {
     error,
     totalCount,
     fetchAll,
-    fetchStats,
     clearError,
   } = useHierarchy({ autoFetch: false });
 
@@ -91,13 +90,8 @@ export const HierarchyVersionList = () => {
       ...filters,
     };
     await fetchAll(params);
-    try {
-      const statsResponse = await fetchStats();
-      setStats(statsResponse.data || statsResponse);
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
-    }
-  }, [fetchAll, fetchStats, page, pageSize, searchTerm, filters]);
+    // Hierarchy version stats are not available on backend yet
+  }, [fetchAll, page, pageSize, searchTerm, filters]);
 
   const handleSearch = useCallback((value) => {
     setSearchTerm(value);

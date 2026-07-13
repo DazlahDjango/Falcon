@@ -20,32 +20,61 @@ class ChainService:
             cached = self._cache.get(cache_key)
             if cached:
                 return cached
-        employment = Employment.objects.current_by_user(user_id).first()
+        
+        employment = Employment.objects.current_by_user(user_id, tenant_id)
         if not employment:
             raise EmploymentNotFoundError(user_id)
+        
         chain = []
         current = employment
+        seen_user_ids = {str(current.user_id)}
+        
         while current:
-            employment = Employment.objects.filter(employee=current, is_active=True, is_deleted=False).first()
-            if not employment:
-                break
-            manager = employment.manager
-            interim = InterimAssignment.objects.current_by_employee(manager.id).first()
-            if interim:
+            # Check for active interim assignment first
+            interim = InterimAssignment.objects.current_by_employee(current.id).first()
+            if interim and interim.interim_manager:
+                manager = interim.interim_manager
+                manager_user_id_str = str(manager.user_id)
+                if manager_user_id_str in seen_user_ids:
+                    # Prevent infinite cycle
+                    break
+                seen_user_ids.add(manager_user_id_str)
                 chain.append({
-                    'user_id': str(interim.interim_manager.user_id),
-                    'employment_id': str(interim.interim_manager.id),
+                    'user_id': manager_user_id_str,
+                    'employment_id': str(manager.id),
                     'is_interim': True,
                     'interim_id': str(interim.id),
                     'effective_to': interim.effective_to.isoformat() if interim.effective_to else None,
-                    'position': interim.interim_manager.position.title if interim.interim_manager.position else None,
-                    'is_manager': interim.interim_manager.is_manager,
-                    'is_executive': interim.interim_manager.is_executive
+                    'position': manager.position.title if manager.position else None,
+                    'is_manager': manager.is_manager,
+                    'is_executive': manager.is_executive
                 })
-                current = interim.interim_manager
+                current = manager
             else:
+                # Regular manager via position reports_to relationship
+                reports_to_pos = current.position.reports_to if current.position else None
+                if not reports_to_pos:
+                    break
+                
+                manager = Employment.objects.filter(
+                    position=reports_to_pos,
+                    tenant_id=tenant_id,
+                    is_current=True,
+                    is_active=True,
+                    is_deleted=False
+                ).first()
+                
+                if not manager:
+                    break
+                
+                manager_user_id_str = str(manager.user_id)
+                if manager_user_id_str in seen_user_ids:
+                    # Prevent infinite cycle
+                    break
+                seen_user_ids.add(manager_user_id_str)
+                
                 chain.append({
-                    'user_id': str(manager.user_id),
+                    'user_id': manager_user_id_str,
                     'employment_id': str(manager.id),
                     'is_interim': False,
                     'interim_id': None,
@@ -55,22 +84,58 @@ class ChainService:
                     'is_executive': manager.is_executive
                 })
                 current = manager
+                
         if use_cache:
             self._cache.set(cache_key, chain, DEFAULT_MAX_CACHE_TTL_SECONDS)
         return chain
     
     def get_direct_reports(self, user_id: UUID, tenant_id: UUID) -> List[Employment]:
-        employment = Employment.objects.current_by_user(user_id).first()
+        employment = Employment.objects.current_by_user(user_id, tenant_id)
         if not employment:
-            raise EmploymentNotFoundError(user_id)
-        employments = Employment.objects.filter(manager=employment, is_active=True, is_deleted=False)
-        return [rl.employee for rl in employments]
+            return []
+        
+        # Solid reports (via position reports_to)
+        if employment.position:
+            solid_reports = list(Employment.objects.filter(
+                position__reports_to=employment.position,
+                tenant_id=tenant_id,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            ))
+        else:
+            solid_reports = []
+            
+        # Interim reports (via active InterimAssignments)
+        interim_assignments = InterimAssignment.objects.filter(
+            interim_manager=employment,
+            is_active=True,
+            is_deleted=False,
+            tenant_id=tenant_id
+        ).select_related('employee')
+        
+        # Filter active dates for interim reports
+        from django.utils import timezone
+        now = timezone.now().date()
+        interim_reports = []
+        for ia in interim_assignments:
+            if ia.effective_from <= now <= ia.effective_to and ia.employee.is_current and ia.employee.is_active:
+                interim_reports.append(ia.employee)
+                
+        # Return distinct employments
+        all_reports = {emp.id: emp for emp in solid_reports + interim_reports}
+        return list(all_reports.values())
     
     def get_all_reports(self, user_id: UUID, tenant_id: UUID) -> List[Employment]:
         direct_reports = self.get_direct_reports(user_id, tenant_id)
         all_reports = list(direct_reports)
+        seen_user_ids = {str(user_id)}
+        
         for report in direct_reports:
-            all_reports.extend(self.get_all_reports(str(report.user_id), tenant_id))
+            report_user_id_str = str(report.user_id)
+            if report_user_id_str not in seen_user_ids:
+                seen_user_ids.add(report_user_id_str)
+                all_reports.extend(self.get_all_reports(report_user_id_str, tenant_id))
         return all_reports
     
     def get_reporting_depth(self, user_id: UUID, tenant_id: UUID) -> int:
@@ -78,15 +143,25 @@ class ChainService:
         return len(chain)
     
     def get_effective_manager(self, user_id: UUID, tenant_id: UUID) -> Optional[Employment]:
-        employment = Employment.objects.current_by_user(user_id).first()
+        employment = Employment.objects.current_by_user(user_id, tenant_id)
         if not employment:
-            raise EmploymentNotFoundError(user_id)
+            return None
+        
+        # Check active interim assignment
         interim = InterimAssignment.objects.current_by_employee(employment.id).first()
         if interim:
             return interim.interim_manager
-        employment = Employment.objects.filter(employee=employment, is_active=True, is_deleted=False).first()
-        if employment:
-            return employment.manager
+            
+        # Check regular reports_to manager
+        reports_to_pos = employment.position.reports_to if employment.position else None
+        if reports_to_pos:
+            return Employment.objects.filter(
+                position=reports_to_pos,
+                tenant_id=tenant_id,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            ).first()
         return None
     
     def get_ultimate_manager(self, user_id: UUID, tenant_id: UUID) -> Optional[Dict[str, Any]]:
@@ -126,40 +201,10 @@ class ChainService:
         return errors
     
     def assign_manager(self, employee_id: UUID, manager_id: UUID, effective_from: Optional[datetime] = None, approved_by: Optional[UUID] = None) -> Employment:
-        with transaction.atomic():
-            employee = Employment.objects.get(id=employee_id, is_deleted=False)
-            manager = Employment.objects.get(id=manager_id, is_deleted=False)
-            if employee.user_id == manager.user_id:
-                raise SelfReportingError()
-            if employee.tenant_id != manager.tenant_id:
-                raise ReportingChainError("Employee and manager must be in same tenant.")
-            if not effective_from:
-                effective_from = timezone.now().date()
-            Employment.objects.filter(employee=employee, is_active=True, is_deleted=False).update(is_active=False, effective_to=effective_from)
-            employment = Employment.objects.create(
-                tenant_id=employee.tenant_id,
-                employee=employee,
-                manager=manager,
-                effective_from=effective_from,
-                is_active=True,
-                approved_by_id=approved_by
-            )
-            self._cache.delete(f"structure:reporting_chain:{employee.tenant_id}:{employee.user_id}")
-            return employment
+        raise NotImplementedError("Manager assignments must be updated by moving positions.")
     
     def remove_manager(self, employee_id: UUID) -> bool:
-        with transaction.atomic():
-            employment = Employment.objects.filter(
-                employee_id=employee_id,
-                is_active=True,
-                is_deleted=False
-            ).first()
-            if employment:
-                employment.is_active = False
-                employment.effective_to = timezone.now().date()
-                employment.save()
-                self._cache.delete(f"structure:reporting_chain:{employment.tenant_id}:{employment.employee.user_id}")
-            return True
+        raise NotImplementedError("Manager assignments must be updated by moving positions.")
     
     def clear_cache(self, tenant_id: UUID, user_id: Optional[UUID] = None) -> None:
         if user_id:

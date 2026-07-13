@@ -24,7 +24,7 @@ class UnitSerializer(BaseStructureSerializer):
     
     def get_headcount(self, obj):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(unit_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
+        return Employment.objects.filter(position__unit_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
 
 class UnitDetailSerializer(BaseStructureDetailSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
@@ -48,7 +48,7 @@ class UnitDetailSerializer(BaseStructureDetailSerializer):
     
     def get_employee_count(self, obj):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(unit_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
+        return Employment.objects.filter(position__unit_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
     
     def get_full_path(self, obj):
         return obj.get_full_path()

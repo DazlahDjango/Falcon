@@ -42,9 +42,9 @@ def validate_department_code(value):
         raise ValidationError(_("Department code must be 3-50 characters: uppercase letters, numbers, hyphens, underscores. Must start with letter or number."))
 
 def validate_cost_center_code(value):
-    pattern = r'^[A-Z0-9]{3,20}$'
+    pattern = r'^[A-Z0-9][A-Z0-9\-_]{2,19}$'
     if not re.match(pattern, value):
-        raise ValidationError(_("Cost center code must be 3-20 uppercase alphanumeric characters."))
+        raise ValidationError(_("Cost center code must be 3-20 characters: uppercase letters, numbers, hyphens, underscores. Must start with letter or number."))
 
 def validate_position_job_code(value):
     pattern = r'^[A-Z]{2,4}-[0-9]{3,5}$'

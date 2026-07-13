@@ -43,6 +43,7 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     section_count = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     full_path = serializers.SerializerMethodField()
+    cost_center_id = serializers.SerializerMethodField()
     
     class Meta:
         model = Department
@@ -66,10 +67,25 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     
     def get_employee_count(self, obj):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(department_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
+        return Employment.objects.filter(position__department_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
     
     def get_full_path(self, obj):
         return obj.get_full_path()
+
+    def get_cost_center_id(self, obj):
+        from apps.structure.models.cost_center_allocation import CostCenterAllocation
+        from django.contrib.contenttypes.models import ContentType
+        try:
+            content_type = ContentType.objects.get_for_model(obj)
+            allocation = CostCenterAllocation.objects.filter(
+                tenant_id=obj.tenant_id,
+                content_type=content_type,
+                object_id=obj.id,
+                is_deleted=False
+            ).first()
+            return str(allocation.cost_center_id) if allocation else None
+        except Exception:
+            return None
 
 class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
     division_id = serializers.UUIDField(required=False, allow_null=True)
@@ -78,7 +94,7 @@ class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
         model = Department
         fields = [
             'code', 'name', 'description', 'division_id',
-            'cost_center_id', 'manager_id', 'budget_code', 'headcount_limit',
+            'manager_id', 'budget_code', 'headcount_limit',
             'sensitivity_level', 'is_active'
         ]
     

@@ -221,7 +221,7 @@ def employment_post_save(sender, instance, created, **kwargs):
             )
         event_publisher.publish_employment_change(
             instance.tenant_id, instance.user_id, 'created',
-            new_data={'position_id': str(instance.position_id), 'unit_id': str(instance.unit_id) if instance.unit_id else None}
+            new_data={'position_id': str(instance.position_id), 'unit_id': str(instance.position.unit_id) if instance.position and instance.position.unit_id else None}
         )
     else:
         logger.info(f"Employment updated: User {instance.user_id} (Tenant: {instance.tenant_id})")

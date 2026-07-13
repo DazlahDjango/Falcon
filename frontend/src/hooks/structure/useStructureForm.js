@@ -170,7 +170,6 @@ export const useDepartmentForm = ({ onSubmit, initialValues = {} }) => {
             name: '',
             description: '',
             division_id: '',
-            cost_center_id: '',
             budget_code: '',
             manager_id: '',
             headcount_limit: '',

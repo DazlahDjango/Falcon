@@ -270,14 +270,12 @@ const StructureDashboard = () => {
                   </li>
                 ))}
               </ul>
-              {health.issues.length > 5 && (
-                <button
-                  onClick={() => navigate(STRUCTURE_ROUTES.HIERARCHY_VERSIONS)}
-                  className="mt-2 text-sm text-yellow-700 hover:text-yellow-800 font-medium"
-                >
-                  +{health.issues.length - 5} more issues
-                </button>
-              )}
+              <button
+                onClick={() => navigate(STRUCTURE_ROUTES.HIERARCHY_VALIDATE)}
+                className="mt-3 text-sm text-yellow-700 hover:text-yellow-800 font-medium flex items-center"
+              >
+                View full validation report &rarr;
+              </button>
             </div>
           </div>
         </div>

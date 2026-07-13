@@ -12,7 +12,7 @@ from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, Ca
 from .base import BaseStructureViewSet
 
 class EmploymentViewSet(BaseStructureViewSet):
-    queryset = Employment.objects.select_related('position', 'division', 'department', 'section', 'unit').all()
+    queryset = Employment.objects.select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit').all()
     filterset_class = EmploymentFilter
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['user_id', 'change_reason']
@@ -52,7 +52,7 @@ class EmploymentViewSet(BaseStructureViewSet):
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('position', 'division', 'department', 'section', 'unit')
+        ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit')
         division_id = request.query_params.get('division_id')
         if division_id:
             employments = employments.filter(division_id=division_id)
@@ -81,7 +81,7 @@ class EmploymentViewSet(BaseStructureViewSet):
             user_id=user_id,
             tenant_id=tenant_id,
             is_deleted=False
-        ).select_related('position', 'division', 'department', 'section', 'unit').order_by('-effective_from')
+        ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit').order_by('-effective_from')
         serializer = EmploymentDetailSerializer(employments, many=True, context={'request': request})
         current = employments.filter(is_current=True).first()
         return Response({

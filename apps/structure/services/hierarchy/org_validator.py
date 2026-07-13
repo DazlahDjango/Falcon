@@ -1,5 +1,5 @@
+# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
-from django.db import models
 from apps.structure.constants import MAX_ORG_DEPTH, PARENT_LEVEL_MAP, LEVEL_ORDER
 from apps.structure.exceptions import MaxDepthExceededError, InvalidLevelError, TenantMismatchError
 
@@ -65,6 +65,7 @@ class OrgValidator:
                 errors.append({
                     'id': str(unit.id),
                     'code': unit.code,
+                    'level': unit.level,
                     'error': str(e)
                 })
         return errors

@@ -10,3 +10,5 @@ export { default as TreemapView } from './TreemapView';
 export { default as VersionCompareView } from './VersionCompareView';
 export { default as VersionTimeline } from './VersionTimeline';
 export { default as ForceDirectedGraph } from './ForceDirectedGraph';
+export { default as HierarchyCurrent } from './HierarchyCurrent';
+export { default as HierarchyValidate } from './HierarchyValidate';

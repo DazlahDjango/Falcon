@@ -45,23 +45,24 @@ class CacheWarmerService:
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('position', 'division', 'department', 'section', 'unit')
+        ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit')
         warmed_count = 0
         for emp in employments:
             cache_key = CACHE_KEY_EMPLOYMENT_CURRENT.format(tenant_id=tenant_id, user_id=emp.user_id)
+            pos = emp.position
             employment_data = {
                 'id': str(emp.id),
                 'user_id': str(emp.user_id),
-                'position_title': emp.position.title if emp.position else None,
-                'position_code': emp.position.job_code if emp.position else None,
-                'division_id': str(emp.division_id) if emp.division_id else None,
-                'division_name': emp.division.name if emp.division else None,
-                'department_id': str(emp.department_id) if emp.department_id else None,
-                'department_name': emp.department.name if emp.department else None,
-                'section_id': str(emp.section_id) if emp.section_id else None,
-                'section_name': emp.section.name if emp.section else None,
-                'unit_id': str(emp.unit_id) if emp.unit_id else None,
-                'unit_name': emp.unit.name if emp.unit else None,
+                'position_title': pos.title if pos else None,
+                'position_code': pos.job_code if pos else None,
+                'division_id': str(pos.division_id) if pos and pos.division_id else None,
+                'division_name': pos.division.name if pos and pos.division else None,
+                'department_id': str(pos.department_id) if pos and pos.department_id else None,
+                'department_name': pos.department.name if pos and pos.department else None,
+                'section_id': str(pos.section_id) if pos and pos.section_id else None,
+                'section_name': pos.section.name if pos and pos.section else None,
+                'unit_id': str(pos.unit_id) if pos and pos.unit_id else None,
+                'unit_name': pos.unit.name if pos and pos.unit else None,
                 'is_manager': emp.is_manager,
                 'is_executive': emp.is_executive,
                 'manager_user_id': emp.manager_user_id,
@@ -81,6 +82,15 @@ class CacheWarmerService:
         return results
     
     def invalidate_tenant_cache(self, tenant_id: UUID) -> int:
+        exact_keys = [
+            f"structure:org_tree:{tenant_id}",
+        ]
+        for key in exact_keys:
+            try:
+                self._cache.delete(key)
+            except Exception:
+                pass
+
         patterns = [
             f"structure:org_tree:{tenant_id}",
             f"structure:reporting_chain:{tenant_id}:*",
@@ -88,7 +98,7 @@ class CacheWarmerService:
             f"structure:span:*:{tenant_id}:*",
             f"structure:access:*:{tenant_id}:*",
         ]
-        invalidated_count = 0
+        invalidated_count = len(exact_keys)
         try:
             delete_pattern = getattr(self._cache, "delete_pattern", None)
             if callable(delete_pattern):

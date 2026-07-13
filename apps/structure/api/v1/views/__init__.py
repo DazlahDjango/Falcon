@@ -15,6 +15,7 @@ from .location_views import LocationViewSet
 from .dashboard_views import StructureDashboardViewSet
 from .health_views import StructureHealthViewSet
 from .hierarchy_views import HierarchyViewSet  # ADD THIS LINE
+from .reporting_views import ReportingLineViewSet
 
 __all__ = [
     'OrganizationalUnitViewSet',
@@ -34,4 +35,5 @@ __all__ = [
     'StructureDashboardViewSet',
     'StructureHealthViewSet',
     'HierarchyViewSet',  # ADD THIS
+    'ReportingLineViewSet',
 ]

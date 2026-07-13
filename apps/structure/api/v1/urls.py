@@ -23,6 +23,7 @@ from .views import (
     LocationViewSet,
     StructureDashboardViewSet,
     StructureHealthViewSet,
+    ReportingLineViewSet,
 )
 
 # Main router
@@ -44,6 +45,7 @@ router.register(r'cost-centers', CostCenterViewSet, basename='cost-centers')
 router.register(r'locations', LocationViewSet, basename='locations')
 router.register(r'dashboard', StructureDashboardViewSet, basename='structure-dashboard')
 router.register(r'health', StructureHealthViewSet, basename='structure-health')
+router.register(r'reporting-lines', ReportingLineViewSet, basename='reporting-lines')
 
 # Nested routers for hierarchical relationships
 # Organizational Units - children

@@ -51,6 +51,10 @@ export const CostCenterForm = () => {
         budget_amount: formData.budget_amount ? parseFloat(formData.budget_amount) : null,
         allocation_percentage: parseFloat(formData.allocation_percentage) || 100,
         fiscal_year: parseInt(formData.fiscal_year, 10),
+        manager_id: formData.manager_id || null,
+        parent_id: formData.parent_id || null,
+        valid_from: formData.valid_from || null,
+        valid_to: formData.valid_to || null,
       };
       if (isEditing) {
         await update(id, submitData);

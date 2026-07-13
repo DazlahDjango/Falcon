@@ -111,3 +111,8 @@ class Department(BaseStructureModel):
             ancestors.append(current.parent)
             current = current.parent
         return ancestors
+
+    def get_children_count(self):
+        sub_depts = self.children.filter(is_deleted=False, is_active=True).count()
+        sections = self.sections.filter(is_deleted=False, is_active=True).count()
+        return sub_depts + sections

@@ -33,3 +33,6 @@ class Section(OrganizationalNode):
     def save(self, *args, **kwargs):
         self.level = self.LEVEL
         super().save(*args, **kwargs)
+
+    def get_children_count(self):
+        return self.units.filter(is_deleted=False, is_active=True).count()

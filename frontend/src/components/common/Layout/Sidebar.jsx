@@ -67,7 +67,6 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/app/structure/teams', name: 'Teams', icon: HiOutlineUserGroup, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor', 'staff'] },
             { path: '/app/structure/positions', name: 'Positions', icon: BsBriefcase, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion'] },
             { path: '/app/structure/employments', name: 'Employments', icon: BsPersonBadge, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'supervisor'] },
-            { path: '/app/structure/reporting-lines', name: 'Reporting Lines', icon: BsDiagram3, roles: ['super_admin', 'client_admin', 'executive', 'supervisor'] },
             { path: '/app/structure/cost-centers', name: 'Cost Centers', icon: FiDollarSign, roles: ['super_admin', 'client_admin', 'executive'] },
             { path: '/app/structure/locations', name: 'Locations', icon: FiMapPin, roles: ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'staff'] },
         ];
