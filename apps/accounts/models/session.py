@@ -7,6 +7,7 @@ from ..managers.session import SessionBlacklistManager
 
 class UserSession(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions', verbose_name=_('user'))
+    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, null=True, blank=True, help_text=_("The unique UUID of the Tenant this session belongs to."))
     # Session identifiers
     session_key = models.CharField(_('session key'), max_length=40, unique=True, db_index=True)
     jwt_token_id = models.CharField(_('JWT token ID'), max_length=50, blank=True, db_index=True, help_text='JTI claim for token revocation')

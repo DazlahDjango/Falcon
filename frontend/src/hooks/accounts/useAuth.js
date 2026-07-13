@@ -10,6 +10,7 @@ import {
   // ============ NEW IMPORTS ============
   register as registerAction,
   registerTenant as registerTenantAction,
+  changePassword as changePasswordAction,
   forgotPassword as forgotPasswordAction,
   resetPassword as resetPasswordAction,
   verifyEmail as verifyEmailAction,
@@ -100,6 +101,22 @@ export const useAuth = () => {
     async (data) => {
       const result = await dispatch(registerTenantAction(data)).unwrap();
       return result;
+    },
+    [dispatch]
+  );
+
+  const changePassword = useCallback(
+    async (data) => {
+      try {
+        const result = await dispatch(changePasswordAction(data)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        const errorMessage =
+          typeof err === 'string'
+            ? err
+            : err?.message || err?.old_password?.[0] || err?.new_password?.[0] || 'Failed to change password';
+        return { success: false, error: errorMessage };
+      }
     },
     [dispatch]
   );
@@ -199,6 +216,7 @@ export const useAuth = () => {
       registerTenant,
 
       // Password Reset
+      changePassword,
       forgotPassword,
       resetPassword,
 
@@ -236,6 +254,7 @@ export const useAuth = () => {
       clearMfa,
       register,
       registerTenant,
+      changePassword,
       forgotPassword,
       resetPassword,
       verifyEmail,

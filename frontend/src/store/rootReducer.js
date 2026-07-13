@@ -18,6 +18,7 @@ import securityReducer from './accounts/slice/securitySlice';
 import systemSettingsReducer from './accounts/slice/systemSettingsSlice';
 import accountsUiReducer from './accounts/slice/uiSlice';
 import { default as adminReducer } from './accounts/slice/adminSlice'
+import reportReducer from './accounts/slice/reportSlice';
 // =============================================
 // Structure Reducers
 // ==========================================
@@ -33,19 +34,7 @@ import kpiModuleReducer from './kpi/index';
 // ==========================================
 // TENANT APP REDUCERS
 // ==========================================
-import {
-    tenantReducer as appTenantReducer,
-    tenantResourceReducer,
-    tenantDomainReducer,
-    tenantBackupReducer,
-    tenantMigrationReducer,
-    tenantSchemaReducer,
-    tenantProvisioningReducer,
-    tenantAuditReducer,
-    tenantDashboardReducer,
-    tenantUIReducer,
-    connectionReducer,
-} from './tenant/slice';
+import { tenantReducers } from './tenant/index';
 
 // ==========================================
 // Reviews Reducers
@@ -73,33 +62,25 @@ const rootReducer = combineReducers({
     preferences: preferenceReducer,
     mfa: mfaReducer,
     adminMfa: adminMfaReducer,
-    profile: profileReducer,
+    profiles: profileReducer,
     ui: accountsUiReducer,
     accountsSecurity: securityReducer,
     systemSettings: systemSettingsReducer,
+    reports: reportReducer,
 
-    appTenant: appTenantReducer,
-    tenantResource: tenantResourceReducer,
-    tenantDomain: tenantDomainReducer,
-    tenantBackup: tenantBackupReducer,
-    tenantMigration: tenantMigrationReducer,
-    tenantSchema: tenantSchemaReducer,
-    tenantProvisioning: tenantProvisioningReducer,
-    tenantAudit: tenantAuditReducer,
-    tenantDashboard: tenantDashboardReducer,
-    tenantUI: tenantUIReducer,
-    connections: connectionReducer,
-
+    // Tenant Reducers
+    tenant: tenantReducers,
+    // Structure
     structNotifications: structNotificationReducer,
     structure: structureReducer,
-
+    // KPI
     kpi: kpiModuleReducer,
     kpis: kpiModuleReducer,
-
+    // Billing
     billing: billingReducer,
-
+    // Reviews
     reviews: reviewsReducer,
-
+    // Config
     config: configReducer,
 });
 

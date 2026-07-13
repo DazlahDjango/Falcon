@@ -4,7 +4,7 @@ from .base import ReviewBaseModel
 
 class RatingScale(ReviewBaseModel):
     name = models.CharField(max_length=100)
-    tenant = models.ForeignKey('tenant.Client', on_delete=models.CASCADE, related_name='rating_scales', db_column='tenant_id_id')
+    tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE, related_name='rating_scales', db_column='tenant_id_id')
     description = models.TextField(blank=True)
     levels = models.JSONField()
     min_value = models.DecimalField(max_digits=5, decimal_places=2, default=1.00)

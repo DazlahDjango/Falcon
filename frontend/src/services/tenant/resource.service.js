@@ -1,169 +1,165 @@
-// frontend/src/services/tenant/resource.service.js
-import BaseTenantService from './tenantBase.service';
+import { BaseTenantService } from './tenantBase.service';
+import { RESOURCE_ENDPOINTS } from '../../config/constants/tenantApiConstants';
 
 class ResourceService extends BaseTenantService {
-    constructor() {
-        super('resources');
+  constructor() {
+    super('resources');
+  }
+
+  async getResources(params = {}) {
+    return this.withRetry(() =>
+      this.apiClient.get(RESOURCE_ENDPOINTS.LIST, { params })
+    );
+  }
+
+  async getResource(id, params = {}) {
+    if (!id) throw new Error('Resource ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(RESOURCE_ENDPOINTS.DETAIL(id), { params })
+    );
+  }
+
+  async createResource(data) {
+    if (!data) throw new Error('Resource data is required');
+    if (!data.organization_id) throw new Error('Organization ID is required');
+    if (!data.resource_type) throw new Error('Resource type is required');
+    if (data.limit_value === undefined || data.limit_value === null) {
+      throw new Error('Limit value is required');
     }
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.CREATE, data)
+    );
+  }
 
-    // ==================== Resource Operations ====================
+  async updateResource(id, data) {
+    if (!id) throw new Error('Resource ID is required');
+    if (!data) throw new Error('Update data is required');
+    return this.withRetry(() =>
+      this.apiClient.patch(RESOURCE_ENDPOINTS.UPDATE(id), data)
+    );
+  }
 
-    /**
-     * Get all resources for a tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getResources(tenantId) {
-        return this.listForTenant(tenantId);
-    }
+  async deleteResource(id) {
+    if (!id) throw new Error('Resource ID is required');
+    return this.withRetry(() =>
+      this.apiClient.delete(RESOURCE_ENDPOINTS.DELETE(id))
+    );
+  }
 
-    /**
-     * Get specific resource by type
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string} resourceType - Resource type (users, storage_mb, etc.)
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getResource(tenantId, resourceType) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/${resourceType}/`);
-        return response.data;
-    }
+  async resetResource(id) {
+    if (!id) throw new Error('Resource ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.RESET(id))
+    );
+  }
 
-    /**
-     * Update single resource limit
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string} resourceType - Resource type
-     * @param {number} limitValue - New limit value
-     * @returns {Promise} { success, data, status, message }
-     */
-    async updateResourceLimit(tenantId, resourceType, limitValue) {
-        const response = await this.apiClient.patch(`/tenants/${tenantId}/resources/${resourceType}/`, {
-            limit_value: limitValue
-        });
-        return response.data;
-    }
+  async resetDailyLimits() {
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.RESET_DAILY_LIMITS)
+    );
+  }
 
-    /**
-     * Bulk update multiple resource limits
-     * @param {string|number} tenantId - Tenant ID
-     * @param {Object} limits - Object with resource types as keys
-     * @returns {Promise} { success, data, status, message }
-     */
-    async bulkUpdateResources(tenantId, limits) {
-        const response = await this.apiClient.post(`/tenants/${tenantId}/update-limits/`, { limits });
-        return response.data;
-    }
+  async incrementUsage(id, amount = 1) {
+    if (!id) throw new Error('Resource ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.INCREMENT(id), { amount })
+    );
+  }
 
-    // ==================== Resource Summary ====================
+  async decrementUsage(id, amount = 1) {
+    if (!id) throw new Error('Resource ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.DECREMENT(id), { amount })
+    );
+  }
 
-    /**
-     * Get resource summary for tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getResourceSummary(tenantId) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/summary/`);
-        return response.data;
-    }
+  async takeSnapshot(id, snapshotType = 'daily', periodLabel = null) {
+    if (!id) throw new Error('Resource ID is required');
+    const data = { snapshot_type: snapshotType };
+    if (periodLabel) data.period_label = periodLabel;
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.SNAPSHOT(id), data)
+    );
+  }
 
-    // ==================== Quota Checking ====================
+  async getResourceSummary(organizationId) {
+    if (!organizationId) throw new Error('Organization ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(RESOURCE_ENDPOINTS.SUMMARY, { params: { organization_id: organizationId } })
+    );
+  }
 
-    /**
-     * Check if tenant has quota for a resource
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string} resourceType - Resource type
-     * @param {number} amount - Amount to check (default: 1)
-     * @returns {Promise} { allowed, remaining, current, limit }
-     */
-    async checkQuota(tenantId, resourceType, amount = 1) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/check-quota/`, {
-            params: { resource_type: resourceType, amount }
-        });
-        return response.data;
-    }
+  async getResourceAnalytics(organizationId, resourceType, days = 7) {
+    if (!organizationId) throw new Error('Organization ID is required');
+    if (!resourceType) throw new Error('Resource type is required');
+    return this.withRetry(() =>
+      this.apiClient.get(RESOURCE_ENDPOINTS.ANALYTICS, {
+        params: { organization_id: organizationId, resource_type: resourceType, days }
+      })
+    );
+  }
 
-    /**
-     * Check if tenant can create a new user
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { allowed, remaining, current, limit }
-     */
-    async canCreateUser(tenantId) {
-        return this.checkQuota(tenantId, 'users', 1);
-    }
+  async syncFromBilling(organizationId = null) {
+    const data = {};
+    if (organizationId) data.organization_id = organizationId;
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.SYNC_FROM_BILLING, data)
+    );
+  }
 
-    /**
-     * Check if tenant can create a new KPI
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { allowed, remaining, current, limit }
-     */
-    async canCreateKPI(tenantId) {
-        return this.checkQuota(tenantId, 'kpis', 1);
-    }
+  async bulkIncrement(organizationId, increments) {
+    if (!organizationId) throw new Error('Organization ID is required');
+    if (!increments || !Array.isArray(increments)) throw new Error('Increments array is required');
+    return this.withRetry(() =>
+      this.apiClient.post(RESOURCE_ENDPOINTS.BULK_INCREMENT, {
+        organization_id: organizationId,
+        increments
+      })
+    );
+  }
 
-    /**
-     * Check if tenant can create a new department
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { allowed, remaining, current, limit }
-     */
-    async canCreateDepartment(tenantId) {
-        return this.checkQuota(tenantId, 'departments', 1);
-    }
+  async getExceededResources() {
+    return this.withRetry(() =>
+      this.apiClient.get(RESOURCE_ENDPOINTS.EXCEEDED)
+    );
+  }
 
-    /**
-     * Check if tenant can make an API call
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { allowed, remaining, current, limit }
-     */
-    async canMakeAPICall(tenantId) {
-        return this.checkQuota(tenantId, 'api_calls_per_day', 1);
-    }
+  async getTenantResources(tenantId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.listForTenant(tenantId, params);
+  }
 
-    /**
-     * Check if tenant can add storage
-     * @param {string|number} tenantId - Tenant ID
-     * @param {number} mbToAdd - MB to add
-     * @returns {Promise} { allowed, remaining, current, limit }
-     */
-    async canAddStorage(tenantId, mbToAdd) {
-        return this.checkQuota(tenantId, 'storage_mb', mbToAdd);
-    }
+  async getTenantResource(tenantId, resourceId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!resourceId) throw new Error('Resource ID is required');
+    return this.getForTenant(tenantId, resourceId, params);
+  }
 
-    // ==================== Resource Alerts ====================
+  async createTenantResource(tenantId, data) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!data) throw new Error('Resource data is required');
+    return this.createForTenant(tenantId, data);
+  }
 
-    /**
-     * Get resource alerts for tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getResourceAlerts(tenantId) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/alerts/`);
-        return response.data;
-    }
+  async updateTenantResource(tenantId, resourceId, data) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!resourceId) throw new Error('Resource ID is required');
+    if (!data) throw new Error('Update data is required');
+    return this.updateForTenant(tenantId, resourceId, data);
+  }
 
-    /**
-     * Acknowledge resource alert
-     * @param {string|number} alertId - Alert ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async acknowledgeAlert(alertId) {
-        const response = await this.apiClient.post(`/resources/alerts/${alertId}/acknowledge/`);
-        return response.data;
-    }
+  async resetTenantResource(tenantId, resourceId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!resourceId) throw new Error('Resource ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(this.getTenantEndpoint(tenantId, `${resourceId}/reset/`))
+    );
+  }
 
-    // ==================== Resource History ====================
-
-    /**
-     * Get resource usage history over time
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string} resourceType - Resource type
-     * @param {number} days - Number of days (default: 30)
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getResourceHistory(tenantId, resourceType, days = 30) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/resources/${resourceType}/history/`, {
-            params: { days }
-        });
-        return response.data;
-    }
+  async getResourceUsage(tenantId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.getStats({ tenant_id: tenantId });
+  }
 }
 
-export default new ResourceService();
+export const resourceService = new ResourceService();

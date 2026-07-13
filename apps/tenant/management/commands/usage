@@ -1,0 +1,38 @@
+# Seed organization settings
+python manage.py seed_organization_settings
+
+# Reset settings to defaults
+python manage.py seed_organization_settings --reset
+
+# Sync resources for all organizations
+python manage.py seed_organization_settings --sync-resources
+
+# Sync resources for specific organization
+python manage.py seed_organization_settings --sync-resources --org-id=550e8400-e29b-41d4-a716-446655440000
+
+# Provision all pending organizations
+python manage.py provision_organizations --all-pending
+
+# Provision specific organization
+python manage.py provision_organizations --org-id=550e8400-e29b-41d4-a716-446655440000
+
+# Force reprovision
+python manage.py provision_organizations --org-id=550e8400-e29b-41d4-a716-446655440000 --force
+
+# Verify all pending domains
+python manage.py verify_domains --all-pending
+
+# Renew SSL certificates expiring in 30 days
+python manage.py renew_ssl_certificates --days=30
+
+# Dry run cleanup
+python manage.py cleanup_organizations --dry-run
+
+# Hard delete failed organizations
+python manage.py cleanup_organizations --hard-delete --days=14
+
+# Health check all organizations
+python manage.py organization_health_check --all
+
+# Health check as JSON
+python manage.py organization_health_check --all --json

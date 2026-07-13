@@ -1,83 +1,129 @@
-// frontend/src/services/tenant/migration.service.js
-import BaseTenantService from './tenantBase.service';
+import { BaseTenantService } from './tenantBase.service';
+import { MIGRATION_ENDPOINTS } from '../../config/constants/tenantApiConstants';
 
 class MigrationService extends BaseTenantService {
-    constructor() {
-        super('migrations');
-    }
+  constructor() {
+    super('migrations');
+  }
 
-    // ==================== Migration Read-Only Operations ====================
+  async getMigrations(params = {}) {
+    return this.withRetry(() =>
+      this.apiClient.get(MIGRATION_ENDPOINTS.LIST, { params })
+    );
+  }
 
-    /**
-     * Get all migrations (optionally filtered by tenant)
-     * @param {string|number} tenantId - Optional tenant ID to filter by
-     * @param {Object} params - Additional query parameters (status, app_name)
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getMigrations(tenantId = null, params = {}) {
-        if (tenantId) {
-            return this.listForTenant(tenantId, params);
-        }
-        return this.list(params);
-    }
+  async getMigration(id, params = {}) {
+    if (!id) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(MIGRATION_ENDPOINTS.DETAIL(id), { params })
+    );
+  }
 
-    /**
-     * Get single migration by ID
-     * @param {string|number} id - Migration ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getMigration(id) {
-        return this.getById(id);
-    }
+  async createMigration(data) {
+    if (!data) throw new Error('Migration data is required');
+    if (!data.organization_id) throw new Error('Organization ID is required');
+    if (!data.migration_name) throw new Error('Migration name is required');
+    if (!data.app_name) throw new Error('App name is required');
+    return this.withRetry(() =>
+      this.apiClient.post(MIGRATION_ENDPOINTS.CREATE, data)
+    );
+  }
 
-    /**
-     * Get migration for specific tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string|number} migrationId - Migration ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getMigrationForTenant(tenantId, migrationId) {
-        return this.getForTenant(tenantId, migrationId);
-    }
+  async updateMigration(id, data) {
+    if (!id) throw new Error('Migration ID is required');
+    if (!data) throw new Error('Update data is required');
+    return this.withRetry(() =>
+      this.apiClient.patch(MIGRATION_ENDPOINTS.UPDATE(id), data)
+    );
+  }
 
-    // ==================== Migration Summary ====================
+  async deleteMigration(id) {
+    if (!id) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.delete(MIGRATION_ENDPOINTS.DELETE(id))
+    );
+  }
 
-    /**
-     * Get migration summary for tenant (counts by status)
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
-     */
-    async getMigrationSummary(tenantId) {
-        return this.listForTenant(tenantId, { summary: true });
-    }
+  async applyMigration(id) {
+    if (!id) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(MIGRATION_ENDPOINTS.APPLY(id))
+    );
+  }
 
-    // ==================== Migration Actions (Super Admin only) ====================
+  async syncMigrations(organizationId) {
+    if (!organizationId) throw new Error('Organization ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(MIGRATION_ENDPOINTS.SYNC, { organization_id: organizationId })
+    );
+  }
 
-    /**
-     * Run pending migrations for tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string} appName - Optional specific app name to migrate
-     * @returns {Promise} { success, data, status, message }
-     */
-    async runMigrations(tenantId, appName = null) {
-        const response = await this.apiClient.post(`/tenants/${tenantId}/migrations/run/`, {
-            app_name: appName
-        });
-        return response.data;
-    }
+  async previewSql(id) {
+    if (!id) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(MIGRATION_ENDPOINTS.PREVIEW_SQL(id))
+    );
+  }
 
-    /**
-     * Rollback migration for tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @param {string} migrationName - Migration name to rollback
-     * @returns {Promise} { success, data, status, message }
-     */
-    async rollbackMigration(tenantId, migrationName) {
-        const response = await this.apiClient.post(`/tenants/${tenantId}/migrations/rollback/`, {
-            migration_name: migrationName
-        });
-        return response.data;
-    }
+  async rollbackMigration(id) {
+    if (!id) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(MIGRATION_ENDPOINTS.ROLLBACK(id))
+    );
+  }
+
+  async getMigrationStats(params = {}) {
+    return this.withRetry(() =>
+      this.apiClient.get(MIGRATION_ENDPOINTS.STATS, { params })
+    );
+  }
+
+  async getTenantMigrations(tenantId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.listForTenant(tenantId, params);
+  }
+
+  async getTenantMigration(tenantId, migrationId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!migrationId) throw new Error('Migration ID is required');
+    return this.getForTenant(tenantId, migrationId, params);
+  }
+
+  async applyTenantMigration(tenantId, migrationId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!migrationId) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(this.getTenantEndpoint(tenantId, `${migrationId}/apply/`))
+    );
+  }
+
+  async syncTenantMigrations(tenantId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(this.getTenantEndpoint(tenantId, 'sync/'))
+    );
+  }
+
+  async previewTenantMigrationSql(tenantId, migrationId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!migrationId) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(this.getTenantEndpoint(tenantId, `${migrationId}/preview-sql/`))
+    );
+  }
+
+  async rollbackTenantMigration(tenantId, migrationId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!migrationId) throw new Error('Migration ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(this.getTenantEndpoint(tenantId, `${migrationId}/rollback/`))
+    );
+  }
+
+  async getTenantMigrationStats(tenantId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.getMigrationStats({ organization_id: tenantId });
+  }
 }
 
-export default new MigrationService();
+export const migrationService = new MigrationService();

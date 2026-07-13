@@ -1,59 +1,90 @@
 from django.db import models
-from django.utils import timezone
 from .base import BaseManager
 
 
 class ResourceManager(BaseManager):
-    def by_client(self, client_id):
-        return self.active().filter(client_id=client_id)
-    
-    def by_type(self, resource_type):
-        return self.active().filter(resource_type=resource_type)
-    
-    def get_for_client(self, client_id, resource_type):
-        from apps.tenant.constants import DEFAULT_TENANT_LIMITS
-        
-        mapping = {
-            'users': 'max_users',
-            'storage_mb': 'max_storage_mb',
-            'api_calls_per_day': 'max_api_calls_per_day',
-            'kpis': 'max_kpis',
-            'departments': 'max_departments',
-            'concurrent_sessions': 'max_concurrent_sessions',
-        }
-        key = mapping.get(resource_type, resource_type)
-        default_limit = DEFAULT_TENANT_LIMITS.get(key, 100)
-        
-        resource, created = self.get_queryset().get_or_create(
-            client_id=client_id,
-            resource_type=resource_type,
-            defaults={'limit_value': default_limit}
-        )
-        return resource
-    
+
+    def by_organization(self, organization_id):
+        return self.get_queryset().filter(organization_id=organization_id)
+
+    def by_resource_type(self, resource_type):
+        return self.get_queryset().filter(resource_type=resource_type)
+
+    def by_organization_and_type(self, organization_id, resource_type):
+        try:
+            return self.get_queryset().get(
+                organization_id=organization_id, resource_type=resource_type
+            )
+        except self.model.DoesNotExist:
+            return None
+
     def exceeded_limits(self):
-        return self.active().filter(current_value__gte=models.F('limit_value'))
-    
-    def near_limit(self, percentage=80):
-        return self.active().filter(
-            current_value__gte=(models.F('limit_value') * percentage / 100)
+        """Resources whose current value is at or above their limit."""
+        return self.get_queryset().filter(
+            current_value__gte=models.F('limit_value')
         )
-    
-    def within_limit(self):
-        return self.active().filter(current_value__lt=models.F('limit_value'))
-    
-    def daily_resources(self):
-        return self.active().filter(resource_type='api_calls_per_day')
-    
-    def needs_reset(self):
-        today = timezone.now().date()
-        return self.daily_resources().filter(
-            models.Q(last_reset_at__isnull=True) |
-            models.Q(last_reset_at__date__lt=today)
+
+    def at_capacity(self):
+        """Alias for exceeded_limits."""
+        return self.exceeded_limits()
+
+    def warning_level(self):
+        """Resources whose usage % has crossed the warning_threshold."""
+        return self.get_queryset().filter(
+            current_value__gte=(
+                models.F('limit_value') * models.F('warning_threshold') / 100
+            )
         )
-    
-    def by_usage_percentage(self, min_percent=0, max_percent=100):
-        return self.active().filter(
-            current_value__gte=(models.F('limit_value') * min_percent / 100),
-            current_value__lte=(models.F('limit_value') * max_percent / 100)
+
+    def near_soft_limit(self, organization_id=None):
+        """
+        Resources between 80 % and soft limit ceiling.
+        Optionally filtered to a single org.
+        """
+        qs = self.get_queryset()
+        if organization_id:
+            qs = qs.filter(organization_id=organization_id)
+        return qs.filter(
+            current_value__gte=models.F('limit_value') * 0.8,
+            current_value__lt=models.F('limit_value'),
+        )
+
+    def exceeded_hard_limit(self):
+        """
+        Resources whose current value exceeds limit * hard_limit_multiplier.
+        Uses 1.2 as approximate constant (exact per-row check done in service).
+        """
+        return self.get_queryset().filter(
+            current_value__gt=models.F('limit_value') * models.F('hard_limit_multiplier')
+        )
+
+    def sync_needed(self):
+        """Resources not yet synced from billing."""
+        return self.get_queryset().filter(is_synced_from_billing=False)
+
+    def has_available_capacity(self, organization_id, resource_type, amount=1):
+        try:
+            resource = self.get_queryset().get(
+                organization_id=organization_id, resource_type=resource_type
+            )
+            return resource.can_increment(amount)
+        except self.model.DoesNotExist:
+            return False
+
+    def bulk_reset_by_type(self, resource_type):
+        """
+        Efficiently resets current_value to 0 for all active resources of a
+        given type, also clears alert timestamps.
+        Returns count of updated rows.
+        """
+        from django.utils import timezone
+        return self.get_queryset().filter(
+            resource_type=resource_type,
+            is_deleted=False,
+        ).update(
+            current_value=0,
+            last_reset_at=timezone.now(),
+            alert_80_sent_at=None,
+            alert_90_sent_at=None,
+            alert_100_sent_at=None,
         )

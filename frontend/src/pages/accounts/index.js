@@ -58,4 +58,5 @@ export { default as LockoutSummaryPage } from './LockoutSummaryPage';
 export { default as TenantPolicyPage } from './TenantPolicyPage';
 
 export { default as DashboardPage } from './DashboardPage';
+export { default as ReportsPage } from './ReportsPage';
 export { default as SettingsPage } from './SettingsPage';

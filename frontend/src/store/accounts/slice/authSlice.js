@@ -10,15 +10,16 @@ import {
 } from '../../../services/accounts/storage/secureStorage';
 
 const initialState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  isInitialized: false,
-  error: null,
-  requiresMfa: false,
-  mfaToken: null,
-  mfaPending: false,
-  sessionId: null,
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    isInitialized: false,
+    error: null,
+    requiresMfa: false,
+    mfaToken: null,
+    mfaPending: false,
+    mfaSetupRequired: false,
+    sessionId: null,
 };
 
 // ============ Existing Thunks ============
@@ -150,6 +151,35 @@ export const registerTenant = createAsyncThunk(
     }
   }
 );
+export const changePassword = createAsyncThunk(
+  'auth/changePassword',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await authApi.changePassword(data);
+      return response.data;
+    } catch (error) {
+      const responseData = error.response?.data;
+      if (!responseData) return rejectWithValue(error.message || 'Failed to change password');
+      if (typeof responseData === 'string') return rejectWithValue(responseData);
+      if (responseData?.error) return rejectWithValue(String(responseData.error));
+      if (responseData?.detail) return rejectWithValue(String(responseData.detail));
+      // DRF field errors: { field: ["msg"] } — extract first message safely
+      const extractFieldError = (field) => {
+        const val = responseData?.[field];
+        if (!val) return null;
+        const first = Array.isArray(val) ? val[0] : val;
+        return typeof first === 'string' ? first : Array.isArray(first) ? first[0] : String(first);
+      };
+      const fieldError =
+        extractFieldError('old_password') ||
+        extractFieldError('new_password') ||
+        extractFieldError('confirm_password') ||
+        extractFieldError('non_field_errors');
+      if (fieldError) return rejectWithValue(fieldError);
+      return rejectWithValue(error.message || 'Failed to change password');
+    }
+  }
+);
 
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
@@ -211,9 +241,10 @@ const authSlice = createSlice({
       state.error = null;
     },
     clearMfaState: (state) => {
-      state.requiresMfa = false;
-      state.mfaToken = null;
-      state.mfaPending = false;
+        state.requiresMfa = false;
+        state.mfaToken = null;
+        state.mfaPending = false;
+        state.mfaSetupRequired = false;
     },
     setAuthenticated: (state, action) => {
       state.isAuthenticated = action.payload;
@@ -239,9 +270,10 @@ const authSlice = createSlice({
         state.isLoading = false;
         const data = action.payload;
         if (data.requires_mfa) {
-          state.requiresMfa = true;
-          state.mfaToken = data.mfa_token;
-          state.mfaPending = true;
+            state.requiresMfa = true;
+            state.mfaToken = data.mfa_token;
+            state.mfaPending = true;
+            state.mfaSetupRequired = data.mfa_setup_required || false;
         } else {
           state.isAuthenticated = true;
           state.requiresMfa = false;
@@ -347,7 +379,18 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
       })
-      // Register
+      .addCase(changePassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.isLoading = false;
+        const payload = action.payload;
+        state.error = typeof payload === 'string' ? payload : (payload?.message || payload?.error || 'Failed to change password');
+      })
       .addCase(register.pending, (state) => {
         state.isLoading = true;
         state.error = null;

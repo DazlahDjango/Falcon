@@ -162,7 +162,12 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 # Connection Management Settings
 ENABLE_CONNECTION_MIDDLEWARE = True
 CONNECTION_IDLE_TIMEOUT_MINUTES = 30
+CONNECTION_MAX_LIFETIME_MINUTES = 120
 CONNECTION_POOL_MAX_SIZE = 20
+CONNECTION_WAIT_TIMEOUT_SECONDS = 5
+CONNECTION_RETRY_COUNT = 3
+CONNECTION_RETRY_BACKOFF_BASE_SECONDS = 0.2
+CONNECTION_CLEANUP_INTERVAL_SECONDS = 60
 CONNECTION_MIDDLEWARE_EXCLUDED_PATHS = [
     '/health/',
     '/metrics/',
@@ -190,20 +195,24 @@ MIDDLEWARE = [
     # Rate limiting
     'django_ratelimit.middleware.RatelimitMiddleware',
     # Custom middleware
-    # Accounts
-    'apps.accounts.middleware.TenantMiddleware',
+    # Accounts middlewares (non-tenant-specific)
     'apps.accounts.middleware.SessionMiddleware',
     'apps.accounts.middleware.AuditMiddleware',
     'apps.accounts.middleware.SecurityMiddleware',
-    'apps.accounts.middleware.TenantAccessMiddleware',
+    # Tenant middlewares (starts with context setting)
+    'apps.tenant.middleware.organization_context.OrganizationContextMiddleware',
+    'apps.tenant.middleware.organization_resolution.OrganizationResolutionMiddleware',
+    'apps.tenant.middleware.organization_isolation.OrganizationIsolationMiddleware',
+    'apps.tenant.middleware.organization_isolation.OrganizationPathIsolationMiddleware',
+    'apps.tenant.middleware.organization_limits.OrganizationLimitsMiddleware',
+    'apps.tenant.middleware.db_routing.TenantDatabaseRouterMiddleware',
+    'apps.tenant.middleware.connection_management.ConnectionManagementMiddleware',
+    'apps.tenant.middleware.file_isolation.FileIsolationMiddleware',
     # KPI
     'apps.kpi.middleware.KPIContextMiddleware',
     'apps.kpi.middleware.KPIRequestAuditMiddleware',
     'apps.kpi.middleware.KPIThrottleMiddleware',
     'apps.kpi.middleware.CalculationCacheMiddleware',
-    # Tenant
-    'apps.tenant.middleware.connection.ConnectionManagementMiddleware',
-    'apps.tenant.middleware.connection.TenantConnectionHealthCheckMiddleware',
     # Structure
     'apps.structure.middleware.StructureContextMiddleware',
     'apps.structure.middleware.StructureCacheMiddleware',
@@ -228,7 +237,6 @@ MIDDLEWARE = [
     'apps.configs.middleware.partial_maintenance_blocker.PartialMaintenanceBlockerMiddleware',
     'apps.configs.middleware.config_access_middleware.ConfigAccessMiddleware',
     'apps.configs.middleware.maintenance_notice_injector.MaintenanceNoticeInjectorMiddleware',
-    
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -280,7 +288,7 @@ DATABASES = {
 
 
 DATABASE_ROUTERS = [
-    'apps.tenant.services.isolation.db_router.TenantDatabaseRouter',
+    'apps.tenant.services.router_service.OrganizationDatabaseRouter',
 ]
 
 # ============================================================
@@ -309,7 +317,7 @@ FRONTEND_INVITE_URL = os.environ.get(
 # AUTHENTICATION
 # ----------------------------------------
 AUTH_USER_MODEL = 'accounts.User'
-AUTH_TENANT_MODEL = 'tenant.Client'
+AUTH_TENANT_MODEL = 'tenant.Organization'
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',  # Must be first for axes
     'django.contrib.auth.backends.ModelBackend',
@@ -436,6 +444,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
+        'apps.accounts.api.v1.permissions.IsPasswordChangeCompleted',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
@@ -584,6 +593,7 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-tenant-id',
+    'x-organization-id',
     'x-request-id',
     'x-correlation-id',
     'x-request-time',

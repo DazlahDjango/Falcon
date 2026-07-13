@@ -1,8 +1,8 @@
 // frontend/src/pages/tenant/connections/ConnectionDashboardPage.jsx
 import React, { useState } from 'react';
-import ConnectionStatsCards from '../../../components/tenant/connection/ConnectionStatsCards';
-import ConnectionTable from '../../../components/tenant/connection/ConnectionTable';
-import ConnectionHealthChart from '../../../components/tenant/connection/ConnectionHealthChart';
+import ConnectionStatsCards from '../../../components/tenant/connections/ConnectionStatsCards';
+import ConnectionTable from '../../../components/tenant/connections/ConnectionTable';
+import ConnectionHealthChart from '../../../components/tenant/connections/ConnectionHealthChart';
 import { useConnections, useConnectionManager } from '../../../hooks/tenant';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 

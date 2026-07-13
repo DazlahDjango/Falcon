@@ -226,6 +226,7 @@ export const ADMIN_API = {
     USER_STATS: `${API_BASE}/admin/users/stats/`,
     USER_FORCE_PASSWORD_RESET: (userId) => `${API_BASE}/admin/users/${userId}/force-password-reset/`,
     USER_IMPERSONATE: (userId) => `${API_BASE}/admin/users/${userId}/impersonate/`,
+    USER_MAP_TO_ORGANIZATION: (userId) => `${API_BASE}/admin/users/${userId}/map-to-organization/`,
     
     ROLES: `${API_BASE}/admin/roles/`,
     ROLE_DETAIL: (roleId) => `${API_BASE}/admin/roles/${roleId}/`,
@@ -238,6 +239,7 @@ export const ADMIN_API = {
     TENANTS: `${API_BASE}/admin/tenants/`,
     TENANT_DETAIL: (tenantId) => `${API_BASE}/admin/tenants/${tenantId}/`,
     TENANT_STATS: `${API_BASE}/admin/tenants/stats/`,
+    TENANT_MAP_USER: (tenantId) => `${API_BASE}/admin/tenants/${tenantId}/map-user/`,
     TENANT_SUSPEND: (tenantId) => `${API_BASE}/admin/tenants/${tenantId}/suspend/`,
     TENANT_ACTIVATE: (tenantId) => `${API_BASE}/admin/tenants/${tenantId}/activate/`,
     TENANT_CREATE_WITH_ADMIN: `${API_BASE}/admin/tenants/create-with-admin/`,

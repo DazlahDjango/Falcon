@@ -35,7 +35,7 @@ export const useBillingPortal = () => {
 
     return {
         portalAccess, portalOverview, loading, error, redirecting,
-        getAccess, getOverview, redirectToPortal, openPortalTab,
+        getAccess, getOverview, getPortalOverview: getOverview, redirectToPortal, openPortalTab,
     };
 };
 

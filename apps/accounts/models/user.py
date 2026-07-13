@@ -9,7 +9,7 @@ import uuid
 
 class User(BaseModel, AbstractUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, default=uuid.uuid4, help_text=_("The unique UUID of the Tenant this user belongs to."))
+    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, null=True, blank=True, default=uuid.uuid4, help_text=_("The unique UUID of the Tenant this user belongs to."))
     email = models.EmailField(_('email address'), unique=True, db_index=True, validators=[EmailValidator()])
     username = models.CharField(_('username'), max_length=50, unique=True, db_index=True, validators=[RegexValidator(r'^[\w.@+-]+\Z', 'Enter a valid username.')])
     phone_number = models.CharField(_('phone number'), max_length=20, blank=True, validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter valid phone number')])
@@ -45,7 +45,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     
     # Auth Fields
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'tenant_id']
+    REQUIRED_FIELDS = ['username']
     
     # Security
     last_login_ip = models.GenericIPAddressField(_('last login IP'), null=True, blank=True)
@@ -53,9 +53,8 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     login_attempts = models.PositiveSmallIntegerField(_('login attempts'), default=0)
     locked_until = models.DateTimeField(_('locked until'), null=True, blank=True)
     password_last_changed = models.DateTimeField(default=timezone.now)
-    
-    # MFA fields - ForeignKey relationship exists in MFADevice model (related_name='auth_devices')
-    # REMOVED: mfa_devices = models.ManyToManyField(...) - duplicate relationship
+    password_change_required = models.BooleanField(_('password change required'), default=False)
+    password_history = models.JSONField(_('password history'), default=list, blank=True)
     mfa_enabled = models.BooleanField(_('MFA enabled'), default=False)
     mfa_secret = models.CharField(_('MFA secret'), max_length=32, blank=True)
     mfa_backup_codes = models.JSONField(_('backup codes'), default=list, blank=True)

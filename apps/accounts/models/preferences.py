@@ -81,6 +81,20 @@ class TenantPreference(BaseModel):
     max_concurrent_sessions = models.PositiveSmallIntegerField(
         _('max concurrent sessions'), default=5,
     )
+    default_password_mode = models.CharField(
+        _('default password mode'),
+        max_length=20,
+        default='invite_only',
+        choices=[
+            ('system_generated', 'System-Generated'),
+            ('email', 'Email'),
+            ('employee_id', 'Employee ID'),
+            ('custom_static', 'Custom Static'),
+            ('invite_only', 'Invite-Only'),
+        ]
+    )
+    default_password_custom_value = models.CharField(_('default password custom value'), max_length=128, blank=True)
+    force_password_change_on_first_login = models.BooleanField(_('force password change on first login'), default=True)
     policy_version = models.PositiveIntegerField(_('policy version'), default=1)
     # Localization
     default_language = models.CharField(_('default language'), max_length=10, default='en')

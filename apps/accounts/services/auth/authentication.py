@@ -21,24 +21,47 @@ class AuthenticationService:
         self.session_service = SessionService()
         self.audit_service = AuditService()
 
-    def authenticate(self, email: str, password: str, ip_address: str, user_agent: str, request=None) -> Tuple[Optional[User], Optional[Dict], Optional[str]]:
+    def authenticate(self, email: str, password: str, ip_address: str, user_agent: str, tenant_id: str = None, request=None) -> Tuple[Optional[User], Optional[Dict], Optional[str]]:
+        if request is None:
+            from django.http import HttpRequest
+            request = HttpRequest()
+            request.META = {
+                'REMOTE_ADDR': ip_address,
+                'HTTP_USER_AGENT': user_agent
+            }
+        if not hasattr(request, 'session'):
+            from django.contrib.sessions.backends.db import SessionStore
+            request.session = SessionStore()
         if not email or not password:
             return None, None, 'Email and password required'
         email = email.lower().strip()
         user = User.objects.filter(email=email).first()
-        tenant_id = str(user.tenant_id) if user else None
-        if self._is_rate_limited(email, ip_address, tenant_id=tenant_id):
-            LoginAttempt.record_attempt(
-                identifier=email, user=user, result='locked', failure_reason='rate_limit', request=request, ip_address=ip_address, user_agent=user_agent
-            )
-            return None, None, 'Too many attempts. Please try again later'
-        if user and user.is_locked():
-            LoginAttempt.record_attempt(
-                identifier=email, user=user, result='locked',
-                failure_reason='account_locked', request=request,
-                ip_address=ip_address, user_agent=user_agent
-            )
-            return None, None, 'Account is locked due to many failed attempts.'
+        user_tenant_id = str(user.tenant_id) if user and user.tenant_id else None
+
+        # Tenant validation for non-super-admins
+        if user and user.role != 'super_admin':
+            if tenant_id and str(tenant_id) != user_tenant_id:
+                # Caller supplied a tenant_id but it doesn't match — reject (security).
+                # We do NOT reveal whether the user exists; keep message generic.
+                return None, None, 'Invalid credentials or organisation'
+            # If tenant_id not supplied — that is OK, we read it from the user record.
+
+        
+        # Skip lockout/rate limits for super admins
+        if not (user and user.role == 'super_admin'):
+            if self._is_rate_limited(email, ip_address, tenant_id=user_tenant_id):
+                LoginAttempt.record_attempt(
+                    identifier=email, user=user, result='locked', failure_reason='rate_limit', request=request, ip_address=ip_address, user_agent=user_agent
+                )
+                return None, None, 'Too many attempts. Please try again later'
+            if user and user.is_locked():
+                LoginAttempt.record_attempt(
+                    identifier=email, user=user, result='locked',
+                    failure_reason='account_locked', request=request,
+                    ip_address=ip_address, user_agent=user_agent
+                )
+                return None, None, 'Account is locked due to many failed attempts.'
+        
         try:
             user = authenticate(request, username=email, password=password)
             if user is None:
@@ -47,7 +70,7 @@ class AuthenticationService:
                     failure_reason='wrong_password', request=request,
                     ip_address=ip_address, user_agent=user_agent
                 )
-                if user:
+                if user and user.role != 'super_admin':
                     user.increment_login_attempts()
                 return None, None, "Invalid email or password"
             if not user.is_active:
@@ -64,16 +87,14 @@ class AuthenticationService:
                 )
                 partial_token = self.jwt_service.create_mfa_token(user)
                 return user, {'requires_mfa': True, 'mfa_token': partial_token}, None
-            if AccountsPolicyService.user_requires_mfa(user):
+            if user.role != 'super_admin' and AccountsPolicyService.user_requires_mfa(user):
+                # Allow user to set up MFA first
                 LoginAttempt.record_attempt(
-                    identifier=email, user=user, result='failure',
-                    failure_reason='mfa_required', request=request,
-                    ip_address=ip_address, user_agent=user_agent
+                    identifier=email, user=user, result='success',
+                    request=request, ip_address=ip_address, user_agent=user_agent
                 )
-                return None, None, (
-                    'Multi-factor authentication is required for your role. '
-                    'Please enroll MFA before signing in.'
-                )
+                partial_token = self.jwt_service.create_mfa_token(user)
+                return user, {'requires_mfa': True, 'mfa_token': partial_token, 'mfa_setup_required': True}, None
             LoginAttempt.record_attempt(
                 identifier=email, user=user, result='success',
                 request=request, ip_address=ip_address, user_agent=user_agent
@@ -123,6 +144,7 @@ class AuthenticationService:
             # 3. Generate tokens
             tokens = self.jwt_service.create_token(user)
             tokens['session_id'] = str(session.id)
+            tokens['password_change_required'] = user.password_change_required
             logger.debug("JWT tokens generated")
 
             # 4. Record successful login attempt

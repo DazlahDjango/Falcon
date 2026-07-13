@@ -25,6 +25,14 @@ export const DivisionList = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Memoize params to prevent infinite re-renders
+  const params = useMemo(() => ({
+    page,
+    page_size: pageSize,
+    search: searchTerm,
+    ...filters,
+  }), [page, pageSize, searchTerm, filters]);
+
   const {
     items,
     isLoading,
@@ -34,6 +42,7 @@ export const DivisionList = () => {
     update,
     remove,
     clearError,
+    refetch,
   } = useDivisions({ autoFetch: false });
 
   const handleToggleActive = useCallback(async (item, e) => {
@@ -73,8 +82,8 @@ export const DivisionList = () => {
       header: 'Status',
       width: '120px',
       render: (item) => (
-        <div 
-          onClick={(e) => handleToggleActive(item, e)} 
+        <div
+          onClick={(e) => handleToggleActive(item, e)}
           style={{ cursor: 'pointer', display: 'inline-block' }}
           title={item.is_active ? "Click to deactivate" : "Click to activate"}
         >
@@ -85,14 +94,10 @@ export const DivisionList = () => {
   ], [handleToggleActive]);
 
   useEffect(() => {
-    const params = {
-      page,
-      page_size: pageSize,
-      search: searchTerm,
-      ...filters,
-    };
-    fetchAll(params);
-  }, [fetchAll, page, pageSize, searchTerm, filters]);
+    if (params) {
+      fetchAll(params);
+    }
+  }, [fetchAll, params]);
 
   const handleSearch = useCallback((value) => {
     setSearchTerm(value);
@@ -132,19 +137,19 @@ export const DivisionList = () => {
       await remove(deleteTarget.id).unwrap();
       setShowDeleteConfirm(false);
       setDeleteTarget(null);
-      const params = {
+      // Refetch with current params after deletion
+      refetch({
         page,
         page_size: pageSize,
         search: searchTerm,
         ...filters,
-      };
-      fetchAll(params);
+      });
     } catch (err) {
       console.error('Delete failed:', err);
       setShowDeleteConfirm(false);
       setDeleteTarget(null);
     }
-  }, [deleteTarget, remove, fetchAll, page, pageSize, searchTerm, filters]);
+  }, [deleteTarget, remove, refetch, page, pageSize, searchTerm, filters]);
 
   const handleDeleteCancel = useCallback(() => {
     setShowDeleteConfirm(false);
@@ -156,14 +161,13 @@ export const DivisionList = () => {
   }, [navigate]);
 
   const handleRefresh = useCallback(() => {
-    const params = {
+    refetch({
       page,
       page_size: pageSize,
       search: searchTerm,
       ...filters,
-    };
-    fetchAll(params);
-  }, [fetchAll, page, pageSize, searchTerm, filters]);
+    });
+  }, [refetch, page, pageSize, searchTerm, filters]);
 
   const summaryStats = useMemo(() => {
     const itemsArray = Array.isArray(items) ? items : [];
@@ -271,7 +275,7 @@ export const DivisionList = () => {
         debounce={400}
       />
 
-      <StructureTable 
+      <StructureTable
         columns={COLUMNS}
         data={items}
         loading={isLoading}

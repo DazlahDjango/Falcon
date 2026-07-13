@@ -10,6 +10,7 @@ const initialState = {
   totalCount: 0,
   filters: {},
   pagination: { page: 1, pageSize: 20 },
+  hasFetched: false, // Added: track if initial fetch occurred
 };
 
 export const fetchDivisions = createAsyncThunk(
@@ -108,11 +109,16 @@ const divisionSlice = createSlice({
     },
     setDivisionFilters: (state, action) => {
       state.filters = action.payload;
+      state.pagination.page = 1; // Reset page when filters change
     },
     setDivisionPagination: (state, action) => {
       state.pagination = { ...state.pagination, ...action.payload };
     },
     resetDivisionState: () => initialState,
+    // Added: reset hasFetched
+    resetDivisionFetch: (state) => {
+      state.hasFetched = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -122,10 +128,11 @@ const divisionSlice = createSlice({
       })
       .addCase(fetchDivisions.fulfilled, (state, action) => {
         state.isLoading = false;
-        const responseData = action.payload.data || action.payload;
-        const results = responseData.results || [];
+        state.hasFetched = true; // Mark as fetched
+        const responseData = action.payload?.data || action.payload;
+        const results = responseData?.results || [];
         state.items = Array.isArray(results) ? results : [];
-        state.totalCount = responseData.count || (Array.isArray(results) ? results.length : 0);
+        state.totalCount = responseData?.count || (Array.isArray(results) ? results.length : 0);
       })
       .addCase(fetchDivisions.rejected, (state, action) => {
         state.isLoading = false;
@@ -137,22 +144,22 @@ const divisionSlice = createSlice({
       })
       .addCase(fetchDivisionById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentItem = action.payload.data || action.payload;
+        state.currentItem = action.payload?.data || action.payload;
       })
       .addCase(fetchDivisionById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
       .addCase(fetchDivisionStats.fulfilled, (state, action) => {
-        state.stats = action.payload.data || action.payload;
+        state.stats = action.payload?.data || action.payload;
       })
       .addCase(createDivision.fulfilled, (state, action) => {
-        const newDivision = action.payload.data || action.payload;
+        const newDivision = action.payload?.data || action.payload;
         state.items.unshift(newDivision);
         state.totalCount += 1;
       })
       .addCase(updateDivision.fulfilled, (state, action) => {
-        const updatedDivision = action.payload.data || action.payload;
+        const updatedDivision = action.payload?.data || action.payload;
         const index = state.items.findIndex(item => item.id === updatedDivision.id);
         if (index !== -1) {
           state.items[index] = updatedDivision;
@@ -163,7 +170,7 @@ const divisionSlice = createSlice({
       })
       .addCase(deleteDivision.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item.id !== action.payload);
-        state.totalCount -= 1;
+        state.totalCount = Math.max(0, state.totalCount - 1);
         if (state.currentItem?.id === action.payload) {
           state.currentItem = null;
         }
@@ -177,6 +184,7 @@ export const {
   setDivisionFilters,
   setDivisionPagination,
   resetDivisionState,
+  resetDivisionFetch,
 } = divisionSlice.actions;
 
 export default divisionSlice.reducer;

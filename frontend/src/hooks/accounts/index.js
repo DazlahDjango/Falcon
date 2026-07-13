@@ -13,3 +13,5 @@ export { useSecurity } from './useSecurity';
 export { useSystemSettings } from './useSystemSettings';
 export { usePagination } from './usePagination';
 export { useEmployees } from './useEmployees';
+export { useReports } from './useReports';
+

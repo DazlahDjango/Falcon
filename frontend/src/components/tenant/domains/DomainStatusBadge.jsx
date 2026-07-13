@@ -1,45 +1,24 @@
-// frontend/src/components/tenant/domains/DomainStatusBadge.jsx
+// components/tenant/domains/DomainStatusBadge.jsx
 import React from 'react';
-import './domains.css';
+import { FiCheckCircle, FiClock, FiXCircle, FiAlertTriangle, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 
-export const DomainStatusBadge = ({ status }) => {
-    const getStatusClass = () => {
-        switch (status) {
-            case 'active':
-                return 'domain-status-active';
-            case 'pending':
-                return 'domain-status-pending';
-            case 'verifying':
-                return 'domain-status-verifying';
-            case 'failed':
-                return 'domain-status-failed';
-            case 'expired':
-                return 'domain-status-expired';
-            default:
-                return 'domain-status-pending';
-        }
-    };
-
-    const getStatusLabel = () => {
-        switch (status) {
-            case 'active':
-                return 'Active';
-            case 'pending':
-                return 'Pending';
-            case 'verifying':
-                return 'Verifying';
-            case 'failed':
-                return 'Failed';
-            case 'expired':
-                return 'Expired';
-            default:
-                return 'Unknown';
-        }
-    };
-
-    return (
-        <span className={`domain-status-badge ${getStatusClass()}`}>
-            {getStatusLabel()}
-        </span>
-    );
+const DomainStatusBadge = ({ status }) => {
+  const statusMap = {
+    ACTIVE: { label: 'Active', className: 'domain-badge-green', icon: FiCheckCircle },
+    PENDING: { label: 'Pending', className: 'domain-badge-yellow', icon: FiClock },
+    VERIFYING: { label: 'Verifying', className: 'domain-badge-blue', icon: FiRefreshCw },
+    FAILED: { label: 'Failed', className: 'domain-badge-red', icon: FiXCircle },
+    EXPIRED: { label: 'Expired', className: 'domain-badge-orange', icon: FiAlertTriangle },
+    REMOVED: { label: 'Removed', className: 'domain-badge-gray', icon: FiTrash2 },
+  };
+  const config = statusMap[status] || { label: status, className: 'domain-badge-gray', icon: FiAlertTriangle };
+  const Icon = config.icon;
+  return (
+    <span className={`domain-badge ${config.className}`}>
+      <Icon size={14} style={{ marginRight: '4px' }} />
+      {config.label}
+    </span>
+  );
 };
+
+export default DomainStatusBadge;

@@ -32,7 +32,7 @@ class PromotionRecommendation(ReviewBaseModel):
     
     # Relationships
     tenant = models.ForeignKey(
-        'tenant.Client',
+        'tenant.Organization',
         on_delete=models.CASCADE,
         related_name='promotion_recommendations'
     )

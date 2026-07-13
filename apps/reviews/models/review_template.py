@@ -30,7 +30,7 @@ class ReviewTemplate(ReviewBaseModel):
         CUSTOM = 'custom', 'Custom Section'
     
     tenant = models.ForeignKey(
-        'tenant.Client',
+        'tenant.Organization',
         on_delete=models.CASCADE,
         related_name='review_templates'
     )

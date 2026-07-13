@@ -102,7 +102,7 @@ class CanAssignRole(BasePermission):
         if user.role == UserRoles.SUPER_ADMIN:
             return True
         if user.role == UserRoles.CLIENT_ADMIN:
-            return target_role != UserRoles.SUPER_ADMIN
+            return target_role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
         if user.role == UserRoles.EXECUTIVE:
             return target_role in [UserRoles.EXECUTIVE, UserRoles.SUPERVISOR, UserRoles.STAFF, UserRoles.READ_ONLY]
         if user.role == UserRoles.SUPERVISOR:

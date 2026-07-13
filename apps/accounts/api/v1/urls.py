@@ -4,14 +4,14 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedDefaultRouter
 from .views import (
     AuthViewSet, LoginView, MFAAuthView, RefreshTokenView, LogoutView,
-    UserViewSet, UserProfileView, CurrentUserView, UserChangePasswordView, UserInvitationsView, InvitationAcceptView,
+    UserViewSet, UserProfileView, CurrentUserView, PasswordChangeView, PasswordResetRequestView, PasswordResetConfirmView, UserInvitationsView, InvitationAcceptView,
     ProfileViewSet, RoleViewSet, PermissionViewSet, SessionViewSet, MFADeviceViewSet, MFAAuditLogViewSet,
     UserPreferenceViewSet, TenantPreferenceViewSet, AuditLogViewSet,
     AdminUserViewSet, AdminRoleViewSet, AdminTenantViewSet, AdminPermissionViewSet, AdminSystemView,
     AccountsSystemSettingsView, AccountsSystemSettingsResetView, AccountsSyncPolicyView,
     TenantMFAPolicyView, UserMFAPolicyView, UserMFAStatusView,
     AdminMfaResetView, AdminMfaDeviceClearView, AdminMFAStatusView,
-    StepUpVerifyView
+    StepUpVerifyView, ReportViewSet
 )
 from .views.security_views import LoginAttemptViewSet, TenantPolicyView, LockoutSummaryView
 
@@ -35,6 +35,7 @@ router.register(r'preferences/users', UserPreferenceViewSet, basename='user-pref
 router.register(r'preferences/tenants', TenantPreferenceViewSet, basename='tenant-preference')
 router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 router.register(r'security/login-attempts', LoginAttemptViewSet, basename='login-attempt')
+router.register(r'reports', ReportViewSet, basename='report')
 
 # Admin routes
 router.register(r'admin/users', AdminUserViewSet, basename='admin-user')
@@ -67,9 +68,10 @@ auth_urls = [
     # - GET /mfa/devices/status/ (MFA status)
     # - POST /mfa/devices/disable/ (disable MFA)
     
-    # User Management endpoints
     path('me/', CurrentUserView.as_view(), name='current-user'),
-    path('me/change-password/', UserChangePasswordView.as_view(), name='change-password'),
+    path('me/change-password/', PasswordChangeView.as_view(), name='change-password'),
+    path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset'),
+    path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('invitations/', UserInvitationsView.as_view(), name='invitations'),
     path('invitation/accept/', InvitationAcceptView.as_view(), name='accept-invitation'),
 ]

@@ -105,10 +105,10 @@ class SubscriptionAdmin(admin.ModelAdmin):
     
     def tenant_link(self, obj):
         """Link to tenant in admin (if tenant admin exists)."""
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.get(id=obj.tenant_id)
-            url = reverse('admin:tenant_client_change', args=[tenant.id])
+            tenant = Organization.objects.get(id=obj.tenant_id)
+            url = reverse('admin:tenant_organization_change', args=[tenant.id])
             return format_html('<a href="{}">{}</a>', url, tenant.name)
         except:
             return obj.tenant_id

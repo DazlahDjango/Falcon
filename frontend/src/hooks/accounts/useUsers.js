@@ -21,7 +21,9 @@ import {
   setUserPageSize,
   clearSelectedUser,
   clearUserError,
+  verifyUser,
 } from '../../store/accounts/slice/userSlice';
+import { bulkImportUsers, bulkExportUsers } from '../../services/accounts/api/users';
 import {
   selectUsers,
   selectSelectedUser,
@@ -120,6 +122,14 @@ export const useUsers = () => {
   const unlock = useCallback(
     async (id) => {
       const result = await dispatch(unlockUser(id)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  const verify = useCallback(
+    async (id) => {
+      const result = await dispatch(verifyUser(id)).unwrap();
       return result;
     },
     [dispatch]
@@ -229,6 +239,23 @@ export const useUsers = () => {
     );
   }, []);
 
+  const importUsers = useCallback(async (formData) => {
+    const response = await bulkImportUsers(formData);
+    return response.data;
+  }, []);
+
+  const exportUsers = useCallback(async () => {
+    const response = await bulkExportUsers();
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'users_export.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  }, []);
+
   return useMemo(
     () => ({
       users,
@@ -256,6 +283,7 @@ export const useUsers = () => {
       activate,
       deactivate,
       unlock,
+      verify,
       assignRole,
       getTeam,
       getReportingChain,
@@ -263,6 +291,8 @@ export const useUsers = () => {
       getMyReportingChain,
       getInvitations,
       invite,
+      importUsers,
+      exportUsers,
       setFilters,
       setPage,
       setPageSize,
@@ -296,6 +326,7 @@ export const useUsers = () => {
       activate,
       deactivate,
       unlock,
+      verify,
       assignRole,
       getTeam,
       getReportingChain,
@@ -303,6 +334,8 @@ export const useUsers = () => {
       getMyReportingChain,
       getInvitations,
       invite,
+      importUsers,
+      exportUsers,
       setFilters,
       setPage,
       setPageSize,

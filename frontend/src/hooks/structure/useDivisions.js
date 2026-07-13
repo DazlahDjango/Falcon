@@ -26,11 +26,11 @@ import {
 export const useDivisions = (options = {}) => {
     const dispatch = useDispatch();
     const { autoFetch = true, params: initialParams = {} } = options;
-    
+
     const isFirstRender = useRef(true);
     const hasFetched = useRef(false);
     const prevParamsRef = useRef(initialParams);
-    
+
     const params = useMemo(() => initialParams, [
         JSON.stringify(initialParams)
     ]);
@@ -42,6 +42,7 @@ export const useDivisions = (options = {}) => {
     const error = useSelector(selectDivisionsError);
     const totalCount = useSelector(selectDivisionsTotal);
 
+    // Memoized fetch function with stable reference
     const fetchAll = useCallback((fetchParams) => {
         const paramsToUse = fetchParams || params;
         return dispatch(fetchDivisions(paramsToUse));
@@ -103,7 +104,7 @@ export const useDivisions = (options = {}) => {
         }
 
         const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
-        
+
         if (!hasFetched.current || paramsChanged) {
             hasFetched.current = true;
             prevParamsRef.current = params;

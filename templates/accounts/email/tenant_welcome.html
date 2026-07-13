@@ -17,6 +17,12 @@
     <li><strong>Set up KPIs</strong> - Create performance indicators for your team</li>
     <li><strong>Configure organization settings</strong> - Customize branding and preferences</li>
 </ol>
+{% if temp_password %}
+<div style="background-color: #f3f4f6; padding: 16px; border-radius: 6px; margin: 16px 0; border: 1px solid #e5e7eb;">
+    <p style="margin: 0; color: #374151;">Your temporary password is: <strong style="font-family: monospace; font-size: 1.1rem; background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; color: #111827;">{{ temp_password }}</strong></p>
+    <p style="margin: 6px 0 0 0; font-size: 0.875rem; color: #6b7280;">You will be required to change this password on your first login.</p>
+</div>
+{% endif %}
 
 <div style="text-align: center;">
     <a href="{{ dashboard_url }}" class="button">Go to Admin Dashboard</a>

@@ -159,10 +159,10 @@ def send_bulk_notifications_task(self, notification_data: List[Dict]) -> Dict:
 def send_scheduled_reminders_task(self) -> Dict:
     """Send scheduled reminders for pending validations"""
     from django.utils import timezone
-    from apps.tenant.models import Client
+    from apps.tenant.models import Organization
     from apps.kpi.services import PendingValidationAlert
 
-    tenants = Client.objects.filter(is_active=True)
+    tenants = Organization.objects.filter(is_active=True)
     alert_service = PendingValidationAlert()
     results = {}
 
@@ -215,9 +215,9 @@ def generate_periodic_reports_task(self, tenant_id: str, report_type: str, perio
 @shared_task(bind=True)
 def generate_all_monthly_reports_task(self, year: int, month: int) -> Dict:
     """Generate monthly reports for all tenants"""
-    from apps.tenant.models import Client
+    from apps.tenant.models import Organization
 
-    tenants = Client.objects.filter(is_active=True)
+    tenants = Organization.objects.filter(is_active=True)
     results = {}
 
     for tenant in tenants:

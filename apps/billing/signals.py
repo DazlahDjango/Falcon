@@ -144,9 +144,9 @@ def _send_usage_alert_email(usage_record, alert):
 
 def _send_email_to_tenant(tenant_id, subject, message):
     try:
-        from apps.tenant.models import Client
-        client = Client.objects.get(id=tenant_id)
-        recipient_email = client.contact_email or (client.email if hasattr(client, 'email') else None)
+        from apps.tenant.models import Organization
+        organization = Organization.objects.get(id=tenant_id)
+        recipient_email = organization.contact_email or (organization.email if hasattr(organization, 'email') else None)
         if recipient_email:
             send_mail(subject, message, getattr(settings, 'DEFAULT_FROM_EMAIL', 'billing@falconpms.com'), [recipient_email], fail_silently=True)
     except Exception:

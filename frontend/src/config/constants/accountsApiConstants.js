@@ -63,6 +63,7 @@ export const USER_ENDPOINTS = {
     ACTIVATE: (id) => `${API_BASE}/users/${id}/activate/`,
     DEACTIVATE: (id) => `${API_BASE}/users/${id}/deactivate/`,
     UNLOCK: (id) => `${API_BASE}/users/${id}/unlock/`,
+    VERIFY: (id) => `${API_BASE}/users/${id}/verify/`,
     
     // User Relationships
     TEAM: (id) => `${API_BASE}/users/${id}/team/`,
@@ -347,7 +348,9 @@ export const ADMIN_ENDPOINTS = {
     USER_DETAIL: (id) => `${API_BASE}/admin/users/${id}/`,
     USER_IMPERSONATE: (id) => `${API_BASE}/admin/users/${id}/impersonate/`,
     USER_FORCE_PASSWORD_RESET: (id) => `${API_BASE}/admin/users/${id}/force-password-reset/`,
+    USER_VERIFY: (id) => `${API_BASE}/admin/users/${id}/verify/`,
     USER_STATS: `${API_BASE}/admin/users/stats/`,
+    USER_MAP_TO_ORGANIZATION: (id) => `${API_BASE}/admin/users/${id}/map-to-organization/`,
     
     // Roles
     ROLES: `${API_BASE}/admin/roles/`,
@@ -366,6 +369,7 @@ export const ADMIN_ENDPOINTS = {
     TENANT_SUSPEND: (id) => `${API_BASE}/admin/tenants/${id}/suspend/`,
     TENANT_ACTIVATE: (id) => `${API_BASE}/admin/tenants/${id}/activate/`,
     TENANT_STATS: `${API_BASE}/admin/tenants/stats/`,
+    TENANT_MAP_USER: (id) => `${API_BASE}/admin/tenants/${id}/map-user/`,
     
     // System
     SYSTEM: `${API_BASE}/admin/system/`,
@@ -877,6 +881,21 @@ export const SESSION_STATUS_COLORS = {
     [SESSION_STATUS.REVOKED]: 'red',
 };
 
+export const REPORTS_ENDPOINTS = {
+    USER_DIRECTORY: `${API_BASE}/reports/user-directory/`,
+    ROLE_DISTRIBUTION: `${API_BASE}/reports/role-distribution/`,
+    DEPARTMENT_DISTRIBUTION: `${API_BASE}/reports/department-distribution/`,
+    INACTIVE_USERS: `${API_BASE}/reports/inactive-users/`,
+    RECENTLY_ADDED: `${API_BASE}/reports/recently-added/`,
+    ACTIVITY_SUMMARY: `${API_BASE}/reports/activity-summary/`,
+    AUDIT_TRAIL: `${API_BASE}/reports/audit-trail/`,
+    LOGIN_ACTIVITY: `${API_BASE}/reports/login-activity/`,
+    PASSWORD_CHANGES: `${API_BASE}/reports/password-changes/`,
+    ROLE_CHANGES: `${API_BASE}/reports/role-changes/`,
+    SUSPENSION_LOG: `${API_BASE}/reports/suspension-log/`,
+    COMPLIANCE_SUMMARY: `${API_BASE}/reports/compliance-summary/`,
+};
+
 // ============================================
 // DEFAULT EXPORT
 // ============================================
@@ -903,6 +922,7 @@ export default {
     SECURITY_ENDPOINTS,
     USER_NESTED_ENDPOINTS,
     ACCOUNTS_WS,
+    REPORTS_ENDPOINTS,
     
     ACCOUNTS_QUERY_KEYS,
     ACCOUNTS_MUTATION_KEYS,

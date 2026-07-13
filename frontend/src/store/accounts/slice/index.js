@@ -11,3 +11,4 @@ export { default as adminSlice } from './adminSlice';
 export { default as adminMfaSlice } from './adminMfaSlice';
 export { default as securitySlice } from './securitySlice';
 export { default as systemSettingsSlice } from './systemSettingsSlice';
+export { default as reportSlice } from './reportSlice';

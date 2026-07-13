@@ -15,3 +15,4 @@ export { default as adminReducer } from './slice/adminSlice';
 export { default as adminMfaReducer } from './slice/adminMfaSlice';
 export { default as securityReducer } from './slice/securitySlice';
 export { default as systemSettingsReducer } from './slice/systemSettingsSlice';
+export { default as reportReducer } from './slice/reportSlice';

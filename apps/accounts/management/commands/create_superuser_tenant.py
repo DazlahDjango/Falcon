@@ -3,7 +3,7 @@ import getpass
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from apps.core.models import Client
+from apps.core.models import Organization
 from apps.accounts.models import UserPreference, Profile
 from apps.accounts.constants import UserRoles
 User = get_user_model()
@@ -28,13 +28,13 @@ class Command(BaseCommand):
         # Get or create tenant
         if tenant_id:
             try:
-                tenant = Client.objects.get(id=tenant_id, is_deleted=False)
+                tenant = Organization.objects.get(id=tenant_id, is_deleted=False)
                 self.stdout.write(self.style.SUCCESS(f'Using existing tenant: {tenant.name} ({tenant.id})'))
-            except Client.DoesNotExist:
+            except Organization.DoesNotExist:
                 raise CommandError(f'Tenant with ID {tenant_id} not found')
         elif tenant_name:
             # Create new tenant
-            tenant = Client.objects.create(
+            tenant = Organization.objects.create(
                 name=tenant_name,
                 slug=tenant_name.lower().replace(' ', '-'),
                 is_active=True
@@ -49,7 +49,7 @@ class Command(BaseCommand):
                 
                 if create_new:
                     tenant_name = input(_('Tenant name: '))
-                    tenant = Client.objects.create(
+                    tenant = Organization.objects.create(
                         name=tenant_name,
                         slug=tenant_name.lower().replace(' ', '-'),
                         is_active=True
@@ -58,8 +58,8 @@ class Command(BaseCommand):
                 else:
                     tenant_id = input(_('Existing tenant ID (UUID): '))
                     try:
-                        tenant = Client.objects.get(id=tenant_id, is_deleted=False)
-                    except Client.DoesNotExist:
+                        tenant = Organization.objects.get(id=tenant_id, is_deleted=False)
+                    except Organization.DoesNotExist:
                         raise CommandError(f'Tenant with ID {tenant_id} not found')
             else:
                 raise CommandError('Either --tenant-id or --tenant-name is required')

@@ -6,6 +6,7 @@ from .user import UserMinimalSerializer
 class LoginSerializer(BaseSerializer):
     email = serializers.EmailField(required=True, write_only=True)
     password = serializers.CharField(required=True, write_only=True, style={'input_type', 'password'})
+    tenant_id = serializers.UUIDField(required=False, write_only=True, allow_null=True)
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
@@ -20,6 +21,7 @@ class LoginResponseSerializer(serializers.Serializer):
     refresh_expires_in = serializers.IntegerField()
     token_type = serializers.CharField(default='Bearer')
     session_id = serializers.CharField()
+    password_change_required = serializers.BooleanField(default=False)
     user = serializers.SerializerMethodField()
     
     def get_user(self, obj):
@@ -83,6 +85,7 @@ class MFAResponseSerializer(BaseSerializer):
     refresh_expires_in = serializers.IntegerField()
     token_type = serializers.CharField(default='Bearer')
     session_id = serializers.CharField()
+    password_change_required = serializers.BooleanField(default=False)
     user = serializers.SerializerMethodField()
     def get_user(self, obj):
         from .user import UserMinimalSerializer

@@ -39,17 +39,28 @@ export const AdminUserManager = () => {
     forcePasswordReset,
     createUser,
     updateUser,
+    verifyUser,
     isCreating,
     isUpdating,
+    getTenants,
+    tenants,
+    mapUserToOrganization,
   } = useAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedOrgId, setSelectedOrgId] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Load tenants on mount
+  useEffect(() => {
+    getTenants({ limit: 100 });
+  }, [getTenants]);
 
   // Memoized pagination values
   const totalPages = useMemo(
@@ -190,6 +201,19 @@ export const AdminUserManager = () => {
       setActiveMenu(null);
     }
   }, [forcePasswordReset]);
+
+  const handleVerify = useCallback(async (userId) => {
+    setActionLoading(true);
+    try {
+      await verifyUser(userId);
+      loadUsers();
+    } catch (err) {
+      console.error('Failed to verify user:', err);
+    } finally {
+      setActionLoading(false);
+      setActiveMenu(null);
+    }
+  }, [verifyUser, loadUsers]);
 
   const handleMenuToggle = useCallback((userId, e) => {
     e.stopPropagation();
@@ -453,6 +477,14 @@ export const AdminUserManager = () => {
                         <button onClick={() => handleForceReset(user.id)}>
                           <FiShield /> Force Password Reset
                         </button>
+                        {!user.is_verified && (
+                          <button onClick={() => handleVerify(user.id)}>
+                            <FiUserCheck /> Verify Account
+                          </button>
+                        )}
+                        <button onClick={() => setSelectedUser(user) || setShowMapModal(true)}>
+                          <FiShield /> Map to Organization
+                        </button>
                         <hr />
                         <button className="danger" onClick={() => handleDelete(user.id)}>
                           <FiTrash2 /> Delete
@@ -532,6 +564,59 @@ export const AdminUserManager = () => {
           updateUser={updateUser}
           isLoading={isUpdating}
         />
+      )}
+
+      {showMapModal && selectedUser && (
+        <div className="modal-overlay" onClick={() => { setShowMapModal(false); setSelectedOrgId(''); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '24px', maxWidth: '400px' }}>
+            <div className="modal-header" style={{ marginBottom: '15px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Map User to Organization</h2>
+            </div>
+            <p style={{ color: '#4B5563', marginBottom: '15px' }}>
+              Select the organization to map <strong>{selectedUser.email}</strong> to:
+            </p>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <select 
+                className="filter-select"
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB' }}
+                value={selectedOrgId}
+                onChange={(e) => setSelectedOrgId(e.target.value)}
+              >
+                <option value="">-- Select Organization --</option>
+                {tenants.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" style={{ padding: '8px 16px', borderRadius: '6px' }} onClick={() => { setShowMapModal(false); setSelectedOrgId(''); }}>Cancel</button>
+              <button 
+                className="btn-primary" 
+                style={{ padding: '8px 16px', borderRadius: '6px' }}
+                disabled={actionLoading}
+                onClick={async () => {
+                  if (!selectedOrgId) {
+                    alert('Please select an organization');
+                    return;
+                  }
+                  setActionLoading(true);
+                  try {
+                    await mapUserToOrganization(selectedUser.id, selectedOrgId);
+                    loadUsers();
+                    setShowMapModal(false);
+                    setSelectedOrgId('');
+                  } catch (err) {
+                    alert(err || 'Failed to map user');
+                  } finally {
+                    setActionLoading(false);
+                  }
+                }}
+              >
+                {actionLoading ? 'Saving...' : 'Save Mapping'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

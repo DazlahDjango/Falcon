@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FiRefreshCw, FiActivity, FiCheckCircle, FiXCircle, FiClock } from 'react-icons/fi';
-import ConnectionTable from '../../../components/tenant/connection/ConnectionTable';
+import ConnectionTable from '../../../components/tenant/connections/ConnectionTable';
 import { useConnections } from '../../../hooks/tenant';
 
 export const TenantConnectionsPage = () => {
@@ -18,7 +18,7 @@ export const TenantConnectionsPage = () => {
 
     const handleFilterChange = (status) => {
         setFilterStatus(status);
-        updateFilters({ status: status || undefined });
+        updateFilters({ status: status ? status.toUpperCase() : undefined });
     };
 
     const handleViewDetails = (connectionId) => {

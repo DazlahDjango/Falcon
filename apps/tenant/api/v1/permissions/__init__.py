@@ -1,42 +1,39 @@
-# apps/tenant/api/v1/permissions/__init__.py
-"""
-Permissions for Tenant API v1.
-"""
-
-from .tenant_permissions import (
+from .organization_permissions import (
     IsSuperAdmin,
-    IsTenantAdmin,
-    IsTenantUser,
-    CanManageTenant,
-    CanViewTenant,
+    IsOrganizationAdmin,
+    IsOrganizationUser,
+    CanManageOrganization,
+    CanViewOrganization,
     CanManageDomain,
-    CanManageBackup,
+    CanManageSchema,
     CanViewResource,
-    IsAuthenticatedOrReadOnlyForTenant,
+    IsAuthenticatedOrReadOnlyForOrganization,
+    IsOrganizationMember,
+    IsOrganizationAdminOrSuperAdmin,
 )
-from .tenant_access import (
-    HasTenantAccess,
-    IsSameTenant,
-    TenantHeaderRequired,
-    AllowTenantCreation,
-    IsTenantOwner,
+from .access_permissions import (
+    HasOrganizationAccess,
+    IsSameOrganization,
+    OrganizationHeaderRequired,
+    AllowOrganizationCreation,
+    IsOrganizationOwner,
 )
 
 __all__ = [
-    # Tenant permissions
     'IsSuperAdmin',
-    'IsTenantAdmin',
-    'IsTenantUser',
-    'CanManageTenant',
-    'CanViewTenant',
+    'IsOrganizationAdmin',
+    'IsOrganizationUser',
+    'CanManageOrganization',
+    'CanViewOrganization',
     'CanManageDomain',
-    'CanManageBackup',
+    'CanManageSchema',
     'CanViewResource',
-    'IsAuthenticatedOrReadOnlyForTenant',
-    # Access control
-    'HasTenantAccess',
-    'IsSameTenant',
-    'TenantHeaderRequired',
-    'AllowTenantCreation',
-    'IsTenantOwner',
+    'IsAuthenticatedOrReadOnlyForOrganization',
+    'IsOrganizationMember',
+    'IsOrganizationAdminOrSuperAdmin',
+    'HasOrganizationAccess',
+    'IsSameOrganization',
+    'OrganizationHeaderRequired',
+    'AllowOrganizationCreation',
+    'IsOrganizationOwner',
 ]

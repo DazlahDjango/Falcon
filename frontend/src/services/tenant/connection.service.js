@@ -1,224 +1,123 @@
-import BaseTenantService from './tenantBase.service';
-import { store } from '../../store';
-import { showToast } from '../../store/tenant/slice/tenantUISlice';
+import { BaseTenantService } from './tenantBase.service';
+import { CONNECTION_ENDPOINTS } from '../../config/constants/tenantApiConstants';
 
 class ConnectionService extends BaseTenantService {
-    constructor() {
-        super('connections');
-    }
+  constructor() {
+    super('connections');
+  }
 
-    /**
-     * List all connections with filtering
-     * @param {Object} params - Filter parameters
-     */
-    async listConnections(params = {}) {
-        return this.list(params);
-    }
+  async getConnections(params = {}) {
+    return this.withRetry(() =>
+      this.apiClient.get(CONNECTION_ENDPOINTS.LIST, { params })
+    );
+  }
 
-    /**
-     * Get connections for specific tenant
-     * @param {string} tenantId - Tenant UUID
-     * @param {Object} params - Additional filters
-     */
-    async getTenantConnections(tenantId, params = {}) {
-        return this.listForTenant(tenantId, params);
-    }
+  async getConnection(id, params = {}) {
+    if (!id) throw new Error('Connection ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(CONNECTION_ENDPOINTS.DETAIL(id), { params })
+    );
+  }
 
-    /**
-     * Get connection details
-     * @param {string} connectionId - Connection UUID
-     */
-    async getConnectionDetails(connectionId) {
-        return this.getById(connectionId);
-    }
+  async createConnection(data) {
+    if (!data) throw new Error('Connection data is required');
+    if (!data.organization_id) throw new Error('Organization ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(CONNECTION_ENDPOINTS.CREATE, data)
+    );
+  }
 
-    /**
-     * Get connection metrics
-     * @param {Object} params - Filter parameters
-     */
-    async getConnectionMetrics(params = {}) {
-        return this.apiClient.get('/connections/metrics/', { params });
-    }
+  async updateConnection(id, data) {
+    if (!id) throw new Error('Connection ID is required');
+    if (!data) throw new Error('Update data is required');
+    return this.withRetry(() =>
+      this.apiClient.patch(CONNECTION_ENDPOINTS.UPDATE(id), data)
+    );
+  }
 
-    /**
-     * Update connection status
-     * @param {string} connectionId - Connection UUID
-     * @param {Object} statusData - Status update data
-     */
-    async updateStatus(connectionId, statusData) {
-        const response = await this.apiClient.patch(
-            `/connections/${connectionId}/update-status/`,
-            statusData
-        );
+  async deleteConnection(id) {
+    if (!id) throw new Error('Connection ID is required');
+    return this.withRetry(() =>
+      this.apiClient.delete(CONNECTION_ENDPOINTS.DELETE(id))
+    );
+  }
 
-        if (response.success) {
-            store.dispatch(showToast({
-                message: `Connection status updated to ${statusData.status}`,
-                type: 'success',
-            }));
-        }
+  async closeConnection(id) {
+    if (!id) throw new Error('Connection ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(CONNECTION_ENDPOINTS.CLOSE(id))
+    );
+  }
 
-        return response;
-    }
+  async getConnectionStatus(id) {
+    if (!id) throw new Error('Connection ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(CONNECTION_ENDPOINTS.STATUS(id))
+    );
+  }
 
-    /**
-     * Close connection
-     * @param {string} connectionId - Connection UUID
-     */
-    async closeConnection(connectionId) {
-        const response = await this.apiClient.post(
-            `/connections/${connectionId}/close/`
-        );
+  async executeAction(data) {
+    if (!data) throw new Error('Action data is required');
+    if (!data.action) throw new Error('Action is required');
+    return this.withRetry(() =>
+      this.apiClient.post(CONNECTION_ENDPOINTS.EXECUTE_ACTION, data)
+    );
+  }
 
-        if (response.success) {
-            store.dispatch(showToast({
-                message: 'Connection closed successfully',
-                type: 'info',
-            }));
-        }
+  async getMetrics(params = {}) {
+    return this.withRetry(() =>
+      this.apiClient.get(CONNECTION_ENDPOINTS.METRICS, { params })
+    );
+  }
 
-        return response;
-    }
+  async healthCheck(data = {}) {
+    return this.withRetry(() =>
+      this.apiClient.post(CONNECTION_ENDPOINTS.HEALTH_CHECK, data)
+    );
+  }
 
-    /**
-     * Execute manager action
-     * @param {Object} actionData - Action configuration
-     */
-    async managerAction(actionData) {
-        const response = await this.apiClient.post(
-            '/connections/manager-action/',
-            actionData
-        );
+  async getDebugTraces() {
+    return this.withRetry(() =>
+      this.apiClient.get(CONNECTION_ENDPOINTS.DEBUG)
+    );
+  }
 
-        if (response.success) {
-            const { action, details } = response.data;
-            store.dispatch(showToast({
-                message: details.message || `${action} completed successfully`,
-                type: 'success',
-            }));
-        }
+  async pauseConnection(organizationId) {
+    if (!organizationId) throw new Error('Organization ID is required');
+    return this.executeAction({ action: 'pause', organization_id: organizationId });
+  }
 
-        return response;
-    }
+  async resumeConnection(organizationId) {
+    if (!organizationId) throw new Error('Organization ID is required');
+    return this.executeAction({ action: 'resume', organization_id: organizationId });
+  }
 
-    /**
-     * Close idle connections
-     * @param {number} idleMinutes - Minutes of inactivity before closing
-     */
-    async closeIdleConnections(idleMinutes = 30) {
-        const response = await this.apiClient.post(
-            '/connections/close-idle/',
-            { idle_minutes: idleMinutes }
-        );
+  async getTenantConnections(tenantId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return this.listForTenant(tenantId, params);
+  }
 
-        if (response.success) {
-            store.dispatch(showToast({
-                message: response.data.message,
-                type: 'success',
-            }));
-        }
+  async getTenantConnection(tenantId, connectionId, params = {}) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!connectionId) throw new Error('Connection ID is required');
+    return this.getForTenant(tenantId, connectionId, params);
+  }
 
-        return response;
-    }
+  async closeTenantConnection(tenantId, connectionId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!connectionId) throw new Error('Connection ID is required');
+    return this.withRetry(() =>
+      this.apiClient.post(this.getTenantEndpoint(tenantId, `${connectionId}/close/`))
+    );
+  }
 
-    /**
-     * Perform health check
-     * @param {string} tenantId - Tenant UUID (optional)
-     */
-    async healthCheck(tenantId = null) {
-        const data = tenantId ? { tenant_id: tenantId } : {};
-        return this.apiClient.post('/connections/health-check/', data);
-    }
-
-    /**
-     * ADD THIS: Perform batch health check for multiple tenants
-     * @param {string[]} tenantIds - Array of tenant UUIDs
-     */
-    async batchHealthCheck(tenantIds) {
-        if (!tenantIds || !Array.isArray(tenantIds) || tenantIds.length === 0) {
-            return {
-                data: [],
-                success: true
-            };
-        }
-
-        console.log(`Performing batch health check for ${tenantIds.length} tenants...`);
-
-        // Execute all health checks in parallel with Promise.allSettled
-        // This prevents one failure from stopping all checks
-        const results = await Promise.allSettled(
-            tenantIds.map(tenantId => this.healthCheck(tenantId))
-        );
-
-        // Process results - extract data from successful checks, create error objects for failures
-        const successfulResults = results.map((result, index) => {
-            if (result.status === 'fulfilled' && result.value?.data) {
-                // Success: return the health check data
-                return result.value.data;
-            } else {
-                // Failure: create a structured error object
-                const errorMessage = result.status === 'rejected'
-                    ? result.reason?.message || 'Health check failed'
-                    : 'Unknown error occurred';
-
-                console.error(`Health check failed for tenant ${tenantIds[index]}:`, errorMessage);
-
-                return {
-                    tenant_id: tenantIds[index],
-                    is_healthy: false,
-                    error_message: errorMessage,
-                    response_time_ms: null,
-                    last_successful_check: null,
-                    timestamp: new Date().toISOString(),
-                    status: 'error'
-                };
-            }
-        });
-
-        return {
-            data: successfulResults,
-            success: true,
-            total: successfulResults.length,
-            healthy: successfulResults.filter(r => r.is_healthy).length,
-            unhealthy: successfulResults.filter(r => !r.is_healthy).length
-        };
-    }
-    /**
-     * Get connection status from manager
-     * @param {string} connectionId - Connection UUID
-     */
-    async getConnectionStatus(connectionId) {
-        return this.apiClient.get(`/connections/${connectionId}/status/`);
-    }
-
-    /**
-     * Get connection statistics
-     * @param {Object} params - Filter parameters
-     */
-    async getConnectionStats(params = {}) {
-        return this.apiClient.get('/connections/stats/', { params });
-    }
-
-    /**
-     * Test connection for tenant
-     * @param {string} tenantId - Tenant UUID
-     */
-    async testConnection(tenantId) {
-        const response = await this.apiClient.post(
-            `/tenants/${tenantId}/test-connection/`
-        );
-
-        if (response.success) {
-            store.dispatch(showToast({
-                message: response.data.is_healthy ? 'Connection test passed' : 'Connection test failed',
-                type: response.data.is_healthy ? 'success' : 'error',
-            }));
-        }
-
-        return response;
-    }
+  async getTenantConnectionStatus(tenantId, connectionId) {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    if (!connectionId) throw new Error('Connection ID is required');
+    return this.withRetry(() =>
+      this.apiClient.get(this.getTenantEndpoint(tenantId, `${connectionId}/status/`))
+    );
+  }
 }
 
-// Export singleton instance
 export const connectionService = new ConnectionService();
-export default connectionService;

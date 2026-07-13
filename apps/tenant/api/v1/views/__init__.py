@@ -1,58 +1,29 @@
-# apps/tenant/api/v1/views/__init__.py
-"""
-Views for Tenant API v1.
-"""
-
-from .tenant_admin import (
-    TenantViewSet,
-)
-from .domain_views import (
-    DomainViewSet,
-)
-from .backup_views import (
-    BackupViewSet,
-)
+from .organization_views import OrganizationViewSet
+from .domain_views import DomainViewSet
 from .schema_views import SchemaViewSet
+from .resource_views import ResourceViewSet
+from .connection_views import ConnectionViewSet
 from .migration_views import MigrationViewSet
-from .health_views import (
-    HealthCheckView,
-    TenantsHealthView,
-    DatabaseHealthView,
-    CacheHealthView,
-    SystemHealthView,
-)
-from .connection import ConnectionPoolViewSet
+from .settings_views import SettingsViewSet
+from .dashboard_views import DashboardViewSet
+from .admin_views import AdminOrganizationViewSet
+from .health_views import HealthCheckView, OrganizationsHealthView
+from .sector_views import SectorViewSet
+from .provisioning_views import ProvisioningViewSet
+
 
 __all__ = [
-    # Tenant
-    'TenantViewSet',
-    'TenantSuspendView',
-    'TenantActivateView',
-    'TenantProvisioningStatusView',
-    'TenantUsageView',
-    'TenantResourcesView',
-    # Domain
+    'OrganizationViewSet',
     'DomainViewSet',
-    'DomainVerifyView',
-    'DomainSetPrimaryView',
-    'TenantDomainsView',
-    # Backup
-    'BackupViewSet',
-    'BackupRestoreView',
-    'BackupDownloadView',
-    'TenantBackupsView',
-    # Schema
     'SchemaViewSet',
-    'TenantSchemaView',
-    # Migration
+    'ResourceViewSet',
+    'ConnectionViewSet',
     'MigrationViewSet',
-    'TenantMigrationsView',
-    # Health
+    'SettingsViewSet',
+    'DashboardViewSet',
+    'AdminOrganizationViewSet',
     'HealthCheckView',
-    'TenantsHealthView',
-    'DatabaseHealthView',
-    'CacheHealthView',
-    'SystemHealthView',
-    # Connection
-    'ConnectionPoolViewSet',
+    'OrganizationsHealthView',
+    'SectorViewSet',
+    'ProvisioningViewSet',
 ]

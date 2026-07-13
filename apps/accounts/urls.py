@@ -6,13 +6,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.urls import path, include
 from django.views.generic import TemplateView
-from .api.v1.views import (
-    AuthViewSet, LoginView, MFAAuthView, MFASetupView, MFADeviceView, MFABackupCodesView, RefreshTokenView, LogoutView,
-    UserViewSet, UserProfileView, CurrentUserView, UserChangePasswordView, UserInvitationsView, InvitationAcceptView,
-    ProfileViewSet, RoleViewSet, PermissionViewSet, SessionViewSet, MFADeviceViewSet, MFAAuditLogViewSet,
-    UserPreferenceViewSet, TenantPreferenceViewSet, AuditLogViewSet,
-    AdminUserViewSet, AdminRoleViewSet, AdminTenantViewSet, AdminPermissionViewSet, AdminSystemView
-)
 
 @csrf_exempt
 def health_check(request):

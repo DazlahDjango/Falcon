@@ -24,6 +24,7 @@ class LoginView(APIView):
         
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
+        tenant_id = serializer.validated_data.get('tenant_id')
         ip_address = self._get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
         
@@ -33,6 +34,7 @@ class LoginView(APIView):
             password=password,
             ip_address=ip_address,
             user_agent=user_agent,
+            tenant_id=tenant_id,
             request=request
         )
         
@@ -62,6 +64,7 @@ class LoginView(APIView):
             'access_expires_in': result.get('access_expires_in', 3600),
             'refresh_expires_in': result.get('refresh_expires_in', 86400),
             'session_id': str(result.get('session_id')) if result.get('session_id') else None,
+            'password_change_required': result.get('password_change_required', False),
             'token_type': 'Bearer',
         }
         
@@ -134,6 +137,7 @@ class MFAAuthView(APIView):
         
         response_serializer = MFAResponseSerializer({
             'user': user,
+            'password_change_required': result.get('password_change_required', False),
             **result
         })
         return Response(response_serializer.data, status=status.HTTP_200_OK)

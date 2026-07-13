@@ -1,62 +1,23 @@
-// frontend/src/components/tenant/migrations/MigrationStatusBadge.jsx
+// components/tenant/migrations/MigrationStatusBadge.jsx
 import React from 'react';
-import './migrations.css';
+import { FiCheckCircle, FiClock, FiXCircle, FiRefreshCw, FiAlertTriangle, FiRotateCcw } from 'react-icons/fi';
 
-export const MigrationStatusBadge = ({ status }) => {
-    const getStatusClass = () => {
-        switch (status) {
-            case 'completed':
-                return 'migration-status-completed';
-            case 'pending':
-                return 'migration-status-pending';
-            case 'running':
-                return 'migration-status-running';
-            case 'failed':
-                return 'migration-status-failed';
-            case 'rolled_back':
-                return 'migration-status-rolled-back';
-            default:
-                return 'migration-status-pending';
-        }
-    };
-
-    const getStatusLabel = () => {
-        switch (status) {
-            case 'completed':
-                return 'Completed';
-            case 'pending':
-                return 'Pending';
-            case 'running':
-                return 'Running';
-            case 'failed':
-                return 'Failed';
-            case 'rolled_back':
-                return 'Rolled Back';
-            default:
-                return 'Unknown';
-        }
-    };
-
-    const getIcon = () => {
-        switch (status) {
-            case 'completed':
-                return '✅';
-            case 'pending':
-                return '⏳';
-            case 'running':
-                return '🔄';
-            case 'failed':
-                return '❌';
-            case 'rolled_back':
-                return '↩️';
-            default:
-                return '📋';
-        }
-    };
-
-    return (
-        <span className={`migration-status-badge ${getStatusClass()}`}>
-            {getIcon()} {getStatusLabel()}
-        </span>
-    );
+const MigrationStatusBadge = ({ status }) => {
+  const statusMap = {
+    PENDING: { label: 'Pending', className: 'migration-badge-yellow', icon: FiClock },
+    RUNNING: { label: 'Running', className: 'migration-badge-blue', icon: FiRefreshCw },
+    COMPLETED: { label: 'Completed', className: 'migration-badge-green', icon: FiCheckCircle },
+    FAILED: { label: 'Failed', className: 'migration-badge-red', icon: FiXCircle },
+    ROLLED_BACK: { label: 'Rolled Back', className: 'migration-badge-orange', icon: FiRotateCcw },
+  };
+  const config = statusMap[status] || { label: status, className: 'migration-badge-gray', icon: FiAlertTriangle };
+  const Icon = config.icon;
+  return (
+    <span className={`migration-badge ${config.className}`}>
+      <Icon size={14} style={{ marginRight: '4px' }} />
+      {config.label}
+    </span>
+  );
 };
+
+export default MigrationStatusBadge;

@@ -5,7 +5,6 @@ import { resolveDashboardRole } from '../../../utils/dashboard/resolveDashboardR
 import { DASHBOARD_TYPES } from '../../../config/constants/dashboardConstants';
 import { DashboardProviders } from '../../../providers/DashboardProviders';
 import MainLayout from '../Layout/MainLayout';
-import '../../layout.css';
 
 const ADMIN_PLATFORM_ROLES = new Set([
   DASHBOARD_TYPES.SUPER_ADMIN,

@@ -46,6 +46,7 @@ const AuditLogsPage = React.lazy(() => import('../pages/accounts/AuditLogsPage')
 const AuditLogDetailPage = React.lazy(() => import('../pages/accounts/AuditLogDetailPage'));
 const SecurityEventsPage = React.lazy(() => import('../pages/accounts/SecurityEventsPage'));
 const ComplianceReportPage = React.lazy(() => import('../pages/accounts/ComplianceReportPage'));
+const ReportsPage = React.lazy(() => import('../pages/accounts/ReportsPage'));
 
 // ============ Preference Pages ============
 const UserPreferencesPage = React.lazy(() => import('../pages/accounts/UserPreferencesPage'));
@@ -195,6 +196,10 @@ const accountsRoutes = [
     {
         path: ACCOUNTS_ROUTES.AUDIT_COMPLIANCE,
         element: <ComplianceReportPage />,
+    },
+    {
+        path: ACCOUNTS_ROUTES.REPORTS,
+        element: <ReportsPage />,
     },
 
     // ============ Preferences ============

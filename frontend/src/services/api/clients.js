@@ -54,7 +54,7 @@ function checkTenantRateLimit() {
 }
 
 export const tenantApiClient = createApiClient({
-  module: 'tenant', basePath: '/tenant', responseStyle: 'envelope',
+  module: 'tenant', basePath: '/tenant', responseStyle: 'raw',
   circuitBreaker: false, forbiddenMessage: 'You do not have permission to perform this tenant action',
   beforeRequest: async (config) => {
     checkTenantRateLimit();

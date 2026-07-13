@@ -34,14 +34,24 @@ export const AdminTenantManager = () => {
     suspendTenant,
     activateTenant,
     createTenantWithAdmin,
+    getUsers,
+    users,
+    mapTenantUser,
   } = useAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
+
+  // Load users on mount
+  useEffect(() => {
+    getUsers({ limit: 100 });
+  }, [getUsers]);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -294,6 +304,9 @@ export const AdminTenantManager = () => {
                                 <FiCheckCircle /> Activate
                               </button>
                             )}
+                            <button onClick={() => setSelectedTenant(tenant) || setShowMapModal(true)}>
+                              <FiShield /> Map User
+                            </button>
                             <button className="danger" onClick={() => handleDelete(tenant.id)}>
                               <FiTrash2 /> Delete
                             </button>
@@ -414,6 +427,59 @@ export const AdminTenantManager = () => {
                 <button type="submit" className="btn-primary" disabled={actionLoading}>{actionLoading ? 'Creating...' : 'Create Tenant'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showMapModal && selectedTenant && (
+        <div className="modal-overlay" onClick={() => { setShowMapModal(false); setSelectedUserId(''); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '24px', maxWidth: '400px' }}>
+            <div className="modal-header" style={{ marginBottom: '15px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Map User to {selectedTenant.name}</h2>
+            </div>
+            <p style={{ color: '#4B5563', marginBottom: '15px' }}>
+              Select the user to map to this organization:
+            </p>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <select 
+                className="filter-select"
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB' }}
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+              >
+                <option value="">-- Select User --</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.email} ({u.full_name || 'No Name'})</option>
+                ))}
+              </select>
+            </div>
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" style={{ padding: '8px 16px', borderRadius: '6px' }} onClick={() => { setShowMapModal(false); setSelectedUserId(''); }}>Cancel</button>
+              <button 
+                className="btn-primary" 
+                style={{ padding: '8px 16px', borderRadius: '6px' }}
+                disabled={actionLoading}
+                onClick={async () => {
+                  if (!selectedUserId) {
+                    alert('Please select a user');
+                    return;
+                  }
+                  setActionLoading(true);
+                  try {
+                    await mapTenantUser(selectedTenant.id, selectedUserId);
+                    loadTenants();
+                    setShowMapModal(false);
+                    setSelectedUserId('');
+                  } catch (err) {
+                    alert(err || 'Failed to map user');
+                  } finally {
+                    setActionLoading(false);
+                  }
+                }}
+              >
+                {actionLoading ? 'Saving...' : 'Save Mapping'}
+              </button>
+            </div>
           </div>
         </div>
       )}

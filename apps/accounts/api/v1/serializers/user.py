@@ -46,17 +46,18 @@ class UserDetailSerializer(UserListSerializer):
 
 class UserCreationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
-        write_only=True, required=True, style={'input_type': 'password'}
+        write_only=True, required=False, allow_blank=True, style={'input_type': 'password'}
     )
     password_confirm = serializers.CharField(
-        write_only=True, required=True, style={'input_type': 'password'}
+        write_only=True, required=False, allow_blank=True, style={'input_type': 'password'}
     )
+    tenant_id = serializers.UUIDField(required=False, allow_null=True)
     phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)
     class Meta:
         model = User
         fields = [
             'email', 'username', 'password', 'password_confirm', 'first_name', 'last_name',
-            'phone', 'role', 'manager', 'department', 'title', 'employee_id', 'joined_at'
+            'phone', 'role', 'manager', 'department', 'title', 'employee_id', 'joined_at', 'tenant_id'
         ]
 
     def validate_email(self, value):
@@ -69,26 +70,73 @@ class UserCreationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("A user with this username already exists"))
         return value.strip()
     
-    def validate_password(self, value):
-        is_valid, errors = validate_password_strength(value)
-        if not is_valid:
-            raise serializers.ValidationError(errors)
+    def validate_role(self, value):
+        request = self.context.get('request')
+        if request and request.user:
+            from apps.accounts.api.v1.permissions import CanAssignRole
+            if not CanAssignRole()._can_assign_role(request.user, value):
+                raise serializers.ValidationError(
+                    _("You do not have permission to assign this role")
+                )
         return value
     
     def validate(self, attrs):
+        request = self.context.get('request')
         password = attrs.get('password')
         password_confirm = attrs.get('password_confirm')
-        if password != password_confirm:
-            raise serializers.ValidationError({
-                'password_confirm': _('Passwords do not match')
-            })
+        tenant_id = attrs.get('tenant_id')
+
+        # Tenant validations
+        if request and request.user:
+            if not request.user.is_superuser:
+                if tenant_id and str(tenant_id) != str(request.user.tenant_id):
+                    raise serializers.ValidationError({
+                        'tenant_id': _("You cannot specify a different organization's tenant ID.")
+                    })
+                attrs['tenant_id'] = request.user.tenant_id
+
+        # Password validations
+        if password or password_confirm:
+            if password != password_confirm:
+                raise serializers.ValidationError({
+                    'password_confirm': _('Passwords do not match')
+                })
+            is_valid, errors = validate_password_strength(password)
+            if not is_valid:
+                raise serializers.ValidationError({
+                    'password': errors
+                })
         return attrs
     
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
-        password = validated_data.pop('password')
+        request = self.context.get('request')
+        validated_data.pop('password_confirm', None)
+        password = validated_data.pop('password', None)
+        
+        tenant_id = validated_data.pop('tenant_id', None)
+        if not tenant_id and request and request.user:
+            tenant_id = request.user.tenant_id
+            
         user = User(**validated_data)
-        user.set_password(password)
+        user.tenant_id = tenant_id
+        
+        from apps.accounts.services.auth.password import PasswordService
+        password_service = PasswordService()
+        
+        if password:
+            user.set_password(password)
+            user.password_change_required = True
+        else:
+            raw_password, password_change_required, mode = password_service.generate_default_password_for_user(user, tenant_id)
+            if mode == 'invite_only':
+                user.set_unusable_password()
+                user.password_change_required = False
+            else:
+                user.set_password(raw_password)
+                user.password_change_required = password_change_required
+                user._generated_raw_password = raw_password
+            user._generated_password_mode = mode
+            
         user.save()
         return user
 

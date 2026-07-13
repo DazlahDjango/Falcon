@@ -1,64 +1,101 @@
 // frontend/src/services/tenant/provisioning.service.js
-import BaseTenantService from './tenantBase.service';
+import { BaseTenantService } from './tenantBase.service';
+import { PROVISIONING_ENDPOINTS } from '../../config/constants/tenantApiConstants';
 
 class ProvisioningService extends BaseTenantService {
     constructor() {
         super('provisioning');
     }
 
-    // ==================== Provisioning Status ====================
+    // ==================== Monitoring / List ====================
 
     /**
-     * Get provisioning status for a tenant
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
+     * List all organizations with their provisioning state summary.
+     * @param {Object} params - Optional query params (status, ordering)
+     * @returns {Promise}
      */
-    async getProvisioningStatus(tenantId) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/provisioning-status/`);
-        return response.data;
+    async listAll(params = {}) {
+        return this.withRetry(() =>
+            this.apiClient.get(PROVISIONING_ENDPOINTS.LIST, { params })
+        );
     }
 
     /**
-     * Get detailed provisioning progress (steps, percentages)
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
+     * List organizations that FAILED provisioning.
+     * @returns {Promise}
      */
-    async getProvisioningProgress(tenantId) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/provisioning/progress/`);
-        return response.data;
+    async listFailed() {
+        return this.withRetry(() =>
+            this.apiClient.get(PROVISIONING_ENDPOINTS.FAILED)
+        );
     }
 
     /**
-     * Get provisioning logs for debugging
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
+     * List organizations currently in PROVISIONING state.
+     * @returns {Promise}
      */
-    async getProvisioningLogs(tenantId) {
-        const response = await this.apiClient.get(`/tenants/${tenantId}/provisioning/logs/`);
-        return response.data;
+    async listInProgress() {
+        return this.withRetry(() =>
+            this.apiClient.get(PROVISIONING_ENDPOINTS.IN_PROGRESS)
+        );
+    }
+
+    // ==================== Per-Organization Status ====================
+
+    /**
+     * Get the full step-level provisioning status for a single organization.
+     * @param {string|number} orgId - Organization ID
+     * @returns {Promise}
+     */
+    async getStatus(orgId) {
+        if (!orgId) throw new Error('Organization ID is required');
+        return this.withRetry(() =>
+            this.apiClient.get(PROVISIONING_ENDPOINTS.STATUS(orgId))
+        );
     }
 
     // ==================== Provisioning Actions ====================
 
     /**
-     * Retry failed provisioning
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
+     * Manually trigger provisioning for a PENDING (or any, if force=true) org.
+     * @param {string|number} orgId - Organization ID
+     * @param {boolean} force - Override status guard (super-admin emergency use)
+     * @returns {Promise}
      */
-    async retryProvisioning(tenantId) {
-        const response = await this.apiClient.post(`/tenants/${tenantId}/provisioning/retry/`);
-        return response.data;
+    async trigger(orgId, force = false) {
+        if (!orgId) throw new Error('Organization ID is required');
+        return this.withRetry(() =>
+            this.apiClient.post(PROVISIONING_ENDPOINTS.TRIGGER(orgId), { force })
+        );
     }
 
     /**
-     * Cancel ongoing provisioning
-     * @param {string|number} tenantId - Tenant ID
-     * @returns {Promise} { success, data, status, message }
+     * Retry provisioning for a FAILED organization.
+     * Resets to PENDING and re-runs the pipeline (idempotent — skips completed steps).
+     * @param {string|number} orgId - Organization ID
+     * @param {boolean} force - Override status guard
+     * @returns {Promise}
      */
-    async cancelProvisioning(tenantId) {
-        const response = await this.apiClient.post(`/tenants/${tenantId}/provisioning/cancel/`);
-        return response.data;
+    async retry(orgId, force = false) {
+        if (!orgId) throw new Error('Organization ID is required');
+        return this.withRetry(() =>
+            this.apiClient.post(PROVISIONING_ENDPOINTS.RETRY(orgId), { force })
+        );
+    }
+
+    /**
+     * Force rollback — drops the PostgreSQL schema and marks org as FAILED.
+     * DESTRUCTIVE: use with extreme caution.
+     * @param {string|number} orgId - Organization ID
+     * @returns {Promise}
+     */
+    async rollback(orgId) {
+        if (!orgId) throw new Error('Organization ID is required');
+        return this.withRetry(() =>
+            this.apiClient.post(PROVISIONING_ENDPOINTS.ROLLBACK(orgId))
+        );
     }
 }
 
-export default new ProvisioningService();
+export const provisioningService = new ProvisioningService();
+export default provisioningService;

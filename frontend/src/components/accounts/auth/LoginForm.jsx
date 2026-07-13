@@ -63,7 +63,11 @@ export const LoginForm = () => {
 
     if (result.requiresMfa) {
       navigate(ACCOUNTS_ROUTES.MFA_VERIFY, {
-        state: { mfaToken: result.mfaToken, email },
+        state: { 
+          mfaToken: result.mfaToken, 
+          email,
+          mfaSetupRequired: result.mfa_setup_required || false 
+        },
       });
     } else if (!result.success) {
       setFormError(result.error || 'Login failed. Please try again.');
