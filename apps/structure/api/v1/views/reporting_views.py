@@ -1,218 +1,146 @@
-from rest_framework import status, filters
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db import transaction
-from django.utils import timezone
+from apps.structure.services.reporting.chain_service import ChainService
+from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanViewOrgChart
+from apps.structure.models.employment import Employment
+from apps.structure.api.v1.serializers.reporting_chain import (
+    SpanOfControlSerializer,
+    OrganizationSpanReportSerializer
+)
 from uuid import UUID
-from apps.structure.models.reporting_line import ReportingLine
-from apps.structure.api.v1.serializers.reporting_line import ReportingLineSerializer, ReportingLineDetailSerializer, ReportingLineCreateUpdateSerializer
-from apps.structure.api.v1.filters.reporting_filter import ReportingLineFilter
-from apps.structure.api.v1.throttles.structure_limits import ReportingRateThrottle, HierarchyReadThrottle, HierarchyWriteThrottle
-from apps.structure.api.v1.permissions.org_permissions import IsTenantMember, CanManageReporting, CanViewOrgChart
-from .base import BaseStructureViewSet
 
+class ReportingLineViewSet(viewsets.ViewSet):
+    permission_classes = [IsTenantMember, CanViewOrgChart]
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.chain_service = ChainService()
 
-class ReportingLineViewSet(BaseStructureViewSet):
-    queryset = ReportingLine.objects.select_related('employee', 'employee__position', 'manager', 'manager__position').all()
-    filterset_class = ReportingLineFilter
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['change_reason']
-    ordering_fields = ['effective_from', 'effective_to', 'created_at']
-    ordering = ['-effective_from']
-    
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return ReportingLineDetailSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
-            return ReportingLineCreateUpdateSerializer
-        return ReportingLineSerializer
-    
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            self.permission_classes = [IsTenantMember, CanManageReporting]
+    def get_span_data_dict(self, manager_employment):
+        tenant_id = manager_employment.tenant_id
+        # Direct reports count
+        if manager_employment.position:
+            direct_reports_count = Employment.objects.filter(
+                position__reports_to=manager_employment.position,
+                is_current=True,
+                is_active=True,
+                is_deleted=False,
+                tenant_id=tenant_id
+            ).count()
         else:
-            self.permission_classes = [IsTenantMember, CanViewOrgChart]
-        return super().get_permissions()
-    
-    def get_throttles(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            self.throttle_classes = [ReportingRateThrottle, HierarchyWriteThrottle]
-        else:
-            self.throttle_classes = [HierarchyReadThrottle]
-        return super().get_throttles()
-    
-    @action(detail=False, methods=['get'], url_path='by-employee/(?P<employee_user_id>[0-9a-f-]+)')
-    def get_by_employee(self, request, employee_user_id=None):
-        from apps.structure.models.employment import Employment
+            direct_reports_count = 0
+            
+        # All reports (direct + indirect)
+        all_reports = self.chain_service.get_all_reports(manager_employment.user_id, tenant_id)
+        total_reports_count = len(all_reports)
+        indirect_reports_count = max(0, total_reports_count - direct_reports_count)
+        
+        return {
+            'manager_user_id': manager_employment.user_id,
+            'direct_reports': direct_reports_count,
+            'indirect_reports': indirect_reports_count,
+            'total_reports': total_reports_count,
+            'is_healthy': direct_reports_count <= 15,
+            'warning': direct_reports_count > 15
+        }
+
+    @action(detail=False, methods=['get'], url_path='by-employee/(?P<user_id>[0-9a-f-]+)')
+    def by_employee(self, request, user_id=None):
         tenant_id = request.user.tenant_id
-        employment = Employment.objects.filter(
-            user_id=employee_user_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).first()
-        if not employment:
-            return Response({'error': 'Employee employment not found'}, status=status.HTTP_404_NOT_FOUND)
-        reporting_lines = ReportingLine.objects.filter(
-            employee_id=employment.id,
-            tenant_id=tenant_id,
-            is_deleted=False
-        ).select_related('manager', 'manager__position')
-        serializer = ReportingLineDetailSerializer(reporting_lines, many=True, context={'request': request})
-        return Response({
-            'employee_user_id': employee_user_id,
-            'reporting_lines': serializer.data,
-            'count': reporting_lines.count()
-        })
-    
-    @action(detail=False, methods=['get'], url_path='by-manager/(?P<manager_user_id>[0-9a-f-]+)')
-    def get_by_manager(self, request, manager_user_id=None):
-        from apps.structure.models.employment import Employment
+        chain = self.chain_service.get_chain_of_command(user_id, tenant_id)
+        return Response(chain)
+
+    @action(detail=False, methods=['get'], url_path='by-manager/(?P<user_id>[0-9a-f-]+)')
+    def by_manager(self, request, user_id=None):
         tenant_id = request.user.tenant_id
-        employment = Employment.objects.filter(
-            user_id=manager_user_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).first()
-        if not employment:
-            return Response({'error': 'Manager employment not found'}, status=status.HTTP_404_NOT_FOUND)
-        reporting_lines = ReportingLine.objects.filter(
-            manager_id=employment.id,
-            tenant_id=tenant_id,
-            is_deleted=False,
-            is_active=True
-        ).select_related('employee', 'employee__position')
-        serializer = ReportingLineDetailSerializer(reporting_lines, many=True, context={'request': request})
-        return Response({
-            'manager_user_id': manager_user_id,
-            'direct_reports': serializer.data,
-            'count': reporting_lines.count()
-        })
-    
-    @action(detail=False, methods=['get'], url_path='chain/(?P<employee_user_id>[0-9a-f-]+)')
-    def get_reporting_chain(self, request, employee_user_id=None):
-        from apps.structure.services.reporting.chain_service import ChainService
+        reports = self.chain_service.get_direct_reports(user_id, tenant_id)
+        from apps.structure.api.v1.serializers.employment import EmploymentSerializer
+        serializer = EmploymentSerializer(reports, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='chain/(?P<user_id>[0-9a-f-]+)')
+    def chain(self, request, user_id=None):
         tenant_id = request.user.tenant_id
-        chain_service = ChainService()
-        try:
-            chain_up = chain_service.get_chain_of_command(UUID(employee_user_id), tenant_id)
-            return Response({
-                'employee_user_id': employee_user_id,
-                'managers': chain_up,
-                'management_level': len(chain_up)
-            })
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['get'], url_path='span-of-control/(?P<manager_user_id>[0-9a-f-]+)')
-    def get_span_of_control(self, request, manager_user_id=None):
-        from apps.structure.services.reporting.span_of_control import SpanOfControl
+        chain = self.chain_service.get_chain_of_command(user_id, tenant_id)
+        return Response(chain)
+
+    @action(detail=False, methods=['get'], url_path='span-of-control/(?P<manager_id>[0-9a-f-]+)')
+    def span_of_control(self, request, manager_id=None):
         tenant_id = request.user.tenant_id
-        span_service = SpanOfControl()
-        try:
-            span = span_service.calculate_span(UUID(manager_user_id))
-            return Response(span)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
+        # Find manager employment by employment id first
+        emp = Employment.objects.filter(id=manager_id, tenant_id=tenant_id, is_deleted=False).first()
+        if not emp:
+            # Fall back to user_id
+            emp = Employment.objects.filter(user_id=manager_id, tenant_id=tenant_id, is_current=True, is_active=True, is_deleted=False).first()
+            
+        if not emp:
+            return Response({'error': 'Employment not found for the specified manager ID.'}, status=status.HTTP_404_NOT_FOUND)
+            
+        span_data = self.get_span_data_dict(emp)
+        serializer = SpanOfControlSerializer(span_data)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'], url_path='organization-span')
-    def get_organization_span(self, request):
-        from apps.structure.services.reporting.span_of_control import SpanOfControl
+    def organization_span(self, request):
         tenant_id = request.user.tenant_id
-        span_service = SpanOfControl()
-        report = span_service.get_span_by_level(tenant_id, None)
-        average = span_service.get_average_span(tenant_id)
-        distribution = span_service.get_span_distribution(tenant_id)
-        warnings = span_service.identify_overloaded_managers(tenant_id)
-        return Response({
-            'span_report': report,
-            'average_metrics': average,
+        
+        # Get all managers in tenant
+        managers = Employment.objects.filter(
+            tenant_id=tenant_id,
+            is_manager=True,
+            is_current=True,
+            is_active=True,
+            is_deleted=False
+        )
+        
+        manager_spans = []
+        for mgr in managers:
+            manager_spans.append(self.get_span_data_dict(mgr))
+            
+        # Distribution
+        distribution = {
+            '0': 0,
+            '1-5': 0,
+            '6-10': 0,
+            '11-15': 0,
+            '16-20': 0,
+            '20+': 0
+        }
+        for span in manager_spans:
+            total = span['direct_reports']
+            if total == 0:
+                distribution['0'] += 1
+            elif total <= 5:
+                distribution['1-5'] += 1
+            elif total <= 10:
+                distribution['6-10'] += 1
+            elif total <= 15:
+                distribution['11-15'] += 1
+            elif total <= 20:
+                distribution['16-20'] += 1
+            else:
+                distribution['20+'] += 1
+                
+        # Averages
+        if manager_spans:
+            count = len(manager_spans)
+            avg_direct = sum(s['direct_reports'] for s in manager_spans) / count
+            avg_indirect = sum(s['indirect_reports'] for s in manager_spans) / count
+            avg_total = sum(s['total_reports'] for s in manager_spans) / count
+        else:
+            avg_direct = avg_indirect = avg_total = 0.0
+            
+        managers_with_warning = [s for s in manager_spans if s['warning']]
+        
+        report_data = {
+            'managers': manager_spans,
+            'average_direct': round(avg_direct, 2),
+            'average_indirect': round(avg_indirect, 2),
+            'average_total': round(avg_total, 2),
             'distribution': distribution,
-            'managers_with_warning': warnings,
-            'warning_count': len(warnings)
-        })
-    
-    @action(detail=False, methods=['post'], url_path='assign-manager')
-    @transaction.atomic
-    def assign_manager(self, request):
-        employee_user_id = request.data.get('employee_user_id')
-        manager_user_id = request.data.get('manager_user_id')
-        effective_date = request.data.get('effective_date', timezone.now().date())
+            'managers_with_warning': managers_with_warning
+        }
         
-        if not employee_user_id or not manager_user_id:
-            return Response({'error': 'employee_user_id and manager_user_id are required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        from apps.structure.services.reporting.chain_service import ChainService
-        from apps.structure.models.employment import Employment
-        tenant_id = request.user.tenant_id
-        
-        employee_emp = Employment.objects.filter(
-            user_id=employee_user_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).first()
-        if not employee_emp:
-            return Response({'error': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
-        
-        manager_emp = Employment.objects.filter(
-            user_id=manager_user_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).first()
-        if not manager_emp:
-            return Response({'error': 'Manager not found'}, status=status.HTTP_404_NOT_FOUND)
-        
-        chain_service = ChainService()
-        try:
-            reporting_line = chain_service.assign_manager(
-                employee_emp.id,
-                manager_emp.id,
-                effective_date,
-                request.user.id
-            )
-            serializer = ReportingLineSerializer(reporting_line, context={'request': request})
-            return Response({
-                'message': 'Manager assigned successfully',
-                'reporting_line': serializer.data
-            }, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['post'], url_path='remove-manager')
-    @transaction.atomic
-    def remove_manager(self, request):
-        employee_user_id = request.data.get('employee_user_id')
-        if not employee_user_id:
-            return Response({'error': 'employee_user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        from apps.structure.services.reporting.chain_service import ChainService
-        from apps.structure.models.employment import Employment
-        tenant_id = request.user.tenant_id
-        
-        employee_emp = Employment.objects.filter(
-            user_id=employee_user_id,
-            tenant_id=tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).first()
-        if not employee_emp:
-            return Response({'error': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
-        
-        chain_service = ChainService()
-        try:
-            chain_service.remove_manager(employee_emp.id)
-            return Response({
-                'message': 'Manager removed successfully',
-                'employee_user_id': employee_user_id
-            })
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = OrganizationSpanReportSerializer(report_data)
+        return Response(serializer.data)

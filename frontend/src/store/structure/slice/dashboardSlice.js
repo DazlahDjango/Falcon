@@ -14,7 +14,7 @@ export const fetchDashboardOverview = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureDashboardService.getOverview();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch dashboard overview');
     }
@@ -26,7 +26,7 @@ export const fetchDashboardHealth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureDashboardService.getHierarchyHealth();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch hierarchy health');
     }
@@ -38,7 +38,7 @@ export const fetchDashboardTrends = createAsyncThunk(
   async (months, { rejectWithValue }) => {
     try {
       const response = await structureDashboardService.getTrends(months);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch dashboard trends');
     }

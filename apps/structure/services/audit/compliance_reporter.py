@@ -4,7 +4,7 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from apps.structure.models.employment import Employment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.models.organizational_unit import OrganizationalUnit
 from apps.structure.services.reporting.chain_validator import ChainValidator
 from apps.structure.services.reporting.span_of_control import SpanOfControl
@@ -57,7 +57,7 @@ class ComplianceReporterService:
     def generate_org_health_check(self, tenant_id: UUID) -> Dict[str, Any]:
         units = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False)
         employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False)
-        reporting_lines = ReportingLine.objects.filter(tenant_id=tenant_id, is_active=True, is_deleted=False)
+        employments = Employment.objects.filter(tenant_id=tenant_id, is_active=True, is_deleted=False)
         chain_issues = self.chain_validator.validate_all_chains(tenant_id)
         spans = self.span_control.get_span_by_level(tenant_id, None)
         health = {
@@ -67,7 +67,7 @@ class ComplianceReporterService:
             'statistics': {
                 'total_org_units': units.count(),
                 'total_employments': employments.count(),
-                'total_reporting_lines': reporting_lines.count(),
+                'total_employments': employments.count(),
                 'managers_count': employments.filter(is_manager=True).count(),
                 'executives_count': employments.filter(is_executive=True).count(),
                 'org_depth': max([unit.depth for unit in units]) if units.exists() else 0

@@ -129,20 +129,21 @@ class CSVExporterService:
     
     @staticmethod
     def export_employments(tenant_id: UUID, current_only: bool = True) -> str:
-        employments = Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('position', 'division', 'department', 'section', 'unit')
+        employments = Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit')
         if current_only:
             employments = employments.filter(is_current=True, is_active=True)
         output = StringIO()
         writer = csv.writer(output)
         writer.writerow(['User ID', 'Position Code', 'Division', 'Department', 'Section', 'Unit', 'Employment Type', 'Is Manager', 'Is Executive', 'Effective From', 'Effective To', 'Is Current'])
         for emp in employments:
+            pos = emp.position
             writer.writerow([
                 str(emp.user_id),
-                emp.position.job_code if emp.position else '',
-                emp.division.code if emp.division else '',
-                emp.department.code if emp.department else '',
-                emp.section.code if emp.section else '',
-                emp.unit.code if emp.unit else '',
+                pos.job_code if pos else '',
+                pos.division.code if pos and pos.division else '',
+                pos.department.code if pos and pos.department else '',
+                pos.section.code if pos and pos.section else '',
+                pos.unit.code if pos and pos.unit else '',
                 emp.employment_type,
                 emp.is_manager,
                 emp.is_executive,
@@ -172,9 +173,9 @@ class CSVExporterService:
         return output.getvalue()
     
     @staticmethod
-    def export_reporting_lines(tenant_id: UUID, active_only: bool = True) -> str:
-        from apps.structure.models.reporting_line import ReportingLine
-        lines = ReportingLine.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('employee', 'manager')
+    def export_employments(tenant_id: UUID, active_only: bool = True) -> str:
+        from apps.structure.models.employment import Employment
+        lines = Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('employee', 'manager')
         if active_only:
             lines = lines.filter(is_active=True)
         output = StringIO()

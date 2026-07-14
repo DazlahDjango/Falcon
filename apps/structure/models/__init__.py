@@ -6,10 +6,11 @@ from .section import Section
 from .unit import Unit
 from .position import Position
 from .employment import Employment
-from .reporting_line import ReportingLine
 from .interim_assignment import InterimAssignment
 from .cost_center import CostCenter
+from .cost_center_allocation import CostCenterAllocation
 from .location import Location
+from .location_allocation import LocationAllocation
 from .hierarchy_version import HierarchyVersion
 from .system_settings import StructureSystemSettings  # ADD THIS LINE
 
@@ -22,10 +23,11 @@ __all__ = [
     'Unit',
     'Position',
     'Employment',
-    'ReportingLine',
     'InterimAssignment',
     'CostCenter',
+    'CostCenterAllocation',
     'Location',
+    'LocationAllocation',
     'HierarchyVersion',
-    'StructureSystemSettings',  # ADD THIS
+    'StructureSystemSettings',
 ]

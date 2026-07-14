@@ -3,18 +3,32 @@ from django.utils.translation import gettext_lazy as _
 from apps.structure.models.location import Location
 from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
+class LocationAllocationSerializer(serializers.ModelSerializer):
+    allocated_to_type = serializers.CharField(source='content_type.model', read_only=True)
+    allocated_to_name = serializers.CharField(source='allocated_to.name', read_only=True)
+    allocated_to_code = serializers.CharField(source='allocated_to.code', read_only=True)
+
+    class Meta:
+        from apps.structure.models.location_allocation import LocationAllocation
+        model = LocationAllocation
+        fields = [
+            'id', 'content_type', 'object_id', 'allocated_to_type', 
+            'allocated_to_name', 'allocated_to_code', 'allocation_percentage'
+        ]
+
 class LocationSerializer(BaseStructureSerializer):
     type_display = serializers.CharField(source='get_type_display', read_only=True)
-    organizational_unit_code = serializers.CharField(source='organizational_unit.code', read_only=True, allow_null=True)
-    organizational_unit_name = serializers.CharField(source='organizational_unit.name', read_only=True, allow_null=True)
     parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
+    cost_center_name = serializers.CharField(source='cost_center.name', read_only=True, allow_null=True)
+    manager_name = serializers.CharField(source='manager.employee_name', read_only=True, allow_null=True)
+    allocations = LocationAllocationSerializer(many=True, read_only=True)
     
     class Meta:
         model = Location
         fields = [
             'id', 'tenant_id', 'code', 'name', 'type', 'type_display',
-            'organizational_unit_id', 'organizational_unit_code',
-            'organizational_unit_name', 'parent_id', 'parent_code',
+            'cost_center_id', 'cost_center_name', 'manager_id', 'manager_name',
+            'parent_id', 'parent_code', 'allocations',
             'city', 'country', 'is_headquarters', 'is_active',
             'timezone', 'created_at'
         ]
@@ -22,21 +36,22 @@ class LocationSerializer(BaseStructureSerializer):
 
 class LocationDetailSerializer(BaseStructureDetailSerializer):
     type_display = serializers.CharField(source='get_type_display', read_only=True)
-    organizational_unit_code = serializers.CharField(source='organizational_unit.code', read_only=True, allow_null=True)
-    organizational_unit_name = serializers.CharField(source='organizational_unit.name', read_only=True, allow_null=True)
     parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
     parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
+    cost_center_name = serializers.CharField(source='cost_center.name', read_only=True, allow_null=True)
+    manager_name = serializers.CharField(source='manager.employee_name', read_only=True, allow_null=True)
     full_address = serializers.CharField(read_only=True)
     sub_location_count = serializers.SerializerMethodField()
     occupancy_rate = serializers.SerializerMethodField()
+    allocations = LocationAllocationSerializer(many=True, read_only=True)
     
     class Meta:
         model = Location
         fields = [
             'id', 'tenant_id', 'code', 'name', 'type', 'type_display',
-            'organizational_unit_id', 'organizational_unit_code',
-            'organizational_unit_name', 'parent_id', 'parent_code',
-            'parent_name', 'address_line1', 'address_line2',
+            'cost_center_id', 'cost_center_name', 'manager_id', 'manager_name',
+            'parent_id', 'parent_code', 'parent_name', 'allocations',
+            'address_line1', 'address_line2',
             'city', 'state_province', 'postal_code', 'country',
             'timezone', 'is_headquarters', 'is_active', 'is_deleted',
             'seating_capacity', 'current_occupancy', 'phone_number',
@@ -56,17 +71,19 @@ class LocationDetailSerializer(BaseStructureDetailSerializer):
         return None
 
 class LocationCreateUpdateSerializer(serializers.ModelSerializer):
-    organizational_unit_id = serializers.UUIDField(required=False, allow_null=True)
+    cost_center_id = serializers.UUIDField(required=False, allow_null=True)
+    manager_id = serializers.UUIDField(required=False, allow_null=True)
     parent_id = serializers.UUIDField(required=False, allow_null=True)
+    allocations = serializers.ListField(child=serializers.DictField(), required=False, write_only=True)
     
     class Meta:
         model = Location
         fields = [
-            'code', 'name', 'type', 'organizational_unit_id',
+            'code', 'name', 'type', 'cost_center_id', 'manager_id',
             'parent_id', 'address_line1', 'address_line2', 'city',
             'state_province', 'postal_code', 'country', 'timezone',
             'is_headquarters', 'is_active', 'seating_capacity',
-            'current_occupancy', 'phone_number', 'email'
+            'current_occupancy', 'phone_number', 'email', 'allocations'
         ]
     
     def validate_code(self, value):
@@ -95,16 +112,55 @@ class LocationCreateUpdateSerializer(serializers.ModelSerializer):
         if value is not None:
             validate_seating_capacity(value)
         return value
+        
+    def _handle_allocations(self, location, allocations_data, tenant_id):
+        from apps.structure.models.location_allocation import LocationAllocation
+        from django.contrib.contenttypes.models import ContentType
+        
+        LocationAllocation.objects.filter(location=location).delete()
+        
+        if not allocations_data:
+            return
+            
+        allocations_to_create = []
+        for alloc in allocations_data:
+            try:
+                content_type = ContentType.objects.get(app_label='structure', model=alloc['model_name'].lower())
+                allocations_to_create.append(LocationAllocation(
+                    tenant_id=tenant_id,
+                    location=location,
+                    content_type=content_type,
+                    object_id=alloc['object_id'],
+                    allocation_percentage=alloc.get('allocation_percentage', 100)
+                ))
+            except ContentType.DoesNotExist:
+                continue
+        
+        if allocations_to_create:
+            LocationAllocation.objects.bulk_create(allocations_to_create)
     
     def create(self, validated_data):
+        allocations_data = validated_data.pop('allocations', [])
         request = self.context.get('request')
+        tenant_id = None
         if request:
-            validated_data['tenant_id'] = request.user.tenant_id
+            tenant_id = request.user.tenant_id
+            validated_data['tenant_id'] = tenant_id
             validated_data['created_by'] = request.user.id
-        return super().create(validated_data)
+            
+        location = super().create(validated_data)
+        if tenant_id:
+            self._handle_allocations(location, allocations_data, tenant_id)
+        return location
     
     def update(self, instance, validated_data):
+        allocations_data = validated_data.pop('allocations', [])
         request = self.context.get('request')
+        tenant_id = instance.tenant_id
         if request:
             validated_data['updated_by'] = request.user.id
-        return super().update(instance, validated_data)
+            
+        location = super().update(instance, validated_data)
+        if tenant_id:
+            self._handle_allocations(location, allocations_data, tenant_id)
+        return location

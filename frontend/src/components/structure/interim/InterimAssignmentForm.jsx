@@ -80,7 +80,7 @@ export const InterimAssignmentForm = () => {
   ];
 
   // Show loading while fetching interim assignment or employments
-  if (isLoading || isLoadingEmployments) {
+  if ((isEditing && isLoading) || isLoadingEmployments) {
     return (
       <div className="interim-form-loading">
         <StructureLoading text="Loading interim assignment..." />

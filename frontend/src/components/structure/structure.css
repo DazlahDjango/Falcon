@@ -25,17 +25,218 @@
 @import './settings/settings.css';
 @import './bulk/bulk.css';
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
 /* ============================================
-   ROOT VARIABLES
+   PREMIUM UNIFIED FORM STYLES
+   ============================================ */
+
+/* Main form container card styling */
+.structure-form-container {
+  background: var(--bg-white, #ffffff) !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--border-color, #f1f5f9) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+  overflow: hidden !important;
+  max-width: 850px !important;
+  margin: 2rem auto !important;
+}
+
+/* Header style styling */
+.structure-form-header {
+  padding: 24px 32px !important;
+  background: #f8fafc !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.structure-form-header h2 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Form body layout */
+.structure-form-body {
+  padding: 32px !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 24px 32px !important;
+}
+
+/* Inputs, Textareas, Selects and inline wrapper selectors */
+.structure-form-body .form-group input:not([type="checkbox"]),
+.structure-form-body .form-group textarea,
+.structure-form-body .form-group select,
+.structure-form-body .input-with-icon {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  color: #0f172a !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  outline: none !important;
+  width: 100% !important;
+}
+
+.structure-form-body .form-group input:not([type="checkbox"]):focus,
+.structure-form-body .form-group textarea:focus,
+.structure-form-body .form-group select:focus,
+.structure-form-body .input-with-icon:focus-within {
+  background: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08) !important;
+}
+
+/* Specific styling for input-with-icon elements */
+.structure-form-body .input-with-icon {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 16px !important;
+}
+
+.structure-form-body .input-with-icon input,
+.structure-form-body .input-with-icon select {
+  background: transparent !important;
+  border: none !important;
+  padding: 12px 8px !important;
+  box-shadow: none !important;
+}
+
+.structure-form-body .input-with-icon input:focus,
+.structure-form-body .input-with-icon select:focus {
+  box-shadow: none !important;
+}
+
+.structure-form-body .input-with-icon .input-icon {
+  color: #94a3b8 !important;
+}
+
+/* Labels and Groupings */
+.structure-form-body .form-group label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  margin-bottom: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.structure-form-body .form-group .required {
+  color: #ef4444 !important;
+}
+
+.structure-form-body .form-hint {
+  font-size: 12px !important;
+  color: #64748b !important;
+  margin-top: 4px !important;
+}
+
+/* Section styling (e.g. Configuration, Financials) */
+.form-section, .division-form-section {
+  grid-column: 1 / -1 !important;
+  margin-top: 16px !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding-top: 24px !important;
+}
+
+.form-section h3, .division-form-section__title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin-bottom: 20px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-left: 3px solid #3b82f6 !important;
+  padding-left: 10px !important;
+}
+
+/* Footer & Action Buttons */
+.structure-form-footer {
+  padding: 20px 32px !important;
+  background: #f8fafc !important;
+  border-top: 1px solid #f1f5f9 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 16px !important;
+}
+
+.structure-form-footer .btn {
+  padding: 12px 24px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.2s ease !important;
+  height: 44px !important;
+}
+
+.structure-form-footer .btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+  border: none !important;
+}
+
+.structure-form-footer .btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3) !important;
+}
+
+.structure-form-footer .btn-secondary {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+.structure-form-footer .btn-secondary:hover:not(:disabled) {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.structure-form-footer .btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Checkbox layout inside unified styling */
+.structure-form-body .form-group.checkbox-group {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 0 !important;
+  grid-column: span 1 !important;
+}
+
+.structure-form-body .checkbox-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  cursor: pointer !important;
+}
+
+/* ============================================
+   ROOT VARIABLES (Premium Light Theme)
    ============================================ */
 :root {
-  /* Colors - Light Theme */
-  --bg-page: #f8fafc;
+  /* Colors */
+  --bg-page: #f4f7fb;
   --bg-white: #ffffff;
   --bg-gray-50: #f8fafc;
   --bg-gray-100: #f1f5f9;
-  --bg-gray-200: #e5e7eb;
-  --bg-gray-800: #1f2937;
+  --bg-gray-200: #e2e8f0;
+  --bg-gray-800: #1e293b;
 
   /* Text Colors */
   --text-primary: #0f172a;
@@ -45,12 +246,13 @@
   /* Border Colors */
   --border-color: #e2e8f0;
   --border-light: #f1f5f9;
+  --border-focus: rgba(99, 102, 241, 0.5);
 
   /* Status Colors */
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --primary-light: #eff6ff;
-
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --primary-light: #e0e7ff;
+  
   --success: #10b981;
   --success-light: #ecfdf5;
 
@@ -61,11 +263,33 @@
   --danger-dark: #dc2626;
   --danger-light: #fef2f2;
 
-  --info: #06b6d4;
-  --info-light: #ecfeff;
+  --info: #0ea5e9;
+  --info-light: #e0f2fe;
 
-  --secondary: #6b7280;
-  --secondary-light: #f1f5f9;
+  --secondary: #64748b;
+  --secondary-light: #f8fafc;
+
+  /* Premium Design Tokens */
+  --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  --gradient-hero: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+  
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 8px 24px rgba(79, 70, 229, 0.25);
+  
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: blur(12px);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================
@@ -78,7 +302,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-page);
   color: var(--text-primary);
   line-height: 1.6;

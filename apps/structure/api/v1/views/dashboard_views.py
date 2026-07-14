@@ -15,12 +15,33 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
     @action(detail=False, methods=['get'], url_path='overview')
     def get_overview(self, request):
         tenant_id = request.user.tenant_id
-        from apps.structure.models import OrganizationalUnit, Employment, Position, Location, CostCenter
-        # Organizational Unit stats
-        units = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_deleted=False)
-        unit_total = units.count()
-        unit_active = units.filter(is_active=True).count()
-        unit_root = units.filter(parent__isnull=True).count()
+        from apps.structure.models import Division, Department, Section, Unit, Employment, Position, Location, CostCenter
+        
+        # Query individual organizational level tables
+        divisions = Division.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        departments = Department.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        sections = Section.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        units_model = Unit.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        
+        div_count = divisions.count()
+        dept_count = departments.count()
+        sec_count = sections.count()
+        unit_count = units_model.count()
+        
+        unit_total = div_count + dept_count + sec_count + unit_count
+        unit_active = (
+            divisions.filter(is_active=True).count() +
+            departments.filter(is_active=True).count() +
+            sections.filter(is_active=True).count() +
+            units_model.filter(is_active=True).count()
+        )
+        unit_root = (
+            divisions.filter(parent__isnull=True).count() +
+            departments.filter(parent__isnull=True).count() +
+            sections.filter(parent__isnull=True).count() +
+            units_model.filter(parent__isnull=True).count()
+        )
+        
         # Employment stats
         employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True)
         emp_total = employments.count()
@@ -41,10 +62,12 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
         total_budget = cost_centers.aggregate(total=models.Sum('budget_amount'))['total'] or 0
         # Level distribution
         from apps.structure.enums.org_level import OrgLevel
-        level_distribution = {}
-        for level in [OrgLevel.DIVISION, OrgLevel.DEPARTMENT, OrgLevel.SECTION, OrgLevel.UNIT]:
-            count = units.filter(level=level, is_deleted=False).count()
-            level_distribution[level] = count
+        level_distribution = {
+            OrgLevel.DIVISION: div_count,
+            OrgLevel.DEPARTMENT: dept_count,
+            OrgLevel.SECTION: sec_count,
+            OrgLevel.UNIT: unit_count,
+        }
         return Response({
             'tenant_id': str(tenant_id),
             'generated_at': timezone.now().isoformat(),

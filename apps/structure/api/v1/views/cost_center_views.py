@@ -12,7 +12,7 @@ from .base import BaseStructureViewSet
 
 
 class CostCenterViewSet(BaseStructureViewSet):
-    queryset = CostCenter.objects.select_related('organizational_unit').all()
+    queryset = CostCenter.objects.select_related('manager', 'parent').all()
     filterset_class = CostCenterFilter
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['code', 'name', 'description']
@@ -56,7 +56,7 @@ class CostCenterViewSet(BaseStructureViewSet):
             fiscal_year=year,
             tenant_id=tenant_id,
             is_deleted=False
-        ).select_related('organizational_unit')
+        ).select_related('manager', 'parent')
         serializer = CostCenterSerializer(cost_centers, many=True, context={'request': request})
         return Response({
             'fiscal_year': int(year),
@@ -73,10 +73,10 @@ class CostCenterViewSet(BaseStructureViewSet):
         except ValueError:
             return Response({'error': 'Invalid organization unit ID'}, status=status.HTTP_400_BAD_REQUEST)
         cost_centers = CostCenter.objects.filter(
-            organizational_unit_id=org_unit_id,
+            parent_id=org_unit_id,
             tenant_id=tenant_id,
             is_deleted=False
-        ).select_related('organizational_unit')
+        ).select_related('manager', 'parent')
         serializer = CostCenterSerializer(cost_centers, many=True, context={'request': request})
         return Response({
             'organizational_unit_id': str(org_unit_id),
@@ -95,10 +95,9 @@ class CostCenterViewSet(BaseStructureViewSet):
             is_active=True
         ).values_list('id', flat=True)
         cost_centers = CostCenter.objects.filter(
-            organizational_unit_id__in=units,
             tenant_id=tenant_id,
             is_deleted=False
-        ).select_related('organizational_unit')
+        ).select_related('manager', 'parent')
         serializer = CostCenterSerializer(cost_centers, many=True, context={'request': request})
         return Response({
             'level': level,

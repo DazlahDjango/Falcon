@@ -13,3 +13,4 @@ export * from './OrgChartPages';
 export * from './DashboardPages';
 export * from './SettingsPages';
 export * from './BulkPages';
+export * from './StructurePage';

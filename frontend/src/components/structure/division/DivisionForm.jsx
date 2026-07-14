@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiLayers, FiTarget, FiUsers, FiInfo } from 'react-icons/fi';
 import { useDivisions, useDivisionForm } from '../../../hooks/structure';
+import UserSelector from '../../accounts/users/UserSelector';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './division.css';
@@ -26,14 +27,22 @@ export const DivisionForm = () => {
       code: '',
       name: '',
       description: '',
+      director_id: '',
       headcount_limit: '',
       is_active: true,
     },
     onSubmit: async (formData) => {
+      const submitData = { ...formData };
+      if (submitData.director_id === '') {
+        submitData.director_id = null;
+      }
+      if (submitData.headcount_limit === '') {
+        submitData.headcount_limit = null;
+      }
       if (isEditing) {
-        await update(id, formData);
+        await update(id, submitData).unwrap();
       } else {
-        await create(formData);
+        await create(submitData).unwrap();
       }
       navigate(STRUCTURE_ROUTES.DIVISIONS);
     },
@@ -51,6 +60,7 @@ export const DivisionForm = () => {
         code: currentItem.code || '',
         name: currentItem.name || '',
         description: currentItem.description || '',
+        director_id: currentItem.director_id || '',
         headcount_limit: currentItem.headcount_limit || '',
         is_active: currentItem.is_active !== undefined ? currentItem.is_active : true,
       });
@@ -61,7 +71,7 @@ export const DivisionForm = () => {
     navigate(STRUCTURE_ROUTES.DIVISIONS);
   }, [navigate]);
 
-  if (isLoading) {
+  if (isEditing && isLoading) {
     return (
       <div className="division-form-loading">
         <StructureLoading text="Loading division..." />
@@ -189,6 +199,17 @@ export const DivisionForm = () => {
         <div className="division-form-section">
           <div className="division-form-section__title">Configuration</div>
           <div className="division-form-grid">
+            <div className="form-group">
+              <label htmlFor="director_id">Division Director</label>
+              <UserSelector
+                value={values.director_id}
+                onChange={(value) => setFieldValue('director_id', value)}
+                disabled={isSubmitting}
+                className="w-full"
+              />
+              <span className="form-hint">Select the director for this division</span>
+            </div>
+
             <div className="form-group">
               <label htmlFor="headcount_limit">Headcount Limit</label>
               <input

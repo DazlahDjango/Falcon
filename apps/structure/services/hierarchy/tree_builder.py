@@ -23,7 +23,10 @@ class TreeBuilder:
                 return cached
         tree = {
             'tenant_id': str(tenant_id),
-            'divisions': self._build_divisions(tenant_id)
+            'divisions': self._build_divisions(tenant_id),
+            'departments': self._build_top_level_departments(tenant_id),
+            'sections': self._build_top_level_sections(tenant_id),
+            'units': self._build_top_level_units(tenant_id),
         }
         if use_cache:
             self._cache.set(cache_key, tree, DEFAULT_MAX_CACHE_TTL_SECONDS)
@@ -32,6 +35,18 @@ class TreeBuilder:
     def _build_divisions(self, tenant_id: UUID) -> List[Dict[str, Any]]:
         divisions = Division.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True)
         return [self._build_division_node(div) for div in divisions]
+
+    def _build_top_level_departments(self, tenant_id: UUID) -> List[Dict[str, Any]]:
+        departments = Department.objects.filter(tenant_id=tenant_id, division__isnull=True, is_deleted=False, is_active=True)
+        return [self._build_department_node(dept) for dept in departments]
+        
+    def _build_top_level_sections(self, tenant_id: UUID) -> List[Dict[str, Any]]:
+        sections = Section.objects.filter(tenant_id=tenant_id, department__isnull=True, is_deleted=False, is_active=True)
+        return [self._build_section_node(section) for section in sections]
+        
+    def _build_top_level_units(self, tenant_id: UUID) -> List[Dict[str, Any]]:
+        units = Unit.objects.filter(tenant_id=tenant_id, section__isnull=True, is_deleted=False, is_active=True)
+        return [self._build_unit_node(unit) for unit in units]
     
     def _build_division_node(self, division: Division) -> Dict[str, Any]:
         return {
@@ -54,7 +69,7 @@ class TreeBuilder:
         }
     
     def _build_departments(self, division_id: UUID) -> List[Dict[str, Any]]:
-        departments = Department.objects.filter(parent_id=division_id, is_deleted=False, is_active=True)
+        departments = Department.objects.filter(division_id=division_id, is_deleted=False, is_active=True)
         return [self._build_department_node(dept) for dept in departments]
     
     def _build_department_node(self, department: Department) -> Dict[str, Any]:
@@ -66,7 +81,7 @@ class TreeBuilder:
             'level': department.level,
             'depth': department.depth,
             'path': department.path,
-            'cost_center_id': department.cost_center_id,
+            'cost_center_id': getattr(department, 'cost_center_id', None),
             'budget_code': department.budget_code,
             'headcount_limit': department.headcount_limit,
             'is_active': department.is_active,
@@ -77,7 +92,7 @@ class TreeBuilder:
         }
     
     def _build_sections(self, department_id: UUID) -> List[Dict[str, Any]]:
-        sections = Section.objects.filter(parent_id=department_id, is_deleted=False, is_active=True)
+        sections = Section.objects.filter(department_id=department_id, is_deleted=False, is_active=True)
         return [self._build_section_node(section) for section in sections]
     
     def _build_section_node(self, section: Section) -> Dict[str, Any]:
@@ -99,7 +114,7 @@ class TreeBuilder:
         }
     
     def _build_units(self, section_id: UUID) -> List[Dict[str, Any]]:
-        units = Unit.objects.filter(parent_id=section_id, is_deleted=False, is_active=True)
+        units = Unit.objects.filter(section_id=section_id, is_deleted=False, is_active=True)
         return [self._build_unit_node(unit) for unit in units]
     
     def _build_unit_node(self, unit: Unit) -> Dict[str, Any]:
@@ -120,7 +135,8 @@ class TreeBuilder:
         }
     
     def _get_employments(self, org_id: UUID, field_name: str) -> List[Dict[str, Any]]:
-        filter_kwargs = {field_name: org_id, 'is_deleted': False, 'is_active': True, 'is_current': True}
+        position_field = f"position__{field_name}"
+        filter_kwargs = {position_field: org_id, 'is_deleted': False, 'is_active': True, 'is_current': True}
         employments = Employment.objects.filter(**filter_kwargs).select_related('position')
         return [{
             'id': str(emp.id),
@@ -144,31 +160,42 @@ class TreeBuilder:
         } for emp in employments]
     
     def _get_locations(self, org_id: UUID) -> List[Dict[str, Any]]:
-        from apps.structure.models.location import Location
-        locations = Location.objects.filter(organizational_unit_id=org_id, is_deleted=False, is_active=True)
+        from apps.structure.models.location_allocation import LocationAllocation
+        allocations = LocationAllocation.objects.filter(
+            object_id=org_id,
+            is_deleted=False,
+            location__is_deleted=False,
+            location__is_active=True
+        ).select_related('location')
         return [{
-            'id': str(loc.id),
-            'code': loc.code,
-            'name': loc.name,
-            'type': loc.type,
-            'city': loc.city,
-            'country': loc.country,
-            'full_address': loc.full_address,
-            'is_headquarters': loc.is_headquarters
-        } for loc in locations]
+            'id': str(alloc.location.id),
+            'code': alloc.location.code,
+            'name': alloc.location.name,
+            'type': alloc.location.type,
+            'city': alloc.location.city,
+            'country': alloc.location.country,
+            'full_address': alloc.location.full_address,
+            'is_headquarters': alloc.location.is_headquarters,
+            'allocation_percentage': float(alloc.allocation_percentage)
+        } for alloc in allocations]
     
     def _get_cost_centers(self, org_id: UUID) -> List[Dict[str, Any]]:
-        from apps.structure.models.cost_center import CostCenter
-        cost_centers = CostCenter.objects.filter(organizational_unit_id=org_id, is_deleted=False, is_active=True)
+        from apps.structure.models.cost_center_allocation import CostCenterAllocation
+        allocations = CostCenterAllocation.objects.filter(
+            object_id=org_id,
+            is_deleted=False,
+            cost_center__is_deleted=False,
+            cost_center__is_active=True
+        ).select_related('cost_center')
         return [{
-            'id': str(cc.id),
-            'code': cc.code,
-            'name': cc.name,
-            'category': cc.category,
-            'budget_amount': float(cc.budget_amount) if cc.budget_amount else None,
-            'fiscal_year': cc.fiscal_year,
-            'allocation_percentage': float(cc.allocation_percentage)
-        } for cc in cost_centers]
+            'id': str(alloc.cost_center.id),
+            'code': alloc.cost_center.code,
+            'name': alloc.cost_center.name,
+            'category': alloc.cost_center.category,
+            'budget_amount': float(alloc.cost_center.budget_amount) if alloc.cost_center.budget_amount else None,
+            'fiscal_year': alloc.cost_center.fiscal_year,
+            'allocation_percentage': float(alloc.allocation_percentage)
+        } for alloc in allocations]
     
     def build_subtree(self, org_id: UUID, org_type: str) -> Optional[Dict[str, Any]]:
         model_map = {

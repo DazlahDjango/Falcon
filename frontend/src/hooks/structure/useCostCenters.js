@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import {
     fetchCostCenters,
     fetchCostCenterById,
@@ -26,7 +26,15 @@ import {
 
 export const useCostCenters = (options = {}) => {
     const dispatch = useDispatch();
-    const { autoFetch = true, params = {} } = options;
+    const { autoFetch = true, params: initialParams = {} } = options;
+
+    const isFirstRender = useRef(true);
+    const hasFetched = useRef(false);
+    const prevParamsRef = useRef(initialParams);
+
+    const params = useMemo(() => initialParams, [
+        JSON.stringify(initialParams)
+    ]);
 
     const items = useSelector(selectCostCentersItems);
     const currentItem = useSelector(selectCostCentersCurrent);
@@ -36,7 +44,8 @@ export const useCostCenters = (options = {}) => {
     const totalCount = useSelector(selectCostCentersTotal);
 
     const fetchAll = useCallback((fetchParams) => {
-        return dispatch(fetchCostCenters(fetchParams || params));
+        const paramsToUse = fetchParams || params;
+        return dispatch(fetchCostCenters(paramsToUse));
     }, [dispatch, params]);
 
     const fetchById = useCallback((id) => {
@@ -88,10 +97,18 @@ export const useCostCenters = (options = {}) => {
     }, [dispatch]);
 
     useEffect(() => {
-        if (autoFetch) {
-            fetchAll(params);
+        if (!autoFetch) {
+            return;
         }
-    }, [autoFetch, fetchAll, params]);
+        
+        const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+        
+        if (!hasFetched.current || paramsChanged) {
+            hasFetched.current = true;
+            prevParamsRef.current = params;
+            dispatch(fetchCostCenters(params));
+        }
+    }, [autoFetch, params, dispatch]);
 
     return {
         items,

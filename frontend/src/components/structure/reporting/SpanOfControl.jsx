@@ -14,8 +14,8 @@ import {
   StructureLoading,
   StructureStatusBadge,
   StructureEmptyState,
-  StructureSearchBar,
 } from '../common';
+import UserSelector from '../../accounts/users/UserSelector';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './reporting.css';
 
@@ -104,12 +104,19 @@ export const SpanOfControl = () => {
       </div>
 
       <div className="span-of-control-toolbar">
-        <div className="search-wrapper">
-          <StructureSearchBar
-            value={searchValue}
-            onChange={handleSearch}
-            placeholder="Enter manager ID to view span of control..."
-            debounce={500}
+        <div className="search-wrapper" style={{ minWidth: '300px' }}>
+          <UserSelector
+            value={managerId === 'organization' ? '' : managerId}
+            onChange={(value) => {
+              if (value) {
+                handleSearch(value);
+              } else {
+                setManagerId('');
+                setSpanData(null);
+              }
+            }}
+            placeholder="Select a manager to view span..."
+            className="w-full"
           />
         </div>
         <button onClick={handleLoadOrganizationSpan} className="btn btn-primary">

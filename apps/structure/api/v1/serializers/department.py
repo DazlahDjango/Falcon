@@ -7,15 +7,15 @@ from .base import BaseStructureSerializer, BaseStructureDetailSerializer
 
 class DepartmentSerializer(BaseStructureSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
+    parent_name = serializers.CharField(source='division.name', read_only=True, allow_null=True)
+    parent_code = serializers.CharField(source='division.code', read_only=True, allow_null=True)
     
     class Meta:
         model = Department
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
             'level_display', 'parent_id', 'parent_name',
-            'parent_code', 'depth', 'path', 'is_active',
+            'parent_code', 'division_id', 'depth', 'path', 'is_active',
             'headcount_limit', 'sensitivity_level', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'depth', 'path', 'created_at', 'updated_at']
@@ -37,19 +37,20 @@ class DepartmentTreeSerializer(serializers.Serializer):
 
 class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
-    parent_code = serializers.CharField(source='parent.code', read_only=True, allow_null=True)
-    parent_name = serializers.CharField(source='parent.name', read_only=True, allow_null=True)
+    parent_code = serializers.CharField(source='division.code', read_only=True, allow_null=True)
+    parent_name = serializers.CharField(source='division.name', read_only=True, allow_null=True)
     child_count = serializers.SerializerMethodField()
     section_count = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     full_path = serializers.SerializerMethodField()
+    cost_center_id = serializers.SerializerMethodField()
     
     class Meta:
         model = Department
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
-            'level_display', 'parent_id', 'parent_code',
-            'parent_name', 'depth', 'path', 'cost_center_id',
+            'level_display', 'parent_id', 'division_id', 'parent_code',
+            'parent_name', 'depth', 'path', 'cost_center_id', 'manager_id',
             'budget_code', 'headcount_limit', 'sensitivity_level',
             'is_active', 'is_deleted', 'child_count', 'section_count',
             'employee_count', 'full_path',
@@ -66,19 +67,34 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     
     def get_employee_count(self, obj):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(department_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
+        return Employment.objects.filter(position__department_id=obj.id, is_current=True, is_deleted=False, is_active=True).count()
     
     def get_full_path(self, obj):
         return obj.get_full_path()
 
+    def get_cost_center_id(self, obj):
+        from apps.structure.models.cost_center_allocation import CostCenterAllocation
+        from django.contrib.contenttypes.models import ContentType
+        try:
+            content_type = ContentType.objects.get_for_model(obj)
+            allocation = CostCenterAllocation.objects.filter(
+                tenant_id=obj.tenant_id,
+                content_type=content_type,
+                object_id=obj.id,
+                is_deleted=False
+            ).first()
+            return str(allocation.cost_center_id) if allocation else None
+        except Exception:
+            return None
+
 class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
-    parent_id = serializers.UUIDField(required=False, allow_null=True)
+    division_id = serializers.UUIDField(required=False, allow_null=True)
     
     class Meta:
         model = Department
         fields = [
-            'code', 'name', 'description', 'parent_id',
-            'cost_center_id', 'budget_code', 'headcount_limit',
+            'code', 'name', 'description', 'division_id',
+            'manager_id', 'budget_code', 'headcount_limit',
             'sensitivity_level', 'is_active'
         ]
     
@@ -93,21 +109,7 @@ class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Department with this code already exists."))
         return value
     
-    def validate_parent_id(self, value):
-        if value:
-            from apps.structure.services.hierarchy.cycle_detector import CycleDetector
-            from apps.structure.exceptions import HierarchyCycleError, SelfParentError
-            request = self.context.get('request')
-            tenant_id = getattr(request.user, 'tenant_id', None) if request else None
-            if self.instance and self.instance.id == value:
-                raise serializers.ValidationError(_("Department cannot be its own parent."))
-            try:
-                if self.instance:
-                    CycleDetector.validate_assignment(value, self.instance.id, tenant_id)
-            except (HierarchyCycleError, SelfParentError) as e:
-                raise serializers.ValidationError(str(e))
-        return value
-    
+
     def validate_headcount_limit(self, value):
         from apps.structure.validators import validate_headcount_limit_positive
         if value is not None:

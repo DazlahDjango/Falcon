@@ -7,27 +7,32 @@ class DepartmentTreeService extends BaseStructureService {
   }
 
   async getFullTree() {
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_FULL));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_FULL));
+    return this.unwrap(response);
   }
 
   async getBranch(departmentId) {
     if (!departmentId) throw new Error('Department ID is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_BRANCH(departmentId)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_BRANCH(departmentId)));
+    return this.unwrap(response);
   }
 
   async getPath(departmentId) {
     if (!departmentId) throw new Error('Department ID is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_PATH(departmentId)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_PATH(departmentId)));
+    return this.unwrap(response);
   }
 
   async getSubtree(departmentId) {
     if (!departmentId) throw new Error('Department ID is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_SUBTREE(departmentId)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_SUBTREE(departmentId)));
+    return this.unwrap(response);
   }
 
   async getLCA(deptA, deptB) {
     if (!deptA || !deptB) throw new Error('Both department IDs are required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_LCA, { params: { dept_a: deptA, dept_b: deptB } }));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.TREE_LCA, { params: { dept_a: deptA, dept_b: deptB } }));
+    return this.unwrap(response);
   }
 }
 

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from .models import (
     OrganizationalUnit, Division, Department, Section, Unit,
-    Position, Employment, ReportingLine, InterimAssignment,
+    Position, Employment, InterimAssignment,
     CostCenter, Location, HierarchyVersion
 )
 
@@ -120,35 +120,19 @@ class PositionAdmin(admin.ModelAdmin):
 
 @admin.register(Employment)
 class EmploymentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user_id', 'position', 'division', 'department', 'section', 'unit', 'is_current', 'is_manager', 'employment_type']
-    list_filter = ['is_current', 'is_manager', 'is_executive', 'is_board_member', 'employment_type', 'tenant_id', 'is_deleted']
+    list_display = ['id', 'user_id', 'position', 'is_current', 'is_primary', 'fte_allocation', 'is_manager', 'employment_type']
+    list_filter = ['is_current', 'is_primary', 'is_manager', 'is_executive', 'is_board_member', 'employment_type', 'tenant_id', 'is_deleted']
     search_fields = ['user_id', 'change_reason']
     readonly_fields = ['id', 'created_at', 'updated_at']
     fieldsets = (
-        (_('Assignment'), {'fields': ('id', 'tenant_id', 'user_id', 'position', 'division', 'department', 'section', 'unit')}),
+        (_('Assignment'), {'fields': ('id', 'tenant_id', 'user_id', 'position', 'fte_allocation', 'is_primary')}),
         (_('Period'), {'fields': ('effective_from', 'effective_to', 'is_current')}),
-        (_('Type'), {'fields': ('employment_type', 'is_manager', 'is_executive', 'is_board_member')}),
+        (_('Type'), {'fields': ('employment_type', 'is_manager', 'is_executive', 'is_board_member', 'is_team_lead')}),
         (_('Audit'), {'fields': ('change_reason', 'approved_by_id', 'is_active')}),
         (_('Timestamps'), {'fields': ('created_at', 'updated_at', 'created_by', 'updated_by')}),
     )
     list_per_page = 50
-    raw_id_fields = ['position', 'division', 'department', 'section', 'unit']
-
-
-@admin.register(ReportingLine)
-class ReportingLineAdmin(admin.ModelAdmin):
-    list_display = ['id', 'employee', 'manager', 'is_active', 'effective_from', 'effective_to']
-    list_filter = ['is_active', 'tenant_id', 'is_deleted']
-    search_fields = ['change_reason']
-    readonly_fields = ['id', 'created_at', 'updated_at']
-    fieldsets = (
-        (_('Relationship'), {'fields': ('id', 'tenant_id', 'employee', 'manager')}),
-        (_('Temporal'), {'fields': ('effective_from', 'effective_to', 'is_active')}),
-        (_('Audit'), {'fields': ('change_reason', 'approved_by_id')}),
-        (_('Timestamps'), {'fields': ('created_at', 'updated_at', 'created_by', 'updated_by')}),
-    )
-    list_per_page = 50
-    raw_id_fields = ['employee', 'manager']
+    raw_id_fields = ['position']
 
 
 @admin.register(InterimAssignment)
@@ -170,31 +154,29 @@ class InterimAssignmentAdmin(admin.ModelAdmin):
 
 @admin.register(CostCenter)
 class CostCenterAdmin(admin.ModelAdmin):
-    list_display = ['code', 'name', 'organizational_unit', 'category', 'fiscal_year', 'budget_amount', 'is_active']
+    list_display = ['code', 'name', 'category', 'fiscal_year', 'budget_amount', 'is_active']
     list_filter = ['category', 'is_active', 'is_shared', 'fiscal_year', 'tenant_id', 'is_deleted']
     search_fields = ['code', 'name', 'description']
     readonly_fields = ['id', 'created_at', 'updated_at']
     fieldsets = (
         (_('Identity'), {'fields': ('id', 'tenant_id', 'code', 'name', 'description')}),
-        (_('Organization'), {'fields': ('organizational_unit',)}),
         (_('Financial'), {'fields': ('category', 'budget_amount', 'fiscal_year', 'allocation_percentage')}),
         (_('Status'), {'fields': ('is_active', 'is_shared')}),
         (_('Approvals'), {'fields': ('requires_budget_approval', 'authorized_approver_ids')}),
         (_('Audit'), {'fields': ('created_at', 'updated_at', 'created_by', 'updated_by', 'deleted_by')}),
     )
     list_per_page = 50
-    raw_id_fields = ['organizational_unit']
 
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
-    list_display = ['code', 'name', 'type', 'organizational_unit', 'city', 'country', 'is_headquarters', 'is_active']
+    list_display = ['code', 'name', 'type', 'city', 'country', 'is_headquarters', 'is_active']
     list_filter = ['type', 'is_headquarters', 'is_active', 'country', 'tenant_id', 'is_deleted']
     search_fields = ['code', 'name', 'city', 'state_province', 'country']
     readonly_fields = ['id', 'created_at', 'updated_at']
     fieldsets = (
         (_('Identity'), {'fields': ('id', 'tenant_id', 'code', 'name', 'type')}),
-        (_('Organization'), {'fields': ('organizational_unit',)}),
+        (_('Management'), {'fields': ('cost_center', 'manager')}),
         (_('Hierarchy'), {'fields': ('parent',)}),
         (_('Address'), {'fields': ('address_line1', 'address_line2', 'city', 'state_province', 'postal_code', 'country', 'timezone')}),
         (_('Capacity'), {'fields': ('seating_capacity', 'current_occupancy')}),
@@ -203,7 +185,7 @@ class LocationAdmin(admin.ModelAdmin):
         (_('Audit'), {'fields': ('created_at', 'updated_at', 'created_by', 'updated_by', 'deleted_by')}),
     )
     list_per_page = 50
-    raw_id_fields = ['organizational_unit', 'parent']
+    raw_id_fields = ['parent', 'cost_center', 'manager']
 
 
 @admin.register(HierarchyVersion)

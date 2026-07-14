@@ -45,7 +45,7 @@ def refresh_materialized_views(tenant_id_str: Optional[str] = None) -> dict:
 def detect_orphaned_nodes(tenant_id_str: str) -> dict:
     from .models.organizational_unit import OrganizationalUnit
     from .models.employment import Employment
-    from .models.reporting_line import ReportingLine
+    from .models.employment import Employment
     tenant_id = UUID(tenant_id_str)
     
     orphaned_units = OrganizationalUnit.objects.filter(
@@ -60,7 +60,7 @@ def detect_orphaned_nodes(tenant_id_str: str) -> dict:
         user_id__isnull=True
     ).count()
     
-    reporting_lines_without_employee = ReportingLine.objects.filter(
+    employments_without_employee = Employment.objects.filter(
         tenant_id=tenant_id,
         is_deleted=False,
         employee__isnull=True
@@ -70,11 +70,11 @@ def detect_orphaned_nodes(tenant_id_str: str) -> dict:
         'tenant_id': tenant_id_str,
         'orphaned_organizational_units': list(orphaned_units),
         'employments_without_user': employments_without_user,
-        'reporting_lines_without_employee': reporting_lines_without_employee,
+        'employments_without_employee': employments_without_employee,
         'has_orphans': any([
             orphaned_units.exists(),
             employments_without_user > 0,
-            reporting_lines_without_employee > 0
+            employments_without_employee > 0
         ])
     }
     logger.warning(f"Orphan detection for tenant {tenant_id}: {results}")

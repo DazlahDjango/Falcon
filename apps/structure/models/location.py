@@ -15,7 +15,8 @@ class Location(BaseStructureModel):
     name = models.CharField(_('name'), max_length=255, db_index=True)
     code = models.CharField(_('code'), max_length=50, db_index=True)
     type = models.CharField(_('location type'), max_length=20, choices=TYPE_CHOICES, default='branch')
-    organizational_unit = models.ForeignKey(OrganizationalUnit, on_delete=models.PROTECT, null=True, blank=True, related_name='locations', verbose_name=_('organizational unit'))
+    cost_center = models.ForeignKey('structure.CostCenter', on_delete=models.SET_NULL, null=True, blank=True, related_name='locations', verbose_name=_('cost center'))
+    manager = models.ForeignKey('structure.Employment', on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_locations', verbose_name=_('location manager'))
     parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='sub_locations', verbose_name=_('parent location'))
     address_line1 = models.CharField(_('address line 1'), max_length=255, blank=True)
     address_line2 = models.CharField(_('address line 2'), max_length=255, blank=True)
@@ -45,7 +46,6 @@ class Location(BaseStructureModel):
             models.Index(fields=['tenant_id', 'type', 'is_active']),
             models.Index(fields=['city', 'country']),
             models.Index(fields=['is_headquarters']),
-            models.Index(fields=['organizational_unit']),
         ]
 
     def __str__(self):

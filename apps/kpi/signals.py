@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 import logging
-from apps.structure.models import Department, ReportingLine, Employment
+from apps.structure.models import Department, Employment, Employment
 from .models import (
     KPI, KPIWeight, AnnualTarget, MonthlyActual, ValidationRecord,
     Score, MonthlyPhasing, Escalation, ActualAdjustment, CascadeMap
@@ -24,7 +24,7 @@ def _manager_user_id_for_employee(user_id):
         ).first()
         if not employment:
             return None
-        line = ReportingLine.objects.filter(
+        line = Employment.objects.filter(
             employee=employment, is_active=True, relation_type='solid',
         ).select_related('manager').first()
         if line and line.manager:

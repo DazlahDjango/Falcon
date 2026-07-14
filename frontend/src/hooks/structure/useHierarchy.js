@@ -28,6 +28,7 @@ import {
 export const useHierarchy = (options = {}) => {
     const dispatch = useDispatch();
     const { autoFetch = true, params = {} } = options;
+    const paramsString = JSON.stringify(params);
 
     const items = useSelector(selectHierarchyItems);
     const currentItem = useSelector(selectHierarchyCurrent);
@@ -39,8 +40,8 @@ export const useHierarchy = (options = {}) => {
     const totalCount = useSelector(selectHierarchyTotal);
 
     const fetchAll = useCallback((fetchParams) => {
-        return dispatch(fetchHierarchyVersions(fetchParams || params));
-    }, [dispatch, params]);
+        return dispatch(fetchHierarchyVersions(fetchParams || JSON.parse(paramsString)));
+    }, [dispatch, paramsString]);
 
     const fetchById = useCallback((id) => {
         return dispatch(fetchHierarchyVersionById(id));
@@ -88,9 +89,9 @@ export const useHierarchy = (options = {}) => {
 
     useEffect(() => {
         if (autoFetch) {
-            fetchAll(params);
+            fetchAll(JSON.parse(paramsString));
         }
-    }, [autoFetch, fetchAll, params]);
+    }, [autoFetch, fetchAll, paramsString]);
 
     return {
         items,

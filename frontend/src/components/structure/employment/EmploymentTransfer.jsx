@@ -179,7 +179,7 @@ export const EmploymentTransfer = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="department_id">New Department</label>
+              
               <select
                 id="department_id"
                 name="department_id"
@@ -196,7 +196,7 @@ export const EmploymentTransfer = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="unit_id">New Unit</label>
+              
               <select
                 id="unit_id"
                 name="unit_id"

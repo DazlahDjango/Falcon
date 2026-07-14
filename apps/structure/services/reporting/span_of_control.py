@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional
 from uuid import UUID
 from django.core.cache import cache
 from apps.structure.models.employment import Employment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.models.interim_assignment import InterimAssignment
 from apps.structure.constants import DEFAULT_MAX_DIRECT_REPORTS
 
@@ -12,7 +12,16 @@ class SpanOfControl:
     
     def calculate_span(self, manager_id: UUID) -> Dict[str, Any]:
         manager = Employment.objects.get(id=manager_id, is_deleted=False)
-        direct_reports = ReportingLine.objects.filter(manager=manager, is_active=True, is_deleted=False)
+        if manager.position:
+            direct_reports = Employment.objects.filter(
+                position__reports_to=manager.position,
+                is_current=True,
+                is_active=True,
+                is_deleted=False,
+                tenant_id=manager.tenant_id
+            )
+        else:
+            direct_reports = Employment.objects.none()
         interim_reports = InterimAssignment.objects.filter(interim_manager=manager, is_active=True, is_deleted=False)
         total_direct = direct_reports.count()
         total_interim = interim_reports.count()
@@ -21,7 +30,7 @@ class SpanOfControl:
             'direct_reports_count': total_direct,
             'interim_reports_count': total_interim,
             'total_reports': total_direct + total_interim,
-            'direct_reports': [str(rl.employee.user_id) for rl in direct_reports],
+            'direct_reports': [str(emp.user_id) for emp in direct_reports],
             'interim_reports': [str(ia.employee.user_id) for ia in interim_reports]
         }
     

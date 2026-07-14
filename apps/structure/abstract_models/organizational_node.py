@@ -10,7 +10,8 @@ class OrganizationalNode(BaseStructureModel, HierarchicalMixin):
     code = models.CharField(_('code'), max_length=50, db_index=True)
     description = models.TextField(_('description'), blank=True)
     is_active = models.BooleanField(_('active'), default=True, db_index=True)
-    cost_center_id = models.CharField(_('cost center ID'), max_length=50, blank=True, db_index=True)
+    cost_center = models.ForeignKey('structure.CostCenter', on_delete=models.SET_NULL, null=True, blank=True, related_name='%(class)s_nodes', verbose_name=_('cost center'))
+    manager = models.ForeignKey('structure.Position', on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_%(class)s_nodes', verbose_name=_('manager'))
     budget_code = models.CharField(_('budget code'), max_length=50, blank=True)
     headcount_limit = models.PositiveIntegerField(_('headcount limit'), null=True, blank=True)
     level = models.CharField(_('organization level'), max_length=20, choices=OrgLevel.choices, db_index=True)
@@ -22,7 +23,7 @@ class OrganizationalNode(BaseStructureModel, HierarchicalMixin):
             models.Index(fields=['tenant_id', 'code']),
             models.Index(fields=['path']),
             models.Index(fields=['tenant_id', 'parent', 'is_active']),
-            models.Index(fields=['cost_center_id']),
+            models.Index(fields=['cost_center']),
         ]
 
     def __str__(self):

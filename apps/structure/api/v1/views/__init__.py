@@ -7,7 +7,6 @@ from .section_views import SectionViewSet
 from .unit_views import UnitViewSet
 from .position_views import PositionViewSet
 from .employment_views import EmploymentViewSet
-from .reporting_views import ReportingLineViewSet
 from .interim_views import InterimAssignmentViewSet
 from .org_chart_views import OrgChartViewSet
 from .bulk_views import BulkOperationViewSet
@@ -16,6 +15,7 @@ from .location_views import LocationViewSet
 from .dashboard_views import StructureDashboardViewSet
 from .health_views import StructureHealthViewSet
 from .hierarchy_views import HierarchyViewSet  # ADD THIS LINE
+from .reporting_views import ReportingLineViewSet
 
 __all__ = [
     'OrganizationalUnitViewSet',
@@ -26,7 +26,7 @@ __all__ = [
     'UnitViewSet',
     'PositionViewSet',
     'EmploymentViewSet',
-    'ReportingLineViewSet',
+    'EmploymentViewSet',
     'InterimAssignmentViewSet',
     'OrgChartViewSet',
     'BulkOperationViewSet',
@@ -35,4 +35,5 @@ __all__ = [
     'StructureDashboardViewSet',
     'StructureHealthViewSet',
     'HierarchyViewSet',  # ADD THIS
+    'ReportingLineViewSet',
 ]

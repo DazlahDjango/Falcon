@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiMapPin, FiGlobe } from 'react-icons/fi';
 import { useLocations } from '../../../hooks/structure';
@@ -16,61 +16,6 @@ import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConsta
 import { STRUCTURE_MESSAGES } from '../../../config/constants/structureConstants';
 import './location.css';
 
-const COLUMNS = [
-  { key: 'code', header: 'Code', width: '120px' },
-  { key: 'name', header: 'Name', width: '200px' },
-  {
-    key: 'type',
-    header: 'Type',
-    width: '140px',
-    render: (item) => (
-      <span className={`location-type-badge type-${item.type}`}>
-        {item.type || 'branch'}
-      </span>
-    ),
-  },
-  {
-    key: 'city',
-    header: 'City',
-    width: '140px',
-    render: (item) => item.city || '-',
-  },
-  {
-    key: 'country',
-    header: 'Country',
-    width: '140px',
-    render: (item) => (
-      <span className="country-cell">
-        <FiGlobe size={14} className="country-icon" />
-        {item.country || '-'}
-      </span>
-    ),
-  },
-  {
-    key: 'is_headquarters',
-    header: 'HQ',
-    width: '70px',
-    render: (item) => (
-      <StructureStatusBadge
-        status={item.is_headquarters ? 'active' : 'inactive'}
-        customLabel={item.is_headquarters ? 'Yes' : 'No'}
-        size="sm"
-      />
-    ),
-  },
-  {
-    key: 'is_active',
-    header: 'Status',
-    width: '100px',
-    render: (item) => (
-      <StructureStatusBadge
-        status={item.is_active ? 'active' : 'inactive'}
-        size="sm"
-      />
-    ),
-  },
-];
-
 export const LocationList = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -86,9 +31,87 @@ export const LocationList = () => {
     error,
     totalCount,
     fetchAll,
+    update,
     remove,
     clearError,
   } = useLocations({ autoFetch: false });
+
+  const handleToggleActive = useCallback(async (item, e) => {
+    e.stopPropagation();
+    try {
+      await update(item.id, { is_active: !item.is_active });
+      const params = {
+        page,
+        page_size: pageSize,
+        search: searchTerm,
+        ...filters,
+      };
+      fetchAll(params);
+    } catch (err) {
+      console.error('Failed to toggle status:', err);
+    }
+  }, [update, fetchAll, page, pageSize, searchTerm, filters]);
+
+  const COLUMNS = useMemo(() => [
+    { key: 'code', header: 'Code', width: '120px' },
+    { key: 'name', header: 'Name', width: '200px' },
+    {
+      key: 'type',
+      header: 'Type',
+      width: '140px',
+      render: (item) => (
+        <span className={`location-type-badge type-${item.type}`}>
+          {item.type || 'branch'}
+        </span>
+      ),
+    },
+    {
+      key: 'city',
+      header: 'City',
+      width: '140px',
+      render: (item) => item.city || '-',
+    },
+    {
+      key: 'country',
+      header: 'Country',
+      width: '140px',
+      render: (item) => (
+        <span className="country-cell">
+          <FiGlobe size={14} className="country-icon" />
+          {item.country || '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'is_headquarters',
+      header: 'HQ',
+      width: '70px',
+      render: (item) => (
+        <StructureStatusBadge
+          status={item.is_headquarters ? 'active' : 'inactive'}
+          customLabel={item.is_headquarters ? 'Yes' : 'No'}
+          size="sm"
+        />
+      ),
+    },
+    {
+      key: 'is_active',
+      header: 'Status',
+      width: '100px',
+      render: (item) => (
+        <div 
+          onClick={(e) => handleToggleActive(item, e)} 
+          style={{ cursor: 'pointer', display: 'inline-block' }}
+          title={item.is_active ? "Click to deactivate" : "Click to activate"}
+        >
+          <StructureStatusBadge
+            status={item.is_active ? 'active' : 'inactive'}
+            size="sm"
+          />
+        </div>
+      ),
+    },
+  ], [handleToggleActive]);
 
   useEffect(() => {
     const params = {
@@ -266,7 +289,7 @@ export const LocationList = () => {
         debounce={400}
       />
 
-      <StructureTable
+      <StructureTable hideEmptyState={true}
         columns={COLUMNS}
         data={items}
         loading={isLoading}

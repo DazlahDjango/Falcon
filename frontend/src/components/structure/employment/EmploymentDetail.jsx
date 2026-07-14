@@ -10,6 +10,8 @@ import {
   FiCalendar,
   FiUsers,
   FiAward,
+  FiGitBranch,
+  FiRepeat,
 } from 'react-icons/fi';
 import { useEmployments } from '../../../hooks/structure';
 import {
@@ -48,6 +50,16 @@ export const EmploymentDetail = () => {
   const handleEdit = useCallback(() => {
     navigate(STRUCTURE_ROUTES.EMPLOYMENT_EDIT(id));
   }, [navigate, id]);
+
+  const handleTransfer = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.EMPLOYMENT_TRANSFER + '?employment_id=' + id);
+  }, [navigate, id]);
+
+  const handleViewChain = useCallback(() => {
+    if (currentItem && currentItem.user_id) {
+      navigate(STRUCTURE_ROUTES.REPORTING_CHAIN(currentItem.user_id));
+    }
+  }, [navigate, currentItem]);
 
   const handleDeleteClick = useCallback(() => {
     setShowDeleteConfirm(true);
@@ -149,6 +161,16 @@ export const EmploymentDetail = () => {
           </span>
         </div>
         <div className="header-right">
+          {currentItem && currentItem.user_id && (
+            <button onClick={handleViewChain} className="btn btn-secondary" title="View Reporting Chain">
+              <FiGitBranch size={16} />
+              <span className="hidden-sm">View Chain</span>
+            </button>
+          )}
+          <button onClick={handleTransfer} className="btn btn-secondary" title="Transfer Employee">
+            <FiRepeat size={16} />
+            <span className="hidden-sm">Transfer</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
@@ -194,11 +216,13 @@ export const EmploymentDetail = () => {
         <div className="detail-section">
           <h3>Employment Information</h3>
           <div className="detail-grid">
-            <DetailRow label="User ID" value={currentItem.user_id} />
+            <DetailRow label="Employee Name" value={currentItem.user_name} />
+            <DetailRow label="Employee Email" value={currentItem.user_email} />
             <DetailRow label="Position" value={currentItem.position_title || currentItem.position_id} />
             <DetailRow label="Department" value={currentItem.department_name || currentItem.department_id || 'N/A'} />
             <DetailRow label="Unit" value={currentItem.unit_name || currentItem.unit_id || 'N/A'} />
             <DetailRow label="Employment Type" value={currentItem.employment_type} />
+            <DetailRow label="User ID" value={currentItem.user_id} />
           </div>
         </div>
 

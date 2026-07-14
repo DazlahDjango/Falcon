@@ -80,58 +80,61 @@ class EmploymentManager(BaseStructureManager):
         )
     
     def get_direct_reports(self, manager_user_id, tenant_id):
-        from apps.structure.models.reporting_line import ReportingLine
         manager_emp = self.current_by_user(manager_user_id, tenant_id)
-        if not manager_emp:
+        if not manager_emp or not manager_emp.position:
             return self.none()
-        reporting_lines = ReportingLine.objects.filter(
-            manager=manager_emp,
-            is_active=True,
+        
+        # Solid reports (via position reports_to)
+        return self.filter(
+            position__reports_to=manager_emp.position,
             tenant_id=tenant_id,
+            is_current=True,
+            is_active=True,
             is_deleted=False
-        ).select_related('employee')
-        employee_ids = [rl.employee.id for rl in reporting_lines]
-        return self.filter(id__in=employee_ids, tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True)
+        )
     
     def get_descendants(self, manager_user_id, tenant_id, depth=0, max_depth=10):
         if depth > max_depth:
             return []
-        from apps.structure.models.reporting_line import ReportingLine
-        manager_emp = self.current_by_user(manager_user_id, tenant_id)
-        if not manager_emp:
-            return []
-        direct_reports = ReportingLine.objects.filter(
-            manager=manager_emp,
-            is_active=True,
-            tenant_id=tenant_id,
-            is_deleted=False
-        ).select_related('employee')
+        
+        direct_reports = self.get_direct_reports(manager_user_id, tenant_id)
         descendant_ids = []
         for report in direct_reports:
-            if report.employee:
-                descendant_ids.append(report.employee.user_id)
-                descendant_ids.extend(self.get_descendants(report.employee.user_id, tenant_id, depth + 1, max_depth))
-        return descendant_ids
+            descendant_ids.append(report.user_id)
+            descendant_ids.extend(self.get_descendants(report.user_id, tenant_id, depth + 1, max_depth))
+        return list(set(descendant_ids))
     
     def get_management_chain_up(self, user_id, tenant_id, include_self=False, max_depth=10):
         chain = []
         current_user_id = user_id
         depth = 0
+        seen_user_ids = {str(user_id)}
+        
         while current_user_id and depth < max_depth:
             emp = self.current_by_user(current_user_id, tenant_id)
-            if not emp:
+            if not emp or not emp.position or not emp.position.reports_to:
                 break
-            reporting_line = ReportingLine.objects.filter(
-                employee=emp,
-                is_active=True,
+                
+            manager = self.filter(
+                position=emp.position.reports_to,
                 tenant_id=tenant_id,
+                is_current=True,
+                is_active=True,
                 is_deleted=False
-            ).select_related('manager').first()
-            if not reporting_line or not reporting_line.manager:
+            ).first()
+            
+            if not manager:
                 break
-            chain.append(reporting_line.manager.user_id)
-            current_user_id = reporting_line.manager.user_id
+                
+            manager_user_id_str = str(manager.user_id)
+            if manager_user_id_str in seen_user_ids:
+                break
+            seen_user_ids.add(manager_user_id_str)
+            
+            chain.append(manager.user_id)
+            current_user_id = manager.user_id
             depth += 1
+            
         if include_self:
             chain.insert(0, user_id)
         return chain

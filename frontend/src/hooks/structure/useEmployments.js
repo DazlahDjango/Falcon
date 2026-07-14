@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import {
     fetchEmployments,
     fetchEmploymentById,
@@ -30,7 +30,15 @@ import {
 
 export const useEmployments = (options = {}) => {
     const dispatch = useDispatch();
-    const { autoFetch = true, params = {} } = options;
+    const { autoFetch = true, params: initialParams = {} } = options;
+
+    const isFirstRender = useRef(true);
+    const hasFetched = useRef(false);
+    const prevParamsRef = useRef(initialParams);
+
+    const params = useMemo(() => initialParams, [
+        JSON.stringify(initialParams)
+    ]);
 
     const items = useSelector(selectEmploymentsItems);
     const currentItem = useSelector(selectEmploymentsCurrent);
@@ -41,7 +49,8 @@ export const useEmployments = (options = {}) => {
     const totalCount = useSelector(selectEmploymentsTotal);
 
     const fetchAll = useCallback((fetchParams) => {
-        return dispatch(fetchEmployments(fetchParams || params));
+        const paramsToUse = fetchParams || params;
+        return dispatch(fetchEmployments(paramsToUse));
     }, [dispatch, params]);
 
     const fetchById = useCallback((id) => {
@@ -104,11 +113,37 @@ export const useEmployments = (options = {}) => {
         dispatch(resetEmploymentState());
     }, [dispatch]);
 
+    const refetch = useCallback((newParams) => {
+        const fetchParams = newParams || params;
+        prevParamsRef.current = fetchParams;
+        return dispatch(fetchEmployments(fetchParams));
+    }, [dispatch, params]);
+
     useEffect(() => {
-        if (autoFetch) {
-            fetchAll(params);
+        if (!autoFetch) {
+            return;
         }
-    }, [autoFetch, fetchAll, params]);
+
+        const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+        
+        if (!hasFetched.current || paramsChanged) {
+            hasFetched.current = true;
+            prevParamsRef.current = params;
+            dispatch(fetchEmployments(params));
+        }
+    }, [autoFetch, params, dispatch]);
+
+    useEffect(() => {
+        return () => {
+            hasFetched.current = false;
+            isFirstRender.current = true;
+        };
+    }, []);
+
+    const forceFetch = useCallback(() => {
+        hasFetched.current = true;
+        return dispatch(fetchEmployments(params));
+    }, [dispatch, params]);
 
     return {
         items,
@@ -134,6 +169,9 @@ export const useEmployments = (options = {}) => {
         setFilters,
         setPagination,
         reset,
+        refetch,
+        forceFetch,
+        _hasFetched: hasFetched.current,
     };
 };
 

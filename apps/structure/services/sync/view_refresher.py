@@ -58,7 +58,7 @@ class ViewRefresherService:
                     rl.relation_type,
                     1 as depth,
                     ARRAY[rl.manager_id] as path
-                FROM structure_reporting_line rl
+                FROM structure_employment rl
                 WHERE rl.is_active = true AND rl.is_deleted = false
                 
                 UNION ALL
@@ -70,7 +70,7 @@ class ViewRefresherService:
                     rt.depth + 1,
                     rt.path || rl.manager_id
                 FROM reporting_tree rt
-                JOIN structure_reporting_line rl ON rl.employee_id = rt.manager_id
+                JOIN structure_employment rl ON rl.employee_id = rt.manager_id
                 WHERE rl.is_active = true AND rl.is_deleted = false AND rt.depth < 10
             )
             SELECT * FROM reporting_tree;

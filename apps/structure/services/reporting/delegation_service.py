@@ -2,7 +2,7 @@ from django.db import transaction
 from django.utils import timezone
 from apps.structure.models.employment import Employment
 from apps.structure.models.interim_assignment import InterimAssignment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.exceptions import ReportingChainError, EmploymentNotFoundError
 
 class DelegationService:
@@ -14,8 +14,8 @@ class DelegationService:
                 raise ReportingChainError("Cannot delegate to self.")
             if not delegator.is_manager:
                 raise ReportingChainError("Delegator must be a manager.")
-            reporting_line = ReportingLine.objects.filter(manager=delegator, is_active=True, is_deleted=False)
-            for rl in reporting_line:
+            employment = Employment.objects.filter(manager=delegator, is_active=True, is_deleted=False)
+            for rl in employment:
                 InterimAssignment.objects.create(
                     tenant_id=delegator.tenant_id,
                     employee=rl.employee,

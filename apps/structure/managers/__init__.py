@@ -6,7 +6,6 @@ from .section import SectionManager
 from .unit import UnitManager
 from .position import PositionManager
 from .employment import EmploymentManager
-from .reporting_line import ReportingLineManager
 from .interim_assignment import InterimAssignmentManager
 from .hierarchy import HierarchyManager
 

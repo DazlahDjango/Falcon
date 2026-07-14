@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from apps.structure.models.department import Department
 from apps.structure.models.organizational_unit import OrganizationalUnit
 from apps.structure.models.employment import Employment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.constants import MAX_ORG_DEPTH, PARENT_LEVEL_MAP
 
 class OrgValidatorService:
@@ -82,7 +82,7 @@ class OrgValidatorService:
         if not manager_emp:
             errors.append(f"Manager {manager_user_id} not found or not active.")
         if employee_emp and manager_emp:
-            existing = ReportingLine.objects.filter(
+            existing = Employment.objects.filter(
                 employee=employee_emp,
                 manager=manager_emp,
                 is_active=True,

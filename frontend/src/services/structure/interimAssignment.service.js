@@ -8,25 +8,30 @@ class InterimAssignmentService extends BaseStructureService {
 
   async getByEmployee(userId) {
     if (!userId) throw new Error('Employee user ID is required');
-    return withRetry(() => this.apiClient.get(INTERIM_ASSIGNMENT_ENDPOINTS.BY_EMPLOYEE(userId)));
+    const response = await withRetry(() => this.apiClient.get(INTERIM_ASSIGNMENT_ENDPOINTS.BY_EMPLOYEE(userId)));
+    return this.unwrap(response);
   }
 
   async getActive() {
-    return withRetry(() => this.apiClient.get(INTERIM_ASSIGNMENT_ENDPOINTS.ACTIVE));
+    const response = await withRetry(() => this.apiClient.get(INTERIM_ASSIGNMENT_ENDPOINTS.ACTIVE));
+    return this.unwrap(response);
   }
 
   async getExpiringSoon(days) {
-    return withRetry(() => this.apiClient.get(INTERIM_ASSIGNMENT_ENDPOINTS.EXPIRING_SOON, { params: { days } }));
+    const response = await withRetry(() => this.apiClient.get(INTERIM_ASSIGNMENT_ENDPOINTS.EXPIRING_SOON, { params: { days } }));
+    return this.unwrap(response);
   }
 
   async assign(data) {
     if (!data) throw new Error('Assignment data is required');
-    return withRetry(() => this.apiClient.post(INTERIM_ASSIGNMENT_ENDPOINTS.ASSIGN, data));
+    const response = await withRetry(() => this.apiClient.post(INTERIM_ASSIGNMENT_ENDPOINTS.ASSIGN, data));
+    return this.unwrap(response);
   }
 
   async end(data) {
     if (!data) throw new Error('End data is required');
-    return withRetry(() => this.apiClient.post(INTERIM_ASSIGNMENT_ENDPOINTS.END, data));
+    const response = await withRetry(() => this.apiClient.post(INTERIM_ASSIGNMENT_ENDPOINTS.END, data));
+    return this.unwrap(response);
   }
 }
 

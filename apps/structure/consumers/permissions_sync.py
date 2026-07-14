@@ -95,7 +95,7 @@ class PermissionsSyncConsumer(AsyncJsonWebsocketConsumer):
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('position', 'division', 'department', 'section', 'unit').first()
+        ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit').first()
         
         if not employment:
             return {
@@ -106,6 +106,7 @@ class PermissionsSyncConsumer(AsyncJsonWebsocketConsumer):
                 'tenant_id': self.tenant_id
             }
         
+        pos = employment.position
         permissions = {
             'user_id': self.user_id,
             'tenant_id': self.tenant_id,
@@ -113,31 +114,31 @@ class PermissionsSyncConsumer(AsyncJsonWebsocketConsumer):
             'is_executive': employment.is_executive,
             'is_board_member': employment.is_board_member,
             'position': {
-                'id': str(employment.position.id) if employment.position else None,
-                'title': employment.position.title if employment.position else None,
-                'job_code': employment.position.job_code if employment.position else None,
-                'level': employment.position.level if employment.position else None
+                'id': str(pos.id) if pos else None,
+                'title': pos.title if pos else None,
+                'job_code': pos.job_code if pos else None,
+                'level': pos.level if pos else None
             },
             'org_units': {
                 'division': {
-                    'id': str(employment.division.id) if employment.division else None,
-                    'code': employment.division.code if employment.division else None,
-                    'name': employment.division.name if employment.division else None
+                    'id': str(pos.division.id) if pos and pos.division else None,
+                    'code': pos.division.code if pos and pos.division else None,
+                    'name': pos.division.name if pos and pos.division else None
                 },
                 'department': {
-                    'id': str(employment.department.id) if employment.department else None,
-                    'code': employment.department.code if employment.department else None,
-                    'name': employment.department.name if employment.department else None
+                    'id': str(pos.department.id) if pos and pos.department else None,
+                    'code': pos.department.code if pos and pos.department else None,
+                    'name': pos.department.name if pos and pos.department else None
                 },
                 'section': {
-                    'id': str(employment.section.id) if employment.section else None,
-                    'code': employment.section.code if employment.section else None,
-                    'name': employment.section.name if employment.section else None
+                    'id': str(pos.section.id) if pos and pos.section else None,
+                    'code': pos.section.code if pos and pos.section else None,
+                    'name': pos.section.name if pos and pos.section else None
                 },
                 'unit': {
-                    'id': str(employment.unit.id) if employment.unit else None,
-                    'code': employment.unit.code if employment.unit else None,
-                    'name': employment.unit.name if employment.unit else None
+                    'id': str(pos.unit.id) if pos and pos.unit else None,
+                    'code': pos.unit.code if pos and pos.unit else None,
+                    'name': pos.unit.name if pos and pos.unit else None
                 }
             },
             'permissions': {

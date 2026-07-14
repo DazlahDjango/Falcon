@@ -103,6 +103,11 @@ export const STRUCTURE_ROUTES = {
         `/structure/hierarchy/${id}/diff/${compareToId}`,
     HIERARCHY_VALIDATE: '/structure/hierarchy/validate',
     
+    // Bulk
+    BULK_DEPARTMENTS: '/structure/bulk/departments',
+    BULK_EMPLOYMENTS: '/structure/bulk/employments',
+    BULK_REPORTING: '/structure/bulk/reporting',
+    
     // Org Charts
     ORG_CHARTS: '/structure/org-charts',
     ORG_CHART_JSON: '/structure/org-charts/json',

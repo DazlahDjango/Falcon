@@ -9,7 +9,7 @@
 
 .division-list-hero {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 20px;
   padding: 24px;
   margin-bottom: 24px;
@@ -23,7 +23,7 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  max-width: 720px;
+  max-width: 100%;
 }
 
 .division-list-hero__icon {
@@ -60,28 +60,35 @@
 }
 
 .division-list-hero__stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 10px;
-  min-width: 280px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .division-stat-card {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px;
-  border-radius: 14px;
+  padding: 10px 16px;
+  border-radius: 12px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  min-width: 140px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.division-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 .division-stat-card__icon {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: #eff6ff;
   color: #2563eb;
 }
@@ -90,11 +97,14 @@
   font-size: 16px;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.2;
 }
 
 .division-stat-card__label {
   font-size: 12px;
+  font-weight: 500;
   color: #64748b;
+  margin-top: 2px;
 }
 
 .division-list-header {

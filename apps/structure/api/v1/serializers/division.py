@@ -13,7 +13,7 @@ class DivisionSerializer(BaseStructureSerializer):
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
             'level', 'level_display', 'path', 'depth',
-            'cost_center_id', 'budget_code', 'headcount_limit',
+            'cost_center_id', 'manager_id', 'budget_code', 'headcount_limit',
             'is_active', 'is_deleted', 'children_count', 'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'level', 'path', 'depth', 'created_at', 'updated_at']
@@ -29,7 +29,7 @@ class DivisionDetailSerializer(BaseStructureDetailSerializer):
         fields = [
             'id', 'tenant_id', 'code', 'name', 'description',
             'level', 'level_display', 'path', 'depth',
-            'cost_center_id', 'budget_code', 'headcount_limit',
+            'cost_center_id', 'manager_id', 'budget_code', 'headcount_limit',
             'is_active', 'is_deleted', 'children_count',
             'department_count', 'full_path',
             'created_at', 'updated_at', 'created_by', 'updated_by',

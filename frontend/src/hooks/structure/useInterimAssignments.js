@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import {
     fetchInterimAssignments,
     fetchInterimAssignmentById,
@@ -29,7 +29,17 @@ import {
 
 export const useInterimAssignments = (options = {}) => {
     const dispatch = useDispatch();
-    const { autoFetch = true, params = {} } = options;
+    const { autoFetch = true, params: initialParams = {} } = options;
+    
+    // Use a ref to track the first render
+    const isFirstRender = useRef(true);
+    const hasFetched = useRef(false);
+    const prevParamsRef = useRef(initialParams);
+    
+    // Memoize params to prevent unnecessary re-renders
+    const params = useMemo(() => initialParams, [
+        JSON.stringify(initialParams)
+    ]);
 
     const items = useSelector(selectInterimAssignmentsItems);
     const currentItem = useSelector(selectInterimAssignmentsCurrent);
@@ -39,8 +49,10 @@ export const useInterimAssignments = (options = {}) => {
     const error = useSelector(selectInterimAssignmentsError);
     const totalCount = useSelector(selectInterimAssignmentsTotal);
 
+    // Stable fetch function - memoized with params
     const fetchAll = useCallback((fetchParams) => {
-        return dispatch(fetchInterimAssignments(fetchParams || params));
+        const paramsToUse = fetchParams || params;
+        return dispatch(fetchInterimAssignments(paramsToUse));
     }, [dispatch, params]);
 
     const fetchById = useCallback((id) => {
@@ -88,22 +100,53 @@ export const useInterimAssignments = (options = {}) => {
     }, [dispatch]);
 
     const setFilters = useCallback((filters) => {
-        dispatch(setInterimAssignmentFilters(filters));
+        return dispatch(setInterimAssignmentFilters(filters));
     }, [dispatch]);
 
     const setPagination = useCallback((pagination) => {
-        dispatch(setInterimAssignmentPagination(pagination));
+        return dispatch(setInterimAssignmentPagination(pagination));
     }, [dispatch]);
 
     const reset = useCallback(() => {
-        dispatch(resetInterimAssignmentState());
+        return dispatch(resetInterimAssignmentState());
     }, [dispatch]);
 
+    const refetch = useCallback((newParams) => {
+        const fetchParams = newParams || params;
+        prevParamsRef.current = fetchParams;
+        return dispatch(fetchInterimAssignments(fetchParams));
+    }, [dispatch, params]);
+
+    // Auto-fetch on mount and when params change
     useEffect(() => {
-        if (autoFetch) {
-            fetchAll(params);
+        // Skip auto-fetch if disabled
+        if (!autoFetch) {
+            return;
         }
-    }, [autoFetch, fetchAll, params]);
+
+        // Check if params have changed
+        const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+        
+        if (!hasFetched.current || paramsChanged) {
+            hasFetched.current = true;
+            prevParamsRef.current = params;
+            dispatch(fetchInterimAssignments(params));
+        }
+    }, [autoFetch, params, dispatch]);
+
+    // Reset hasFetched when component unmounts
+    useEffect(() => {
+        return () => {
+            hasFetched.current = false;
+            isFirstRender.current = true;
+        };
+    }, []);
+
+    // Helper to force a fresh fetch with current params
+    const forceFetch = useCallback(() => {
+        hasFetched.current = true;
+        return dispatch(fetchInterimAssignments(params));
+    }, [dispatch, params]);
 
     return {
         items,
@@ -128,6 +171,9 @@ export const useInterimAssignments = (options = {}) => {
         setFilters,
         setPagination,
         reset,
+        refetch,
+        forceFetch,
+        _hasFetched: hasFetched.current,
     };
 };
 

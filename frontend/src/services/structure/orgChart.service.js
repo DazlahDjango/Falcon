@@ -7,27 +7,33 @@ class OrgChartService extends BaseStructureService {
   }
 
   async exportJson(params) {
-    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.JSON, { params }));
+    const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.JSON, { params }));
+    return this.unwrap(response);
   }
 
   async exportCsv(params) {
-    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.CSV, { params, responseType: 'blob' }));
+    const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.CSV, { params, responseType: 'blob' }));
+    return this.unwrap(response);
   }
 
   async exportText(params) {
-    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.TEXT, { params, responseType: 'text' }));
+    const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.TEXT, { params, responseType: 'text' }));
+    return this.unwrap(response);
   }
 
   async exportVisio(params) {
-    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.VISIO, { params, responseType: 'blob' }));
+    const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.VISIO, { params, responseType: 'blob' }));
+    return this.unwrap(response);
   }
 
   async getTree() {
-    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.TREE));
+    const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.TREE));
+    return this.unwrap(response);
   }
 
   async getPreview() {
-    return withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.PREVIEW));
+    const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.PREVIEW));
+    return this.unwrap(response);
   }
 }
 

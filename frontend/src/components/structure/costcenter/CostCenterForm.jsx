@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiDollarSign, FiCalendar, FiPercent } from 'react-icons/fi';
 import { useCostCenters, useStructureForm } from '../../../hooks/structure';
 import ParentUnitSelect from '../common/ParentUnitSelect';
+import GenericAllocationsEditor from '../common/GenericAllocationsEditor';
+import CostCenterSelect from '../common/CostCenterSelect';
 import { StructureForm, StructureLoading, StructureEmptyState } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './costcenter.css';
@@ -27,11 +29,17 @@ export const CostCenterForm = () => {
       code: '',
       name: '',
       description: '',
-      organizational_unit_id: '',
+      allocations: [],
       category: 'operational',
+      currency: 'USD',
       budget_amount: '',
       fiscal_year: new Date().getFullYear(),
       allocation_percentage: 100,
+      manager_id: '',
+      parent_id: '',
+      valid_from: '',
+      valid_to: '',
+      custom_attributes: {},
       is_active: true,
       is_shared: false,
       requires_budget_approval: true,
@@ -43,6 +51,10 @@ export const CostCenterForm = () => {
         budget_amount: formData.budget_amount ? parseFloat(formData.budget_amount) : null,
         allocation_percentage: parseFloat(formData.allocation_percentage) || 100,
         fiscal_year: parseInt(formData.fiscal_year, 10),
+        manager_id: formData.manager_id || null,
+        parent_id: formData.parent_id || null,
+        valid_from: formData.valid_from || null,
+        valid_to: formData.valid_to || null,
       };
       if (isEditing) {
         await update(id, submitData);
@@ -65,11 +77,17 @@ export const CostCenterForm = () => {
         code: currentItem.code || '',
         name: currentItem.name || '',
         description: currentItem.description || '',
-        organizational_unit_id: currentItem.organizational_unit_id || '',
+        allocations: currentItem.allocations || [],
         category: currentItem.category || 'operational',
+        currency: currentItem.currency || 'USD',
         budget_amount: currentItem.budget_amount || '',
         fiscal_year: currentItem.fiscal_year || new Date().getFullYear(),
         allocation_percentage: currentItem.allocation_percentage || 100,
+        manager_id: currentItem.manager_id || '',
+        parent_id: currentItem.parent_id || '',
+        valid_from: currentItem.valid_from || '',
+        valid_to: currentItem.valid_to || '',
+        custom_attributes: currentItem.custom_attributes || {},
         is_active: currentItem.is_active !== undefined ? currentItem.is_active : true,
         is_shared: currentItem.is_shared || false,
         requires_budget_approval: currentItem.requires_budget_approval !== undefined ? currentItem.requires_budget_approval : true,
@@ -93,7 +111,7 @@ export const CostCenterForm = () => {
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
-  if (isLoading) {
+  if (isEditing && isLoading) {
     return (
       <div className="costcenter-form-loading">
         <StructureLoading text="Loading cost center..." />
@@ -186,15 +204,12 @@ export const CostCenterForm = () => {
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="organizational_unit_id">Organizational Unit</label>
-          <ParentUnitSelect
-            value={values.organizational_unit_id}
-            onChange={(v) => setFieldValue('organizational_unit_id', v)}
-            placeholder="Select organizational unit"
+        <div className="form-group form-group-full">
+          <GenericAllocationsEditor
+            allocations={values.allocations}
+            onChange={(newAllocations) => setFieldValue('allocations', newAllocations)}
             disabled={isSubmitting}
           />
-          <span className="form-hint">Associate with an organizational unit</span>
         </div>
 
         <div className="form-group">
@@ -217,23 +232,88 @@ export const CostCenterForm = () => {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="budget_amount">Budget Amount</label>
-          <div className="input-with-icon">
-            <FiDollarSign className="input-icon" size={16} />
-            <input
-              id="budget_amount"
-              name="budget_amount"
-              type="number"
-              placeholder="0.00"
-              value={values.budget_amount || ''}
+        <div className="form-group" style={{ display: 'flex', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="budget_amount">Budget Amount</label>
+            <div className="input-with-icon">
+              <FiDollarSign className="input-icon" size={16} />
+              <input
+                id="budget_amount"
+                name="budget_amount"
+                type="number"
+                placeholder="0.00"
+                value={values.budget_amount || ''}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="currency">Currency</label>
+            <select
+              id="currency"
+              name="currency"
+              value={values.currency || 'USD'}
               onChange={handleChange}
-              step="0.01"
-              min="0"
+              disabled={isSubmitting}
+            >
+              <option value="USD">USD - US Dollar</option>
+              <option value="EUR">EUR - Euro</option>
+              <option value="GBP">GBP - British Pound</option>
+              <option value="KES">KES - Kenyan Shilling</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="form-group" style={{ display: 'flex', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="parent_id">Parent Cost Center</label>
+            <CostCenterSelect
+              value={values.parent_id}
+              onChange={(v) => setFieldValue('parent_id', v)}
+              placeholder="Select parent budget (optional)"
               disabled={isSubmitting}
             />
           </div>
-          <span className="form-hint">Total budget allocation for this cost center</span>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="manager_id">Manager ID</label>
+            <input
+              id="manager_id"
+              name="manager_id"
+              type="text"
+              placeholder="Enter Employee ID"
+              value={values.manager_id || ''}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+          </div>
+        </div>
+        
+        <div className="form-group" style={{ display: 'flex', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="valid_from">Valid From</label>
+            <input
+              id="valid_from"
+              name="valid_from"
+              type="date"
+              value={values.valid_from || ''}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="valid_to">Valid To</label>
+            <input
+              id="valid_to"
+              name="valid_to"
+              type="date"
+              value={values.valid_to || ''}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
 
         <div className="form-group">

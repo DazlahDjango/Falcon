@@ -17,7 +17,7 @@ export const fetchHierarchyVersions = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch hierarchy versions');
     }
@@ -29,7 +29,7 @@ export const fetchHierarchyVersionById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch hierarchy version');
     }
@@ -41,7 +41,7 @@ export const fetchCurrentHierarchyVersion = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.getCurrent();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch current hierarchy version');
     }
@@ -53,7 +53,7 @@ export const fetchHierarchyHistory = createAsyncThunk(
   async (limit, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.getHistory(limit);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch hierarchy history');
     }
@@ -65,7 +65,7 @@ export const validateHierarchy = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.validate();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to validate hierarchy');
     }
@@ -77,7 +77,7 @@ export const captureHierarchySnapshot = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.capture(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to capture hierarchy snapshot');
     }
@@ -89,7 +89,7 @@ export const autoCaptureHierarchy = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.autoCapture();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to auto-capture hierarchy');
     }
@@ -101,7 +101,7 @@ export const restoreHierarchyVersion = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.restore(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to restore hierarchy version');
     }
@@ -113,7 +113,7 @@ export const diffHierarchyVersions = createAsyncThunk(
   async ({ id, compareToId }, { rejectWithValue }) => {
     try {
       const response = await hierarchyService.diff(id, compareToId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to diff hierarchy versions');
     }
@@ -160,14 +160,41 @@ const hierarchySlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      .addCase(fetchCurrentHierarchyVersion.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(fetchCurrentHierarchyVersion.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.currentVersion = action.payload;
       })
+      .addCase(fetchCurrentHierarchyVersion.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchHierarchyHistory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(fetchHierarchyHistory.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.history = action.payload.versions || action.payload;
       })
+      .addCase(fetchHierarchyHistory.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(validateHierarchy.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(validateHierarchy.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.validationResult = action.payload;
+      })
+      .addCase(validateHierarchy.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       })
       .addCase(captureHierarchySnapshot.fulfilled, (state, action) => {
         if (action.payload.version) {

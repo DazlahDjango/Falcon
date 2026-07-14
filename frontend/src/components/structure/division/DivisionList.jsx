@@ -16,32 +16,6 @@ import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConsta
 import { STRUCTURE_MESSAGES } from '../../../config/constants/structureConstants';
 import './division.css';
 
-const COLUMNS = [
-  { key: 'code', header: 'Code', width: '120px' },
-  { key: 'name', header: 'Name', width: '200px' },
-  { key: 'description', header: 'Description' },
-  {
-    key: 'level',
-    header: 'Level',
-    width: '100px',
-    render: (item) => item.level || 'Division',
-  },
-  {
-    key: 'depth',
-    header: 'Depth',
-    width: '80px',
-    render: (item) => item.depth || 0,
-  },
-  {
-    key: 'is_active',
-    header: 'Status',
-    width: '120px',
-    render: (item) => (
-      <StructureStatusBadge status={item.is_active ? 'active' : 'inactive'} />
-    ),
-  },
-];
-
 export const DivisionList = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -65,12 +39,60 @@ export const DivisionList = () => {
     error,
     totalCount,
     fetchAll,
+    update,
     remove,
     clearError,
     refetch,
   } = useDivisions({ autoFetch: false });
 
-  // Fetch when params change
+  const handleToggleActive = useCallback(async (item, e) => {
+    e.stopPropagation();
+    try {
+      await update(item.id, { is_active: !item.is_active }).unwrap();
+      const params = {
+        page,
+        page_size: pageSize,
+        search: searchTerm,
+        ...filters,
+      };
+      fetchAll(params);
+    } catch (err) {
+      console.error('Failed to toggle status:', err);
+    }
+  }, [update, fetchAll, page, pageSize, searchTerm, filters]);
+
+  const COLUMNS = useMemo(() => [
+    { key: 'code', header: 'Code', width: '120px' },
+    { key: 'name', header: 'Name', width: '200px' },
+    { key: 'description', header: 'Description' },
+    {
+      key: 'level',
+      header: 'Level',
+      width: '100px',
+      render: (item) => item.level || 'Division',
+    },
+    {
+      key: 'depth',
+      header: 'Depth',
+      width: '80px',
+      render: (item) => item.depth || 0,
+    },
+    {
+      key: 'is_active',
+      header: 'Status',
+      width: '120px',
+      render: (item) => (
+        <div
+          onClick={(e) => handleToggleActive(item, e)}
+          style={{ cursor: 'pointer', display: 'inline-block' }}
+          title={item.is_active ? "Click to deactivate" : "Click to activate"}
+        >
+          <StructureStatusBadge status={item.is_active ? 'active' : 'inactive'} />
+        </div>
+      ),
+    },
+  ], [handleToggleActive]);
+
   useEffect(() => {
     if (params) {
       fetchAll(params);
@@ -112,7 +134,7 @@ export const DivisionList = () => {
   const handleDeleteConfirm = useCallback(async () => {
     if (!deleteTarget) return;
     try {
-      await remove(deleteTarget.id);
+      await remove(deleteTarget.id).unwrap();
       setShowDeleteConfirm(false);
       setDeleteTarget(null);
       // Refetch with current params after deletion
@@ -124,6 +146,8 @@ export const DivisionList = () => {
       });
     } catch (err) {
       console.error('Delete failed:', err);
+      setShowDeleteConfirm(false);
+      setDeleteTarget(null);
     }
   }, [deleteTarget, remove, refetch, page, pageSize, searchTerm, filters]);
 
@@ -145,6 +169,20 @@ export const DivisionList = () => {
     });
   }, [refetch, page, pageSize, searchTerm, filters]);
 
+  const summaryStats = useMemo(() => {
+    const itemsArray = Array.isArray(items) ? items : [];
+    const activeCount = itemsArray.filter((item) => item.is_active).length;
+    const inactiveCount = itemsArray.filter((item) => !item.is_active).length;
+    const withHeadcount = itemsArray.filter((item) => item.headcount_limit).length;
+
+    return [
+      { label: 'Total divisions', value: totalCount, icon: FiLayers },
+      { label: 'Active', value: activeCount, icon: FiActivity },
+      { label: 'With headcount', value: withHeadcount, icon: FiUsers },
+      { label: 'Inactive', value: inactiveCount, icon: FiRefreshCw },
+    ];
+  }, [items, totalCount]);
+
   if (error) {
     return (
       <div className="division-list-error">
@@ -164,20 +202,6 @@ export const DivisionList = () => {
     onPageChange: handlePageChange,
     onPageSizeChange: handlePageSizeChange,
   };
-
-  const summaryStats = useMemo(() => {
-    const itemsArray = Array.isArray(items) ? items : [];
-    const activeCount = itemsArray.filter((item) => item.is_active).length;
-    const inactiveCount = itemsArray.filter((item) => !item.is_active).length;
-    const withHeadcount = itemsArray.filter((item) => item.headcount_limit).length;
-
-    return [
-      { label: 'Total divisions', value: totalCount, icon: FiLayers },
-      { label: 'Active', value: activeCount, icon: FiActivity },
-      { label: 'With headcount', value: withHeadcount, icon: FiUsers },
-      { label: 'Inactive', value: inactiveCount, icon: FiRefreshCw },
-    ];
-  }, [items, totalCount]);
 
   return (
     <div className="division-list-container">
@@ -259,6 +283,7 @@ export const DivisionList = () => {
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
         pagination={paginationProps}
+        hideEmptyState={true}
       />
 
       {!isLoading && items.length === 0 && (

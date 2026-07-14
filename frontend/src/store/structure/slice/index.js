@@ -62,3 +62,22 @@ export {
   settingsReducer,
   referenceDataReducer,
 };
+
+export * from './organizationalUnit.slice';
+export * from './divisionslice';
+export * from './departmentSlice';
+export * from './departmentTree.slice';
+export * from './sectionslice';
+export * from './unitslice';
+export * from './positionSlice';
+export * from './employmentSlice';
+export * from './reportingLineSlice';
+export * from './interimAssignment.slice';
+export * from './costCenterSlice';
+export * from './locationSlice';
+export * from './hierarchySlice';
+export * from './orgChartSlice';
+export * from './dashboardSlice';
+export * from './healthSlice';
+export * from './settingSlice';
+export * from './referenceDataSlice';

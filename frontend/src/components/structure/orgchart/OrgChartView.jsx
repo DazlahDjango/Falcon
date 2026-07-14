@@ -146,7 +146,12 @@ export const OrgChartView = () => {
     );
   }
 
-  const chartData = tree?.departments || tree?.divisions || [];
+  const chartData = [
+    ...(tree?.divisions || []),
+    ...(tree?.departments || []),
+    ...(tree?.sections || []),
+    ...(tree?.units || [])
+  ];
 
   return (
     <div className={`orgchart-container ${isFullscreen ? 'fullscreen' : ''}`}>

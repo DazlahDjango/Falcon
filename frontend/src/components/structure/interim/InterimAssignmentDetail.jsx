@@ -10,6 +10,7 @@ import {
   FiClock,
   FiAlertCircle,
   FiCheckCircle,
+  FiGitBranch,
 } from 'react-icons/fi';
 import { useInterimAssignments } from '../../../hooks/structure';
 import {
@@ -48,6 +49,12 @@ export const InterimAssignmentDetail = () => {
   const handleEdit = useCallback(() => {
     navigate(STRUCTURE_ROUTES.INTERIM_ASSIGNMENT_EDIT(id));
   }, [navigate, id]);
+
+  const handleViewEmployeeChain = useCallback(() => {
+    if (currentItem?.employee_user_id) {
+      navigate(STRUCTURE_ROUTES.REPORTING_CHAIN(currentItem.employee_user_id));
+    }
+  }, [navigate, currentItem]);
 
   const handleDeleteClick = useCallback(() => {
     setShowDeleteConfirm(true);
@@ -161,6 +168,12 @@ export const InterimAssignmentDetail = () => {
           )}
         </div>
         <div className="header-right">
+          {currentItem && currentItem.employee_user_id && (
+            <button onClick={handleViewEmployeeChain} className="btn btn-secondary" title="View Employee Reporting Chain">
+              <FiGitBranch size={16} />
+              <span className="hidden-sm">View Employee Chain</span>
+            </button>
+          )}
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>

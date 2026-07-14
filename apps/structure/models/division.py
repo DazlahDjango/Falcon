@@ -20,8 +20,10 @@ class Division(OrganizationalNode):
             models.Index(fields=['tenant_id', 'is_active']),
             models.Index(fields=['tenant_id', 'code']),
             models.Index(fields=['path']),
-            models.Index(fields=['cost_center_id']),
+            
         ]
+
+    director_id = models.UUIDField(_('director user ID'), null=True, blank=True, help_text=_("User ID of the division director"))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,3 +32,6 @@ class Division(OrganizationalNode):
     def save(self, *args, **kwargs):
         self.level = self.LEVEL
         super().save(*args, **kwargs)
+
+    def get_children_count(self):
+        return self.departments.filter(is_deleted=False, is_active=True).count()

@@ -15,7 +15,7 @@ export const fetchReferenceData = createAsyncThunk(
   async (include, { rejectWithValue }) => {
     try {
       const response = await structureReferenceDataService.getReferenceData(include);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reference data');
     }
@@ -27,7 +27,7 @@ export const fetchReferenceCounts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureReferenceDataService.getCounts();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reference counts');
     }
@@ -39,7 +39,7 @@ export const fetchReferenceOrgUnits = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureReferenceDataService.getOrgUnits();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reference organizational units');
     }
@@ -51,7 +51,7 @@ export const fetchReferenceUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureReferenceDataService.getUsers();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch reference users');
     }

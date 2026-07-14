@@ -7,23 +7,28 @@ class StructureHealthService extends BaseStructureService {
   }
 
   async getDatabaseHealth() {
-    return withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.DATABASE));
+    const response = await withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.DATABASE));
+    return this.unwrap(response);
   }
 
   async getCacheHealth() {
-    return withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.CACHE));
+    const response = await withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.CACHE));
+    return this.unwrap(response);
   }
 
   async getServicesHealth() {
-    return withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.SERVICES));
+    const response = await withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.SERVICES));
+    return this.unwrap(response);
   }
 
   async getAdminHealth() {
-    return withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.ADMIN));
+    const response = await withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.ADMIN));
+    return this.unwrap(response);
   }
 
   async getMetrics() {
-    return withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.METRICS));
+    const response = await withRetry(() => this.apiClient.get(HEALTH_ENDPOINTS.METRICS));
+    return this.unwrap(response);
   }
 
   async getAllHealthChecks() {

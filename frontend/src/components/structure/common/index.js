@@ -7,3 +7,4 @@ export { default as StructureEmptyState } from './StructureEmptyState';
 export { default as StructureForm } from './StructureForm';
 export { default as StructureTable } from './StructureTable';
 export { default as StructureLoading } from './StructureLoading';
+export { default as StructureSummaryCards } from './StructureSummaryCards';

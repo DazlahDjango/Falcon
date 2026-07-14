@@ -26,12 +26,11 @@ import {
 export const useDivisions = (options = {}) => {
     const dispatch = useDispatch();
     const { autoFetch = true, params: initialParams = {} } = options;
-    
-    // Refs to track fetch state
+
+    const isFirstRender = useRef(true);
     const hasFetched = useRef(false);
     const prevParamsRef = useRef(initialParams);
-    
-    // Memoize params to prevent unnecessary re-renders
+
     const params = useMemo(() => initialParams, [
         JSON.stringify(initialParams)
     ]);
@@ -93,30 +92,19 @@ export const useDivisions = (options = {}) => {
         dispatch(resetDivisionState());
     }, [dispatch]);
 
-    // Refetch with new params
     const refetch = useCallback((newParams) => {
         const fetchParams = newParams || params;
         prevParamsRef.current = fetchParams;
-        hasFetched.current = true;
         return dispatch(fetchDivisions(fetchParams));
     }, [dispatch, params]);
 
-    // Force refresh with current params
-    const forceRefresh = useCallback(() => {
-        return dispatch(fetchDivisions(params));
-    }, [dispatch, params]);
-
-    // Auto-fetch effect
     useEffect(() => {
-        // Skip if autoFetch is disabled
         if (!autoFetch) {
             return;
         }
 
-        // Check if params have changed
         const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
-        
-        // Fetch if not fetched yet or params changed
+
         if (!hasFetched.current || paramsChanged) {
             hasFetched.current = true;
             prevParamsRef.current = params;
@@ -124,13 +112,17 @@ export const useDivisions = (options = {}) => {
         }
     }, [autoFetch, params, dispatch]);
 
-    // Reset hasFetched when component unmounts
     useEffect(() => {
         return () => {
             hasFetched.current = false;
-            prevParamsRef.current = {};
+            isFirstRender.current = true;
         };
     }, []);
+
+    const forceFetch = useCallback(() => {
+        hasFetched.current = true;
+        return dispatch(fetchDivisions(params));
+    }, [dispatch, params]);
 
     return {
         items,
@@ -152,7 +144,8 @@ export const useDivisions = (options = {}) => {
         setPagination,
         reset,
         refetch,
-        forceRefresh,
+        forceFetch,
+        _hasFetched: hasFetched.current,
     };
 };
 

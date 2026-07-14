@@ -83,22 +83,23 @@ class JSONExporterService:
         return json.dumps(data, cls=DjangoJSONEncoder, indent=2)
     
     def export_employments(self, tenant_id: UUID, current_only: bool = True) -> str:
-        employments = Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('position', 'division', 'department', 'section', 'unit')
+        employments = Employment.objects.filter(tenant_id=tenant_id, is_deleted=False).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit')
         if current_only:
             employments = employments.filter(is_current=True, is_active=True)
         data = []
         for emp in employments:
+            pos = emp.position
             data.append({
                 'user_id': str(emp.user_id),
                 'position': {
-                    'id': str(emp.position.id) if emp.position else None,
-                    'job_code': emp.position.job_code if emp.position else None,
-                    'title': emp.position.title if emp.position else None
+                    'id': str(pos.id) if pos else None,
+                    'job_code': pos.job_code if pos else None,
+                    'title': pos.title if pos else None
                 },
-                'division': str(emp.division_id) if emp.division_id else None,
-                'department': str(emp.department_id) if emp.department_id else None,
-                'section': str(emp.section_id) if emp.section_id else None,
-                'unit': str(emp.unit_id) if emp.unit_id else None,
+                'division': str(pos.division_id) if pos and pos.division_id else None,
+                'department': str(pos.department_id) if pos and pos.department_id else None,
+                'section': str(pos.section_id) if pos and pos.section_id else None,
+                'unit': str(pos.unit_id) if pos and pos.unit_id else None,
                 'employment_type': emp.employment_type,
                 'is_manager': emp.is_manager,
                 'is_executive': emp.is_executive,

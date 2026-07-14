@@ -110,7 +110,7 @@ const HierarchyVersionList = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate(STRUCTURE_ROUTES.ORG_CHART)}
+              onClick={() => navigate(STRUCTURE_ROUTES.HIERARCHY_CURRENT)}
               className="text-sm text-green-700 hover:text-green-800 flex items-center gap-1"
             >
               <Eye size={14} /> View Current Structure

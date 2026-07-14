@@ -170,11 +170,23 @@ class HierarchyViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='current')
     def get_current_version(self, request):
         tenant_id = request.user.tenant_id
-        current = HierarchyVersion.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False).first()
-        if not current:
-            return Response({'message': 'No current hierarchy version found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = HierarchyVersionDetailSerializer(current, context={'request': request})
-        return Response(serializer.data)
+        from apps.structure.services.hierarchy.tree_builder import TreeBuilder
+        import hashlib
+        import json
+        
+        tree_builder = TreeBuilder()
+        snapshot = tree_builder.build_full_tree(tenant_id, use_cache=False)
+        
+        return Response({
+            'id': 'live',
+            'version_number': 'Live',
+            'name': 'Current Live Structure',
+            'description': 'Real-time organizational structure',
+            'version_type': 'auto',
+            'is_current': True,
+            'snapshot': snapshot,
+            'effective_from': timezone.now()
+        })
     
     @action(detail=False, methods=['get'], url_path='history')
     def get_history(self, request):
@@ -225,15 +237,28 @@ class HierarchyViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='validate')
     def validate_hierarchy(self, request):
         tenant_id = request.user.tenant_id
-        from apps.structure.services.validation.org_validator import OrgValidatorService
+        from apps.structure.services.hierarchy.org_validator import OrgValidator
         from apps.structure.services.hierarchy.cycle_detector import CycleDetector
-        validator = OrgValidatorService()
-        integrity_check = validator.validate_org_integrity(tenant_id)
+        from apps.structure.models.organizational_unit import OrganizationalUnit
+        
+        validator = OrgValidator()
+        issues = validator.validate_org_integrity(tenant_id)
         cycles = CycleDetector().find_all_cycles(tenant_id)
+        
+        cycle_details = []
+        for node_id, path in cycles:
+            unit = OrganizationalUnit.objects.filter(id=node_id).first()
+            cycle_details.append({
+                'node_id': str(node_id),
+                'code': unit.code if unit else '',
+                'level': unit.level if unit else 'department',
+                'description': CycleDetector.get_cycle_description(path)
+            })
+            
         return Response({
-            'is_valid': integrity_check['is_valid'] and len(cycles) == 0,
-            'integrity_issues': integrity_check['issues'],
-            'integrity_issue_count': integrity_check['issue_count'],
+            'is_valid': len(issues) == 0 and len(cycles) == 0,
+            'integrity_issues': issues,
+            'integrity_issue_count': len(issues),
             'cycles': len(cycles),
-            'cycle_details': [{'node_id': str(cycle['node_id']), 'code': cycle.get('code', '')} for cycle in cycles]
+            'cycle_details': cycle_details
         })

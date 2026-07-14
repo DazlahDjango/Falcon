@@ -8,6 +8,8 @@ import {
   FiUsers,
   FiChevronRight,
   FiBriefcase,
+  FiUserPlus,
+  FiGitBranch,
 } from 'react-icons/fi';
 import { usePositions } from '../../../hooks/structure';
 import {
@@ -45,6 +47,14 @@ export const PositionDetail = () => {
 
   const handleEdit = useCallback(() => {
     navigate(STRUCTURE_ROUTES.POSITION_EDIT(id));
+  }, [navigate, id]);
+
+  const handleAssignEmployee = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.EMPLOYMENT_CREATE + '?position_id=' + id);
+  }, [navigate, id]);
+
+  const handleViewChain = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.POSITION_REPORTING_CHAIN(id));
   }, [navigate, id]);
 
   const handleDeleteClick = useCallback(() => {
@@ -138,6 +148,14 @@ export const PositionDetail = () => {
           )}
         </div>
         <div className="header-right">
+          <button onClick={handleAssignEmployee} className="btn btn-secondary" title="Assign Employee">
+            <FiUserPlus size={16} />
+            <span className="hidden-sm">Assign Employee</span>
+          </button>
+          <button onClick={handleViewChain} className="btn btn-secondary" title="View Reporting Chain">
+            <FiGitBranch size={16} />
+            <span className="hidden-sm">View Chain</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>

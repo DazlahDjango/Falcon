@@ -17,7 +17,7 @@ export const fetchCostCenters = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await costCenterService.list(params);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch cost centers');
     }
@@ -29,7 +29,7 @@ export const fetchCostCenterById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await costCenterService.getById(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch cost center');
     }
@@ -41,7 +41,7 @@ export const fetchCostCenterStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await costCenterService.getStats();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch cost center stats');
     }
@@ -53,7 +53,7 @@ export const fetchCostCenterChildren = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await costCenterService.getChildren(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch cost center children');
     }
@@ -65,7 +65,7 @@ export const fetchCostCenterUtilization = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await costCenterService.getUtilization(id);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch cost center utilization');
     }
@@ -77,7 +77,7 @@ export const createCostCenter = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await costCenterService.create(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create cost center');
     }
@@ -89,7 +89,7 @@ export const updateCostCenter = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await costCenterService.update(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update cost center');
     }

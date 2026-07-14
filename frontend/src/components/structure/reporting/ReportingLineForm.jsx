@@ -81,7 +81,7 @@ export const ReportingLineForm = () => {
     navigate(STRUCTURE_ROUTES.REPORTING_LINES);
   }, [navigate]);
 
-  if (isLoading) {
+  if (isEditing && isLoading) {
     return (
       <div className="reporting-form-loading">
         <StructureLoading text="Loading reporting line..." />

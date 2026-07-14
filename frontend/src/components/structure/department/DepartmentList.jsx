@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiMove } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiMove, FiFolder, FiList } from 'react-icons/fi';
 import { useDepartments } from '../../../hooks/structure';
 import {
   StructureTable,
@@ -15,48 +15,6 @@ import {
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import { STRUCTURE_MESSAGES } from '../../../config/constants/structureConstants';
 import './department.css';
-
-
-const COLUMNS = [
-  { key: 'code', header: 'Code', width: '120px' },
-  { key: 'name', header: 'Name', width: '200px' },
-  {
-    key: 'parent_name',
-    header: 'Parent',
-    width: '160px',
-    render: (item) => item.parent_name || '-',
-  },
-  {
-    key: 'depth',
-    header: 'Depth',
-    width: '70px',
-    render: (item) => item.depth || 0,
-  },
-  {
-    key: 'headcount_limit',
-    header: 'Headcount',
-    width: '100px',
-    render: (item) => item.headcount_limit || '-',
-  },
-  {
-    key: 'sensitivity_level',
-    header: 'Sensitivity',
-    width: '120px',
-    render: (item) => (
-      <span className={`sensitivity-badge sensitivity-${item.sensitivity_level || 'internal'}`}>
-        {item.sensitivity_level || 'internal'}
-      </span>
-    ),
-  },
-  {
-    key: 'is_active',
-    header: 'Status',
-    width: '100px',
-    render: (item) => (
-      <StructureStatusBadge status={item.is_active ? 'active' : 'inactive'} size="sm" />
-    ),
-  },
-];
 
 export const DepartmentList = () => {
   const navigate = useNavigate();
@@ -73,9 +31,77 @@ export const DepartmentList = () => {
     error,
     totalCount,
     fetchAll,
+    update,
     remove,
     clearError,
   } = useDepartments({ autoFetch: false });
+
+  const handleToggleActive = useCallback(async (item, e) => {
+    e.stopPropagation();
+    try {
+      await update(item.id, { is_active: !item.is_active });
+      const params = {
+        page,
+        page_size: pageSize,
+        search: searchTerm,
+        ...filters,
+      };
+      fetchAll(params);
+    } catch (err) {
+      console.error('Failed to toggle status:', err);
+    }
+  }, [update, fetchAll, page, pageSize, searchTerm, filters]);
+
+  const COLUMNS = useMemo(() => [
+    { key: 'code', header: 'Code', width: '120px' },
+    { key: 'name', header: 'Name', width: '200px' },
+    {
+      key: 'parent_name',
+      header: 'Parent',
+      width: '160px',
+      render: (item) => item.parent_name || '-',
+    },
+    {
+      key: 'depth',
+      header: 'Depth',
+      width: '70px',
+      render: (item) => item.depth || 0,
+    },
+    {
+      key: 'headcount_limit',
+      header: 'Headcount',
+      width: '100px',
+      render: (item) => item.headcount_limit || '-',
+    },
+    {
+      key: 'sensitivity_level',
+      header: 'Sensitivity',
+      width: '120px',
+      render: (item) => (
+        <span className={`sensitivity-badge sensitivity-${item.sensitivity_level || 'internal'}`}>
+          {item.sensitivity_level || 'internal'}
+        </span>
+      ),
+    },
+    {
+      key: 'is_active',
+      header: 'Status',
+      width: '100px',
+      render: (item) => (
+        <div 
+          onClick={(e) => handleToggleActive(item, e)} 
+          style={{ cursor: 'pointer', display: 'inline-block' }}
+          title={item.is_active ? "Click to deactivate" : "Click to activate"}
+        >
+          <StructureStatusBadge status={item.is_active ? 'active' : 'inactive'} size="sm" />
+        </div>
+      ),
+    },
+  ], [handleToggleActive]);
+
+  const handleView = useCallback((item) => {
+    navigate(STRUCTURE_ROUTES.DEPARTMENT_DETAIL(item.id));
+  }, [navigate]);
 
   useEffect(() => {
     const params = {
@@ -105,10 +131,6 @@ export const DepartmentList = () => {
     setPageSize(newSize);
     setPage(1);
   }, []);
-
-  const handleView = useCallback((item) => {
-    navigate(STRUCTURE_ROUTES.DEPARTMENT_DETAIL(item.id));
-  }, [navigate]);
 
   const handleEdit = useCallback((item) => {
     navigate(STRUCTURE_ROUTES.DEPARTMENT_EDIT(item.id));
@@ -184,6 +206,15 @@ export const DepartmentList = () => {
           <span className="header-count">{totalCount} total</span>
         </div>
         <div className="header-right">
+          <button 
+            onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENT_TREE)} 
+            className="btn btn-secondary" 
+            title="View Hierarchy Tree"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            <FiFolder size={16} />
+            Tree View
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
@@ -232,7 +263,7 @@ export const DepartmentList = () => {
         debounce={400}
       />
 
-      <StructureTable
+      <StructureTable hideEmptyState={true}
         columns={COLUMNS}
         data={items}
         loading={isLoading}

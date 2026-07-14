@@ -3,11 +3,11 @@ import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConsta
 import { KPI_ROUTES, KPI_ADMIN_ROUTES } from '../../../config/constants/kpiRouteConstants';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import CollapsibleSidebar from './CollapsibleSidebar';
-import { 
-  FiHome, FiShield, FiClock, FiAlertCircle, FiActivity, FiCheckCircle, 
-  FiPieChart, FiGrid, FiDatabase, FiFileText, FiTarget, FiBarChart2, 
-  FiDownload, FiSettings, FiBell, FiGitBranch, FiBriefcase, FiDollarSign, 
-  FiMapPin, FiLayers, FiTrendingUp 
+import {
+  FiHome, FiShield, FiClock, FiAlertCircle, FiActivity, FiCheckCircle,
+  FiPieChart, FiGrid, FiDatabase, FiFileText, FiTarget, FiBarChart2,
+  FiDownload, FiSettings, FiBell, FiGitBranch, FiBriefcase, FiDollarSign,
+  FiMapPin, FiLayers, FiTrendingUp
 } from 'react-icons/fi';
 import { HiOutlineBuildingOffice } from 'react-icons/hi2';
 import { BsDiagram3, BsPersonBadge } from 'react-icons/bs';

@@ -8,40 +8,48 @@ class DepartmentService extends BaseStructureService {
 
   async getByCode(code) {
     if (!code) throw new Error('Department code is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.BY_CODE(code)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.BY_CODE(code)));
+    return this.unwrap(response);
   }
 
   async getRootDepartments() {
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.ROOT));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.ROOT));
+    return this.unwrap(response);
   }
 
   async getStats() {
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.STATS));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.STATS));
+    return this.unwrap(response);
   }
 
   async getChildren(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.CHILDREN(id)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.CHILDREN(id)));
+    return this.unwrap(response);
   }
 
   async getSections(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.SECTIONS(id)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.SECTIONS(id)));
+    return this.unwrap(response);
   }
 
   async getEmployments(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.EMPLOYMENTS(id)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.EMPLOYMENTS(id)));
+    return this.unwrap(response);
   }
 
   async getAncestors(id) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.ANCESTORS(id)));
+    const response = await withRetry(() => this.apiClient.get(DEPARTMENT_ENDPOINTS.ANCESTORS(id)));
+    return this.unwrap(response);
   }
 
   async moveDepartment(id, parentId) {
     if (!id) throw new Error('ID is required');
-    return withRetry(() => this.apiClient.post(DEPARTMENT_ENDPOINTS.MOVE(id), { parent_id: parentId }));
+    const response = await withRetry(() => this.apiClient.post(DEPARTMENT_ENDPOINTS.MOVE(id), { parent_id: parentId }));
+    return this.unwrap(response);
   }
 }
 

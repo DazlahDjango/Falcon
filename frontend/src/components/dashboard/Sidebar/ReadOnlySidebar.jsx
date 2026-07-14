@@ -2,10 +2,10 @@ import React from 'react';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import CollapsibleSidebar from './CollapsibleSidebar';
-import { 
-  FiHome, FiBriefcase, FiUsers, FiUser, FiBarChart2, FiSettings, 
-  FiFileText, FiDownload, FiActivity, FiTrendingUp, FiPieChart, 
-  FiEye, FiMapPin, FiDollarSign, FiGitBranch 
+import {
+  FiHome, FiBriefcase, FiUsers, FiUser, FiBarChart2, FiSettings,
+  FiFileText, FiDownload, FiActivity, FiTrendingUp, FiPieChart,
+  FiEye, FiMapPin, FiDollarSign, FiGitBranch
 } from 'react-icons/fi';
 import { HiOutlineBuildingOffice } from 'react-icons/hi2';
 import { BsDiagram3, BsPersonBadge } from 'react-icons/bs';

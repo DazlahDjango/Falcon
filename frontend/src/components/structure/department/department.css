@@ -535,9 +535,58 @@
   cursor: pointer;
   transition: background 0.2s ease;
 }
-
 .department-detail-error .btn:hover {
   background: var(--primary-dark, #2563eb);
+}
+
+.department-list-hero__stats {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  min-width: max-content;
+}
+
+.department-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  min-width: 160px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.department-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.department-stat-card__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.department-stat-card__value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.department-stat-card__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 2px;
+  letter-spacing: 0.05em;
 }
 
 .stats-grid {
@@ -554,6 +603,47 @@
   border-radius: 12px;
   padding: 16px 20px;
   border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.status-toggle {
+  display: flex;
+  gap: 8px;
+  background: var(--bg-gray-50, #f8fafc);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  width: fit-content;
+}
+
+.toggle-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--text-secondary, #475569);
+}
+
+.toggle-btn:hover:not(.active-btn):not(.inactive-btn) {
+  background: var(--bg-white, #ffffff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.toggle-btn.active-btn {
+  background: var(--bg-white, #ffffff);
+  color: var(--success, #10b981);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.toggle-btn.inactive-btn {
+  background: var(--bg-white, #ffffff);
+  color: var(--danger, #ef4444);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .stat-card .stat-icon {

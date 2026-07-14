@@ -1,6 +1,6 @@
 from django.db import models
 from apps.structure.models.employment import Employment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.models.interim_assignment import InterimAssignment
 from apps.structure.exceptions import ReportingChainError
 
@@ -13,8 +13,8 @@ class ChainValidator:
             if str(current) in visited:
                 raise ReportingChainError(f"Circular reference detected in reporting chain for employee {current}")
             visited.add(str(current))
-            reporting_line = ReportingLine.objects.filter(employee_id=current, is_active=True, is_deleted=False).first()
-            if not reporting_line:
+            employment = Employment.objects.filter(employee_id=current, is_active=True, is_deleted=False).first()
+            if not employment:
                 break
             interim = InterimAssignment.objects.current_by_employee(current).first()
             if interim:
@@ -28,11 +28,11 @@ class ChainValidator:
             else:
                 chain.append({
                     'employee_id': str(current),
-                    'manager_id': str(reporting_line.manager_id),
+                    'manager_id': str(employment.manager_id),
                     'is_interim': False,
                     'interim_id': None
                 })
-                current = reporting_line.manager_id
+                current = employment.manager_id
         return chain
 
     def validate_all_chains(self, tenant_id):
@@ -90,8 +90,8 @@ class ChainValidator:
             issues.extend(errors)
         employments = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_active=True, is_deleted=False)
         for emp in employments:
-            reporting_line = ReportingLine.objects.filter(employee=emp, is_active=True, is_deleted=False).first()
-            if not reporting_line:
+            employment = Employment.objects.filter(employee=emp, is_active=True, is_deleted=False).first()
+            if not employment:
                 issues.append({
                     'employee_id': str(emp.user_id),
                     'error': 'No reporting line assigned'

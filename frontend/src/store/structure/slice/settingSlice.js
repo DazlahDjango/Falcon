@@ -13,7 +13,7 @@ export const fetchSettings = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureSystemSettingsService.getSettings();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch settings');
     }
@@ -25,7 +25,7 @@ export const updateSettings = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await structureSystemSettingsService.updateSettings(data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to update settings');
     }
@@ -37,7 +37,7 @@ export const resetSettings = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await structureSystemSettingsService.resetSettings();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to reset settings');
     }

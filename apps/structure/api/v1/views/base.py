@@ -52,11 +52,17 @@ class BaseStructureViewSet(viewsets.ModelViewSet):
     
     def _invalidate_cache(self):
         if hasattr(self.request, 'user') and hasattr(self.request.user, 'tenant_id'):
-            cache_key_pattern = f"structure:*:{self.request.user.tenant_id}:*"
-            try:
-                cache.delete_pattern(cache_key_pattern)
-            except Exception:
-                pass
+            tenant_id = self.request.user.tenant_id
+            if tenant_id:
+                try:
+                    cache.delete(f"structure:org_tree:{tenant_id}")
+                except Exception:
+                    pass
+                cache_key_pattern = f"structure:*:{tenant_id}:*"
+                try:
+                    cache.delete_pattern(cache_key_pattern)
+                except Exception:
+                    pass
     
     @action(detail=False, methods=['get'], url_path='health')
     def health_check(self, request):

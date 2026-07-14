@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import {
     fetchLocations,
     fetchLocationById,
@@ -28,7 +28,14 @@ import {
 
 export const useLocations = (options = {}) => {
     const dispatch = useDispatch();
-    const { autoFetch = true, params = {} } = options;
+    const { autoFetch = true, params: initialParams = {} } = options;
+
+    const hasFetched = useRef(false);
+    const prevParamsRef = useRef(initialParams);
+
+    const params = useMemo(() => initialParams, [
+        JSON.stringify(initialParams)
+    ]);
 
     const items = useSelector(selectLocationsItems);
     const currentItem = useSelector(selectLocationsCurrent);
@@ -95,10 +102,18 @@ export const useLocations = (options = {}) => {
     }, [dispatch]);
 
     useEffect(() => {
-        if (autoFetch) {
-            fetchAll(params);
+        if (!autoFetch) {
+            return;
         }
-    }, [autoFetch, fetchAll, params]);
+
+        const paramsChanged = JSON.stringify(prevParamsRef.current) !== JSON.stringify(params);
+
+        if (!hasFetched.current || paramsChanged) {
+            hasFetched.current = true;
+            prevParamsRef.current = params;
+            dispatch(fetchLocations(params));
+        }
+    }, [autoFetch, params, dispatch]);
 
     return {
         items,

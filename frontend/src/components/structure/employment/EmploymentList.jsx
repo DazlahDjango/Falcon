@@ -11,6 +11,7 @@ import {
   StructureLoading,
   StructureEmptyState,
   StructureConfirmDialog,
+  StructureSummaryCards,
 } from '../common';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import { STRUCTURE_MESSAGES } from '../../../config/constants/structureConstants';
@@ -96,10 +97,16 @@ export const EmploymentList = () => {
     isLoading,
     error,
     totalCount,
+    stats,
     fetchAll,
+    fetchStats,
     remove,
     clearError,
   } = useEmployments({ autoFetch: false });
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   useEffect(() => {
     const params = {
@@ -218,6 +225,37 @@ export const EmploymentList = () => {
         </div>
       </div>
 
+      <StructureSummaryCards
+        loading={!stats && isLoading}
+        items={[
+          {
+            title: 'Total Active Employments',
+            value: stats?.total_current_employments || 0,
+            variant: 'default',
+            description: 'Current active staff'
+          },
+          {
+            title: 'Managers',
+            value: stats?.manager_count || 0,
+            variant: 'success',
+            description: 'Staff with approval rights'
+          },
+          {
+            title: 'Executives',
+            value: stats?.executive_count || 0,
+            variant: 'warning',
+            description: 'Top-level leadership'
+          },
+          {
+            title: 'Management %',
+            value: stats?.management_percentage || 0,
+            suffix: '%',
+            variant: 'default',
+            description: 'Ratio of managers'
+          }
+        ]}
+      />
+
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -280,7 +318,7 @@ export const EmploymentList = () => {
         debounce={400}
       />
 
-      <StructureTable
+      <StructureTable hideEmptyState={true}
         columns={COLUMNS}
         data={items}
         loading={isLoading}

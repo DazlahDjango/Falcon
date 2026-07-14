@@ -8,6 +8,9 @@ import {
   FiChevronRight,
   FiUsers,
   FiGrid,
+  FiPlus,
+  FiUserPlus,
+  FiMap,
 } from 'react-icons/fi';
 import { useSections } from '../../../hooks/structure';
 import {
@@ -16,6 +19,7 @@ import {
   StructureStatusBadge,
   StructureConfirmDialog,
 } from '../common';
+import UserSelector from '../../accounts/users/UserSelector';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './section.css';
 
@@ -23,12 +27,19 @@ export const SectionDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showManagerModal, setShowManagerModal] = useState(false);
+  const [selectedManagerId, setSelectedManagerId] = useState('');
+  const [isUpdatingManager, setIsUpdatingManager] = useState(false);
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [isUpdatingLead, setIsUpdatingLead] = useState(false);
 
   const {
     currentItem,
     isLoading,
     error,
     fetchById,
+    update,
     remove,
     clearError,
   } = useSections({ autoFetch: false });
@@ -69,6 +80,32 @@ export const SectionDetail = () => {
       fetchById(id);
     }
   }, [id, fetchById]);
+
+  const handleAddUnit = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.UNIT_CREATE + '?section_id=' + id);
+  }, [navigate, id]);
+
+  const handleViewEmployees = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.EMPLOYMENTS + '?section_id=' + id);
+  }, [navigate, id]);
+
+  const handleAssignLeadSubmit = useCallback(async () => {
+    if (!selectedLeadId) return;
+    setIsUpdatingLead(true);
+    try {
+      await update(id, { section_lead_id: selectedLeadId });
+      setShowLeadModal(false);
+      fetchById(id);
+    } catch (err) {
+      console.error('Failed to assign lead:', err);
+    } finally {
+      setIsUpdatingLead(false);
+    }
+  }, [id, selectedLeadId, update, fetchById]);
+
+  const handleViewOrgChart = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.ORG_CHART_TREE + '?root_id=' + id);
+  }, [navigate, id]);
 
   if (isLoading) {
     return (
@@ -134,6 +171,22 @@ export const SectionDetail = () => {
           />
         </div>
         <div className="header-right">
+          <button onClick={handleAddUnit} className="btn btn-secondary" title="Quick Add Unit">
+            <FiPlus size={16} />
+            <span className="hidden-sm">Add Unit</span>
+          </button>
+          <button onClick={() => { setSelectedLeadId(currentItem.section_lead_id || ''); setShowLeadModal(true); }} className="btn btn-secondary" title="Assign Section Lead">
+            <FiUserPlus size={16} />
+            <span className="hidden-sm">Assign Lead</span>
+          </button>
+          <button onClick={handleViewOrgChart} className="btn btn-secondary" title="View Org Chart">
+            <FiMap size={16} />
+            <span className="hidden-sm">Org Chart</span>
+          </button>
+          <button onClick={handleViewEmployees} className="btn btn-secondary" title="View Employees">
+            <FiUsers size={16} />
+            <span className="hidden-sm">Employees</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
@@ -209,6 +262,39 @@ export const SectionDetail = () => {
         type="danger"
         confirmLabel="Delete"
       />
+
+      {showLeadModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px', padding: '24px', borderRadius: '8px', backgroundColor: 'var(--bg-surface)' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Assign Section Lead</h3>
+            <div className="form-group" style={{ marginBottom: '24px' }}>
+              <label>Select Lead</label>
+              <UserSelector
+                value={selectedLeadId}
+                onChange={setSelectedLeadId}
+                disabled={isUpdatingLead}
+                className="w-full"
+              />
+            </div>
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setShowLeadModal(false)} 
+                className="btn btn-secondary"
+                disabled={isUpdatingLead}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAssignLeadSubmit} 
+                className="btn btn-primary"
+                disabled={!selectedLeadId || isUpdatingLead}
+              >
+                {isUpdatingLead ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

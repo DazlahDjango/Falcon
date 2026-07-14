@@ -2,7 +2,7 @@ from typing import Optional, List, Dict, Any
 from uuid import UUID
 from django.core.cache import cache
 from apps.structure.models.employment import Employment
-from apps.structure.models.reporting_line import ReportingLine
+from apps.structure.models.employment import Employment
 from apps.structure.models.interim_assignment import InterimAssignment
 from apps.structure.constants import DEFAULT_MAX_CACHE_TTL_SECONDS
 
@@ -100,7 +100,7 @@ class HierarchyAccessEnforcer:
         ).first()
         if not manager_emp or not employee_emp:
             return False
-        return ReportingLine.objects.filter(
+        return Employment.objects.filter(
             employee_id=employee_emp.id,
             manager_id=manager_emp.id,
             is_active=True,
@@ -144,13 +144,13 @@ class HierarchyAccessEnforcer:
         ).first()
         if not manager_emp:
             return []
-        reporting_lines = ReportingLine.objects.filter(
+        employments = Employment.objects.filter(
             manager_id=manager_emp.id,
             is_active=True,
             tenant_id=tenant_id,
             is_deleted=False
         ).select_related('employee')
-        return [line.employee.user_id for line in reporting_lines]
+        return [line.employee.user_id for line in employments]
     
     def _get_indirect_reports(self, manager_user_id: UUID, tenant_id: UUID) -> List[UUID]:
         def collect_descendants(current_manager_id: UUID, visited: set, depth: int = 0) -> List[UUID]:
@@ -167,7 +167,7 @@ class HierarchyAccessEnforcer:
             ).first()
             if not current_emp:
                 return []
-            direct = ReportingLine.objects.filter(
+            direct = Employment.objects.filter(
                 manager_id=current_emp.id,
                 is_active=True,
                 tenant_id=tenant_id,

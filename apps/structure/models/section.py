@@ -20,8 +20,11 @@ class Section(OrganizationalNode):
             models.Index(fields=['tenant_id', 'is_active']),
             models.Index(fields=['tenant_id', 'code']),
             models.Index(fields=['path']),
-            models.Index(fields=['cost_center_id']),
+            
         ]
+
+    section_lead_id = models.UUIDField(_('section lead user ID'), null=True, blank=True, help_text=_("User ID of the section lead"))
+    department = models.ForeignKey('structure.Department', on_delete=models.PROTECT, null=True, blank=True, related_name='sections', verbose_name=_('parent department'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,3 +33,6 @@ class Section(OrganizationalNode):
     def save(self, *args, **kwargs):
         self.level = self.LEVEL
         super().save(*args, **kwargs)
+
+    def get_children_count(self):
+        return self.units.filter(is_deleted=False, is_active=True).count()

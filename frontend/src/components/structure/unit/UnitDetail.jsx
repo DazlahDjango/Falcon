@@ -7,6 +7,8 @@ import {
   FiRefreshCw,
   FiChevronRight,
   FiUsers,
+  FiUserPlus,
+  FiMap,
 } from 'react-icons/fi';
 import { useUnits } from '../../../hooks/structure';
 import {
@@ -15,6 +17,7 @@ import {
   StructureStatusBadge,
   StructureConfirmDialog,
 } from '../common';
+import UserSelector from '../../accounts/users/UserSelector';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './unit.css';
 
@@ -22,6 +25,9 @@ export const UnitDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [isUpdatingLead, setIsUpdatingLead] = useState(false);
 
   const {
     currentItem,
@@ -29,6 +35,7 @@ export const UnitDetail = () => {
     error,
     fetchById,
     remove,
+    update,
     clearError,
   } = useUnits({ autoFetch: false });
 
@@ -68,6 +75,38 @@ export const UnitDetail = () => {
       fetchById(id);
     }
   }, [id, fetchById]);
+
+  const handleViewEmployees = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.EMPLOYMENTS + '?unit_id=' + id);
+  }, [navigate, id]);
+
+  const handleAssignLeadSubmit = useCallback(async () => {
+    if (!selectedLeadId) return;
+    setIsUpdatingLead(true);
+    try {
+      await update(id, { unit_lead_id: selectedLeadId });
+      setShowLeadModal(false);
+      fetchById(id);
+    } catch (err) {
+      console.error('Failed to assign lead:', err);
+    } finally {
+      setIsUpdatingLead(false);
+    }
+  }, [id, selectedLeadId, update, fetchById]);
+
+  const handleViewOrgChart = useCallback(() => {
+    navigate(STRUCTURE_ROUTES.ORG_CHART_TREE + '?root_id=' + id);
+  }, [navigate, id]);
+
+  const handleToggleActive = useCallback(async () => {
+    if (!currentItem) return;
+    try {
+      await update(id, { is_active: !currentItem.is_active });
+      fetchById(id);
+    } catch (err) {
+      console.error('Failed to toggle active status:', err);
+    }
+  }, [id, currentItem, update, fetchById]);
 
   if (isLoading) {
     return (
@@ -133,8 +172,26 @@ export const UnitDetail = () => {
           />
         </div>
         <div className="header-right">
+          <button onClick={() => { setSelectedLeadId(currentItem.unit_lead_id || ''); setShowLeadModal(true); }} className="btn btn-secondary" title="Assign Unit Lead">
+            <FiUserPlus size={16} />
+            <span className="hidden-sm">Assign Lead</span>
+          </button>
+          <button onClick={handleViewOrgChart} className="btn btn-secondary" title="View Org Chart">
+            <FiMap size={16} />
+            <span className="hidden-sm">Org Chart</span>
+          </button>
+          <button onClick={handleViewEmployees} className="btn btn-secondary" title="View Employees">
+            <FiUsers size={16} />
+            <span className="hidden-sm">Employees</span>
+          </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
+          </button>
+          <button 
+            onClick={handleToggleActive} 
+            className={`btn ${currentItem.is_active ? 'btn-danger' : 'btn-success'}`}
+          >
+            {currentItem.is_active ? 'Deactivate' : 'Activate'}
           </button>
           <button onClick={handleEdit} className="btn btn-primary">
             <FiEdit size={16} />
@@ -168,8 +225,7 @@ export const UnitDetail = () => {
           <h3>Configuration</h3>
           <div className="detail-grid">
             <DetailRow label="Parent Unit" value={currentItem.parent_name || 'Root'} />
-            <DetailRow label="Cost Center ID" value={currentItem.cost_center_id} />
-            <DetailRow label="Budget Code" value={currentItem.budget_code} />
+            <DetailRow label="Unit Lead (ID)" value={currentItem.unit_lead_id || 'None'} />
             <DetailRow label="Headcount Limit" value={currentItem.headcount_limit || 'Unlimited'} />
             <DetailRow label="Employee Count" value={currentItem.employee_count || 0} />
             <DetailRow label="Created At" value={new Date(currentItem.created_at).toLocaleDateString()} />
@@ -207,6 +263,39 @@ export const UnitDetail = () => {
         type="danger"
         confirmLabel="Delete"
       />
+
+      {showLeadModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px', padding: '24px', borderRadius: '8px', backgroundColor: 'var(--bg-surface)' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Assign Unit Lead</h3>
+            <div className="form-group" style={{ marginBottom: '24px' }}>
+              <label>Select Lead</label>
+              <UserSelector
+                value={selectedLeadId}
+                onChange={setSelectedLeadId}
+                disabled={isUpdatingLead}
+                className="w-full"
+              />
+            </div>
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setShowLeadModal(false)} 
+                className="btn btn-secondary"
+                disabled={isUpdatingLead}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAssignLeadSubmit} 
+                className="btn btn-primary"
+                disabled={!selectedLeadId || isUpdatingLead}
+              >
+                {isUpdatingLead ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

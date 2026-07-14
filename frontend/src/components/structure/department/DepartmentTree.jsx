@@ -8,6 +8,7 @@ import {
   FiSearch,
   FiFolder,
   FiFolderPlus,
+  FiList,
 } from 'react-icons/fi';
 import { useDepartmentTree, useDepartments } from '../../../hooks/structure';
 import { StructureLoading, StructureEmptyState, StructureSearchBar } from '../common';
@@ -206,6 +207,15 @@ export const DepartmentTree = () => {
           </button>
           <button onClick={collapseAll} className="btn btn-secondary">
             Collapse All
+          </button>
+          <button 
+            onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENTS)} 
+            className="btn btn-secondary" 
+            title="View List"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            <FiList size={16} />
+            List View
           </button>
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
