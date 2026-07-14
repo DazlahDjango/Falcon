@@ -24,8 +24,6 @@ const KPICreate = ({ onComplete, onCancel }) => {
         decimal_places: 2,
         target_min: null,
         target_max: null,
-        framework_id: '',
-        sector_id: '',
         category_id: '',
         owner_id: '',
         department_id: '',

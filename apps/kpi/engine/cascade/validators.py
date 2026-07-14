@@ -43,26 +43,21 @@ class CascadeValidator:
                 raise ValidationError(f"Total weight {total_weight}% exceeds 100%")
     def validate_cascade_integrity(self, cascade_map_id: str) -> bool:
         cascade_map = CascadeMap.objects.get(id=cascade_map_id)
-        if cascade_map.organization_target:
+        parent = cascade_map.parent_target or cascade_map.organization_target or cascade_map.department_target
+        if parent:
+            from django.db.models import Q
             maps = CascadeMap.objects.filter(
-                organization_target=cascade_map.organization_target
+                Q(parent_target=parent) |
+                Q(organization_target=parent) |
+                Q(department_target=parent)
             )
             total = Decimal('0')
             for m in maps:
-                if m.department_target:
-                    total += m.department_target.target_value
-                elif m.individual_target:
-                    total += m.individual_target.target_value 
+                child = m.child_target or m.individual_target or m.department_target or m.division_target or m.section_target or m.unit_target
+                if child:
+                    total += child.target_value
             tolerance = Decimal('0.01')
-            return abs(total - cascade_map.organization_target.target_value) <= tolerance
-        elif cascade_map.department_target:
-            # Check individual sum against department target
-            maps = CascadeMap.objects.filter(
-                department_target=cascade_map.department_target
-            )
-            total = sum(m.individual_target.target_value for m in maps if m.individual_target)
-            tolerance = Decimal('0.01')
-            return abs(total - cascade_map.department_target.target_value) <= tolerance
+            return abs(total - parent.target_value) <= tolerance
         return True
     def _calculate_target_value(self, org_target: AnnualTarget, rule: CascadeRule,
                                  target: Dict) -> Decimal:
@@ -74,5 +69,6 @@ class CascadeValidator:
             org_target.target_value,
             rule,
             target['entity_id'],
-            target['entity_type']
+            target['entity_type'],
+            str(org_target.tenant_id)
         )

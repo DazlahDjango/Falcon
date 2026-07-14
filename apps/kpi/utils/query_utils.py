@@ -19,8 +19,6 @@ class QueryOptimizer:
     @staticmethod
     def prefetch_kpis(queryset: QuerySet) -> QuerySet:
         return queryset.select_related(
-            'framework',
-            'sector',
             'category',
             'owner',
             'department'

@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .base import BaseKPIModel
-from .framework import KPIFramework, KPICategory, Sector
+from .framework import KPICategory
 from ..managers import KPIManager
 
 
@@ -26,9 +26,7 @@ class KPI(BaseKPIModel):
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=100, db_index=True)
     description = models.TextField(blank=True)
-    framework = models.ForeignKey(KPIFramework, on_delete=models.PROTECT, related_name='kpis')
     category = models.ForeignKey(KPICategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='kpis')
-    sector = models.ForeignKey(Sector, on_delete=models.PROTECT)
     kpi_type = models.CharField(max_length=20, choices=KPI_TYPES)
     calculation_logic = models.CharField(max_length=20, choices=CALCULATION_LOGIC, default='HIGHER_IS_BETTER')
     measure_type = models.CharField(max_length=20, choices=MEASURE_TYPE, default='CUMULATIVE')
@@ -48,10 +46,9 @@ class KPI(BaseKPIModel):
     class Meta:
         db_table = 'kpi_definitions'
         ordering = ['name']
-        unique_together = [['tenant_id', 'framework', 'code']]
+        unique_together = [['tenant_id', 'code']]
         indexes = [
             models.Index(fields=['tenant_id', 'owner', 'is_active']),
-            models.Index(fields=['tenant_id', 'sector', 'kpi_type']),
         ]
 
     def __str__(self):

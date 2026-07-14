@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 
 class BulkKPIUploadSerializer(serializers.Serializer):
     file = serializers.FileField()
-    framework_id = serializers.UUIDField()
     dry_run = serializers.BooleanField(default=False)
 
     def validate_file(self, value):

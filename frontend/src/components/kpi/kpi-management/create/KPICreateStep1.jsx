@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
-    fetchSectors, 
-    fetchFrameworks, 
     fetchCategories,
-    selectSectors,
-    selectFrameworks,
-    selectCategories,
-    selectFrameworkLoading
+    selectCategories
 } from '../../../../store/kpi';
 import { fetchReferenceData } from '../../../../store/kpi';
 import KPILoading from '../../common/KPILoading';
@@ -15,10 +10,7 @@ import KPILoading from '../../common/KPILoading';
 const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     const dispatch = useDispatch();
     
-    const sectors = useSelector(selectSectors);
-    const frameworks = useSelector(selectFrameworks);
     const categories = useSelector(selectCategories);
-    const frameworksLoading = useSelector(selectFrameworkLoading);
     
     const [referenceData, setReferenceData] = useState({ users: [], departments: [] });
     const [refLoading, setRefLoading] = useState(false);
@@ -31,8 +23,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         calculation_logic: data.calculation_logic || 'HIGHER_IS_BETTER',
         measure_type: data.measure_type || 'CUMULATIVE',
         unit: data.unit || '',
-        framework_id: data.framework_id || '',
-        sector_id: data.sector_id || '',
         category_id: data.category_id || '',
         owner_id: data.owner_id || '',
         department_id: data.department_id || '',
@@ -41,8 +31,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     const [errors, setErrors] = useState({});
     
     useEffect(() => {
-        dispatch(fetchSectors({ is_active: true }));
-        dispatch(fetchFrameworks({ is_active: true, status: 'PUBLISHED' }));
         dispatch(fetchCategories({ is_active: true }));
         
         const loadRefData = async () => {
@@ -89,8 +77,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'KPI name is required';
         if (!formData.code.trim()) newErrors.code = 'KPI code is required';
-        if (!formData.framework_id) newErrors.framework_id = 'Framework is required';
-        if (!formData.sector_id) newErrors.sector_id = 'Sector is required';
         if (!formData.owner_id) newErrors.owner_id = 'Owner is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -102,7 +88,7 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         }
     };
     
-    if (frameworksLoading || refLoading) {
+    if (refLoading) {
         return <KPILoading size="sm" text="Loading form data..." />;
     }
     
@@ -202,38 +188,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                             onChange={(e) => handleChange('unit', e.target.value)}
                             placeholder="e.g., KES, %, people, days"
                         />
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>Framework <span className="required">*</span></label>
-                        <select
-                            value={formData.framework_id}
-                            onChange={(e) => handleChange('framework_id', e.target.value)}
-                            className={errors.framework_id ? 'error' : ''}
-                        >
-                            <option value="">Select Framework</option>
-                            {frameworks.map(fw => (
-                                <option key={fw.id} value={fw.id}>{fw.name}</option>
-                            ))}
-                        </select>
-                        {errors.framework_id && <span className="error-text">{errors.framework_id}</span>}
-                    </div>
-                </div>
-                
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Sector <span className="required">*</span></label>
-                        <select
-                            value={formData.sector_id}
-                            onChange={(e) => handleChange('sector_id', e.target.value)}
-                            className={errors.sector_id ? 'error' : ''}
-                        >
-                            <option value="">Select Sector</option>
-                            {sectors.map(s => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
-                            ))}
-                        </select>
-                        {errors.sector_id && <span className="error-text">{errors.sector_id}</span>}
                     </div>
                     
                     <div className="form-group">

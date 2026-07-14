@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { FiSave, FiX } from 'react-icons/fi';
 
-const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubmit, onCancel }) => {
+const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel }) => {
     const [formData, setFormData] = useState({
         name: category?.name || '',
         code: category?.code || '',
         category_type: category?.category_type || 'OPERATIONAL',
-        framework: category?.framework || '',
         parent: category?.parent || parentCategory?.id || null,
         description: category?.description || '',
         color: category?.color || '#3b82f6',
@@ -30,8 +29,7 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Category name is required';
         if (!formData.code.trim()) newErrors.code = 'Category code is required';
-        if (!formData.framework) newErrors.framework = 'Please select a framework';
-        
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
@@ -62,7 +60,7 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                         <FiX size={20} />
                     </button>
                 </div>
-                
+
                 <div className="kpi-category-form-body">
                     {submitError && (
                         <div className="form-error-alert">
@@ -74,7 +72,7 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                     )}
                     <div className="form-group">
                         <label>Category Name <span className="required">*</span></label>
-                        <input 
+                        <input
                             type="text"
                             className={errors.name ? 'error' : ''}
                             value={formData.name}
@@ -83,10 +81,10 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                         />
                         {errors.name && <span className="error">{errors.name}</span>}
                     </div>
-                    
+
                     <div className="form-group">
                         <label>Category Code <span className="required">*</span></label>
-                        <input 
+                        <input
                             type="text"
                             className={errors.code ? 'error' : ''}
                             value={formData.code}
@@ -97,23 +95,8 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                     </div>
 
                     <div className="form-group">
-                        <label>Framework <span className="required">*</span></label>
-                        <select 
-                            className={errors.framework ? 'error' : ''}
-                            value={formData.framework}
-                            onChange={(e) => setFormData({ ...formData, framework: e.target.value })}
-                        >
-                            <option value="">Select a framework...</option>
-                            {frameworks?.map(fw => (
-                                <option key={fw.id} value={fw.id}>{fw.name}</option>
-                            ))}
-                        </select>
-                        {errors.framework && <span className="error">{errors.framework}</span>}
-                    </div>
-                    
-                    <div className="form-group">
                         <label>Category Type</label>
-                        <select 
+                        <select
                             value={formData.category_type}
                             onChange={(e) => setFormData({ ...formData, category_type: e.target.value })}
                         >
@@ -122,10 +105,10 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                             ))}
                         </select>
                     </div>
-                    
+
                     <div className="form-group">
                         <label>Parent Category</label>
-                        <select 
+                        <select
                             value={formData.parent || ''}
                             onChange={(e) => setFormData({ ...formData, parent: e.target.value || null })}
                         >
@@ -135,11 +118,11 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                             ))}
                         </select>
                     </div>
-                    
+
                     <div className="form-group">
                         <label>Color</label>
                         <div className="color-picker">
-                            <input 
+                            <input
                                 type="color"
                                 value={formData.color}
                                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
@@ -147,20 +130,20 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                             <span>{formData.color}</span>
                         </div>
                     </div>
-                    
+
                     <div className="form-group">
                         <label>Description</label>
-                        <textarea 
+                        <textarea
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             rows="3"
                             placeholder="Describe this category..."
                         />
                     </div>
-                    
+
                     <div className="form-group">
                         <label className="checkbox">
-                            <input 
+                            <input
                                 type="checkbox"
                                 checked={formData.is_active}
                                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
@@ -169,11 +152,11 @@ const CategoryForm = ({ category, parentCategory, frameworks, categories, onSubm
                         </label>
                     </div>
                 </div>
-                
+
                 <div className="kpi-category-form-footer">
                     <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
-                    <button 
-                        className="submit" 
+                    <button
+                        className="submit"
                         onClick={handleSubmit}
                         disabled={isLoading}
                         type="button"

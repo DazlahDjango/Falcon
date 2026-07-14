@@ -42,41 +42,37 @@ class CascadeEngine:
                         org_target.target_value, rule, entity_id, entity_type, self.tenant_id
                     )
                 
-                if entity_type == 'DEPARTMENT':
-                    dept_target = AnnualTarget.objects.create(
-                        tenant_id=self.tenant_id,
-                        kpi=org_target.kpi,
-                        user_id=target_data.get('user_id'),
-                        year=org_target.year,
-                        target_value=target_value,
-                        notes=f"Cascaded from organization target {org_target.id}"
-                    )
-                    cascade_map = CascadeMap.objects.create(
-                        tenant_id=self.tenant_id,
-                        organization_target=org_target,
-                        department_target=dept_target,
-                        cascade_rule=rule,
-                        contribution_percentage=contribution or 0
-                    )
-                elif entity_type == 'INDIVIDUAL':
-                    individual_target = AnnualTarget.objects.create(
-                        tenant_id=self.tenant_id,
-                        kpi=org_target.kpi,
-                        user_id=entity_id,
-                        year=org_target.year,
-                        target_value=target_value,
-                        notes=f"Cascaded from organization target {org_target.id}"
-                    )
-                    cascade_map = CascadeMap.objects.create(
-                        tenant_id=self.tenant_id,
-                        organization_target=org_target,
-                        individual_target=individual_target,
-                        cascade_rule=rule,
-                        contribution_percentage=contribution or 0
-                    )
-                else:
-                    continue
+                target_user_id = target_data.get('user_id') or (entity_id if entity_type == 'INDIVIDUAL' else None)
+                target_obj = AnnualTarget.objects.create(
+                    tenant_id=self.tenant_id,
+                    kpi=org_target.kpi,
+                    user_id=target_user_id,
+                    year=org_target.year,
+                    target_value=target_value,
+                    notes=f"Cascaded from organization target {org_target.id}"
+                )
                 
+                map_kwargs = {
+                    'tenant_id': self.tenant_id,
+                    'organization_target': org_target,
+                    'parent_target': org_target,
+                    'child_target': target_obj,
+                    'cascade_rule': rule,
+                    'contribution_percentage': contribution or 0
+                }
+                
+                if entity_type == 'DIVISION':
+                    map_kwargs['division_target'] = target_obj
+                elif entity_type == 'DEPARTMENT':
+                    map_kwargs['department_target'] = target_obj
+                elif entity_type == 'SECTION':
+                    map_kwargs['section_target'] = target_obj
+                elif entity_type == 'UNIT':
+                    map_kwargs['unit_target'] = target_obj
+                elif entity_type == 'INDIVIDUAL':
+                    map_kwargs['individual_target'] = target_obj
+                
+                cascade_map = CascadeMap.objects.create(**map_kwargs)
                 cascade_maps.append(cascade_map)
             
             if cascade_maps:
@@ -116,13 +112,15 @@ class CascadeEngine:
                     user_id=user_id,
                     year=dept_target.year,
                     target_value=target_value,
-                    notes=f"Cascaded from department target {dept_target.id}"
+                    notes=f"Cascaded from parent target {dept_target.id}"
                 )
                 
                 cascade_map = CascadeMap.objects.create(
                     tenant_id=self.tenant_id,
                     department_target=dept_target,
                     individual_target=individual_target,
+                    parent_target=dept_target,
+                    child_target=individual_target,
                     cascade_rule=rule,
                     contribution_percentage=weights.get(user_id, 0) if weights else 0
                 )
@@ -137,16 +135,24 @@ class CascadeEngine:
         cascade_map = CascadeMap.objects.get(id=cascade_map_id, tenant_id=self.tenant_id)
         
         with transaction.atomic():
+            if cascade_map.child_target:
+                cascade_map.child_target.delete()
             if cascade_map.department_target:
                 cascade_map.department_target.delete()
             if cascade_map.individual_target:
                 cascade_map.individual_target.delete()
+            if cascade_map.division_target:
+                cascade_map.division_target.delete()
+            if cascade_map.section_target:
+                cascade_map.section_target.delete()
+            if cascade_map.unit_target:
+                cascade_map.unit_target.delete()
             
             CascadeHistory.objects.create(
                 tenant_id=self.tenant_id,
                 cascade_map=cascade_map,
                 action='ROLLBACK',
-                source_target_value=cascade_map.organization_target.target_value if cascade_map.organization_target else 0,
+                source_target_value=cascade_map.parent_target.target_value if cascade_map.parent_target else 0,
                 resulting_targets={},
                 performed_by_id=self.user_id,
                 performed_at=timezone.now(),
@@ -158,4 +164,15 @@ class CascadeEngine:
         return True
     
     def _serialize_targets(self, targets: List[Dict]) -> Dict:
-        return {'targets': targets}
+        import uuid
+        from decimal import Decimal
+        serialized = []
+        for target in targets:
+            s_target = {}
+            for k, v in target.items():
+                if isinstance(v, (uuid.UUID, Decimal)):
+                    s_target[k] = str(v)
+                else:
+                    s_target[k] = v
+            serialized.append(s_target)
+        return {'targets': serialized}

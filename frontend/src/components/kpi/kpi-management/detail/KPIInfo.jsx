@@ -19,8 +19,6 @@ const KPIInfo = ({ kpi }) => {
                 <InfoRow icon={<FiTag size={16} />} label="Name" value={kpi.name} />
                 <InfoRow icon={<FiHash size={16} />} label="Code" value={kpi.code} />
                 <InfoRow icon={<FiTarget size={16} />} label="Type" value={kpi.kpi_type_display || kpi.kpi_type} />
-                <InfoRow icon={<FiBriefcase size={16} />} label="Sector" value={kpi.sector_name} />
-                <InfoRow icon={<FiFolder size={16} />} label="Framework" value={kpi.framework_name} />
                 <InfoRow icon={<FiFolder size={16} />} label="Category" value={kpi.category_name || '—'} />
                 <InfoRow icon={<FiUser size={16} />} label="Owner" value={kpi.owner_email} />
                 <InfoRow icon={<FiUser size={16} />} label="Department" value={kpi.department_name || '—'} />

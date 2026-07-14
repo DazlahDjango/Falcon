@@ -3,16 +3,14 @@ from rest_framework import serializers
 from ....models import KPI, KPIWeight, StrategicLinkage, KPIDependency
 from ....validators import validate_kpi_code, validate_kpi_name
 from .base import TenantAwareSerializer, AuditTrailSerializer
-from .framework import KPIFrameworkSerializer, KPICategorySerializer, SectorSerializer
+from .framework import KPICategorySerializer
 
 
 class KPIListSerializer(TenantAwareSerializer):
     kpi_type_display = serializers.CharField(source='get_kpi_type_display', read_only=True)
     calculation_logic_display = serializers.CharField(source='get_calculation_logic_display', read_only=True)
     measure_type_display = serializers.CharField(source='get_measure_type_display', read_only=True)
-    framework_name = serializers.CharField(source='framework.name', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
-    sector_name = serializers.CharField(source='sector.name', read_only=True)
     owner_email = serializers.EmailField(source='owner.email', read_only=True)
     department_name = serializers.CharField(source='department.name', read_only=True, default=None)
 
@@ -22,8 +20,7 @@ class KPIListSerializer(TenantAwareSerializer):
             'id', 'name', 'code', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
             'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
-            'framework', 'framework_name', 'category', 'category_name', 'sector',
-            'sector_name', 'owner', 'owner_email', 'department', 'department_name',
+            'category', 'category_name', 'owner', 'owner_email', 'department', 'department_name',
             'is_active', 'strategic_objective', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -33,9 +30,7 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
     kpi_type_display = serializers.CharField(source='get_kpi_type_display', read_only=True)
     calculation_logic_display = serializers.CharField(source='get_calculation_logic_display', read_only=True)
     measure_type_display = serializers.CharField(source='get_measure_type_display', read_only=True)
-    framework_detail = KPIFrameworkSerializer(source='framework', read_only=True)
     category_detail = KPICategorySerializer(source='category', read_only=True)
-    sector_detail = SectorSerializer(source='sector', read_only=True)
     weights_count = serializers.SerializerMethodField()
     actuals_count = serializers.SerializerMethodField()
     scores_count = serializers.SerializerMethodField()
@@ -46,8 +41,7 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
             'id', 'name', 'code', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
             'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
-            'formula', 'framework', 'framework_detail', 'category', 'category_detail',
-            'sector', 'sector_detail', 'owner', 'department', 'is_active',
+            'formula', 'category', 'category_detail', 'owner', 'department', 'is_active',
             'activation_date', 'deactivation_date', 'strategic_objective', 'metadata',
             'weights_count', 'actuals_count', 'scores_count',
             'tenant_id', 'created_at', 'updated_at', 'created_by_email', 'updated_by_email'

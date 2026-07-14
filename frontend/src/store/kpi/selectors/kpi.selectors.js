@@ -109,26 +109,6 @@ export const selectUserActuals = (userId) => createSelector(
 );
 
 // ============ Framework Selectors ============
-export const selectSectors = createSelector(
-  [selectFrameworkState],
-  (framework) => framework?.sectors || []
-);
-
-export const selectCurrentSector = createSelector(
-  [selectFrameworkState],
-  (framework) => framework?.currentSector || null
-);
-
-export const selectFrameworks = createSelector(
-  [selectFrameworkState],
-  (framework) => framework?.frameworks || []
-);
-
-export const selectCurrentFramework = createSelector(
-  [selectFrameworkState],
-  (framework) => framework?.currentFramework || null
-);
-
 export const selectCategories = createSelector(
   [selectFrameworkState],
   (framework) => framework?.categories || []
@@ -142,16 +122,6 @@ export const selectCurrentCategory = createSelector(
 export const selectCategoryTree = createSelector(
   [selectFrameworkState],
   (framework) => framework?.categoryTree || []
-);
-
-export const selectTemplates = createSelector(
-  [selectFrameworkState],
-  (framework) => framework?.templates || []
-);
-
-export const selectCurrentTemplate = createSelector(
-  [selectFrameworkState],
-  (framework) => framework?.currentTemplate || null
 );
 
 export const selectFrameworkLoading = createSelector(
@@ -707,15 +677,7 @@ export const selectKPIStats = createSelector(
   })
 );
 
-export const selectFrameworkStats = createSelector(
-  [selectFrameworks, selectFrameworkLoading],
-  (frameworks, loading) => ({
-    total: frameworks?.length || 0,
-    published: frameworks?.filter(f => f?.status === 'PUBLISHED')?.length || 0,
-    draft: frameworks?.filter(f => f?.status === 'DRAFT')?.length || 0,
-    loading: loading || false,
-  })
-);
+
 
 export const selectTargetStats = createSelector(
   [selectTargets, selectTargetLoading],

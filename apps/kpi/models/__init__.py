@@ -1,5 +1,5 @@
 from .base import BaseKPIModel, TimeStampedModel, SoftDeleteModel
-from .framework import Sector, KPIFramework, KPICategory, KPITemplate
+from .framework import KPICategory
 from .definition import KPI, KPIHistory, KPIWeight, StrategicLinkage, KPIDependency
 from .target import AnnualTarget, MonthlyPhasing, PhasingLock, TargetHistory
 from .actual import MonthlyActual, ActualHistory, ActualAdjustment, Evidence
@@ -14,7 +14,7 @@ from .notification import NotificationPreference
 
 __all__ = [
     'BaseKPIModel', 'TimeStampedModel', 'SoftDeleteModel',
-    'Sector', 'KPIFramework', 'KPICategory', 'KPITemplate',
+    'KPICategory',
     'KPI', 'KPIHistory', 'KPIWeight', 'StrategicLinkage', 'KPIDependency',
     'AnnualTarget', 'MonthlyPhasing', 'PhasingLock', 'TargetHistory',
     'MonthlyActual', 'ActualHistory', 'ActualAdjustment', 'Evidence',

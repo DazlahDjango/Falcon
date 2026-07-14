@@ -1,14 +1,10 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { selectSectors, selectFrameworks, selectCategories } from '../../../../store/kpi';
+import { selectCategories } from '../../../../store/kpi';
 
 const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
-    const sectors = useSelector(selectSectors);
-    const frameworks = useSelector(selectFrameworks);
     const categories = useSelector(selectCategories);
-    
-    const getSectorName = (id) => sectors?.find(s => s.id === id)?.name || id;
-    const getFrameworkName = (id) => frameworks?.find(f => f.id === id)?.name || id;
+
     const getCategoryName = (id) => categories?.find(c => c.id === id)?.name || 'None';
     
     const getKpiTypeLabel = (type) => {
@@ -98,14 +94,6 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
             <div className="review-section">
                 <h4>Assignment</h4>
                 <div className="review-grid">
-                    <div className="review-item">
-                        <label>Framework</label>
-                        <span>{getFrameworkName(data.framework_id)}</span>
-                    </div>
-                    <div className="review-item">
-                        <label>Sector</label>
-                        <span>{getSectorName(data.sector_id)}</span>
-                    </div>
                     <div className="review-item">
                         <label>Category</label>
                         <span>{getCategoryName(data.category_id)}</span>

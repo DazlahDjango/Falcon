@@ -11,10 +11,7 @@ const ExecutiveDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/E
 const ChampionDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/ChampionDashboardPage'));
 const AdminDashboardPage = React.lazy(() => import('../pages/kpi/dashboard/AdminDashboardPage'));
 // Admin Framework Pages (NEW - dedicated pages)
-const SectorsPage = React.lazy(() => import('../pages/kpi/admin/SectorsPage'));
-const FrameworksPage = React.lazy(() => import('../pages/kpi/admin/FrameworksPage'));
 const CategoriesPage = React.lazy(() => import('../pages/kpi/admin/CategoriesPage'));
-const TemplatesPage = React.lazy(() => import('../pages/kpi/admin/TemplatesPage'));
 // KPI Management Pages
 const KPIsPage = React.lazy(() => import('../pages/kpi/kpis/KPIsPage'));
 const KPIDetailPage = React.lazy(() => import('../pages/kpi/kpis/KPIDetailPage'));
@@ -62,20 +59,9 @@ const kpiRoutes = [
     { path: KPI_ROUTES.CHAMPION_DASHBOARD, element: <ChampionDashboardPage /> },
     { path: KPI_ROUTES.ADMIN_OVERVIEW, element: <AdminDashboardPage /> },
     // Admin KPI Modules (Framework Management)
-    { path: KPI_ROUTES.ADMIN_SECTORS, element: <SectorsPage /> },
-    { path: KPI_ROUTES.ADMIN_SECTOR_CREATE, element: <SectorsPage /> },
-    { path: KPI_ROUTES.ADMIN_SECTOR_EDIT(':id'), element: <SectorsPage /> },
-    { path: KPI_ROUTES.ADMIN_FRAMEWORKS, element: <FrameworksPage /> },
-    { path: KPI_ROUTES.ADMIN_FRAMEWORK_CREATE, element: <FrameworksPage /> },
-    { path: KPI_ROUTES.ADMIN_FRAMEWORK_EDIT(':id'), element: <FrameworksPage /> },
-    { path: KPI_ROUTES.ADMIN_FRAMEWORK_WIZARD(':id'), element: <FrameworksPage /> },
     { path: KPI_ROUTES.ADMIN_CATEGORIES, element: <CategoriesPage /> },
     { path: KPI_ROUTES.ADMIN_CATEGORY_CREATE, element: <CategoriesPage /> },
     { path: KPI_ROUTES.ADMIN_CATEGORY_EDIT(':id'), element: <CategoriesPage /> },
-    { path: KPI_ROUTES.ADMIN_TEMPLATES, element: <TemplatesPage /> },
-    { path: KPI_ROUTES.ADMIN_TEMPLATE_CREATE, element: <TemplatesPage /> },
-    { path: KPI_ROUTES.ADMIN_TEMPLATE_EDIT(':id'), element: <TemplatesPage /> },
-    { path: KPI_ROUTES.ADMIN_TEMPLATE_STUDIO(':id'), element: <TemplatesPage /> },
     // KPI Management
     { path: KPI_ROUTES.KPI_MANAGEMENT, element: <KPIsPage /> },
     { path: KPI_ROUTES.KPI_CREATE, element: <KPIsPage /> },
@@ -168,10 +154,7 @@ export const KpiPaths = {
     ChampionDashboard: KPI_ROUTES.CHAMPION_DASHBOARD,
     AdminDashboard: KPI_ROUTES.ADMIN_OVERVIEW,
     // Admin Framework
-    AdminSectors: KPI_ROUTES.ADMIN_SECTORS,
-    AdminFrameworks: KPI_ROUTES.ADMIN_FRAMEWORKS,
     AdminCategories: KPI_ROUTES.ADMIN_CATEGORIES,
-    AdminTemplates: KPI_ROUTES.ADMIN_TEMPLATES,
     // KPI Management
     KPIs: KPI_ROUTES.KPI_MANAGEMENT,
     KPIDetail: (id) => buildKpiPath(KPI_ROUTES.KPI_DETAIL(':id'), { id }),

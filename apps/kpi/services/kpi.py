@@ -8,10 +8,10 @@ from typing import List, Dict, Any, Optional, Tuple
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
-from apps.kpi.models import KPI, KPIHistory, KPIFramework, KPICategory, Sector, KPIWeight, KPIDependency
+from apps.kpi.models import KPI, KPIHistory, KPICategory, KPIWeight, KPIDependency
 from ..constants import KPIStatus, KPIType, CalculationLogic, MeasureType
 from ..validators import validate_kpi_code, validate_kpi_name, validate_positive_value, validate_target_range, validate_decimal_precision
-from ..exceptions import DuplicateKPICodeError, InvalidFrameworkError, WeightSumError, KPIValidationError, HistoricalDataError, PermissionDenied
+from ..exceptions import DuplicateKPICodeError, WeightSumError, KPIValidationError, HistoricalDataError, PermissionDenied
 
 CACHE_TTL = 300
 CACHE_PREFIX = "kpi_service"
@@ -35,28 +35,14 @@ class KPICreator:
         if role in ['super_admin', 'superadmin', 'platform_admin']:
             is_super_admin = True
 
-        framework_query = KPIFramework.objects.filter(id=data.get('framework_id'))
-        if not is_super_admin:
-            framework_query = framework_query.filter(tenant_id=user.tenant_id)
-        
-        # Only require PUBLISHED status if not a super admin testing
-        if not is_super_admin:
-            framework_query = framework_query.filter(status='PUBLISHED')
-            
-        framework = framework_query.first()
-
-        if not framework:
-            raise InvalidFrameworkError("Invalid or unpublished framework.")
-
         kpi_exists_query = KPI.objects.filter(
-            framework_id=data['framework_id'],
             code=data['code']
         )
         if not is_super_admin:
             kpi_exists_query = kpi_exists_query.filter(tenant_id=user.tenant_id)
             
         if kpi_exists_query.exists():
-            raise DuplicateKPICodeError("KPI code must be unique within the framework.")
+            raise DuplicateKPICodeError("KPI code must be unique within the tenant.")
 
         validate_kpi_name(data['name'])
         validate_kpi_code(data['code'])
@@ -69,13 +55,11 @@ class KPICreator:
 
         with transaction.atomic():
             kpi = KPI.objects.create(
-                tenant_id=user.tenant_id if not is_super_admin else framework.tenant_id,
+                tenant_id=user.tenant_id if not is_super_admin else data.get('tenant_id', user.tenant_id),
                 name=data['name'],
                 code=data['code'],
                 description=data.get('description', ''),
-                framework=framework,
                 category_id=data.get('category_id'),
-                sector_id=data['sector_id'],
                 kpi_type=data['kpi_type'],
                 calculation_logic=data.get('calculation_logic', CalculationLogic.HIGHER_IS_BETTER),
                 measure_type=data.get('measure_type', MeasureType.CUMULATIVE),
@@ -103,7 +87,7 @@ class KPICreator:
                 reason="KPI created"
             )
 
-            self._invalidate_caches(framework.id, kpi.id)
+            self._invalidate_caches(kpi.id)
             return kpi
 
     def _serialize_kpi(self, kpi: KPI) -> Dict:
@@ -119,9 +103,7 @@ class KPICreator:
             'target_max': str(kpi.target_max) if kpi.target_max else None,
         }
 
-    def _invalidate_caches(self, framework_id: str = None, kpi_id: str = None) -> None:
-        if framework_id:
-            cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
+    def _invalidate_caches(self, kpi_id: str = None) -> None:
         if kpi_id:
             cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
         _safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
@@ -162,7 +144,7 @@ class KPIUpdater:
                     reason=data.get('reason', 'KPI updated')
                 )
 
-                self._invalidate_caches(kpi.framework_id, kpi.id)
+                self._invalidate_caches(kpi.id)
 
         return kpi
 
@@ -176,9 +158,8 @@ class KPIUpdater:
             'updated_at': kpi.updated_at.isoformat() if kpi.updated_at else None,
         }
 
-    def _invalidate_caches(self, framework_id: str, kpi_id: str) -> None:
+    def _invalidate_caches(self, kpi_id: str) -> None:
         cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
-        cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
         _safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
 
 
@@ -203,7 +184,7 @@ class KPIActivator:
                 reason="KPI activated"
             )
 
-            self._invalidate_caches(kpi.framework_id, kpi.id)
+            self._invalidate_caches(kpi.id)
 
         return kpi
 
@@ -227,7 +208,7 @@ class KPIActivator:
                 reason=reason or "KPI deactivated"
             )
 
-            self._invalidate_caches(kpi.framework_id, kpi.id)
+            self._invalidate_caches(kpi.id)
 
         return kpi
 
@@ -240,9 +221,8 @@ class KPIActivator:
             'deactivation_date': kpi.deactivation_date.isoformat() if kpi.deactivation_date else None,
         }
 
-    def _invalidate_caches(self, framework_id: str, kpi_id: str) -> None:
+    def _invalidate_caches(self, kpi_id: str) -> None:
         cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
-        cache.delete(f"{CACHE_PREFIX}:framework_{framework_id}")
 
 
 class KPIValidator:
@@ -252,10 +232,6 @@ class KPIValidator:
             errors.append("KPI name is required.")
         if not kpi.code:
             errors.append("KPI code is required.")
-        if not kpi.framework:
-            errors.append("KPI framework is required.")
-        if not kpi.sector:
-            errors.append("KPI sector is required.")
         if not kpi.owner:
             errors.append("KPI owner is required.")
         return errors
@@ -316,27 +292,27 @@ class KPIValidator:
 
 
 class KPIImportExport:
-    def export_to_csv(self, framework_id: str, tenant_id: str) -> str:
-        kpis = KPI.objects.filter(framework_id=framework_id, tenant_id=tenant_id).select_related('category', 'sector', 'owner')
+    def export_to_csv(self, tenant_id: str) -> str:
+        kpis = KPI.objects.filter(tenant_id=tenant_id).select_related('category', 'owner')
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow([
             'Code', 'Name', 'Description', 'Type', 'Calculation Logic',
             'Measure Type', 'Unit', 'Decimal Places', 'Target Min', 'Target Max',
-            'Category', 'Sector', 'Owner Email', 'Department', 'Strategic Objective'
+            'Category', 'Owner Email', 'Department', 'Strategic Objective'
         ])
 
         for kpi in kpis:
             writer.writerow([
                 kpi.code, kpi.name, kpi.description, kpi.kpi_type, kpi.calculation_logic,
                 kpi.measure_type, kpi.unit, kpi.decimal_places, kpi.target_min, kpi.target_max,
-                kpi.category.name if kpi.category else '', kpi.sector.name,
+                kpi.category.name if kpi.category else '',
                 kpi.owner.email, kpi.department_id, kpi.strategic_objective
             ])
 
         return output.getvalue()
 
-    def import_from_csv(self, csv_content: str, framework_id: str, tenant_id: str, user, dry_run: bool = False) -> Dict:
+    def import_from_csv(self, csv_content: str, tenant_id: str, user, dry_run: bool = False) -> Dict:
         try:
             reader = csv.DictReader(io.StringIO(csv_content))
             if not reader.fieldnames:
@@ -349,10 +325,6 @@ class KPIImportExport:
         except csv.Error as e:
             raise ValidationError(f"Invalid CSV format: {str(e)}")
 
-        framework = KPIFramework.objects.filter(id=framework_id, tenant_id=tenant_id).first()
-        if not framework:
-            raise InvalidFrameworkError(f"Framework {framework_id} not found")
-
         created = []
         errors = []
 
@@ -361,7 +333,6 @@ class KPIImportExport:
                 with transaction.atomic():
                     kpi = KPI.objects.create(
                         tenant_id=tenant_id,
-                        framework=framework,
                         code=row['Code'],
                         name=row['Name'],
                         description=row.get('Description', ''),
@@ -372,7 +343,6 @@ class KPIImportExport:
                         decimal_places=int(row.get('Decimal Places', 2)),
                         target_min=Decimal(row['Target Min']) if row.get('Target Min') else None,
                         target_max=Decimal(row['Target Max']) if row.get('Target Max') else None,
-                        sector_id=framework.sector_id,
                         owner_id=user.id,
                         strategic_objective=row.get('Strategic Objective', ''),
                         created_by=user,

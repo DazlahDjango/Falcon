@@ -8,7 +8,7 @@ import { useAuthContext } from '../../contexts/accounts/AuthContext';
 const useKPIPermissions = () => {
     // Get user from AuthContext instead of Redux
     const { user, isAuthenticated } = useAuthContext();
-    
+
     const permissionsData = useMemo(() => {
         const role = user?.role || 'staff';
         const isSuperAdmin = role === 'super_admin' || user?.is_superuser === true;
@@ -17,7 +17,7 @@ const useKPIPermissions = () => {
         const isDashboardChampion = isClientAdmin || role === 'dashboard_champion';
         const isManager = isClientAdmin || role === 'manager' || user?.is_manager === true;
         const isStaff = role === 'staff' || isSuperAdmin;
-        
+
         // KPI-specific permissions
         const permissions = {
             // View permissions
@@ -38,7 +38,7 @@ const useKPIPermissions = () => {
             canViewChampionDashboard: isDashboardChampion || isClientAdmin || isSuperAdmin,
             canViewAdminOverview: isClientAdmin || isSuperAdmin,
             canViewAuditLogs: isClientAdmin || isSuperAdmin,
-            
+
             // Create permissions
             canCreateKPI: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canCreateFramework: isClientAdmin || isSuperAdmin,
@@ -49,7 +49,7 @@ const useKPIPermissions = () => {
             canCreateActual: isAuthenticated,
             canCreateValidation: isManager || isExecutive || isClientAdmin || isSuperAdmin,
             canCreateEscalation: isManager || isExecutive || isClientAdmin || isSuperAdmin,
-            
+
             // Update permissions
             canUpdateKPI: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canUpdateFramework: isClientAdmin || isSuperAdmin,
@@ -58,7 +58,7 @@ const useKPIPermissions = () => {
             canUpdateTemplate: isClientAdmin || isSuperAdmin,
             canUpdateTarget: isAuthenticated,
             canUpdateActual: isAuthenticated,
-            
+
             // Delete permissions
             canDeleteKPI: isClientAdmin || isSuperAdmin,
             canDeleteFramework: isClientAdmin || isSuperAdmin,
@@ -67,7 +67,7 @@ const useKPIPermissions = () => {
             canDeleteTemplate: isClientAdmin || isSuperAdmin,
             canDeleteTarget: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canDeleteActual: isClientAdmin || isSuperAdmin,
-            
+
             // Action permissions
             canActivateKPI: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canDeactivateKPI: isClientAdmin || isSuperAdmin || isDashboardChampion,
@@ -82,12 +82,12 @@ const useKPIPermissions = () => {
             canTriggerCalculations: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canBulkUpload: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canExportData: isClientAdmin || isSuperAdmin || isExecutive || isDashboardChampion || isManager,
-            
+
             // Weight permissions
             canSetWeights: isAuthenticated,
             canValidateWeights: isManager || isExecutive || isClientAdmin || isSuperAdmin,
         };
-        
+
         return {
             user,
             role,
@@ -99,7 +99,7 @@ const useKPIPermissions = () => {
             isManager,
             isStaff,
             permissions,
-            
+
             // Direct permission access
             canManageKPIs: permissions.canCreateKPI,
             canManageFrameworks: permissions.canCreateFramework,
@@ -115,7 +115,7 @@ const useKPIPermissions = () => {
             canBulkUpload: permissions.canBulkUpload,
             canTriggerCalculations: permissions.canTriggerCalculations,
             canViewAuditLogs: permissions.canViewAuditLogs,
-            
+
             // Convenience methods
             hasAnyRole: (roles) => roles.some(r => r === role),
             hasAllRoles: (roles) => roles.every(r => r === role),

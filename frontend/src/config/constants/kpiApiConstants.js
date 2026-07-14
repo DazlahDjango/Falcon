@@ -13,30 +13,6 @@ export const KPI_API_PREFIX = `/api/${API_VERSION}/kpis`;
 // 1. FRAMEWORK & STRUCTURE ENDPOINTS
 // ============================================
 
-export const SECTOR_ENDPOINTS = {
-    LIST: `${API_BASE}/kpis/sectors/`,
-    DETAIL: (id) => `${API_BASE}/kpis/sectors/${id}/`,
-    CREATE: `${API_BASE}/kpis/sectors/`,
-    UPDATE: (id) => `${API_BASE}/kpis/sectors/${id}/`,
-    DELETE: (id) => `${API_BASE}/kpis/sectors/${id}/`,
-    FRAMEWORKS: (id) => `${API_BASE}/kpis/sectors/${id}/frameworks/`,
-    QUERY_PARAMS: { IS_ACTIVE: 'is_active', SECTOR_TYPE: 'sector_type' },
-};
-
-export const FRAMEWORK_ENDPOINTS = {
-    LIST: `${API_BASE}/kpis/frameworks/`,
-    DETAIL: (id) => `${API_BASE}/kpis/frameworks/${id}/`,
-    CREATE: `${API_BASE}/kpis/frameworks/`,
-    UPDATE: (id) => `${API_BASE}/kpis/frameworks/${id}/`,
-    DELETE: (id) => `${API_BASE}/kpis/frameworks/${id}/`,
-    PUBLISH: (id) => `${API_BASE}/kpis/frameworks/${id}/publish/`,
-    ARCHIVE: (id) => `${API_BASE}/kpis/frameworks/${id}/archive/`,
-    DUPLICATE: (id) => `${API_BASE}/kpis/frameworks/${id}/duplicate/`,
-    CATEGORIES: (id) => `${API_BASE}/kpis/frameworks/${id}/categories/`,
-    KPIS: (id) => `${API_BASE}/kpis/frameworks/${id}/kpis/`,
-    QUERY_PARAMS: { SECTOR: 'sector', STATUS: 'status', IS_DEFAULT: 'is_default' },
-};
-
 export const CATEGORY_ENDPOINTS = {
     LIST: `${API_BASE}/kpis/categories/`,
     DETAIL: (id) => `${API_BASE}/kpis/categories/${id}/`,
@@ -47,18 +23,7 @@ export const CATEGORY_ENDPOINTS = {
     KPIS: (id) => `${API_BASE}/kpis/categories/${id}/kpis/`,
     MOVE: (id) => `${API_BASE}/kpis/categories/${id}/move/`,
     REORDER: `${API_BASE}/kpis/categories/reorder/`,
-    QUERY_PARAMS: { FRAMEWORK: 'framework', CATEGORY_TYPE: 'category_type', IS_ACTIVE: 'is_active', PARENT: 'parent' },
-};
-
-export const TEMPLATE_ENDPOINTS = {
-    LIST: `${API_BASE}/kpis/templates/`,
-    DETAIL: (id) => `${API_BASE}/kpis/templates/${id}/`,
-    CREATE: `${API_BASE}/kpis/templates/`,
-    UPDATE: (id) => `${API_BASE}/kpis/templates/${id}/`,
-    DELETE: (id) => `${API_BASE}/kpis/templates/${id}/`,
-    PUBLISH: (id) => `${API_BASE}/kpis/templates/${id}/publish/`,
-    USE_TEMPLATE: (id) => `${API_BASE}/kpis/templates/${id}/use_template/`,
-    QUERY_PARAMS: { SECTOR: 'sector', CATEGORY: 'category', DIFFICULTY: 'difficulty', IS_PUBLISHED: 'is_published' },
+    QUERY_PARAMS: { CATEGORY_TYPE: 'category_type', IS_ACTIVE: 'is_active', PARENT: 'parent' },
 };
 
 // ============================================
@@ -79,10 +44,10 @@ export const KPI_ENDPOINTS = {
     SCORES: (id) => `${API_BASE}/kpis/kpis/${id}/scores/`,
     STRATEGIC_LINKAGES: (id) => `${API_BASE}/kpis/kpis/${id}/strategic-linkages/`,
     DEPENDENCIES: (id) => `${API_BASE}/kpis/kpis/${id}/dependencies/`,
-    QUERY_PARAMS: { 
-        FRAMEWORK: 'framework', CATEGORY: 'category', SECTOR: 'sector', 
+    QUERY_PARAMS: {
+        CATEGORY: 'category',
         KPI_TYPE: 'kpi_type', IS_ACTIVE: 'is_active', OWNER: 'owner',
-        CALCULATION_LOGIC: 'calculation_logic', MEASURE_TYPE: 'measure_type' 
+        CALCULATION_LOGIC: 'calculation_logic', MEASURE_TYPE: 'measure_type'
     },
 };
 
@@ -448,10 +413,7 @@ export default {
     KPI_API_BASE,
     API_VERSION,
     KPI_API_PREFIX,
-    SECTOR_ENDPOINTS,
-    FRAMEWORK_ENDPOINTS,
     CATEGORY_ENDPOINTS,
-    TEMPLATE_ENDPOINTS,
     KPI_ENDPOINTS,
     KPI_WEIGHT_ENDPOINTS,
     STRATEGIC_LINKAGE_ENDPOINTS,

@@ -180,9 +180,8 @@ class HasKPIWritePermission(BasePermission):
         if request.user.is_superuser:
             return True
         
-        role = getattr(request.user, 'role', '')
-        return (role.lower() in ['dashboard_champion', 'super_admin', 'client_admin'] or
-                role.upper() in ['DASHBOARD_CHAMPION', 'SUPER_ADMIN', 'CLIENT_ADMIN'])
+        role = getattr(request.user, 'role', '').lower()
+        return role in ['executive', 'ceo', 'director', 'super_admin', 'client_admin']
 
 
 class CanUseTemplate(BasePermission):

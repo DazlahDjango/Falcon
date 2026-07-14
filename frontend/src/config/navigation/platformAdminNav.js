@@ -243,10 +243,7 @@ export const ADMIN_BILLING_NAV_ITEMS = [
 // ============================================
 export const KPI_ADMIN_NAV_ITEMS = [
   { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
-  { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiBriefcase },
-  { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiPackage },
   { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFolder },
-  { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiFileText },
 ];
 
 // ============================================
@@ -738,10 +735,7 @@ export const isKpiRouteActive = (path, currentPath) => {
     /^\/kpi\/users\/[\w-]+\/targets$/,
     /^\/kpi\/users\/[\w-]+\/scores$/,
     /^\/kpi\/users\/[\w-]+\/actuals$/,
-    /^\/kpi\/admin\/sectors\/[\w-]+\/edit$/,
-    /^\/kpi\/admin\/frameworks\/[\w-]+\/edit$/,
     /^\/kpi\/admin\/categories\/[\w-]+\/edit$/,
-    /^\/kpi\/admin\/templates\/[\w-]+\/edit$/,
   ];
 
   return patterns.some(pattern => pattern.test(currentPath));

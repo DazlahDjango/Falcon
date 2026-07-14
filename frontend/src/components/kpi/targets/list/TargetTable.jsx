@@ -1,8 +1,8 @@
 import React from 'react';
-import { FiEdit, FiTrash2, FiTrendingUp, FiTrendingDown, FiMinus } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiTrendingUp, FiTrendingDown, FiMinus, FiShare2 } from 'react-icons/fi';
 import KPIStatusBadge from '../../common/KPIStatusBadge';
 
-const TargetTable = ({ targets, onRowClick, onEdit, onDelete, canEdit, canDelete }) => {
+const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit, canDelete, canCascade }) => {
     const getProgressIcon = (target) => {
         if (!target.current_value) return <FiMinus size={14} color="var(--kpi-gray-400)" />;
         const progress = (target.current_value / target.target_value) * 100;
@@ -73,6 +73,18 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, canEdit, canDelete
                                     )}
                                 </td>
                                 <td className="kpi-target-table-actions">
+                                    {canCascade && (
+                                        <button 
+                                            className="kpi-target-edit-btn"
+                                            title="Cascade Target"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onCascade?.(target);
+                                            }}
+                                        >
+                                            <FiShare2 size={14} />
+                                        </button>
+                                    )}
                                     {canEdit && (
                                         <button 
                                             className="kpi-target-edit-btn"

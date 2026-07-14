@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiSave, FiX } from 'react-icons/fi';
-import { fetchReferenceData, selectReferenceData } from '../../../../store/kpi';
+import { 
+    fetchReferenceData, 
+    selectReferenceData,
+    fetchCategories,
+    selectCategories
+} from '../../../../store/kpi';
 import KPILoading from '../../common/KPILoading';
 
 const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
@@ -10,29 +15,28 @@ const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
     const [saving, setSaving] = useState(false);
     const [submitError, setSubmitError] = useState(null);
     const [formData, setFormData] = useState({
-        framework_id: kpi?.framework_id || '',
-        sector_id: kpi?.sector_id || '',
         category_id: kpi?.category_id || '',
         owner_id: kpi?.owner_id || '',
         department_id: kpi?.department_id || ''
     });
     
     const referenceData = useSelector(selectReferenceData);
-    const [frameworks, setFrameworks] = useState([]);
-    const [sectors, setSectors] = useState([]);
-    const [categories, setCategories] = useState([]);
+    const categories = useSelector(selectCategories);
     const [users, setUsers] = useState([]);
     const [departments, setDepartments] = useState([]);
     
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            await dispatch(fetchReferenceData(['users', 'departments']));
+            await Promise.all([
+                dispatch(fetchReferenceData(['users', 'departments'])),
+                dispatch(fetchCategories({ is_active: true }))
+            ]);
             setLoading(false);
         };
         loadData();
     }, [dispatch]);
-    
+
     useEffect(() => {
         if (referenceData) {
             setUsers(referenceData.users || []);
@@ -77,33 +81,7 @@ const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
                     </div>
                 </div>
             )}
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Framework</label>
-                    <select 
-                        value={formData.framework_id}
-                        onChange={(e) => handleChange('framework_id', e.target.value)}
-                    >
-                        <option value="">Select Framework</option>
-                        {frameworks.map(fw => (
-                            <option key={fw.id} value={fw.id}>{fw.name}</option>
-                        ))}
-                    </select>
-                </div>
-                
-                <div className="form-group">
-                    <label>Sector</label>
-                    <select 
-                        value={formData.sector_id}
-                        onChange={(e) => handleChange('sector_id', e.target.value)}
-                    >
-                        <option value="">Select Sector</option>
-                        {sectors.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
+            {/* Category and Owner */}
             
             <div className="form-row">
                 <div className="form-group">

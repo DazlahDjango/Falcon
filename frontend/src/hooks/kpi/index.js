@@ -9,13 +9,8 @@ export { default as useKPIValidation } from './useKPIValidation';
 export { default as useKPIDependencies } from './useKPIDependencies';
 export { default as useStrategicLinkages } from './useStrategicLinkages';
 
-// Framework hooks
-export { default as useSectors } from './useSectors';
-export { default as useFrameworks } from './useFrameworks';
-export { default as useFramework } from './useFramework';
 export { default as useCategories } from './useCategories';
 export { default as useCategoryTree } from './useCategoryTree';
-export { default as useTemplates } from './useTemplates';
 
 // Target hooks
 export { default as useTargets } from './useTargets';
@@ -23,6 +18,7 @@ export { default as useTarget } from './useTarget';
 export { default as useMonthlyPhasing } from './useMonthlyPhasing';
 export { default as useCascadeRules } from './useCascadeRules';
 export { default as useTargetCascade } from './useTargetCascade';
+export { default as useReferenceData } from './useReferenceData';
 
 // Actual hooks
 export { default as useActuals } from './useActuals';

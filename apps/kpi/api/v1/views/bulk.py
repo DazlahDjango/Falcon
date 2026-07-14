@@ -23,7 +23,6 @@ class BulkKPIUploadView(APIView):
         serializer.is_valid(raise_exception=True)
         
         file = serializer.validated_data['file']
-        framework_id = str(serializer.validated_data['framework_id'])
         dry_run = serializer.validated_data.get('dry_run', False)
         
         if file.name.endswith('.csv'):
@@ -38,11 +37,14 @@ class BulkKPIUploadView(APIView):
                 writer.writerow(row)
             content = output.getvalue()
         
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+
         import_export = KPIImportExport()
         result = import_export.import_from_csv(
             content,
-            framework_id,
-            str(request.tenant.id),
+            str(tenant_id),
             request.user,
             dry_run=dry_run
         )
@@ -83,10 +85,14 @@ class BulkActualUploadView(APIView):
                 writer.writerow(row)
             content = output.getvalue()
         
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+
         batch_upload = ActualBatchUpload()
         result = batch_upload.upload_from_csv(
             content,
-            str(request.tenant.id),
+            str(tenant_id),
             request.user,
             dry_run=dry_run
         )

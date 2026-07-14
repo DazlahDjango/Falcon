@@ -166,12 +166,6 @@ class DataSyncService:
                     kpi_data = self._map_fields(item, field_mappings)
                     kpi_data['tenant_id'] = tenant_id
 
-                    if 'sector_id' not in kpi_data:
-                        from apps.kpi.models import Sector
-                        default_sector = Sector.objects.filter(tenant_id=tenant_id, is_active=True).first()
-                        if default_sector:
-                            kpi_data['sector_id'] = default_sector.id
-
                     existing = existing_kpis.get(kpi_data.get('code'))
 
                     if existing:

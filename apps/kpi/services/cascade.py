@@ -45,6 +45,7 @@ class TargetCascader:
             raise ValidationError("Cascade rule not found")
 
         with transaction.atomic():
+            self.engine.set_context(user.tenant_id, user.id)
             result = self.engine.cascade_organization_target(org_target_id, rule_id, targets)
             self._invalidate_caches(org_target_id)
             return result
@@ -78,6 +79,7 @@ class TargetCascader:
             raise ValidationError("Cascade rule not found")
 
         with transaction.atomic():
+            self.engine.set_context(user.tenant_id, user.id)
             result = self.engine.cascade_department_target(dept_target_id, rule_id, user_ids, weights)
             self._invalidate_caches(dept_target_id)
             return result
@@ -89,49 +91,51 @@ class TargetCascader:
             return cached
 
         cascade_maps = CascadeMap.objects.filter(
-            organization_target_id=org_target_id,
             tenant_id=tenant_id
         ).select_related(
             'department_target',
             'individual_target',
+            'division_target',
+            'section_target',
+            'unit_target',
+            'parent_target',
+            'child_target',
             'cascade_rule',
             'organization_target'
         )
+
+        children_map = {}
+        for cm in cascade_maps:
+            p_id = str(cm.parent_target_id or cm.organization_target_id or cm.department_target_id)
+            children_map.setdefault(p_id, []).append(cm)
 
         org_target = AnnualTarget.objects.filter(
             id=org_target_id,
             tenant_id=tenant_id
         ).first()
 
-        tree = {
-            'organization_target': {
-                'id': str(org_target_id),
-                'target_value': float(org_target.target_value) if org_target else None
-            },
-            'departments': [],
-            'individuals': []
-        }
+        def build_node(target):
+            if not target:
+                return {}
+            target_id = str(target.id)
+            node = {
+                'id': target_id,
+                'target_value': float(target.target_value),
+                'user_id': str(target.user_id) if target.user_id else None,
+                'user_name': target.user.get_full_name() if target.user else None,
+                'user_email': target.user.email if target.user else None,
+                'children': []
+            }
+            for cm in children_map.get(target_id, []):
+                child = cm.child_target or cm.individual_target or cm.department_target or cm.division_target or cm.section_target or cm.unit_target
+                if child:
+                    child_node = build_node(child)
+                    child_node['contribution'] = float(cm.contribution_percentage)
+                    child_node['rule'] = cm.cascade_rule.name
+                    node['children'].append(child_node)
+            return node
 
-        for cm in cascade_maps:
-            if cm.department_target:
-                tree['departments'].append({
-                    'id': str(cm.department_target.id),
-                    'target_value': float(cm.department_target.target_value),
-                    'contribution': float(cm.contribution_percentage),
-                    'rule': cm.cascade_rule.name
-                })
-            elif cm.individual_target:
-                user = cm.individual_target.user
-                tree['individuals'].append({
-                    'id': str(cm.individual_target.id),
-                    'user_id': str(cm.individual_target.user_id),
-                    'user_name': user.get_full_name() if user else None,
-                    'user_email': user.email if user else None,
-                    'target_value': float(cm.individual_target.target_value),
-                    'contribution': float(cm.contribution_percentage),
-                    'rule': cm.cascade_rule.name
-                })
-
+        tree = build_node(org_target)
         cache.set(cache_key, tree, CACHE_TTL)
         return tree
 
@@ -147,31 +151,31 @@ class CascadeMapper:
         if cached:
             return cached
 
+        from django.db.models import Q
         cascade_maps = CascadeMap.objects.filter(
-            organization_target_id=org_target_id,
+            Q(organization_target_id=org_target_id) | Q(parent_target_id=org_target_id),
             tenant_id=tenant_id
-        ).select_related('department_target', 'individual_target')
+        ).select_related(
+            'department_target', 'individual_target', 'division_target', 'section_target', 'unit_target', 'child_target'
+        )
 
         contributors = []
         for cm in cascade_maps:
-            if cm.department_target:
-                contributors.append({
-                    'type': 'DEPARTMENT',
-                    'id': str(cm.department_target.id),
-                    'target_value': float(cm.department_target.target_value),
+            child = cm.child_target or cm.individual_target or cm.department_target or cm.division_target or cm.section_target or cm.unit_target
+            if child:
+                contr = {
+                    'type': 'INDIVIDUAL' if (cm.individual_target or (child.user and child.user.role == 'staff')) else 'UNIT',
+                    'id': str(child.id),
+                    'target_value': float(child.target_value),
                     'percentage': float(cm.contribution_percentage)
-                })
-            elif cm.individual_target:
-                user = cm.individual_target.user
-                contributors.append({
-                    'type': 'INDIVIDUAL',
-                    'id': str(cm.individual_target.id),
-                    'user_id': str(cm.individual_target.user_id),
-                    'user_name': user.get_full_name() if user else None,
-                    'user_email': user.email if user else None,
-                    'target_value': float(cm.individual_target.target_value),
-                    'percentage': float(cm.contribution_percentage)
-                })
+                }
+                if child.user:
+                    contr.update({
+                        'user_id': str(child.user_id),
+                        'user_name': child.user.get_full_name(),
+                        'user_email': child.user.email
+                    })
+                contributors.append(contr)
 
         cache.set(cache_key, contributors, CACHE_TTL)
         return contributors
@@ -188,28 +192,24 @@ class CascadeMapper:
             tenant_id=tenant_id
         ).select_related('kpi')
 
+        from django.db.models import Q
         contributors = []
         for target in targets:
             cascade = CascadeMap.objects.filter(
-                individual_target=target,
+                Q(individual_target=target) | Q(child_target=target),
                 tenant_id=tenant_id
-            ).select_related('department_target', 'organization_target').first()
+            ).select_related('department_target', 'organization_target', 'parent_target').first()
 
             if cascade:
-                if cascade.department_target:
+                parent = cascade.parent_target or cascade.department_target or cascade.organization_target
+                if parent:
+                    parent_type = 'ORGANIZATION'
+                    if parent.user and parent.user.role not in ['executive', 'super_admin', 'client_admin']:
+                        parent_type = 'UNIT'
                     contributors.append({
-                        'type': 'DEPARTMENT',
-                        'target_id': str(cascade.department_target.id),
-                        'target_value': float(cascade.department_target.target_value),
-                        'my_target': float(target.target_value),
-                        'kpi_name': target.kpi.name,
-                        'percentage': float(cascade.contribution_percentage)
-                    })
-                elif cascade.organization_target:
-                    contributors.append({
-                        'type': 'ORGANIZATION',
-                        'target_id': str(cascade.organization_target.id),
-                        'target_value': float(cascade.organization_target.target_value),
+                        'type': parent_type,
+                        'target_id': str(parent.id),
+                        'target_value': float(parent.target_value),
                         'my_target': float(target.target_value),
                         'kpi_name': target.kpi.name,
                         'percentage': float(cascade.contribution_percentage)

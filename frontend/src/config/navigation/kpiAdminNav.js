@@ -39,28 +39,10 @@ export const KPI_ADMIN_NAV_ITEMS = [
     description: 'System-wide KPI statistics'
   },
   { 
-    path: KPI_ADMIN_ROUTES.SECTORS, 
-    name: 'Sectors', 
-    icon: FiBriefcase,
-    description: 'Manage business sectors'
-  },
-  { 
-    path: KPI_ADMIN_ROUTES.FRAMEWORKS, 
-    name: 'Frameworks', 
-    icon: FiPackage,
-    description: 'Manage KPI frameworks'
-  },
-  { 
     path: KPI_ADMIN_ROUTES.CATEGORIES, 
     name: 'Categories', 
     icon: FiFolder,
     description: 'Organize KPIs by category'
-  },
-  { 
-    path: KPI_ADMIN_ROUTES.TEMPLATES, 
-    name: 'Templates', 
-    icon: FiFileText,
-    description: 'Pre-built KPI templates'
   },
 ];
 

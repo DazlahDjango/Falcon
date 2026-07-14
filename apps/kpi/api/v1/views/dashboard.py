@@ -12,7 +12,7 @@ from ..serializers import (
     ExecutiveDashboardSerializer, ChampionDashboardSerializer
 )
 from ....services import IndividualDashboard, ManagerDashboard, ExecutiveDashboard, ChampionDashboard
-from ....models import KPIFramework, KPICategory, KPITemplate, KPI, KPIHistory
+from ....models import KPICategory, KPI, KPIHistory
 from ..throttles import DashboardThrottle
 from apps.accounts.api.v1.permissions import IsManagement, IsSuperAdmin, IsExecutive, IsDashboardChampion
 from ..permissions import IsAuthenticatedAndActive, IsManager, CanViewKPIAdminOverview, IsTenantMember
@@ -228,17 +228,6 @@ class KPIOverviewDashboardView(APIView):
             if role in ['super_admin', 'superadmin', 'platform_admin']:
                 is_super_admin = True
 
-            # Framework statistics
-            if is_super_admin:
-                frameworks = KPIFramework.objects.all()
-            else:
-                frameworks = KPIFramework.objects.filter(tenant_id=tenant_id)
-            
-            total_frameworks = frameworks.count()
-            published_frameworks = frameworks.filter(status='PUBLISHED').count()
-            draft_frameworks = frameworks.filter(status='DRAFT').count()
-            archived_frameworks = frameworks.filter(status='ARCHIVED').count()
-
             # Category statistics
             if is_super_admin:
                 categories = KPICategory.objects.all()
@@ -248,16 +237,6 @@ class KPIOverviewDashboardView(APIView):
             total_categories = categories.count()
             categories_with_kpis = categories.filter(kpis__isnull=False).distinct().count()
             active_categories = categories.filter(is_active=True).count()
-
-            # Template statistics
-            if is_super_admin:
-                templates = KPITemplate.objects.all()
-            else:
-                templates = KPITemplate.objects.filter(tenant_id=tenant_id)
-            
-            total_templates = templates.count()
-            published_templates = templates.filter(is_published=True).count()
-            total_template_usage = templates.aggregate(total=Sum('usage_count'))['total'] or 0
 
             # KPI statistics
             if is_super_admin:
@@ -272,14 +251,6 @@ class KPIOverviewDashboardView(APIView):
             # KPI distribution by type
             kpis_by_type = kpis.values('kpi_type').annotate(count=Count('id')).order_by('-count')
 
-            # KPI distribution by framework
-            kpis_by_framework = kpis.values('framework__name', 'framework__id').annotate(
-                count=Count('id')
-            ).order_by('-count')[:10]
-
-            # KPI distribution by sector
-            kpis_by_sector = kpis.values('sector__name').annotate(count=Count('id')).order_by('-count')
-
             # Recent activity
             if is_super_admin:
                 recent_activity = KPIHistory.objects.all().select_related('kpi', 'performed_by')[:20]
@@ -289,33 +260,17 @@ class KPIOverviewDashboardView(APIView):
                 ).select_related('kpi', 'performed_by')[:20]
 
             return Response({
-                'frameworks': {
-                    'total': total_frameworks,
-                    'published': published_frameworks,
-                    'draft': draft_frameworks,
-                    'archived': archived_frameworks,
-                    'completion_rate': round((published_frameworks / total_frameworks * 100), 2) if total_frameworks > 0 else 0
-                },
                 'categories': {
                     'total': total_categories,
                     'active': active_categories,
                     'with_kpis': categories_with_kpis,
                     'utilization_rate': round((categories_with_kpis / total_categories * 100), 2) if total_categories > 0 else 0
                 },
-                'templates': {
-                    'total': total_templates,
-                    'published': published_templates,
-                    'total_usage': total_template_usage,
-                    'avg_usage_per_template': round(total_template_usage / total_templates, 2) if total_templates > 0 else 0,
-                    'publication_rate': round((published_templates / total_templates * 100), 2) if total_templates > 0 else 0
-                },
                 'kpis': {
                     'total': total_kpis,
                     'active': active_kpis,
                     'inactive': inactive_kpis,
                     'by_type': list(kpis_by_type),
-                    'by_framework': list(kpis_by_framework),
-                    'by_sector': list(kpis_by_sector),
                     'activation_rate': round((active_kpis / total_kpis * 100), 2) if total_kpis > 0 else 0
                 },
                 'recent_activity': [

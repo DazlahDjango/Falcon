@@ -71,9 +71,6 @@ class PermissionDenied(KPIException):
     """Raised when a user lacks permission for an operation"""
     pass
 
-class InvalidFrameworkError(KPIException):
-    pass
-
 class DuplicateKPICodeError(KPIException):
     pass
 
@@ -375,7 +372,6 @@ EXCEPTION_STATUS_MAP = {
     HistoricalDataError: 409,
     WeightSumError: 400,
     DuplicateKPICodeError: 409,
-    InvalidFrameworkError: 400,
     RejectionReasonNotFoundError: 404,
     EvidenceUploadError: 500,
     ReportGenerationError: 500,

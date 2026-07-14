@@ -6,24 +6,48 @@ from ..managers import CascadeMapManager, CascadeRuleManager
 
 
 class CascadeMap(BaseKPIModel):
-    organization_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, related_name='cascade_maps')
+    organization_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, related_name='cascade_maps', null=True, blank=True)
+    division_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='division_cascades')
     department_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='department_cascades')
+    section_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='section_cascades')
+    unit_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='unit_cascades')
     individual_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='individual_cascades')
+    
+    parent_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='child_cascades')
+    child_target = models.ForeignKey('AnnualTarget', on_delete=models.CASCADE, null=True, blank=True, related_name='parent_cascades')
+    
     cascade_rule = models.ForeignKey('CascadeRule', on_delete=models.PROTECT)
-    contribution_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="% of org target this represents")
+    contribution_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="% of parent target this represents")
     objects = CascadeMapManager()
     class Meta:
         db_table = 'kpi_cascade_maps'
         indexes = [
             models.Index(fields=['organization_target']),
+            models.Index(fields=['division_target']),
             models.Index(fields=['department_target']),
+            models.Index(fields=['section_target']),
+            models.Index(fields=['unit_target']),
             models.Index(fields=['individual_target']),
+            models.Index(fields=['parent_target']),
+            models.Index(fields=['child_target']),
         ]
     
     def __str__(self):
-        if self.department_target:
-            return f"{self.organization_target.kpi.name}: Org → Dept"
-        return f"{self.organization_target.kpi.name}: Org → Individual"
+        source = "Parent"
+        if self.parent_target:
+            source = f"Target {self.parent_target_id}"
+        elif self.organization_target:
+            source = "Org"
+        
+        dest = "Child"
+        if self.child_target:
+            dest = f"Target {self.child_target_id}"
+        elif self.individual_target:
+            dest = "Individual"
+        elif self.department_target:
+            dest = "Dept"
+        
+        return f"Cascade: {source} → {dest}"
     
 class CascadeRule(BaseKPIModel):
     """Rules for how targets cascade down the hierarchy"""

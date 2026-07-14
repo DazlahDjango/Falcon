@@ -8,9 +8,9 @@ import { bulkService } from '../../../services/kpi';
 
 export const uploadKPIs = createAsyncThunk(
   'bulk/uploadKPIs',
-  async ({ file, frameworkId, dryRun = false }, { rejectWithValue }) => {
+  async ({ file, dryRun = false }, { rejectWithValue }) => {
     try {
-      const response = await bulkService.uploadKPIs(file, frameworkId, dryRun);
+      const response = await bulkService.uploadKPIs(file, dryRun);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

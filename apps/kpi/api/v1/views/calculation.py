@@ -68,14 +68,18 @@ class TriggerCalculationView(APIView):
             year = int(year)
             month = int(month)
         
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+
         scores_exist = Score.objects.filter(
-            tenant_id=request.tenant.id,
+            tenant_id=tenant_id,
             year=year,
             month=month
         ).exists()
         
         last_calculation = Score.objects.filter(
-            tenant_id=request.tenant.id,
+            tenant_id=tenant_id,
             year=year,
             month=month
         ).aggregate(last=Max('calculated_at'))['last']

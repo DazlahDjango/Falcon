@@ -1,5 +1,5 @@
 from .base import TenantAwareSerializer, AuditTrailSerializer
-from .framework import SectorSerializer, KPICategorySerializer, KPIFrameworkSerializer, KPITemplateSerializer
+from .framework import KPICategorySerializer
 from .definition import KPIListSerializer, KPIDetailSerializer, KPIWeightSerializer, StrategicLinkageSerializer, KPIDependencySerializer
 from .target import AnnualTargetSerializer, MonthlyPhasingSerializer, MonthlyActualSerializer, EvidenceSerializer, ActualAdjustmentSerializer
 from .validation import RejectionReasonSerializer, ValidationRecordSerializer, EscalationSerializer
@@ -13,7 +13,7 @@ from .history import KPIHistorySerializer, ActualHistorySerializer, TargetHistor
 
 __all__ = [
     'TenantAwareSerializer', 'AuditTrailSerializer',
-    'SectorSerializer', 'KPICategorySerializer', 'KPIFrameworkSerializer', 'KPITemplateSerializer',
+    'KPICategorySerializer',
     'KPIListSerializer', 'KPIDetailSerializer', 'KPIWeightSerializer', 'StrategicLinkageSerializer', 'KPIDependencySerializer',
     'AnnualTargetSerializer', 'MonthlyPhasingSerializer', 'MonthlyActualSerializer', 'EvidenceSerializer', 'ActualAdjustmentSerializer',
     'RejectionReasonSerializer', 'ValidationRecordSerializer', 'EscalationSerializer',

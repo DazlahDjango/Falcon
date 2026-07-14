@@ -14,22 +14,14 @@ class KPIExportView(APIView):
     throttle_classes = [ExportThrottle]
 
     def get(self, request):
-        format_type = request.query_params.get('format', 'csv')
         from ....services import KPIImportExport
         import_export = KPIImportExport()
-        framework_id = request.query_params.get('framework_id')
         
-        if framework_id:
-            csv_content = import_export.export_to_csv(framework_id, str(request.tenant.id))
-        else:
-            from ....models import KPI
-            kpis = KPI.objects.filter(tenant_id=request.tenant.id)
-            output = io.StringIO()
-            writer = csv.writer(output)
-            writer.writerow(['Code', 'Name', 'Type', 'Unit', 'Is Active'])
-            for kpi in kpis:
-                writer.writerow([kpi.code, kpi.name, kpi.kpi_type, kpi.unit, kpi.is_active])
-            csv_content = output.getvalue()
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+        
+        csv_content = import_export.export_to_csv(tenant_id)
         
         response = HttpResponse(csv_content, content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="kpis_export.csv"'
@@ -49,9 +41,13 @@ class ScoreExportView(APIView):
         y = int(year) if year else now.year
         m = int(month) if month else now.month
         
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+
         from ....models import Score
         scores = Score.objects.filter(
-            tenant_id=request.tenant.id,
+            tenant_id=tenant_id,
             year=y,
             month=m
         ).select_related('kpi', 'user')
@@ -92,7 +88,10 @@ class ReportExportView(APIView):
         
         y = int(year) if year else None
         m = int(month) if month else None
-        tenant_id = str(request.tenant.id)
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+        tenant_id = str(tenant_id)
         user_tenant_id = str(request.user.tenant_id)
         
         generator = ReportGenerator()

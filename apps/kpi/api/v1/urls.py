@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from .views import (
-    SectorViewSet, KPIFrameworkViewSet, KPICategoryViewSet, KPITemplateViewSet,
+    KPICategoryViewSet,
     KPIViewSet, KPIWeightViewSet, StrategicLinkageViewSet, KPIDependencyViewSet,
     AnnualTargetViewSet, MonthlyPhasingViewSet,
     MonthlyActualViewSet, EvidenceViewSet, ActualAdjustmentViewSet,
@@ -29,10 +29,7 @@ from .views.reference_data import KpiReferenceDataView
 router = DefaultRouter()
 router.trailing_slash = '/?'
 
-router.register(r'sectors', SectorViewSet, basename='sector')
-router.register(r'frameworks', KPIFrameworkViewSet, basename='framework')
 router.register(r'categories', KPICategoryViewSet, basename='category')
-router.register(r'templates', KPITemplateViewSet, basename='template')
 router.register(r'users', UserViewSet, basename='user')
 
 router.register(r'kpis', KPIViewSet, basename='kpi')
@@ -79,10 +76,7 @@ def api_root(request, format=None):
         'version': '1.0.0',
         'description': 'REST API for KPI tracking, performance management, and analytics',
         'endpoints': {
-            'frameworks': reverse('framework-list', request=request, format=format),
             'categories': reverse('category-list', request=request, format=format),
-            'sectors': reverse('sector-list', request=request, format=format),
-            'templates': reverse('template-list', request=request, format=format),
             'kpis': reverse('kpi-list', request=request, format=format),
             'targets': reverse('target-list', request=request, format=format),
             'actuals': reverse('actual-list', request=request, format=format),

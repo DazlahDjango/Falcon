@@ -1,5 +1,5 @@
 from .base import BaseKpiViewset, ReadOnlyKPIViewset, BulkOperationMixin
-from .framework import SectorViewSet, KPIFrameworkViewSet, KPICategoryViewSet, KPITemplateViewSet
+from .framework import KPICategoryViewSet
 from .kpi import KPIViewSet, KPIWeightViewSet, StrategicLinkageViewSet, KPIDependencyViewSet
 from .target import AnnualTargetViewSet, MonthlyPhasingViewSet
 from .actual import MonthlyActualViewSet, EvidenceViewSet, ActualAdjustmentViewSet
@@ -14,7 +14,7 @@ from .history import KPIHistoryViewSet, ActualHistoryViewSet, TargetHistoryViewS
 
 __all__ = [
     'BaseKpiViewset', 'ReadOnlyKPIViewset', 'BulkOperationMixin',
-    'SectorViewSet', 'KPIFrameworkViewSet', 'KPICategoryViewSet', 'KPITemplateViewSet',
+    'KPICategoryViewSet',
     'KPIViewSet', 'KPIWeightViewSet', 'StrategicLinkageViewSet', 'KPIDependencyViewSet',
     'AnnualTargetViewSet', 'MonthlyPhasingViewSet',
     'MonthlyActualViewSet', 'EvidenceViewSet', 'ActualAdjustmentViewSet',

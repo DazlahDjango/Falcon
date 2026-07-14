@@ -1,30 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiX } from 'react-icons/fi';
-import { fetchFrameworks, fetchCategories, fetchSectors, selectFrameworks, selectCategories, selectSectors } from '../../../../store/kpi';
+import { fetchCategories, selectCategories } from '../../../../store/kpi';
 
 const KPIFilters = ({ filters, onFilterChange, onClearFilters }) => {
     const dispatch = useDispatch();
     
-    const frameworks = useSelector(selectFrameworks);
     const categories = useSelector(selectCategories);
-    const sectors = useSelector(selectSectors);
     
-    const [frameworkOptions, setFrameworkOptions] = useState([]);
     const [categoryOptions, setCategoryOptions] = useState([]);
-    const [sectorOptions, setSectorOptions] = useState([]);
     
     useEffect(() => {
-        dispatch(fetchFrameworks({ is_active: true }));
         dispatch(fetchCategories({ is_active: true }));
-        dispatch(fetchSectors({ is_active: true }));
     }, [dispatch]);
     
     useEffect(() => {
-        setFrameworkOptions(Array.isArray(frameworks) ? frameworks : []);
         setCategoryOptions(Array.isArray(categories) ? categories : []);
-        setSectorOptions(Array.isArray(sectors) ? sectors : []);
-    }, [frameworks, categories, sectors]);
+    }, [categories]);
     
     const kpiTypes = [
         { value: '', label: 'All Types' },
@@ -42,24 +34,11 @@ const KPIFilters = ({ filters, onFilterChange, onClearFilters }) => {
         { value: 'false', label: 'Inactive' }
     ];
     
-    const hasActiveFilters = filters.framework || filters.category || filters.sector || filters.kpi_type || filters.is_active;
+    const hasActiveFilters = filters.category || filters.kpi_type || filters.is_active;
     
     return (
         <div className="kpi-filters">
             <div className="kpi-filters-row">
-                <div className="kpi-filter-group">
-                    <label>Framework</label>
-                    <select 
-                        value={filters.framework || ''}
-                        onChange={(e) => onFilterChange('framework', e.target.value)}
-                    >
-                        <option value="">All Frameworks</option>
-                        {frameworkOptions.map(fw => (
-                            <option key={fw.id} value={fw.id}>{fw.name}</option>
-                        ))}
-                    </select>
-                </div>
-                
                 <div className="kpi-filter-group">
                     <label>Category</label>
                     <select 
@@ -69,19 +48,6 @@ const KPIFilters = ({ filters, onFilterChange, onClearFilters }) => {
                         <option value="">All Categories</option>
                         {categoryOptions.map(cat => (
                             <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                    </select>
-                </div>
-                
-                <div className="kpi-filter-group">
-                    <label>Sector</label>
-                    <select 
-                        value={filters.sector || ''}
-                        onChange={(e) => onFilterChange('sector', e.target.value)}
-                    >
-                        <option value="">All Sectors</option>
-                        {sectorOptions.map(sec => (
-                            <option key={sec.id} value={sec.id}>{sec.name}</option>
                         ))}
                     </select>
                 </div>

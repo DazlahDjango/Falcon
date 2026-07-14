@@ -94,20 +94,9 @@ export const KPI_ROUTES = {
     
     // Admin KPI Modules
     ADMIN_OVERVIEW: '/kpi/admin/overview',
-    ADMIN_SECTORS: '/kpi/admin/sectors',
-    ADMIN_SECTOR_CREATE: '/kpi/admin/sectors/create',
-    ADMIN_SECTOR_EDIT: (id = ':id') => `/kpi/admin/sectors/${id}/edit`,
-    ADMIN_FRAMEWORKS: '/kpi/admin/frameworks',
-    ADMIN_FRAMEWORK_CREATE: '/kpi/admin/frameworks/create',
-    ADMIN_FRAMEWORK_EDIT: (id = ':id') => `/kpi/admin/frameworks/${id}/edit`,
-    ADMIN_FRAMEWORK_WIZARD: (id = ':id') => `/kpi/admin/frameworks/${id}/wizard`,
     ADMIN_CATEGORIES: '/kpi/admin/categories',
     ADMIN_CATEGORY_CREATE: '/kpi/admin/categories/create',
     ADMIN_CATEGORY_EDIT: (id = ':id') => `/kpi/admin/categories/${id}/edit`,
-    ADMIN_TEMPLATES: '/kpi/admin/templates',
-    ADMIN_TEMPLATE_CREATE: '/kpi/admin/templates/create',
-    ADMIN_TEMPLATE_EDIT: (id = ':id') => `/kpi/admin/templates/${id}/edit`,
-    ADMIN_TEMPLATE_STUDIO: (id = ':id') => `/kpi/admin/templates/${id}/studio`,
     
     // User nested routes
     USER_KPIS: (userId = ':userId') => `/kpi/users/${userId}/kpis`,
@@ -118,8 +107,6 @@ export const KPI_ROUTES = {
 
 // Routes that should have minimal header/footer
 export const KPI_MINIMAL_CHROME_PATHS = [
-    KPI_ROUTES.ADMIN_FRAMEWORK_WIZARD(':id'),
-    KPI_ROUTES.ADMIN_TEMPLATE_STUDIO(':id'),
     KPI_ROUTES.BULK_UPLOAD,
     KPI_ROUTES.CALCULATIONS_TRIGGER,
 ];
@@ -137,10 +124,7 @@ export const buildKpiPath = (path, params = {}) => {
 
 export const KPI_ADMIN_ROUTES = {
   OVERVIEW: '/kpi/admin/overview',
-  SECTORS: '/kpi/admin/sectors',
-  FRAMEWORKS: '/kpi/admin/frameworks',
   CATEGORIES: '/kpi/admin/categories',
-  TEMPLATES: '/kpi/admin/templates',
 };
 
 // Also add to the main export
@@ -149,10 +133,7 @@ export const ROUTES = {
   
   // KPI Admin Routes
   KPI_ADMIN_OVERVIEW: '/kpi/admin/overview',
-  KPI_ADMIN_SECTORS: '/kpi/admin/sectors',
-  KPI_ADMIN_FRAMEWORKS: '/kpi/admin/frameworks',
   KPI_ADMIN_CATEGORIES: '/kpi/admin/categories',
-  KPI_ADMIN_TEMPLATES: '/kpi/admin/templates',
 };
 
 // Legacy redirects
@@ -170,10 +151,7 @@ export const LEGACY_KPI_REDIRECTS = [
     ['/app/kpi/settings', KPI_ROUTES.SYSTEM_SETTINGS],
     ['/app/kpi/bulk', KPI_ROUTES.BULK_UPLOAD],
     ['/app/kpi/audit', KPI_ROUTES.AUDIT_LOGS],
-    ['/app/kpi/sectors', KPI_ROUTES.ADMIN_SECTORS],
-    ['/app/kpi/frameworks', KPI_ROUTES.ADMIN_FRAMEWORKS],
     ['/app/kpi/categories', KPI_ROUTES.ADMIN_CATEGORIES],
-    ['/app/kpi/templates', KPI_ROUTES.ADMIN_TEMPLATES],
 ];
 
 export default {

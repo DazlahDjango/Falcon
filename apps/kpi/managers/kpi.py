@@ -7,12 +7,6 @@ class KPIManager(SoftDeleteManager):
     def active(self):
         return self.filter(is_active=True)
 
-    def by_framework(self, framework_id):
-        return self.filter(framework_id=framework_id)
-
-    def by_sector(self, sector_id):
-        return self.filter(sector_id=sector_id)
-
     def by_category(self, category_id):
         return self.filter(category_id=category_id)
 
@@ -70,42 +64,13 @@ class KPIManager(SoftDeleteManager):
         return self.filter(updated_at__lt=cutoff, is_active=True)
 
 
-class KPIFrameworkManager(TenantAwareManager):
-    def published(self):
-        return self.filter(status='PUBLISHED')
-
-    def draft(self):
-        return self.filter(status='DRAFT')
-
-    def archived(self):
-        return self.filter(status='ARCHIVED')
-
-    def default_for_sector(self, sector_id):
-        return self.filter(sector_id=sector_id, is_default=True).first()
-
-    def current_effective(self, date=None):
-        date = date or timezone.now().date()
-        return self.filter(
-            Q(effective_from__lte=date) &
-            (Q(effective_to__gte=date) | Q(effective_to__isnull=True))
-        )
-
-    def with_kpi_count(self):
-        return self.annotate(kpi_count=Count('kpis'))
-
-
 class KPICategoryManager(TenantAwareManager):
     def root_categories(self):
         return self.filter(parent__isnull=True)
 
-    def by_framework(self, framework_id):
-        return self.filter(framework_id=framework_id)
-
     def active(self):
         return self.filter(is_active=True)
 
-    def get_tree(self, framework_id=None):
+    def get_tree(self):
         queryset = self.root_categories()
-        if framework_id:
-            queryset = queryset.filter(framework_id=framework_id)
         return queryset.prefetch_related('children__children')

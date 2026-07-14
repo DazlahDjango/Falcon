@@ -6,13 +6,11 @@ class BulkService extends BaseKPIService {
     super('bulk');
   }
 
-  async uploadKPIs(file, frameworkId, dryRun = false) {
+  async uploadKPIs(file, dryRun = false) {
     if (!file) throw new Error('File is required');
-    if (!frameworkId) throw new Error('Framework ID is required');
     
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('framework_id', frameworkId);
     if (dryRun) formData.append('dry_run', 'true');
     
     return withRetry(async () => {

@@ -140,8 +140,11 @@ class EvidenceViewSet(BaseKpiViewset):
     filterset_fields = ['actual', 'evidence_type']
 
     def perform_create(self, serializer):
+        tenant_id = getattr(self.request, 'current_tenant_id', None)
+        if not tenant_id and self.request.user.is_authenticated:
+            tenant_id = str(self.request.user.tenant_id)
         serializer.save(
-            tenant_id=self.request.tenant.id,
+            tenant_id=tenant_id,
             uploaded_by=self.request.user
         )
 

@@ -6,17 +6,14 @@ import { uploadKPIs, selectUploadResult, selectUploading } from '../../../store/
 import UploadPreview from './UploadPreview';
 import UploadResults from './UploadResults';
 import TemplateDownload from './TemplateDownload';
-import { fetchFrameworks, selectFrameworks } from '../../../store/kpi';
 
 const BulkKPIUpload = ({ onComplete, setUploading }) => {
     const dispatch = useDispatch();
     const [file, setFile] = useState(null);
-    const [frameworkId, setFrameworkId] = useState('');
     const [dryRun, setDryRun] = useState(true);
     const [preview, setPreview] = useState(null);
     const [step, setStep] = useState(1);
-    
-    const frameworks = useSelector(selectFrameworks);
+
     const uploadResult = useSelector(selectUploadResult);
     const uploading = useSelector(selectUploading);
     
@@ -46,15 +43,14 @@ const BulkKPIUpload = ({ onComplete, setUploading }) => {
     
     const handleUpload = async () => {
         setUploading(true);
-        const result = await dispatch(uploadKPIs({ file, frameworkId, dryRun })).unwrap();
+        const result = await dispatch(uploadKPIs({ file, dryRun })).unwrap();
         setUploading(false);
         onComplete?.(result);
         setStep(4);
     };
-    
+
     const handleReset = () => {
         setFile(null);
-        setFrameworkId('');
         setPreview(null);
         setStep(1);
     };
@@ -81,22 +77,10 @@ const BulkKPIUpload = ({ onComplete, setUploading }) => {
                     <div className="bulk-template-download">
                         <TemplateDownload type="kpi" />
                     </div>
-                    
-                    <div className="bulk-framework-select">
-                        <label>Select Framework <span className="required">*</span></label>
-                        <select 
-                            value={frameworkId}
-                            onChange={(e) => setFrameworkId(e.target.value)}
-                        >
-                            <option value="">Select a framework...</option>
-                            {frameworks?.map(fw => (
-                                <option key={fw.id} value={fw.id}>{fw.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    <div 
-                        {...getRootProps()} 
+
+
+                    <div
+                        {...getRootProps()}
                         className={`bulk-dropzone ${isDragActive ? 'drag-active' : ''}`}
                     >
                         <input {...getInputProps()} />
@@ -104,24 +88,24 @@ const BulkKPIUpload = ({ onComplete, setUploading }) => {
                         <p>{isDragActive ? 'Drop file here...' : 'Drag & drop file here or click to browse'}</p>
                         <span>Supports CSV, XLSX (Max 10MB)</span>
                     </div>
-                    
+
                     <div className="bulk-dry-run-toggle">
                         <label className="checkbox-label">
-                            <input 
-                                type="checkbox" 
-                                checked={dryRun} 
-                                onChange={(e) => setDryRun(e.target.checked)} 
+                            <input
+                                type="checkbox"
+                                checked={dryRun}
+                                onChange={(e) => setDryRun(e.target.checked)}
                             />
                             Dry Run (Validate only, don't save)
                         </label>
                         <small>Preview errors before actual upload</small>
                     </div>
-                    
+
                     <div className="bulk-actions">
-                        <button 
+                        <button
                             className="bulk-next-btn"
                             onClick={handlePreview}
-                            disabled={!file || !frameworkId}
+                            disabled={!file}
                         >
                             Preview Upload →
                         </button>

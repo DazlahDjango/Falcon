@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count, Q
 from .models import (
-    Sector, KPIFramework, KPICategory, KPITemplate,
+    KPICategory,
     KPI, KPIHistory, KPIWeight, StrategicLinkage, KPIDependency,
     AnnualTarget, MonthlyPhasing, PhasingLock, TargetHistory,
     MonthlyActual, ActualHistory, ActualAdjustment, Evidence,
@@ -17,94 +17,57 @@ from .models import (
 class TenantAwareAdmin(ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        if hasattr(request, 'tenant') and request.tenant:
-            return queryset.filter(tenant_id=request.tenant.id)
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request, 'tenant') and request.tenant:
+            tenant_id = request.tenant.id
+        if not tenant_id and hasattr(request, 'user') and request.user.is_authenticated:
+            tenant_id = request.user.tenant_id
+        if tenant_id:
+            return queryset.filter(tenant_id=tenant_id)
         return queryset
+
     def save_model(self, request, obj, form, change):
-        if not change and hasattr(request, 'tenant') and request.tenant:
-            obj.tenant_id = request.tenant.id
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request, 'tenant') and request.tenant:
+            tenant_id = request.tenant.id
+        if not tenant_id and hasattr(request, 'user') and request.user.is_authenticated:
+            tenant_id = request.user.tenant_id
+        if not change and tenant_id:
+            obj.tenant_id = tenant_id
         if not obj.created_by:
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
 
-@admin.register(Sector)
-class SectorAdmin(TenantAwareAdmin):
-    list_display = ['name', 'code', 'sector_type', 'is_active', 'created_at']
-    list_filter = ['sector_type', 'is_active']
-    search_fields = ['name', 'code', 'description']
-    readonly_fields = ['id', 'created_at', 'updated_at']
-    fieldsets = (
-        ('Basic Information', {'fields': ('name', 'code', 'sector_type', 'description')}),
-        ('Display', {'fields': ('icon',)}),
-        ('Status', {'fields': ('is_active',)}),
-        ('Metadata', {'fields': ('metadata',)}),
-        ('System', {'fields': ('id', 'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by')}),
-    )
-
-@admin.register(KPIFramework)
-class KPIFrameworkAdmin(TenantAwareAdmin):
-    list_display = ['name', 'sector', 'version', 'status', 'is_default', 'kpi_count']
-    list_filter = ['status', 'sector', 'is_default']
-    search_fields = ['name', 'code', 'description']
-    readonly_fields = ['id', 'created_at', 'updated_at']
-    def get_queryset(self, request):
-        return super().get_queryset(request).annotate(
-            kpi_count=Count('kpis')
-        )
-    def kpi_count(self, obj):
-        return obj.kpi_count
-    kpi_count.short_description = 'Total KPIs'
-    fieldsets = (
-        ('Basic Information', {'fields': ('name', 'code', 'sector', 'description')}),
-        ('Version Control', {'fields': ('version', 'status', 'is_default')}),
-        ('Effective Period', {'fields': ('effective_from', 'effective_to')}),
-        ('Metadata', {'fields': ('metadata',)}),
-        ('System', {'fields': ('id', 'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by')}),
-    )
 
 @admin.register(KPICategory)
 class KPICategoryAdmin(TenantAwareAdmin):
-    list_display = ['name', 'code', 'category_type', 'framework', 'parent', 'is_active', 'display_order']
-    list_filter = ['category_type', 'is_active', 'framework']
+    list_display = ['name', 'code', 'category_type', 'parent', 'is_active', 'display_order']
+    list_filter = ['category_type', 'is_active']
     search_fields = ['name', 'code', 'description']
     readonly_fields = ['id', 'created_at', 'updated_at']
     fieldsets = (
-        ('Basic Information', {'fields': ('name', 'code', 'category_type', 'framework', 'parent')}),
+        ('Basic Information', {'fields': ('name', 'code', 'category_type', 'parent')}),
         ('Display', {'fields': ('description', 'color', 'icon', 'display_order')}),
         ('Status', {'fields': ('is_active',)}),
         ('System', {'fields': ('id', 'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by')}),
     )
 
-@admin.register(KPITemplate)
-class KPITemplateAdmin(TenantAwareAdmin):
-    list_display = ['name', 'code', 'sector', 'difficulty', 'is_published', 'usage_count']
-    list_filter = ['sector', 'difficulty', 'is_published']
-    search_fields = ['name', 'code', 'description']
-    readonly_fields = ['id', 'created_at', 'updated_at', 'usage_count']
-    fieldsets = (
-        ('Basic Information', {'fields': ('name', 'code', 'sector', 'category', 'description')}),
-        ('KPI Definition', {'fields': ('kpi_definition',)}),
-        ('Target Configuration', {'fields': ('target_phasing_pattern',)}),
-        ('Status', {'fields': ('difficulty', 'is_published', 'usage_count')}),
-        ('Metadata', {'fields': ('metadata',)}),
-        ('System', {'fields': ('id', 'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by')}),
-    )
 
 @admin.register(KPI)
 class KPIAdmin(TenantAwareAdmin):
-    list_display = ['name', 'code', 'kpi_type', 'sector', 'owner', 'is_active', 'display_status']
-    list_filter = ['kpi_type', 'calculation_logic', 'measure_type', 'is_active', 'sector']
+    list_display = ['name', 'code', 'kpi_type', 'owner', 'is_active', 'display_status']
+    list_filter = ['kpi_type', 'calculation_logic', 'measure_type', 'is_active']
     search_fields = ['name', 'code', 'description', 'strategic_objective']
     readonly_fields = ['id', 'created_at', 'updated_at']
-    raw_id_fields = ['owner', 'framework', 'category', 'department']
+    raw_id_fields = ['owner', 'category', 'department']
     def display_status(self, obj):
         if obj.is_active:
             return format_html('<span style="color: green;">Active</span>')
         return format_html('<span style="color: red;">Inactive</span>')
     display_status.short_description = 'Status'
     fieldsets = (
-        ('Basic Information', {'fields': ('name', 'code', 'description', 'framework', 'category', 'sector')}),
+        ('Basic Information', {'fields': ('name', 'code', 'description', 'category')}),
         ('KPI Configuration', {'fields': ('kpi_type', 'calculation_logic', 'measure_type')}),
         ('Target Settings', {'fields': ('unit', 'decimal_places', 'target_min', 'target_max')}),
         ('Formula', {'fields': ('formula',)}),

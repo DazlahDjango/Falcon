@@ -14,7 +14,7 @@ from ..serializers import (
 from ....models import KPI, KPIWeight, StrategicLinkage, KPIDependency
 from ..filters import KPIListFilter, KPIWeightListFilter
 from ....services import KPICreator, KPIUpdater, KPIActivator, KPIValidator
-from ....exceptions import DuplicateKPICodeError, InvalidFrameworkError
+from ....exceptions import DuplicateKPICodeError
 
 
 class KPIViewSet(BaseKpiViewset):
@@ -37,10 +37,8 @@ class KPIViewSet(BaseKpiViewset):
             cleaned = dict(data)
 
         mappings = {
-            'frameworkId': 'framework_id',
             'tenantId': 'tenant_id',
             'categoryId': 'category_id',
-            'sectorId': 'sector_id',
             'kpiType': 'kpi_type',
             'calculationLogic': 'calculation_logic',
             'measureType': 'measure_type',
@@ -57,14 +55,13 @@ class KPIViewSet(BaseKpiViewset):
                 cleaned[snake] = cleaned[camel]
 
         if not cleaned.get('tenant_id'):
-            if hasattr(request, 'tenant') and request.tenant and hasattr(request.tenant, 'id'):
-                cleaned['tenant_id'] = request.tenant.id
+            if getattr(request, 'current_tenant_id', None):
+                cleaned['tenant_id'] = request.current_tenant_id
             elif hasattr(request.user, 'tenant_id') and request.user.tenant_id:
                 cleaned['tenant_id'] = request.user.tenant_id
 
         nullable_fields = [
-            'framework_id', 'category_id', 'sector_id', 'target_min',
-            'target_max', 'owner_id', 'department_id', 'decimal_places',
+            'category_id', 'target_min','target_max', 'owner_id', 'department_id', 'decimal_places',
         ]
         for field in nullable_fields:
             if field in cleaned and cleaned[field] == '':
@@ -92,7 +89,7 @@ class KPIViewSet(BaseKpiViewset):
             kpi = creator.create(cleaned_data, request.user)
             serializer = KPIDetailSerializer(kpi)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except (DuplicateKPICodeError, InvalidFrameworkError) as e:
+        except DuplicateKPICodeError as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST

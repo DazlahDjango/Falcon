@@ -20,15 +20,11 @@ class KPIListFilter(BaseKPIListFilter):
     kpi_type = filters.ChoiceFilter(choices=KPI.KPI_TYPES, field_name='kpi_type')
     calculation_logic = filters.ChoiceFilter(choices=KPI.CALCULATION_LOGIC, field_name='calculation_logic')
     measure_type = filters.ChoiceFilter(choices=KPI.MEASURE_TYPE, field_name='measure_type')
-    
-    framework = filters.UUIDFilter(field_name='framework__id')
     category = filters.UUIDFilter(field_name='category__id')
-    sector = filters.UUIDFilter(field_name='sector__id')
     owner = filters.UUIDFilter(field_name='owner__id')
     department = filters.UUIDFilter(field_name='department__id')
     
     kpi_types = filters.MultipleChoiceFilter(choices=KPI.KPI_TYPES, field_name='kpi_type', lookup_expr='in')
-    frameworks = filters.MultipleChoiceFilter(field_name='framework__id', lookup_expr='in')
     
     target_min_min = filters.NumberFilter(field_name='target_min', lookup_expr='gte')
     target_min_max = filters.NumberFilter(field_name='target_min', lookup_expr='lte')
@@ -48,7 +44,7 @@ class KPIListFilter(BaseKPIListFilter):
         model = KPI
         fields = [
             'is_active', 'name', 'code', 'kpi_type', 'calculation_logic', 
-            'measure_type', 'framework', 'category', 'sector', 'owner', 
+            'measure_type', 'category', 'owner', 
             'department', 'search'
         ]
 

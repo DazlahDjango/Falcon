@@ -17,8 +17,10 @@ const TargetList = ({
     onRowClick,
     onEdit,
     onDelete,
+    onCascade,
     canEdit,
-    canDelete
+    canDelete,
+    canCascade
 }) => {
     if (loading) {
         return <KPILoading text="Loading targets..." />;
@@ -49,8 +51,10 @@ const TargetList = ({
                 onRowClick={onRowClick}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onCascade={onCascade}
                 canEdit={canEdit}
                 canDelete={canDelete}
+                canCascade={canCascade}
             />
             
             {pagination && pagination.totalPages > 1 && (

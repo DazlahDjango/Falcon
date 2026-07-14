@@ -100,33 +100,12 @@ export {
 
 // ============ Framework Components ============
 export {
-    // Sectors
-    SectorList,
-    SectorCard,
-    SectorForm,
-    SectorDetail,
-    SectorDeleteConfirm,
-    // Frameworks
-    FrameworkList,
-    FrameworkCard,
-    FrameworkForm,
-    FrameworkDetail,
-    FrameworkWizard,
-    FrameworkPublish,
-    FrameworkDuplicate,
-    FrameworkArchive,
     // Categories
     CategoryList,
     CategoryTree,
     CategoryForm,
     CategoryMove,
     CategoryDeleteConfirm,
-    // Templates
-    TemplateList,
-    TemplateCard,
-    TemplateForm,
-    TemplateDetail,
-    TemplateUseConfirm,
 } from './framework';
 
 // ============ KPI Management Components ============
