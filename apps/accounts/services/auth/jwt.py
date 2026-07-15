@@ -69,7 +69,7 @@ class JWTServices:
                     return None
                 
                 # Convert to dict safely
-                return dict(access)
+                return access.payload
             
             else:  # refresh token
                 refresh = RefreshToken(token)
@@ -80,9 +80,9 @@ class JWTServices:
                     return None
                 
                 if refresh.get('mfa_pending'):
-                    return dict(refresh)
+                    return refresh.payload
                 
-                return dict(refresh)
+                return refresh.payload
                 
         except TokenError as e:
             logger.debug(f"Token verification failed: {str(e)}")
