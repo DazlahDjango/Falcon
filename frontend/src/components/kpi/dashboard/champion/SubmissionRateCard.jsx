@@ -50,7 +50,7 @@ const SubmissionRateCard = ({ submissionRate, totalSubmissions, expectedSubmissi
                     </div>
                     <div className="stat">
                         <span className="stat-label">Progress</span>
-                        <span className="stat-value">{percentage.toFixed(1)}%</span>
+                        <span className="stat-value">{Number(percentage || 0).toFixed(1)}%</span>
                         {getTrendIcon()}
                     </div>
                 </div>

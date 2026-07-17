@@ -20,9 +20,12 @@ export const BILLING_WS = {
 };
 
 export const TENANT_WS = {
-  STATUS: (tenantId) => buildPath(`tenant/${tenantId}/status/`),
-  PROVISIONING: (taskId) => buildPath(`tenant/provisioning/${taskId}/`),
-  BACKUP_PROGRESS: (backupId) => buildPath(`tenant/backup/${backupId}/progress/`),
+  STATUS: (orgId) => buildPath(`organizations/${orgId}/status/`),
+  PROVISIONING: (orgId) => buildPath(`organizations/${orgId}/provisioning/`),
+  DOMAIN_VERIFICATION: (orgId) => buildPath(`organizations/${orgId}/domain-verification/`),
+  QUOTA: (orgId) => buildPath(`organizations/${orgId}/quota/`),
+  MIGRATIONS: (orgId) => buildPath(`organizations/${orgId}/migrations/`),
+  BACKUP_PROGRESS: (backupId) => buildPath(`tenant/backup/${backupId}/progress/`), // legacy fallback
 };
 
 export const STRUCTURE_WS = {

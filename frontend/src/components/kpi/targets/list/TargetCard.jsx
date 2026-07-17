@@ -58,7 +58,7 @@ const TargetCard = ({ target, onClick, onEdit, onDelete, canEdit, canDelete }) =
                         />
                     </div>
                     <div className="kpi-target-card-progress-text">
-                        {progress.toFixed(1)}% of target
+                        {Number(progress || 0).toFixed(1)}% of target
                         {isAhead && <FiTrendingUp size={12} color="var(--kpi-success)" />}
                         {isBehind && <FiTrendingDown size={12} color="var(--kpi-warning)" />}
                     </div>

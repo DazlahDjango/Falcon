@@ -140,8 +140,9 @@ class TargetCascader:
         return tree
 
     def _invalidate_caches(self, target_id: str) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:tree:{target_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:contributors:*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:contributors:*")
 
 
 class CascadeMapper:
@@ -326,6 +327,7 @@ class CascadeRollback:
         }
 
     def _invalidate_caches(self, target_id: str) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:tree:{target_id}")
         cache.delete(f"{CACHE_PREFIX}:contributors:{target_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:user_contributions:*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:user_contributions:*")

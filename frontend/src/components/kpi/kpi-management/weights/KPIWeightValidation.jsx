@@ -21,7 +21,7 @@ const KPIWeightValidation = ({ validation }) => {
                 {!isValid && (
                     <div className="validation-hint">
                         Total weight must equal 100% for accurate scoring. 
-                        Current total: {total?.toFixed(1)}%
+                        Current total: {Number(total || 0).toFixed(1)}%
                     </div>
                 )}
             </div>

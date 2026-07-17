@@ -85,9 +85,10 @@ class TargetSetter:
                 return target
 
     def _invalidate_caches(self, kpi_id: str, user_id: str, year: int) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:annual_target_{kpi_id}_{user_id}_{year}")
         cache.delete(f"{CACHE_PREFIX}:user_targets_{user_id}_{year}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:monthly_phasing_*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:monthly_phasing_*")
 
 
 class TargetPhaser:
@@ -178,7 +179,8 @@ class TargetLocker:
                 locked_at=timezone.now(),
                 locked_by=user
             )
-            cache.delete_pattern(f"{CACHE_PREFIX}:monthly_phasing_*")
+            from apps.kpi.utils.cache_keys import safe_delete_pattern
+            safe_delete_pattern(f"{CACHE_PREFIX}:monthly_phasing_*")
             return updated
 
     def unlock_phasing_for_cycle(self, tenant_id: str, performance_cycle: str, user) -> int:
@@ -196,7 +198,8 @@ class TargetLocker:
                 locked_at=None,
                 locked_by=None
             )
-            cache.delete_pattern(f"{CACHE_PREFIX}:monthly_phasing_*")
+            from apps.kpi.utils.cache_keys import safe_delete_pattern
+            safe_delete_pattern(f"{CACHE_PREFIX}:monthly_phasing_*")
             return updated
 
 

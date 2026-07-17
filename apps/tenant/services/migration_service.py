@@ -182,7 +182,17 @@ class MigrationService:
             try:
                 # Run the actual Django migrate command outside of any outer atomic transaction block
                 # to avoid InFailedSqlTransaction errors in PostgreSQL
-                call_command('migrate', app_name, migration_name)
+                from django.db.backends.signals import connection_created
+                
+                def set_search_path_callback(sender, connection, **kwargs):
+                    with connection.cursor() as cursor:
+                        cursor.execute(f'SET search_path TO "{schema_name}", public')
+                
+                connection_created.connect(set_search_path_callback)
+                try:
+                    call_command('migrate', app_name, migration_name)
+                finally:
+                    connection_created.disconnect(set_search_path_callback)
                 
                 execution_time = int((time.time() - start_time) * 1000)
                 

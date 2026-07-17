@@ -1,39 +1,39 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit';
 import {
   clearErrors as clearOrganizationErrors,
-} from '../tenant/organization.slice';
+} from '../slice/organization.slice';
 
 import {
   clearErrors as clearDomainErrors,
-} from '../tenant/domain.slice';
+} from '../slice/domain.slice';
 
 import {
   clearErrors as clearSchemaErrors,
-} from '../tenant/schema.slice';
+} from '../slice/schema.slice';
 
 import {
   clearErrors as clearResourceErrors,
-} from '../tenant/resource.slice';
+} from '../slice/resource.slice';
 
 import {
   clearErrors as clearConnectionErrors,
-} from '../tenant/connection.slice';
+} from '../slice/connection.slice';
 
 import {
   clearErrors as clearMigrationErrors,
-} from '../tenant/migration.slice';
+} from '../slice/migration.slice';
 
 import {
   clearErrors as clearDashboardErrors,
-} from '../tenant/dashboard.slice';
+} from '../slice/dashboard.slice';
 
 import {
   clearErrors as clearSettingsErrors,
-} from '../tenant/settings.slice';
+} from '../slice/settings.slice';
 
 import {
   clearErrors as clearHealthErrors,
-} from '../tenant/health.slice';
+} from '../slice/health.slice';
 
 const errorHandlerMiddleware = createListenerMiddleware();
 

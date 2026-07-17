@@ -84,6 +84,7 @@ class OrganizationStatusConsumer(AsyncWebsocketConsumer):
     def _has_access(self, user, org_id):
         if user.is_superuser or getattr(user, 'role', '') == 'super_admin':
             return True
-        if hasattr(user, 'organization_id') and user.organization_id:
-            return str(user.organization_id) == str(org_id)
+        user_tenant_id = getattr(user, 'tenant_id', None) or getattr(user, 'organization_id', None)
+        if user_tenant_id:
+            return str(user_tenant_id) == str(org_id)
         return False

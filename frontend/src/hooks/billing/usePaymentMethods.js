@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../../store/accounts';
 import {
     fetchPaymentMethods, addPaymentMethod, deletePaymentMethod, setDefaultPaymentMethod,
     setSelectedMethod, clearSelectedMethod, clearError,
@@ -30,12 +31,14 @@ export const usePaymentMethods = (options = { autoFetch: true }) => {
     const clearSelected = useCallback(() => dispatch(clearSelectedMethod()), [dispatch]);
     const clearPaymentError = useCallback(() => dispatch(clearError()), [dispatch]);
 
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+
     useEffect(() => { 
-        if (options.autoFetch && !hasFetched.current) {
+        if (options.autoFetch && isAuthenticated && !hasFetched.current) {
             hasFetched.current = true;
             fetchAll(); 
         }
-    }, [options.autoFetch]);
+    }, [options.autoFetch, isAuthenticated]);
 
     return {
         paymentMethods, defaultMethod, loading, error, activeMethods, cardMethods,

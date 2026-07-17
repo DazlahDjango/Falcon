@@ -121,6 +121,9 @@ export const networkErrorMiddleware = (store) => (next) => (action) => {
     if (error?.status === 401) {
       const state = store.getState();
       if (state.auth?.isAuthenticated) {
+        import('../slice/authSlice').then(({ logout }) => {
+          store.dispatch(logout());
+        });
         setTimeout(() => {
           if (typeof window !== 'undefined') {
             window.location.href = '/login';

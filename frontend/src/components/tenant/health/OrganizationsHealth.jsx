@@ -1,7 +1,7 @@
 // components/tenant/health/OrganizationsHealth.jsx
 import React, { useState } from 'react';
 import { FiRefreshCw, FiCheckCircle, FiXCircle, FiSearch, FiAlertTriangle } from 'react-icons/fi';
-import { useHealth } from '../../../hooks/tenant';
+import { useHealth, useOrganizationsHealth } from '../../../hooks/tenant';
 
 const OrganizationsHealth = () => {
   const [searchTerm, setSearchTerm] = useState('');

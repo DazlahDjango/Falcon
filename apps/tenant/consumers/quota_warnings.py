@@ -90,15 +90,16 @@ class QuotaWarningConsumer(AsyncWebsocketConsumer):
             'type_display': r.get_resource_type_display(),
             'current_value': r.current_value,
             'limit_value': r.limit_value,
-            'percentage': r.percentage_used(),
-            'is_exceeded': r.is_exceeded(),
-            'is_warning': r.is_warning_level()
+            'percentage': r.percentage_used,
+            'is_exceeded': r.is_exceeded,
+            'is_warning': r.is_warning_level
         } for r in resources]
 
     @database_sync_to_async
     def _has_access(self, user, org_id):
         if user.is_superuser or getattr(user, 'role', '') == 'super_admin':
             return True
-        if hasattr(user, 'organization_id') and user.organization_id:
-            return str(user.organization_id) == str(org_id)
+        user_tenant_id = getattr(user, 'tenant_id', None) or getattr(user, 'organization_id', None)
+        if user_tenant_id:
+            return str(user_tenant_id) == str(org_id)
         return False

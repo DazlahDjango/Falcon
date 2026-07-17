@@ -348,6 +348,12 @@ class ProvisioningService:
         admin_user.password_change_required = True
         admin_user.save(update_fields=['password_change_required'])
 
+        # Restore tenant schema search path before profile & preference creation
+        schema_name = org.schema_name
+        if schema_name:
+            with connection.cursor() as cursor:
+                cursor.execute(f'SET search_path TO "{schema_name}", public')
+
         # Create Profile and UserPreference
         Profile.objects.get_or_create(user=admin_user, defaults={'tenant_id': org.id})
         UserPreference.objects.get_or_create(user=admin_user, defaults={'tenant_id': org.id})

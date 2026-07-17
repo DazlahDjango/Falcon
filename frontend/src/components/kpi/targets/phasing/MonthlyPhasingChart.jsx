@@ -18,7 +18,7 @@ const MonthlyPhasingChart = ({ phasing }) => {
                                 className="kpi-phasing-chart-bar"
                                 style={{ height: `${height}%` }}
                             >
-                                <span className="kpi-phasing-chart-value">{value.toFixed(1)}</span>
+                                <span className="kpi-phasing-chart-value">{Number(value || 0).toFixed(1)}</span>
                             </div>
                             <div className="kpi-phasing-chart-label">{month}</div>
                         </div>

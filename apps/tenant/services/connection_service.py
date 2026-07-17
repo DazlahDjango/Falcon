@@ -395,14 +395,19 @@ class ConnectionService:
             except Exception as e:
                 self.logger.warning(f"Failed to reset search path to public on release: {e}")
 
+        # ✅ FIX: Only mark the MOST RECENT ACTIVE record as IDLE, not ALL active
+        # records for the organization. The old behaviour marked every ACTIVE record
+        # for the org as IDLE on each release, which accumulated 20+ IDLE records
+        # across concurrent requests and permanently exhausted the connection pool.
         try:
-            OrganizationConnection.objects.filter(
+            latest = OrganizationConnection.objects.filter(
                 organization_id=organization_id,
                 status=ConnectionStatus.ACTIVE
-            ).update(
-                status=ConnectionStatus.IDLE,
-                last_used_at=timezone.now()
-            )
+            ).order_by('-created_at').first()
+            if latest:
+                latest.status = ConnectionStatus.IDLE
+                latest.last_used_at = timezone.now()
+                latest.save(update_fields=['status', 'last_used_at'])
         except Exception as e:
             self.logger.warning(f"Failed to update connection status: {str(e)}")
 

@@ -68,7 +68,7 @@ class KPI(BaseKPIModel):
     def activate(self, user=None):
         self.is_active = True
         self.activation_date = timezone.now().date()
-        self.updated_at = user
+        self.updated_by = user
         self.save()
 
 class KPIHistory(BaseKPIModel):

@@ -65,7 +65,7 @@ def get_target_cache_key(kpi_id: str, user_id: str, year: int) -> str:
     return CacheKeyGenerator.target(kpi_id, user_id, year)
 
 
-def _safe_delete_pattern(pattern: str) -> None:
+def safe_delete_pattern(pattern: str) -> None:
     try:
         if hasattr(cache, 'delete_pattern'):
             cache.delete_pattern(pattern)
@@ -84,8 +84,8 @@ def invalidate_kpi_cache(kpi_id: str, user_ids: Optional[list] = None) -> None:
     cache.delete(CacheKeyGenerator.kpi(kpi_id))
     
     # Try pattern deletion (only works with Redis)
-    _safe_delete_pattern(f"kpi:score:{kpi_id}:*")
-    _safe_delete_pattern(f"kpi:target:{kpi_id}:*")
+    safe_delete_pattern(f"kpi:score:{kpi_id}:*")
+    safe_delete_pattern(f"kpi:target:{kpi_id}:*")
     
     if user_ids:
         for user_id in user_ids:
@@ -94,15 +94,15 @@ def invalidate_kpi_cache(kpi_id: str, user_ids: Optional[list] = None) -> None:
 
 def invalidate_user_dashboards(user_id: str) -> None:
     """Invalidate all dashboard caches for a user"""
-    _safe_delete_pattern(f"kpi:dashboard:individual:{user_id}:*")
-    _safe_delete_pattern(f"kpi:dashboard:manager:{user_id}:*")
+    safe_delete_pattern(f"kpi:dashboard:individual:{user_id}:*")
+    safe_delete_pattern(f"kpi:dashboard:manager:{user_id}:*")
 
 
 def invalidate_tenant_dashboards(tenant_id: str) -> None:
     """Invalidate executive dashboards for a tenant"""
-    _safe_delete_pattern(f"kpi:dashboard:executive:{tenant_id}:*")
+    safe_delete_pattern(f"kpi:dashboard:executive:{tenant_id}:*")
 
 
 def invalidate_aggregation_cache(level: str, entity_id: str) -> None:
     """Invalidate aggregation cache for an entity"""
-    _safe_delete_pattern(f"kpi:aggregation:{level}:{entity_id}:*")
+    safe_delete_pattern(f"kpi:aggregation:{level}:{entity_id}:*")

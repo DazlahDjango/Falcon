@@ -17,10 +17,9 @@ class IsManager(BasePermission):
             return False
         
         # Grant access to superusers, administrators, and executives
-        role = getattr(request.user, 'role', '')
+        role = getattr(request.user, 'role', '').lower()
         if (request.user.is_superuser or 
-            role.lower() in ['super_admin', 'client_admin', 'executive', 'ceo', 'director', 'dashboard_champion'] or
-            role.upper() in ['SUPER_ADMIN', 'CLIENT_ADMIN', 'EXECUTIVE', 'CEO', 'DIRECTOR', 'DASHBOARD_CHAMPION']):
+            role in ['super_admin', 'client_admin', 'executive', 'ceo', 'director']):
             return True
             
         return request.user.get_direct_reports().exists()
@@ -30,20 +29,18 @@ class IsExecutive(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        role = getattr(request.user, 'role', '')
+        role = getattr(request.user, 'role', '').lower()
         return (request.user.is_superuser or 
-                role.lower() in ['executive', 'ceo', 'director'] or
-                role.upper() in ['EXECUTIVE', 'CEO', 'DIRECTOR'])
+                role in ['executive', 'ceo', 'director'])
 
 
 class IsDashboardChampion(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        role = getattr(request.user, 'role', '')
+        role = getattr(request.user, 'role', '').lower()
         return (request.user.is_superuser or 
-                role.lower() in ['dashboard_champion', 'super_admin', 'client_admin'] or
-                role.upper() in ['DASHBOARD_CHAMPION', 'SUPER_ADMIN', 'CLIENT_ADMIN'])
+                role in ['dashboard_champion', 'super_admin', 'client_admin'])
 
 
 class CanCascadeTargets(BasePermission):
@@ -55,9 +52,8 @@ class CanCascadeTargets(BasePermission):
         if request.user.is_superuser:
             return True
         
-        role = getattr(request.user, 'role', '')
-        if (role.lower() in ['dashboard_champion', 'super_admin', 'client_admin'] or
-            role.upper() in ['DASHBOARD_CHAMPION', 'SUPER_ADMIN', 'CLIENT_ADMIN']):
+        role = getattr(request.user, 'role', '').lower()
+        if role in ['dashboard_champion', 'super_admin', 'client_admin']:
             return True
         
         return request.user.get_direct_reports().exists()

@@ -144,14 +144,17 @@ def get_department_rollups(
         return cached
 
     if prefer_mv:
-        mv_data = list(DepartmentRollup.objects.filter(
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).values())
-        if mv_data:
-            cache.set(cache_key, mv_data, CACHE_TTL)
-            return mv_data
+        try:
+            mv_data = list(DepartmentRollup.objects.filter(
+                tenant_id=tenant_id,
+                year=year,
+                month=month
+            ).values())
+            if mv_data:
+                cache.set(cache_key, mv_data, CACHE_TTL)
+                return mv_data
+        except Exception as e:
+            logger.warning(f"Failed to fetch department rollups from materialized view: {e}. Falling back to live computation.")
 
     result = compute_department_rollups_live(tenant_id, year, month)
     cache.set(cache_key, result, CACHE_TTL)
@@ -246,11 +249,15 @@ def get_organization_health(
     if cached:
         return cached
 
-    health = OrganizationHealth.objects.filter(
-        tenant_id=tenant_id,
-        year=year,
-        month=month
-    ).first()
+    health = None
+    try:
+        health = OrganizationHealth.objects.filter(
+            tenant_id=tenant_id,
+            year=year,
+            month=month
+        ).first()
+    except Exception as e:
+        logger.warning(f"Failed to fetch organization health from materialized view: {e}. Falling back to live computation.")
 
     if health:
         result = {
@@ -358,47 +365,50 @@ def get_kpi_summaries(
         return cached
 
     if prefer_mv:
-        mv_data = list(KPISummary.objects.filter(
-            tenant_id=tenant_id,
-            year=year,
-            month=month
-        ).select_related('kpi').values(
-            'kpi__id',
-            'kpi__name',
-            'kpi__code',
-            'average_score',
-            'green_count',
-            'yellow_count',
-            'red_count',
-            'total_users'
-        ))
-        if mv_data:
-            result = []
-            for item in mv_data:
-                avg = float(item['average_score']) if item['average_score'] else 0
-                if avg >= 90:
-                    health = 'EXCELLENT'
-                elif avg >= 75:
-                    health = 'GOOD'
-                elif avg >= 50:
-                    health = 'FAIR'
-                else:
-                    health = 'POOR'
-                result.append({
-                    'kpi_id': item['kpi__id'],
-                    'kpi_name': item['kpi__name'],
-                    'kpi_code': item['kpi__code'],
-                    'year': year,
-                    'month': month,
-                    'average_score': round(avg, 2),
-                    'green_count': item['green_count'],
-                    'yellow_count': item['yellow_count'],
-                    'red_count': item['red_count'],
-                    'total_users': item['total_users'],
-                    'health_status': health,
-                })
-            cache.set(cache_key, result, CACHE_TTL)
-            return result
+        try:
+            mv_data = list(KPISummary.objects.filter(
+                tenant_id=tenant_id,
+                year=year,
+                month=month
+            ).select_related('kpi').values(
+                'kpi__id',
+                'kpi__name',
+                'kpi__code',
+                'average_score',
+                'green_count',
+                'yellow_count',
+                'red_count',
+                'total_users'
+            ))
+            if mv_data:
+                result = []
+                for item in mv_data:
+                    avg = float(item['average_score']) if item['average_score'] else 0
+                    if avg >= 90:
+                        health = 'EXCELLENT'
+                    elif avg >= 75:
+                        health = 'GOOD'
+                    elif avg >= 50:
+                        health = 'FAIR'
+                    else:
+                        health = 'POOR'
+                    result.append({
+                        'kpi_id': str(item['kpi__id']),
+                        'kpi_name': item['kpi__name'],
+                        'kpi_code': item['kpi__code'],
+                        'year': year,
+                        'month': month,
+                        'average_score': round(avg, 2),
+                        'green_count': item['green_count'],
+                        'yellow_count': item['yellow_count'],
+                        'red_count': item['red_count'],
+                        'total_users': item['total_users'],
+                        'health_status': health,
+                    })
+                cache.set(cache_key, result, CACHE_TTL)
+                return result
+        except Exception as e:
+            logger.warning(f"Failed to fetch KPI summaries from materialized view: {e}. Falling back to live computation.")
 
     result = compute_kpi_summaries_live(tenant_id, year, month)
     cache.set(cache_key, result, CACHE_TTL)

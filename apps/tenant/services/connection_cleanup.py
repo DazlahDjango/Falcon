@@ -20,6 +20,21 @@ class ConnectionCleanupScheduler:
         if self.running:
             return
         self.running = True
+
+        # Clean up stale connection records in the DB on startup
+        try:
+            from apps.tenant.models import OrganizationConnection
+            from apps.tenant.constants import ConnectionStatus
+            stale_count = OrganizationConnection.objects.filter(
+                status__in=[ConnectionStatus.ACTIVE, ConnectionStatus.IDLE]
+            ).update(
+                status=ConnectionStatus.CLOSED,
+                closed_at=timezone.now()
+            )
+            if stale_count > 0:
+                logger.info(f"Cleaned up {stale_count} stale database connection records on startup.")
+        except Exception as e:
+            logger.warning(f"Failed to clean up stale connection records: {e}")
         
         # 10. Pre-warm connections during startup to reduce initial latency
         if self.prewarm_on_startup:

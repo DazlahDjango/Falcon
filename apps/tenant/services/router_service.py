@@ -71,9 +71,14 @@ class OrganizationDatabaseRouter:
             self._thread_local.is_resolving = False
         return None
 
+    def _is_global_app(self, app_label):
+        short_app = app_label.split('.')[-1]
+        global_short_apps = {a.split('.')[-1] for a in self.GLOBAL_APPS}
+        return short_app in global_short_apps or short_app in ['admin', 'auth', 'contenttypes', 'sessions', 'messages', 'staticfiles', 'sites', 'tenant', 'core', 'configs']
+
     def db_for_read(self, model, **hints):
         app_label = model._meta.app_label
-        if app_label in self.GLOBAL_APPS:
+        if self._is_global_app(app_label):
             return 'default'
         org_id = self._get_current_org_id(model, **hints)
         if org_id:
@@ -82,7 +87,7 @@ class OrganizationDatabaseRouter:
 
     def db_for_write(self, model, **hints):
         app_label = model._meta.app_label
-        if app_label in self.GLOBAL_APPS:
+        if self._is_global_app(app_label):
             return 'default'
         org_id = self._get_current_org_id(model, **hints)
         if org_id:
@@ -138,8 +143,11 @@ class OrganizationDatabaseRouter:
                 return False
             return True
 
-        if app_label in self.GLOBAL_APPS:
+        if self._is_global_app(app_label):
             return db == 'default'
-        if app_label in self.ORG_APPS:
+        
+        short_app = app_label.split('.')[-1]
+        org_short_apps = {a.split('.')[-1] for a in self.ORG_APPS}
+        if short_app in org_short_apps:
             return db == 'default' or db.startswith('org_')
         return db == 'default'

@@ -50,6 +50,7 @@ class ResourceType(models.TextChoices):
     API_CALLS_PER_DAY = 'api_calls_per_day', 'API Calls Per Day'
     DEPARTMENTS = 'departments', 'Departments'
     CONCURRENT_SESSIONS = 'concurrent_sessions', 'Concurrent Sessions'
+    KPIS = 'kpis', 'KPIs'
 
 
 class ConnectionStatus(models.TextChoices):
@@ -73,6 +74,7 @@ DEFAULT_ORGANIZATION_LIMITS = {
     ResourceType.API_CALLS_PER_DAY: 10000,
     ResourceType.DEPARTMENTS: 50,
     ResourceType.CONCURRENT_SESSIONS: 5,
+    ResourceType.KPIS: 100,
 }
 
 
@@ -83,6 +85,7 @@ TIER_LIMITS = {
         ResourceType.API_CALLS_PER_DAY: 1000,
         ResourceType.DEPARTMENTS: 5,
         ResourceType.CONCURRENT_SESSIONS: 2,
+        ResourceType.KPIS: 10,
     },
     SubscriptionTier.BASIC: {
         ResourceType.USERS: 50,
@@ -90,6 +93,7 @@ TIER_LIMITS = {
         ResourceType.API_CALLS_PER_DAY: 5000,
         ResourceType.DEPARTMENTS: 20,
         ResourceType.CONCURRENT_SESSIONS: 3,
+        ResourceType.KPIS: 50,
     },
     SubscriptionTier.PROFESSIONAL: {
         ResourceType.USERS: 500,
@@ -97,6 +101,7 @@ TIER_LIMITS = {
         ResourceType.API_CALLS_PER_DAY: 50000,
         ResourceType.DEPARTMENTS: 100,
         ResourceType.CONCURRENT_SESSIONS: 10,
+        ResourceType.KPIS: 200,
     },
     SubscriptionTier.ENTERPRISE: {
         ResourceType.USERS: 10000,
@@ -104,6 +109,7 @@ TIER_LIMITS = {
         ResourceType.API_CALLS_PER_DAY: 500000,
         ResourceType.DEPARTMENTS: 500,
         ResourceType.CONCURRENT_SESSIONS: 50,
+        ResourceType.KPIS: 1000,
     },
 }
 

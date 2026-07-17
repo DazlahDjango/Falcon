@@ -20,6 +20,15 @@ class CascadeLock:
 def cascade_organization_target_task(self, org_target_id: str, rule_id: str, targets: List[Dict], user_id: str) -> Dict:
     from apps.accounts.models import User
     from apps.kpi.services import TargetCascader
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
+
+    tenant_id = None
+    try:
+        user = User.objects.get(id=user_id)
+        tenant_id = str(user.tenant_id)
+        set_current_tenant_id(tenant_id)
+    except Exception as e:
+        logger.warning(f"Could not resolve tenant for user {user_id}: {e}")
 
     lock = CascadeLock(org_target_id)
     try:
@@ -27,7 +36,6 @@ def cascade_organization_target_task(self, org_target_id: str, rule_id: str, tar
             logger.warning(f"Cascade already in progress for {org_target_id}")
             return {'status': 'SKIPPED', 'reason': 'Already in progress'}
 
-        user = User.objects.get(id=user_id)
         cascader = TargetCascader()
         result = cascader.cascade_from_organization(org_target_id, rule_id, targets, user)
 
@@ -38,3 +46,5 @@ def cascade_organization_target_task(self, org_target_id: str, rule_id: str, tar
         raise self.retry(exc=e)
     finally:
         lock.release()
+        if tenant_id:
+            clear_current_tenant_id()

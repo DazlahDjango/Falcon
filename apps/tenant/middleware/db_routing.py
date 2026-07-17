@@ -28,7 +28,7 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
-        tenant_id = getattr(request, 'current_tenant_id', None)
+        tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_organization_id', None)
         if not tenant_id:
             return None
         self._set_schema_path(tenant_id)

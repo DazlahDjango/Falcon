@@ -144,14 +144,16 @@ class UserManager(SoftDeleteManager, BaseUserManager):
     def get_queryset(self):
         return UserQuerySet(self.model, using=self._db)
     
-    def create_user(self, email, username, tenant_id, password=None, **extra_fields):
+    def create_user(self, email, username, tenant_id=None, password=None, **extra_fields):
         """Create and save a regular user"""
         if not email:
             raise ValueError("Email is required")
         if not username:
             raise ValueError("Username is required")
-        if not tenant_id:
-            raise ValueError("Tenant ID is required")
+        
+        role = extra_fields.get('role', 'staff')
+        if role != 'super_admin' and not tenant_id:
+            raise ValueError("Tenant ID is required for non-superadmin users")
         
         email = self.normalize_email(email)
         user = self.model(
@@ -164,7 +166,7 @@ class UserManager(SoftDeleteManager, BaseUserManager):
         user.save(using=self._db)
         return user
     
-    def create_superuser(self, email, username, tenant_id, password=None, **extra_fields):
+    def create_superuser(self, email, username, tenant_id=None, password=None, **extra_fields):
         """Create and save a superuser"""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)

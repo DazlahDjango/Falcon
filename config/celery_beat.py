@@ -80,4 +80,13 @@ beat_schedule = {
     'reviews-clear-stale-cache': {'task': 'apps.reviews.tasks.clear_stale_cache', 'schedule': crontab(hour=4, minute=0), 'options': {'expires': 3600}},
     'reviews-health-check': {'task': 'apps.reviews.tasks.reviews_health_check', 'schedule': crontab(minute='*/30'), 'options': {'expires': 1700}},
     'reviews-check-missing-reviews': {'task': 'apps.reviews.tasks.check_missing_reviews', 'schedule': crontab(day_of_week=1, hour=8, minute=0), 'options': {'expires': 86400}, 'kwargs': {'threshold_days': 7}},
+    
+    # Organization/Tenant Tasks
+    'organization-reset-daily-api-counts': {'task': 'organization.reset_daily_api_counts', 'schedule': crontab(hour=0, minute=0), 'options': {'expires': 3600}},
+    'organization-check-quota-warnings': {'task': 'organization.check_quota_warnings', 'schedule': crontab(minute='*/30'), 'options': {'expires': 1500}},
+    'organization-sync-resource-limits-from-billing': {'task': 'organization.sync_resource_limits_from_billing', 'schedule': crontab(hour='*/6', minute=0), 'options': {'expires': 7200}},
+    'organization-take-resource-snapshots-hourly': {'task': 'organization.take_resource_snapshots', 'schedule': crontab(minute=0), 'kwargs': {'snapshot_type': 'hourly'}, 'options': {'expires': 1800}},
+    'organization-take-resource-snapshots-daily': {'task': 'organization.take_resource_snapshots', 'schedule': crontab(hour=1, minute=0), 'kwargs': {'snapshot_type': 'daily'}, 'options': {'expires': 3600}},
+    'organization-forecast-resource-exhaustion': {'task': 'organization.forecast_resource_exhaustion', 'schedule': crontab(hour=2, minute=0), 'options': {'expires': 3600}},
+    'organization-daily-maintenance': {'task': 'organization.run_daily_maintenance', 'schedule': crontab(hour=3, minute=0), 'options': {'expires': 7200}},
 }

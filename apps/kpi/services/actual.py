@@ -124,8 +124,9 @@ class ActualEntry:
         return user.tenant_id == kpi.tenant_id
 
     def _invalidate_caches(self, kpi_id: str, user_id: str, year: int, month: int) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:actual_{kpi_id}_{user_id}_{year}_{month}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:user_actuals_{user_id}_{year}_*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:user_actuals_{user_id}_{year}_*")
 
 
 class ActualSubmitter:

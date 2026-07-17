@@ -46,7 +46,8 @@ export const ORGANIZATION_STATUS_CONFIG = {
 
 export const SUBSCRIPTION_TIERS = {
     FREE: 'free',
-    PREMIUM: 'premium',
+    BASIC: 'basic',
+    PROFESSIONAL: 'professional',
     ENTERPRISE: 'enterprise',
 };
 
@@ -56,40 +57,62 @@ export const SUBSCRIPTION_CONFIG = {
         color: 'bg-gray-100 text-gray-800',
         features: [
             'Up to 10 users',
-            '5 active KPIs',
+            '10 active KPIs',
             'Basic reports',
             'Email support',
         ],
         limits: {
             users: 10,
-            kpis: 5,
-            storage_mb: 100,
+            kpis: 10,
+            storage_mb: 1024,
             api_calls_per_day: 1000,
+            departments: 5,
+            concurrent_sessions: 2,
         },
     },
-    [SUBSCRIPTION_TIERS.PREMIUM]: {
-        label: 'Premium',
+    [SUBSCRIPTION_TIERS.BASIC]: {
+        label: 'Basic',
         color: 'bg-blue-100 text-blue-800',
         features: [
             'Up to 50 users',
-            '20 active KPIs',
-            'Advanced reports',
+            '50 active KPIs',
+            'Standard reports',
+            'Email & chat support',
+        ],
+        limits: {
+            users: 50,
+            kpis: 50,
+            storage_mb: 5120,
+            api_calls_per_day: 5000,
+            departments: 20,
+            concurrent_sessions: 3,
+        },
+    },
+    [SUBSCRIPTION_TIERS.PROFESSIONAL]: {
+        label: 'Professional',
+        color: 'bg-indigo-100 text-indigo-800',
+        features: [
+            'Up to 500 users',
+            '200 active KPIs',
+            'Advanced analytics',
             'Priority support',
             'Custom dashboards',
         ],
         limits: {
-            users: 50,
-            kpis: 20,
-            storage_mb: 500,
-            api_calls_per_day: 5000,
+            users: 500,
+            kpis: 200,
+            storage_mb: 51200,
+            api_calls_per_day: 50000,
+            departments: 100,
+            concurrent_sessions: 10,
         },
     },
     [SUBSCRIPTION_TIERS.ENTERPRISE]: {
         label: 'Enterprise',
         color: 'bg-purple-100 text-purple-800',
         features: [
-            'Unlimited users',
-            'Unlimited KPIs',
+            'Up to 10000 users',
+            '1000 active KPIs',
             'Custom reports',
             '24/7 dedicated support',
             'Custom dashboards',
@@ -98,10 +121,12 @@ export const SUBSCRIPTION_CONFIG = {
             'Custom development',
         ],
         limits: {
-            users: -1, // Unlimited
-            kpis: -1, // Unlimited
-            storage_mb: -1, // Unlimited
-            api_calls_per_day: -1, // Unlimited
+            users: 10000,
+            kpis: 1000,
+            storage_mb: 512000,
+            api_calls_per_day: 500000,
+            departments: 500,
+            concurrent_sessions: 50,
         },
     },
 };
@@ -214,6 +239,7 @@ export const RESOURCE_TYPES = {
     API_CALLS_PER_DAY: 'API_CALLS_PER_DAY',
     DEPARTMENTS: 'DEPARTMENTS',
     CONCURRENT_SESSIONS: 'CONCURRENT_SESSIONS',
+    KPIS: 'KPIS',
 };
 
 export const RESOURCE_TYPE_CONFIG = {
@@ -251,6 +277,13 @@ export const RESOURCE_TYPE_CONFIG = {
         unit: 'sessions',
         color: 'red',
         description: 'Concurrent user sessions',
+    },
+    [RESOURCE_TYPES.KPIS]: {
+        label: 'KPIs',
+        icon: 'FiActivity',
+        unit: 'kpis',
+        color: 'purple',
+        description: 'Number of active KPIs',
     },
 };
 

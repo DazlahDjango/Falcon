@@ -2,6 +2,9 @@
 
 from django.db import models
 import threading
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BaseManager(models.Manager):
@@ -41,11 +44,34 @@ class TenantAwareManager(BaseManager):
         return queryset
 
     def _get_current_tenant_id(self):
+        # 1. Try apps.tenant.context
         try:
-            import threading
-            return getattr(threading.current_thread(), 'current_tenant_id', None)
+            from apps.tenant.context import get_current_tenant_id
+            tid = get_current_tenant_id()
+            if tid:
+                return tid
+        except ImportError:
+            pass
+
+        # 2. Try KPIContextMiddleware
+        try:
+            from apps.kpi.middleware.kpi import KPIContextMiddleware
+            tid = KPIContextMiddleware.get_current_tenant_id()
+            if tid:
+                return tid
+        except ImportError:
+            pass
+
+        # 3. Try thread properties (backward compatibility)
+        try:
+            curr_thread = threading.current_thread()
+            tid = getattr(curr_thread, 'current_tenant_id', None) or getattr(curr_thread, 'tenant_id', None)
+            if tid:
+                return tid
         except:
-            return None
+            pass
+
+        return None
 
     def accessible_by_user(self, user):
         return self.get_queryset()
@@ -79,6 +105,7 @@ class BulkOperationManager(BaseManager):
             try:
                 results.extend(self.bulk_create(batch, ignore_conflicts=ignore_conflicts))
             except Exception as e:
+                logger.exception(f"Bulk create failed for batch: {e}")
                 continue
         return results
 
@@ -91,6 +118,7 @@ class BulkOperationManager(BaseManager):
             try:
                 updated += self.bulk_update(batch, fields)
             except Exception as e:
+                logger.exception(f"Bulk update failed for batch: {e}")
                 continue
         return updated
 

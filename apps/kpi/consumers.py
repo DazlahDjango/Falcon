@@ -186,6 +186,7 @@ class KPIDashboardConsumer(AsyncWebsocketConsumer):
 
 class KPIAdminConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        import asyncio
         self.user = self.scope.get('user')
 
         if not self.user or not self.user.is_authenticated:
@@ -202,9 +203,11 @@ class KPIAdminConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.admin_group, self.channel_name)
 
         logger.info(f"Admin WebSocket connected: user {self.user.id}")
-        await self.start_metrics_stream()
+        self.stream_task = asyncio.create_task(self.start_metrics_stream())
 
     async def disconnect(self, close_code):
+        if hasattr(self, 'stream_task'):
+            self.stream_task.cancel()
         await self.channel_layer.group_discard(self.admin_group, self.channel_name)
         logger.info(f"Admin WebSocket disconnected: user {self.user.id}")
 
@@ -232,17 +235,18 @@ class KPIAdminConsumer(AsyncWebsocketConsumer):
 
     async def start_metrics_stream(self):
         import asyncio
-        while True:
-            try:
+        try:
+            while True:
                 metrics = await self.get_system_metrics()
                 await self.send(text_data=json.dumps({
                     'type': 'metrics_update',
                     'data': metrics
                 }))
                 await asyncio.sleep(10)
-            except Exception as e:
-                logger.error(f"Error sending metrics: {e}")
-                break
+        except asyncio.CancelledError:
+            logger.info("Admin metrics stream task cancelled")
+        except Exception as e:
+            logger.error(f"Error sending metrics: {e}")
 
     async def calculation_event(self, event):
         await self.send(text_data=json.dumps({
@@ -290,8 +294,12 @@ class KPIAdminConsumer(AsyncWebsocketConsumer):
 
 class KPITeamConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.manager_id = self.scope['url_route']['kwargs']['manager_id']
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.manager_id = self.scope['url_route']['kwargs']['manager_id']
         self.tenant_id = self.scope.get('tenant_id')
 
         if not await self.is_manager_of_team():
@@ -356,8 +364,12 @@ class KPITeamConsumer(AsyncWebsocketConsumer):
 
 class KPIExecutiveConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
 
         if not await self.is_executive():
             await self.close()
@@ -417,8 +429,12 @@ class KPIExecutiveConsumer(AsyncWebsocketConsumer):
 
 class KPINotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user_id = self.scope['url_route']['kwargs']['user_id']
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
 
         if str(self.user.id) != self.user_id and not self.user.is_superuser:
             await self.close()
@@ -460,8 +476,12 @@ class KPINotificationConsumer(AsyncWebsocketConsumer):
 
 class KPIScoreConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user_id = self.scope['url_route']['kwargs']['user_id']
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
 
         if str(self.user.id) != self.user_id:
             await self.close()
@@ -485,8 +505,12 @@ class KPIScoreConsumer(AsyncWebsocketConsumer):
 
 class KPIValidationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user_id = self.scope['url_route']['kwargs']['user_id']
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
 
         if str(self.user.id) != self.user_id:
             await self.close()
@@ -510,8 +534,12 @@ class KPIValidationConsumer(AsyncWebsocketConsumer):
 
 class KPIReportConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.report_id = self.scope['url_route']['kwargs']['report_id']
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.report_id = self.scope['url_route']['kwargs']['report_id']
 
         if not await self.can_access_report():
             await self.close()
@@ -570,8 +598,13 @@ class KPIReportConsumer(AsyncWebsocketConsumer):
 
 class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
+        import asyncio
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
 
         if not await self.has_executive_access():
             await self.close()
@@ -582,9 +615,11 @@ class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.analytics_group, self.channel_name)
 
         logger.info(f"Analytics WebSocket connected: tenant {self.tenant_id}")
-        await self.start_analytics_stream()
+        self.stream_task = asyncio.create_task(self.start_analytics_stream())
 
     async def disconnect(self, close_code):
+        if hasattr(self, 'stream_task'):
+            self.stream_task.cancel()
         await self.channel_layer.group_discard(self.analytics_group, self.channel_name)
         logger.info(f"Analytics WebSocket disconnected: tenant {self.tenant_id}")
 
@@ -608,17 +643,18 @@ class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
 
     async def start_analytics_stream(self):
         import asyncio
-        while True:
-            try:
+        try:
+            while True:
                 analytics_data = await self.get_analytics_data()
                 await self.send(text_data=json.dumps({
                     'type': 'analytics_data',
                     'data': analytics_data
                 }))
                 await asyncio.sleep(30)
-            except Exception as e:
-                logger.error(f"Error streaming analytics: {e}")
-                break
+        except asyncio.CancelledError:
+            logger.info("Analytics stream task cancelled")
+        except Exception as e:
+            logger.error(f"Error streaming analytics: {e}")
 
     @database_sync_to_async
     def has_executive_access(self):
@@ -658,8 +694,12 @@ class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
 
 class KPIAlertsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
         self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.tenant_id = self.scope['url_route']['kwargs']['tenant_id']
 
         if not await self.has_alert_access():
             await self.close()

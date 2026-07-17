@@ -114,7 +114,12 @@ class AuditLog(BaseModel):
     
     def save(self, *args, **kwargs):
         """Prevent modification of immutable logs."""
-        if not self._state.adding and self.is_immutable:
+        update_fields = kwargs.get('update_fields')
+        is_soft_delete = False
+        if update_fields:
+            is_soft_delete = all(f in ['is_deleted', 'deleted_at'] for f in update_fields)
+            
+        if not self._state.adding and self.is_immutable and not is_soft_delete:
             raise PermissionError("Cannot modify immutable audit log")
         super().save(*args, **kwargs)
     

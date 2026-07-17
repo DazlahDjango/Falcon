@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../../store/accounts';
 import {
     fetchBillingSummary, fetchRevenueReport, fetchSubscriptionAnalytics,
     fetchRevenueForecast, fetchTaxReport, setDateRange, clearAnalytics, clearError,
@@ -41,8 +42,10 @@ export const useBillingAnalytics = (options = { autoFetch: true }) => {
     const clear = useCallback(() => dispatch(clearAnalytics()), [dispatch]);
     const clearAnalyticsError = useCallback(() => dispatch(clearError()), [dispatch]);
 
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+
     useEffect(() => { 
-        if (options.autoFetch && !hasFetched.current) {
+        if (options.autoFetch && isAuthenticated && !hasFetched.current) {
             hasFetched.current = true;
             
             // Sequential fetching with delays to prevent burst 429 errors from the server
@@ -58,7 +61,7 @@ export const useBillingAnalytics = (options = { autoFetch: true }) => {
             
             loadData();
         }
-    }, [options.autoFetch]);
+    }, [options.autoFetch, isAuthenticated]);
 
     return {
         summary, revenue, subscriptions, forecast, taxReport, loading, error,

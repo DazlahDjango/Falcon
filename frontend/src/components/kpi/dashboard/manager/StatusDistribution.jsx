@@ -26,7 +26,7 @@ const StatusDistribution = ({ distribution }) => {
                                 <span className="status-icon">{item.icon}</span>
                                 <span className="status-label">{item.label}</span>
                                 <span className="status-value">{item.value}</span>
-                                <span className="status-percentage">({percentage.toFixed(0)}%)</span>
+                                <span className="status-percentage">({Number(percentage || 0).toFixed(0)}%)</span>
                             </div>
                             <div className="status-bar">
                                 <div 

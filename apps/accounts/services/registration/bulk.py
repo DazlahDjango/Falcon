@@ -86,9 +86,6 @@ class BulkUserImportService:
 
                 user.save()
 
-                Profile.objects.create(user=user, tenant_id=tenant_id)
-                UserPreference.objects.create(user=user, tenant_id=tenant_id)
-
                 success_count += 1
                 imported_data.append({
                     'id': str(user.id),

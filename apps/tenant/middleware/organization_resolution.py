@@ -10,6 +10,8 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if self._should_skip(request):
             return None
+        if getattr(request, 'tenant_id', None) or getattr(request, 'current_organization_id', None):
+            return None
         org_id = None
         org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if org_id:
@@ -43,6 +45,8 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
             '/health/',
             '/docs/',
             '/api/v1/organizations/',
+            '/media/',
+            '/static/',
         ]
         for path in skip_paths:
             if request.path.startswith(path):

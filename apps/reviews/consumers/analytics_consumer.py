@@ -227,8 +227,8 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
     def get_company_analytics(self):
         """Get company analytics from database."""
         try:
-            from apps.tenant.models import Client
-            tenant = Client.objects.get(id=self.tenant_id)
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=self.tenant_id)
             return AnalyticsService.get_company_analytics(tenant)
         except Exception as e:
             return None
@@ -237,8 +237,8 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
     def get_department_analytics(self):
         """Get department analytics from database."""
         try:
-            from apps.tenant.models import Client
-            tenant = Client.objects.get(id=self.tenant_id)
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=self.tenant_id)
             return AnalyticsService.get_department_analytics(tenant)
         except Exception:
             return None
@@ -247,8 +247,8 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
     def get_manager_analytics(self):
         """Get manager analytics from database."""
         try:
-            from apps.tenant.models import Client
-            tenant = Client.objects.get(id=self.tenant_id)
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=self.tenant_id)
             return AnalyticsService.get_manager_analytics(tenant)
         except Exception:
             return None
@@ -257,8 +257,8 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
     def get_insights(self):
         """Get insights from database."""
         try:
-            from apps.tenant.models import Client
-            tenant = Client.objects.get(id=self.tenant_id)
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=self.tenant_id)
             return InsightService.get_all_insights(tenant)
         except Exception:
             return None
@@ -267,8 +267,8 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
     def get_predictions(self):
         """Get flight risk predictions from database."""
         try:
-            from apps.tenant.models import Client
-            tenant = Client.objects.get(id=self.tenant_id)
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=self.tenant_id)
             return PredictiveService.get_high_risk_employees(tenant)
         except Exception:
             return None
@@ -277,10 +277,10 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
     def refresh_analytics_cache(self):
         """Refresh analytics cache."""
         try:
-            from apps.tenant.models import Client
+            from apps.tenant.models import Organization
             from django.core.cache import cache
             
-            tenant = Client.objects.get(id=self.tenant_id)
+            tenant = Organization.objects.get(id=self.tenant_id)
             
             # Refresh and recache
             AnalyticsService.get_company_analytics(tenant)
@@ -297,10 +297,10 @@ class AnalyticsConsumer(AsyncWebsocketConsumer):
     def refresh_insights_cache(self):
         """Refresh insights cache."""
         try:
-            from apps.tenant.models import Client
+            from apps.tenant.models import Organization
             from django.core.cache import cache
             
-            tenant = Client.objects.get(id=self.tenant_id)
+            tenant = Organization.objects.get(id=self.tenant_id)
             InsightService.get_all_insights(tenant)
             
             # Clear old cache

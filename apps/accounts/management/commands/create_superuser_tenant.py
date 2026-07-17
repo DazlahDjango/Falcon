@@ -105,13 +105,7 @@ class Command(BaseCommand):
                 is_verified=True,
                 is_onboarded=True
             )
-            
-            # Create profile
-            Profile.objects.create(user=user, tenant_id=str(tenant.id))
-            
-            # Create preferences
-            UserPreference.objects.create(user=user, tenant_id=str(tenant.id))
-            
+            # Profile and preferences are automatically created via post_save signals
             self.stdout.write(self.style.SUCCESS(f'Created superuser: {user.email}'))
         
         self.stdout.write(self.style.SUCCESS(f'\nSuperuser created successfully!'))

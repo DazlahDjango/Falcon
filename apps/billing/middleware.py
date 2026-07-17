@@ -80,8 +80,8 @@ class BillingAuditMiddleware(MiddlewareMixin):
         if any(request.path.startswith(path) for path in self.BILLING_PATHS) and hasattr(request, '_billing_audit_start'):
             duration = (timezone.now() - request._billing_audit_start).total_seconds()
             user = getattr(request, 'user', None)
-            user_id = str(user.id) if user and user.id else None
-            user_email = user.email if user and user.email else None
+            user_id = str(user.id) if user and user.is_authenticated else None
+            user_email = user.email if user and user.is_authenticated else None
             tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
             audit_data = {'timestamp': timezone.now().isoformat(), 'user_id': user_id, 'user_email': user_email, 'tenant_id': str(tenant_id) if tenant_id else None, 'method': request.method, 'path': request.path, 'status_code': response.status_code, 'duration_ms': int(duration * 1000), 'ip_address': self._get_client_ip(request)}
             cache_key = f"billing_audit_{int(timezone.now().timestamp())}"

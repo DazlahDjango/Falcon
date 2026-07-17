@@ -31,6 +31,7 @@ async function resolveTenantId() {
       const state = store.getState();
       tenantId =
         state?.auth?.user?.tenant_id ||
+        state?.tenant?.organization?.currentOrganization?.id ||
         state?.tenant?.currentTenant?.id ||
         state?.appTenant?.currentTenant?.id;
     } catch (err) {

@@ -28,9 +28,9 @@ class OrganizationAuthenticationBackend(ModelBackend):
         if not user.check_password(password):
             return None
         if org_id and not is_superuser_override:
-            if not user.organization_id:
+            if not user.tenant_id:
                 return None
-            if str(user.organization_id) != str(org_id):
+            if str(user.tenant_id) != str(org_id):
                 return None
         return user
 
