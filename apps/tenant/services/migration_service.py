@@ -72,7 +72,7 @@ class MigrationService:
             executor = MigrationExecutor(connection)
             executor.loader.build_graph()
             
-            org_apps = ['accounts', 'kpi', 'dashboard', 'reviews', 'structure', 'tasks_module']
+            org_apps = ['kpi', 'dashboard', 'reviews', 'structure', 'tasks_module']
             org_nodes = {key: node for key, node in executor.loader.graph.node_map.items() if key[0] in org_apps}
             
             # Simple topological sort

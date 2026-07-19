@@ -12,10 +12,10 @@ class OrganizationDatabaseRouter:
         'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
         'django.contrib.sites', 'axes', 'django_otp', 'celery', 'django_celery_beat',
         'django_celery_results', 'django_apscheduler', 'auditlog', 'health_check',
-        'apps.core', 'apps.configs', 'apps.tenant'
+        'apps.accounts', 'apps.core', 'apps.configs', 'apps.tenant'
     ]
     ORG_APPS = [
-        'apps.accounts', 'apps.kpi', 'apps.dashboard', 'apps.reviews', 'apps.structure', 'apps.tasks_module',
+        'apps.kpi', 'apps.dashboard', 'apps.reviews', 'apps.structure', 'apps.tasks_module',
     ]
 
     def __init__(self):
@@ -74,7 +74,7 @@ class OrganizationDatabaseRouter:
     def _is_global_app(self, app_label):
         short_app = app_label.split('.')[-1]
         global_short_apps = {a.split('.')[-1] for a in self.GLOBAL_APPS}
-        return short_app in global_short_apps or short_app in ['admin', 'auth', 'contenttypes', 'sessions', 'messages', 'staticfiles', 'sites', 'tenant', 'core', 'configs']
+        return short_app in global_short_apps or short_app in ['admin', 'auth', 'contenttypes', 'sessions', 'messages', 'staticfiles', 'sites', 'tenant', 'core', 'configs', 'accounts']
 
     def db_for_read(self, model, **hints):
         app_label = model._meta.app_label
