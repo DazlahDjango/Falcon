@@ -71,6 +71,10 @@ export const AuthProvider = ({ children }) => {
         const token = await getAccessToken();
         if (token) {
           await dispatch(fetchCurrentUser()).unwrap();
+        } else {
+          // If no token exists, ensure we clear any stale persisted auth state
+          await persistor.purge();
+          dispatch(logoutAction());
         }
       } catch (err) {
         await clearTokens();

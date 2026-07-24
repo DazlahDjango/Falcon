@@ -1,10 +1,19 @@
 // frontend/src/components/reports/audits/index.js
-export { AuditList } from './AuditList';
-export { AuditTable } from './AuditTable';
-export { AuditDetail } from './AuditDetail';
-export { AuditFilters } from './AuditFilters';
-export { AuditStatusBadge } from './AuditStatusBadge';
-export { AuditStats } from './AuditStats';
+import { AuditList } from './AuditList';
+import { AuditTable } from './AuditTable';
+import { AuditDetail } from './AuditDetail';
+import { AuditFilters } from './AuditFilters';
+import { AuditStatusBadge } from './AuditStatusBadge';
+import { AuditStats } from './AuditStats';
+
+export {
+    AuditList,
+    AuditTable,
+    AuditDetail,
+    AuditFilters,
+    AuditStatusBadge,
+    AuditStats,
+};
 
 export default {
     AuditList,

@@ -73,6 +73,10 @@ export const store = configureStore({
                 ignoredActions: [
                     'persist/PERSIST',
                     'persist/REHYDRATE',
+                    'persist/PURGE',
+                    'persist/REGISTER',
+                    'persist/FLUSH',
+                    'persist/PAUSE',
                     'websocket/message',
                     'websocket/connect',
                     'websocket/disconnect'
@@ -101,6 +105,9 @@ export const store = configureStore({
             }
         }).concat(
             authMiddleware,
+            errorHandlerMiddleware,
+            networkErrorMiddleware,
+            retryMiddleware,
             loggerMiddleware,
             ...tenantMiddlewares,
             backupMiddleware,

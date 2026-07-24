@@ -614,6 +614,20 @@ export const CLIENT_ADMIN_REVIEWS_NAV_ITEMS = [
   { path: REVIEW_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
 ];
 
+// Filter helper to exclude dynamic detail routes with ':id' and remove duplicates
+const flattenNavItems = (navItemsObj) => {
+  const seen = new Set();
+  return Object.values(navItemsObj)
+    .flat()
+    .filter(item => {
+      if (item.path.includes(':id')) return false;
+      if (seen.has(item.path)) return false;
+      seen.add(item.path);
+      return true;
+    });
+};
+const FLATTENED_REPORTS_NAV_ITEMS = flattenNavItems(REPORTS_NAV_ITEMS);
+
 // ============================================
 // SUPER ADMIN NAVIGATION GROUPS
 // ============================================
@@ -656,7 +670,7 @@ export const SUPER_ADMIN_NAV_GROUPS = {
   structureAdmin: STRUCTURE_ADMIN_NAV_ITEMS,
   reviews: REVIEWS_NAV_ITEMS,
   accounts: ACCOUNTS_SUPER_ADMIN_NAV_ITEMS,
-  reporting: REPORTING_NAV_ITEMS,
+  reporting: FLATTENED_REPORTS_NAV_ITEMS,
   mfa: MFA_NAV_ITEMS,
   config: CONFIG_NAV_ITEMS,
   settings: [
@@ -715,7 +729,7 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
   reviews: CLIENT_ADMIN_REVIEWS_NAV_ITEMS,
-  reporting: REPORTING_NAV_ITEMS,
+  reporting: FLATTENED_REPORTS_NAV_ITEMS,
   mfa: MFA_NAV_ITEMS,
   compliance: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },

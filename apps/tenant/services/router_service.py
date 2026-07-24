@@ -12,10 +12,10 @@ class OrganizationDatabaseRouter:
         'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
         'django.contrib.sites', 'axes', 'django_otp', 'celery', 'django_celery_beat',
         'django_celery_results', 'django_apscheduler', 'auditlog', 'health_check',
-        'apps.accounts', 'apps.core', 'apps.configs', 'apps.tenant'
+        'apps.accounts', 'apps.core', 'apps.configs', 'apps.tenant', 'apps.billing'
     ]
     ORG_APPS = [
-        'apps.kpi', 'apps.dashboard', 'apps.reviews', 'apps.structure', 'apps.tasks_module',
+        'apps.kpi', 'apps.dashboard', 'apps.reviews', 'apps.structure', 'apps.reportplt', 'apps.tasks_module'
     ]
 
     def __init__(self):

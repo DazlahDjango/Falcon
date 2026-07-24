@@ -202,12 +202,12 @@ MIDDLEWARE = [
     'apps.accounts.middleware.SecurityMiddleware',
     # Tenant middlewares (starts with context setting)
     'apps.tenant.middleware.organization_context.OrganizationContextMiddleware',
-    #'apps.tenant.middleware.organization_resolution.OrganizationResolutionMiddleware',
+    'apps.tenant.middleware.organization_resolution.OrganizationResolutionMiddleware',
     'apps.tenant.middleware.organization_isolation.OrganizationIsolationMiddleware',
     'apps.tenant.middleware.organization_isolation.OrganizationPathIsolationMiddleware',
-    # 'apps.tenant.middleware.organization_limits.OrganizationLimitsMiddleware',
+    'apps.tenant.middleware.organization_limits.OrganizationLimitsMiddleware',
     'apps.tenant.middleware.db_routing.TenantDatabaseRouterMiddleware',
-    #'apps.tenant.middleware.connection_management.ConnectionManagementMiddleware',
+    'apps.tenant.middleware.connection_management.ConnectionManagementMiddleware',
     'apps.tenant.middleware.file_isolation.FileIsolationMiddleware',
     # KPI
     'apps.kpi.middleware.KPIContextMiddleware',

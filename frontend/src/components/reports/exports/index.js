@@ -1,13 +1,25 @@
 // frontend/src/components/reports/exports/index.js
-export { ExportList } from './ExportList';
-export { ExportTable } from './ExportTable';
-export { ExportDetail } from './ExportDetail';
-export { ExportCreate } from './ExportCreate';
-export { ExportFilters } from './ExportFilters';
-export { ExportStatusBadge } from './ExportStatusBadge';
-export { ExportDownload } from './ExportDownload';
-export { ExportButton } from './ExportButton';
-export { ExportModal } from './ExportModal';
+import { ExportList } from './ExportList';
+import { ExportTable } from './ExportTable';
+import { ExportDetail } from './ExportDetail';
+import { ExportCreate } from './ExportCreate';
+import { ExportFilters } from './ExportFilters';
+import { ExportStatusBadge } from './ExportStatusBadge';
+import { ExportDownload } from './ExportDownload';
+import { ExportButton } from './ExportButton';
+import { ExportModal } from './ExportModal';
+
+export {
+    ExportList,
+    ExportTable,
+    ExportDetail,
+    ExportCreate,
+    ExportFilters,
+    ExportStatusBadge,
+    ExportDownload,
+    ExportButton,
+    ExportModal,
+};
 
 export default {
     ExportList,

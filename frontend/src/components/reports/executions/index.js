@@ -1,11 +1,21 @@
 // frontend/src/components/reports/executions/index.js
-export { ExecutionList } from './ExecutionList';
-export { ExecutionTable } from './ExecutionTable';
-export { ExecutionDetail } from './ExecutionDetail';
-export { ExecutionFilters } from './ExecutionFilters';
-export { ExecutionStatusBadge } from './ExecutionStatusBadge';
-export { ExecutionLogs } from './ExecutionLogs';
-export { ExecutionProgress } from './ExecutionProgress';
+import { ExecutionList } from './ExecutionList';
+import { ExecutionTable } from './ExecutionTable';
+import { ExecutionDetail } from './ExecutionDetail';
+import { ExecutionFilters } from './ExecutionFilters';
+import { ExecutionStatusBadge } from './ExecutionStatusBadge';
+import { ExecutionLogs } from './ExecutionLogs';
+import { ExecutionProgress } from './ExecutionProgress';
+
+export {
+    ExecutionList,
+    ExecutionTable,
+    ExecutionDetail,
+    ExecutionFilters,
+    ExecutionStatusBadge,
+    ExecutionLogs,
+    ExecutionProgress,
+};
 
 export default {
     ExecutionList,

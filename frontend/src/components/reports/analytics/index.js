@@ -1,12 +1,23 @@
 // frontend/src/components/reports/analytics/index.js
-export { TrendAnalysis } from './TrendAnalysis';
-export { PerformanceAnalysis } from './PerformanceAnalysis';
-export { ComparativeAnalysis } from './ComparativeAnalysis';
-export { PredictiveAnalysis } from './PredictiveAnalysis';
-export { AnomalyDetection } from './AnomalyDetection';
-export { AnalyticsFilters } from './AnalyticsFilters';
-export { AnalyticsDashboard } from './AnalyticsDashboard';
-export { AnalyticsChart } from './AnalyticsChart';
+import { TrendAnalysis } from './TrendAnalysis';
+import { PerformanceAnalysis } from './PerformanceAnalysis';
+import { ComparativeAnalysis } from './ComparativeAnalysis';
+import { PredictiveAnalysis } from './PredictiveAnalysis';
+import { AnomalyDetection } from './AnomalyDetection';
+import { AnalyticsFilters } from './AnalyticsFilters';
+import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { AnalyticsChart } from './AnalyticsChart';
+
+export {
+    TrendAnalysis,
+    PerformanceAnalysis,
+    ComparativeAnalysis,
+    PredictiveAnalysis,
+    AnomalyDetection,
+    AnalyticsFilters,
+    AnalyticsDashboard,
+    AnalyticsChart,
+};
 
 export default {
     TrendAnalysis,

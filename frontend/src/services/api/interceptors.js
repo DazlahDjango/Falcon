@@ -7,6 +7,7 @@ import {
   getAccessToken,
   getTenantId,
   clearTenantId,
+  clearTokens,
 } from '../accounts/storage/secureStorage';
 import { retryRequestAfterRefresh } from './tokenRefresh';
 import { isAuthUrl } from './constants';
@@ -148,11 +149,13 @@ export function attachInterceptors(client, options = {}) {
           return await retryRequestAfterRefresh(originalRequest, (cfg) => client(cfg));
         } catch (refreshError) {
           try {
-            const { store } = await import('../../store');
-            store.dispatch(logout());
+            const { store, persistor } = await import('../../store');
+            await store.dispatch(logout());
+            await persistor.purge();
           } catch (err) {
             console.error('Failed to load store in 401 handler:', err);
           }
+          await clearTokens();
           await clearTenantId();
           if (redirectOnSessionExpiry) {
             // Prevent rapid successive redirects

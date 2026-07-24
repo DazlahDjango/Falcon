@@ -1,14 +1,27 @@
 // frontend/src/components/reports/templates/index.js
-export { TemplateList } from './TemplateList';
-export { TemplateTable } from './TemplateTable';
-export { TemplateCard } from './TemplateCard';
-export { TemplateDetail } from './TemplateDetail';
-export { TemplateCreate } from './TemplateCreate';
-export { TemplateEdit } from './TemplateEdit';
-export { TemplateFilters } from './TemplateFilters';
-export { TemplateApply } from './TemplateApply';
-export { TemplatePrebuilt } from './TemplatePrebuilt';
-export { TemplateStatusBadge } from './TemplateStatusBadge';
+import { TemplateList } from './TemplateList';
+import { TemplateTable } from './TemplateTable';
+import { TemplateCard } from './TemplateCard';
+import { TemplateDetail } from './TemplateDetail';
+import { TemplateCreate } from './TemplateCreate';
+import { TemplateEdit } from './TemplateEdit';
+import { TemplateFilters } from './TemplateFilters';
+import { TemplateApply } from './TemplateApply';
+import { TemplatePrebuilt } from './TemplatePrebuilt';
+import { TemplateStatusBadge } from './TemplateStatusBadge';
+
+export {
+    TemplateList,
+    TemplateTable,
+    TemplateCard,
+    TemplateDetail,
+    TemplateCreate,
+    TemplateEdit,
+    TemplateFilters,
+    TemplateApply,
+    TemplatePrebuilt,
+    TemplateStatusBadge,
+};
 
 export default {
     TemplateList,
