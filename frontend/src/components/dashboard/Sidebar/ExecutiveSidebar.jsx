@@ -6,7 +6,7 @@ import CollapsibleSidebar from './CollapsibleSidebar';
 import {
   FiHome, FiGrid, FiUsers, FiTrendingUp, FiPieChart, FiAlertCircle,
   FiTarget, FiActivity, FiAward, FiFileText, FiDownload, FiSettings,
-  FiBell, FiBriefcase, FiDollarSign, FiMapPin, FiGitBranch, FiLayers
+  FiBell, FiBriefcase, FiDollarSign, FiMapPin, FiGitBranch, FiLayers, FiBarChart2
 } from 'react-icons/fi';
 import { HiOutlineBuildingOffice } from 'react-icons/hi2';
 import { BsDiagram3 } from 'react-icons/bs';

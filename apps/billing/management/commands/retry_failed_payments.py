@@ -1,39 +1,49 @@
 from django.core.management.base import BaseCommand
-from apps.billing.models import Transaction
+from apps.billing.models import Transaction, FailedPaymentRetry
 from apps.billing.services.payment.retry import PaymentRetryService
+from django.db import connection
 
 class Command(BaseCommand):
-    help = 'Retry failed payment transactions'
+    help = 'Retry failed billing payment transactions or process scheduled retries'
 
     def add_arguments(self, parser):
-        parser.add_argument('--transaction-id', type=str, help='Retry specific transaction')
-        parser.add_argument('--all', action='store_true', help='Retry all failed transactions')
-        parser.add_argument('--days', type=int, default=7, help='Retry transactions from last N days')
+        parser.add_argument('--transaction-id', type=str, help='Retry specific failed transaction by ID')
+        parser.add_argument('--all', action='store_true', help='Process all pending failed payment retries')
+        parser.add_argument('--days', type=int, default=7, help='Process retries created in last N days')
 
     def handle(self, *args, **options):
-        retry_service = PaymentRetryService()
-        transaction_id = options['transaction_id']
-        all = options['all']
-        days = options['days']
+        with connection.cursor() as cursor:
+            cursor.execute('SET search_path TO "public"')
 
-        if not transaction_id and not all:
-            self.stdout.write(self.style.WARNING('Please specify either --transaction-id or --all'))
+        retry_service = PaymentRetryService()
+        transaction_id = options.get('transaction_id')
+        process_all = options.get('all')
+
+        if not transaction_id and not process_all:
+            self.stdout.write(self.style.WARNING('Please specify either --transaction-id <UUID> or --all'))
             return
 
         if transaction_id:
             try:
-                transaction = Transaction.objects.get(id=transaction_id)
-                self.stdout.write(f'Retrying transaction {transaction_id}...')
-                result = retry_service.retry_transaction(transaction)
-                if result:
-                    self.stdout.write(self.style.SUCCESS('  ✓ Retry successful!'))
+                txn = Transaction.objects.get(id=transaction_id)
+                self.stdout.write(f'Processing retry for transaction {transaction_id} (Ref: {txn.reference})...')
+                
+                if txn.subscription:
+                    retry_item = retry_service.schedule_retry(txn.subscription, retry_number=1)
+                    success = retry_service._execute_retry(retry_item)
+                    if success:
+                        self.stdout.write(self.style.SUCCESS(f'  [OK] Retry successful for {txn.reference}!'))
+                    else:
+                        self.stdout.write(self.style.ERROR(f'  [FAIL] Retry failed for {txn.reference}'))
                 else:
-                    self.stdout.write(self.style.ERROR('  ✗ Retry failed!'))
+                    self.stdout.write(self.style.ERROR(f'Transaction {transaction_id} has no attached subscription.'))
             except Transaction.DoesNotExist:
                 self.stdout.write(self.style.ERROR(f'Transaction {transaction_id} not found'))
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'Error: {e}'))
+                self.stdout.write(self.style.ERROR(f'Error executing retry: {e}'))
         else:
-            self.stdout.write(f'Retrying failed transactions from last {days} days...')
-            count = retry_service.retry_all_eligible(days_back=days)
-            self.stdout.write(self.style.SUCCESS(f'  ✓ Retried {count} transactions!'))
+            self.stdout.write('Processing all pending payment retries...')
+            stats = retry_service.process_pending_retries()
+            self.stdout.write(self.style.SUCCESS(
+                f'  [OK] Processed: {stats["processed"]} | Successful: {stats["successful"]} | Failed: {stats["failed"]}'
+            ))

@@ -30,7 +30,7 @@ class Transaction(BaseBillingModel):
         (TYPE_REFUND, 'Refund'),
         (TYPE_ONE_TIME, 'One Time Payment'),
     ]
-    tenant_id = models.UUIDField(_('tenant ID'), db_index=True)
+    tenant_id = models.UUIDField(_('tenant ID'), null=True, blank=True, db_index=True)
     subscription = models.ForeignKey(
         'billing.Subscription',
         on_delete=models.SET_NULL,

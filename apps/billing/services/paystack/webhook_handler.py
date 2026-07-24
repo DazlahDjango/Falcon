@@ -23,10 +23,13 @@ class WebhookHandler:
             raise WebhookProcessingError("Missing transaction reference")
         transaction_obj = Transaction.objects.get_by_reference(reference)
         if not transaction_obj:
-            logger.info(f"Creating transaction from webhook: {reference}")
-            transaction_obj = Transaction.objects.create(tenant_id=data.get('metadata', {}).get('tenant_id', 'unknown'), reference=reference, paystack_reference=data.get('transaction_reference'), amount=data.get('amount', 0), total_amount=data.get('amount', 0), currency=data.get('currency', 'KES'), status=Transaction.STATUS_SUCCESS, payment_method=data.get('channel'), card_last4=data.get('authorization', {}).get('last4', ''), card_brand=data.get('authorization', {}).get('brand', ''), payment_date=timezone.now(), paystack_response=event_data, metadata={'source': 'webhook'})
+            t_id = data.get('metadata', {}).get('tenant_id')
+            if not t_id or t_id == 'unknown':
+                t_id = None
+            paystack_ref = data.get('transaction_reference') or reference or f"PAYSTACK-{data.get('id', '123')}"
+            transaction_obj = Transaction.objects.create(tenant_id=t_id, reference=reference, paystack_reference=paystack_ref, amount=data.get('amount', 0), total_amount=data.get('amount', 0), currency=data.get('currency', 'KES'), status=Transaction.STATUS_SUCCESS, payment_method=data.get('channel', 'card'), card_last4=data.get('authorization', {}).get('last4', ''), card_brand=data.get('authorization', {}).get('brand', ''), payment_date=timezone.now(), paystack_response=event_data, metadata={'source': 'webhook'})
         transaction_obj.status = Transaction.STATUS_SUCCESS
-        transaction_obj.paystack_reference = data.get('transaction_reference')
+        transaction_obj.paystack_reference = data.get('transaction_reference') or transaction_obj.paystack_reference or reference
         transaction_obj.payment_date = timezone.now()
         transaction_obj.paystack_response = event_data
         transaction_obj.save()

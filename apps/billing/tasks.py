@@ -117,7 +117,7 @@ def send_invoice_emails():
 def process_webhook(self, webhook_log_id):
     logger.info(f"Processing webhook {webhook_log_id}")
     try:
-        webhook_log = WebhookEventLog.objects.get_by_id(webhook_log_id)
+        webhook_log = WebhookEventLog.objects.get(id=webhook_log_id)
         if webhook_log.is_processed:
             return {'status': 'already_processed'}
         processor = WebhookProcessor()
@@ -130,8 +130,9 @@ def process_webhook(self, webhook_log_id):
         try:
             self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
         except Exception:
-            webhook_log = WebhookEventLog.objects.get_by_id(webhook_log_id)
-            webhook_log.mark_failed(str(e))
+            webhook_log = WebhookEventLog.objects.filter(id=webhook_log_id).first()
+            if webhook_log:
+                webhook_log.mark_failed(str(e))
             raise
 
 @shared_task(name="billing.tasks.retry_failed_webhooks")
@@ -159,7 +160,8 @@ def send_payment_confirmation(transaction_id):
             return {'status': 'skipped', 'reason': 'no_email'}
         subject = f"Payment Confirmation - {tx.reference}"
         message = f"Dear {tenant.name},\n\nYour payment has been confirmed.\n\nReference: {tx.reference}\nAmount: {tx.total_amount/100} {tx.currency}\nDate: {tx.payment_date or tx.created_at}\n\nThank you for your payment!\n\nBest regards,\nFalcon PMS Team"
-        send_mail(subject=subject, message=message, from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'billing@falconpms.com'), recipient_list=[email], fail_silently=True)
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=[email], fail_silently=True)
         return {'sent': True}
     except Exception as e:
         logger.exception(f"Failed to send payment confirmation: {str(e)}")
@@ -172,7 +174,8 @@ def send_admin_alert(subject, message, severity='warning'):
         logger.warning("No admin email configured")
         return {'status': 'skipped'}
     full_message = f"[Billing Alert - {severity.upper()}]\n\n{message}\n\nTime: {timezone.now()}\n\nPlease investigate."
-    send_mail(subject=f"[Falcon PMS] {subject}", message=full_message, from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'alerts@falconpms.com'), recipient_list=[admin_email], fail_silently=True)
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+    send_mail(subject=f"[Falcon PMS] {subject}", message=full_message, from_email=from_email, recipient_list=[admin_email], fail_silently=True)
     return {'sent': True}
 
 @shared_task(name="billing.tasks.cleanup_expired_webhooks")

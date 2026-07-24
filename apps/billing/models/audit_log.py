@@ -52,7 +52,7 @@ class BillingAuditLog(BaseBillingModel):
     user_role = models.CharField(_('user role'), max_length=50, blank=True)
     user_ip = models.GenericIPAddressField(_('user IP'), null=True, blank=True)
     user_agent = models.CharField(_('user agent'), max_length=500, blank=True)
-    tenant_id = models.UUIDField(_('tenant ID'), db_index=True)
+    tenant_id = models.UUIDField(_('tenant ID'), null=True, blank=True, db_index=True)
     action = models.CharField(_('action'), max_length=20, choices=ACTION_CHOICES, db_index=True)
     resource_type = models.CharField(_('resource type'), max_length=30, choices=RESOURCE_CHOICES, db_index=True)
     resource_id = models.CharField(_('resource ID'), max_length=100, db_index=True, help_text="ID of the affected resource")

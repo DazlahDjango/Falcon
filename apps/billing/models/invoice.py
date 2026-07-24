@@ -103,13 +103,16 @@ class Invoice(BaseBillingModel):
         prefix = "FALCON"
         year = timezone.now().strftime("%Y")
         month = timezone.now().strftime("%m")
+        prefix_pattern = f"{prefix}-{year}{month}"
         
-        last_invoice = cls.objects.filter(invoice_number__startswith=f"{prefix}-{year}{month}").order_by('-invoice_number').first()
+        last_invoice = cls.objects.all_including_deleted().filter(invoice_number__startswith=prefix_pattern).order_by('-invoice_number').first()
         
+        new_number = 1
         if last_invoice:
-            last_number = int(last_invoice.invoice_number.split('-')[-1])
-            new_number = last_number + 1
-        else:
-            new_number = 1
+            try:
+                last_number = int(last_invoice.invoice_number.split('-')[-1])
+                new_number = last_number + 1
+            except (ValueError, IndexError):
+                new_number = 1
         
-        return f"{prefix}-{year}{month}-{new_number:06d}"
+        return f"{prefix_pattern}-{new_number:06d}"
