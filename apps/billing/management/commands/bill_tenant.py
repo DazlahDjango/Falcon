@@ -238,25 +238,32 @@ class Command(BaseCommand):
 
             # 2. Create Tenant Override for Enterprise
             if plan_type == 'enterprise':
+                admin_user = User.objects.filter(is_superuser=True).first()
+                admin_id = admin_user.id if admin_user else '00000000-0000-0000-0000-000000000000'
+
                 TenantSubscriptionOverride.objects.update_or_create(
                     tenant_id=tenant.id,
                     defaults={
                         'plan': plan,
                         'subscription': subscription,
-                        'custom_max_users': -1,
-                        'custom_max_kpis': -1,
-                        'custom_max_departments': -1,
-                        'custom_max_storage_mb': -1,
-                        'custom_branding': True,
-                        'api_access': True,
-                        'sso_enabled': True,
-                        'notes': f"Billed via bill_tenant command on {now.strftime('%Y-%m-%d')}"
+                        'approved_by': admin_id,
+                        'override_type': 'all',
+                        'override_features': {
+                            'users': -1,
+                            'kpis': -1,
+                            'departments': -1,
+                            'storage': -1,
+                            'custom_branding': True,
+                            'api_access': True,
+                            'sso_enabled': True,
+                        },
+                        'approval_notes': f"Billed via bill_tenant command on {now.strftime('%Y-%m-%d')}"
                     }
                 )
                 self.stdout.write(self.style.SUCCESS("  Applied Enterprise Custom Override"))
 
             # 3. Create Invoice
-            inv_number = Invoice.generate_invoice_number()
+            inv_number = Invoice.generate_invoice_number(tenant.id)
             inv_status = Invoice.STATUS_PAID if mark_paid else Invoice.STATUS_PENDING
             invoice = Invoice.objects.create(
                 tenant_id=tenant.id,
@@ -271,11 +278,23 @@ class Command(BaseCommand):
                 currency=plan.currency,
                 status=inv_status,
                 paid_at=now if mark_paid else None,
-                line_items=[{
-                    'description': f"{plan.name} Plan ({interval.title()})",
-                    'amount': subtotal,
-                    'currency': plan.currency
-                }],
+                line_items=[
+                    {
+                        'description': f"{plan.name} Plan ({interval.title()})",
+                        'quantity': 1,
+                        'unit_price': subtotal,
+                        'total': subtotal,
+                        'currency': plan.currency
+                    },
+                    {
+                        'description': f"Tax (16% VAT)",
+                        'quantity': 1,
+                        'unit_price': tax_amount,
+                        'total': tax_amount,
+                        'currency': plan.currency,
+                        'is_tax': True
+                    }
+                ],
                 notes=f"Generated via management command for {tenant.name}"
             )
             self.stdout.write(self.style.SUCCESS(f"  Generated Invoice: {invoice.invoice_number} (Status: {inv_status.upper()})"))
@@ -290,11 +309,15 @@ class Command(BaseCommand):
                     reference=txn_ref,
                     transaction_type=BillingTransaction.TYPE_SUBSCRIPTION,
                     status=BillingTransaction.STATUS_SUCCESS,
-                    amount=total_amount,
+                    amount=subtotal,
+                    tax_amount=tax_amount,
+                    total_amount=total_amount,
                     currency=plan.currency,
-                    payment_method=BillingTransaction.METHOD_OTHER,
-                    description=f"Manual payment for Invoice {invoice.invoice_number}",
-                    metadata={'generated_by': 'bill_tenant_command'}
+                    payment_method='other',
+                    metadata={
+                        'description': f"Manual payment for Invoice {invoice.invoice_number}",
+                        'generated_by': 'bill_tenant_command'
+                    }
                 )
                 self.stdout.write(self.style.SUCCESS(f"  Recorded Transaction: {billing_txn.reference}"))
 
