@@ -41,8 +41,11 @@ class AuthenticationService:
         # Tenant validation for non-super-admins
         if user and user.role != 'super_admin':
             if not tenant_id:
-                return None, None, 'Organization Tenant ID is required'
-            if str(tenant_id) != user_tenant_id:
+                if user_tenant_id:
+                    tenant_id = user_tenant_id
+                else:
+                    return None, None, 'User is not assigned to any organization. Please contact administrator.'
+            elif str(tenant_id) != user_tenant_id:
                 return None, None, 'Invalid Organization Tenant ID for this user'
 
         

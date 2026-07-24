@@ -1,48 +1,76 @@
-from django.core.management.base import BaseCommand
-from apps.billing.services.paystack.webhook_handler import PayStackWebhookHandler
-from apps.billing.services.paystack.signature import verify_signature
 import json
+import uuid
+from django.core.management.base import BaseCommand
+from apps.billing.services.paystack.webhook_handler import WebhookHandler
+from apps.billing.services.paystack.signature import WebhookSignatureVerifier
+from apps.billing.models import WebhookEventLog
+from django.db import connection
 
 class Command(BaseCommand):
-    help = 'Test Paystack webhook handling'
+    help = 'Simulate and test Paystack webhook events locally'
 
     def add_arguments(self, parser):
-        parser.add_argument('--payload', type=str, help='JSON payload (file path or string)')
-        parser.add_argument('--signature', type=str, help='X-Paystack-Signature header value')
-        parser.add_argument('--event', type=str, help='Event type to simulate')
+        parser.add_argument('--event', type=str, help='Event type (e.g. charge.success, subscription.create, subscription.disable)')
+        parser.add_argument('--payload', type=str, help='JSON payload string or path to .json file')
+        parser.add_argument('--reference', type=str, help='Transaction or subscription reference to inject into test payload')
 
     def handle(self, *args, **options):
-        payload = options['payload']
-        signature = options['signature']
-        event = options['event']
+        with connection.cursor() as cursor:
+            cursor.execute('SET search_path TO "public"')
 
-        if payload:
-            if payload.endswith('.json'):
-                with open(payload, 'r') as f:
-                    payload = f.read()
+        event_type = options.get('event') or 'charge.success'
+        payload_input = options.get('payload')
+        reference = options.get('reference') or 'REF-TEST-WEBHOOK-123'
 
-            try:
-                payload_dict = json.loads(payload)
-                event_type = payload_dict.get('event', 'unknown')
-                self.stdout.write(f'Processing event: {event_type}')
-
-                # Verify signature if provided
-                if signature:
-                    is_valid = verify_signature(payload.encode('utf-8'), signature)
-                    if is_valid:
-                        self.stdout.write(self.style.SUCCESS('  ✓ Webhook signature valid'))
-                    else:
-                        self.stdout.write(self.style.ERROR('  ✗ Webhook signature invalid!'))
-                        return
-
-                # Process the webhook
-                handler = PayStackWebhookHandler()
-                handler.handle_webhook(event_type, payload_dict)
-                self.stdout.write(self.style.SUCCESS('  ✓ Webhook processed successfully'))
-
-            except json.JSONDecodeError:
-                self.stdout.write(self.style.ERROR('  ✗ Invalid JSON payload'))
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  ✗ Failed: {e}'))
+        if payload_input:
+            if payload_input.endswith('.json'):
+                with open(payload_input, 'r', encoding='utf-8') as f:
+                    payload_dict = json.load(f)
+            else:
+                payload_dict = json.loads(payload_input)
         else:
-            self.stdout.write('Please provide --payload to test webhook handling')
+            self.stdout.write(self.style.NOTICE(f"Generating sample webhook payload for event '{event_type}'..."))
+            payload_dict = {
+                'event': event_type,
+                'data': {
+                    'id': 12345678,
+                    'domain': 'test',
+                    'status': 'success',
+                    'reference': reference,
+                    'amount': 500000,
+                    'currency': 'KES',
+                    'subscription_code': 'SUB-TEST-123',
+                    'customer': {
+                        'email': 'admin@falcontech.com',
+                        'customer_code': 'CUS_TEST123'
+                    },
+                    'authorization': {
+                        'authorization_code': 'AUTH_TEST123',
+                        'card_type': 'visa',
+                        'last4': '4242',
+                        'exp_month': '12',
+                        'exp_year': '2028'
+                    }
+                }
+            }
+
+        self.stdout.write(f"Processing Paystack Webhook Event: {event_type}...")
+        handler = WebhookHandler()
+        
+        try:
+            log = WebhookEventLog.objects.create(
+                event_type=event_type,
+                event_idempotency_key=f"cmd_test_{event_type}_{reference}_{uuid.uuid4().hex[:6]}",
+                paystack_event_id=str(payload_dict.get('data', {}).get('id', '')),
+                raw_payload=payload_dict,
+                signature_valid=True,
+                processing_status=WebhookEventLog.PROCESSING_STATUS_PENDING
+            )
+            
+            result = handler.dispatch(event_type, payload_dict, log)
+            log.mark_processed()
+            
+            self.stdout.write(self.style.SUCCESS(f"  [OK] Webhook Event '{event_type}' handled successfully!"))
+            self.stdout.write(f"  Result Output: {result}")
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"  [FAIL] Webhook Processing Error: {e}"))

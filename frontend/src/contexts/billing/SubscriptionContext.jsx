@@ -99,9 +99,10 @@ export const SubscriptionProvider = ({ children }) => {
 
     // Handle auto-renew toggle
     const handleAutoRenewToggle = useCallback(async (value) => {
-        await updateSettings(value);
+        if (!subscription?.id) return;
+        await updateSettings(subscription.id, value);
         await refresh();
-    }, [updateSettings, refresh]);
+    }, [subscription?.id, updateSettings, refresh]);
 
     // Auto-refresh on mount and periodically
     useEffect(() => {

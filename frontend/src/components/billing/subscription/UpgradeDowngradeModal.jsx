@@ -39,6 +39,11 @@ export const UpgradeDowngradeModal = ({ subscription, direction, onClose, onSucc
         } catch (error) { setStep('error'); }
     };
 
+    const formatCurrencyString = (amount, currency = 'KES') => {
+        const val = (amount || 0) / 100;
+        return `${currency} ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
+
     const getProrationInfo = () => {
         if (!selectedPlan || !immediate) return null;
         const daysRemaining = subscription.days_until_expiry;
@@ -46,8 +51,8 @@ export const UpgradeDowngradeModal = ({ subscription, direction, onClose, onSucc
         const remainingValue = (subscription.amount / totalDays) * daysRemaining;
         const newPlanCost = (selectedPlan.price / totalDays) * daysRemaining;
         const additional = newPlanCost - remainingValue;
-        if (additional > 0) return { additional, message: `You'll pay an additional ${CurrencyFormatter({ amount: additional, currency: subscription.currency })} for the remaining ${daysRemaining} days.` };
-        if (additional < 0) return { additional, message: `You'll receive a credit of ${CurrencyFormatter({ amount: Math.abs(additional), currency: subscription.currency })}.` };
+        if (additional > 0) return { additional, message: `You'll pay an additional ${formatCurrencyString(additional, subscription.currency)} for the remaining ${daysRemaining} days.` };
+        if (additional < 0) return { additional, message: `You'll receive a credit of ${formatCurrencyString(Math.abs(additional), subscription.currency)}.` };
         return { additional: 0, message: 'No additional charge for this upgrade.' };
     };
 
@@ -70,7 +75,7 @@ export const UpgradeDowngradeModal = ({ subscription, direction, onClose, onSucc
                 </div>
 
                 <div className="upgrade-modal-body">
-                    <div className="current-plan-badge">Current: {subscription.plan?.name} ({CurrencyFormatter({ amount: subscription.amount, currency: subscription.currency })}/{subscription.billing_interval})</div>
+                    <div className="current-plan-badge">Current: {subscription.plan?.name} (<CurrencyFormatter amount={subscription.amount} currency={subscription.currency} />/{subscription.billing_interval})</div>
 
                     <div className="plan-selector">
                         <h4>Select New Plan</h4>

@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 class WebhookSignatureVerifier:
     def __init__(self):
         self.secret = getattr(settings, 'PAYSTACK_WEBHOOK_SECRET', None)
-        self.skip_verification = getattr(settings, 'PAYSTACK_VERIFY_WEBHOOK_SIGNATURE', True)
-        if self.skip_verification:
+        self.verify_signature = getattr(settings, 'PAYSTACK_VERIFY_WEBHOOK_SIGNATURE', True)
+        if not self.verify_signature:
             logger.warning("Webhook signature verification is DISABLED - only for development!")
 
     def verify(self, request: HttpRequest) -> Tuple[bool, str]:
-        if not self.skip_verification:
+        if not self.verify_signature:
             return True, "Development mode - signature verification skipped"
         signature = request.headers.get('x-paystack-signature')
         if not signature:
@@ -46,7 +46,7 @@ class WebhookSignatureVerifier:
         return True, "Signature verified"
 
     def verify_with_payload(self, signature: str, payload: bytes) -> Tuple[bool, str]:
-        if not self.skip_verification:
+        if not self.verify_signature:
             return True, "Development mode"
         if not self.secret:
             return False, "Webhook secret not configured"

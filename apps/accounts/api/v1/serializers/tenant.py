@@ -46,7 +46,11 @@ class TenantUpdateSerializer(serializers.ModelSerializer):
         fields = ['name', 'domain', 'is_active', 'settings', 'branding']
 
 class TenantSerializer(DynamicFieldsModelSerializer):
+    user_count = serializers.SerializerMethodField()
     class Meta:
         model = Organization
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']
+    def get_user_count(self, obj):
+        from apps.accounts.models import User
+        return User.objects.filter(tenant_id=obj.id, is_deleted=False).count()

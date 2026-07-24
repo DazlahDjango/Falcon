@@ -68,8 +68,8 @@ def webhook_post_save(sender, instance, created, **kwargs):
     if instance.processing_status == 'failed':
         _send_webhook_failure_alert(instance)
     if instance.processing_status == 'pending' and instance.retry_count < instance.max_retries:
-        from .tasks import retry_webhook
-        retry_webhook.delay(instance.id)
+        from .tasks import process_webhook
+        process_webhook.delay(str(instance.id))
 
 @receiver(post_save, sender=FailedPaymentRetry)
 def failed_payment_retry_post_save(sender, instance, created, **kwargs):

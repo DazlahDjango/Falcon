@@ -3,12 +3,7 @@ import { useAuthContext } from '../../contexts/accounts/AuthContext';
 export const useBillingPermissions = () => {
     // Get user from AuthContext instead of Redux
     const { user, isAuthenticated } = useAuthContext();
-    
-    console.log('=== PERMISSION DEBUG ===');
-    console.log('user from AuthContext:', user);
-    console.log('isAuthenticated:', isAuthenticated);
-    console.log('========================');
-    
+
     const role = user?.role || 'staff';
     const isSuperAdmin = role === 'super_admin' || user?.is_superuser === true;
     const isClientAdmin = isSuperAdmin || role === 'client_admin';
