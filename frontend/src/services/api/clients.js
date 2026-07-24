@@ -45,6 +45,16 @@ export const kpiApiClient = createApiClient({
   attachTenantHeader: true,
 });
 
+export const reportApiClient = createApiClient({
+  module: 'reportplt',
+  basePath: '/reportplt',
+  responseStyle: 'raw',
+  circuitBreaker: true,
+  forbiddenMessage: 'You do not have permission to access this report resource',
+  attachTenantHeader: true,
+  redirectOnSessionExpiry: true,
+});
+
 const TENANT_RATE = { MAX: 100, WINDOW_MS: 60000, count: 0, windowStart: Date.now() };
 function checkTenantRateLimit() {
   const now = Date.now();
@@ -78,3 +88,4 @@ export const resetDashboardCircuitBreaker = () => resetCircuitBreaker('dashboard
 export const resetBillingCircuitBreaker = () => resetCircuitBreaker('billing');
 export const resetStructureCircuitBreaker = () => resetCircuitBreaker('structure');
 export const resetKPICircuitBreaker = () => resetCircuitBreaker('kpi');
+export const resetReportCircuitBreaker = () => resetCircuitBreaker('reportplt');

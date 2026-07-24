@@ -48,6 +48,7 @@ urlpatterns = [
     path('api/v1/reviews/', include('apps.reviews.urls')),
     path('api/v1/config/', include('apps.configs.api.v1.urls')),
     path('api/v1/dashboard/', include('apps.dashboard.api.v1.urls')),
+    path('api/v1/reportplt/', include('apps.reportplt.api.v1.urls')),
     path('api/v1/health/', health_check, name='api-health'),
 ]
 

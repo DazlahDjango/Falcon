@@ -94,6 +94,10 @@ task_routes_dict = {
     'apps.dashboard.tasks.websocket_*': {'queue': 'realtime'},
     'notifications.tasks.*': {'queue': 'notification'},
     'priority.*': {'queue': 'priority'},
+    'apps.reportplt.tasks.async_generate_report_task': {'queue': 'reportplt_export'},
+    'apps.reportplt.tasks.process_scheduled_reports_task': {'queue': 'reportplt_scheduler'},
+    'apps.reportplt.tasks.cleanup_expired_reports_task': {'queue': 'reportplt_cleanup'},
+    'apps.reportplt.tasks.*': {'queue': 'reportplt_export'},
 }
 
 def route_tasks(name, args, kwargs, options, task=None, **kw):

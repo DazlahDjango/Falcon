@@ -28,11 +28,13 @@ export {
   reviewsApiClient,
   tenantApiClient,
   kpiApiClient,
+  reportApiClient,
   resetConfigCircuitBreaker,
   resetDashboardCircuitBreaker,
   resetBillingCircuitBreaker,
   resetStructureCircuitBreaker,
   resetKPICircuitBreaker,
+  resetReportCircuitBreaker,
 } from './clients';
 
 export { createApiClient, createRootClient, createAccountsClient } from './createClient';
@@ -55,6 +57,7 @@ export { BaseResourceService } from './BaseResourceService';
 
 export { default as API_ENDPOINTS } from './endpoints';
 export * from './endpoints';
+export { extractApiError } from './errorUtils';
 
 /** Default export: root client for KPI and legacy `import api from '../api'` */
 export default rootApiClient;

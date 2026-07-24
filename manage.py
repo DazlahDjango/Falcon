@@ -7,33 +7,25 @@ import warnings
 from pathlib import Path
 
 # ===== DIRECT PATCH FOR NOTIFICATIONS =====
-# This runs BEFORE Django loads the models
-from django.db import models
+import django.db.models.options as options
+if 'index_together' not in options.DEFAULT_NAMES:
+    options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('index_together',)
 
-# Store the original options class
-original_options = models.options.Options
+original_init = options.Options.__init__
+def patched_init(self, meta, app_label=None):
+    original_init(self, meta, app_label)
+    self.index_together = []
 
-# Create a patched version that handles index_together
-class PatchedOptions(original_options):
-    def __init__(self, meta, app_label):
-        # Convert index_together to indexes before Django processes it
-        if hasattr(meta, 'index_together') and meta.index_together:
-            if not hasattr(meta, 'indexes'):
-                meta.indexes = []
-            
-            from django.db.models import Index
-            for fields in meta.index_together:
-                meta.indexes.append(Index(fields=fields))
-            
-            # Remove index_together to prevent error
-            if hasattr(meta, 'index_together'):
-                delattr(meta, 'index_together')
-        
-        # Call the original __init__
-        super().__init__(meta, app_label)
+options.Options.__init__ = patched_init
 
-# Apply the patch
-models.options.Options = PatchedOptions
+original_contribute_to_class = options.Options.contribute_to_class
+def patched_contribute_to_class(self, cls, name):
+    original_contribute_to_class(self, cls, name)
+    self.index_together = options.normalize_together(self.index_together)
+    if 'index_together' in self.original_attrs:
+        self.original_attrs['index_together'] = self.index_together
+
+options.Options.contribute_to_class = patched_contribute_to_class
 # ===== END PATCH =====
 
 

@@ -184,6 +184,7 @@ class DepartmentAggregator:
         if not unit_scores:
             individual_scores = AggregatedScore.objects.filter(
                 level='INDIVIDUAL',
+                entity_id__in=unit_ids,
                 year=year,
                 month=month
             )

@@ -120,7 +120,7 @@ THIRD_PARTY_APPS = [
     # 'django_fsm',
     'viewflow',
     # Notifications
-    # 'notifications',
+    'notifications',
     'django_apscheduler',
     # Reporting
     'easy_pdf',
@@ -153,6 +153,7 @@ PROJECT_APPS = [
     'apps.configs.apps.ConfigsConfig',
     'apps.reviews.apps.ReviewsConfig',
     'apps.dashboard.apps.DashboardConfig',
+    'apps.reportplt.apps.ReportpltConfig',
     'apps.core',
     'apps.tenant.api',  # For API endpoints
 ]
@@ -201,12 +202,12 @@ MIDDLEWARE = [
     'apps.accounts.middleware.SecurityMiddleware',
     # Tenant middlewares (starts with context setting)
     'apps.tenant.middleware.organization_context.OrganizationContextMiddleware',
-    'apps.tenant.middleware.organization_resolution.OrganizationResolutionMiddleware',
+    #'apps.tenant.middleware.organization_resolution.OrganizationResolutionMiddleware',
     'apps.tenant.middleware.organization_isolation.OrganizationIsolationMiddleware',
     'apps.tenant.middleware.organization_isolation.OrganizationPathIsolationMiddleware',
     'apps.tenant.middleware.organization_limits.OrganizationLimitsMiddleware',
     'apps.tenant.middleware.db_routing.TenantDatabaseRouterMiddleware',
-    'apps.tenant.middleware.connection_management.ConnectionManagementMiddleware',
+    #'apps.tenant.middleware.connection_management.ConnectionManagementMiddleware',
     'apps.tenant.middleware.file_isolation.FileIsolationMiddleware',
     # KPI
     'apps.kpi.middleware.KPIContextMiddleware',
@@ -228,7 +229,7 @@ MIDDLEWARE = [
     # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
     # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     # Billing
-    # 'apps.billing.middleware.SubscriptionGuardMiddleware',
+    #'apps.billing.middleware.SubscriptionGuardMiddleware',
     'apps.billing.middleware.BillingAuditMiddleware',
     'apps.billing.middleware.WebhookRateLimitMiddleware',
     'apps.billing.middleware.TenantBillingContextMiddleware',

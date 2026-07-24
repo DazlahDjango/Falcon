@@ -50,6 +50,7 @@ import { billingReducer } from './billing';
 // Config Reducers
 // ==========================================
 import { configReducer } from './config';
+import { reportReducers } from './reports';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -82,6 +83,8 @@ const rootReducer = combineReducers({
     reviews: reviewsReducer,
     // Config
     config: configReducer,
+    // Report
+    report: reportReducers,
 });
 
 export default rootReducer;

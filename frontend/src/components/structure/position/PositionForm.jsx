@@ -45,10 +45,12 @@ export const PositionForm = () => {
       requires_supervisor_approval: true,
     },
     onSubmit: async (formData, formikHelpers) => {
+      console.log('[PositionForm] onSubmit triggered', { formData, activeStep });
       if (activeStep < 3) {
         if (formikHelpers && typeof formikHelpers.setSubmitting === 'function') {
           formikHelpers.setSubmitting(false);
         }
+        console.log('[PositionForm] Transitioning to step:', activeStep + 1);
         setActiveStep((prev) => Math.min(prev + 1, 3));
         return;
       }
@@ -60,6 +62,10 @@ export const PositionForm = () => {
       if (submitData.unit_id === '') submitData.unit_id = null;
       if (submitData.cost_center_id === '') submitData.cost_center_id = null;
       if (submitData.max_incumbents === '') submitData.max_incumbents = null;
+      
+      submitData.required_competencies = (submitData.required_competencies || []).map(c => 
+        typeof c === 'string' ? { name: c, level: 'Required' } : c
+      );
       try {
         if (isEditing) {
           await update(id, submitData).unwrap();
@@ -70,7 +76,9 @@ export const PositionForm = () => {
       } catch (err) {
         console.error('API Error:', err);
         let errMsg = 'Failed to save position.';
-        if (err.data) {
+        if (typeof err === 'string') {
+          errMsg = err;
+        } else if (err.data) {
           if (typeof err.data === 'string') errMsg = err.data;
           else if (err.data.code) errMsg = Array.isArray(err.data.code) ? err.data.code[0] : err.data.code;
           else if (err.data.job_code) errMsg = Array.isArray(err.data.job_code) ? err.data.job_code[0] : err.data.job_code;
@@ -130,7 +138,7 @@ export const PositionForm = () => {
         cost_center_id: currentItem.cost_center_id || '',
         fte: currentItem.fte || 1.0,
         min_tenure_months: currentItem.min_tenure_months || 0,
-        required_competencies: currentItem.required_competencies || [],
+        required_competencies: (currentItem.required_competencies || []).map(c => typeof c === 'object' ? c.name : c),
         is_single_incumbent: currentItem.is_single_incumbent || false,
         max_incumbents: currentItem.max_incumbents || '',
         requires_supervisor_approval: currentItem.requires_supervisor_approval !== undefined ? currentItem.requires_supervisor_approval : true,

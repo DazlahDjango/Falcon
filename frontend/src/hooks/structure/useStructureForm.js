@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/ui/slices/uiSlice';
+import { useToast } from '../../providers/ToastProvider';
 
 export const useStructureForm = ({
     initialValues = {},
@@ -12,8 +13,15 @@ export const useStructureForm = ({
     validateOnBlur = true,
 }) => {
     const dispatch = useDispatch();
+    const toast = useToast();
 
     const [values, setValues] = useState(initialValues);
+    const initialValuesRef = useRef(initialValues);
+
+    useEffect(() => {
+        initialValuesRef.current = initialValues;
+    }, [initialValues]);
+
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,12 +75,12 @@ export const useStructureForm = ({
         setFieldTouched(name, true);
     }, [setFieldTouched]);
 
-    const resetForm = useCallback((newValues = initialValues) => {
-        setValues(newValues);
+    const resetForm = useCallback((newValues) => {
+        setValues(newValues || initialValuesRef.current);
         setErrors({});
         setTouched({});
         setIsDirty(false);
-    }, [initialValues]);
+    }, []);
 
     const validateForm = useCallback(async () => {
         const validationErrors = await validate(values);
@@ -89,26 +97,37 @@ export const useStructureForm = ({
 
     const handleSubmit = useCallback(async (e) => {
         if (e) e.preventDefault();
+        console.log('[useStructureForm] handleSubmit called');
 
         const isValid = await validateForm();
+        const validationErrors = await validate(values);
+        console.log('[useStructureForm] Validation results:', { isValid, validationErrors, values });
+
         if (!isValid) {
-            dispatch(showToast({ message: 'Please fix validation errors', type: 'error' }));
+            console.log('[useStructureForm] Form is invalid, aborting submit');
+            toast.error('Please fix validation errors: ' + Object.values(validationErrors).join(', '));
             return;
         }
 
-        if (!onSubmit) return;
+        if (!onSubmit) {
+            console.log('[useStructureForm] No onSubmit handler provided');
+            return;
+        }
 
         setIsSubmitting(true);
 
         try {
+            console.log('[useStructureForm] Executing onSubmit with values:', values);
             const result = await onSubmit(values);
-            dispatch(showToast({ message: 'Form submitted successfully', type: 'success' }));
+            console.log('[useStructureForm] onSubmit execution successful:', result);
+            toast.success('Form submitted successfully');
             onSuccess?.(result);
             setIsDirty(false);
             return result;
         } catch (error) {
+            console.error('[useStructureForm] onSubmit threw an error:', error);
             const errorMessage = error.message || 'Form submission failed';
-            dispatch(showToast({ message: errorMessage, type: 'error' }));
+            toast.error(errorMessage);
             onError?.(error);
             throw error;
         } finally {
