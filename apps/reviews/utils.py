@@ -608,3 +608,159 @@ def darken_color(hex_color, amount=0.2):
     
     # Convert back to hex
     return f"#{r:02x}{g:02x}{b:02x}"
+
+
+# ========== Analytics & Statistics Helpers ==========
+
+def get_date_range_for_period(period, end_date=None):
+    """
+    Get start and end date range for a given period.
+    
+    Args:
+        period: One of 'daily', 'weekly', 'monthly', 'quarterly', 'yearly'
+        end_date: Anchor end date (defaults to today)
+        
+    Returns:
+        tuple: (start_date, end_date) as date objects
+    """
+    if end_date is None:
+        end_date = date.today()
+    elif isinstance(end_date, timezone.datetime):
+        end_date = end_date.date()
+    elif isinstance(end_date, str):
+        try:
+            end_date = date.fromisoformat(end_date)
+        except ValueError:
+            end_date = date.today()
+            
+    if period == 'daily':
+        start_date = end_date
+    elif period == 'weekly':
+        start_date = end_date - timedelta(days=7)
+    elif period == 'monthly':
+        start_date = end_date - timedelta(days=30)
+    elif period == 'quarterly':
+        start_date = end_date - timedelta(days=90)
+    elif period == 'yearly':
+        start_date = end_date - timedelta(days=365)
+    else:
+        start_date = end_date - timedelta(days=30)
+        
+    return start_date, end_date
+
+
+def calculate_percentage_change(current, previous):
+    """
+    Calculate the percentage change between current and previous values.
+    
+    Args:
+        current: Current period numeric value
+        previous: Previous period numeric value
+        
+    Returns:
+        float: Percentage change rounded to 2 decimals
+    """
+    if not previous or float(previous) == 0.0:
+        return 0.0
+    curr = float(current) if current is not None else 0.0
+    prev = float(previous)
+    change = curr - prev
+    return round((change / prev) * 100, 2)
+
+
+def calculate_trend(scores):
+    """
+    Determine direction and rate of change across a sequence of scores.
+    
+    Args:
+        scores: List of numeric values representing chronological trend
+        
+    Returns:
+        dict: {'direction': 'up'|'down'|'stable', 'change_percent': float}
+    """
+    if len(scores) < 2:
+        return {'direction': 'stable', 'change_percent': 0.0}
+        
+    first = float(scores[0])
+    last = float(scores[-1])
+    
+    if first == 0.0:
+        return {'direction': 'stable', 'change_percent': 0.0}
+        
+    change_percent = ((last - first) / first) * 100
+    
+    if change_percent > 1.0:
+        direction = 'up'
+    elif change_percent < -1.0:
+        direction = 'down'
+    else:
+        direction = 'stable'
+        
+    return {
+        'direction': direction,
+        'change_percent': round(change_percent, 2)
+    }
+
+
+def calculate_standard_deviation(scores):
+    """
+    Calculate the sample standard deviation of a sequence of scores.
+    
+    Args:
+        scores: List of numeric scores
+        
+    Returns:
+        float: Standard deviation rounded to 2 decimals
+    """
+    if not scores:
+        return 0.0
+    import math
+    scores_float = [float(s) for s in scores]
+    n = len(scores_float)
+    if n < 2:
+        return 0.0
+    mean = sum(scores_float) / n
+    variance = sum((x - mean) ** 2 for x in scores_float) / (n - 1)
+    return round(math.sqrt(variance), 2)
+
+
+def get_rating_distribution(ratings):
+    """
+    Aggregate score counts and percentages sorted by rating label.
+    
+    Args:
+        ratings: Queryset or iterable of FinalRating objects
+        
+    Returns:
+        dict: Grouped label counts, percentages, and colors
+    """
+    from django.db.models import Count
+    
+    total = ratings.count() if hasattr(ratings, 'count') else len(ratings)
+    if total == 0:
+        return {}
+        
+    result = {}
+    if hasattr(ratings, 'values'):
+        dist = ratings.values('final_rating_label', 'final_rating_color').annotate(count=Count('id'))
+        for item in dist:
+            label = item.get('final_rating_label') or 'Not Rated'
+            color = item.get('final_rating_color') or 'gray'
+            count = item['count']
+            result[label] = {
+                'count': count,
+                'percentage': round((count / total) * 100, 1),
+                'color': color
+            }
+    else:
+        for r in ratings:
+            label = getattr(r, 'final_rating_label', 'Not Rated') or 'Not Rated'
+            color = getattr(r, 'final_rating_color', 'gray') or 'gray'
+            if label not in result:
+                result[label] = {'count': 0, 'percentage': 0.0, 'color': color}
+            result[label]['count'] += 1
+            
+        for label in result:
+            result[label]['percentage'] = round((result[label]['count'] / total) * 100, 1)
+            
+    return result

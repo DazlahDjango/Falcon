@@ -6,6 +6,7 @@ import { REVIEW_ROUTES } from "../config/constants/reviewRouteConstants";
 // ============================================
 
 // Dashboard Pages
+const ReviewsDashboardRedirect = React.lazy(() => import('../pages/reviews/dashboard/ReviewsDashboardRedirect'));
 const StaffDashboardPage = React.lazy(() => import('../pages/reviews/dashboard/StaffDashboardPage'));
 const SupervisorDashboardPage = React.lazy(() => import('../pages/reviews/dashboard/SupervisorDashboardPage'));
 const ExecutiveDashboardPage = React.lazy(() => import('../pages/reviews/dashboard/ExecutiveDashboardPage'));
@@ -119,6 +120,7 @@ const NotificationsPage = React.lazy(() => import('../pages/reviews/notification
 
 const reviewsRoutes = [
     // ============ Dashboard Routes ============
+    { path: REVIEW_ROUTES.REVIEW_DASHBOARD, element: <ReviewsDashboardRedirect /> },
     { path: REVIEW_ROUTES.REVIEW_DASHBOARD_STAFF, element: <StaffDashboardPage /> },
     { path: REVIEW_ROUTES.REVIEW_DASHBOARD_SUPERVISOR, element: <SupervisorDashboardPage /> },
     { path: REVIEW_ROUTES.REVIEW_DASHBOARD_EXECUTIVE, element: <ExecutiveDashboardPage /> },

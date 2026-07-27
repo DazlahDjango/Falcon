@@ -17,6 +17,7 @@ class ExecutiveDashboardService(BaseDashboardService):
             'promotion_pipeline': cls._get_promotion_pipeline(tenant_id, department_id),
             'pip_summary': cls._get_pip_summary(tenant_id, department_id),
             'calibration_needs': cls._get_calibration_needs(tenant_id, department_id),
+            'top_bottom_competencies': cls._get_top_bottom_competencies(tenant_id, department_id),
             'trends': cls._get_trends(tenant_id, department_id),
         }
         cls._set_cached(tenant_id, 'executive', f'exec_{department_id or "all"}', data)
@@ -98,3 +99,36 @@ class ExecutiveDashboardService(BaseDashboardService):
             avg_score = ratings.aggregate(avg=Avg('final_score'))['avg']
             trends.append({'cycle': cycle.name, 'average_score': round(float(avg_score), 1) if avg_score else None, 'end_date': cycle.end_date.isoformat()})
         return trends
+    @classmethod
+    def _get_top_bottom_competencies(cls, tenant_id, department_id=None):
+        from ...models import ReviewCycle, SupervisorReview, CompetencyRating
+        from django.contrib.contenttypes.models import ContentType
+        
+        latest_cycle = ReviewCycle.objects.filter(tenant_id=tenant_id).order_by('-end_date').first()
+        if not latest_cycle:
+            return {'top': [], 'bottom': []}
+            
+        sr_type = ContentType.objects.get_for_model(SupervisorReview)
+        reviews = SupervisorReview.objects.filter(review_cycle=latest_cycle, status='approved')
+        if department_id:
+            reviews = reviews.filter(employee__department_id=department_id)
+            
+        review_ids = [str(r.id) for r in reviews]
+        if not review_ids:
+            return {'top': [], 'bottom': []}
+            
+        ratings = CompetencyRating.objects.filter(
+            content_type=sr_type,
+            object_id__in=review_ids,
+            is_primary=True
+        ).values('competency__name').annotate(avg_score=Avg('raw_score')).order_by('-avg_score')
+        
+        rating_list = [
+            {'competency': r['competency__name'], 'score': round(float(r['avg_score']), 1)}
+            for r in ratings
+        ]
+        
+        top = rating_list[:3]
+        bottom = rating_list[::-1][:3] if len(rating_list) > 0 else []
+        
+        return {'top': top, 'bottom': bottom}

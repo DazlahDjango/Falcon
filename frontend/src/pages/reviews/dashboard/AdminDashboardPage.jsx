@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { useReviewsPermissions } from '../../../hooks/reviews';
-import { AdminDashboard } from '../../../components/reviews/dashboard';
+import { AdminDashboard, DashboardSwitcher } from '../../../components/reviews/dashboard';
 import { ReviewBreadcrumbs } from '../../../components/reviews/common';
 
 const AdminDashboardPage = () => {
@@ -39,6 +39,7 @@ const AdminDashboardPage = () => {
         </h1>
       </div>
 
+      <DashboardSwitcher />
       <AdminDashboard />
     </div>
   );

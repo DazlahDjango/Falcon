@@ -27,6 +27,11 @@ const SelfAssessmentForm = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [autosaveStatus, setAutosaveStatus] = useState('');
+
+  const isSubmitted = mySelfAssessment?.status === 'submitted';
+  const isDraft = mySelfAssessment?.status === 'draft' || !mySelfAssessment;
+  const canEdit = isDraft || (activeCycle ? activeCycle.allow_self_assessment_edit : false);
 
   useEffect(() => {
     fetchMy();
@@ -50,6 +55,42 @@ const SelfAssessmentForm = () => {
     }
   }, [mySelfAssessment]);
 
+  // Debounced autosave effect
+  useEffect(() => {
+    if (!canEdit || !mySelfAssessment?.id || isSubmitted) return;
+
+    const hasChanges = 
+      formData.overall_comment !== (mySelfAssessment.overall_comment || '') ||
+      formData.strengths !== (mySelfAssessment.strengths || '') ||
+      formData.areas_for_improvement !== (mySelfAssessment.areas_for_improvement || '') ||
+      formData.career_aspirations !== (mySelfAssessment.career_aspirations || '') ||
+      formData.challenges_faced !== (mySelfAssessment.challenges_faced || '') ||
+      formData.achievements !== (mySelfAssessment.achievements || '') ||
+      formData.training_completed !== (mySelfAssessment.training_completed || '') ||
+      formData.training_requested !== (mySelfAssessment.training_requested || '') ||
+      formData.goals_achieved !== (mySelfAssessment.goals_achieved || '') ||
+      formData.goals_for_next_period !== (mySelfAssessment.goals_for_next_period || '') ||
+      JSON.stringify(formData.competency_ratings) !== JSON.stringify(mySelfAssessment.competency_ratings || []);
+
+    if (!hasChanges) return;
+
+    setAutosaveStatus('Saving changes...');
+
+    const timer = setTimeout(async () => {
+      try {
+        await saveDraft(mySelfAssessment.id, formData);
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setAutosaveStatus(`Draft saved at ${timeString}`);
+      } catch (err) {
+        console.error('Autosave failed:', err);
+        setAutosaveStatus('Autosave failed. Check connection.');
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [formData, mySelfAssessment, saveDraft, canEdit, isSubmitted]);
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -62,6 +103,9 @@ const SelfAssessmentForm = () => {
     setIsSaving(true);
     try {
       await saveDraft(mySelfAssessment.id, formData);
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setAutosaveStatus(`Draft saved at ${timeString}`);
     } finally {
       setIsSaving(false);
     }
@@ -98,10 +142,6 @@ const SelfAssessmentForm = () => {
     );
   }
 
-  const isSubmitted = mySelfAssessment?.status === 'submitted';
-  const isDraft = mySelfAssessment?.status === 'draft' || !mySelfAssessment;
-  const canEdit = isDraft || activeCycle.allow_self_assessment_edit;
-
   if (isSubmitted && !activeCycle.allow_self_assessment_edit) {
     return <SelfAssessmentView assessment={mySelfAssessment} onReset={handleReset} />;
   }
@@ -122,6 +162,11 @@ const SelfAssessmentForm = () => {
           </div>
         </div>
         <div className="self-assessment-form-actions">
+          {autosaveStatus && (
+            <span className="self-assessment-autosave-status">
+              {autosaveStatus}
+            </span>
+          )}
           {isDraft && (
             <>
               <button

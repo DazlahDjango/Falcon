@@ -443,3 +443,74 @@
     padding: 16px;
   }
 }
+
+/* ============================================
+   Self Assessment Enhancements
+   ============================================ */
+.self-assessment-comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.self-assessment-comment-counter {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.self-assessment-autosave-status {
+  font-size: 13px;
+  color: #6b7280;
+  margin-right: 12px;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.85;
+}
+
+/* ============================================
+   Pages Filters Styles
+   ============================================ */
+.reviews-page-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.reviews-page-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.reviews-page-filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reviews-page-filter-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  color: #1f2937;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.reviews-page-filter-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}

@@ -46,6 +46,7 @@ from .promotion_recommendation import PromotionRecommendation
 # Platform models
 from .system_settings import ReviewsSystemSettings
 from .audit_log import ReviewAuditLog
+from .analytics_snapshot import AnalyticsSnapshot
 
 __all__ = [
     # Base
@@ -90,4 +91,5 @@ __all__ = [
     'PromotionRecommendation',
     'ReviewsSystemSettings',
     'ReviewAuditLog',
+    'AnalyticsSnapshot',
 ]

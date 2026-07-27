@@ -6,6 +6,7 @@ import StaffOverview from './StaffOverview';
 import StaffDeadlines from './StaffDeadlines';
 import StaffPIPStatus from './StaffPIPStatus';
 import StaffFeedbackSummary from './StaffFeedbackSummary';
+import StaffFeedbackTasks from './StaffFeedbackTasks';
 import { useReviewsPermissions } from '../../../../hooks/reviews';
 
 const StaffDashboard = () => {
@@ -57,6 +58,7 @@ const StaffDashboard = () => {
           <StaffOverview employee={staff.employee} />
           <StaffDeadlines deadlines={staff.upcoming_deadlines} />
           <StaffFeedbackSummary summary={staff.pending_feedback_requests} />
+          <StaffFeedbackTasks tasks={staff.feedback_tasks_to_write} />
         </div>
         <div className="staff-dashboard-sidebar">
           <StaffPIPStatus pip={staff.active_pip} />

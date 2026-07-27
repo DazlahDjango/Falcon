@@ -7,23 +7,20 @@ import { ReviewLoading, ReviewError, ReviewEmptyState } from '../../common';
 import RatingDistributionChart from './RatingDistributionChart';
 import RatingDistributionTable from './RatingDistributionTable';
 
-const RatingDistribution = () => {
-  const { cycleId } = useParams();
+const RatingDistribution = ({ cycleId: propCycleId }) => {
+  const { cycleId: paramCycleId } = useParams();
+  const cycleId = propCycleId || paramCycleId;
   const navigate = useNavigate();
   const { distribution, loading, error, getDistribution, exportRatings, canManage } = useFinalRating();
   const [viewMode, setViewMode] = useState('chart');
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    if (cycleId) {
-      getDistribution(cycleId);
-    }
+    getDistribution(cycleId);
   }, [cycleId, getDistribution]);
 
   const handleRefresh = () => {
-    if (cycleId) {
-      getDistribution(cycleId);
-    }
+    getDistribution(cycleId);
   };
 
   const handleExport = async (format = 'csv') => {

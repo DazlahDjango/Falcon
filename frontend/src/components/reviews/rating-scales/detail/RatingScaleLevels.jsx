@@ -28,7 +28,7 @@ const RatingScaleLevels = ({ levels = [] }) => {
               )}
             </div>
             <div className="rating-scale-level-range">
-              {level.min_pct || level.min}% - {level.max_pct || level.max}%
+              Score: {level.value} | Min: {level.min_pct || 0}%
             </div>
           </div>
         ))}

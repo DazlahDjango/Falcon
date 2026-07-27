@@ -37,6 +37,10 @@ export class BaseResourceService {
     return this.unwrap(response); // just the data
   }
 
+  async get(id, params = {}) {
+    return this.getById(id, params);
+  }
+
   async getById(id, params = {}) {
     if (!id) throw new Error('ID is required');
     const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/`), { params }));

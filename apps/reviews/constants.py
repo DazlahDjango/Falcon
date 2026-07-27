@@ -500,4 +500,58 @@ class ReviewModels:
         (CALIBRATION_RATING, 'Calibration Rating'),
         (FEEDBACK_REQUEST, 'Feedback Request'),
     ]
+
+
+# ========== Analytics & Risk Constants ==========
+
+class RiskLevel:
+    """Risk levels for predictive flight risk"""
+    HIGH = 'high'
+    MEDIUM = 'medium'
+    LOW = 'low'
+    
+    CHOICES = [
+        (HIGH, 'High Risk'),
+        (MEDIUM, 'Medium Risk'),
+        (LOW, 'Low Risk'),
+    ]
+
+
+class InsightType:
+    """Types of generated performance insights"""
+    WARNING = 'warning'
+    POSITIVE = 'positive'
+    NEGATIVE = 'negative'
+    INFO = 'info'
+    
+    CHOICES = [
+        (WARNING, 'Warning'),
+        (POSITIVE, 'Positive'),
+        (NEGATIVE, 'Negative'),
+        (INFO, 'Information'),
+    ]
+
+
+class AnalyticsPeriod:
+    """Metric aggregation periods"""
+    DAILY = 'daily'
+    WEEKLY = 'weekly'
+    MONTHLY = 'monthly'
+    QUARTERLY = 'quarterly'
+    YEARLY = 'yearly'
+
+
+class AnalyticsCacheKeys:
+    """Cache key patterns for pre-calculated analytics"""
+    COMPANY_METRICS = 'reviews:analytics:company:{tenant_id}'
+    DEPARTMENT_METRICS = 'reviews:analytics:department:{tenant_id}:{dept_id}'
+    MANAGER_METRICS = 'reviews:analytics:manager:{tenant_id}:{manager_id}'
+
+
+class AnalyticsThresholds:
+    """Default threshold percentages and timeframes for analytics"""
+    RATING_INFLATION = 15.0       # Inflation trigger above company average %
+    RATING_DEFLATION = 15.0       # Deflation trigger below company average %
+    FLIGHT_RISK_YEARS = 2.0       # Years without promotion/review trigger
+
     

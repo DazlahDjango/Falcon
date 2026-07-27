@@ -4,10 +4,10 @@ import { Plus, Trash2, GripVertical } from 'lucide-react';
 
 const RatingScaleLevelEditor = ({ levels = [], onChange, minValue = 1, maxValue = 5 }) => {
   const [newLevel, setNewLevel] = useState({
+    value: minValue,
     label: '',
     description: '',
-    min: minValue,
-    max: maxValue,
+    min_pct: 0,
     color: '#3b82f6',
   });
 
@@ -16,10 +16,10 @@ const RatingScaleLevelEditor = ({ levels = [], onChange, minValue = 1, maxValue 
     const updatedLevels = [...levels, { ...newLevel, id: Date.now() }];
     onChange(updatedLevels);
     setNewLevel({
+      value: levels.length + minValue + 1,
       label: '',
       description: '',
-      min: minValue,
-      max: maxValue,
+      min_pct: 0,
       color: '#3b82f6',
     });
   };
@@ -52,6 +52,13 @@ const RatingScaleLevelEditor = ({ levels = [], onChange, minValue = 1, maxValue 
               <GripVertical size={16} />
             </div>
             <input
+              type="number"
+              className="rating-scale-level-editor-input small"
+              value={level.value}
+              onChange={(e) => updateLevel(index, 'value', Number(e.target.value))}
+              placeholder="Value"
+            />
+            <input
               type="text"
               className="rating-scale-level-editor-input"
               value={level.label}
@@ -68,16 +75,9 @@ const RatingScaleLevelEditor = ({ levels = [], onChange, minValue = 1, maxValue 
             <input
               type="number"
               className="rating-scale-level-editor-input small"
-              value={level.min}
-              onChange={(e) => updateLevel(index, 'min', Number(e.target.value))}
-              placeholder="Min"
-            />
-            <input
-              type="number"
-              className="rating-scale-level-editor-input small"
-              value={level.max}
-              onChange={(e) => updateLevel(index, 'max', Number(e.target.value))}
-              placeholder="Max"
+              value={level.min_pct || 0}
+              onChange={(e) => updateLevel(index, 'min_pct', Number(e.target.value))}
+              placeholder="Min %"
             />
             <input
               type="color"
@@ -98,6 +98,13 @@ const RatingScaleLevelEditor = ({ levels = [], onChange, minValue = 1, maxValue 
       <div className="rating-scale-level-editor-add">
         <div className="rating-scale-level-editor-add-row">
           <input
+            type="number"
+            className="rating-scale-level-editor-input small"
+            value={newLevel.value}
+            onChange={(e) => setNewLevel({ ...newLevel, value: Number(e.target.value) })}
+            placeholder="Value"
+          />
+          <input
             type="text"
             className="rating-scale-level-editor-input"
             value={newLevel.label}
@@ -114,21 +121,15 @@ const RatingScaleLevelEditor = ({ levels = [], onChange, minValue = 1, maxValue 
           <input
             type="number"
             className="rating-scale-level-editor-input small"
-            value={newLevel.min}
-            onChange={(e) => setNewLevel({ ...newLevel, min: Number(e.target.value) })}
-            placeholder="Min"
-          />
-          <input
-            type="number"
-            className="rating-scale-level-editor-input small"
-            value={newLevel.max}
-            onChange={(e) => setNewLevel({ ...newLevel, max: Number(e.target.value) })}
-            placeholder="Max"
+            value={newLevel.min_pct}
+            onChange={(e) => setNewLevel({ ...newLevel, min_pct: Number(e.target.value) })}
+            placeholder="Min %"
           />
           <div className="rating-scale-level-editor-color-select">
             {colors.map((color) => (
               <button
                 key={color}
+                type="button"
                 className={`rating-scale-level-editor-color-option ${newLevel.color === color ? 'active' : ''}`}
                 style={{ backgroundColor: color }}
                 onClick={() => setNewLevel({ ...newLevel, color })}
@@ -136,6 +137,7 @@ const RatingScaleLevelEditor = ({ levels = [], onChange, minValue = 1, maxValue 
             ))}
           </div>
           <button
+            type="button"
             className="btn btn-primary btn-sm"
             onClick={addLevel}
             disabled={!newLevel.label.trim()}

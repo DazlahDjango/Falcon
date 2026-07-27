@@ -25,6 +25,11 @@ const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false, er
 
     const [errors, setErrors] = useState({});
 
+    const totalWeight = (formData.kpi_weight || 0) + 
+                       (formData.competency_weight || 0) + 
+                       (formData.mission_weight || 0) + 
+                       (formData.task_weight || 0);
+
     // Auto-select standard default rating scale if available
     useEffect(() => {
         if (!formData.rating_scale && ratingScales.length > 0) {
@@ -88,11 +93,7 @@ const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false, er
             newErrors.rating_scale = 'Rating scale is required';
         }
         
-        const totalWeight = (formData.kpi_weight || 0) + 
-                           (formData.competency_weight || 0) + 
-                           (formData.mission_weight || 0) + 
-                           (formData.task_weight || 0);
-        if (Math.abs(totalWeight - 100) > 5) {
+        if (Math.abs(totalWeight - 100) > 0.1) {
             newErrors.weights = `Total weights sum to ${totalWeight}%. Must be 100%`;
         }
         
@@ -274,6 +275,55 @@ const CycleForm = ({ initialData = {}, onSubmit, onCancel, isLoading = false, er
                     </div>
                 </div>
                 {errors.weights && <div className="form-error">{errors.weights}</div>}
+
+                {/* Segmented Weights Visualizer */}
+                <div className="cycle-weights-visualizer">
+                    <div className="cycle-weights-visualizer-bar">
+                        <div 
+                            className="cycle-weights-segment kpi" 
+                            style={{ width: `${(formData.kpi_weight / (totalWeight || 1)) * 100}%` }}
+                            title={`KPI: ${formData.kpi_weight}%`}
+                        />
+                        <div 
+                            className="cycle-weights-segment competency" 
+                            style={{ width: `${(formData.competency_weight / (totalWeight || 1)) * 100}%` }}
+                            title={`Competency: ${formData.competency_weight}%`}
+                        />
+                        <div 
+                            className="cycle-weights-segment mission" 
+                            style={{ width: `${(formData.mission_weight / (totalWeight || 1)) * 100}%` }}
+                            title={`Mission: ${formData.mission_weight}%`}
+                        />
+                        <div 
+                            className="cycle-weights-segment task" 
+                            style={{ width: `${(formData.task_weight / (totalWeight || 1)) * 100}%` }}
+                            title={`Task: ${formData.task_weight}%`}
+                        />
+                    </div>
+                    <div className="cycle-weights-legend">
+                        <span className="cycle-weight-legend-item">
+                            <span className="legend-dot kpi"></span>
+                            KPI ({formData.kpi_weight || 0}%)
+                        </span>
+                        <span className="cycle-weight-legend-item">
+                            <span className="legend-dot competency"></span>
+                            Competency ({formData.competency_weight || 0}%)
+                        </span>
+                        <span className="cycle-weight-legend-item">
+                            <span className="legend-dot mission"></span>
+                            Mission ({formData.mission_weight || 0}%)
+                        </span>
+                        <span className="cycle-weight-legend-item">
+                            <span className="legend-dot task"></span>
+                            Task ({formData.task_weight || 0}%)
+                        </span>
+                    </div>
+                    <div className="cycle-weights-summary">
+                        <span className={`cycle-weights-total ${Math.abs(totalWeight - 100) < 0.1 ? 'valid' : 'invalid'}`}>
+                            Total Weights: {totalWeight}% {Math.abs(totalWeight - 100) < 0.1 ? '✓ (Valid)' : '✗ (Must equal 100%)'}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <div className="form-actions">
