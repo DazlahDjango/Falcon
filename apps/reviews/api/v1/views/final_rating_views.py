@@ -134,6 +134,10 @@ class FinalRatingViewSet(BaseReviewViewSet):
         if not cycle_id:
             cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status='completed').order_by('-end_date').first()
             if not cycle:
+                cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status='active').order_by('-end_date').first()
+            if not cycle:
+                cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id).order_by('-end_date').first()
+            if not cycle:
                 return Response({'cycle_id': None, 'cycle_name': None, 'total_ratings': 0, 'distribution': []})
         else:
             try:
@@ -157,6 +161,10 @@ class FinalRatingViewSet(BaseReviewViewSet):
         cycle_id = request.query_params.get('cycle_id')
         if not cycle_id:
             cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status='completed').order_by('-end_date').first()
+            if not cycle:
+                cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status='active').order_by('-end_date').first()
+            if not cycle:
+                cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id).order_by('-end_date').first()
             if not cycle:
                 return Response({'total_employees': 0, 'average_score': None, 'min_score': None, 'max_score': None, 'total_ratings': 0})
         else:

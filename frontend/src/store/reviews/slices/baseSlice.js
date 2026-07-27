@@ -20,7 +20,8 @@ export const createCrudSlice = (name, service, options = {}) => {
     async (params = {}, { rejectWithValue }) => {
       try {
         const response = await service.list({ ...listParams, ...params });
-        return transformResponse(response);
+        const data = response && response.data !== undefined ? response.data : response;
+        return transformResponse(data);
       } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
       }
@@ -32,7 +33,7 @@ export const createCrudSlice = (name, service, options = {}) => {
     async (id, { rejectWithValue }) => {
       try {
         const response = await service.get(id);
-        return response;
+        return response && response.data !== undefined ? response.data : response;
       } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
       }
@@ -44,7 +45,7 @@ export const createCrudSlice = (name, service, options = {}) => {
     async (data, { rejectWithValue }) => {
       try {
         const response = await service.create(data);
-        return response;
+        return response && response.data !== undefined ? response.data : response;
       } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
       }
@@ -56,7 +57,7 @@ export const createCrudSlice = (name, service, options = {}) => {
     async ({ id, data }, { rejectWithValue }) => {
       try {
         const response = await service.update(id, data);
-        return response;
+        return response && response.data !== undefined ? response.data : response;
       } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
       }
@@ -68,7 +69,7 @@ export const createCrudSlice = (name, service, options = {}) => {
     async ({ id, data }, { rejectWithValue }) => {
       try {
         const response = await service.patch(id, data);
-        return response;
+        return response && response.data !== undefined ? response.data : response;
       } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
       }

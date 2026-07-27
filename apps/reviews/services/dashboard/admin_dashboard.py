@@ -18,6 +18,7 @@ class AdminDashboardService(BaseDashboardService):
             'pip_oversight': cls._get_pip_oversight(tenant_id),
             'promotion_oversight': cls._get_promotion_oversight(tenant_id),
             'calibration_oversight': cls._get_calibration_oversight(tenant_id),
+            'recent_audit_feed': cls._get_recent_audit_feed(tenant_id),
             'export_ready': cls._get_export_ready(tenant_id),
         }
         cls._set_cached(tenant_id, 'admin', 'admin', data)
@@ -70,3 +71,30 @@ class AdminDashboardService(BaseDashboardService):
     def _get_export_ready(cls, tenant_id):
         latest_cycle = ReviewCycle.objects.filter(tenant_id=tenant_id).order_by('-end_date').first()
         return {'can_export_full_report': latest_cycle is not None and latest_cycle.status in ['completed', 'approved', 'archived'], 'latest_cycle_name': latest_cycle.name if latest_cycle else None, 'export_formats': ['csv', 'excel', 'pdf']}
+    @classmethod
+    def _get_recent_audit_feed(cls, tenant_id):
+        from ...models import ReviewAuditLog
+        from apps.accounts.models import User
+        
+        logs = ReviewAuditLog.objects.filter(tenant_id=tenant_id).order_by('-created_at')[:5]
+        actor_ids = [l.actor_id for l in logs if l.actor_id]
+        
+        actors = {}
+        if actor_ids:
+            actors = {
+                str(u.id): u.get_full_name() or u.email
+                for u in User.objects.filter(id__in=actor_ids)
+            }
+            
+        feed = []
+        for l in logs:
+            feed.append({
+                'id': str(l.id),
+                'model_name': l.model_name,
+                'action': l.get_action_display(),
+                'object_id': l.object_id,
+                'actor': actors.get(str(l.actor_id)) if l.actor_id else 'System',
+                'ip_address': l.ip_address,
+                'created_at': l.created_at.isoformat()
+            })
+        return feed

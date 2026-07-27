@@ -29,3 +29,5 @@ export { default as QualityMetrics } from './admin/QualityMetrics';
 export { default as PIPOverview } from './admin/PIPOverview';
 export { default as PromotionOverview } from './admin/PromotionOverview';
 export { default as CalibrationOverview } from './admin/CalibrationOverview';
+
+export { default as DashboardSwitcher } from './DashboardSwitcher';

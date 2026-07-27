@@ -8,12 +8,14 @@ from apps.accounts.api.v1.permissions import IsTenantMember
 
 class StaffDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsTenantMember]
+    throttle_classes = []
     def get(self, request):
         dashboard = StaffDashboardService.get_dashboard(request.user)
         return Response(dashboard)
 
 class SupervisorDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsTenantMember]
+    throttle_classes = []
     def get(self, request):
         if request.user.role not in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
             return Response({'error': 'Permission denied. Supervisor role required.'}, status=403)
@@ -22,6 +24,7 @@ class SupervisorDashboardView(APIView):
 
 class ExecutiveDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsTenantMember]
+    throttle_classes = []
     def get(self, request):
         if request.user.role not in [UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
             return Response({'error': 'Permission denied. Executive role required.'}, status=403)
@@ -31,6 +34,7 @@ class ExecutiveDashboardView(APIView):
 
 class AdminDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsTenantMember]
+    throttle_classes = []
     def get(self, request):
         if request.user.role not in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
             return Response({'error': 'Permission denied. Admin role required.'}, status=403)

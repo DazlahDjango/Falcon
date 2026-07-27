@@ -19,6 +19,7 @@ class StaffDashboardService(BaseDashboardService):
             'supervisor_review': cls._get_supervisor_review_status(employee, review_cycle),
             'final_rating': cls._get_final_rating(employee, review_cycle),
             'pending_feedback_requests': cls._get_pending_feedback_requests(employee),
+            'feedback_tasks_to_write': cls._get_feedback_tasks_to_write(employee),
             'active_pip': cls._get_active_pip(employee),
             'upcoming_deadlines': cls._get_upcoming_deadlines(employee, review_cycle),
         }
@@ -52,6 +53,24 @@ class StaffDashboardService(BaseDashboardService):
     def _get_pending_feedback_requests(cls, employee):
         requests = FeedbackRequest.objects.filter(subject=employee, status='draft', due_date__gte=timezone.now().date()).select_related('reviewer')
         return [{'id': str(r.id), 'reviewer': r.reviewer.get_full_name(), 'reviewer_type': r.get_reviewer_type_display(), 'due_date': r.due_date.isoformat()} for r in requests]
+    @classmethod
+    def _get_feedback_tasks_to_write(cls, employee):
+        requests = FeedbackRequest.objects.filter(
+            reviewer=employee,
+            status='draft',
+            due_date__gte=timezone.now().date()
+        ).select_related('subject', 'review_cycle')
+        return [
+            {
+                'id': str(r.id),
+                'subject_id': str(r.subject.id),
+                'subject_name': r.subject.get_full_name(),
+                'reviewer_type': r.get_reviewer_type_display(),
+                'due_date': r.due_date.isoformat(),
+                'cycle_name': r.review_cycle.name
+            }
+            for r in requests
+        ]
     @classmethod
     def _get_active_pip(cls, employee):
         pip = PIP.objects.filter(employee=employee, status__in=['draft', 'submitted']).first()

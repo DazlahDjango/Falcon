@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users } from 'lucide-react';
 import { useReviewsPermissions } from '../../../hooks/reviews';
-import { SupervisorDashboard } from '../../../components/reviews/dashboard';
+import { SupervisorDashboard, DashboardSwitcher } from '../../../components/reviews/dashboard';
 import { ReviewBreadcrumbs } from '../../../components/reviews/common';
 
 const SupervisorDashboardPage = () => {
@@ -39,6 +39,7 @@ const SupervisorDashboardPage = () => {
         </h1>
       </div>
 
+      <DashboardSwitcher />
       <SupervisorDashboard />
     </div>
   );

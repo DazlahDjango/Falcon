@@ -148,13 +148,13 @@ class AnalyticsSnapshot(ReviewBaseModel):
         db_table = 'reviews_analytics_snapshots'
         ordering = ['-snapshot_date']
         indexes = [
-            models.Index(fields=['tenant', 'snapshot_type', 'snapshot_date']),
-            models.Index(fields=['tenant', 'department', 'snapshot_date']),
-            models.Index(fields=['tenant', 'manager', 'snapshot_date']),
+            models.Index(fields=['tenant_id', 'snapshot_type', 'snapshot_date']),
+            models.Index(fields=['tenant_id', 'department', 'snapshot_date']),
+            models.Index(fields=['tenant_id', 'manager', 'snapshot_date']),
             models.Index(fields=['snapshot_date', 'is_stale']),
         ]
         unique_together = [
-            ['tenant', 'snapshot_type', 'department', 'manager', 'review_cycle', 'snapshot_date']
+            ['tenant_id', 'snapshot_type', 'department', 'manager', 'review_cycle', 'snapshot_date']
         ]
     
     def __str__(self):

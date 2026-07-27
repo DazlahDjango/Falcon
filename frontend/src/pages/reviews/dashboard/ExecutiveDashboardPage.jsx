@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { useReviewsPermissions } from '../../../hooks/reviews';
-import { ExecutiveDashboard } from '../../../components/reviews/dashboard';
+import { ExecutiveDashboard, DashboardSwitcher } from '../../../components/reviews/dashboard';
 import { ReviewBreadcrumbs } from '../../../components/reviews/common';
 
 const ExecutiveDashboardPage = () => {
@@ -39,6 +39,7 @@ const ExecutiveDashboardPage = () => {
         </h1>
       </div>
 
+      <DashboardSwitcher />
       <ExecutiveDashboard />
     </div>
   );
