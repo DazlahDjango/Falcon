@@ -35,16 +35,7 @@ class UserRegistrationService:
                 last_name=last_name.strip(),
                 role=role,
                 is_verified=False,
-                is_onboarded=False
-            )
-            Profile.objects.create(
-                user=user,
-                tenant_id=tenant_id
-            )
-            UserPreference.objects.create(
-                user=user,
-                tenant_id=tenant_id
-            )
+                )
             self._send_verification_email(user)
             self.audit_service.log(
                 user=user, action='user.register', action_type='create', request=request, severity='info', metadata={'role': role}

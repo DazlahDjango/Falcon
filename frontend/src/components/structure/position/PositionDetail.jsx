@@ -223,7 +223,9 @@ export const PositionDetail = () => {
           {currentItem.required_competencies && currentItem.required_competencies.length > 0 ? (
             <div className="competencies-list">
               {currentItem.required_competencies.map((comp, index) => (
-                <span key={index} className="competency-tag">{comp}</span>
+                <span key={index} className="competency-tag">
+                  {typeof comp === 'object' ? (comp.level ? `${comp.name} (${comp.level})` : comp.name) : comp}
+                </span>
               ))}
             </div>
           ) : (

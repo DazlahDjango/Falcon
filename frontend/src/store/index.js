@@ -7,8 +7,10 @@ import rootReducer from './rootReducer';
 import kpiModuleReducer from './kpi/index';
 
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
+import { errorHandlerMiddleware, networkErrorMiddleware, retryMiddleware } from './accounts/middlewares/errorMiddleware';
 import { loggerMiddleware } from './middleware';
 // Tenant Middlewares
+import { tenantMiddlewares } from './tenant/middleware';
 // Billing
 import { billingMiddlewares } from './billing/middleware';
 import { backupMiddleware, maintenanceMiddleware } from './config';
@@ -71,6 +73,10 @@ export const store = configureStore({
                 ignoredActions: [
                     'persist/PERSIST',
                     'persist/REHYDRATE',
+                    'persist/PURGE',
+                    'persist/REGISTER',
+                    'persist/FLUSH',
+                    'persist/PAUSE',
                     'websocket/message',
                     'websocket/connect',
                     'websocket/disconnect'
@@ -99,7 +105,11 @@ export const store = configureStore({
             }
         }).concat(
             authMiddleware,
+            errorHandlerMiddleware,
+            networkErrorMiddleware,
+            retryMiddleware,
             loggerMiddleware,
+            ...tenantMiddlewares,
             backupMiddleware,
             maintenanceMiddleware,
             ...billingMiddlewares

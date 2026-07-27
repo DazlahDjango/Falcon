@@ -48,9 +48,9 @@ const MonthlyPhasing = ({
                 <h3>Monthly Target Phasing</h3>
                 <div className="kpi-monthly-phasing-stats">
                     <span>Annual Target: {annualTarget}</span>
-                    <span>Sum of Months: {totalTarget.toFixed(2)}</span>
+                    <span>Sum of Months: {Number(totalTarget || 0).toFixed(2)}</span>
                     <span className={Math.abs(variance) < 0.01 ? 'valid' : 'invalid'}>
-                        Variance: {variance.toFixed(2)}
+                        Variance: {Number(variance || 0).toFixed(2)}
                     </span>
                 </div>
             </div>

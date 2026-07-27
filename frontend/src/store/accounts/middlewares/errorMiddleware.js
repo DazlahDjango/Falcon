@@ -121,11 +121,14 @@ export const networkErrorMiddleware = (store) => (next) => (action) => {
     if (error?.status === 401) {
       const state = store.getState();
       if (state.auth?.isAuthenticated) {
-        setTimeout(() => {
+        Promise.all([
+          import('../slice/authSlice').then(({ logout }) => store.dispatch(logout())),
+          import('../../index').then(({ persistor }) => persistor.purge()),
+        ]).finally(() => {
           if (typeof window !== 'undefined') {
             window.location.href = '/login';
           }
-        }, 1000);
+        });
       }
     }
 

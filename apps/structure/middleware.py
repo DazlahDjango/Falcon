@@ -28,17 +28,18 @@ class StructureContextMiddleware(MiddlewareMixin):
                     is_current=True,
                     is_deleted=False,
                     is_active=True
-                ).select_related('division', 'department', 'section', 'unit', 'position').first()
+                ).select_related('position').first()
                 
                 enforcer = HierarchyAccessEnforcer()
                 
+                pos = employment.position if employment else None
                 context = {
                     'tenant_id': str(tenant_id),
                     'user_id': str(user_id),
-                    'division_id': str(employment.division_id) if employment else None,
-                    'department_id': str(employment.department_id) if employment else None,
-                    'section_id': str(employment.section_id) if employment else None,
-                    'unit_id': str(employment.unit_id) if employment else None,
+                    'division_id': str(getattr(employment, 'division_id', getattr(pos, 'division_id', None))),
+                    'department_id': str(getattr(employment, 'department_id', getattr(pos, 'department_id', None))),
+                    'section_id': str(getattr(employment, 'section_id', getattr(pos, 'section_id', None))),
+                    'unit_id': str(getattr(employment, 'unit_id', getattr(pos, 'unit_id', None))),
                     'position_id': str(employment.position_id) if employment else None,
                     'is_manager': employment.is_manager if employment else False,
                     'is_executive': employment.is_executive if employment else False,

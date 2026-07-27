@@ -9,7 +9,7 @@ User = get_user_model()
 user = User.objects.exclude(tenant_id__isnull=True).first()
 request = RequestFactory().get('/api/v1/structure/hierarchy/current/')
 request.user = user
-view = HierarchyViewSet.as_view({'get': 'current'})
+view = HierarchyViewSet.as_view({'get': 'get_current_version'})
 try:
     response = view(request)
     print('CURRENT CODE:', response.status_code)
@@ -31,7 +31,7 @@ except Exception as e:
 
 request3 = RequestFactory().get('/api/v1/structure/hierarchy/validate/')
 request3.user = user
-view3 = HierarchyViewSet.as_view({'get': 'validate'})
+view3 = HierarchyViewSet.as_view({'get': 'validate_hierarchy'})
 try:
     response3 = view3(request3)
     print('VALIDATE CODE:', response3.status_code)

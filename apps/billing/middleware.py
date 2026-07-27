@@ -9,6 +9,55 @@ from .constants import SubscriptionStatus
 
 logger = logging.getLogger(__name__)
 
+def _is_super_admin(request):
+    """
+    Check if request is from a super_admin or superuser.
+    Handles both Django session auth and JWT Bearer token headers.
+    """
+    user = getattr(request, 'user', None)
+    if user and user.is_authenticated:
+        if getattr(user, 'is_superuser', False) or getattr(user, 'role', None) == 'super_admin':
+            return True, user
+
+    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+        try:
+            from apps.accounts.services.auth.jwt import JWTServices
+            payload = JWTServices().verify_token(token)
+            if payload:
+                user_id = payload.get('user_id')
+                role = payload.get('role')
+
+                if role == 'super_admin':
+                    return True, None
+
+                if user_id:
+                    from apps.accounts.models import User
+                    from django.db import connection
+                    try:
+                        with connection.cursor() as cursor:
+                            cursor.execute("SHOW search_path")
+                            orig_path = cursor.fetchone()[0]
+                            cursor.execute('SET search_path TO "public"')
+
+                        db_user = User.objects.filter(id=user_id).first()
+
+                        if orig_path:
+                            with connection.cursor() as cursor:
+                                cursor.execute(f"SET search_path TO {orig_path}")
+
+                        if db_user:
+                            request.user = db_user
+                            if db_user.is_superuser or db_user.role == 'super_admin':
+                                return True, db_user
+                    except Exception as e:
+                        logger.warning(f"Error fetching user in SubscriptionGuard: {e}")
+        except Exception as e:
+            logger.debug(f"Error verifying token in SubscriptionGuard: {e}")
+
+    return False, None
+
 class SubscriptionGuardMiddleware(MiddlewareMixin):
     BYPASS_PATHS = ['/api/v1/billing/webhook/', '/api/v1/auth/', '/api/v1/plans/', '/api/v1/billing/checkout/', '/api/v1/admin/', '/admin/', '/health/', '/ws/', '/api/v1/dashboard/', '/api/v1/config/', '/api/v1/sessions/', '/api/v1/accounts/me/', '/api/v1/notifications/', '/api/v1/tenant/settings/']
     PREMIUM_FEATURES = {'custom_branding': ['/api/v1/tenant/branding/'], 'api_access': ['/api/v1/external/'], 'advanced_analytics': ['/api/v1/analytics/advanced/'], 'custom_reports': ['/api/v1/reports/custom/'], 'sso_enabled': ['/api/v1/sso/']}
@@ -16,12 +65,12 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
         for path in self.BYPASS_PATHS:
             if request.path.startswith(path):
                 return None
-        user = getattr(request, 'user', None)
-        if user and user.is_authenticated:
-            if user.is_superuser or getattr(user, 'role', None) == 'super_admin':
-                logger.info(f"SubscriptionGuard bypass for admin {user.email if user else 'system'}")
-                request.is_admin_bypass = True
-                return None
+        is_admin, admin_user = _is_super_admin(request)
+        if is_admin:
+            email = getattr(admin_user, 'email', None) if admin_user else 'super_admin'
+            logger.info(f"SubscriptionGuard bypass for admin {email}")
+            request.is_admin_bypass = True
+            return None
         tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
         if not tenant_id:
             return None
@@ -80,8 +129,8 @@ class BillingAuditMiddleware(MiddlewareMixin):
         if any(request.path.startswith(path) for path in self.BILLING_PATHS) and hasattr(request, '_billing_audit_start'):
             duration = (timezone.now() - request._billing_audit_start).total_seconds()
             user = getattr(request, 'user', None)
-            user_id = str(user.id) if user and user.id else None
-            user_email = user.email if user and user.email else None
+            user_id = str(user.id) if user and user.is_authenticated else None
+            user_email = user.email if user and user.is_authenticated else None
             tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
             audit_data = {'timestamp': timezone.now().isoformat(), 'user_id': user_id, 'user_email': user_email, 'tenant_id': str(tenant_id) if tenant_id else None, 'method': request.method, 'path': request.path, 'status_code': response.status_code, 'duration_ms': int(duration * 1000), 'ip_address': self._get_client_ip(request)}
             cache_key = f"billing_audit_{int(timezone.now().timestamp())}"
@@ -96,9 +145,10 @@ class WebhookRateLimitMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if not request.path.startswith('/api/v1/billing/webhook/'):
             return None
-        user = getattr(request, 'user', None)
-        if user and user.is_authenticated and (user.is_superuser or getattr(user, 'role', None) == 'super_admin'):
-            logger.info(f"Webhook rate limit bypass for admin {user.email}")
+        is_admin, admin_user = _is_super_admin(request)
+        if is_admin:
+            email = getattr(admin_user, 'email', None) if admin_user else 'super_admin'
+            logger.info(f"Webhook rate limit bypass for admin {email}")
             return None
         client_ip = self._get_client_ip(request)
         rate_key = f"webhook_rate_limit_{client_ip}"

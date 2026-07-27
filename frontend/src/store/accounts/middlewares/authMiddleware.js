@@ -87,10 +87,15 @@ export const authMiddleware = (store) => (next) => async (action) => {
         return store.dispatch(retryAction);
       } catch (error) {
         processQueue(error, null);
-        store.dispatch(logout());
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
+        store.dispatch(logout()).unwrap().catch(() => {}).finally(() => {
+          import('../../index').then(({ persistor }) => {
+            persistor.purge().finally(() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+              }
+            });
+          });
+        });
         return result;
       } finally {
         isRefreshing = false;

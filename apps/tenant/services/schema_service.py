@@ -89,12 +89,12 @@ class SchemaService:
         schema = OrganizationSchema.objects.get(id=schema_id)
         try:
             with connection.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute("""
                     SELECT COUNT(*)::int, 
-                           COALESCE(pg_total_relation_size('"{schema.schema_name}"."'||tablename||'"'), 0)
+                           COALESCE(SUM(pg_total_relation_size('"' || schemaname || '"."' || tablename || '"')), 0)::double precision
                     FROM pg_tables 
-                    WHERE schemaname = '{schema.schema_name}'
-                """)
+                    WHERE schemaname = %s
+                """, [schema.schema_name])
                 row = cursor.fetchone()
                 if row:
                     schema.table_count = row[0] or 0

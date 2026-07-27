@@ -31,8 +31,29 @@ class SAMLService:
     
     def process_saml_response(self, saml_response: str, tenant_id: str, request=None) -> Tuple[Optional[User], Optional[str]]:
         try: 
+            config = self._get_tenant_config(tenant_id)
+            if not config:
+                return None, 'SAML is not configured/enabled for this tenant'
+            
             decode = base64.b64decode(saml_response).decode('utf-8')
             root = ET.fromstring(decode)
+            
+            cert = config.get('idp_certificate')
+            if not cert:
+                return None, 'IdP Certificate is missing from SAML configuration'
+            
+            cert = cert.strip()
+            if not cert.startswith('-----BEGIN CERTIFICATE-----'):
+                cert = f"-----BEGIN CERTIFICATE-----\n{cert}\n-----END CERTIFICATE-----"
+            
+            from signxml import XMLVerifier
+            try:
+                # Verify the XML signature using signxml and the IdP certificate
+                XMLVerifier().verify(root, x509_cert=cert.encode())
+            except Exception as sig_err:
+                logger.error(f"SAML Signature Verification Failed for tenant {tenant_id}: {sig_err}")
+                return None, 'SAML signature verification failed'
+                
             ns = {'saml': 'urn:oasis:names:tc:SAML:2.0:assertion',
                   'samlp': 'urn:oasis:names:tc:SAML:2.0:protocol'}
             assertion = root.find('.//saml:Assertion', ns)

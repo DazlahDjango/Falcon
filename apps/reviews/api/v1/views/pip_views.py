@@ -179,10 +179,10 @@ class PIPViewSet(BaseReviewViewSet):
             return Response({'error': 'Rating not found'}, status=status.HTTP_404_NOT_FOUND)
     @action(detail=False, methods=['get', 'post'])
     def report(self, request):
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.get(id=request.user.tenant_id)
-        except Client.DoesNotExist:
+            tenant = Organization.objects.get(id=request.user.tenant_id)
+        except Organization.DoesNotExist:
             return Response({'error': 'Tenant not found'}, status=status.HTTP_404_NOT_FOUND)
         report = PIPReportService.get_organization_pip_summary(tenant)
         return Response(report)
@@ -193,8 +193,8 @@ class PIPViewSet(BaseReviewViewSet):
         return Response(report)
     @action(detail=False, methods=['get'])
     def trends(self, request):
-        from apps.tenant.models import Client
-        tenant = Client.objects.get(id=request.user.tenant_id)
+        from apps.tenant.models import Organization
+        tenant = Organization.objects.get(id=request.user.tenant_id)
         months = int(request.query_params.get('months', 6))
         trends = PIPReportService.get_pip_trends(tenant, months)
         return Response(trends)

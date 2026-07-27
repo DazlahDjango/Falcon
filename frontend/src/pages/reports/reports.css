@@ -1,0 +1,96 @@
+/* frontend/src/pages/reports/reports.css */
+.reports-page,
+.report-list-page,
+.report-detail-page,
+.report-create-page,
+.report-edit-page,
+.report-generate-page,
+.report-export-page,
+.templates-page,
+.template-detail-page,
+.template-create-page,
+.template-edit-page,
+.template-apply-page,
+.schedules-page,
+.schedule-detail-page,
+.schedule-create-page,
+.schedule-edit-page,
+.executions-page,
+.execution-detail-page,
+.exports-page,
+.export-detail-page,
+.export-create-page,
+.dashboards-page,
+.dashboard-detail-page,
+.dashboard-create-page,
+.dashboard-edit-page,
+.dashboard-view-page,
+.shares-page,
+.share-detail-page,
+.share-create-page,
+.share-access-page,
+.audits-page,
+.audit-detail-page,
+.analytics-page {
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.report-list-page,
+.report-detail-page,
+.report-create-page,
+.report-edit-page,
+.report-generate-page,
+.report-export-page {
+    padding: 0;
+}
+
+.templates-page,
+.template-detail-page,
+.template-create-page,
+.template-edit-page,
+.template-apply-page {
+    padding: 0;
+}
+
+.schedules-page,
+.schedule-detail-page,
+.schedule-create-page,
+.schedule-edit-page {
+    padding: 0;
+}
+
+.executions-page,
+.execution-detail-page {
+    padding: 0;
+}
+
+.exports-page,
+.export-detail-page,
+.export-create-page {
+    padding: 0;
+}
+
+.dashboards-page,
+.dashboard-detail-page,
+.dashboard-create-page,
+.dashboard-edit-page,
+.dashboard-view-page {
+    padding: 0;
+}
+
+.shares-page,
+.share-detail-page,
+.share-create-page,
+.share-access-page {
+    padding: 0;
+}
+
+.audits-page,
+.audit-detail-page {
+    padding: 0;
+}
+
+.analytics-page {
+    padding: 0;
+}

@@ -22,7 +22,7 @@ const ActualValueInput = ({ value, onChange, targetMin, targetMax, unit, decimal
     const getAchievementPercentage = () => {
         if (!value || !targetMax) return null;
         const percentage = (value / targetMax) * 100;
-        return percentage.toFixed(1);
+        return Number(percentage || 0).toFixed(1);
     };
 
     return (

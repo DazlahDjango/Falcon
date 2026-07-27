@@ -40,11 +40,13 @@ class AuthenticationService:
 
         # Tenant validation for non-super-admins
         if user and user.role != 'super_admin':
-            if tenant_id and str(tenant_id) != user_tenant_id:
-                # Caller supplied a tenant_id but it doesn't match — reject (security).
-                # We do NOT reveal whether the user exists; keep message generic.
-                return None, None, 'Invalid credentials or organisation'
-            # If tenant_id not supplied — that is OK, we read it from the user record.
+            if not tenant_id:
+                if user_tenant_id:
+                    tenant_id = user_tenant_id
+                else:
+                    return None, None, 'User is not assigned to any organization. Please contact administrator.'
+            elif str(tenant_id) != user_tenant_id:
+                return None, None, 'Invalid Organization Tenant ID for this user'
 
         
         # Skip lockout/rate limits for super admins
@@ -225,7 +227,7 @@ class AuthenticationService:
         ip_limit = lockout.get('ip_failure_limit', 5)
         if LoginAttempt.get_failure_count(email, minutes=window) >= email_limit:
             return True
-        if LoginAttempt.get_failure_count(ip_address, minutes=window) >= ip_limit:
+        if LoginAttempt.get_ip_failure_count(ip_address, minutes=window) >= ip_limit:
             return True
         return False
     

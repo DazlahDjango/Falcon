@@ -39,7 +39,7 @@ const HealthScoreCard = ({ health }) => {
                         />
                     </svg>
                     <div className="health-score-value">
-                        {health?.overall_health_score?.toFixed(1) || 0}%
+                        {Number(health?.overall_health_score || 0).toFixed(1)}%
                     </div>
                 </div>
                 
@@ -52,7 +52,7 @@ const HealthScoreCard = ({ health }) => {
                     {metrics.map(metric => (
                         <div key={metric.label} className="health-metric">
                             <div className="health-metric-value" style={{ color: `var(--kpi-${metric.color})` }}>
-                                {metric.value.toFixed(1)}{metric.suffix}
+                                {Number(metric.value || 0).toFixed(1)}{metric.suffix}
                             </div>
                             <div className="health-metric-label">{metric.label}</div>
                         </div>

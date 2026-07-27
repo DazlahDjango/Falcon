@@ -14,7 +14,7 @@ import {
   forceSuspendOrganization,
   forceActivateOrganization,
   forceDeleteOrganization,
-} from '../tenant/organization.slice';
+} from '../slice/organization.slice';
 
 import {
   fetchDomains,
@@ -29,7 +29,7 @@ import {
   fetchExpiringSSL,
   verifyAllPendingDomains,
   fetchDomainStats,
-} from '../tenant/domain.slice';
+} from '../slice/domain.slice';
 
 import {
   fetchSchemas,
@@ -44,7 +44,7 @@ import {
   fetchSchemaStats,
   provisionTenantSchema,
   dropTenantSchema,
-} from '../tenant/schema.slice';
+} from '../slice/schema.slice';
 
 import {
   fetchResources,
@@ -57,7 +57,7 @@ import {
   fetchTenantResources,
   fetchResourceUsage,
   resetTenantResource,
-} from '../tenant/resource.slice';
+} from '../slice/resource.slice';
 
 import {
   fetchConnections,
@@ -73,7 +73,7 @@ import {
   fetchTenantConnections,
   closeTenantConnection,
   fetchTenantConnectionStatus,
-} from '../tenant/connection.slice';
+} from '../slice/connection.slice';
 
 import {
   fetchMigrations,
@@ -86,7 +86,7 @@ import {
   fetchTenantMigrations,
   fetchTenantMigrationStats,
   applyTenantMigration,
-} from '../tenant/migration.slice';
+} from '../slice/migration.slice';
 
 const tenantMiddleware = createListenerMiddleware();
 

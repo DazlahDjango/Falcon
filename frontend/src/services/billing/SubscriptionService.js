@@ -45,7 +45,7 @@ class SubscriptionServiceClass extends BillingBaseService {
     async hasActiveSubscription() {
         try {
             const subscription = await this.getCurrentSubscription();
-            return subscription?.data?.is_active === true;
+            return subscription?.data?.is_active_status?.is_active === true;
         } catch { return false; }
     }
     async getSubscriptionStatus() {

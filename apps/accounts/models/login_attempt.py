@@ -89,6 +89,12 @@ class LoginAttempt(BaseModel):
         return cls.get_recent_attempts(identifier, minutes).filter(result=cls.FAILURE).count()
     
     @classmethod
+    def get_ip_failure_count(cls, ip_address, minutes=15):
+        """Get failure count for an IP address in last X minutes."""
+        cutoff = timezone.now() - timezone.timedelta(minutes=minutes)
+        return cls.objects.filter(ip_address=ip_address, result=cls.FAILURE, attempted_at__gte=cutoff).count()
+    
+    @classmethod
     def record_attempt(cls, identifier, result, user=None, failure_reason='', request=None, **kwargs):
         """Record a login attempt."""
         data = {

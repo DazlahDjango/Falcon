@@ -50,15 +50,26 @@ class KPIAggregator(BaseReviewService):
     def get_team_kpi_scores(team_id, start_date, end_date):
         try:
             from apps.kpi.services import ScoreAggregator
-            from apps.structure.models import Team
+            from apps.structure.models import Unit, Employment
             aggregator = ScoreAggregator()
-            team = Team.objects.get(id=team_id)
+            unit = Unit.objects.get(id=team_id)
             team_score = aggregator.aggregate_team(team_id=str(team_id), year=end_date.year, month=end_date.month, force=False)
+            
+            # Fetch active user records via Employment
+            employments = Employment.objects.filter(
+                position__unit=unit,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            )
+            from apps.accounts.models import User
+            members = User.objects.filter(id__in=employments.values_list('user_id', flat=True), is_active=True)
+            
             member_scores = {}
-            for member in team.members.all():
+            for member in members:
                 score = aggregator.aggregate_user(user_id=str(member.id), year=end_date.year, month=end_date.month, force=False)
                 member_scores[member.id] = float(score) if score else None
-            return {'team_average': float(team_score) if team_score else None, 'member_scores': member_scores, 'member_count': len(member_scores), 'team_name': team.name}
+            return {'team_average': float(team_score) if team_score else None, 'member_scores': member_scores, 'member_count': len(member_scores), 'team_name': unit.name}
         except Exception as e:
             logger.error(f"Error getting team KPI scores for team {team_id}: {e}")
             return {'team_average': None, 'member_scores': {}, 'member_count': 0, 'team_name': None}
@@ -66,12 +77,23 @@ class KPIAggregator(BaseReviewService):
     def get_department_kpi_scores(department_id, start_date, end_date):
         try:
             from apps.kpi.services import ScoreAggregator
-            from apps.structure.models import Department
+            from apps.structure.models import Department, Employment
             aggregator = ScoreAggregator()
             department = Department.objects.get(id=department_id)
             dept_score = aggregator.aggregate_department(department_id=str(department_id), year=end_date.year, month=end_date.month, force=False)
+            
+            # Fetch active user records via Employment
+            employments = Employment.objects.filter(
+                position__department=department,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            )
+            from apps.accounts.models import User
+            members = User.objects.filter(id__in=employments.values_list('user_id', flat=True), is_active=True)
+            
             member_scores = {}
-            for member in department.members.all():
+            for member in members:
                 score = aggregator.aggregate_user(user_id=str(member.id), year=end_date.year, month=end_date.month, force=False)
                 member_scores[member.id] = float(score) if score else None
             return {'department_average': float(dept_score) if dept_score else None, 'member_scores': member_scores, 'member_count': len(member_scores), 'department_name': department.name}

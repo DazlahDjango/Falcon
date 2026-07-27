@@ -6,7 +6,7 @@ from apps.tenant.models import Organization
 logger = logging.getLogger(__name__)
 
 class TenantAccessService:
-    def __int__(self):
+    def __init__(self):
         self.cache_prefix = 'tenant_access:'
     
     def get_user_tenant(self, user: User) -> Optional[str]:
@@ -21,11 +21,11 @@ class TenantAccessService:
         return self.is_tenant_member(user, tenant_id)
     
     def can_access_user_data(self, accessing_user: User, target_user: User) -> bool:
-        if accessing_user.tenant_id != target_user.tenant_id:
-            return False
-        # Super admin can access any user
+        # Super admin can access any user across all tenants
         if accessing_user.is_superuser or accessing_user.role == 'super_admin':
             return True
+        if accessing_user.tenant_id != target_user.tenant_id:
+            return False
         # Client admin access al users in tenants
         if accessing_user.role == 'client_admin':
             return True

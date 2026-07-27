@@ -45,7 +45,7 @@ const KPIWeights = ({ kpiId, kpi }) => {
             <div className="weight-summary">
                 <div className={`total-weight ${isValid ? 'valid' : 'invalid'}`}>
                     <span>Total Weight:</span>
-                    <strong>{totalWeight.toFixed(1)}%</strong>
+                    <strong>{Number(totalWeight || 0).toFixed(1)}%</strong>
                     {isValid && <FiCheckCircle size={16} />}
                 </div>
                 {!isValid && (

@@ -20,6 +20,7 @@ from apps.billing.routing import websocket_urlpatterns as billing_websocket
 from apps.configs.routing import websocket_urlpatterns as config_websocket
 from apps.dashboard.routing import websocket_urlpatterns as dashboard_websocket
 from apps.tenant.routing import websocket_urlpatterns as tenant_websocket
+from apps.reportplt.routing import websocket_urlpatterns as reportplt_websocket
 from apps.accounts.routing.middleware import WebSocketAuthMiddleware
 
 # Combined WebSocket URL Patterns
@@ -32,6 +33,7 @@ websocket_urlpatterns.extend(billing_websocket)
 websocket_urlpatterns.extend(config_websocket)
 websocket_urlpatterns.extend(dashboard_websocket)
 websocket_urlpatterns.extend(tenant_websocket)
+websocket_urlpatterns.extend(reportplt_websocket)
 
 # Main Application Router
 application = ProtocolTypeRouter({

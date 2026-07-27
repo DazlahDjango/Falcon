@@ -97,8 +97,8 @@ class OAuthService:
         password_service = PasswordService()
         import secrets
         random_password = secrets.token_urlsafe(16)
-        from apps.tenant.models import Client
-        default_tenant = Client.objects.filter(is_deleted=False).first()
+        from apps.tenant.models import Organization
+        default_tenant = Organization.objects.filter(is_deleted=False).first()
         if not default_tenant:
             return None, None
         user, error = self.user_registration.register_user(

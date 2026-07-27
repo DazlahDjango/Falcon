@@ -157,10 +157,13 @@ class OrganizationApiThrottle(BaseThrottle):
 
     def allow_request(self, request, view):
         self.org_throttle = OrganizationRateThrottle()
+        self.org_throttle.request = request
         if not self.org_throttle.allow_request(request, view):
             return False
-        if view.action == 'create' and 'user' in view.basename:
+        basename = getattr(view, 'basename', '') or ''
+        if view.action == 'create' and 'user' in basename:
             self.user_creation_throttle = OrganizationUserCreationThrottle()
+            self.user_creation_throttle.request = request
             if not self.user_creation_throttle.allow_request(request, view):
                 return False
         return True

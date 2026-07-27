@@ -41,15 +41,7 @@ class TenantRegistrationService:
                 is_verified=True,
                 is_onboarded=True,
                 is_staff=True
-            )
-            Profile.objects.create(
-                user=admin_user,
-                tenant_id=tenant_id
-            )
-            UserPreference.objects.create(
-                user=admin_user,
-                tenant_id=tenant_id
-            )
+                )
             self._send_welcome_email(admin_user, company_name)
             self.audit_service.log(
                 user=admin_user, action='tenant.registered', action_type='create',

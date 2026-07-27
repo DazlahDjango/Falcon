@@ -279,6 +279,12 @@ const organizationSlice = createSlice({
       .addCase(fetchOrganization.fulfilled, (state, action) => {
         state.loadingDetails = false;
         state.currentOrganization = action.payload;
+        // Also sync the full detail data into the organizations list
+        // so selectOrganizationById returns the complete data (nested sector, domains, etc.)
+        const index = state.organizations.findIndex(o => o.id === action.payload.id);
+        if (index !== -1) {
+          state.organizations[index] = action.payload;
+        }
       })
       .addCase(fetchOrganization.rejected, (state, action) => {
         state.loadingDetails = false;
@@ -290,6 +296,9 @@ const organizationSlice = createSlice({
       })
       .addCase(createOrganization.fulfilled, (state, action) => {
         state.submitting = false;
+        // Store full detail in currentOrganization so the detail page
+        // has contact_phone, contact_address, website etc. immediately.
+        state.currentOrganization = action.payload;
         state.organizations.unshift(action.payload);
         state.pagination.total += 1;
       })

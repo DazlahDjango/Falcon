@@ -47,8 +47,8 @@ const MonthlyPhasingTable = ({ phasing, onValueChange, canEdit }) => {
                                         </span>
                                     )}
                                 </td>
-                                <td>{percentage.toFixed(1)}%</td>
-                                <td>{cumulative.toFixed(2)}</td>
+                                <td>{Number(percentage || 0).toFixed(1)}%</td>
+                                <td>{Number(cumulative || 0).toFixed(2)}</td>
                                 {canEdit && (
                                     <td>
                                         {!phasingItem?.is_locked && (

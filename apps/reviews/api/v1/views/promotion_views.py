@@ -98,10 +98,10 @@ class PromotionRecommendationViewSet(BaseReviewViewSet):
             return Response({'error': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
     @action(detail=False, methods=['get', 'post'])
     def stats(self, request):
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.get(id=request.user.tenant_id)
-        except Client.DoesNotExist:
+            tenant = Organization.objects.get(id=request.user.tenant_id)
+        except Organization.DoesNotExist:
             return Response({'error': 'Tenant not found'}, status=status.HTTP_404_NOT_FOUND)
             
         params = request.query_params if request.method == 'GET' else request.data

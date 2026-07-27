@@ -86,7 +86,7 @@ const UserTargets = ({ userId, onEditTarget }) => {
                                                 style={{ width: `${progress}%`, background: getProgressColor(target) }}
                                             />
                                         </div>
-                                        <span className="progress-percentage">{progress.toFixed(1)}%</span>
+                                        <span className="progress-percentage">{Number(progress || 0).toFixed(1)}%</span>
                                     </td>
                                     <td>
                                         <span className={`target-status ${target.is_approved ? 'approved' : 'pending'}`}>

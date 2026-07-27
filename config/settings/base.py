@@ -120,7 +120,7 @@ THIRD_PARTY_APPS = [
     # 'django_fsm',
     'viewflow',
     # Notifications
-    # 'notifications',
+    'notifications',
     'django_apscheduler',
     # Reporting
     'easy_pdf',
@@ -153,6 +153,7 @@ PROJECT_APPS = [
     'apps.configs.apps.ConfigsConfig',
     'apps.reviews.apps.ReviewsConfig',
     'apps.dashboard.apps.DashboardConfig',
+    'apps.reportplt.apps.ReportpltConfig',
     'apps.core',
     'apps.tenant.api',  # For API endpoints
 ]
@@ -228,7 +229,7 @@ MIDDLEWARE = [
     # 'apps.reviews.middleware.ReviewPermissionMiddleware',        # General permissions
     # 'apps.reviews.middleware.ReviewAuditMiddleware',             # Audit logging
     # Billing
-    # 'apps.billing.middleware.SubscriptionGuardMiddleware',
+    'apps.billing.middleware.SubscriptionGuardMiddleware',
     'apps.billing.middleware.BillingAuditMiddleware',
     'apps.billing.middleware.WebhookRateLimitMiddleware',
     'apps.billing.middleware.TenantBillingContextMiddleware',
@@ -439,7 +440,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'apps.accounts.api.v1.authentication.TenantAwareJWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (

@@ -40,9 +40,15 @@ class PercentageCalculator(BaseCalculator):
             score = (actual / target) * 100
         else:
             score = (target / actual) * 100
-        if score > 100:
-            score = Decimal('100')
-        return self.clamp_score(self.round_score(score))
+        
+        metadata = getattr(self.kpi, 'metadata', {}) or {}
+        allow_overachievement = metadata.get('allow_overachievement', False)
+        if allow_overachievement:
+            return max(Decimal('0'), self.round_score(score))
+        else:
+            if score > 100:
+                score = Decimal('100')
+            return self.clamp_score(self.round_score(score))
     
 class FinancialCalculator(BaseCalculator):
     def calculate(self, actual: Decimal, target: Decimal) -> Decimal:

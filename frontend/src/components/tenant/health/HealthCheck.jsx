@@ -34,9 +34,8 @@ const HealthCheck = () => {
 
   const healthItems = [
     { key: 'database', title: 'Database', icon: FiDatabase, status: health?.database?.status, details: health?.database },
-    { key: 'cache', title: 'Cache', icon: FiServer, status: health?.cache?.status, details: health?.cache },
-    { key: 'celery', title: 'Celery', icon: FiGlobe, status: health?.celery?.status, details: health?.celery },
-    { key: 'redis', title: 'Redis', icon: FiServer, status: health?.redis?.status, details: health?.redis },
+    { key: 'schemas', title: 'Schemas', icon: FiServer, status: health?.schemas?.status, details: health?.schemas },
+    { key: 'organizations', title: 'Organizations', icon: FiGlobe, status: health?.organizations?.status, details: health?.organizations },
   ];
 
   const overallStatus = isOverallHealthy ? 'healthy' : 'unhealthy';
@@ -94,7 +93,7 @@ const HealthCheck = () => {
         </div>
       </div>
 
-      <div className="health-grid health-grid-cols-2">
+      <div className="health-grid health-grid-cols-3">
         {healthItems.map((item) => (
           <HealthStatusCard
             key={item.key}

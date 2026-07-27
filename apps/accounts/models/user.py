@@ -9,7 +9,7 @@ import uuid
 
 class User(BaseModel, AbstractUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, null=True, blank=True, default=uuid.uuid4, help_text=_("The unique UUID of the Tenant this user belongs to."))
+    tenant_id = models.UUIDField(_('tenant ID'), db_index=True, editable=True, null=True, blank=True, help_text=_("The unique UUID of the Tenant this user belongs to."))
     email = models.EmailField(_('email address'), unique=True, db_index=True, validators=[EmailValidator()])
     username = models.CharField(_('username'), max_length=50, unique=True, db_index=True, validators=[RegexValidator(r'^[\w.@+-]+\Z', 'Enter a valid username.')])
     phone_number = models.CharField(_('phone number'), max_length=20, blank=True, validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter valid phone number')])
@@ -239,3 +239,19 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     def is_password_expired(self, expiry_days=90):
         expiry_date = self.password_last_changed + timedelta(days=expiry_days)
         return timezone.now() > expiry_date
+
+    def clean(self):
+        super().clean()
+        from django.conf import settings
+        anon_name = getattr(settings, 'ANONYMOUS_USER_NAME', 'AnonymousUser')
+        if self.role != self.ROLE_SUPER_ADMIN and self.username != anon_name and self.email != anon_name and not self.tenant_id:
+            from django.core.exceptions import ValidationError
+            raise ValidationError({'tenant_id': _("Tenant ID is required for non-superadmin users.")})
+
+    def save(self, *args, **kwargs):
+        from django.conf import settings
+        anon_name = getattr(settings, 'ANONYMOUS_USER_NAME', 'AnonymousUser')
+        if self.role != self.ROLE_SUPER_ADMIN and self.username != anon_name and self.email != anon_name and not self.tenant_id:
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Tenant ID is required for non-superadmin users.")
+        super().save(*args, **kwargs)

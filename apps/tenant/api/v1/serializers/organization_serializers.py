@@ -21,6 +21,7 @@ class OrganizationListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'sector', 'sector_name', 'sector_type',
             'status', 'is_active', 'is_onboarded', 'contact_email',
+            'contact_phone', 'contact_address', 'website',
             'primary_domain', 'user_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at']

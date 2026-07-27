@@ -146,11 +146,11 @@ class SuperAdminDashboardService(BaseDashboardService):
         return 0
     
     def get_tenant_details(self, client_id: str) -> Dict:
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         from apps.accounts.models import User
         from apps.kpi.models import KPI
         from apps.billing.models import Subscription
-        tenant = Client.objects.get(id=client_id)
+        tenant = Organization.objects.get(id=client_id)
         users = User.objects.filter(tenant_id=client_id, is_active=True)
         kpis = KPI.objects.filter(tenant_id=client_id, is_active=True)
         subscription = Subscription.objects.filter(tenant_id=client_id).first()
@@ -158,8 +158,8 @@ class SuperAdminDashboardService(BaseDashboardService):
             'tenant': {
                 'id': str(tenant.id),
                 'name': tenant.name,
-                'subscription_status': getattr(tenant, 'subscription_status', 'unknown'),
-                'subscription_plan': getattr(tenant, 'subscription_plan', 'unknown'),
+                'subscription_status': getattr(tenant, 'status', 'unknown'),
+                'subscription_plan': getattr(tenant, 'subscription_tier', 'unknown'),
                 'created_at': tenant.created_at.isoformat() if hasattr(tenant, 'created_at') else None
             },
             'users': {
@@ -181,11 +181,11 @@ class SuperAdminDashboardService(BaseDashboardService):
         }
     
     def refresh_tenant_snapshot(self, client_id: str) -> Dict:
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         from apps.accounts.models import User
         from apps.kpi.models import KPI, MonthlyActual
         from apps.dashboard.models import TenantOverviewSnapshot
-        tenant = Client.objects.get(id=client_id)
+        tenant = Organization.objects.get(id=client_id)
         users = User.objects.filter(tenant_id=client_id, is_active=True)
         kpis = KPI.objects.filter(tenant_id=client_id, is_active=True)
         from apps.kpi.services import ScoreAggregator

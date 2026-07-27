@@ -108,16 +108,13 @@ class ActualAdjustment(BaseKPIModel):
         self.approved_by = approver
         self.approved_at = timezone.now()
         self.save()
-        MonthlyActual.objects.create(
-            tenant_id=self.tenant_id,
-            kpi=self.original_actual.kpi,
-            user=self.original_actual.user,
-            year=self.original_actual.year,
-            month=self.original_actual.month,
-            actual_value=self.adjusted_value,
-            status='ADJUSTED',
-            notes=f"Adjusted from {self.original_actual.actual_value}. Reason: {self.reason}"
-        )
+        
+        actual = self.original_actual
+        old_value = actual.actual_value
+        actual.actual_value = self.adjusted_value
+        actual.status = 'ADJUSTED'
+        actual.notes = f"Adjusted from {old_value}. Reason: {self.reason}"
+        actual.save()
 
 class Evidence(BaseKPIModel):
     EVIDENCE_TYPES = [

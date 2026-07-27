@@ -434,8 +434,17 @@ export const useOrganization = (id, options = {}) => {
     };
   }, [autoFetch, id, fetchOne, clearCurrent]);
 
+  // Prefer freshly-fetched detail (currentOrganization) when it matches
+  // this ID, because it has nested sector/domains/contacts that the list
+  // serializer omits.  Fall back to the list-cache entry only when
+  // currentOrganization is absent or belongs to a different org.
+  const resolvedOrganization = useMemo(() => {
+    if (currentOrganization && currentOrganization.id === id) return currentOrganization;
+    return organization || currentOrganization;
+  }, [currentOrganization, organization, id]);
+
   return useMemo(() => ({
-    organization: organization || currentOrganization,
+    organization: resolvedOrganization,
     loading,
     error,
     fetchOne,
@@ -446,8 +455,7 @@ export const useOrganization = (id, options = {}) => {
     suspend: suspendOne,
     clearCurrent,
   }), [
-    organization,
-    currentOrganization,
+    resolvedOrganization,
     loading,
     error,
     fetchOne,

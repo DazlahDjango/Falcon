@@ -41,8 +41,11 @@ class RBACService:
         if assigner.role == 'super_admin':
             return True
         if assigner.role == 'client_admin':
+            # Allow client_admin to assign any assignable role, except super_admin
+            if role_code == 'super_admin':
+                return False
             role = Role.objects.filter(code=role_code).first()
-            if role and role.is_assignable and not role.is_system:
+            if role and role.is_assignable:
                 return True
         if assigner.role == 'executive':
             if role_code in ['executive', 'supervisor', 'staff', 'read_only']:

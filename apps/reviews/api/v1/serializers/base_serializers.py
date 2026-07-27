@@ -29,16 +29,16 @@ class BaseTenantSerializer(BaseReviewSerializer):
     tenant_id = serializers.SerializerMethodField(read_only=True)
     
     def get_tenant_name(self, obj):
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         # Try to get tenant from obj.tenant first (ForeignKey)
         if hasattr(obj, 'tenant') and obj.tenant:
             return obj.tenant.name
         # Then try to get from obj.tenant_id (UUIDField)
         elif hasattr(obj, 'tenant_id') and obj.tenant_id:
             try:
-                tenant = Client.objects.get(id=obj.tenant_id)
+                tenant = Organization.objects.get(id=obj.tenant_id)
                 return tenant.name
-            except Client.DoesNotExist:
+            except Organization.DoesNotExist:
                 return None
         return None
     

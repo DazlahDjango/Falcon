@@ -24,9 +24,10 @@ def cleanup_old_calculation_logs_task(self, days_to_keep: int = 30) -> Dict:
 
 @shared_task(bind=True)
 def cleanup_expired_cache_task(self) -> Dict:
+    from apps.kpi.utils.cache_keys import safe_delete_pattern
     try:
-        cache.delete_pattern("kpi:dashboard:*")
-        cache.delete_pattern("kpi:aggregation:*")
+        safe_delete_pattern("kpi:dashboard:*")
+        safe_delete_pattern("kpi:aggregation:*")
         logger.info("Expired cache cleaned up")
         return {'status': 'SUCCESS'}
     except Exception as e:

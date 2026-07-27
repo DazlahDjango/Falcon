@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def refresh_materialized_views_task(self, tenant_id: str) -> Dict:
     from apps.kpi.models import RefreshTracker
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
 
+    set_current_tenant_id(tenant_id)
     logger.info(f"Refreshing materialized views for tenant {tenant_id}")
     views = ['kpi_summary_mv', 'department_rollup_mv', 'organization_health_mv']
     results = {}
@@ -33,22 +35,25 @@ def refresh_materialized_views_task(self, tenant_id: str) -> Dict:
     except Exception as e:
         logger.exception(f"Materialized view refresh failed: {e}")
         raise self.retry(exc=e)
+    finally:
+        clear_current_tenant_id()
 
 
 @shared_task(bind=True)
 def precompute_dashboard_cache_task(self, tenant_id: str, year: int, month: int) -> Dict:
     from apps.accounts.models import User
     from apps.kpi.services import IndividualDashboard, ManagerDashboard, ExecutiveDashboard
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
 
+    set_current_tenant_id(tenant_id)
     logger.info(f"Precomputing dashboard cache for tenant {tenant_id}, period {year}-{month:02d}")
 
+    processed = {'individual': 0, 'manager': 0, 'executive': 0}
     try:
         users = User.objects.filter(tenant_id=tenant_id, is_active=True)
         individual_dashboard = IndividualDashboard()
         manager_dashboard = ManagerDashboard()
         executive_dashboard = ExecutiveDashboard()
-
-        processed = {'individual': 0, 'manager': 0, 'executive': 0}
 
         for user in users:
             individual_dashboard.get_dashboard(str(user.id), year, month)
@@ -66,3 +71,5 @@ def precompute_dashboard_cache_task(self, tenant_id: str, year: int, month: int)
     except Exception as e:
         logger.exception(f"Precompute failed: {e}")
         return {'status': 'FAILED', 'error': str(e), 'processed': processed}
+    finally:
+        clear_current_tenant_id()

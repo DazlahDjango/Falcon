@@ -129,9 +129,9 @@ export const UserForm = ({ user, onClose, onSuccess, createUser: propsCreateUser
   const roleOptions = assignableRoles.length > 0
     ? assignableRoles
     : Object.entries(USER_ROLES).map(([key, value]) => ({
-        code: value,
-        name: value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      }));
+      code: value,
+      name: value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    }));
 
   return (
     <div className="modal-overlay" onClick={onClose}>

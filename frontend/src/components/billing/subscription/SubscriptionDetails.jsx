@@ -46,7 +46,7 @@ export const SubscriptionDetails = () => {
                     <button className="subscription-refresh-btn" onClick={handleRefresh} disabled={refreshing}><FiRefreshCw className={refreshing ? 'spin' : ''} /> Refresh</button>
                 </div>
 
-                {isOnTrial && <TrialBanner daysRemaining={trialDaysRemaining} onUpgrade={() => setUpgradeModal(true)} />}
+                {isOnTrial && <TrialBanner daysRemaining={trialDaysRemaining} onUpgrade={() => { setUpgradeDirection('upgrade'); setShowUpgradeModal(true); }} />}
 
                 <div className="subscription-grid">
                     <div className="subscription-main-card">

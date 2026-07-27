@@ -90,8 +90,9 @@ class ValidationApprover:
             return []
 
     def _invalidate_caches(self, user_id: str, year: int, month: int) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:pending_count_{user_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
 
 
 class ValidationRejecter:
@@ -197,8 +198,9 @@ class ValidationRejecter:
             return []
 
     def _invalidate_caches(self, user_id: str, year: int, month: int) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:pending_count_{user_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
 
 
 class ValidationResubmission:
@@ -244,8 +246,9 @@ class ValidationResubmission:
             return actual
 
     def _invalidate_caches(self, user_id: str, year: int, month: int) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:pending_count_{user_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
 
 
 class ValidationEscalator:
@@ -309,8 +312,9 @@ class ValidationEscalator:
             return escalation
 
     def _invalidate_caches(self, user_id: str, year: int, month: int) -> None:
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:pending_count_{user_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:dashboard_*_{user_id}_*")
 
 
 class BatchValidator:

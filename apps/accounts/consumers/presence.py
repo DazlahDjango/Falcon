@@ -80,15 +80,27 @@ class PresenceConsumer(AsyncWebsocketConsumer):
         
     @database_sync_to_async
     def get_online_users(self):
-        online_users = []
         keys = cache.keys('user_presence:*')
+        user_ids = [key.split(':')[-1] for key in keys if key.split(':')[-1]]
+        if not user_ids:
+            return []
+            
+        if self.user.role == 'super_admin':
+            users = User.objects.filter(id__in=user_ids, is_deleted=False)
+        else:
+            users = User.objects.filter(id__in=user_ids, tenant_id=self.user.tenant_id, is_deleted=False)
+            
+        valid_user_ids = set(str(u.id) for u in users)
+        
+        online_users = []
         for key in keys:
-            presence = cache.get(key)
-            if presence:
-                user_id = key.split(':')[-1]
-                online_users.append({
-                    'user_id': user_id,
-                    'status': presence.get('status', 'online'),
-                    'last_seen': presence.get('last_seen')
-                })
+            uid = key.split(':')[-1]
+            if uid in valid_user_ids:
+                presence = cache.get(key)
+                if presence:
+                    online_users.append({
+                        'user_id': uid,
+                        'status': presence.get('status', 'online'),
+                        'last_seen': presence.get('last_seen')
+                    })
         return online_users

@@ -288,8 +288,22 @@ def score_post_save_handler(sender, instance, created, **kwargs):
             pass
 
 
+@receiver(pre_save, sender=Score)
+def score_pre_save_handler(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_score = sender.objects.get(pk=instance.pk)
+            instance._score_changed = (old_score.score != instance.score)
+        except sender.DoesNotExist:
+            instance._score_changed = True
+    else:
+        instance._score_changed = True
+
+
 @receiver(post_save, sender=Score)
 def score_post_save_trend_handler(sender, instance, **kwargs):
+    if not getattr(instance, '_score_changed', True):
+        return
     try:
         previous_scores = Score.objects.filter(
             kpi=instance.kpi,
@@ -314,8 +328,6 @@ def score_post_save_trend_handler(sender, instance, **kwargs):
 def kpi_post_delete_handler(sender, instance, **kwargs):
     logger.info(f"KPI {instance.code} deleted")
     invalidate_kpi_cache(str(instance.id))
-    cache.delete_pattern(f"kpi:score:{instance.id}:*")
-    cache.delete_pattern(f"kpi:target:{instance.id}:*")
 
 
 @receiver(post_delete, sender=MonthlyActual)

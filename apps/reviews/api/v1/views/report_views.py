@@ -88,12 +88,12 @@ class ReportViewSet(BaseActionViewSet):
         
     @action(detail=False, methods=['get', 'post'], url_path='pip-summary')
     def pip_summary(self, request):
-        from apps.tenant.models import Client
+        from apps.tenant.models import Organization
         try:
-            tenant = Client.objects.get(id=request.user.tenant_id)
+            tenant = Organization.objects.get(id=request.user.tenant_id)
             report = PIPReportService.get_organization_pip_summary(tenant)
             return Response(report)
-        except Client.DoesNotExist:
+        except Organization.DoesNotExist:
             return Response({'error': 'Tenant not found'}, status=status.HTTP_404_NOT_FOUND)
         
     @action(detail=False, methods=['get', 'post'], url_path='calibration-summary')

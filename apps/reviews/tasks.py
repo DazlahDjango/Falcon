@@ -199,17 +199,17 @@ def detect_stalled_pips(self):
 
 @reviews_shared_task
 def warm_dashboard_cache(self):
-    from apps.tenant.models import Client
+    from apps.tenant.models import Organization
     warmed = 0
-    for client in Client.objects.filter(is_deleted=False):
+    for client in Organization.objects.filter(is_deleted=False):
         ReviewsResourceSyncService.build_dashboard_metrics(client.id, broadcast=True)
         warmed += 1
     return {'tenants': warmed}
 
 @reviews_shared_task
 def sync_kpi_data(self):
-    from apps.tenant.models import Client
-    for client in Client.objects.filter(is_deleted=False)[:50]:
+    from apps.tenant.models import Organization
+    for client in Organization.objects.filter(is_deleted=False)[:50]:
         ReviewsDependencySyncService.on_kpi_score_changed(client.id, recalculate_final_ratings=False)
     return {'status': 'ok'}
 

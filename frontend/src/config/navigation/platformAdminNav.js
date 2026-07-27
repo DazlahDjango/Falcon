@@ -42,12 +42,13 @@ import {
   FiAward,
   FiUsers as FiUserGroup,
   FiMessageSquare,
-  FiTrendingUp as FiUpward,
   FiUserCheck,
   FiUserX,
   FiUser,
   FiGlobe,
   FiLink,
+  FiPlus,
+  FiCpu,
 } from 'react-icons/fi';
 import { MdBackup, MdOutlineDashboard, MdBusiness, MdDomain, MdSchema, MdQrCodeScanner, MdGavel } from 'react-icons/md';
 import { HiOutlineStatusOnline } from 'react-icons/hi';
@@ -63,6 +64,129 @@ import { REVIEW_ROUTES } from '../constants/reviewRouteConstants';
 import { STRUCTURE_ROUTES } from '../constants/structureRouteConstants';
 import { ACCOUNTS_ROUTES } from '../constants/accountsRouteConstants';
 import { TENANT_ROUTES } from '../constants/tenantRouteConstants';
+import { REPORT_ROUTES } from '../constants/reportRouteConstants';
+
+// ============================================
+// REPORTING NAVIGATION ITEMS
+// ============================================
+export const REPORTING_NAV_ITEMS = [
+  { path: REPORT_ROUTES.OVERVIEW, name: 'Reporting Overview', icon: FiPieChart },
+  { path: REPORT_ROUTES.TEMPLATES, name: 'Report Templates', icon: FiFileText },
+  { path: REPORT_ROUTES.REPORTS, name: 'Generated Reports', icon: FiDownload },
+  { path: REPORT_ROUTES.SCHEDULER, name: 'Report Scheduler', icon: FiClock },
+  { path: REPORT_ROUTES.UNIFIED_360, name: 'Unified Performance 360', icon: FiTrendingUp },
+  { path: REPORT_ROUTES.SYSTEM_AUDIT, name: 'System Audit Logs', icon: FiShield },
+];
+
+// ============================================
+// REPORTS COMPONENT NAVIGATION ITEMS (Detailed)
+// ============================================
+export const REPORTS_NAV_ITEMS = {
+  // Main Report Management
+  REPORTS: [
+    { path: REPORT_ROUTES.REPORTS, name: 'All Reports', icon: FiFileText },
+    { path: REPORT_ROUTES.MY_REPORTS, name: 'My Reports', icon: FiUser },
+    { path: REPORT_ROUTES.PUBLIC_REPORTS, name: 'Public Reports', icon: FiGlobe },
+    { path: REPORT_ROUTES.REPORT_CREATE, name: 'Create Report', icon: FiPlus },
+  ],
+
+  // Templates
+  TEMPLATES: [
+    { path: REPORT_ROUTES.TEMPLATES, name: 'All Templates', icon: FiFileText },
+    { path: REPORT_ROUTES.TEMPLATE_CREATE, name: 'Create Template', icon: FiPlus },
+    { path: REPORT_ROUTES.TEMPLATE_PREBUILT, name: 'Prebuilt Templates', icon: FiPackage },
+  ],
+
+  // Schedules
+  SCHEDULES: [
+    { path: REPORT_ROUTES.SCHEDULES, name: 'All Schedules', icon: FiClock },
+    { path: REPORT_ROUTES.SCHEDULE_CREATE, name: 'Create Schedule', icon: FiPlus },
+    { path: REPORT_ROUTES.SCHEDULE_DUE, name: 'Due Schedules', icon: FiAlertCircle },
+  ],
+
+  // Executions
+  EXECUTIONS: [
+    { path: REPORT_ROUTES.EXECUTIONS, name: 'All Executions', icon: FiActivity },
+    { path: REPORT_ROUTES.EXECUTION_DETAIL(':id'), name: 'Execution Details', icon: FiEye },
+  ],
+
+  // Exports
+  EXPORTS: [
+    { path: REPORT_ROUTES.EXPORTS, name: 'All Exports', icon: FiDownload },
+    { path: REPORT_ROUTES.MY_EXPORTS, name: 'My Exports', icon: FiUser },
+    { path: REPORT_ROUTES.EXPORT_CREATE, name: 'New Export', icon: FiPlus },
+  ],
+
+  // Dashboards
+  DASHBOARDS: [
+    { path: REPORT_ROUTES.DASHBOARDS, name: 'All Dashboards', icon: FiGrid },
+    { path: REPORT_ROUTES.MY_DASHBOARDS, name: 'My Dashboards', icon: FiUser },
+    { path: REPORT_ROUTES.DEFAULT_DASHBOARD, name: 'Default Dashboard', icon: FiStar },
+    { path: REPORT_ROUTES.DASHBOARD_CREATE, name: 'Create Dashboard', icon: FiPlus },
+  ],
+
+  // Shares
+  SHARES: [
+    { path: REPORT_ROUTES.SHARES, name: 'All Shares', icon: FiLink },
+    { path: REPORT_ROUTES.SHARED_WITH_ME, name: 'Shared With Me', icon: FiUserGroup },
+    { path: REPORT_ROUTES.SHARE_CREATE, name: 'Share Report', icon: FiPlus },
+  ],
+
+  // Audits
+  AUDITS: [
+    { path: REPORT_ROUTES.AUDITS, name: 'Audit Logs', icon: FiList },
+    { path: REPORT_ROUTES.AUDIT_DETAIL(':id'), name: 'Audit Details', icon: FiEye },
+  ],
+
+  // Analytics
+  ANALYTICS: [
+    { path: REPORT_ROUTES.ANALYTICS, name: 'Analytics Dashboard', icon: FiTrendingUp },
+    { path: REPORT_ROUTES.ANALYTICS_TREND, name: 'Trend Analysis', icon: FiTrendingUp },
+    { path: REPORT_ROUTES.ANALYTICS_PERFORMANCE, name: 'Performance Analysis', icon: FiBarChart2 },
+    { path: REPORT_ROUTES.ANALYTICS_COMPARATIVE, name: 'Comparative Analysis', icon: FiGitBranch },
+    { path: REPORT_ROUTES.ANALYTICS_PREDICTIVE, name: 'Predictive Analysis', icon: FiCpu },
+    { path: REPORT_ROUTES.ANALYTICS_ANOMALY, name: 'Anomaly Detection', icon: FiAlertCircle },
+  ],
+
+  // Admin
+  ADMIN: [
+    { path: REPORT_ROUTES.ADMIN_OVERVIEW, name: 'Admin Overview', icon: FiShield },
+    { path: REPORT_ROUTES.ADMIN_SETTINGS, name: 'Settings', icon: FiSettings },
+    { path: REPORT_ROUTES.SYSTEM_AUDIT, name: 'System Audit', icon: FiList },
+  ],
+};
+
+// ============================================
+// REPORTING GROUP LABELS
+// ============================================
+export const REPORTING_GROUP_LABELS = {
+  reports: '📄 Reports',
+  templates: '📋 Templates',
+  schedules: '⏰ Schedules',
+  executions: '⚡ Executions',
+  exports: '📤 Exports',
+  dashboards: '📊 Dashboards',
+  shares: '🔗 Shares',
+  audits: '📜 Audits',
+  analytics: '📈 Analytics',
+  admin: '⚙️ Administration',
+};
+
+// ============================================
+// REPORTING GROUP EXPANDED STATES
+// ============================================
+export const REPORTING_DEFAULT_EXPANDED = {
+  reports: true,
+  templates: false,
+  schedules: false,
+  executions: false,
+  exports: false,
+  dashboards: false,
+  shares: false,
+  audits: false,
+  analytics: false,
+  admin: false,
+};
 
 // ============================================
 // MFA ROUTES
@@ -490,6 +614,20 @@ export const CLIENT_ADMIN_REVIEWS_NAV_ITEMS = [
   { path: REVIEW_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },
 ];
 
+// Filter helper to exclude dynamic detail routes with ':id' and remove duplicates
+const flattenNavItems = (navItemsObj) => {
+  const seen = new Set();
+  return Object.values(navItemsObj)
+    .flat()
+    .filter(item => {
+      if (item.path.includes(':id')) return false;
+      if (seen.has(item.path)) return false;
+      seen.add(item.path);
+      return true;
+    });
+};
+const FLATTENED_REPORTS_NAV_ITEMS = flattenNavItems(REPORTS_NAV_ITEMS);
+
 // ============================================
 // SUPER ADMIN NAVIGATION GROUPS
 // ============================================
@@ -528,40 +666,11 @@ export const SUPER_ADMIN_NAV_GROUPS = {
   kpiAnalytics: KPI_ANALYTICS_NAV_ITEMS,
   kpiOperations: KPI_OPERATIONS_NAV_ITEMS,
   kpiDashboards: KPI_DASHBOARDS_NAV_ITEMS,
-  structure: [
-    { path: '/app/structure/dashboard/', name: 'Structure Dashboard', icon: FiTrendingUp },
-    { path: '/app/structure/departments', name: 'Departments', icon: HiOutlineBuildingOffice },
-    { path: '/app/structure/teams', name: 'Teams', icon: HiOutlineUserGroup },
-    { path: '/app/structure/positions', name: 'Positions', icon: BsBriefcase },
-    { path: '/app/structure/employments', name: 'Employments', icon: BsPersonBadge },
-    { path: '/app/structure/reporting-lines', name: 'Reporting Lines', icon: BsDiagram3 },
-    { path: '/app/structure/cost-centers', name: 'Cost Centers', icon: FiDollarSign },
-    { path: '/app/structure/locations', name: 'Locations', icon: FiMapPin },
-    { path: '/app/structure/org-chart', name: 'Organization Chart', icon: FiGitBranch },
-    { path: '/app/structure/department-trees', name: 'Department Tree', icon: FiGitBranch },
-    { path: '/app/structure/team-hierarchies', name: 'Team Hierarchy', icon: FiGitBranch },
-    { path: '/app/structure/hierarchy/versions', name: 'Version History', icon: FiDatabase },
-  ],
-  reviews: [
-    { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2 },
-    { path: '/reviews/cycles', name: 'Review Cycles', icon: FiCalendar },
-    { path: '/reviews/self-assessment', name: 'Self Assessment', icon: FiCheckCircle },
-    { path: '/reviews/review-queue', name: 'Review Queue', icon: FiActivity },
-    { path: '/reviews/final-ratings', name: 'Final Ratings', icon: FiBarChart2 },
-    { path: '/reviews/pips', name: 'Performance Plans', icon: FiFlag },
-    { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers },
-    { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders },
-    { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText },
-  ],
-
-  // Structure Group - NEW
   structure: STRUCTURE_NAV_ITEMS,
   structureAdmin: STRUCTURE_ADMIN_NAV_ITEMS,
-
-  // Reviews - Full access for Super Admin
   reviews: REVIEWS_NAV_ITEMS,
-
   accounts: ACCOUNTS_SUPER_ADMIN_NAV_ITEMS,
+  reporting: FLATTENED_REPORTS_NAV_ITEMS,
   mfa: MFA_NAV_ITEMS,
   config: CONFIG_NAV_ITEMS,
   settings: [
@@ -611,21 +720,16 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
   kpiManagement: KPI_MANAGEMENT_NAV_ITEMS,
   kpiAnalytics: KPI_ANALYTICS_NAV_ITEMS,
   kpiOperations: KPI_OPERATIONS_NAV_ITEMS,
-
-  // Structure Group - NEW for Client Admin
   structure: STRUCTURE_NAV_ITEMS,
   structureAdmin: STRUCTURE_ADMIN_NAV_ITEMS,
-
   management: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.USERS, name: 'Users (PMS)', icon: FiUsers },
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.ROLES, name: 'Roles & Permissions', icon: FiShield },
     { path: ROUTES.USERS, name: 'User Directory', icon: FiUsers },
     { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
-
-  // Reviews - Limited access for Client Admin
   reviews: CLIENT_ADMIN_REVIEWS_NAV_ITEMS,
-
+  reporting: FLATTENED_REPORTS_NAV_ITEMS,
   mfa: MFA_NAV_ITEMS,
   compliance: [
     { path: DASHBOARD_ROUTES.CLIENT_ADMIN.REPORTS, name: 'Analytics', icon: FiTrendingUp },
@@ -656,10 +760,11 @@ export const SUPER_ADMIN_DEFAULT_EXPANDED = {
   kpiAnalytics: false,
   kpiOperations: false,
   kpiDashboards: false,
-  structure: true,  // Structure expanded by default for Super Admin
+  structure: true,
   structureAdmin: false,
   reviews: true,
   accounts: true,
+  reporting: true,
   mfa: false,
   config: false,
   settings: false,
@@ -677,10 +782,11 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   kpiManagement: true,
   kpiAnalytics: false,
   kpiOperations: false,
-  structure: true,  // Structure expanded by default for Client Admin
+  structure: true,
   structureAdmin: false,
   management: true,
   reviews: true,
+  reporting: true,
   mfa: false,
   compliance: false,
   config: false,
@@ -701,10 +807,11 @@ export const SUPER_ADMIN_GROUP_LABELS = {
   kpiAnalytics: '📈 Analytics & Reports',
   kpiOperations: '⚙️ Operations',
   kpiDashboards: '📺 Dashboards',
-  structure: '🏛️ Organization Structure',  // Structure label for Super Admin
+  structure: '🏛️ Organization Structure',
   structureAdmin: '⚙️ Structure Administration',
   reviews: '⭐ Performance Reviews',
   accounts: '👥 Accounts Management',
+  reporting: '📑 Enterprise Reporting',
   mfa: 'Multi-Factor Authentication',
   config: 'Configuration Manager',
   settings: 'System & Unified Settings',
@@ -722,10 +829,11 @@ export const CLIENT_ADMIN_GROUP_LABELS = {
   kpiManagement: '📊 KPI Management',
   kpiAnalytics: '📈 Analytics & Reports',
   kpiOperations: '⚙️ Operations',
-  structure: '🏛️ Organization Structure',  // Structure label for Client Admin
+  structure: '🏛️ Organization Structure',
   structureAdmin: '⚙️ Structure Administration',
   management: 'Management',
   reviews: '⭐ Performance Reviews',
+  reporting: '📑 Enterprise Reporting',
   mfa: 'Multi-Factor Authentication',
   compliance: 'Reports & Compliance',
   config: 'Configuration',
@@ -797,4 +905,78 @@ export const isTenantRouteActive = (path, currentPath) => {
   ];
 
   return patterns.some((pattern) => pattern.test(currentPath));
+};
+
+export const isReportingRouteActive = (path, currentPath) => {
+  if (path === currentPath) return true;
+  return currentPath.startsWith('/reporting');
+};
+
+// ============================================
+// REPORTING SPECIFIC HELPERS
+// ============================================
+export const isReportRouteActive = (path, currentPath) => {
+  if (path === currentPath) return true;
+
+  const patterns = [
+    /^\/reporting\/reports\/[\w-]+$/,
+    /^\/reporting\/reports\/[\w-]+\/edit$/,
+    /^\/reporting\/reports\/[\w-]+\/generate$/,
+    /^\/reporting\/reports\/[\w-]+\/export$/,
+    /^\/reporting\/templates\/[\w-]+$/,
+    /^\/reporting\/templates\/[\w-]+\/edit$/,
+    /^\/reporting\/templates\/[\w-]+\/apply$/,
+    /^\/reporting\/schedules\/[\w-]+$/,
+    /^\/reporting\/schedules\/[\w-]+\/edit$/,
+    /^\/reporting\/executions\/[\w-]+$/,
+    /^\/reporting\/exports\/[\w-]+$/,
+    /^\/reporting\/dashboards\/[\w-]+$/,
+    /^\/reporting\/dashboards\/[\w-]+\/edit$/,
+    /^\/reporting\/dashboards\/[\w-]+\/view$/,
+    /^\/reporting\/shares\/[\w-]+$/,
+    /^\/reporting\/audits\/[\w-]+$/,
+  ];
+
+  return patterns.some((pattern) => pattern.test(currentPath));
+};
+
+export default {
+  REPORTING_NAV_ITEMS,
+  REPORTS_NAV_ITEMS,
+  REPORTING_GROUP_LABELS,
+  REPORTING_DEFAULT_EXPANDED,
+  MFA_ROUTES,
+  TENANT_NAV_ITEMS,
+  TENANT_SUPER_ADMIN_NAV_GROUPS,
+  TENANT_CLIENT_ADMIN_NAV_GROUPS,
+  TENANT_SUPER_ADMIN_GROUP_LABELS,
+  TENANT_CLIENT_ADMIN_GROUP_LABELS,
+  TENANT_SUPER_ADMIN_DEFAULT_EXPANDED,
+  TENANT_CLIENT_ADMIN_DEFAULT_EXPANDED,
+  CONFIG_NAV_ITEMS,
+  MFA_NAV_ITEMS,
+  BILLING_NAV_ITEMS,
+  ADMIN_BILLING_NAV_ITEMS,
+  KPI_ADMIN_NAV_ITEMS,
+  KPI_MANAGEMENT_NAV_ITEMS,
+  KPI_ANALYTICS_NAV_ITEMS,
+  KPI_OPERATIONS_NAV_ITEMS,
+  KPI_DASHBOARDS_NAV_ITEMS,
+  ACCOUNTS_SUPER_ADMIN_NAV_ITEMS,
+  ACCOUNTS_CLIENT_ADMIN_NAV_ITEMS,
+  STRUCTURE_NAV_ITEMS,
+  STRUCTURE_ADMIN_NAV_ITEMS,
+  REVIEWS_NAV_ITEMS,
+  CLIENT_ADMIN_REVIEWS_NAV_ITEMS,
+  SUPER_ADMIN_NAV_GROUPS,
+  CLIENT_ADMIN_NAV_GROUPS,
+  SUPER_ADMIN_DEFAULT_EXPANDED,
+  CLIENT_ADMIN_DEFAULT_EXPANDED,
+  SUPER_ADMIN_GROUP_LABELS,
+  CLIENT_ADMIN_GROUP_LABELS,
+  isKpiRouteActive,
+  isStructureRouteActive,
+  isTenantRouteActive,
+  isReportingRouteActive,
+  isReportRouteActive,
 };

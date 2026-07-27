@@ -56,9 +56,10 @@ class UserCreationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'email', 'username', 'password', 'password_confirm', 'first_name', 'last_name',
+            'id', 'email', 'username', 'password', 'password_confirm', 'first_name', 'last_name',
             'phone', 'role', 'manager', 'department', 'title', 'employee_id', 'joined_at', 'tenant_id'
         ]
+        read_only_fields = ['id']
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():

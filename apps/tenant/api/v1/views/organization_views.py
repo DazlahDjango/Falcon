@@ -23,7 +23,7 @@ from apps.tenant.exceptions import OrganizationInvalidError, OrganizationError
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
-    queryset = Organization.objects.filter(is_deleted=False)
+    queryset = Organization.objects.filter(is_deleted=False).select_related('sector').prefetch_related('domains', 'resources')
     permission_classes = [IsAuthenticated]
     throttle_classes = [OrganizationApiThrottle]
     filterset_class = OrganizationFilter
@@ -81,6 +81,15 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Save the organization; provisioning auto-dispatches via post_save signal."""
         serializer.save()
+
+    def create(self, request, *args, **kwargs):
+        """Override to return full OrganizationDetailSerializer on success."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        instance = serializer.instance
+        detail_serializer = OrganizationDetailSerializer(instance, context={'request': request})
+        return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

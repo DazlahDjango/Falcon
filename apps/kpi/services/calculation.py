@@ -137,18 +137,24 @@ class ScoreAggregator:
         return self.aggregator.aggregate_for_user(user_id, year, month, force)
 
     def aggregate_team(self, team_id: str, year: int, month: int, force: bool = False) -> Decimal:
-        from apps.structure.models import Team
+        from apps.structure.models import Unit, Employment
 
-        team = Team.objects.filter(id=team_id, is_active=True).first()
-        if not team:
-            raise ValidationError(f"Team {team_id} not found")
+        unit = Unit.objects.filter(id=team_id, is_active=True).first()
+        if not unit:
+            raise ValidationError(f"Unit {team_id} not found")
 
-        member_ids = list(team.members.filter(is_active=True).values_list('id', flat=True))
+        member_ids = list(Employment.objects.filter(
+            position__unit=unit,
+            is_current=True,
+            is_active=True,
+            is_deleted=False
+        ).values_list('user_id', flat=True))
+        
         if not member_ids:
             return Decimal('0')
 
-        return self.aggregator.team.aggregate_for_team(
-            str(team.id), team.name, team.tenant_id, member_ids, year, month, force
+        return self.aggregator.unit.aggregate_for_unit(
+            str(unit.id), unit.name, unit.tenant_id, [str(uid) for uid in member_ids], year, month, force
         )
 
     def aggregate_department(
@@ -158,18 +164,24 @@ class ScoreAggregator:
         month: int,
         force: bool = False
     ) -> Decimal:
-        from apps.structure.models import Department
+        from apps.structure.models import Department, Employment
 
         department = Department.objects.filter(id=department_id, is_active=True).first()
         if not department:
             raise ValidationError(f"Department {department_id} not found")
 
-        member_ids = list(department.members.filter(is_active=True).values_list('id', flat=True))
+        member_ids = list(Employment.objects.filter(
+            position__department=department,
+            is_current=True,
+            is_active=True,
+            is_deleted=False
+        ).values_list('user_id', flat=True))
+        
         if not member_ids:
             return Decimal('0')
 
         return self.aggregator.department.aggregate_for_department(
-            str(department.id), department.name, department.tenant_id, member_ids, year, month, force
+            str(department.id), department.name, department.tenant_id, [str(uid) for uid in member_ids], year, month, force
         )
 
     def aggregate_organization(

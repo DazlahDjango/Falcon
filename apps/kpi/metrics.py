@@ -73,8 +73,8 @@ def update_metrics():
     import redis
 
     # Update active KPIs per tenant
-    from apps.tenant.models import Client
-    for tenant in Client.objects.filter(is_active=True):
+    from apps.tenant.models import Organization
+    for tenant in Organization.objects.filter(is_active=True):
         count = KPI.objects.filter(tenant_id=tenant.id, is_active=True).count()
         active_kpis.labels(tenant_id=str(tenant.id)).set(count)
 

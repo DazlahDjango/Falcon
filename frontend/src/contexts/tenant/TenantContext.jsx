@@ -76,11 +76,27 @@ export const TenantProvider = ({ children }) => {
     }
   }, [isAuthenticated, user?.tenant_id, loadTenantData]);
 
-  const refreshTenant = useCallback(() => {
-    if (user?.tenant_id) {
-      return loadTenantData(user.tenant_id);
+  const switchTenant = useCallback((tenantId) => {
+    if (tenantId) {
+      loadTenantData(tenantId);
+    } else {
+      setCurrentTenant(null);
+      setBranding({
+        primaryColor: '#2563EB',
+        secondaryColor: '#7C3AED',
+        logoUrl: null,
+        faviconUrl: null,
+      });
+      setIsLoading(false);
     }
-  }, [user?.tenant_id, loadTenantData]);
+  }, [loadTenantData]);
+
+  const refreshTenant = useCallback(() => {
+    const activeTenantId = currentTenant?.id || user?.tenant_id;
+    if (activeTenantId) {
+      return loadTenantData(activeTenantId);
+    }
+  }, [currentTenant?.id, user?.tenant_id, loadTenantData]);
 
   const updateBranding = useCallback((newBranding) => {
     setBranding((prev) => ({ ...prev, ...newBranding }));
@@ -93,6 +109,7 @@ export const TenantProvider = ({ children }) => {
     isLoading,
     error,
     refreshTenant,
+    switchTenant,
     updateBranding,
     isActive: currentTenant?.is_active || false,
     isOnboarded: currentTenant?.is_onboarded || false,
@@ -101,7 +118,7 @@ export const TenantProvider = ({ children }) => {
     tenantName: currentTenant?.name || null,
     tenantSlug: currentTenant?.slug || null,
     tenantStatus: currentTenant?.status || null,
-  }), [currentTenant, branding, isLoading, error, refreshTenant, updateBranding]);
+  }), [currentTenant, branding, isLoading, error, refreshTenant, switchTenant, updateBranding]);
 
   return (
     <TenantContext.Provider value={value}>

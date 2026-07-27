@@ -50,7 +50,7 @@ export const DivisionDetail = () => {
 
   const handleDeleteConfirm = useCallback(async () => {
     try {
-      await remove(id).unwrap();
+      await remove(id);
       navigate(STRUCTURE_ROUTES.DIVISIONS);
     } catch (err) {
       console.error('Delete failed:', err);

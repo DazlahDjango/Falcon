@@ -10,6 +10,7 @@ import billingRoutes from "./billing.routes";
 import reviewsRoutes from "./reviews.routes";
 import configRoutes from "./config.routes";
 import dashboardRoutes from "./dashboard.routes";
+import reportingRoutes from "./reporting.routes";
 
 // Layouts
 const AuthLayout = React.lazy(() => import("../components/dashboard/Layout/AuthLayout"));
@@ -89,6 +90,8 @@ const AppRouter = () => {
                     {renderRoutes(reviewsRoutes)}
                     {/* Config routes */}
                     {renderRoutes(configRoutes)}
+                    {/* Reporting routes */}
+                    {renderRoutes(reportingRoutes)}
                     
                     {/* Error routes */}
                     <Route path="/unauthorized" element={<Unauthorized />} />

@@ -2,6 +2,8 @@ import logging
 from celery import shared_task
 from typing import Dict, Optional
 from django.core.cache import cache
+from apps.kpi.utils.cache_keys import invalidate_user_dashboards, invalidate_aggregation_cache
+
 logger = logging.getLogger(__name__)
 
 class CalculationLock:
@@ -16,23 +18,19 @@ class CalculationLock:
         cache.delete(self.lock_key)
 
 
-def invalidate_user_dashboards(user_id: str) -> None:
-    try:
-        cache.delete_pattern(f"kpi_dashboard:*{user_id}*")
-    except Exception:
-        pass
-
-
-def invalidate_aggregation_cache(level: str, tenant_id: str) -> None:
-    try:
-        cache.delete_pattern(f"kpi_aggregation:{level}:{tenant_id}*")
-    except Exception:
-        pass
-
-
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def calculate_kpi_score_task(self, user_id: str, year: int, month: int, force: bool = False) -> Dict:
     from apps.kpi.services import ScoreCalculator
+    from apps.accounts.models import User
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
+
+    tenant_id = None
+    try:
+        user = User.objects.get(id=user_id)
+        tenant_id = str(user.tenant_id)
+        set_current_tenant_id(tenant_id)
+    except Exception as e:
+        logger.warning(f"Could not resolve tenant for user {user_id}: {e}")
 
     logger.info(f"Starting KPI score calculation for user_id={user_id}, period {year}-{month:02d}")
     try:
@@ -44,12 +42,17 @@ def calculate_kpi_score_task(self, user_id: str, year: int, month: int, force: b
     except Exception as e:
         logger.exception(f"Score calculation failed for user {user_id}: {e}")
         raise self.retry(exc=e)
+    finally:
+        if tenant_id:
+            clear_current_tenant_id()
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=120)
 def calculate_period_scores_task(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
     from apps.kpi.services import ScoreCalculator
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
 
+    set_current_tenant_id(tenant_id)
     logger.info(f"Calculating period scores for tenant {tenant_id}, period {year}-{month:02d}")
     lock = CalculationLock(tenant_id, year, month)
 
@@ -67,15 +70,21 @@ def calculate_period_scores_task(self, tenant_id: str, year: int, month: int, fo
         raise self.retry(exc=e)
     finally:
         lock.release()
+        clear_current_tenant_id()
 
 
 @shared_task(bind=True, max_retries=2, default_retry_delay=30)
 def update_traffic_light_task(self, score_id: str) -> Optional[Dict]:
     from apps.kpi.models import Score, TrafficLight
     from apps.kpi.engine.traffic_light import TrafficLightEvaluator
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
 
+    tenant_id = None
     try:
         score = Score.objects.select_related('kpi', 'user').get(id=score_id)
+        tenant_id = str(score.tenant_id)
+        set_current_tenant_id(tenant_id)
+
         evaluator = TrafficLightEvaluator()
         traffic = evaluator.evaluate(score.score)
 
@@ -96,12 +105,17 @@ def update_traffic_light_task(self, score_id: str) -> Optional[Dict]:
     except Exception as e:
         logger.exception(f"Traffic light update failed: {e}")
         raise self.retry(exc=e)
+    finally:
+        if tenant_id:
+            clear_current_tenant_id()
 
 
 @shared_task(bind=True, max_retries=2, default_retry_delay=60)
 def update_aggregated_scores_task(self, tenant_id: str, year: int, month: int) -> Dict:
     from apps.kpi.services import ScoreAggregator
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
 
+    set_current_tenant_id(tenant_id)
     logger.info(f"Aggregating scores for tenant {tenant_id}, period {year}-{month:02d}")
     try:
         aggregator = ScoreAggregator()
@@ -120,3 +134,5 @@ def update_aggregated_scores_task(self, tenant_id: str, year: int, month: int) -
     except Exception as e:
         logger.exception(f"Aggregation failed: {e}")
         raise self.retry(exc=e)
+    finally:
+        clear_current_tenant_id()

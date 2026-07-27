@@ -97,6 +97,6 @@ class OrganizationLimitsMiddleware(MiddlewareMixin):
         from apps.tenant.models import Organization
         try:
             org = Organization.objects.filter(id=tenant_id).first()
-            return org and getattr(org, 'maintenance_mode', False)
+            return org and (getattr(org, 'maintenance_mode', False) or (org.metadata and org.metadata.get('maintenance_mode', False)))
         except Exception:
             return False

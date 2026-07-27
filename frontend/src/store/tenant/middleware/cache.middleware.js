@@ -3,54 +3,54 @@ import {
   fetchOrganizations,
   fetchAdminOrganizations,
   fetchOrganization,
-} from '../tenant/organization.slice';
+} from '../slice/organization.slice';
 
 import {
   fetchDomains,
   fetchDomain,
   fetchTenantDomains,
-} from '../tenant/domain.slice';
+} from '../slice/domain.slice';
 
 import {
   fetchSchemas,
   fetchSchema,
   fetchTenantSchemas,
-} from '../tenant/schema.slice';
+} from '../slice/schema.slice';
 
 import {
   fetchResources,
   fetchResource,
   fetchTenantResources,
-} from '../tenant/resource.slice';
+} from '../slice/resource.slice';
 
 import {
   fetchConnections,
   fetchConnection,
   fetchTenantConnections,
   fetchConnectionMetrics,
-} from '../tenant/connection.slice';
+} from '../slice/connection.slice';
 
 import {
   fetchMigrations,
   fetchMigration,
   fetchTenantMigrations,
   fetchMigrationStats,
-} from '../tenant/migration.slice';
+} from '../slice/migration.slice';
 
 import {
   fetchSuperAdminDashboard,
   fetchClientAdminDashboard,
-} from '../tenant/dashboard.slice';
+} from '../slice/dashboard.slice';
 
 import {
   fetchSettings,
   fetchSystemSettings,
-} from '../tenant/settings.slice';
+} from '../slice/settings.slice';
 
 import {
   fetchHealth,
   fetchOrganizationsHealth,
-} from '../tenant/health.slice';
+} from '../slice/health.slice';
 
 const CACHE_DURATION = {
   LIST: 60000,

@@ -32,6 +32,7 @@ class WebhookEventLog(BaseBillingModel):
         (PROCESSING_STATUS_FAILED, 'Failed'),
         (PROCESSING_STATUS_DUPLICATE, 'Duplicate'),
     ]
+    tenant_id = models.UUIDField(_('tenant ID'), null=True, blank=True, db_index=True)
     event_type = models.CharField(_('event type'), max_length=100, db_index=True, choices=EVENT_CHOICES)
     event_idempotency_key = models.CharField(_('idempotency key'), max_length=255, unique=True, db_index=True, help_text="Unique key from PayStack for idempotency")
     paystack_event_id = models.CharField(_('PayStack event ID'), max_length=100, db_index=True)

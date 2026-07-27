@@ -13,18 +13,18 @@ django.setup()
 print("Django setup completed")
 
 try:
-    from apps.tenant.models import Client
-    print("Client model imported okay")
-    print(f"Client table exists: {Client._meta.db_table}")
-    print(f"Client fields: {[f.name for f in Client._meta.fields]}")
+    from apps.tenant.models import Organization
+    print("Organization model imported okay")
+    print(f"Organization table exists: {Organization._meta.db_table}")
+    print(f"Organization fields: {[f.name for f in Organization._meta.fields]}")
 
-    from apps.tenant.api.v1.views.tenant_admin import TenantViewSet
-    print("TenantViewSet imported okay")
+    from apps.tenant.api.v1.views.admin_views import AdminOrganizationViewSet
+    print("AdminOrganizationViewSet imported okay")
 
-    from apps.tenant.services.monitoring.health_check import HealthCheck
-    health = HealthCheck()
-    print("HealthCheck imported okay")
-    print("System health:", health.check_system_health())
+    from apps.tenant.services.health_service import HealthCheckService
+    health = HealthCheckService()
+    print("HealthCheckService imported okay")
+    print("System health:", health.full_health_check())
 
     print("=== All tests passed ===")
 except Exception as e:

@@ -100,7 +100,7 @@ const ManagerDashboard = () => {
                         </div>
                         <div className="stat-content">
                             <div className="stat-value">
-                                {stat.value.toFixed(1)}{stat.suffix}
+                                {Number(stat.value || 0).toFixed(1)}{stat.suffix}
                                 {stat.change !== 0 && (
                                     <span className={`stat-change ${stat.change > 0 ? 'positive' : 'negative'}`}>
                                         {stat.change > 0 ? '↑' : '↓'} {Math.abs(stat.change)}%

@@ -50,8 +50,14 @@ const authMiddleware = (store) => (next) => async (action) => {
             } catch (error) {
                 processQueue(error, null);
                 store.dispatch({ type: 'auth/logout' });
-                window.location.href = '/login';
-                return netx(action);
+                import('../index').then(({ persistor }) => {
+                    persistor.purge().finally(() => {
+                        if (typeof window !== 'undefined') {
+                            window.location.href = '/login';
+                        }
+                    });
+                });
+                return next(action);
             } finally {
                 isRefreshing = false;
             }

@@ -60,7 +60,7 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit
                                             />
                                         </div>
                                         <span className="kpi-target-table-progress-text">
-                                            {progress.toFixed(1)}%
+                                            {Number(progress || 0).toFixed(1)}%
                                             {getProgressIcon(target)}
                                         </span>
                                     </div>

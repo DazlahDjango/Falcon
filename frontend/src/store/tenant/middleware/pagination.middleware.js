@@ -4,32 +4,32 @@ import {
   fetchAdminOrganizations,
   setPagination,
   setAdminPagination,
-} from '../tenant/organization.slice';
+} from '../slice/organization.slice';
 
 import {
   fetchDomains,
   setPagination as setDomainPagination,
-} from '../tenant/domain.slice';
+} from '../slice/domain.slice';
 
 import {
   fetchSchemas,
   setPagination as setSchemaPagination,
-} from '../tenant/schema.slice';
+} from '../slice/schema.slice';
 
 import {
   fetchResources,
   setPagination as setResourcePagination,
-} from '../tenant/resource.slice';
+} from '../slice/resource.slice';
 
 import {
   fetchConnections,
   setPagination as setConnectionPagination,
-} from '../tenant/connection.slice';
+} from '../slice/connection.slice';
 
 import {
   fetchMigrations,
   setPagination as setMigrationPagination,
-} from '../tenant/migration.slice';
+} from '../slice/migration.slice';
 
 const paginationMiddleware = createListenerMiddleware();
 

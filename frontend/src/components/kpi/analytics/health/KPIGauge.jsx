@@ -18,7 +18,7 @@ const KPIGauge = ({ health }) => {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--kpi-space-2)' }}>
                         <span><FiTarget size={14} /> KPI Completion Rate</span>
-                        <strong>{completionRate.toFixed(1)}%</strong>
+                        <strong>{Number(completionRate || 0).toFixed(1)}%</strong>
                     </div>
                     <div style={{ height: 8, background: 'var(--kpi-gray-200)', borderRadius: 4, overflow: 'hidden' }}>
                         <div style={{ width: `${completionRate}%`, height: '100%', background: 'var(--kpi-primary)' }} />
@@ -28,7 +28,7 @@ const KPIGauge = ({ health }) => {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--kpi-space-2)' }}>
                         <span><FiTrendingUp size={14} /> Validation Compliance</span>
-                        <strong>{complianceRate.toFixed(1)}%</strong>
+                        <strong>{Number(complianceRate || 0).toFixed(1)}%</strong>
                     </div>
                     <div style={{ height: 8, background: 'var(--kpi-gray-200)', borderRadius: 4, overflow: 'hidden' }}>
                         <div style={{ width: `${complianceRate}%`, height: '100%', background: 'var(--kpi-info)' }} />

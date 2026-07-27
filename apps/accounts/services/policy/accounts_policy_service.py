@@ -92,7 +92,9 @@ class AccountsPolicyService:
         }
 
     @classmethod
-    def get_tenant_policy(cls, client_id: str, use_cache: bool = True) -> dict:
+    def get_tenant_policy(cls, client_id: Optional[str], use_cache: bool = True) -> dict:
+        if not client_id or str(client_id) == 'None':
+            return cls.get_system_policy(use_cache=use_cache)
         cache_key = CACHE_KEY_TENANT.format(client_id=client_id)
         if use_cache:
             cached = cache.get(cache_key)
@@ -113,6 +115,8 @@ class AccountsPolicyService:
     def tenant_requires_mfa(cls, user) -> bool:
         if not user or not getattr(user, 'role', None):
             return False
+        if not user.tenant_id:
+            return False
         policy = cls.get_tenant_policy(str(user.tenant_id))
         required = policy.get('mfa', {}).get('required_roles', [])
         return user.role in required
@@ -123,7 +127,7 @@ class AccountsPolicyService:
         return policy.get('lockout', cls.get_defaults()['lockout'])
 
     @classmethod
-    def get_session_config(cls, client_id: str) -> dict:
+    def get_session_config(cls, client_id: Optional[str]) -> dict:
         policy = cls.get_tenant_policy(client_id)
         return policy.get('sessions', cls.get_defaults()['sessions'])
 

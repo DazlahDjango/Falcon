@@ -80,8 +80,8 @@ class ScoreManager(TenantAwareManager):
             year=year,
             month=month,
             kpi__weights__is_active=True,
-            kpi__weights__for_user=user_id,
-            kpi__weights__efective_from__lte=f"{year}-{month:02d}-01"
+            kpi__weights__user_id=user_id,
+            kpi__weights__effective_from__lte=f"{year}-{month:02d}-01"
         ).filter(
             Q(kpi__weights__effective_to__isnull=True) |
             Q(kpi__weights__effective_to__gte=f"{year}-{month:02d}-01")

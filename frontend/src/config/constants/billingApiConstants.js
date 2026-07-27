@@ -27,6 +27,8 @@ export const SUBSCRIPTION_ENDPOINTS = {
     DOWNGRADE: (id, planId) => `subscriptions/${id}/downgrade/${planId}/`,
     EXTEND_TRIAL: (id) => `subscriptions/${id}/extend-trial/`,
     USAGE: (id) => `subscriptions/${id}/usage/`,
+    INVOICES: (id) => `subscriptions/${id}/invoices/`,
+    TRANSACTIONS: (id) => `subscriptions/${id}/transactions/`,
     ADMIN_CANCEL: `subscriptions/admin/cancel/`,
     QUERY_PARAMS: { STATUS: 'status', PLAN_TYPE: 'plan_type', ACTIVE_ONLY: 'active_only' },
 };

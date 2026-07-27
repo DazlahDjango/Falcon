@@ -93,8 +93,9 @@ class CalculationCacheMiddleware(MiddlewareMixin):
     def _invalidate_caches(self, request):
         tenant_id = getattr(request, 'current_tenant_id', None)
         if tenant_id:
+            from apps.kpi.utils.cache_keys import safe_delete_pattern
             try:
-                cache.delete_pattern(f"kpi:cache:*{tenant_id}*")
+                safe_delete_pattern(f"kpi:cache:*{tenant_id}*")
             except Exception as e:
                 logger.warning(f"Failed to invalidate caches: {e}")
 

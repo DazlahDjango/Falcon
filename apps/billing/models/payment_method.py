@@ -26,7 +26,7 @@ class PaymentMethod(BaseBillingModel):
         (STATUS_REMOVED, 'Removed'),
         (STATUS_DEFAULT, 'Default'),
     ]
-    tenant_id = models.UUIDField(_('tenant ID'), db_index=True)
+    tenant_id = models.UUIDField(_('tenant ID'), null=True, blank=True, db_index=True)
     authorization_code = models.CharField(_('authorization code'), max_length=100, unique=True, db_index=True, help_text="PayStack authorization code")
     customer_code = models.CharField(_('customer code'), max_length=100, blank=True, db_index=True)
     email = models.EmailField(_('email'))

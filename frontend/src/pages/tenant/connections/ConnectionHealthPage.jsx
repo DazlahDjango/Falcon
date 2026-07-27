@@ -3,31 +3,45 @@ import {
     FiHeart, FiCheckCircle, FiAlertTriangle,
     FiActivity, FiRefreshCw, FiAlertCircle, FiClock
 } from 'react-icons/fi';
-import { useHealthDashboard } from '../../../hooks/tenant';
-import { useTenants } from '../../../hooks/tenant';
+import { useOrganizations, useOrganizationsHealth, useConnections } from '../../../hooks/tenant';
 
 export const ConnectionHealthPage = () => {
     const {
-        healthStatus,
-        healthSummary,
-        loading,
-        checkAllTenants,
-        checkTenant,
-        getUnhealthyTenants,
         healthyCount,
-        unhealthyCount
-    } = useHealthDashboard();
+        unhealthyCount,
+        loading: healthLoading,
+        list: organizationsHealthList,
+        fetchHealth
+    } = useOrganizationsHealth({ autoFetch: true });
 
-    const { tenants, refetch: fetchAllTenants, isLoading: tenantsLoading } = useTenants();
+    const {
+        organizations,
+        fetchList: fetchAllTenants,
+        loading: orgsLoading
+    } = useOrganizations({ autoFetch: true });
 
-    // Fetch tenants on mount
-    useEffect(() => {
-        if (fetchAllTenants) {
-            fetchAllTenants();
-        }
-    }, [fetchAllTenants]);
+    const {
+        healthStatus,
+        healthCheck,
+        loading: connectionsLoading
+    } = useConnections();
+
+    const loading = healthLoading || connectionsLoading;
+    const tenantsLoading = orgsLoading;
+    const tenants = organizations;
 
     // Handle batch scan
+    const checkAllTenants = useCallback(async (tenantIds) => {
+        await healthCheck();
+        await fetchHealth();
+    }, [healthCheck, fetchHealth]);
+
+    // Handle single tenant check
+    const checkTenant = useCallback(async (tenantId) => {
+        await healthCheck({ organization_id: tenantId });
+        await fetchHealth();
+    }, [healthCheck, fetchHealth]);
+
     const handleRunScan = useCallback(async () => {
         if (tenants && tenants.length > 0) {
             const tenantIds = tenants.map(t => t.id);
@@ -35,10 +49,11 @@ export const ConnectionHealthPage = () => {
         }
     }, [tenants, checkAllTenants]);
 
-    // Handle single tenant check
     const handleCheckSingle = useCallback(async (tenantId) => {
         await checkTenant(tenantId);
     }, [checkTenant]);
+
+    const healthSummary = null;
 
     // Memoized summary stats
     const summaryStats = useMemo(() => [
@@ -63,7 +78,7 @@ export const ConnectionHealthPage = () => {
     ], [healthyCount, unhealthyCount, healthSummary]);
 
     // Get unhealthy tenants list
-    const unhealthyTenants = useMemo(() => getUnhealthyTenants(), [getUnhealthyTenants]);
+    const unhealthyTenants = useMemo(() => organizationsHealthList?.filter(org => org.status === 'unhealthy') || [], [organizationsHealthList]);
 
     // Loading state
     if ((loading || tenantsLoading) && (!healthStatus || Object.keys(healthStatus).length === 0)) {

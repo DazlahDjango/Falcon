@@ -8,7 +8,7 @@ from apps.tenant.models import OrganizationResource, Organization, ResourceUsage
 
 class ResourceSerializer(serializers.ModelSerializer):
     organization_name = serializers.CharField(source='organization.name', read_only=True)
-    percentage_used = serializers.FloatField(source='percentage_used', read_only=True)
+    percentage_used = serializers.FloatField(read_only=True)
     is_exceeded = serializers.BooleanField(source='is_exceeded', read_only=True)
     is_warning = serializers.BooleanField(source='is_warning_level', read_only=True)
     is_soft_exceeded = serializers.BooleanField(source='is_soft_exceeded', read_only=True)
@@ -115,7 +115,7 @@ class ResourceUpdateSerializer(serializers.ModelSerializer):
 
 class ResourceDetailSerializer(serializers.ModelSerializer):
     organization_name = serializers.CharField(source='organization.name', read_only=True)
-    percentage_used = serializers.FloatField(source='percentage_used', read_only=True)
+    percentage_used = serializers.FloatField(read_only=True)
     is_exceeded = serializers.BooleanField(source='is_exceeded', read_only=True)
     is_warning = serializers.BooleanField(source='is_warning_level', read_only=True)
     is_soft_exceeded = serializers.BooleanField(source='is_soft_exceeded', read_only=True)

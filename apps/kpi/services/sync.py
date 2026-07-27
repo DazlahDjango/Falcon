@@ -532,6 +532,7 @@ class DataSyncService:
 
     def clear_sync_cache(self, source: str, tenant_id: str) -> None:
         """Clear sync cache for a source-tenant pair"""
+        from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:status:{source}:{tenant_id}")
-        cache.delete_pattern(f"{CACHE_PREFIX}:idempotent:{source}:*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:idempotent:{source}:*")
         cache.delete(f"{CACHE_PREFIX}:rate_limit:{source}:{tenant_id}")

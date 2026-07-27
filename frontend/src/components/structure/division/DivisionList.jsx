@@ -134,7 +134,7 @@ export const DivisionList = () => {
   const handleDeleteConfirm = useCallback(async () => {
     if (!deleteTarget) return;
     try {
-      await remove(deleteTarget.id).unwrap();
+      await remove(deleteTarget.id);
       setShowDeleteConfirm(false);
       setDeleteTarget(null);
       // Refetch with current params after deletion

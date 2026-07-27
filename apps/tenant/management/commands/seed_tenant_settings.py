@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from apps.tenant.services.settings import TenantSettingsService
-from apps.tenant.services.monitoring.resource_sync import ResourceSyncService
+from apps.tenant.services import OrganizationSettingsService
+from apps.tenant.services import ResourceService
 
 
 class Command(BaseCommand):
@@ -12,12 +12,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options['reset']:
-            record = TenantSettingsService.reset_to_defaults()
+            record = OrganizationSettingsService.reset_to_defaults()
             self.stdout.write(self.style.SUCCESS(f'Reset tenant settings (v{record.version})'))
         else:
-            record = TenantSettingsService.get_record()
+            record = OrganizationSettingsService.get_record()
             self.stdout.write(self.style.SUCCESS(f'Tenant settings ready (v{record.version})'))
 
         if options['sync_resources']:
-            count = ResourceSyncService.sync_all_tenants()
+            count = ResourceService.sync_limits_from_billing()
             self.stdout.write(self.style.SUCCESS(f'Synced resources for {count} tenants'))
+

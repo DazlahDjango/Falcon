@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../../store/accounts';
 import {
     fetchCurrentSubscription, fetchSubscriptionById, updateSubscriptionSettings,
     cancelSubscription, renewSubscription, upgradeSubscription, downgradeSubscription,
@@ -55,11 +56,13 @@ export const useSubscription = (options = { autoFetch: true }) => {
     const clear = useCallback(() => dispatch(clearCurrentSubscription()), [dispatch]);
     const clearSubscriptionError = useCallback(() => dispatch(clearError()), [dispatch]);
 
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+
     useEffect(() => { 
-        if (options.autoFetch) {
+        if (options.autoFetch && isAuthenticated) {
             fetchCurrent();
         }
-    }, [options.autoFetch]);
+    }, [options.autoFetch, isAuthenticated]);
 
     return {
         subscription, usage, loading, error, isActive, isOnTrial,
