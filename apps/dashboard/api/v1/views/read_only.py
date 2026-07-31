@@ -21,7 +21,7 @@ class ReadOnlyDashboardView(APIView):
     )
     def get(self, request):
         period = request.query_params.get('period', 'current')
-        view_type = request.query_params.get('view_type', 'executive')
+        view_type = request.query_params.get('view_type', 'overview')
         
         service = ReadOnlyService(request.user, request.tenant_id)
         data = service.get_dashboard_data(
@@ -29,5 +29,4 @@ class ReadOnlyDashboardView(APIView):
             view_type=view_type
         )
         
-        serializer = ReadOnlyDashboardDataSerializer(data)
-        return Response(serializer.data)
+        return Response(data)

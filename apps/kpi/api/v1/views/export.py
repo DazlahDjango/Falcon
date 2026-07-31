@@ -144,3 +144,89 @@ class ReportExportView(APIView):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class KPIDetailExportView(APIView):
+    permission_classes = [IsAuthenticatedAndActive, IsManager]
+    throttle_classes = [ExportThrottle]
+
+    def get(self, request):
+        kpi_id = request.query_params.get('kpi_id')
+        if not kpi_id:
+            return Response({'error': 'kpi_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+            
+        from ....models import KPI, Score
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=tenant_id).first()
+        if not kpi:
+            return Response({'error': 'KPI not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['Attribute', 'Value'])
+        writer.writerow(['KPI ID', str(kpi.id)])
+        writer.writerow(['Code', kpi.code])
+        writer.writerow(['Name', kpi.name])
+        writer.writerow(['Description', kpi.description])
+        writer.writerow(['KPI Type', kpi.kpi_type])
+        writer.writerow(['Unit', kpi.unit])
+        writer.writerow(['Target Min', kpi.target_min])
+        writer.writerow(['Target Max', kpi.target_max])
+        writer.writerow(['Owner', kpi.owner.email])
+        if kpi.department:
+            writer.writerow(['Department', kpi.department.name])
+            
+        # Include scores
+        writer.writerow([])
+        writer.writerow(['Year', 'Month', 'Score', 'Actual Value', 'Target Value'])
+        scores = Score.objects.filter(kpi=kpi, tenant_id=tenant_id).order_by('-year', '-month')[:12]
+        for score in scores:
+            writer.writerow([score.year, score.month, score.score, score.actual_value, score.target_value])
+            
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="kpi_detail_{kpi.code}.csv"'
+        return response
+
+
+class DepartmentReportExportView(APIView):
+    permission_classes = [IsAuthenticatedAndActive, IsManager]
+    throttle_classes = [ExportThrottle]
+
+    def get(self, request):
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        
+        now = timezone.now()
+        y = int(year) if year else now.year
+        m = int(month) if month else now.month
+        
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+            
+        from apps.kpi.services.analytics.live_analytics import get_department_rollups
+        data = get_department_rollups(str(tenant_id), y, m)
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['Department ID', 'Department Name', 'Year', 'Month', 'Overall Score', 'Employee Count', 'Green %', 'Yellow %', 'Red %'])
+        
+        for row in data:
+            writer.writerow([
+                row.get('department_id'),
+                row.get('department_name'),
+                row.get('year'),
+                row.get('month'),
+                row.get('overall_score'),
+                row.get('employee_count'),
+                row.get('green_percentage'),
+                row.get('yellow_percentage'),
+                row.get('red_percentage'),
+            ])
+            
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="department_report_{y}_{m:02d}.csv"'
+        return response

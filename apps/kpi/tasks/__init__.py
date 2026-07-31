@@ -41,8 +41,10 @@ from .backup import (
     archive_backup_task,
     cleanup_old_backups_task
 )
+from .imports import process_bulk_upload_task
 
 __all__ = [
+    'process_bulk_upload_task',
     # Calculations
     'calculate_kpi_score_task',
     'calculate_period_scores_task',

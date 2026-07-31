@@ -1,58 +1,56 @@
 import { request } from './client';
+import { REPORT_ENDPOINTS } from '../../../config/constants/accountsApiConstants';
 
-// 1. User Reports
 export const getUserDirectoryReport = (params = {}) => {
-    return request.get('/reports/user-directory/', { params });
+    return request.get(REPORT_ENDPOINTS.USER_DIRECTORY, { params });
 };
 
 export const getRoleDistributionReport = (params = {}) => {
-    return request.get('/reports/role-distribution/', { params });
+    return request.get(REPORT_ENDPOINTS.ROLE_DISTRIBUTION, { params });
 };
 
 export const getDepartmentDistributionReport = (params = {}) => {
-    return request.get('/reports/department-distribution/', { params });
+    return request.get(REPORT_ENDPOINTS.DEPARTMENT_DISTRIBUTION, { params });
 };
 
 export const getInactiveUsersReport = (params = {}) => {
-    return request.get('/reports/inactive-users/', { params });
+    return request.get(REPORT_ENDPOINTS.INACTIVE_USERS, { params });
 };
 
 export const getRecentlyAddedReport = (params = {}) => {
-    return request.get('/reports/recently-added/', { params });
+    return request.get(REPORT_ENDPOINTS.RECENTLY_ADDED, { params });
 };
 
 export const getActivitySummaryReport = (params = {}) => {
-    return request.get('/reports/activity-summary/', { params });
+    return request.get(REPORT_ENDPOINTS.ACTIVITY_SUMMARY, { params });
 };
 
-// 2. Audit & Compliance Reports
 export const getAuditTrailReport = (params = {}) => {
-    return request.get('/reports/audit-trail/', { params });
+    return request.get(REPORT_ENDPOINTS.AUDIT_TRAIL, { params });
 };
 
 export const getLoginActivityReport = (params = {}) => {
-    return request.get('/reports/login-activity/', { params });
+    return request.get(REPORT_ENDPOINTS.LOGIN_ACTIVITY, { params });
 };
 
 export const getPasswordChangesReport = (params = {}) => {
-    return request.get('/reports/password-changes/', { params });
+    return request.get(REPORT_ENDPOINTS.PASSWORD_CHANGES, { params });
 };
 
 export const getRoleChangesReport = (params = {}) => {
-    return request.get('/reports/role-changes/', { params });
+    return request.get(REPORT_ENDPOINTS.ROLE_CHANGES, { params });
 };
 
 export const getSuspensionLogReport = (params = {}) => {
-    return request.get('/reports/suspension-log/', { params });
+    return request.get(REPORT_ENDPOINTS.SUSPENSION_LOG, { params });
 };
 
 export const getComplianceSummaryReport = (params = {}) => {
-    return request.get('/reports/compliance-summary/', { params });
+    return request.get(REPORT_ENDPOINTS.COMPLIANCE_SUMMARY, { params });
 };
 
-// 3. Export Helper
 export const exportReportFile = (endpoint, format, params = {}) => {
-    return request.get(`/reports/${endpoint}/`, {
+    return request.get(REPORT_ENDPOINTS.EXPORT(endpoint), {
         params: { ...params, format },
         responseType: 'blob'
     });

@@ -17,8 +17,9 @@ class TreeBuilder:
     
     def build_full_tree(self, tenant_id: UUID, use_cache: bool = True) -> Dict[str, Any]:
         cache_key = CACHE_KEY_ORG_TREE.format(tenant_id=tenant_id)
+        compressed_key = f"tenant:{tenant_id}:org_tree:v1"
         if use_cache:
-            cached = self._cache.get(cache_key)
+            cached = self._cache.get(compressed_key) or self._cache.get(cache_key)
             if cached:
                 return cached
         tree = {
@@ -30,6 +31,7 @@ class TreeBuilder:
         }
         if use_cache:
             self._cache.set(cache_key, tree, DEFAULT_MAX_CACHE_TTL_SECONDS)
+            self._cache.set(compressed_key, tree, DEFAULT_MAX_CACHE_TTL_SECONDS)
         return tree
     
     def _build_divisions(self, tenant_id: UUID) -> List[Dict[str, Any]]:

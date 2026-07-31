@@ -7,6 +7,8 @@ import {
     exportKPIs,
     exportScores,
     exportReport,
+    exportDepartmentReport,
+    exportKPIDetail,
     selectExporting,
     selectExportBlob
 } from '../../store/kpi';
@@ -61,11 +63,35 @@ const useExport = () => {
             setDownloading(false);
         }
     }, [dispatch, downloadBlob]);
+
+    const exportDepartmentReportList = useCallback(async (params = {}, format = 'csv') => {
+        setDownloading(true);
+        try {
+            const result = await dispatch(exportDepartmentReport({ ...params, format })).unwrap();
+            downloadBlob(result, `department_report.${format}`);
+            return result;
+        } finally {
+            setDownloading(false);
+        }
+    }, [dispatch, downloadBlob]);
+
+    const exportKPIDetailItem = useCallback(async (params = {}, format = 'csv') => {
+        setDownloading(true);
+        try {
+            const result = await dispatch(exportKPIDetail({ ...params, format })).unwrap();
+            downloadBlob(result, `kpi_detail_${params.kpi_id || 'export'}.${format}`);
+            return result;
+        } finally {
+            setDownloading(false);
+        }
+    }, [dispatch, downloadBlob]);
     
     return {
         exportKPIs: exportKPIsList,
         exportScores: exportScoresList,
         exportReport: exportPerformanceReport,
+        exportDepartmentReport: exportDepartmentReportList,
+        exportKPIDetail: exportKPIDetailItem,
         exporting: exporting || downloading,
     };
 };

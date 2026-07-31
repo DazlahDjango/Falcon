@@ -11,7 +11,5 @@ export const getPermissionsByCategory = (category) =>
 export const getPermissionsByLevel = (level) =>
   request.get(PERMISSION_ENDPOINTS.BY_LEVEL(level));
 
-// ============ ADD MISSING EXPORT ============
-
 export const checkPermission = (permission, resource) =>
-  request.get('/permissions/check', { params: { permission, resource } });
+  request.get(PERMISSION_ENDPOINTS.CHECK, { params: { permission, resource } });

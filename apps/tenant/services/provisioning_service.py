@@ -38,111 +38,71 @@ class ProvisioningService:
           7. Broadcast progress updates over WebSockets.
           8. Automatic rollback and schema cascade drop on failure.
         """
-        lock_id = hash(str(organization_id)) % 2**31
-        schema_name = None
-        
         try:
-            # 1. Initialize schema record (Atomic)
-            with transaction.atomic():
-                # Acquire advisory lock inside transaction
-                with connection.cursor() as cursor:
-                    cursor.execute(f"SELECT pg_advisory_xact_lock({lock_id})")
-                
-                # Fetch organization with locking
-                org = Organization.objects.select_for_update().get(id=organization_id)
-                
-                # Idempotency Check
-                if org.is_provisioned:
-                    self.logger.info(f"Organization {org.name} is already provisioned/active.")
-                    return org
-                
-                schema_name = org.schema_name
-                
-                # Postgres schema name constraint validation
-                if not re.match(r'^[a-z_][a-z0-9_]{0,62}$', schema_name):
-                    raise ProvisioningError(
-                        f"Invalid schema name '{schema_name}'. Postgres schemas must start with a letter "
-                        f"or underscore, contain only lowercase letters, numbers, or underscores, and be max 63 characters."
-                    )
-                
-                # Start Progress Tracking
-                self._update_progress(org, 'STARTING', 'Initializing Provisioning', 0, "Starting organization provisioning pipeline...")
-                
-                # Update status to PROVISIONING
-                org.mark_provisioning()
-                
-                # Create & Activate Schema
-                self._update_progress(org, 'CREATING_SCHEMA', 'Creating Schema', 20, f"Creating database schema '{schema_name}'...")
-                
-                # Verify schema doesn't exist in DB already
-                if OrganizationSchema.objects.filter(schema_name=schema_name).exists():
-                    raise ProvisioningError(f"Database schema record '{schema_name}' already exists.")
-                
-                schema = self.schema_service.create_schema(org.id, schema_name)
-                self.schema_service.provision_schema(schema.id)
-
-            # 2. Sync & Apply Migrations (NON-ATOMIC)
-            org = Organization.objects.get(id=organization_id)
-            self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40, "Syncing and running database migrations...")
-            
-            self.migration_service.sync_tenant_migrations(org.id)
-            pending_migrations = self.migration_service.get_pending_migrations(org.id)
-            
-            total_migrations = pending_migrations.count()
-            self.logger.info(f"Found {total_migrations} pending migrations for organization '{org.name}'")
-            
-            for idx, migration in enumerate(pending_migrations, 1):
-                msg = f"Applying migration {idx}/{total_migrations}: {migration.app_name}.{migration.migration_name}"
-                self._update_progress(
-                    org,
-                    'MIGRATING',
-                    'Applying Migrations',
-                    40 + int((idx / total_migrations) * 25), # spans from 40% to 65%
-                    msg
-                )
-                self.migration_service.apply_migration(org.id, migration.app_name, migration.migration_name)
-            
-            # Ensure connection search path is restored to public
-            with connection.cursor() as cursor:
-                cursor.execute('SET search_path TO "public"')
-
-            # 3. Resource Quotas, Seeding, Admin user creation (Atomic)
-            with transaction.atomic():
-                org = Organization.objects.select_for_update().get(id=organization_id)
-                
-                # Resource Limits Creation
-                self._update_progress(org, 'PROVISIONING_RESOURCES', 'Provisioning Resource Limits', 75, "Setting up resource quotas and limits...")
-                self._create_default_resources(org)
-                
-                # Seed Default Data
-                self._update_progress(org, 'SEEDING', 'Seeding Default Data', 85, "Seeding default system roles and configurations...")
-                self.seeder_service.seed_default_data(org)
-                
-                # Create Client Admin
-                self._update_progress(org, 'CREATING_ADMIN', 'Creating Client Admin', 92, "Creating organization client administrator...")
-                self._create_client_admin(org)
-                
-                # Finalize Onboarding
-                org.mark_onboarded()
-                self._update_progress(org, 'COMPLETED', 'Provisioning Completed', 100, "Organization provisioning completed successfully.")
-                self.logger.info(f"Provisioned organization successfully: {org.id} - {org.name}")
-                return org
-
+            schema_name = self.create_schema_step(organization_id)
+            self.apply_migrations_step(organization_id)
+            self.seed_initial_data_step(organization_id)
+            return self.notify_provisioning_complete_step(organization_id)
         except Exception as e:
             error_trace = traceback.format_exc()
             self.logger.error(f"Provisioning failed for organization {organization_id}: {str(e)}\n{error_trace}")
-            
-            # Fallback schema name determination if it wasn't set yet
             if not schema_name:
                 try:
                     org_temp = Organization.objects.get(id=organization_id)
                     schema_name = org_temp.schema_name
                 except Exception:
                     schema_name = f"org_{str(organization_id).replace('-', '_')}"
-            
-            # Perform Rollback / Cleanup
             self._rollback_provisioning(organization_id, schema_name, str(e))
             raise ProvisioningError(f"Failed to provision organization: {str(e)}")
+
+    def create_schema_step(self, organization_id) -> str:
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_advisory_xact_lock(hashtext('tenant_provision_' || %s))", [str(organization_id)])
+            org = Organization.objects.select_for_update().get(id=organization_id)
+            if org.is_provisioned:
+                return org.schema_name
+            schema_name = org.schema_name
+            if not re.match(r'^[a-z_][a-z0-9_]{0,62}$', schema_name):
+                raise ProvisioningError(f"Invalid schema name '{schema_name}'.")
+            self._update_progress(org, 'STARTING', 'Initializing Provisioning', 0, "Starting provisioning...")
+            org.mark_provisioning()
+            self._update_progress(org, 'CREATING_SCHEMA', 'Creating Schema', 20, f"Creating schema '{schema_name}'...")
+            if OrganizationSchema.objects.filter(schema_name=schema_name).exists():
+                raise ProvisioningError(f"Schema record '{schema_name}' already exists.")
+            schema = self.schema_service.create_schema(org.id, schema_name)
+            self.schema_service.provision_schema(schema.id)
+            return schema_name
+
+    def apply_migrations_step(self, organization_id):
+        org = Organization.objects.get(id=organization_id)
+        self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40, "Running database migrations...")
+        self.migration_service.sync_tenant_migrations(org.id)
+        pending_migrations = self.migration_service.get_pending_migrations(org.id)
+        total_migrations = pending_migrations.count()
+        for idx, migration in enumerate(pending_migrations, 1):
+            msg = f"Applying migration {idx}/{total_migrations}: {migration.app_name}.{migration.migration_name}"
+            self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40 + int((idx / max(total_migrations, 1)) * 25), msg)
+            self.migration_service.apply_migration(org.id, migration.app_name, migration.migration_name)
+        with connection.cursor() as cursor:
+            cursor.execute('SET search_path TO "public"')
+
+    def seed_initial_data_step(self, organization_id):
+        with transaction.atomic():
+            org = Organization.objects.select_for_update().get(id=organization_id)
+            self._update_progress(org, 'PROVISIONING_RESOURCES', 'Provisioning Resource Limits', 75, "Setting up quotas...")
+            self._create_default_resources(org)
+            self._update_progress(org, 'SEEDING', 'Seeding Default Data', 85, "Seeding default roles...")
+            self.seeder_service.seed_default_data(org)
+            self._update_progress(org, 'CREATING_ADMIN', 'Creating Client Admin', 92, "Creating organization client admin...")
+            self._create_client_admin(org)
+
+    def notify_provisioning_complete_step(self, organization_id):
+        org = Organization.objects.get(id=organization_id)
+        org.mark_onboarded()
+        self._update_progress(org, 'COMPLETED', 'Provisioning Completed', 100, "Organization provisioning completed successfully.")
+        self.logger.info(f"Provisioned organization successfully: {org.id} - {org.name}")
+        return org
 
     def _create_default_resources(self, organization):
         """Create resource limits based on subscription tier and custom overrides."""

@@ -26,8 +26,11 @@ export const fetchManagerDashboard = createAsyncThunk(
   async ({ period, includeTeam, userId } = {}, { rejectWithValue }) => {
     try {
       const response = await managerService.getDashboardData({ period, includeTeam, userId });
-      if (response?.success) {
+      if (response?.data) {
         return response.data;
+      }
+      if (response && typeof response === 'object') {
+        return response;
       }
       return rejectWithValue(response?.message || 'Failed to fetch manager dashboard');
     } catch (error) {

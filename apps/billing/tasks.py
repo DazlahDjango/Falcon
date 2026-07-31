@@ -38,6 +38,23 @@ def process_expired_trials():
         logger.exception(f"Failed to process expired trials: {str(e)}")
         raise
 
+@shared_task(name="billing.tasks.process_dunning_workflow")
+def process_dunning_workflow():
+    logger.info("Starting automated dunning workflow processing")
+    try:
+        from .services.subscription.dunning_service import DunningService
+        service = DunningService()
+        processed = service.process_past_due_dunning()
+        return {'processed': processed}
+    except Exception as e:
+        logger.exception(f"Failed to process dunning workflow: {str(e)}")
+        raise
+
+@shared_task(name="billing.tasks.send_billing_notification")
+def send_billing_notification_task(organization_id, message):
+    logger.info(f"Sending billing notification to org {organization_id}: {message}")
+    return True
+
 @shared_task(name="billing.tasks.send_renewal_reminders")
 def send_renewal_reminders():
     logger.info("Starting renewal reminders")

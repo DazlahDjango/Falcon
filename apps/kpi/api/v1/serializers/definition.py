@@ -65,6 +65,36 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
         validate_kpi_name(value)
         return value
 
+    def validate_category(self, value):
+        if value:
+            from apps.tenant.services.isolation_service import IsolationEnforcer
+            enforcer = IsolationEnforcer(self.context.get('request'))
+            try:
+                enforcer.assert_org_context(value, self.context['request'].user.tenant_id)
+            except Exception as e:
+                raise serializers.ValidationError(str(e))
+        return value
+
+    def validate_owner(self, value):
+        if value:
+            from apps.tenant.services.isolation_service import IsolationEnforcer
+            enforcer = IsolationEnforcer(self.context.get('request'))
+            try:
+                enforcer.assert_org_context(value, self.context['request'].user.tenant_id)
+            except Exception as e:
+                raise serializers.ValidationError(str(e))
+        return value
+
+    def validate_department(self, value):
+        if value:
+            from apps.tenant.services.isolation_service import IsolationEnforcer
+            enforcer = IsolationEnforcer(self.context.get('request'))
+            try:
+                enforcer.assert_org_context(value, self.context['request'].user.tenant_id)
+            except Exception as e:
+                raise serializers.ValidationError(str(e))
+        return value
+
     def validate(self, data):
         target_min = data.get('target_min')
         target_max = data.get('target_max')

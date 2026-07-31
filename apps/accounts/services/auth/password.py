@@ -37,7 +37,10 @@ class PasswordService:
         user.is_verified = True
         user.save(update_fields=['password', 'password_last_changed', 'password_history', 'password_change_required', 'is_verified'])
         from apps.accounts.services.auth.session import SessionService
-        SessionService().terminate_all_sessions(user)
+        curr_session = getattr(request, 'session_key', None) if request else None
+        SessionService().terminate_all_sessions(user, except_session_id=curr_session)
+        # Flush Redis refresh token blacklist keys for user
+        cache.delete_pattern(f"user_jwt_tokens:{user.id}:*")
         self.audit_service.log(
             user=user, action='password.changed', action_type='update',
             request=request, severity='info'

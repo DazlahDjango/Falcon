@@ -356,53 +356,147 @@ class CustomReportView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         
-        from ....services import ReportGenerator
         from ....tasks import generate_custom_report_task
+        from ....models import ReportTask
         
-        generator = ReportGenerator()
         report_type = data['report_type']
         format_type = data.get('format', 'pdf')
         filters = data.get('filters', {})
         
-        if report_type == 'kpi_performance':
-            report = generator.generate_kpi_performance_report(
-                str(getattr(request, 'current_tenant_id', None)),
-                str(getattr(request, 'current_tenant_id', None)),
-                filters.get('kpi_ids', []),
-                filters.get('year'),
-                filters.get('month'),
-                format_type
-            )
-        elif report_type == 'department_comparison':
-            report = generator.generate_department_comparison_report(
-                str(getattr(request, 'current_tenant_id', None)),
-                str(getattr(request, 'current_tenant_id', None)),
-                filters.get('year'),
-                filters.get('month'),
-                format_type
-            )
-        elif report_type == 'trend_analysis':
-            report = generator.generate_trend_analysis_report(
-                str(getattr(request, 'current_tenant_id', None)),
-                str(getattr(request, 'current_tenant_id', None)),
-                filters.get('kpi_ids', []),
-                filters.get('months', 12),
-                format_type
-            )
-        else:
-            return Response({'error': f'Unknown report type: {report_type}'}, status=400)
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+            
+        # Create ReportTask in DB first to track progress
+        report_task = ReportTask.objects.create(
+            tenant_id=str(tenant_id),
+            report_type=report_type,
+            format=format_type,
+            filters=filters,
+            status='PENDING',
+            user=request.user
+        )
+        
+        # Inject task metadata for Celery callback
+        report_data = {
+            'task_id': str(report_task.id),
+            'report_type': report_type,
+            'format': format_type,
+            'filters': filters
+        }
         
         task = generate_custom_report_task.delay(
-            tenant_id=str(getattr(request, 'current_tenant_id', None)),
-            report_data=data,
+            tenant_id=str(tenant_id),
+            report_data=report_data,
             user_id=str(request.user.id)
         )
         
+        # Save Celery task ID in metadata
+        report_task.metadata = {'celery_task_id': task.id}
+        report_task.save(update_fields=['metadata'])
+        
         return Response({
-            'task_id': task.id,
+            'task_id': str(report_task.id),
             'status': 'PENDING',
             'message': 'Report generation started'
         }, status=202)
+
+
+class CustomReportStatusView(APIView):
+    permission_classes = [IsAuthenticatedAndActive, IsExecutive]
+
+    def get(self, request, task_id):
+        from apps.kpi.models import ReportTask
+        from celery.result import AsyncResult
+
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+
+        report_task = ReportTask.objects.filter(
+            id=task_id,
+            tenant_id=str(tenant_id)
+        ).first()
+
+        if report_task:
+            return Response({
+                'task_id': str(report_task.id),
+                'status': report_task.status,
+                'progress': report_task.progress,
+                'result_url': request.build_absolute_uri(f"/api/v1/kpis/reports/custom/{report_task.id}/download/") if report_task.status == 'COMPLETED' else None,
+                'error': report_task.error_message or None
+            })
+
+        # Fallback to direct Celery task query if DB task is not found
+        celery_task = AsyncResult(task_id)
+        status_text = 'PENDING'
+        if celery_task.ready():
+            if celery_task.successful():
+                status_text = 'COMPLETED'
+            else:
+                status_text = 'FAILED'
+
+        return Response({
+            'task_id': task_id,
+            'status': status_text,
+            'progress': 100 if status_text == 'COMPLETED' else 0,
+            'result_url': request.build_absolute_uri(f"/api/v1/kpis/reports/custom/{task_id}/download/") if status_text == 'COMPLETED' else None,
+            'error': str(celery_task.info) if status_text == 'FAILED' else None
+        })
+
+
+class CustomReportDownloadView(APIView):
+    permission_classes = [IsAuthenticatedAndActive, IsExecutive]
+
+    def get(self, request, report_id):
+        from celery.result import AsyncResult
+        from django.http import HttpResponse
+        from apps.kpi.models import ReportTask
+
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+
+        celery_task_id = report_id
+        fmt = 'pdf'
+
+        # Check DB to resolve Celery task ID if UUID matches ReportTask
+        report_task = ReportTask.objects.filter(
+            id=report_id,
+            tenant_id=str(tenant_id)
+        ).first()
+
+        if report_task:
+            celery_task_id = report_task.metadata.get('celery_task_id')
+            fmt = report_task.format or 'pdf'
+
+        if not celery_task_id:
+            return Response({'error': 'Report task not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        task = AsyncResult(celery_task_id)
+        if not task.successful() or not isinstance(task.result, dict):
+            return Response({'error': 'Report file is not ready or failed to generate'}, status=status.HTTP_400_BAD_REQUEST)
+
+        res = task.result
+        data = res.get('data')
+        if not data:
+            return Response({'error': 'Empty report file data generated'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if isinstance(data, str):
+            data_bytes = data.encode('utf-8')
+        else:
+            data_bytes = data
+
+        content_types = {
+            'pdf': 'application/pdf',
+            'csv': 'text/csv',
+            'excel': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+
+        response = HttpResponse(data_bytes, content_type=content_types.get(fmt, 'application/octet-stream'))
+        response['Content-Disposition'] = f'attachment; filename="report_{report_id}.{fmt}"'
+        return response
 
 
 class NotificationPreferencesView(APIView):

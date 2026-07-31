@@ -25,6 +25,9 @@ from .views.export import KPIExportView, ScoreExportView, ReportExportView
 from .views.insight import AnalyticsInsightsView, RiskPredictionsView
 from .views.system_settings_views import KpiSystemSettingsView, KpiSystemSettingsResetView
 from .views.reference_data import KpiReferenceDataView
+from .views.bulk_templates import BulkTemplateDownloadView
+from .views.analytics import CustomReportStatusView, CustomReportDownloadView
+from .views.export import KPIDetailExportView, DepartmentReportExportView
 
 router = DefaultRouter()
 router.trailing_slash = '/?'
@@ -117,6 +120,7 @@ urlpatterns = [
     path('bulk/kpi-upload/', BulkKPIUploadView.as_view(), name='bulk-kpi-upload'),
     path('bulk/actual-upload/', BulkActualUploadView.as_view(), name='bulk-actual-upload'),
     path('bulk/target-upload/', BulkTargetUploadView.as_view(), name='bulk-target-upload'),
+    path('bulk/templates/<str:template_type>/', BulkTemplateDownloadView.as_view(), name='bulk-template-download'),
     
     path('calculations/trigger/', TriggerCalculationView.as_view(), name='trigger-calculation'),
     path('calculations/status/<str:task_id>/', CalculationStatusView.as_view(), name='calculation-status'),
@@ -124,6 +128,8 @@ urlpatterns = [
     path('export/kpis/', KPIExportView.as_view(), name='export-kpis'),
     path('export/scores/', ScoreExportView.as_view(), name='export-scores'),
     path('export/reports/', ReportExportView.as_view(), name='export-reports'),
+    path('export/department-report/', DepartmentReportExportView.as_view(), name='export-department-report'),
+    path('export/kpi-detail/', KPIDetailExportView.as_view(), name='export-kpi-detail'),
     
     path('analytics/insights/', AnalyticsInsightsView.as_view(), name='analytics-insights'),
     path('analytics/predictions/', RiskPredictionsView.as_view(), name='risk-predictions'),
@@ -131,6 +137,8 @@ urlpatterns = [
     path('analytics/heatmap/', PerformanceHeatmapView.as_view(), name='analytics-heatmap'),
     
     path('reports/custom/', CustomReportView.as_view(), name='custom-report'),
+    path('reports/custom/status/<str:task_id>/', CustomReportStatusView.as_view(), name='custom-report-status'),
+    path('reports/custom/<str:report_id>/download/', CustomReportDownloadView.as_view(), name='custom-report-download'),
     
     path('reference-data/', KpiReferenceDataView.as_view(), name='kpi-reference-data'),
     path('system-settings/', KpiSystemSettingsView.as_view(), name='kpi-system-settings'),

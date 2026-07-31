@@ -33,7 +33,6 @@ const initialState = {
   },
 };
 
-// ============ Existing Thunks ============
 export const fetchAdminUsers = createAsyncThunk(
   'admin/fetchUsers',
   async (params, { rejectWithValue, getState }) => {

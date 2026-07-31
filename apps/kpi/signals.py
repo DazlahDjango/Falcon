@@ -161,12 +161,12 @@ def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
         from .services.realtime import KPIEventBroadcaster
         
         if instance.status == 'APPROVED':
-            calculate_kpi_score_task.delay(
+            transaction.on_commit(lambda: calculate_kpi_score_task.delay(
                 user_id=str(instance.user_id),
                 year=instance.year,
                 month=instance.month,
                 force=True
-            )
+            ))
             transaction.on_commit(lambda: send_red_alert_check_task.delay(
                 tenant_id=str(instance.tenant_id),
                 year=instance.year,

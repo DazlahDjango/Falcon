@@ -17,6 +17,15 @@ def warm_structure_cache(tenant_id_str: str) -> dict:
     logger.info(f"Cache warming completed for tenant {tenant_id}: {results}")
     return results
 
+@shared_task(name='structure.tasks.rebuild_org_tree_cache_task')
+def rebuild_org_tree_cache_task(tenant_id_str: str) -> dict:
+    from .services.hierarchy.tree_builder import TreeBuilder
+    tenant_id = UUID(tenant_id_str)
+    builder = TreeBuilder()
+    tree = builder.build_full_tree(tenant_id, use_cache=False)
+    logger.info(f"Rebuilt org tree cache for tenant {tenant_id}")
+    return {'status': 'success', 'nodes_count': len(tree)}
+
 
 @shared_task(name='structure.tasks.rebuild_hierarchy_indexes')
 def rebuild_hierarchy_indexes(tenant_id_str: str) -> dict:

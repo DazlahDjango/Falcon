@@ -7,63 +7,77 @@ import UploadPreview from './UploadPreview';
 import UploadResults from './UploadResults';
 import TemplateDownload from './TemplateDownload';
 
+// Steps: 1 = Select file, 2 = Preview & upload, 3 = Show results
 const BulkKPIUpload = ({ onComplete, setUploading }) => {
     const dispatch = useDispatch();
     const [file, setFile] = useState(null);
     const [dryRun, setDryRun] = useState(true);
-    const [preview, setPreview] = useState(null);
     const [step, setStep] = useState(1);
+    const [fileError, setFileError] = useState(null);
+    const [uploadResult, setUploadResult] = useState(null);
+    const [uploadError, setUploadError] = useState(null);
 
-    const uploadResult = useSelector(selectUploadResult);
     const uploading = useSelector(selectUploading);
-    
+
     const onDrop = useCallback((acceptedFiles) => {
         const selectedFile = acceptedFiles[0];
         if (selectedFile && (selectedFile.name.endsWith('.csv') || selectedFile.name.endsWith('.xlsx'))) {
             setFile(selectedFile);
-            setStep(2);
+            setFileError(null);
+            setUploadError(null);
         } else {
-            alert('Please upload a CSV or Excel file');
+            setFileError('Invalid file type. Please upload a CSV or Excel (.xlsx) file.');
         }
     }, []);
-    
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'text/csv': ['.csv'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] },
-        maxFiles: 1
+        maxFiles: 1,
+        maxSize: 10 * 1024 * 1024, // 10MB
     });
-    
-    const handlePreview = async () => {
-        setUploading(true);
-        // Simulate preview - in real implementation, parse file and show preview
-        setPreview({ total_rows: 50, columns: ['name', 'code', 'type', 'unit'] });
-        setUploading(false);
-        setStep(3);
+
+    const handlePreviewContinue = () => {
+        if (!file) {
+            setFileError('Please select a file before continuing.');
+            return;
+        }
+        setStep(2);
     };
-    
+
     const handleUpload = async () => {
-        setUploading(true);
-        const result = await dispatch(uploadKPIs({ file, dryRun })).unwrap();
-        setUploading(false);
-        onComplete?.(result);
-        setStep(4);
+        setUploadError(null);
+        setUploading?.(true);
+        try {
+            const result = await dispatch(uploadKPIs({ file, dryRun })).unwrap();
+            setUploadResult(result);
+            onComplete?.(result);
+            setStep(3);
+        } catch (err) {
+            setUploadError(err?.message || err?.detail || 'Upload failed. Please check your file and try again.');
+        } finally {
+            setUploading?.(false);
+        }
     };
 
     const handleReset = () => {
         setFile(null);
-        setPreview(null);
+        setUploadResult(null);
+        setUploadError(null);
+        setFileError(null);
         setStep(1);
     };
-    
+
     return (
         <div className="bulk-upload-section">
+            {/* ── STEP 1: SELECT FILE ── */}
             {step === 1 && (
                 <div>
                     <div className="bulk-upload-header">
                         <h3>Bulk KPI Upload</h3>
                         <p>Upload multiple KPIs at once using a CSV or Excel file</p>
                     </div>
-                    
+
                     <div className="bulk-upload-requirements">
                         <h4>File Requirements</h4>
                         <ul>
@@ -73,21 +87,37 @@ const BulkKPIUpload = ({ onComplete, setUploading }) => {
                             <li>Optional columns: description, unit, target_min, target_max</li>
                         </ul>
                     </div>
-                    
+
                     <div className="bulk-template-download">
                         <TemplateDownload type="kpi" />
                     </div>
 
-
                     <div
                         {...getRootProps()}
-                        className={`bulk-dropzone ${isDragActive ? 'drag-active' : ''}`}
+                        className={`bulk-dropzone ${isDragActive ? 'drag-active' : ''} ${file ? 'has-file' : ''}`}
                     >
                         <input {...getInputProps()} />
-                        <FiUpload size={32} />
-                        <p>{isDragActive ? 'Drop file here...' : 'Drag & drop file here or click to browse'}</p>
-                        <span>Supports CSV, XLSX (Max 10MB)</span>
+                        {file ? (
+                            <>
+                                <FiFile size={32} />
+                                <p>{file.name}</p>
+                                <span>{(file.size / 1024).toFixed(1)} KB — ready to upload</span>
+                            </>
+                        ) : (
+                            <>
+                                <FiUpload size={32} />
+                                <p>{isDragActive ? 'Drop file here...' : 'Drag & drop file here or click to browse'}</p>
+                                <span>Supports CSV, XLSX (Max 10MB)</span>
+                            </>
+                        )}
                     </div>
+
+                    {fileError && (
+                        <div className="bulk-upload-error">
+                            <FiAlertCircle size={14} />
+                            {fileError}
+                        </div>
+                    )}
 
                     <div className="bulk-dry-run-toggle">
                         <label className="checkbox-label">
@@ -104,7 +134,7 @@ const BulkKPIUpload = ({ onComplete, setUploading }) => {
                     <div className="bulk-actions">
                         <button
                             className="bulk-next-btn"
-                            onClick={handlePreview}
+                            onClick={handlePreviewContinue}
                             disabled={!file}
                         >
                             Preview Upload →
@@ -112,21 +142,31 @@ const BulkKPIUpload = ({ onComplete, setUploading }) => {
                     </div>
                 </div>
             )}
-            
+
+            {/* ── STEP 2: PREVIEW & CONFIRM ── */}
             {step === 2 && file && (
-                <UploadPreview 
-                    file={file}
-                    onConfirm={handleUpload}
-                    onBack={() => setStep(1)}
-                    loading={uploading}
-                />
+                <>
+                    <UploadPreview
+                        file={file}
+                        onConfirm={handleUpload}
+                        onBack={() => setStep(1)}
+                        loading={uploading}
+                    />
+                    {uploadError && (
+                        <div className="bulk-upload-error" style={{ marginTop: '1rem' }}>
+                            <FiAlertCircle size={14} />
+                            {uploadError}
+                        </div>
+                    )}
+                </>
             )}
-            
+
+            {/* ── STEP 3: RESULTS ── */}
             {step === 3 && uploadResult && (
-                <UploadResults 
+                <UploadResults
                     result={uploadResult}
                     onReset={handleReset}
-                    onNewUpload={() => setStep(1)}
+                    onNewUpload={handleReset}
                 />
             )}
         </div>

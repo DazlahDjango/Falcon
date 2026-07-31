@@ -93,4 +93,4 @@ export * from './slice/export.slice';
 export * from './slice/cascade.slice';
 
 // Export all selectors
-export * from './selectors/kpi.selectors';
+export * from './selectors';
