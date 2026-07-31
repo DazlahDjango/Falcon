@@ -8,6 +8,7 @@ from apps.reviews.services.sync import ReviewsResourceSyncService
 
 class ReviewsReferenceDataView(APIView):
     permission_classes = [IsAuthenticated, IsTenantMember]
+    throttle_classes = []
     
     def get(self, request):
         include = request.query_params.get(

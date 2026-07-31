@@ -1,6 +1,6 @@
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
-from ...models import SelfAssessment, SupervisorReview, FinalRating, ReviewCycle
+from ...models import SelfAssessment, SupervisorReview, FinalRating, ReviewCycle, PIP
 from .base_dashboard import BaseDashboardService
 
 class SupervisorDashboardService(BaseDashboardService):
@@ -21,6 +21,7 @@ class SupervisorDashboardService(BaseDashboardService):
             'completed_reviews': cls._get_completed_reviews(supervisor, direct_reports, review_cycle),
             'self_assessment_progress': cls._get_self_assessment_progress(direct_reports, review_cycle),
             'ratings_distribution': cls._get_ratings_distribution(direct_reports, review_cycle),
+            'active_team_pips': cls._get_active_team_pips(direct_reports),
             'alerts': cls._get_alerts(supervisor, direct_reports, review_cycle),
         }
         cls._set_cached(supervisor.tenant_id, supervisor.id, 'supervisor', data)
@@ -73,3 +74,30 @@ class SupervisorDashboardService(BaseDashboardService):
         if low_performers > 0:
             alerts.append({'type': 'low_performers', 'message': f"{low_performers} team members have scores below 60%", 'severity': 'high'})
         return alerts
+    @classmethod
+    def _get_active_team_pips(cls, direct_reports):
+        pips = PIP.objects.filter(
+            employee__in=direct_reports,
+            status__in=['draft', 'submitted']
+        ).select_related('employee')
+        
+        result = []
+        for p in pips:
+            total_actions = p.actions.count()
+            completed_actions = p.actions.filter(status='completed').count()
+            progress = round((completed_actions / total_actions) * 100, 1) if total_actions > 0 else 0.0
+            days_remaining = (p.end_date - timezone.now().date()).days if p.end_date else 0
+            
+            result.append({
+                'id': str(p.id),
+                'employee_id': str(p.employee.id),
+                'employee_name': p.employee.get_full_name(),
+                'title': p.title,
+                'severity': p.get_severity_display(),
+                'status': p.status,
+                'start_date': p.start_date.isoformat() if p.start_date else None,
+                'end_date': p.end_date.isoformat() if p.end_date else None,
+                'progress': progress,
+                'days_remaining': days_remaining
+            })
+        return result

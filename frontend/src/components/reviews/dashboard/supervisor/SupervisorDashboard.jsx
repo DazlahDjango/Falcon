@@ -7,6 +7,7 @@ import ReviewQueueCard from './ReviewQueueCard';
 import SelfAssessmentProgressCard from './SelfAssessmentProgressCard';
 import RatingsDistributionCard from './RatingsDistributionCard';
 import SupervisorAlerts from './SupervisorAlerts';
+import TeamPIPsCard from './TeamPIPsCard';
 import { useReviewsPermissions } from '../../../../hooks/reviews';
 
 const SupervisorDashboard = () => {
@@ -62,6 +63,7 @@ const SupervisorDashboard = () => {
           <TeamSummary summary={supervisor.team_summary} />
           <ReviewQueueCard reviews={supervisor.pending_reviews} />
           <SelfAssessmentProgressCard progress={supervisor.self_assessment_progress} />
+          <TeamPIPsCard pips={supervisor.active_team_pips} />
         </div>
         <div className="supervisor-dashboard-sidebar">
           <RatingsDistributionCard distribution={supervisor.ratings_distribution} />

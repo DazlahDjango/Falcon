@@ -105,3 +105,7 @@ BACKUP_STORAGE_TYPE = 'local'
 
 # CONFIG APP — internal health probe base (Availability monitoring)
 CONFIG_INTERNAL_HEALTH_BASE_URL = env('CONFIG_INTERNAL_HEALTH_BASE_URL', default='http://127.0.0.1:8000')
+
+# Disable API throttling in development
+REST_FRAMEWORK = REST_FRAMEWORK.copy()
+REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []

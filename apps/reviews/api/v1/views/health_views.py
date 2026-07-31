@@ -11,6 +11,7 @@ from apps.reviews.services.sync import ReviewsResourceSyncService
 class ReviewsHealthView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
+    throttle_classes = []
     def get(self, request):
         checks = {}
         status_code = 200
@@ -72,6 +73,7 @@ class ReviewsDashboardMetricsView(APIView):
     """Authenticated live dashboard metrics (also pushed via WebSocket)."""
 
     permission_classes = [IsAuthenticated, IsTenantMember]
+    throttle_classes = []
 
     def get(self, request):
         tenant_id = request.user.tenant_id

@@ -9,6 +9,7 @@ import PromotionPipelineCard from './PromotionPipelineCard';
 import PIPSummaryCard from './PIPSummaryCard';
 import CalibrationNeedsCard from './CalibrationNeedsCard';
 import TrendsCard from './TrendsCard';
+import TopBottomCompetenciesCard from './TopBottomCompetenciesCard';
 import { useReviewsPermissions } from '../../../../hooks/reviews';
 
 const ExecutiveDashboard = () => {
@@ -58,7 +59,7 @@ const ExecutiveDashboard = () => {
         </div>
         <div className="executive-dashboard-filters">
           <select
-            className="executive-dashboard-filter"
+             className="executive-dashboard-filter"
             value={selectedDepartment || ''}
             onChange={(e) => setSelectedDepartment(e.target.value || null)}
           >
@@ -79,6 +80,7 @@ const ExecutiveDashboard = () => {
           <div className="executive-dashboard-trends">
             <TrendsCard trends={executive.trends} />
           </div>
+          <TopBottomCompetenciesCard competencies={executive.top_bottom_competencies} />
           <div className="executive-dashboard-pip">
             <PIPSummaryCard summary={executive.pip_summary} />
           </div>

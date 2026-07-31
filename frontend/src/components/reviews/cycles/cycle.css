@@ -506,3 +506,107 @@
 .api-error-banner li {
     margin-bottom: 0.25rem;
 }
+
+/* ========== Weights Visualizer ========== */
+.cycle-weights-visualizer {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+}
+
+.cycle-weights-visualizer-bar {
+    display: flex;
+    height: 14px;
+    background-color: #e5e7eb;
+    border-radius: 7px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.cycle-weights-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.cycle-weights-segment.kpi {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.cycle-weights-segment.competency {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.cycle-weights-segment.mission {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.cycle-weights-segment.task {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.cycle-weights-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.cycle-weight-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.825rem;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-dot.kpi {
+    background-color: #3b82f6;
+}
+
+.legend-dot.competency {
+    background-color: #10b981;
+}
+
+.legend-dot.mission {
+    background-color: #f59e0b;
+}
+
+.legend-dot.task {
+    background-color: #8b5cf6;
+}
+
+.cycle-weights-summary {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.cycle-weights-total {
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.cycle-weights-total.valid {
+    color: #065f46;
+    background-color: #d1fae5;
+    border: 1px solid #a7f3d0;
+}
+
+.cycle-weights-total.invalid {
+    color: #991b1b;
+    background-color: #fee2e2;
+    border: 1px solid #fca5a5;
+}

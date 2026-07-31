@@ -1,0 +1,94 @@
+/* src/components/reviews/dashboard/DashboardSwitcher.css */
+
+.reviews-dashboard-switcher-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.reviews-dashboard-switcher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  padding: 6px 12px;
+  border-radius: 30px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+.reviews-dashboard-switcher-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.2px;
+}
+
+.reviews-dashboard-switcher-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.reviews-dashboard-switcher-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: #4b5563;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reviews-dashboard-switcher-tab:hover {
+  background: rgba(243, 244, 246, 0.8);
+  color: #1f2937;
+  transform: translateY(-1px);
+}
+
+.reviews-dashboard-switcher-tab.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: rgba(29, 78, 216, 0.1);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+  font-weight: 600;
+}
+
+.reviews-dashboard-switcher-tab.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(29, 78, 216, 0.35);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .reviews-dashboard-switcher-container {
+    justify-content: center;
+  }
+  
+  .reviews-dashboard-switcher {
+    flex-direction: column;
+    align-items: center;
+    border-radius: 16px;
+    width: 100%;
+    padding: 12px;
+  }
+  
+  .reviews-dashboard-switcher-tabs {
+    flex-direction: column;
+    width: 100%;
+    gap: 4px;
+  }
+  
+  .reviews-dashboard-switcher-tab {
+    width: 100%;
+    justify-content: center;
+  }
+}

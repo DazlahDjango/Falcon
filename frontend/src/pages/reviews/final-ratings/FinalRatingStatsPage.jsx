@@ -1,15 +1,28 @@
-// src/pages/reviews/final-ratings/FinalRatingStatsPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, Calendar } from 'lucide-react';
-import { useReviewsPermissions } from '../../../hooks/reviews';
+import { useReviewsPermissions, useCycles } from '../../../hooks/reviews';
 import { FinalRatingStats } from '../../../components/reviews/final-ratings';
 import { ReviewBreadcrumbs } from '../../../components/reviews/common';
 
 const FinalRatingStatsPage = () => {
   const navigate = useNavigate();
   const { canViewFinalRating, isAdmin, isExecutive } = useReviewsPermissions();
+  const { data: cycles, fetchAll: fetchCycles, activeCycle, getActive } = useCycles();
   const [selectedCycle, setSelectedCycle] = useState(null);
+
+  useEffect(() => {
+    fetchCycles();
+    getActive();
+  }, [fetchCycles, getActive]);
+
+  useEffect(() => {
+    if (activeCycle && !selectedCycle) {
+      setSelectedCycle(activeCycle.id);
+    } else if (cycles.length > 0 && !selectedCycle) {
+      setSelectedCycle(cycles[0].id);
+    }
+  }, [activeCycle, cycles, selectedCycle]);
 
   if (!canViewFinalRating && !isAdmin && !isExecutive) {
     return (
@@ -41,16 +54,20 @@ const FinalRatingStatsPage = () => {
         </h1>
       </div>
 
-      <div className="final-rating-stats-page-filters">
-        <div className="final-rating-stats-page-filter-group">
-          <label className="final-rating-stats-page-filter-label">Select Review Cycle</label>
+      <div className="reviews-page-filters">
+        <div className="reviews-page-filter-group">
+          <label className="reviews-page-filter-label">Select Review Cycle</label>
           <select
-            className="final-rating-stats-page-filter-select"
+            className="reviews-page-filter-select"
             value={selectedCycle || ''}
             onChange={(e) => setSelectedCycle(e.target.value)}
           >
             <option value="">Select cycle...</option>
-            {/* Cycle options would be populated from API */}
+            {cycles.map((cycle) => (
+              <option key={cycle.id} value={cycle.id}>
+                {cycle.name} ({cycle.status})
+              </option>
+            ))}
           </select>
         </div>
       </div>

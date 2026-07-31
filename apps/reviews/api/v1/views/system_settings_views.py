@@ -10,6 +10,7 @@ from apps.reviews.services.settings import ReviewsSettingsService
 
 class ReviewsSystemSettingsView(APIView):
     permission_classes = [IsSuperAdminOrReadOnly]
+    throttle_classes = []
 
     def get(self, request):
         record = ReviewsSettingsService.get_record()
@@ -27,6 +28,7 @@ class ReviewsSystemSettingsView(APIView):
 
 class ReviewsSystemSettingsResetView(APIView):
     permission_classes = [IsSuperAdmin]
+    throttle_classes = []
 
     def post(self, request):
         record = ReviewsSettingsService.reset_to_defaults(user_id=str(request.user.id))

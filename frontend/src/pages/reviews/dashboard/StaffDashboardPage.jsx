@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { useReviewsPermissions } from '../../../hooks/reviews';
-import { StaffDashboard } from '../../../components/reviews/dashboard';
+import { StaffDashboard, DashboardSwitcher } from '../../../components/reviews/dashboard';
 import { ReviewBreadcrumbs } from '../../../components/reviews/common';
 
 const StaffDashboardPage = () => {
@@ -39,6 +39,7 @@ const StaffDashboardPage = () => {
         </h1>
       </div>
 
+      <DashboardSwitcher />
       <StaffDashboard />
     </div>
   );

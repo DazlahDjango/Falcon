@@ -9,6 +9,7 @@ import QualityMetrics from './QualityMetrics';
 import PIPOverview from './PIPOverview';
 import PromotionOverview from './PromotionOverview';
 import CalibrationOverview from './CalibrationOverview';
+import RecentAuditFeedCard from './RecentAuditFeedCard';
 import { useReviewsPermissions } from '../../../../hooks/reviews';
 
 const AdminDashboard = () => {
@@ -69,6 +70,7 @@ const AdminDashboard = () => {
           <div className="admin-dashboard-quality">
             <QualityMetrics metrics={admin.quality_metrics} />
           </div>
+          <RecentAuditFeedCard feed={admin.recent_audit_feed} />
         </div>
         <div className="admin-dashboard-sidebar">
           <PIPOverview overview={admin.pip_oversight} />
