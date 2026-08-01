@@ -92,3 +92,29 @@ class KPICascadeTests(TestCase):
         self.assertEqual(cascade_maps[0].parent_target, org_target)
         self.assertEqual(cascade_maps[0].child_target, cascade_maps[0].division_target)
 
+    def test_calculation_orchestrator_pauses_during_full_maintenance(self):
+        from apps.kpi.engine.orchestrator import CalculationOrchestrator
+        from apps.configs.models import MaintenanceWindow
+        from apps.configs.services.maintenance.full_maintenance import FullMaintenance
+
+        window = MaintenanceWindow.objects.create(
+            title='System Maintenance Test',
+            maintenance_type='full',
+            scheduled_start=self.category.created_at,
+            scheduled_end=self.category.created_at,
+            triggered_by=self.user.id,
+            triggered_by_role='super_admin',
+            reason='Upgrading DB',
+            expected_downtime_minutes=15,
+        )
+        FullMaintenance().enable(window)
+
+        orchestrator = CalculationOrchestrator()
+        res = orchestrator.calculate_all_for_period(self.tenant_id, 2026, 8)
+        self.assertEqual(res['status'], 'PAUSED')
+
+        FullMaintenance().disable(window)
+        res_after = orchestrator.calculate_all_for_period(self.tenant_id, 2026, 8)
+        self.assertNotEqual(res_after['status'], 'PAUSED')
+
+

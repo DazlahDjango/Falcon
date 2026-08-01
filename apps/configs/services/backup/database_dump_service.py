@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import logging
 from django.conf import settings
@@ -7,30 +8,37 @@ logger = logging.getLogger(__name__)
 
 class DatabaseDumpService:
     """
-    Executes PostgreSQL database dumps (pg_dump) passing credentials strictly
-    via process-isolated environment variables (PGPASSWORD) to prevent credential
-    exposure in system process monitors (ps aux).
+    Executes PostgreSQL database dumps (pg_dump) and restores (pg_restore)
+    passing credentials strictly via process-isolated environment variables (PGPASSWORD)
+    to prevent credential exposure in system process monitors (ps aux).
     """
 
-    def dump_tenant_schema(self, schema_name: str, output_file_path: str) -> bool:
+    @staticmethod
+    def is_pg_dump_available() -> bool:
+        """Check if pg_dump CLI utility is present in environment PATH."""
+        return shutil.which('pg_dump') is not None
+
+    @staticmethod
+    def is_pg_restore_available() -> bool:
+        """Check if pg_restore CLI utility is present in environment PATH."""
+        return shutil.which('pg_restore') is not None
+
+    def _get_db_env(self):
         db_config = settings.DATABASES['default']
-        db_name = db_config.get('NAME')
-        db_user = db_config.get('USER')
-        db_password = db_config.get('PASSWORD', '')
-        db_host = db_config.get('HOST', 'localhost')
-        db_port = str(db_config.get('PORT', 5432))
-
-        # Inject password into isolated process environment dictionary
         env = os.environ.copy()
+        db_password = db_config.get('PASSWORD', '')
         if db_password:
-            env['PGPASSWORD'] = db_password
+            env['PGPASSWORD'] = str(db_password)
+        return env, db_config
 
+    def dump_tenant_schema(self, schema_name: str, output_file_path: str) -> bool:
+        env, db_config = self._get_db_env()
         cmd = [
             'pg_dump',
-            '-h', db_host,
-            '-p', db_port,
-            '-U', db_user,
-            '-d', db_name,
+            '-h', db_config.get('HOST', 'localhost') or 'localhost',
+            '-p', str(db_config.get('PORT', 5432) or 5432),
+            '-U', db_config.get('USER', 'postgres'),
+            '-d', db_config.get('NAME', ''),
             '-n', schema_name,
             '-F', 'c',
             '-f', output_file_path
@@ -41,6 +49,55 @@ class DatabaseDumpService:
             subprocess.run(cmd, env=env, check=True, capture_output=True)
             logger.info(f"Schema dump completed for '{schema_name}' -> {output_file_path}")
             return True
-        except subprocess.CalledProcessError as e:
-            logger.error(f"pg_dump failed for schema '{schema_name}': {e.stderr.decode('utf-8', errors='ignore')}")
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            err = e.stderr.decode('utf-8', errors='ignore') if isinstance(e, subprocess.CalledProcessError) else str(e)
+            logger.error(f"pg_dump failed for schema '{schema_name}': {err}")
             return False
+
+    def dump_app_table(self, table_name: str) -> bytes | None:
+        """Dump a specific database table to binary custom format bytes."""
+        if not self.is_pg_dump_available():
+            return None
+        env, db_config = self._get_db_env()
+        cmd = [
+            'pg_dump',
+            '-h', db_config.get('HOST', 'localhost') or 'localhost',
+            '-p', str(db_config.get('PORT', 5432) or 5432),
+            '-U', db_config.get('USER', 'postgres'),
+            '-d', db_config.get('NAME', ''),
+            '-t', table_name,
+            '-F', 'c',
+        ]
+        try:
+            logger.info(f"Executing secure pg_dump for table '{table_name}'...")
+            result = subprocess.run(cmd, env=env, check=True, capture_output=True)
+            return result.stdout
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            err = e.stderr.decode('utf-8', errors='ignore') if isinstance(e, subprocess.CalledProcessError) else str(e)
+            logger.error(f"pg_dump failed for table '{table_name}': {err}")
+            return None
+
+    def restore_app_table(self, dump_bytes: bytes) -> bool:
+        """Restore database state from binary custom dump bytes using pg_restore."""
+        if not self.is_pg_restore_available():
+            return False
+        env, db_config = self._get_db_env()
+        cmd = [
+            'pg_restore',
+            '-h', db_config.get('HOST', 'localhost') or 'localhost',
+            '-p', str(db_config.get('PORT', 5432) or 5432),
+            '-U', db_config.get('USER', 'postgres'),
+            '-d', db_config.get('NAME', ''),
+            '--clean',
+            '--if-exists',
+        ]
+        try:
+            logger.info("Executing secure pg_restore...")
+            subprocess.run(cmd, input=dump_bytes, env=env, check=True, capture_output=True)
+            logger.info("pg_restore completed successfully")
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            err = e.stderr.decode('utf-8', errors='ignore') if isinstance(e, subprocess.CalledProcessError) else str(e)
+            logger.error(f"pg_restore failed: {err}")
+            return False
+

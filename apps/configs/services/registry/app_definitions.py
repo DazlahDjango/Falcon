@@ -143,9 +143,24 @@ V1_APP_DEFINITIONS: dict[str, AppDefinition] = {
         cia_integrity_level='critical',
         cia_confidentiality_level='restricted',
     ),
+    'reportplt': AppDefinition(
+        name='reportplt',
+        display_name='Reporting Platform & Templates',
+        is_critical=False,
+        recovery_priority=3,
+        rpo_minutes=240,
+        rto_minutes=480,
+        backup_retention_days=60,
+        health_check_path='/api/v1/health/',
+        dependencies=('accounts', 'kpi', 'tenant'),
+        cia_availability_tier='high',
+        cia_integrity_level='high',
+        cia_confidentiality_level='internal',
+    ),
 }
 
 # Apps that self-register on Django startup via apps.py
 STARTUP_REGISTERED_APPS: FrozenSet[str] = frozenset({
-    'accounts', 'tenant', 'kpi', 'billing', 'structure', 'dashboard', 'reviews',
+    'accounts', 'tenant', 'kpi', 'billing', 'structure', 'dashboard', 'reviews', 'reportplt',
 })
+

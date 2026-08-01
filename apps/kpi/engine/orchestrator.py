@@ -24,8 +24,14 @@ class CalculationOrchestrator:
         self.traffic_light = TrafficLightEvaluator()
         self.aggregator = HierarchyAggregator()
     def calculate_all_for_period(self, tenant_id: str, year: int, month: int, force: bool = False, user_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+        from apps.configs.services.maintenance.full_maintenance import FullMaintenance
+        if FullMaintenance.is_worker_stop_requested():
+            logger.warning("Calculation skipped: Full maintenance mode is active.")
+            return {'status': 'PAUSED', 'reason': 'System full maintenance active'}
+
         start_time = time.time()
         log_entry = None
+
         try:
             log_entry = CalculationLog.objects.create(
                 tenant_id=tenant_id,

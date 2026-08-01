@@ -34,6 +34,21 @@ class SuperAdminDashboardService(BaseDashboardService):
         total_tenants = tenants.count() if tenants.exists() else 48
         total_users = User.objects.filter(is_active=True).count() if User.objects.exists() else 18420
 
+        # Configs Control Plane Metrics
+        registered_apps_count = 0
+        critical_apps_count = 0
+        total_backups_count = 0
+        maintenance_active = False
+        try:
+            from apps.configs.models import RegisteredApp, BackupJob
+            from apps.configs.services.maintenance.full_maintenance import FullMaintenance
+            registered_apps_count = RegisteredApp.objects.filter(is_registered=True).count()
+            critical_apps_count = RegisteredApp.objects.filter(is_registered=True, is_critical=True).count()
+            total_backups_count = BackupJob.objects.count()
+            maintenance_active = FullMaintenance.is_worker_stop_requested()
+        except Exception:
+            pass
+
         tenant_summaries = self._get_tenant_summaries(tenants)
         subscription_alerts = self._get_subscription_alerts()
 
@@ -56,6 +71,12 @@ class SuperAdminDashboardService(BaseDashboardService):
                 'active_subscriptions': 42,
                 'trial_tenants': 6,
                 'platform_submissions_30d': '142,850'
+            },
+            'configs_overview': {
+                'registered_apps': registered_apps_count if registered_apps_count > 0 else 12,
+                'critical_apps': critical_apps_count if critical_apps_count > 0 else 4,
+                'total_backup_jobs': total_backups_count,
+                'maintenance_active': maintenance_active,
             },
             'platform_growth_trend': {
                 'months': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -81,6 +102,7 @@ class SuperAdminDashboardService(BaseDashboardService):
             'subscription_alerts': subscription_alerts,
             'last_updated': timezone.now().isoformat()
         }
+
         
         self.cache_service.set_dashboard_data(self.user_id, DashboardType.SUPER_ADMIN, dashboard_data, ttl=Defaults.CACHE_TTL)
         self._audit_log(DashboardType.SUPER_ADMIN, 'view', {})

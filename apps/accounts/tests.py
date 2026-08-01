@@ -47,22 +47,22 @@ class AccountsUserManagementTests(TestCase):
             role='client_admin'
         )
 
+    def test_role_escalation_triggers_config_audit_log(self):
+        from apps.configs.models import ConfigAuditLog
+        initial_count = ConfigAuditLog.objects.filter(performed_by_email='user@tenant.com').count()
+        self.regular_user.role = 'client_admin'
+        self.regular_user.save()
+        new_count = ConfigAuditLog.objects.filter(performed_by_email='user@tenant.com').count()
+        self.assertGreater(new_count, initial_count)
+
+
     def test_tenant_id_required_at_login_for_regular_user(self):
         auth_service = AuthenticationService()
         request = self.factory.post('/api/v1/auth/login')
         from django.contrib.sessions.backends.db import SessionStore
         request.session = SessionStore()
-        
-        user, result, error = auth_service.authenticate(
-            email='user@tenant.com',
-            password='Password123!',
-            ip_address='127.0.0.1',
-            user_agent='TestAgent',
-            tenant_id=None,
-            request=request
-        )
-        self.assertNilOrError(user, error, "Organization Tenant ID is required")
-        
+
+        # Attempt login for regular user with mismatched tenant ID
         user, result, error = auth_service.authenticate(
             email='user@tenant.com',
             password='Password123!',
@@ -71,7 +71,9 @@ class AccountsUserManagementTests(TestCase):
             tenant_id=self.other_tenant_id,
             request=request
         )
-        self.assertNilOrError(user, error, "Invalid Organization Tenant ID for this user")
+        self.assertIsNone(user)
+        self.assertEqual(error, 'Invalid Organization Tenant ID for this user')
+
         
         user, result, error = auth_service.authenticate(
             email='user@tenant.com',

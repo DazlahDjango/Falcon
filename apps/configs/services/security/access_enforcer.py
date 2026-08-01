@@ -20,6 +20,12 @@ class AccessEnforcer:
         if user_role not in ['super_admin', 'client_admin']:
             raise PermissionDeniedError(f"User {user_id} with role {user_role} cannot access Config app. Only Super Admin and Client Admin allowed.")
         return True
+    def enforce_tenant_access(self, user_tenant_id, target_tenant_id, user_role='client_admin'):
+        if user_role == 'super_admin':
+            return True
+        if not user_tenant_id or str(user_tenant_id) != str(target_tenant_id):
+            raise PermissionDeniedError(f"Tenant isolation error: User tenant ({user_tenant_id}) cannot access target tenant ({target_tenant_id}) resource.")
+        return True
     def can_trigger_dr(self, user_role):
         return user_role == 'super_admin'
     def can_rotate_keys(self, user_role):
@@ -35,4 +41,4 @@ class AccessEnforcer:
     def can_restore(self, user_role):
         return user_role in ['super_admin', 'client_admin']
     def can_view_audit_logs(self, user_role):
-        return user_role == 'super_admin'
+        return user_role == 'super_admin'

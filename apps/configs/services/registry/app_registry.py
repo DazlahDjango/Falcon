@@ -14,8 +14,17 @@ def _resolve_health_endpoint(path: str) -> str:
         return ''
     if path.startswith('http://') or path.startswith('https://'):
         return path
-    base = getattr(settings, 'CONFIG_INTERNAL_HEALTH_BASE_URL', 'http://127.0.0.1:8000').rstrip('/')
+    base = getattr(settings, 'CONFIG_INTERNAL_HEALTH_BASE_URL', None)
+    if not base:
+        if not getattr(settings, 'DEBUG', True):
+            logger.warning(
+                "CONFIG_INTERNAL_HEALTH_BASE_URL is not set in settings. "
+                "Defaulting to http://127.0.0.1:8000 for internal health check path '%s'.", path
+            )
+        base = 'http://127.0.0.1:8000'
+    base = base.rstrip('/')
     return f"{base}{path}" if path.startswith('/') else f"{base}/{path}"
+
 
 
 class AppRegistry:

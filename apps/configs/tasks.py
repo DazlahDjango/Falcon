@@ -4,6 +4,7 @@ from apps.configs.services.backup.backup_orchestrator import BackupOrchestrator
 from apps.configs.services.backup.backup_retention import BackupRetention
 from apps.configs.services.backup.backup_verification import BackupVerification
 from apps.configs.services.maintenance.maintenance_risk import MaintenanceRisk
+from apps.configs.services.maintenance.full_maintenance import FullMaintenance
 from apps.configs.services.health.health_checker import HealthChecker
 from apps.configs.services.health.conditional_trigger import ConditionalTrigger
 from apps.configs.services.scheduling.schedule_executor import ScheduleExecutor
@@ -12,8 +13,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def check_maintenance_pause(task_name: str) -> bool:
+    """Return True if background task should pause due to full system maintenance."""
+    if FullMaintenance.is_worker_stop_requested():
+        logger.warning(f"Task '{task_name}' skipped: full system maintenance active (workers paused).")
+        return True
+    return False
+
 @shared_task(bind=True, max_retries=3)
 def execute_backup_task(self, job_id):
+    if check_maintenance_pause('execute_backup_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active', 'job_id': job_id}
     orchestrator = BackupOrchestrator()
     try:
         result = orchestrator.execute_backup(job_id)
@@ -22,6 +32,7 @@ def execute_backup_task(self, job_id):
         logger.error(f"Backup task failed for job {job_id}: {e}")
         self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
         raise
+
 
 @shared_task
 def apply_retention_policies_task():

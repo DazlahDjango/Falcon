@@ -18,8 +18,21 @@ from apps.accounts.models import User
 
 logger = logging.getLogger(__name__)
 
+def check_maintenance_pause():
+    try:
+        from apps.configs.services.maintenance.full_maintenance import FullMaintenance
+        if FullMaintenance.is_worker_stop_requested():
+            logger.warning("Report task paused: Full maintenance mode is active.")
+            return True
+    except Exception:
+        pass
+    return False
+
+
 @shared_task(bind=True, max_retries=3)
 def generate_report_task(self, report_id: str, params: Optional[Dict] = None):
+    if check_maintenance_pause():
+        return {'status': 'paused', 'reason': 'System full maintenance active'}
     try:
         generator = ReportGenerator()
         result = generator.generate_report(report_id, params, async_mode=False)
@@ -32,7 +45,10 @@ def generate_report_task(self, report_id: str, params: Optional[Dict] = None):
 
 @shared_task(bind=True, max_retries=3)
 def export_report_task(self, report_id: str, format: str, params: Optional[Dict] = None, user_id: Optional[str] = None):
+    if check_maintenance_pause():
+        return {'status': 'paused', 'reason': 'System full maintenance active'}
     try:
+
         generator = ReportGenerator()
         result = generator.generate_report(report_id, params, async_mode=False)
         if result.get('status') == 'failed':
