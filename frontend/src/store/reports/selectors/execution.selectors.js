@@ -17,7 +17,7 @@ const initialState = {
 };
 
 export const selectExecutionState = (state) => {
-    return state?.execution || state?.reports?.execution || state?.reportplt?.execution || initialState;
+    return state?.report?.execution || state?.reports?.execution || state?.reportplt?.execution || state?.execution || initialState;
 };
 
 export const selectExecutions = createSelector(

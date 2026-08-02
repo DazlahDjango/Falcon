@@ -174,21 +174,10 @@ export const useShares = (options = {}) => {
         dispatch(setAccessToken(token));
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectShareById(state, id));
-    }, []);
-
-    const getByType = useCallback((type) => {
-        return useSelector((state) => selectSharesByType(state, type));
-    }, []);
-
-    const getByPermission = useCallback((permission) => {
-        return useSelector((state) => selectSharesByPermission(state, permission));
-    }, []);
-
-    const getActive = useCallback(() => {
-        return useSelector(selectActiveShares);
-    }, []);
+    const getById = useCallback((id) => shares.find(s => s.id === id), [shares]);
+    const getByType = useCallback((type) => shares.filter(s => s.share_type === type), [shares]);
+    const getByPermission = useCallback((permission) => shares.filter(s => s.permission === permission), [shares]);
+    const getActive = useCallback(() => shares.filter(s => s.is_active), [shares]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {

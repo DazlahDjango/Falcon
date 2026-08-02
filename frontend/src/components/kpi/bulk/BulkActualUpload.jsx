@@ -15,14 +15,17 @@ const BulkActualUpload = ({ onComplete, setUploading }) => {
     const [dryRun, setDryRun] = useState(true);
     const [step, setStep] = useState(1);
     const [uploadResult, setUploadResult] = useState(null);
+    const [fileError, setFileError] = useState(null);
+    const [uploadError, setUploadError] = useState(null);
     
     const onDrop = useCallback((acceptedFiles) => {
         const selectedFile = acceptedFiles[0];
         if (selectedFile && (selectedFile.name.endsWith('.csv') || selectedFile.name.endsWith('.xlsx'))) {
             setFile(selectedFile);
+            setFileError(null);
             setStep(2);
         } else {
-            alert('Please upload a CSV or Excel file');
+            setFileError('Invalid file type. Please upload a CSV or Excel (.xlsx) file.');
         }
     }, []);
     
@@ -33,12 +36,18 @@ const BulkActualUpload = ({ onComplete, setUploading }) => {
     });
     
     const handleUpload = async () => {
+        setUploadError(null);
         setUploading(true);
-        const result = await dispatch(uploadActuals({ file, year, month, dryRun })).unwrap();
-        setUploadResult(result);
-        setUploading(false);
-        onComplete?.(result);
-        setStep(3);
+        try {
+            const result = await dispatch(uploadActuals({ file, year, month, dryRun })).unwrap();
+            setUploadResult(result);
+            onComplete?.(result);
+            setStep(3);
+        } catch (err) {
+            setUploadError(err?.message || err?.detail || 'Upload failed. Please check your file and try again.');
+        } finally {
+            setUploading(false);
+        }
     };
     
     const currentYear = new Date().getFullYear();
@@ -103,7 +112,13 @@ const BulkActualUpload = ({ onComplete, setUploading }) => {
                         <p>{isDragActive ? 'Drop file here...' : 'Drag & drop file here or click to browse'}</p>
                         <span>Supports CSV, XLSX (Max 10MB)</span>
                     </div>
-                    
+
+                    {fileError && (
+                        <div className="bulk-upload-error">
+                            {fileError}
+                        </div>
+                    )}
+
                     <div className="bulk-dry-run-toggle">
                         <label className="checkbox-label">
                             <input type="checkbox" checked={dryRun} onChange={(e) => setDryRun(e.target.checked)} />

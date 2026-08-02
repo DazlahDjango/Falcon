@@ -20,8 +20,11 @@ export const fetchReadOnlyDashboard = createAsyncThunk(
   async ({ period, viewType } = {}, { rejectWithValue }) => {
     try {
       const response = await readOnlyService.getDashboardData({ period, viewType });
-      if (response?.success) {
+      if (response?.data) {
         return response.data;
+      }
+      if (response && typeof response === 'object') {
+        return response;
       }
       return rejectWithValue(response?.message || 'Failed to fetch dashboard data');
     } catch (error) {

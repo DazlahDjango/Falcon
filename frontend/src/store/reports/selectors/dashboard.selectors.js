@@ -20,7 +20,7 @@ const initialState = {
 };
 
 export const selectDashboardState = (state) => {
-    return state?.dashboard || state?.reports?.dashboard || state?.reportplt?.dashboard || initialState;
+    return state?.report?.dashboard || state?.reports?.dashboard || state?.reportplt?.dashboard || state?.dashboard || initialState;
 };
 
 export const selectDashboards = createSelector(

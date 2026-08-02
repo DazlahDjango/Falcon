@@ -74,8 +74,10 @@ export const USER_ENDPOINTS = {
     MY_TEAM: `${API_BASE}/users/me/team/`,
     MY_REPORTING_CHAIN: `${API_BASE}/users/me/reporting-chain/`,
     
-    // Invitations
+    // Invitations & Bulk
     INVITE: `${API_BASE}/users/invite/`,
+    BULK_IMPORT: `${API_BASE}/admin/users/bulk-import/`,
+    BULK_EXPORT: `${API_BASE}/admin/users/bulk-export/`,
     
     // Query Params
     QUERY_PARAMS: {
@@ -218,9 +220,10 @@ export const PERMISSION_ENDPOINTS = {
     LIST: `${API_BASE}/permissions/`,
     DETAIL: (id) => `${API_BASE}/permissions/${id}/`,
     
-    // Filtered Lists
+    // Filtered Lists & Check
     BY_CATEGORY: (category) => `${API_BASE}/permissions/by-category/${category}/`,
     BY_LEVEL: (level) => `${API_BASE}/permissions/by-level/${level}/`,
+    CHECK: `${API_BASE}/permissions/check/`,
     
     // Query Params
     QUERY_PARAMS: {
@@ -298,6 +301,22 @@ export const AUDIT_LOG_ENDPOINTS = {
         LIMIT: 'limit',
         OFFSET: 'offset',
     },
+};
+
+export const REPORT_ENDPOINTS = {
+    USER_DIRECTORY: `${API_BASE}/reports/user-directory/`,
+    ROLE_DISTRIBUTION: `${API_BASE}/reports/role-distribution/`,
+    DEPARTMENT_DISTRIBUTION: `${API_BASE}/reports/department-distribution/`,
+    INACTIVE_USERS: `${API_BASE}/reports/inactive-users/`,
+    RECENTLY_ADDED: `${API_BASE}/reports/recently-added/`,
+    ACTIVITY_SUMMARY: `${API_BASE}/reports/activity-summary/`,
+    AUDIT_TRAIL: `${API_BASE}/reports/audit-trail/`,
+    LOGIN_ACTIVITY: `${API_BASE}/reports/login-activity/`,
+    PASSWORD_CHANGES: `${API_BASE}/reports/password-changes/`,
+    ROLE_CHANGES: `${API_BASE}/reports/role-changes/`,
+    SUSPENSION_LOG: `${API_BASE}/reports/suspension-log/`,
+    COMPLIANCE_SUMMARY: `${API_BASE}/reports/compliance-summary/`,
+    EXPORT: (endpoint) => `${API_BASE}/reports/${endpoint}/`,
 };
 
 // ============================================
@@ -413,6 +432,8 @@ export const SECURITY_ENDPOINTS = {
     
     // Policy
     TENANT_POLICY: `${API_BASE}/security/policy/`,
+    SYSTEM_POLICY: `${API_BASE}/security/system-policy/`,
+    SYNC_ALL_TENANT_POLICIES: `${API_BASE}/security/sync-all-tenant-policies/`,
     LOCKOUT_SUMMARY: `${API_BASE}/security/lockout-summary/`,
     
     // MFA Policy

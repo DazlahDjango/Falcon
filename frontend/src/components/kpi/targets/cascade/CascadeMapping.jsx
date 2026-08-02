@@ -19,6 +19,7 @@ const CascadeMapping = ({ orgTarget, onCascade, loading }) => {
     const [selectedRule, setSelectedRule] = useState('');
     const [entities, setEntities] = useState([]);
     const [allocations, setAllocations] = useState([]);
+    const [allocationError, setAllocationError] = useState(null);
 
     useEffect(() => {
         if (rules && rules.length > 0) {
@@ -63,9 +64,10 @@ const CascadeMapping = ({ orgTarget, onCascade, loading }) => {
 
     const handleCascade = () => {
         if (totalPercentage !== 100) {
-            alert('Total allocation must equal 100%');
+            setAllocationError(`Total allocation is ${totalPercentage.toFixed(1)}% — it must equal exactly 100%.`);
             return;
         }
+        setAllocationError(null);
         const targets = allocations.map(a => ({
             entity_type: targetType,
             entity_id: targetType === 'INDIVIDUAL' ? null : a.entity_id,
@@ -178,7 +180,16 @@ const CascadeMapping = ({ orgTarget, onCascade, loading }) => {
             </div>
 
             <div className="kpi-cascade-actions">
-                <button 
+                {allocationError && (
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                        color: 'var(--kpi-danger)', fontSize: '0.85rem',
+                        marginBottom: '0.5rem'
+                    }}>
+                        ⚠️ {allocationError}
+                    </div>
+                )}
+                <button
                     className="kpi-cascade-submit"
                     onClick={handleCascade}
                     disabled={totalPercentage !== 100 || !selectedRule || loading}

@@ -1,6 +1,37 @@
-import { useReports, useReport } from './useReports';
-import { useTemplates, useTemplate } from './useTemplates';
-import { useSchedules, useSchedule } from './useSchedules';
+import {
+    useReports,
+    useReport,
+    useReportById,
+    useReportsByType,
+    useReportsByDomain,
+    useConfigsReports,
+    useTenantReports,
+    useKpiReports,
+    useStructureReports,
+    useAccountsReports,
+    useBillingReports,
+    useReviewsReports,
+} from './useReports';
+
+import {
+    useTemplates,
+    useTemplate,
+    useTemplateById,
+    useTemplatesByType,
+    useTemplatesBySector,
+    useSystemTemplates,
+    usePublishedTemplates,
+} from './useTemplates';
+
+import {
+    useSchedules,
+    useSchedule,
+    useScheduleById,
+    useSchedulesByFrequency,
+    useSchedulesByStatus,
+    useActiveSchedules,
+    usePausedSchedules,
+} from './useSchedules';
 import { useExecutions, useExecution } from './useExecutions';
 import { useExports, useExport } from './useExports';
 import { useDashboards, useDashboard } from './useDashboards';
@@ -15,34 +46,30 @@ import { useReportWebSocket } from './useReportWebSocket';
 export {
     useReports,
     useReport,
+    useReportById,
+    useReportsByType,
+    useReportsByDomain,
+    useConfigsReports,
+    useTenantReports,
+    useKpiReports,
+    useStructureReports,
+    useAccountsReports,
+    useBillingReports,
+    useReviewsReports,
     useTemplates,
     useTemplate,
+    useTemplateById,
+    useTemplatesByType,
+    useTemplatesBySector,
+    useSystemTemplates,
+    usePublishedTemplates,
     useSchedules,
     useSchedule,
-    useExecutions,
-    useExecution,
-    useExports,
-    useExport,
-    useDashboards,
-    useDashboard,
-    useWidgets,
-    useFilters,
-    useShares,
-    useShare,
-    useAudits,
-    useAudit,
-    useAnalytics,
-    useReportPermissions,
-    useReportWebSocket,
-};
-
-export default {
-    useReports,
-    useReport,
-    useTemplates,
-    useTemplate,
-    useSchedules,
-    useSchedule,
+    useScheduleById,
+    useSchedulesByFrequency,
+    useSchedulesByStatus,
+    useActiveSchedules,
+    usePausedSchedules,
     useExecutions,
     useExecution,
     useExports,

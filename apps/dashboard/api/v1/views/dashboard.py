@@ -61,8 +61,7 @@ class ExecutiveDashboardViewSet(viewsets.GenericViewSet):
             
             data = service.get_dashboard_data(user_id, filters if filters else None)
             
-            serializer = ExecutiveDashboardDataSerializer(data)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
             
         except DashboardAccessError as e:
             return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
@@ -169,8 +168,7 @@ class ClientAdminDashboardViewSet(viewsets.GenericViewSet):
             service = self.get_service()
             data = service.get_dashboard_data()
             
-            serializer = ClientAdminDashboardDataSerializer(data)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
             
         except DashboardAccessError as e:
             return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
@@ -292,8 +290,7 @@ class SuperAdminDashboardViewSet(viewsets.GenericViewSet):
             service = self.get_service()
             data = service.get_dashboard_data()
             
-            serializer = SuperAdminDashboardDataSerializer(data)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
             
         except DashboardAccessError as e:
             return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)

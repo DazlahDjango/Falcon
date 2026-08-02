@@ -276,7 +276,7 @@ class ReportConfigValidator:
 class DataSourceValidator:
     @staticmethod
     def validate_source(source):
-        valid_sources = ['kpi', 'reviews', 'tasks', 'pip', 'combined']
+        valid_sources = ['kpi', 'reviews', 'tasks', 'pip', 'combined', 'configs', 'tenant']
         if source not in valid_sources:
             raise ValidationError(_('Invalid data source: {}').format(source))
         return True

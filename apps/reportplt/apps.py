@@ -19,3 +19,14 @@ class ReportpltConfig(AppConfig):
             import logging
             logger = logging.getLogger(__name__)
             logger.warning(f"Could not seed report templates on startup: {e}")
+        self._register_with_config_app()
+
+    def _register_with_config_app(self):
+        try:
+            from apps.configs.services.registry.app_registry import AppRegistry
+            AppRegistry().register_from_definition('reportplt')
+        except ImportError:
+            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning('Failed to register reportplt with config app: %s', e)

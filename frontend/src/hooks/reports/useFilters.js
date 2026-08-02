@@ -182,25 +182,12 @@ export const useFilters = (options = {}) => {
         dispatch(setAppliedFilters(values));
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectFilterById(state, id));
-    }, []);
+    const getById = useCallback((id) => filters.find(f => f.id === id), [filters]);
+    const getByType = useCallback((type) => filters.filter(f => f.filter_type === type), [filters]);
+    const getSystem = useCallback(() => filters.filter(f => f.is_system), [filters]);
+    const getDefault = useCallback(() => filters.filter(f => f.is_default), [filters]);
 
-    const getByType = useCallback((type) => {
-        return useSelector((state) => selectFiltersByType(state, type));
-    }, []);
-
-    const getSystem = useCallback(() => {
-        return useSelector(selectSystemFilters);
-    }, []);
-
-    const getDefault = useCallback(() => {
-        return useSelector(selectDefaultFilters);
-    }, []);
-
-    const getGlobalList = useCallback(() => {
-        return useSelector(selectGlobalFiltersList);
-    }, []);
+    const getGlobalList = useCallback(() => globalFilters, [globalFilters]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {

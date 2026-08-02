@@ -34,9 +34,23 @@ class HealthCheckService:
             return {'status': 'unhealthy', 'error': str(e)}
 
     def full_health_check(self):
+        start = timezone.now()
+        db_check = self.check_database()
+        schema_check = self.check_schemas()
+        org_check = self.check_organizations()
+        elapsed_ms = int((timezone.now() - start).total_seconds() * 1000)
+        overall_status = 'healthy' if (
+            db_check.get('status') == 'healthy' and
+            schema_check.get('status') == 'healthy' and
+            org_check.get('status') == 'healthy'
+        ) else 'unhealthy'
+
         return {
+            'status': overall_status,
+            'app_name': 'tenant',
+            'response_time_ms': elapsed_ms,
             'timestamp': timezone.now().isoformat(),
-            'database': self.check_database(),
-            'schemas': self.check_schemas(),
-            'organizations': self.check_organizations()
-        }
+            'database': db_check,
+            'schemas': schema_check,
+            'organizations': org_check
+        }

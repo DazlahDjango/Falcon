@@ -13,6 +13,7 @@ import kpiModuleReducer from '../kpi/index';
 import { tenantReducers } from '../tenant/index';
 import { reviewsReducer } from '../reviews';
 import { structureReducer } from '../structure';
+import { reportReducers } from '../reports';
 
 import { default as adminReducer } from '../accounts/slice/adminSlice';
 import { default as authReducer } from '../accounts/slice/authSlice';
@@ -68,6 +69,7 @@ const dashboardRootReducer = combineReducers({
 
   // Structure State
   structure: structureReducer,
+  report: reportReducers,
 });
 
 export default dashboardRootReducer;

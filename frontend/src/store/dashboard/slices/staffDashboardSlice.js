@@ -25,8 +25,11 @@ export const fetchStaffDashboard = createAsyncThunk(
   async ({ period } = {}, { rejectWithValue }) => {
     try {
       const response = await staffService.getDashboardData({ period });
-      if (response?.success) {
+      if (response?.data) {
         return response.data;
+      }
+      if (response && typeof response === 'object') {
+        return response;
       }
       return rejectWithValue(response?.message || 'Failed to fetch staff dashboard');
     } catch (error) {

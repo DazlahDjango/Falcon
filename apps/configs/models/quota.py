@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
 
@@ -22,3 +23,14 @@ class BackupQuota(BaseConfigModel):
         tenant_name = self.tenant.name if self.tenant else "System"
         app_name = self.app.name if self.app else "All Apps"
         return f"Quota for {tenant_name} - {app_name}"
+
+    def update_used_storage(self, bytes_added: int) -> bool:
+        """Increment used backup storage bytes and check warning threshold."""
+        self.used_backup_storage_bytes = max(0, self.used_backup_storage_bytes + bytes_added)
+        usage_pct = (self.used_backup_storage_bytes / self.total_backup_storage_bytes * 100) if self.total_backup_storage_bytes > 0 else 0
+        update_fields = ['used_backup_storage_bytes', 'updated_at']
+        if usage_pct >= self.warning_threshold_percent and not self.alert_sent_at:
+            self.alert_sent_at = timezone.now()
+            update_fields.append('alert_sent_at')
+        self.save(update_fields=update_fields)
+        return usage_pct >= self.warning_threshold_percent

@@ -98,6 +98,21 @@ class TenantBackup(BaseModel):
         self.file_size_mb = file_size_mb
         self.save(update_fields=[
                   'status', 'completed_at', 'backup_file', 'file_size_mb'])
+        self._sync_quota_usage(file_size_mb)
+
+    def _sync_quota_usage(self, file_size_mb):
+        try:
+            from apps.configs.models import BackupQuota
+            from apps.tenant.models import Organization
+            org = Organization.objects.filter(tenant_id=self.tenant_id).first() or Organization.objects.filter(slug=self.tenant.slug).first()
+            if org:
+                quota, _ = BackupQuota.objects.get_or_create(tenant=org, app=None)
+                bytes_added = int((file_size_mb or 0) * 1024 * 1024)
+                quota.update_used_storage(bytes_added)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Failed to sync BackupQuota for tenant backup %s: %s", self.id, e)
+
 
     def mark_failed(self, error_message):
         self.status = BackupStatus.FAILED

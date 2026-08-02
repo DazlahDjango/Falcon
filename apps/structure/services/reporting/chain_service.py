@@ -5,7 +5,6 @@ from django.utils import timezone
 from datetime import datetime
 from django.core.cache import cache
 from apps.structure.models.employment import Employment
-from apps.structure.models.employment import Employment
 from apps.structure.models.interim_assignment import InterimAssignment
 from apps.structure.constants import DEFAULT_MAX_CACHE_TTL_SECONDS
 from apps.structure.exceptions import ReportingChainError, SelfReportingError, EmploymentNotFoundError

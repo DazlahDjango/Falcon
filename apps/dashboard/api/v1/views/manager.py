@@ -30,8 +30,7 @@ class ManagerDashboardView(APIView):
             drill_down_user_id=drill_down_user_id
         )
         
-        serializer = ManagerDashboardDataSerializer(data)
-        return Response(serializer.data)
+        return Response(data)
     
     @swagger_auto_schema(
         request_body=ApprovalActionSerializer,

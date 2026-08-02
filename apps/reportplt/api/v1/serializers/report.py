@@ -147,7 +147,7 @@ class ReportGenerateSerializer(serializers.Serializer):
     """
     Serializer for report generation.
     """
-    report_id = serializers.UUIDField(required=False)
+    report_id = serializers.CharField(required=False, help_text="Report UUID or prebuilt report_type identifier")
     params = serializers.DictField(required=False, default=dict)
     async_mode = serializers.BooleanField(required=False, default=False)
     format = serializers.ChoiceField(choices=ReportFormat.CHOICES, required=False)
@@ -155,13 +155,20 @@ class ReportGenerateSerializer(serializers.Serializer):
     def validate(self, attrs):
         request = self.context.get('request')
         report = self.context.get('report')
+        view = self.context.get('view')
         
+        if not report and view and hasattr(view, 'get_object'):
+            try:
+                report = view.get_object()
+            except Exception:
+                pass
+                
         report_id = attrs.get('report_id')
         if not report and report_id:
             try:
                 report = Report.objects.get(id=report_id)
-            except Report.DoesNotExist:
-                raise serializers.ValidationError({"report_id": f"Report with ID {report_id} not found"})
+            except (Report.DoesNotExist, ValueError):
+                pass
                 
         if request and report:
             rbac = ReportRBAC(request.user)
@@ -173,7 +180,7 @@ class ReportExportSerializer(serializers.Serializer):
     """
     Serializer for report export.
     """
-    report_id = serializers.UUIDField(required=False)
+    report_id = serializers.CharField(required=False, help_text="Report UUID or prebuilt report_type identifier")
     format = serializers.ChoiceField(choices=ReportFormat.CHOICES, required=True)
     params = serializers.DictField(required=False, default=dict)
     password = serializers.CharField(required=False, allow_blank=True)
@@ -182,13 +189,20 @@ class ReportExportSerializer(serializers.Serializer):
     def validate(self, attrs):
         request = self.context.get('request')
         report = self.context.get('report')
+        view = self.context.get('view')
         
+        if not report and view and hasattr(view, 'get_object'):
+            try:
+                report = view.get_object()
+            except Exception:
+                pass
+                
         report_id = attrs.get('report_id')
         if not report and report_id:
             try:
                 report = Report.objects.get(id=report_id)
-            except Report.DoesNotExist:
-                raise serializers.ValidationError({"report_id": f"Report with ID {report_id} not found"})
+            except (Report.DoesNotExist, ValueError):
+                pass
                 
         if request and report:
             rbac = ReportRBAC(request.user)

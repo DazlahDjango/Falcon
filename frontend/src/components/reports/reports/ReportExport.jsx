@@ -1,10 +1,30 @@
-// frontend/src/components/reports/reports/ReportExport.jsx
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiDownload, FiFile, FiLoader } from 'react-icons/fi';
 import { useReport } from '../../../hooks/reports';
+import { exportService } from '../../../services/reports';
 import { ReportLoading, ReportError } from '../common';
 import './reports.css';
+
+const FORMAT_EXTENSION_MAP = {
+    pdf: 'pdf',
+    excel: 'xlsx',
+    csv: 'csv',
+    json: 'json',
+    pptx: 'pptx',
+    html: 'html',
+    xml: 'xml',
+};
+
+const FORMAT_MIME_TYPES = {
+    pdf: 'application/pdf',
+    excel: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    csv: 'text/csv;charset=utf-8;',
+    json: 'application/json',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    html: 'text/html;charset=utf-8;',
+    xml: 'application/xml',
+};
 
 export const ReportExport = () => {
     const { id } = useParams();
@@ -49,9 +69,42 @@ export const ReportExport = () => {
         }
     };
 
-    const handleDownload = () => {
-        if (result?.file_path) {
-            window.open(`/api/v1/exports/${result.export_id}/download/`, '_blank');
+    const handleDownload = async () => {
+        try {
+            const fileExt = FORMAT_EXTENSION_MAP[format] || format;
+            const mimeType = FORMAT_MIME_TYPES[format] || 'application/octet-stream';
+            const fileName = `${report?.name || 'report'}_export.${fileExt}`;
+
+            const exportId = result?.export_id || result?.id;
+            if (exportId) {
+                const response = await exportService.downloadExport(exportId);
+                const blob = new Blob([response.data], {
+                    type: response.headers?.['content-type'] || mimeType
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } else if (result?.data || result) {
+                const content = result?.data || result;
+                const blob = new Blob([typeof content === 'string' ? content : JSON.stringify(content, null, 2)], {
+                    type: mimeType,
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+        } catch (err) {
+            console.error('Download failed:', err);
         }
     };
 

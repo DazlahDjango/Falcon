@@ -666,16 +666,13 @@ class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_analytics_data(self):
-        from .models import AggregatedScore, OrganizationHealth
+        from apps.kpi.services.analytics.live_analytics import get_organization_health
+        from .models import AggregatedScore
         now = timezone.now()
         year = now.year
         month = now.month
 
-        org_health = OrganizationHealth.objects.filter(
-            tenant_id=self.tenant_id,
-            year=year,
-            month=month
-        ).first()
+        org_health = get_organization_health(str(self.tenant_id), year, month)
 
         dept_scores = AggregatedScore.objects.filter(
             level='DEPARTMENT',
@@ -685,8 +682,8 @@ class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
         ).values('entity_name', 'aggregated_score')[:10]
 
         return {
-            'overall_health': float(org_health.overall_health_score) if org_health else 0,
-            'red_kpi_count': org_health.red_kpi_count if org_health else 0,
+            'overall_health': float(org_health.get('overall_health_score', 0)) if org_health else 0,
+            'red_kpi_count': org_health.get('red_kpi_count', 0) if org_health else 0,
             'top_departments': list(dept_scores),
             'timestamp': now.isoformat()
         }

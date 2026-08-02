@@ -24,8 +24,7 @@ class StaffDashboardView(APIView):
         service = StaffService(request.user, request.tenant_id)
         data = service.get_dashboard_data(period=period)
         
-        serializer = StaffDashboardDataSerializer(data)
-        return Response(serializer.data)
+        return Response(data)
     
     @swagger_auto_schema(
         request_body=SubmitKPISerializer,

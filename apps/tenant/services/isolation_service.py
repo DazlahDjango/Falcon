@@ -30,6 +30,8 @@ class IsolationEnforcer:
             return user.organization_id
         if hasattr(user, 'organization') and user.organization:
             return user.organization.id
+        if hasattr(user, 'tenant_id') and user.tenant_id:
+            return user.tenant_id
         return None
 
     def enforce_query_filter(self, queryset, organization_id):
@@ -71,6 +73,8 @@ class IsolationEnforcer:
             return obj.organization_id
         if hasattr(obj, 'organization') and obj.organization:
             return obj.organization.id
+        if hasattr(obj, 'tenant_id') and obj.tenant_id:
+            return obj.tenant_id
         return None
 
     def is_safe_reference(self, from_obj, to_obj):

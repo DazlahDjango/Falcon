@@ -18,7 +18,7 @@ const initialState = {
 };
 
 export const selectWidgetState = (state) => {
-    return state?.widget || state?.reports?.widget || state?.reportplt?.widget || initialState;
+    return state?.report?.widget || state?.reports?.widget || state?.reportplt?.widget || state?.widget || initialState;
 };
 
 export const selectWidgets = createSelector(

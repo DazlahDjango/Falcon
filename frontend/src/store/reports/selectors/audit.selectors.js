@@ -17,7 +17,7 @@ const initialState = {
 };
 
 export const selectAuditState = (state) => {
-    return state?.audit || state?.reports?.audit || state?.reportplt?.audit || initialState;
+    return state?.report?.audit || state?.reports?.audit || state?.reportplt?.audit || state?.audit || initialState;
 };
 
 export const selectAudits = createSelector(

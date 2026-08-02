@@ -185,6 +185,19 @@
     color: var(--kpi-gray-400);
 }
 
+.bulk-upload-error {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+    padding: var(--kpi-space-3) var(--kpi-space-4);
+    background: var(--kpi-danger-bg, #fef2f2);
+    color: var(--kpi-danger, #ef4444);
+    border: 1px solid var(--kpi-danger-light, #fecaca);
+    border-radius: var(--kpi-radius-md);
+    font-size: 0.85rem;
+    margin-bottom: var(--kpi-space-4);
+}
+
 .bulk-dry-run-toggle {
     margin-bottom: var(--kpi-space-6);
 }

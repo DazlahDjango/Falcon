@@ -7,7 +7,6 @@ import {
   fetchCurrentUser,
   clearError,
   clearMfaState,
-  // ============ NEW IMPORTS ============
   register as registerAction,
   registerTenant as registerTenantAction,
   changePassword as changePasswordAction,
@@ -15,7 +14,6 @@ import {
   resetPassword as resetPasswordAction,
   verifyEmail as verifyEmailAction,
   resendVerification as resendVerificationAction,
-  // ============ END NEW ============
 } from '../../store/accounts/slice/authSlice';
 import {
   selectAuth,

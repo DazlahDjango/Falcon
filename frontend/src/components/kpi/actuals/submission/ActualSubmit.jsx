@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiUpload, FiSave, FiSend, FiX, FiCheckCircle } from 'react-icons/fi';
+import { FiUpload, FiSave, FiSend, FiX, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import ActualForm from './ActualForm';
 import EvidenceUpload from './EvidenceUpload';
 import KPILoading from '../../common/KPILoading';
@@ -21,6 +21,7 @@ const ActualSubmit = ({
     });
     const [evidenceFiles, setEvidenceFiles] = useState([]);
     const [submitted, setSubmitted] = useState(false);
+    const [validationError, setValidationError] = useState(null);
 
     const handleFormChange = (data) => {
         setFormData({ ...formData, ...data });
@@ -32,13 +33,14 @@ const ActualSubmit = ({
 
     const handleNext = () => {
         if (step === 1 && !formData.kpi_id) {
-            alert('Please select a KPI');
+            setValidationError('Please select a KPI before continuing.');
             return;
         }
-        if (step === 1 && !formData.actual_value) {
-            alert('Please enter the actual value');
+        if (step === 1 && (formData.actual_value === '' || formData.actual_value === null || formData.actual_value === undefined)) {
+            setValidationError('Please enter the actual value before continuing.');
             return;
         }
+        setValidationError(null);
         setStep(step + 1);
     };
 
@@ -141,7 +143,14 @@ const ActualSubmit = ({
                     </div>
                 )}
             </div>
-            
+
+            {validationError && (
+                <div className="kpi-actual-validation-error">
+                    <FiAlertCircle size={14} />
+                    {validationError}
+                </div>
+            )}
+
             <div className="kpi-actual-submit-footer">
                 {step > 1 && (
                     <button className="kpi-actual-back-btn" onClick={handleBack}>

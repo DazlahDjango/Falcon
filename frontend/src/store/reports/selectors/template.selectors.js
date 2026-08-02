@@ -20,7 +20,7 @@ const initialState = {
 };
 
 export const selectTemplateState = (state) => {
-    return state?.template || state?.reports?.template || state?.reportplt?.template || initialState;
+    return state?.report?.template || state?.reports?.template || state?.reportplt?.template || state?.template || initialState;
 };
 
 export const selectTemplates = createSelector(

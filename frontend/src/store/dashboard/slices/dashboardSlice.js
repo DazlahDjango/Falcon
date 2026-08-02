@@ -42,8 +42,11 @@ export const fetchExecutiveDashboard = createAsyncThunk(
   async ({ userId, filters } = {}, { rejectWithValue }) => {
     try {
       const response = await executiveDashboardService.getDashboardData(userId, filters);
-      if (response?.success) {
+      if (response?.data) {
         return response.data;
+      }
+      if (response && typeof response === 'object') {
+        return response;
       }
       return rejectWithValue(response?.message || 'Failed to fetch executive dashboard');
     } catch (error) {
@@ -102,8 +105,11 @@ export const fetchClientAdminDashboard = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await clientAdminDashboardService.getDashboardData();
-      if (response?.success) {
+      if (response?.data) {
         return response.data;
+      }
+      if (response && typeof response === 'object') {
+        return response;
       }
       return rejectWithValue(response?.message || 'Failed to fetch client admin dashboard');
     } catch (error) {
@@ -192,8 +198,11 @@ export const fetchSuperAdminDashboard = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await superAdminDashboardService.getDashboardData();
-      if (response?.success) {
+      if (response?.data) {
         return response.data;
+      }
+      if (response && typeof response === 'object') {
+        return response;
       }
       return rejectWithValue(response?.message || 'Failed to fetch super admin dashboard');
     } catch (error) {

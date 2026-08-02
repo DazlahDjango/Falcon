@@ -83,36 +83,33 @@ def compute_department_rollups_live(
         year=year,
         month=month,
         kpi__department_id__isnull=False,
-    ).select_related('kpi').prefetch_related('traffic_lights')
+    )
 
     dept_ids = list(base_qs.values_list('kpi__department_id', flat=True).distinct())
     if not dept_ids:
         return []
 
     names = department_name_map(tenant_id, dept_ids)
+
+    # Fetch and aggregate all department scores, member counts, and traffic light counts in a single query
+    stats = base_qs.values('kpi__department_id').annotate(
+        overall_score=Avg('score'),
+        employee_count=Count('user_id', distinct=True),
+        greens=Count('id', filter=Q(traffic_lights__status='GREEN')),
+        yellows=Count('id', filter=Q(traffic_lights__status='YELLOW')),
+        reds=Count('id', filter=Q(traffic_lights__status='RED'))
+    )
+
     rollups: List[Dict[str, Any]] = []
-
-    for dept_id in dept_ids:
-        scores = base_qs.filter(kpi__department_id=dept_id)
-        if not scores.exists():
-            continue
-
-        overall = scores.aggregate(avg=Avg('score'))['avg'] or Decimal('0')
-        employee_count = scores.values('user_id').distinct().count()
-
-        greens = yellows = reds = 0
-        for score in scores:
-            tl = score.traffic_lights.first()
-            if not tl:
-                continue
-            if tl.status == 'GREEN':
-                greens += 1
-            elif tl.status == 'YELLOW':
-                yellows += 1
-            elif tl.status == 'RED':
-                reds += 1
-
+    for item in stats:
+        dept_id = item['kpi__department_id']
+        overall = item['overall_score'] or Decimal('0')
+        employee_count = item['employee_count']
+        greens = item['greens']
+        yellows = item['yellows']
+        reds = item['reds']
         total_tl = greens + yellows + reds or 1
+
         rollup = {
             'department_id': str(dept_id),
             'department_name': names.get(str(dept_id), 'Unknown Department'),

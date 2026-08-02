@@ -4,7 +4,7 @@ import { FiEye } from 'react-icons/fi';
 import { fetchKPIHistory, selectKPIHistory, selectHistoryLoading } from '../../../store/kpi';
 import KPILoading from '../common/KPILoading';
 
-const KPIHistoryTable = ({ onViewDetail }) => {
+const KPIHistoryTable = ({ onViewDetail, filters = {} }) => {
     const dispatch = useDispatch();
     const [page, setPage] = useState(1);
     
@@ -12,8 +12,8 @@ const KPIHistoryTable = ({ onViewDetail }) => {
     const loading = useSelector(selectHistoryLoading);
     
     useEffect(() => {
-        dispatch(fetchKPIHistory({ page, page_size: 20 }));
-    }, [dispatch, page]);
+        dispatch(fetchKPIHistory({ ...filters, page, page_size: 20 }));
+    }, [dispatch, page, filters]);
     
     const getActionColor = (action) => {
         switch (action) {

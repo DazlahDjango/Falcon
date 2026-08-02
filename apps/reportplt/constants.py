@@ -11,6 +11,53 @@ class ReportType:
     MISSION = 'mission'
     PIP = 'pip'
     CUSTOM = 'custom'
+    BACKUP_AUDIT = 'backup_audit'
+    DR_COMPLIANCE = 'dr_compliance'
+    HEALTH_SLA = 'health_sla'
+    MAINTENANCE_AUDIT = 'maintenance_audit'
+    KMS_SECURITY = 'kms_security'
+    SYSTEM_AUDIT = 'system_audit'
+    TENANT_QUOTA = 'tenant_quota'
+    RISK_MATRIX = 'risk_matrix'
+    TENANT_LIFECYCLE = 'tenant_lifecycle'
+    TENANT_RESOURCE_QUOTA = 'tenant_resource_quota'
+    TENANT_SCHEMA_HEALTH = 'tenant_schema_health'
+    TENANT_DOMAIN_SSL = 'tenant_domain_ssl'
+    TENANT_BACKUP_AUDIT = 'tenant_backup_audit'
+    TENANT_EXECUTIVE_SUMMARY = 'tenant_executive_summary'
+    KPI_INDIVIDUAL_SCORECARD = 'kpi_individual_scorecard'
+    KPI_DEPARTMENTAL_HEATMAP = 'kpi_departmental_heatmap'
+    KPI_CASCADE_TREE = 'kpi_cascade_tree'
+    KPI_RED_ALERTS = 'kpi_red_alerts'
+    KPI_VALIDATION_COMPLIANCE = 'kpi_validation_compliance'
+    KPI_EXECUTIVE_SUMMARY = 'kpi_executive_summary'
+    STRUCTURE_ORG_CHART = 'structure_org_chart'
+    STRUCTURE_SPAN_OF_CONTROL = 'structure_span_of_control'
+    STRUCTURE_INTERIM_DELEGATION = 'structure_interim_delegation'
+    STRUCTURE_COST_CENTER_ALLOCATION = 'structure_cost_center_allocation'
+    STRUCTURE_SECURITY_SENSITIVITY = 'structure_security_sensitivity'
+    STRUCTURE_EXECUTIVE_SUMMARY = 'structure_executive_summary'
+    ACCOUNTS_USER_DIRECTORY = 'accounts_user_directory'
+    ACCOUNTS_LOGIN_SECURITY = 'accounts_login_security'
+    ACCOUNTS_MFA_COMPLIANCE = 'accounts_mfa_compliance'
+    ACCOUNTS_AUDIT_TRAIL = 'accounts_audit_trail'
+    ACCOUNTS_ROLE_PERMISSION_AUDIT = 'accounts_role_permission_audit'
+    ACCOUNTS_SESSION_ACTIVITY = 'accounts_session_activity'
+    ACCOUNTS_PASSWORD_HYGIENE = 'accounts_password_hygiene'
+    ACCOUNTS_SECURITY_ANOMALIES = 'accounts_security_anomalies'
+    ACCOUNTS_EXECUTIVE_SUMMARY = 'accounts_executive_summary'
+    BILLING_SUBSCRIPTION_SUMMARY = 'billing_subscription_summary'
+    BILLING_REVENUE_FINANCIAL = 'billing_revenue_financial'
+    BILLING_PAYMENT_TRANSACTIONS = 'billing_payment_transactions'
+    BILLING_USAGE_QUOTA_AUDIT = 'billing_usage_quota_audit'
+    BILLING_DUNNING_RECOVERY = 'billing_dunning_recovery'
+    BILLING_EXECUTIVE_SUMMARY = 'billing_executive_summary'
+    REVIEWS_INDIVIDUAL_SUMMARY = 'reviews_individual_summary'
+    REVIEWS_CYCLE_COMPLIANCE = 'reviews_cycle_compliance'
+    REVIEWS_ORGANIZATION_PERFORMANCE = 'reviews_organization_performance'
+    REVIEWS_CALIBRATION_IMPACT = 'reviews_calibration_impact'
+    REVIEWS_PIP_TRACKER = 'reviews_pip_tracker'
+    REVIEWS_EXECUTIVE_SUMMARY = 'reviews_executive_summary'
     CHOICES = [
         (KPI, _('KPI Performance Report')),
         (DEPARTMENTAL, _('Departmental Performance Report')),
@@ -21,6 +68,53 @@ class ReportType:
         (MISSION, _('Mission Status Report')),
         (PIP, _('PIP Tracking Report')),
         (CUSTOM, _('Custom Report')),
+        (BACKUP_AUDIT, _('Backup Execution & Storage Report')),
+        (DR_COMPLIANCE, _('Disaster Recovery Readiness Report')),
+        (HEALTH_SLA, _('Platform Health & SLA Report')),
+        (MAINTENANCE_AUDIT, _('System Maintenance Audit Report')),
+        (KMS_SECURITY, _('Security & KMS Rotation Report')),
+        (SYSTEM_AUDIT, _('Control-Plane Audit Trail Report')),
+        (TENANT_QUOTA, _('Tenant Storage Quota Report')),
+        (RISK_MATRIX, _('System Risk Matrix Report')),
+        (TENANT_LIFECYCLE, _('Tenant Onboarding & Lifecycle Report')),
+        (TENANT_RESOURCE_QUOTA, _('Tenant Resource & Quota Breach Report')),
+        (TENANT_SCHEMA_HEALTH, _('Tenant Schema & Migration Health Report')),
+        (TENANT_DOMAIN_SSL, _('Tenant Domain & SSL Compliance Report')),
+        (TENANT_BACKUP_AUDIT, _('Tenant Data Backup Audit Report')),
+        (TENANT_EXECUTIVE_SUMMARY, _('Tenant Multi-Tenant Executive Summary')),
+        (KPI_INDIVIDUAL_SCORECARD, _('Individual KPI Performance Scorecard')),
+        (KPI_DEPARTMENTAL_HEATMAP, _('Departmental KPI Rollup & Heatmap')),
+        (KPI_CASCADE_TREE, _('Chain of Command Target Cascading Tree')),
+        (KPI_RED_ALERTS, _('KPI Underperformance & Red Alerts Audit')),
+        (KPI_VALIDATION_COMPLIANCE, _('KPI Data Submission & Validation Compliance')),
+        (KPI_EXECUTIVE_SUMMARY, _('Organization KPI Strategic Performance Summary')),
+        (STRUCTURE_ORG_CHART, _('Organizational Chart & Hierarchy Tree')),
+        (STRUCTURE_SPAN_OF_CONTROL, _('Managerial Span of Control Audit')),
+        (STRUCTURE_INTERIM_DELEGATION, _('Interim Manager & Delegation Audit')),
+        (STRUCTURE_COST_CENTER_ALLOCATION, _('Cost Center & Location Allocation Audit')),
+        (STRUCTURE_SECURITY_SENSITIVITY, _('Department Sensitivity & Security Scope Audit')),
+        (STRUCTURE_EXECUTIVE_SUMMARY, _('Organizational Structure Executive Summary')),
+        (ACCOUNTS_USER_DIRECTORY, _('User Directory & Roster Report')),
+        (ACCOUNTS_LOGIN_SECURITY, _('Login Security & Brute-Force Audit')),
+        (ACCOUNTS_MFA_COMPLIANCE, _('MFA Adoption & Compliance Report')),
+        (ACCOUNTS_AUDIT_TRAIL, _('Accounts Full Audit Trail Report')),
+        (ACCOUNTS_ROLE_PERMISSION_AUDIT, _('Role & Permission Coverage Audit')),
+        (ACCOUNTS_SESSION_ACTIVITY, _('Active Session Activity Report')),
+        (ACCOUNTS_PASSWORD_HYGIENE, _('Password Age & Hygiene Audit')),
+        (ACCOUNTS_SECURITY_ANOMALIES, _('Security Anomaly & Threat Detection Report')),
+        (ACCOUNTS_EXECUTIVE_SUMMARY, _('IAM & Security Executive Summary')),
+        (BILLING_SUBSCRIPTION_SUMMARY, _('Tenant Subscription & MRR/ARR Report')),
+        (BILLING_REVENUE_FINANCIAL, _('Revenue Ledger & Tax (VAT) Report')),
+        (BILLING_PAYMENT_TRANSACTIONS, _('Payment Transactions & Method Audit')),
+        (BILLING_USAGE_QUOTA_AUDIT, _('Tenant Usage & Quota Breach Audit')),
+        (BILLING_DUNNING_RECOVERY, _('Dunning Pipeline & Payment Recovery Report')),
+        (BILLING_EXECUTIVE_SUMMARY, _('Billing & Monetization Executive Summary')),
+        (REVIEWS_INDIVIDUAL_SUMMARY, _('Individual 360 Performance Scorecard Report')),
+        (REVIEWS_CYCLE_COMPLIANCE, _('Review Cycle Compliance & Completion Status')),
+        (REVIEWS_ORGANIZATION_PERFORMANCE, _('Organization Strategic Review & Bell Curve Report')),
+        (REVIEWS_CALIBRATION_IMPACT, _('Calibration Session & Score Shift Impact Audit')),
+        (REVIEWS_PIP_TRACKER, _('Performance Improvement Plan (PIP) Tracker')),
+        (REVIEWS_EXECUTIVE_SUMMARY, _('Strategic Performance & Talent Executive Summary')),
     ]
 
 class ReportStatus:
@@ -117,6 +211,30 @@ class TemplateType:
         (COMPARATIVE, _('Comparative Analysis')),
         (PIP, _('PIP Report')),
         (CUSTOM, _('Custom Template')),
+    ]
+
+class ReportDataSource:
+    KPI = 'kpi'
+    REVIEWS = 'reviews'
+    TASKS = 'tasks'
+    PIP = 'pip'
+    COMBINED = 'combined'
+    CONFIGS = 'configs'
+    TENANT = 'tenant'
+    STRUCTURE = 'structure'
+    ACCOUNTS = 'accounts'
+    BILLING = 'billing'
+    CHOICES = [
+        (KPI, _('KPI Data')),
+        (REVIEWS, _('Review Data')),
+        (TASKS, _('Task Data')),
+        (PIP, _('PIP Data')),
+        (COMBINED, _('Combined Data')),
+        (CONFIGS, _('System Configs Data')),
+        (TENANT, _('Multi-Tenant Data')),
+        (STRUCTURE, _('Org Structure Data')),
+        (ACCOUNTS, _('Accounts & Security Data')),
+        (BILLING, _('Billing & Financial Data')),
     ]
 
 class SectorType:
@@ -297,12 +415,16 @@ class DataSource:
     TASKS = 'tasks'
     PIP = 'pip'
     COMBINED = 'combined'
+    CONFIGS = 'configs'
+    TENANT = 'tenant'
     CHOICES = [
         (KPI, _('KPI Data')),
         (REVIEWS, _('Review Data')),
         (TASKS, _('Task Data')),
         (PIP, _('PIP Data')),
         (COMBINED, _('Combined Data')),
+        (CONFIGS, _('System Configs Data')),
+        (TENANT, _('Tenant Platform Data')),
     ]
 
 DEFAULT_REPORT_CONFIG = {

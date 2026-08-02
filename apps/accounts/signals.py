@@ -84,6 +84,18 @@ def user_post_save(sender, instance, created, **kwargs):
                 changes['email'] = {'old': old_data.get('email'), 'new': instance.email}
             if old_data.get('role') != instance.role:
                 changes['role'] = {'old': old_data.get('role'), 'new': instance.role}
+                try:
+                    from apps.configs.services.security.audit_logger import AuditLogger
+                    AuditLogger().log_role_change(
+                        performed_by=instance.id,
+                        performed_by_role=instance.role,
+                        target_user_email=instance.email,
+                        old_role=old_data.get('role', 'none'),
+                        new_role=instance.role
+                    )
+                except Exception as exc:
+                    logger.warning("Failed to sync role escalation to ConfigAuditLog: %s", exc)
+
             if old_data.get('is_active') != instance.is_active:
                 changes['is_active'] = {'old': old_data.get('is_active'), 'new': instance.is_active}
             if old_data.get('is_verified') != instance.is_verified:

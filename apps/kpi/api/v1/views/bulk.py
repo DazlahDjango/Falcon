@@ -1,17 +1,31 @@
 # bulk.py
+import os
+import uuid
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.db import transaction
-import csv
-import io
 from ..serializers import (
     BulkKPIUploadSerializer, BulkActualUploadSerializer,
-    BulkTargetUploadSerializer, BulkUploadResultSerializer
+    BulkTargetUploadSerializer
 )
-from ....services import KPIImportExport, ActualBatchUpload, TargetSetter
 from ..throttles import BulkUploadThrottle
 from ..permissions import IsAuthenticatedAndActive, IsDashboardChampion
+from apps.kpi.tasks import process_bulk_upload_task
+
+def save_uploaded_file(uploaded_file) -> str:
+    temp_dir = os.path.join(settings.BASE_DIR, 'tmp', 'uploads')
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    ext = os.path.splitext(uploaded_file.name)[1]
+    filename = f"{uuid.uuid4()}{ext}"
+    file_path = os.path.join(temp_dir, filename)
+    
+    with open(file_path, 'wb+') as destination:
+        for chunk in uploaded_file.chunks():
+            destination.write(chunk)
+            
+    return file_path
 
 
 class BulkKPIUploadView(APIView):
@@ -25,39 +39,27 @@ class BulkKPIUploadView(APIView):
         file = serializer.validated_data['file']
         dry_run = serializer.validated_data.get('dry_run', False)
         
-        if file.name.endswith('.csv'):
-            content = file.read().decode('utf-8')
-        else:
-            import openpyxl
-            workbook = openpyxl.load_workbook(file)
-            sheet = workbook.active
-            output = io.StringIO()
-            writer = csv.writer(output)
-            for row in sheet.iter_rows(values_only=True):
-                writer.writerow(row)
-            content = output.getvalue()
-        
         tenant_id = getattr(request, 'current_tenant_id', None)
         if not tenant_id and hasattr(request.user, 'tenant_id'):
             tenant_id = str(request.user.tenant_id)
 
-        import_export = KPIImportExport()
-        result = import_export.import_from_csv(
-            content,
-            str(tenant_id),
-            request.user,
-            dry_run=dry_run
+        # Save file to temporary workspace path
+        file_path = save_uploaded_file(file)
+
+        # Trigger background Celery worker
+        task = process_bulk_upload_task.delay(
+            file_path=file_path,
+            tenant_id=str(tenant_id),
+            user_id=str(request.user.id),
+            import_type='kpi',
+            extra_params={'dry_run': dry_run}
         )
-        
-        result_serializer = BulkUploadResultSerializer({
-            'total_rows': result.get('total', len(result.get('created', [])) + len(result.get('errors', []))),
-            'created': len(result.get('created', [])),
-            'updated': 0,
-            'errors': result.get('errors', []),
-            'dry_run': dry_run
-        })
-        
-        return Response(result_serializer.data, status=status.HTTP_202_ACCEPTED if not dry_run else status.HTTP_200_OK)
+
+        return Response({
+            'task_id': task.id,
+            'status': 'PENDING',
+            'message': 'KPI file upload accepted. Import is processing in the background.'
+        }, status=status.HTTP_202_ACCEPTED)
 
 
 class BulkActualUploadView(APIView):
@@ -73,39 +75,27 @@ class BulkActualUploadView(APIView):
         month = serializer.validated_data['month']
         dry_run = serializer.validated_data.get('dry_run', False)
         
-        if file.name.endswith('.csv'):
-            content = file.read().decode('utf-8')
-        else:
-            import openpyxl
-            workbook = openpyxl.load_workbook(file)
-            sheet = workbook.active
-            output = io.StringIO()
-            writer = csv.writer(output)
-            for row in sheet.iter_rows(values_only=True):
-                writer.writerow(row)
-            content = output.getvalue()
-        
         tenant_id = getattr(request, 'current_tenant_id', None)
         if not tenant_id and hasattr(request.user, 'tenant_id'):
             tenant_id = str(request.user.tenant_id)
 
-        batch_upload = ActualBatchUpload()
-        result = batch_upload.upload_from_csv(
-            content,
-            str(tenant_id),
-            request.user,
-            dry_run=dry_run
+        # Save file to temporary workspace path
+        file_path = save_uploaded_file(file)
+
+        # Trigger background Celery worker
+        task = process_bulk_upload_task.delay(
+            file_path=file_path,
+            tenant_id=str(tenant_id),
+            user_id=str(request.user.id),
+            import_type='actual',
+            extra_params={'dry_run': dry_run, 'year': year, 'month': month}
         )
-        
-        result_serializer = BulkUploadResultSerializer({
-            'total_rows': result.get('total', result.get('created', 0) + len(result.get('errors', []))),
-            'created': result.get('created', 0),
-            'updated': 0,
-            'errors': result.get('errors', []),
-            'dry_run': dry_run
-        })
-        
-        return Response(result_serializer.data, status=status.HTTP_202_ACCEPTED if not dry_run else status.HTTP_200_OK)
+
+        return Response({
+            'task_id': task.id,
+            'status': 'PENDING',
+            'message': 'Actuals file upload accepted. Import is processing in the background.'
+        }, status=status.HTTP_202_ACCEPTED)
 
 
 class BulkTargetUploadView(APIView):
@@ -120,45 +110,24 @@ class BulkTargetUploadView(APIView):
         year = serializer.validated_data['year']
         dry_run = serializer.validated_data.get('dry_run', False)
         
-        if file.name.endswith('.csv'):
-            content = file.read().decode('utf-8')
-        else:
-            import openpyxl
-            workbook = openpyxl.load_workbook(file)
-            sheet = workbook.active
-            output = io.StringIO()
-            writer = csv.writer(output)
-            for row in sheet.iter_rows(values_only=True):
-                writer.writerow(row)
-            content = output.getvalue()
-        
-        reader = csv.DictReader(io.StringIO(content))
-        created = 0
-        errors = []
-        target_setter = TargetSetter()
-        
-        for row_num, row in enumerate(reader, start=2):
-            try:
-                with transaction.atomic():
-                    target_setter.set_annual_target(
-                        kpi_id=row['kpi_id'],
-                        user_id=row['user_id'],
-                        year=year,
-                        target_value=row['target_value'],
-                        user=request.user
-                    )
-                    created += 1
-                    if dry_run:
-                        transaction.set_rollback(True)
-            except Exception as e:
-                errors.append({'row': row_num, 'error': str(e)})
-        
-        result_serializer = BulkUploadResultSerializer({
-            'total_rows': created + len(errors),
-            'created': created,
-            'updated': 0,
-            'errors': errors,
-            'dry_run': dry_run
-        })
-        
-        return Response(result_serializer.data, status=status.HTTP_202_ACCEPTED if not dry_run else status.HTTP_200_OK)
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+
+        # Save file to temporary workspace path
+        file_path = save_uploaded_file(file)
+
+        # Trigger background Celery worker
+        task = process_bulk_upload_task.delay(
+            file_path=file_path,
+            tenant_id=str(tenant_id),
+            user_id=str(request.user.id),
+            import_type='target',
+            extra_params={'dry_run': dry_run, 'year': year}
+        )
+
+        return Response({
+            'task_id': task.id,
+            'status': 'PENDING',
+            'message': 'Targets file upload accepted. Import is processing in the background.'
+        }, status=status.HTTP_202_ACCEPTED)

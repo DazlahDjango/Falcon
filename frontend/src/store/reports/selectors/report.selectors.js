@@ -25,7 +25,7 @@ const initialState = {
 };
 
 export const selectReportState = (state) => {
-    return state?.report || state?.reports || state?.reportplt?.report || initialState;
+    return state?.report?.report || state?.reportplt?.report || state?.reports?.report || (state?.report?.reports ? state.report : null) || state?.report || initialState;
 };
 
 export const selectReportRoot = (state) => state?.reportplt || state?.reports || {};
@@ -193,4 +193,55 @@ export const selectReportCategories = createSelector(
 export const selectReportFormats = createSelector(
     [selectReportState],
     (state) => state.formats || []
+);
+
+// ============================================
+// DOMAIN-SPECIFIC REPORT SELECTORS (7 APPS)
+// ============================================
+
+export const selectReportsByDomain = createSelector(
+    [selectReports, (state, domain) => domain],
+    (reports, domain) => {
+        if (!domain) return reports;
+        return reports.filter(r => {
+            const type = (r.report_type || '').toLowerCase();
+            const source = (r.data_source || '').toLowerCase();
+            return type.startsWith(domain.toLowerCase() + '_') || source === domain.toLowerCase();
+        });
+    }
+);
+
+export const selectConfigsReports = createSelector(
+    [selectReports],
+    (reports) => reports.filter(r => (r.report_type || '').startsWith('configs_') || ['configs_system', 'backup_audit', 'dr_compliance', 'health_sla', 'maintenance_audit', 'kms_security', 'system_audit', 'tenant_quota', 'risk_matrix'].includes(r.report_type))
+);
+
+export const selectTenantReports = createSelector(
+    [selectReports],
+    (reports) => reports.filter(r => (r.report_type || '').startsWith('tenant_'))
+);
+
+export const selectKpiReports = createSelector(
+    [selectReports],
+    (reports) => reports.filter(r => (r.report_type || '').startsWith('kpi_') || r.report_type === 'kpi')
+);
+
+export const selectStructureReports = createSelector(
+    [selectReports],
+    (reports) => reports.filter(r => (r.report_type || '').startsWith('structure_'))
+);
+
+export const selectAccountsReports = createSelector(
+    [selectReports],
+    (reports) => reports.filter(r => (r.report_type || '').startsWith('accounts_'))
+);
+
+export const selectBillingReports = createSelector(
+    [selectReports],
+    (reports) => reports.filter(r => (r.report_type || '').startsWith('billing_'))
+);
+
+export const selectReviewsReports = createSelector(
+    [selectReports],
+    (reports) => reports.filter(r => (r.report_type || '').startsWith('reviews_'))
 );

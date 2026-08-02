@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSave, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useReports } from '../../../hooks/reports';
 import { ReportLoading, ReportError, ReportConfirmDialog } from '../common';
+import { REPORT_TYPE_LABELS, REPORT_CATEGORY_LABELS, REPORT_FORMAT_LABELS } from '../../../config/constants/reportConstants';
 import './reports.css';
 
 export const ReportCreate = () => {
@@ -113,17 +114,10 @@ export const ReportCreate = () => {
         );
     }
 
-    const reportTypes = [
-        { value: 'kpi', label: 'KPI Performance Report' },
-        { value: 'departmental', label: 'Departmental Performance Report' },
-        { value: 'executive', label: 'Executive Summary Report' },
-        { value: 'compliance', label: 'Compliance Report' },
-        { value: 'trend', label: 'Trend Analysis Report' },
-        { value: 'comparative', label: 'Comparative Report' },
-        { value: 'mission', label: 'Mission Status Report' },
-        { value: 'pip', label: 'PIP Tracking Report' },
-        { value: 'custom', label: 'Custom Report' },
-    ];
+    const reportTypes = Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => ({
+        value,
+        label,
+    }));
 
     const formats = [
         { value: 'pdf', label: 'PDF' },
@@ -248,6 +242,11 @@ export const ReportCreate = () => {
                                 <option value="tasks">Task Data</option>
                                 <option value="pip">PIP Data</option>
                                 <option value="combined">Combined Data</option>
+                                <option value="configs">System Configs Data</option>
+                                <option value="tenant">Multi-Tenant Data</option>
+                                <option value="structure">Org Structure Data</option>
+                                <option value="accounts">Accounts & Security Data</option>
+                                <option value="billing">Billing & Financial Data</option>
                             </select>
                         </div>
                     </div>

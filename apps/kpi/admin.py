@@ -39,6 +39,16 @@ class TenantAwareAdmin(ModelAdmin):
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request, 'tenant') and request.tenant:
+            tenant_id = request.tenant.id
+        if not tenant_id and hasattr(request, 'user') and request.user.is_authenticated:
+            tenant_id = request.user.tenant_id
+        if tenant_id and hasattr(db_field.remote_field.model, 'tenant_id'):
+            kwargs["queryset"] = db_field.remote_field.model.objects.filter(tenant_id=tenant_id)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(KPICategory)
 class KPICategoryAdmin(TenantAwareAdmin):

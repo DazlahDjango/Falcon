@@ -37,9 +37,15 @@ def provision_organization(self, organization_id):
             )
             return False
 
-        service = ProvisioningService()
-        service.provision_organization(organization_id)
-        logger.info("Organization %s provisioned successfully", organization_id)
+        from celery import chain
+        # Trigger modular step execution pipeline
+        chain(
+            create_schema_step_task.s(organization_id),
+            apply_migrations_step_task.s(organization_id),
+            seed_initial_data_step_task.s(organization_id),
+            notify_provisioning_complete_task.s(organization_id)
+        ).apply_async(link_error=rollback_provisioning_task.s(organization_id))
+        logger.info("Organization %s provisioning chain dispatched", organization_id)
         return True
     except Exception as exc:
         logger.error("Provision failed for %s: %s", organization_id, exc)
@@ -48,6 +54,40 @@ def provision_organization(self, organization_id):
         except self.MaxRetriesExceededError:
             logger.error("Max retries exceeded for organization %s provisioning", organization_id)
             return False
+
+@shared_task(name='organization.create_schema_step')
+def create_schema_step_task(organization_id):
+    from .services import ProvisioningService
+    return ProvisioningService().create_schema_step(organization_id)
+
+@shared_task(name='organization.apply_migrations_step')
+def apply_migrations_step_task(schema_name, organization_id):
+    from .services import ProvisioningService
+    ProvisioningService().apply_migrations_step(organization_id)
+    return organization_id
+
+@shared_task(name='organization.seed_initial_data_step')
+def seed_initial_data_step_task(organization_id):
+    from .services import ProvisioningService
+    ProvisioningService().seed_initial_data_step(organization_id)
+    return organization_id
+
+@shared_task(name='organization.notify_provisioning_complete')
+def notify_provisioning_complete_task(organization_id):
+    from .services import ProvisioningService
+    ProvisioningService().notify_provisioning_complete_step(organization_id)
+    return True
+
+@shared_task(name='organization.rollback_provisioning')
+def rollback_provisioning_task(request, exc, traceback, organization_id):
+    from .services import ProvisioningService
+    logger.error("Provisioning rollback triggered for org %s due to error: %s", organization_id, exc)
+    try:
+        org = Organization.objects.get(id=organization_id)
+        ProvisioningService()._rollback_provisioning(organization_id, org.schema_name, str(exc))
+    except Exception as e:
+        logger.error("Failed to execute rollback for org %s: %s", organization_id, e)
+
 
 
 @shared_task(name='organization.verify_domain')

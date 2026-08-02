@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { FiEye, FiEdit2, FiTrash2, FiPlay, FiDownload, FiClock } from 'react-icons/fi';
+import { REPORT_TYPE_ICONS, REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import { ReportStatusBadge } from '../common';
 import './reports.css';
 
@@ -39,35 +40,8 @@ export const ReportCard = ({
         });
     };
 
-    const getTypeIcon = (type) => {
-        const icons = {
-            kpi: '📊',
-            departmental: '🏢',
-            executive: '👔',
-            compliance: '✅',
-            trend: '📈',
-            comparative: '⚖️',
-            mission: '🎯',
-            pip: '📋',
-            custom: '⚙️',
-        };
-        return icons[type] || '📄';
-    };
-
-    const getTypeLabel = (type) => {
-        const labels = {
-            kpi: 'KPI Report',
-            departmental: 'Departmental',
-            executive: 'Executive',
-            compliance: 'Compliance',
-            trend: 'Trend Analysis',
-            comparative: 'Comparative',
-            mission: 'Mission Status',
-            pip: 'PIP Tracking',
-            custom: 'Custom',
-        };
-        return labels[type] || type;
-    };
+    const getTypeIcon = (type) => REPORT_TYPE_ICONS[type] || '📄';
+    const getTypeLabel = (type) => REPORT_TYPE_LABELS[type] || type;
 
     return (
         <div className={`report-card ${className} ${is_archived ? 'archived' : ''}`}>

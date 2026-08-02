@@ -33,3 +33,17 @@ class AuditLogger:
         return self.log(action, performed_by, performed_by_role, result=AuditResult.SUCCESS, **kwargs)
     def log_failure(self, action, performed_by, performed_by_role, error_message='', **kwargs):
         return self.log(action, performed_by, performed_by_role, result=AuditResult.FAILURE, error_message=error_message, **kwargs)
+    def log_role_change(self, performed_by, performed_by_role, target_user_email, old_role, new_role):
+        from apps.configs.constants import AuditAction
+        return self.log_success(
+            action=AuditAction.SYSTEM_ACTION,
+            performed_by=performed_by,
+            performed_by_role=performed_by_role,
+            performed_by_email=target_user_email,
+            details={
+                'event': 'role_escalation',
+                'target_email': target_user_email,
+                'old_role': old_role,
+                'new_role': new_role,
+            }
+        )

@@ -13,6 +13,9 @@ class OrganizationStatus(models.TextChoices):
     DELETED = 'DELETED', 'Deleted'
 
 
+TenantStatus = OrganizationStatus
+
+
 class SubscriptionTier(models.TextChoices):
     FREE = 'free', 'Free'
     BASIC = 'basic', 'Basic'

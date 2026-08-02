@@ -61,6 +61,31 @@ def batch_generate_final_ratings(cycle_id):
     except ReviewCycle.DoesNotExist:
         return {'error': 'Cycle not found'}
 
+@shared_task(name="reviews.tasks.finalize_company_appraisals_chunked")
+def finalize_company_appraisals_chunked_task(cycle_id, chunk_size=100):
+    try:
+        cycle = ReviewCycle.objects.get(id=cycle_id)
+        participant_ids = list(SelfAssessment.objects.filter(cycle=cycle).values_list('id', flat=True))
+        total_participants = len(participant_ids)
+
+        for i in range(0, total_participants, chunk_size):
+            chunk = participant_ids[i:i + chunk_size]
+            batch_finalize_appraisals_chunk_task.delay(str(cycle_id), chunk)
+
+        return {'status': 'dispatched', 'total_participants': total_participants, 'chunks': (total_participants // chunk_size) + 1}
+    except ReviewCycle.DoesNotExist:
+        return {'error': 'Cycle not found'}
+
+@shared_task(name="reviews.tasks.batch_finalize_appraisals_chunk")
+def batch_finalize_appraisals_chunk_task(cycle_id, assessment_ids):
+    assessments = SelfAssessment.objects.filter(id__in=assessment_ids)
+    processed = 0
+    for sa in assessments:
+        sa.status = 'finalized'
+        sa.save(update_fields=['status'])
+        processed += 1
+    return {'processed_chunk_size': processed}
+
 @shared_task
 def check_pip_deadlines():
     today = get_today()
