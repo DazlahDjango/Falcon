@@ -40,7 +40,16 @@ class OutlierDetector(BaseReviewService):
                 stats['avg'] = round(mean(stats['scores']), 2)
         return manager_stats
     @staticmethod
-    def find_outliers(review_cycle, std_dev_threshold=1.5):
+    def find_outliers(review_cycle, std_dev_threshold=None):
+        from apps.reviews.services.settings.reviews_settings_service import ReviewsSettingsService
+        calibration_settings = ReviewsSettingsService.get_section('calibration')
+        
+        if std_dev_threshold is None:
+            std_dev_threshold = calibration_settings.get('z_score_threshold', 1.5)
+        
+        critical_low = calibration_settings.get('critical_low_score', 40)
+        critical_high = calibration_settings.get('critical_high_score', 95)
+
         dept_stats = OutlierDetector.get_department_statistics(review_cycle)
         outliers = []
         ratings = FinalRating.objects.filter(review_cycle=review_cycle, final_score__isnull=False, status__in=['pending', 'calibrated']).select_related('employee__department', 'supervisor_review__supervisor')
@@ -58,17 +67,21 @@ class OutlierDetector(BaseReviewService):
                     if z_score > std_dev_threshold:
                         is_outlier = True
                         reason.append(f"Score deviates {z_score:.1f} standard deviations from department average")
-            if rating.final_score < 40:
+            if rating.final_score < critical_low:
                 is_outlier = True
-                reason.append("Score is critically low (<40%)")
-            if rating.final_score > 95:
+                reason.append(f"Score is critically low (<{critical_low}%)")
+            if rating.final_score > critical_high:
                 is_outlier = True
-                reason.append("Score is exceptionally high (>95%)")
+                reason.append(f"Score is exceptionally high (>{critical_high}%)")
             if is_outlier:
                 outliers.append({'employee': rating.employee.email, 'department': dept_name, 'manager': rating.supervisor_review.supervisor.email if rating.supervisor_review and rating.supervisor_review.supervisor else 'Unknown', 'score': float(rating.final_score), 'rating_id': str(rating.id), 'reasons': reason})
         return outliers
     @staticmethod
     def find_inconsistent_managers(review_cycle):
+        from apps.reviews.services.settings.reviews_settings_service import ReviewsSettingsService
+        calibration_settings = ReviewsSettingsService.get_section('calibration')
+        manager_deviation_bias_limit = calibration_settings.get('manager_deviation_bias_limit', 15)
+
         manager_stats = OutlierDetector.get_manager_statistics(review_cycle)
         all_ratings = FinalRating.objects.filter(review_cycle=review_cycle, final_score__isnull=False)
         all_scores = [float(r.final_score) for r in all_ratings]
@@ -77,7 +90,7 @@ class OutlierDetector(BaseReviewService):
         for manager_name, stats in manager_stats.items():
             if stats.get('avg'):
                 manager_avg = stats['avg']
-                if abs(manager_avg - overall_avg) > 15:
+                if abs(manager_avg - overall_avg) > manager_deviation_bias_limit:
                     inconsistent_managers.append({'manager': manager_name, 'average_rating': manager_avg, 'overall_average': round(overall_avg, 2), 'deviation': round(manager_avg - overall_avg, 2), 'employees_count': stats['count']})
         return inconsistent_managers
     @staticmethod

@@ -271,6 +271,22 @@ body {
 }
 
 /* Navigation Items */
+.nav-group-subheader {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--falcon-text-tertiary);
+    padding: 12px 12px 6px 12px;
+    margin-top: 14px;
+    list-style: none;
+    user-select: none;
+}
+
+.sidebar.collapsed .nav-group-subheader {
+    display: none;
+}
+
 .nav-group-items {
     list-style: none;
     margin-top: 8px;

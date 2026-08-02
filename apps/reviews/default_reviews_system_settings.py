@@ -35,4 +35,10 @@ DEFAULT_REVIEWS_SYSTEM_SETTINGS = {
         'circuit_breaker_reset_seconds': 60,
         'external_call_fallback_enabled': True,
     },
+    'calibration': {
+        'z_score_threshold': 1.5,
+        'critical_low_score': 40,
+        'critical_high_score': 95,
+        'manager_deviation_bias_limit': 15,
+    },
 }

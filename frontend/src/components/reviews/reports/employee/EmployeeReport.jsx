@@ -8,8 +8,10 @@ import EmployeeSummary from './EmployeeSummary';
 import EmployeeReviewTimeline from './EmployeeReviewTimeline';
 import EmployeeCompetencyComparison from './EmployeeCompetencyComparison';
 
-const EmployeeReport = () => {
-  const { employeeId, cycleId } = useParams();
+const EmployeeReport = ({ employeeId: propEmployeeId, cycleId: propCycleId }) => {
+  const params = useParams();
+  const employeeId = propEmployeeId || params.employeeId;
+  const cycleId = propCycleId || params.cycleId;
   const navigate = useNavigate();
   const { employeeSummary, loading, error, getEmployeeSummary, exportReport, canView } = useReviewsReports();
   const [isExporting, setIsExporting] = useState(false);

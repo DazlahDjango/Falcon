@@ -149,6 +149,17 @@ export const archiveCycle = createAsyncThunk(
   }
 );
 
+export const sendCycleReminders = createAsyncThunk(
+  'cycles/sendReminders',
+  async (id, { rejectWithValue }) => {
+    try {
+      return await reviewCycleService.sendReminders(id);
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 export const unarchiveCycle = createAsyncThunk(
   'cycles/unarchive',
   async (id, { rejectWithValue }) => {

@@ -94,7 +94,7 @@ export const LoginForm = () => {
         {formError && (
           <div className="auth-alert error">
             <FiAlertCircle className="alert-icon" />
-            <span>{formError}</span>
+            <span>{typeof formError === 'object' ? (formError.message || formError.error || 'Login failed. Please try again.') : formError}</span>
             <button className="alert-close" onClick={handleClearError}>
               ×
             </button>

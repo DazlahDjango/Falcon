@@ -7,8 +7,10 @@ import { ReviewLoading, ReviewError } from '../../common';
 import TeamSummary from './TeamSummary';
 import TeamRatingsDistribution from './TeamRatingsDistribution';
 
-const TeamReport = () => {
-  const { managerId, cycleId } = useParams();
+const TeamReport = ({ managerId: propManagerId, cycleId: propCycleId }) => {
+  const params = useParams();
+  const managerId = propManagerId || params.managerId;
+  const cycleId = propCycleId || params.cycleId;
   const navigate = useNavigate();
   const { teamSummary, loading, error, getTeamSummary, exportReport, canView } = useReviewsReports();
   const [isExporting, setIsExporting] = useState(false);

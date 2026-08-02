@@ -115,7 +115,7 @@ const CollapsibleSidebar = ({
     // Check if any of the sub-items in this group is currently active
     const currentPath = window.location.pathname;
     const isAnyActive = items.some(item => {
-      return currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path));
+      return item.path && (currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path)));
     });
 
     const Chevron = isExpanded ? FiChevronUp : FiChevronDown;
@@ -165,18 +165,27 @@ const CollapsibleSidebar = ({
         </button>
         {((isExpanded && !isCollapsed) || (isCollapsed && isAnyActive)) && (
           <ul className="ent-nav-group-items">
-            {items.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) => `ent-sub-nav-link ${isActive ? 'active' : ''}`}
-                  end={item.end}
-                >
-                  <span className="ent-sub-nav-bullet">●</span>
-                  <span>{item.name}</span>
-                </NavLink>
-              </li>
-            ))}
+            {items.map((item, index) => {
+              if (item.isHeader) {
+                return (
+                  <li key={`header-${index}`} className="ent-nav-group-subheader">
+                    <span>{item.name}</span>
+                  </li>
+                );
+              }
+              return (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) => `ent-sub-nav-link ${isActive ? 'active' : ''}`}
+                    end={item.end}
+                  >
+                    <span className="ent-sub-nav-bullet">●</span>
+                    <span>{item.name}</span>
+                  </NavLink>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

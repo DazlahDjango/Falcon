@@ -33,7 +33,7 @@ const LoginForm = ({ onSubmit, isLoading, error }) => {
 
     return (
         <form onSubmit={handleSubmit} className="auth-form">
-            {error && <div className="input-feedback error" style={{ marginBottom: '1rem' }}>{error}</div>}
+            {error && <div className="input-feedback error" style={{ marginBottom: '1rem' }}>{typeof error === 'object' ? (error.message || error.error || 'Login failed. Please try again.') : error}</div>}
             
             <div className="form-group">
                 <label htmlFor="email">Email Address</label>

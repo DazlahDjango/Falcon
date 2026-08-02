@@ -139,6 +139,10 @@ export const REVIEW_ROUTES = {
   // Settings
   SETTINGS: '/reviews/settings',
   SYSTEM_SETTINGS: '/reviews/system-settings',
+  NOTIFICATION_PREFERENCES: '/reviews/settings/notifications',
+  AUDIT_SETTINGS: '/reviews/settings/audit',
+  AUDIT_LOGS: '/reviews/audit',
+  NOTIFICATIONS: '/reviews/notifications',
 };
 
 // Breadcrumb mapping

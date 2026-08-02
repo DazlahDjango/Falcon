@@ -88,46 +88,38 @@ const CoefficientTable = ({ data }) => {
               <td className="coefficient-table-date">{formatDate(coefficient.valid_from)}</td>
               <td className="coefficient-table-date">{formatDate(coefficient.valid_to)}</td>
               <td>
-                <ReviewStatusBadge status={coefficient.is_active ? 'active' : 'inactive'} size="sm" />
+                {canManage ? (
+                  <label className="flex items-center gap-1 cursor-pointer select-none" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={coefficient.is_active || false}
+                      onChange={() => coefficient.is_active ? handleDeactivate(coefficient.id) : handleActivate(coefficient.id)}
+                      className="w-3.5 h-3.5 cursor-pointer accent-blue-600"
+                    />
+                    <span className={`text-xs ${coefficient.is_active ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                      {coefficient.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </label>
+                ) : (
+                  <ReviewStatusBadge status={coefficient.is_active ? 'active' : 'inactive'} size="sm" />
+                )}
               </td>
               <td className="coefficient-table-actions">
-                <button
-                  className="coefficient-table-action-btn"
-                  onClick={() => navigate(`/reviews/coefficients/${coefficient.id}`)}
-                  aria-label="View"
-                >
-                  <Eye size={16} />
-                </button>
                 {canManage && (
                   <>
-                    {coefficient.is_active ? (
-                      <button
-                        className="coefficient-table-action-btn warning"
-                        onClick={() => handleDeactivate(coefficient.id)}
-                        aria-label="Deactivate"
-                      >
-                        <Calculator size={16} />
-                      </button>
-                    ) : (
-                      <button
-                        className="coefficient-table-action-btn success"
-                        onClick={() => handleActivate(coefficient.id)}
-                        aria-label="Activate"
-                      >
-                        <Calculator size={16} />
-                      </button>
-                    )}
                     <button
                       className="coefficient-table-action-btn"
                       onClick={() => navigate(`/reviews/coefficients/${coefficient.id}/edit`)}
                       aria-label="Edit"
+                      title="Edit Coefficient"
                     >
                       <Edit size={16} />
                     </button>
                     <button
                       className="coefficient-table-action-btn danger"
-                      onClick={() => handleDelete(coefficient.id, coefficient.name)}
+                      onClick={() => handleDelete(coefficient.id, coefficient.user_name || coefficient.department_name || coefficient.position_title || 'this coefficient')}
                       aria-label="Delete"
+                      title="Delete Coefficient"
                     >
                       <Trash2 size={16} />
                     </button>

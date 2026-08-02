@@ -7,6 +7,7 @@ const SettingsForm = ({ settings, onSave, isSaving }) => {
 
   useEffect(() => {
     if (settings) {
+      const calibration = settings.calibration || {};
       setFormData({
         reviews_enabled: settings.reviews_enabled !== undefined ? settings.reviews_enabled : true,
         self_assessment_enabled: settings.self_assessment_enabled !== undefined ? settings.self_assessment_enabled : true,
@@ -20,6 +21,10 @@ const SettingsForm = ({ settings, onSave, isSaving }) => {
         supervisor_review_deadline_days: settings.supervisor_review_deadline_days || 45,
         auto_lock_ratings: settings.auto_lock_ratings !== undefined ? settings.auto_lock_ratings : false,
         require_approval: settings.require_approval !== undefined ? settings.require_approval : true,
+        z_score_threshold: calibration.z_score_threshold !== undefined ? calibration.z_score_threshold : 1.5,
+        critical_low_score: calibration.critical_low_score !== undefined ? calibration.critical_low_score : 40,
+        critical_high_score: calibration.critical_high_score !== undefined ? calibration.critical_high_score : 95,
+        manager_deviation_bias_limit: calibration.manager_deviation_bias_limit !== undefined ? calibration.manager_deviation_bias_limit : 15,
       });
     }
   }, [settings]);
@@ -30,7 +35,16 @@ const SettingsForm = ({ settings, onSave, isSaving }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    const dataToSave = {
+      ...formData,
+      calibration: {
+        z_score_threshold: Number(formData.z_score_threshold),
+        critical_low_score: Number(formData.critical_low_score),
+        critical_high_score: Number(formData.critical_high_score),
+        manager_deviation_bias_limit: Number(formData.manager_deviation_bias_limit),
+      }
+    };
+    onSave(dataToSave);
   };
 
   const handleReset = () => {
@@ -228,6 +242,62 @@ const SettingsForm = ({ settings, onSave, isSaving }) => {
             min={1}
             max={90}
           />
+        </div>
+      </div>
+
+      <hr style={{ margin: '2rem 0', borderColor: '#e2e8f0' }} />
+      <h3 className="settings-form-title" style={{ marginBottom: '1.5rem' }}>Calibration Outlier Settings</h3>
+      <div className="settings-form-row">
+        <div className="settings-form-group">
+          <label className="settings-form-label">Z-Score Outlier Threshold</label>
+          <input
+            type="number"
+            step="0.1"
+            className="settings-form-input"
+            value={formData.z_score_threshold}
+            onChange={(e) => handleChange('z_score_threshold', Number(e.target.value))}
+            min={0.1}
+            max={5.0}
+          />
+          <span className="settings-form-hint">Standard deviations from department average (default: 1.5)</span>
+        </div>
+        <div className="settings-form-group">
+          <label className="settings-form-label">Manager Deviation Bias Limit (%)</label>
+          <input
+            type="number"
+            className="settings-form-input"
+            value={formData.manager_deviation_bias_limit}
+            onChange={(e) => handleChange('manager_deviation_bias_limit', Number(e.target.value))}
+            min={1}
+            max={50}
+          />
+          <span className="settings-form-hint">Deviation from company average to flag manager bias (default: 15%)</span>
+        </div>
+      </div>
+      <div className="settings-form-row" style={{ marginTop: '1rem' }}>
+        <div className="settings-form-group">
+          <label className="settings-form-label">Critical Low Score Highlight (%)</label>
+          <input
+            type="number"
+            className="settings-form-input"
+            value={formData.critical_low_score}
+            onChange={(e) => handleChange('critical_low_score', Number(e.target.value))}
+            min={0}
+            max={100}
+          />
+          <span className="settings-form-hint">Highlight ratings scoring below this value (default: 40%)</span>
+        </div>
+        <div className="settings-form-group">
+          <label className="settings-form-label">Critical High Score Highlight (%)</label>
+          <input
+            type="number"
+            className="settings-form-input"
+            value={formData.critical_high_score}
+            onChange={(e) => handleChange('critical_high_score', Number(e.target.value))}
+            min={0}
+            max={100}
+          />
+          <span className="settings-form-hint">Highlight ratings scoring above this value (default: 95%)</span>
         </div>
       </div>
     </form>

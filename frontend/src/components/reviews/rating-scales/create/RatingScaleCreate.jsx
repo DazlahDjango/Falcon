@@ -8,7 +8,7 @@ import RatingScaleLevelEditor from './RatingScaleLevelEditor';
 
 const RatingScaleCreate = () => {
   const navigate = useNavigate();
-  const { createRatingScale, loading } = useRatingScales();
+  const { create: createRatingScale, loading } = useRatingScales();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -22,10 +22,19 @@ const RatingScaleCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim()) {
+      alert('Please enter a rating scale name.');
+      return;
+    }
+    if (formData.levels.length === 0) {
+      alert('Please add at least one rating level to the rating scale before saving.');
+      return;
+    }
     try {
-      await createRatingScale(formData);
+      await createRatingScale(formData).unwrap();
       navigate('/reviews/rating-scales');
     } catch (error) {
+      alert(error?.message || 'Failed to create rating scale. Please check your inputs.');
       console.error('Failed to create rating scale:', error);
     }
   };
@@ -73,7 +82,7 @@ const RatingScaleCreate = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading || !formData.name || formData.levels.length === 0}
+            disabled={loading}
           >
             <Save size={18} />
             {loading ? 'Creating...' : 'Create Rating Scale'}

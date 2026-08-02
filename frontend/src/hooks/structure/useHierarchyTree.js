@@ -61,6 +61,7 @@ export const useGraphData = (treeData) => {
 
     return result;
   };
-  const graphData = treeData?.data?.departments ? buildNodesAndLinks(treeData.data.departments) : { nodes: [], links: [] };
+  const departments = treeData?.departments || treeData?.tree?.departments || treeData?.data?.departments || treeData?.data?.tree?.departments;
+  const graphData = departments ? buildNodesAndLinks(departments) : { nodes: [], links: [] };
   return { nodes: graphData.nodes, links: graphData.links };
 };

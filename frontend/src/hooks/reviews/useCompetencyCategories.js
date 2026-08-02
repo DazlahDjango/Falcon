@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import {
   selectAllCompetencyCategories,
   selectCompetencyCategoriesLoading,
+  selectCompetencyCategoryError,
   selectSelectedCompetencyCategory,
   selectCategoryCompetencies,
   selectActiveCompetencyCategories,
@@ -33,6 +34,7 @@ const useCompetencyCategories = () => {
   // Selectors
   const data = useSelector(selectAllCompetencyCategories);
   const loading = useSelector(selectCompetencyCategoriesLoading);
+  const error = useSelector(selectCompetencyCategoryError);
   const selected = useSelector(selectSelectedCompetencyCategory);
   const categoryCompetencies = useSelector(selectCategoryCompetencies);
   const activeCategories = useSelector(selectActiveCompetencyCategories);
@@ -135,6 +137,7 @@ const useCompetencyCategories = () => {
     // Data
     data,
     loading,
+    error,
     selected,
     categoryCompetencies,
     activeCategories,

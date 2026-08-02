@@ -22,7 +22,7 @@ const SystemSettings = () => {
   const handleSave = async (data) => {
     setIsSaving(true);
     try {
-      await updateSettings(data);
+      await updateSettings({ settings: data });
     } finally {
       setIsSaving(false);
     }

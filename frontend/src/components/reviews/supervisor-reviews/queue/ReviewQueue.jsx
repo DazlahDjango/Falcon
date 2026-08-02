@@ -9,8 +9,13 @@ import ReviewQueueFilters from './ReviewQueueFilters';
 
 const ReviewQueue = () => {
   const navigate = useNavigate();
-  const { myQueue, loading, error, fetchQueue, filters, setFilters } = useSupervisorReview();
+  const { myQueue, loading, error, fetchQueue } = useSupervisorReview();
   const [searchTerm, setSearchTerm] = useState('');
+  const [localFilters, setLocalFilters] = useState({
+    status: '',
+    has_self_assessment: '',
+    overdue: '',
+  });
 
   useEffect(() => {
     fetchQueue();
@@ -21,21 +26,43 @@ const ReviewQueue = () => {
   }, []);
 
   const handleFilterChange = useCallback((key, value) => {
-    setFilters({ [key]: value });
-  }, [setFilters]);
+    setLocalFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const handleViewReview = useCallback((id) => {
     navigate(`/reviews/supervisor-reviews/${id}`);
   }, [navigate]);
 
   const filteredQueue = myQueue.filter((item) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      item.employee_name?.toLowerCase().includes(search) ||
-      item.employee_email?.toLowerCase().includes(search) ||
-      item.review_cycle_name?.toLowerCase().includes(search)
-    );
+    // 1. Search filter
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      const matchSearch =
+        item.employee_name?.toLowerCase().includes(search) ||
+        item.employee_email?.toLowerCase().includes(search) ||
+        item.review_cycle_name?.toLowerCase().includes(search);
+      if (!matchSearch) return false;
+    }
+
+    // 2. Status filter
+    if (localFilters.status) {
+      if (item.status !== localFilters.status) return false;
+    }
+
+    // 3. Self Assessment filter
+    if (localFilters.has_self_assessment) {
+      const needsSubmitted = localFilters.has_self_assessment === 'true';
+      if (!!item.self_assessment_submitted !== needsSubmitted) return false;
+    }
+
+    // 4. Overdue filter
+    if (localFilters.overdue) {
+      const isOverdue = item.deadline && new Date(item.deadline) < new Date();
+      const needsOverdue = localFilters.overdue === 'true';
+      if (!!isOverdue !== needsOverdue) return false;
+    }
+
+    return true;
   });
 
   if (loading) return <ReviewLoading size="lg" text="Loading review queue..." />;

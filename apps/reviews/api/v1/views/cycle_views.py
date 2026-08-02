@@ -23,7 +23,7 @@ class ReviewCycleViewSet(BaseReviewViewSet):
             return ReviewCycleCreateUpdateSerializer
         return ReviewCycleSerializer
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy', 'activate', 'freeze', 'complete', 'force_complete', 'archive', 'unarchive', 'extend']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'activate', 'freeze', 'complete', 'force_complete', 'archive', 'unarchive', 'extend', 'send_reminders']:
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
@@ -161,3 +161,11 @@ class ReviewCycleViewSet(BaseReviewViewSet):
             'supervisor_review': {'total': supervisor_reviews.count(), 'approved': supervisor_reviews.filter(status='approved').count(), 'submitted': supervisor_reviews.filter(status='submitted').count(), 'draft': supervisor_reviews.filter(status='draft').count()},
             'final_rating': {'total': final_ratings.count(), 'locked': final_ratings.filter(status='locked').count(), 'approved': final_ratings.filter(status='approved').count(), 'calibrated': final_ratings.filter(status='calibrated').count(), 'pending': final_ratings.filter(status='pending').count()}
         })
+    @action(detail=True, methods=['post'])
+    def send_reminders(self, request, pk=None):
+        cycle = self.get_object()
+        from apps.reviews.tasks import _send_self_assessment_reminders, _send_supervisor_review_reminders
+        self_result = _send_self_assessment_reminders(cycle.id)
+        super_result = _send_supervisor_review_reminders(cycle.id)
+        total_sent = self_result.get('reminders_sent', 0) + super_result.get('reminders_sent', 0)
+        return Response({'message': f'Successfully sent {total_sent} reminders.', 'sent_count': total_sent})

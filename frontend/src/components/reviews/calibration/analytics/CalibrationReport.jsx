@@ -8,8 +8,9 @@ import CalibrationOutliers from './CalibrationOutliers';
 import CalibrationRecommendations from './CalibrationRecommendations';
 import { FileText, AlertTriangle, TrendingUp } from 'lucide-react';
 
-const CalibrationReport = () => {
-  const { id } = useParams();
+const CalibrationReport = ({ sessionId: propSessionId }) => {
+  const { id: paramId } = useParams();
+  const id = propSessionId || paramId;
   const { report, reportLoading, reportError, getReport, canManage } = useCalibration();
 
   useEffect(() => {

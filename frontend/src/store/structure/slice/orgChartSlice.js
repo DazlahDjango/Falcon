@@ -57,6 +57,18 @@ export const exportOrgChartCsv = createAsyncThunk(
   }
 );
 
+export const exportOrgChart = createAsyncThunk(
+  'orgCharts/export',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await orgChartService.exportOrgChart(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to export org chart');
+    }
+  }
+);
+
 const orgChartSlice = createSlice({
   name: 'orgCharts',
   initialState,

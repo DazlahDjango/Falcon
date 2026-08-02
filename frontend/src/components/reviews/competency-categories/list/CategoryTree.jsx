@@ -14,7 +14,11 @@ const CategoryTree = ({ categories = [] }) => {
     setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleDelete = async (id, name) => {
+  const handleDelete = async (id, name, competencyCount) => {
+    if (competencyCount > 0) {
+      alert('Cannot delete a category that contains competencies.');
+      return;
+    }
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       await deleteCategory(id);
     }
@@ -23,7 +27,7 @@ const CategoryTree = ({ categories = [] }) => {
   const renderCategory = (category, level = 0) => {
     const hasChildren = category.children?.length > 0;
     const isExpanded = expanded[category.id];
-    const competencyCount = category.competencies?.length || 0;
+    const competencyCount = category.competency_count || category.competencies?.length || 0;
 
     return (
       <div key={category.id} className="category-tree-item" style={{ paddingLeft: level * 24 }}>
@@ -45,26 +49,26 @@ const CategoryTree = ({ categories = [] }) => {
             <ReviewStatusBadge status={category.is_active ? 'active' : 'inactive'} size="sm" />
           </div>
           <div className="category-tree-node-right">
-            <button
-              className="category-tree-action-btn"
-              onClick={() => navigate(`/reviews/competency-categories/${category.id}`)}
-              aria-label="View"
-            >
-              <FolderOpen size={14} />
-            </button>
             {canManage && (
               <>
                 <button
                   className="category-tree-action-btn"
                   onClick={() => navigate(`/reviews/competency-categories/${category.id}/edit`)}
                   aria-label="Edit"
+                  title="Edit Category"
                 >
                   <Edit size={14} />
                 </button>
                 <button
                   className="category-tree-action-btn danger"
-                  onClick={() => handleDelete(category.id, category.name)}
+                  onClick={() => handleDelete(category.id, category.name, competencyCount)}
                   aria-label="Delete"
+                  disabled={competencyCount > 0}
+                  title={competencyCount > 0 ? 'Category contains competencies and cannot be deleted' : 'Delete Category'}
+                  style={{
+                    opacity: competencyCount > 0 ? 0.4 : 1,
+                    cursor: competencyCount > 0 ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   <Trash2 size={14} />
                 </button>

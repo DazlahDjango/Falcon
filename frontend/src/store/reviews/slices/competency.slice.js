@@ -250,6 +250,24 @@ const competencySlice = createSlice({
           state.selectedItem = null;
         }
       })
+      .addCase(activateCompetency.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.selectedItem?.id === action.payload.id) {
+          state.selectedItem = action.payload;
+        }
+      })
+      .addCase(deactivateCompetency.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.selectedItem?.id === action.payload.id) {
+          state.selectedItem = action.payload;
+        }
+      })
       .addCase(fetchActiveCompetencies.fulfilled, (state, action) => {
         state.activeCompetencies = action.payload;
       })

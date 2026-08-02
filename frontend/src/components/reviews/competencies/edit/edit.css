@@ -1,8 +1,21 @@
 /* src/components/reviews/competencies/edit/edit.css */
 .competency-edit {
   padding: 24px;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+.competency-edit-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .competency-edit-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .competency-edit-header {
@@ -50,4 +63,10 @@
   padding-top: 20px;
   border-top: 1px solid #e5e7eb;
   margin-top: 8px;
+}
+
+.competency-form-container-single {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }

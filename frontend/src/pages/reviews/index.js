@@ -101,6 +101,7 @@ export {
 export {
   CoefficientsPage,
   CoefficientCreatePage,
+  CoefficientEditPage,
   CoefficientApplyPage,
 } from './coefficients';
 
