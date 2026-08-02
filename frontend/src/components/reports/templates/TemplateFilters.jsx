@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FiFilter, FiX } from 'react-icons/fi';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import './templates.css';
 
 export const TemplateFilters = ({
@@ -12,15 +13,7 @@ export const TemplateFilters = ({
 }) => {
     const templateTypes = [
         { value: '', label: 'All Types' },
-        { value: 'executive', label: 'Executive Dashboard' },
-        { value: 'departmental', label: 'Departmental Scorecard' },
-        { value: 'kpi', label: 'KPI Report' },
-        { value: 'mission', label: 'Mission Status' },
-        { value: 'compliance', label: 'Compliance Report' },
-        { value: 'trend', label: 'Trend Analysis' },
-        { value: 'comparative', label: 'Comparative Analysis' },
-        { value: 'pip', label: 'PIP Report' },
-        { value: 'custom', label: 'Custom Template' },
+        ...Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => ({ value, label }))
     ];
 
     const sectors = [

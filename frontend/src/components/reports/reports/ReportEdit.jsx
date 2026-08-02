@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSave, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useReport } from '../../../hooks/reports';
 import { ReportLoading, ReportError, ReportConfirmDialog } from '../common';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import './reports.css';
 
 export const ReportEdit = () => {
@@ -222,7 +223,7 @@ export const ReportEdit = () => {
                             <input
                                 id="report_type"
                                 type="text"
-                                value={report.report_type}
+                                value={REPORT_TYPE_LABELS[report.report_type] || report.report_type}
                                 disabled
                                 className="disabled-input"
                             />

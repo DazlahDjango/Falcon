@@ -2,7 +2,6 @@ from typing import Optional, List, Dict, Any
 from uuid import UUID
 from django.core.cache import cache
 from apps.structure.models.employment import Employment
-from apps.structure.models.employment import Employment
 from apps.structure.models.interim_assignment import InterimAssignment
 from apps.structure.constants import DEFAULT_MAX_CACHE_TTL_SECONDS
 

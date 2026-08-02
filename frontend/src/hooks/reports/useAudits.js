@@ -139,29 +139,12 @@ export const useAudits = (options = {}) => {
         dispatch(clearStats());
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectAuditById(state, id));
-    }, []);
-
-    const getByAction = useCallback((action) => {
-        return useSelector((state) => selectAuditsByAction(state, action));
-    }, []);
-
-    const getByReport = useCallback((reportId) => {
-        return useSelector((state) => selectAuditsByReport(state, reportId));
-    }, []);
-
-    const getByUser = useCallback((userId) => {
-        return useSelector((state) => selectAuditsByUser(state, userId));
-    }, []);
-
-    const getSuccessful = useCallback(() => {
-        return useSelector(selectSuccessfulAudits);
-    }, []);
-
-    const getFailed = useCallback(() => {
-        return useSelector(selectFailedAudits);
-    }, []);
+    const getById = useCallback((id) => audits.find(a => a.id === id), [audits]);
+    const getByAction = useCallback((action) => audits.filter(a => a.action === action), [audits]);
+    const getByReport = useCallback((reportId) => audits.filter(a => a.report === reportId), [audits]);
+    const getByUser = useCallback((userId) => audits.filter(a => a.user === userId), [audits]);
+    const getSuccessful = useCallback(() => audits.filter(a => a.status === 'success' || a.result === 'success'), [audits]);
+    const getFailed = useCallback(() => audits.filter(a => a.status === 'failed' || a.result === 'failed'), [audits]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {

@@ -17,7 +17,7 @@ const initialState = {
     generating: false,
     error: null,
     pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
-    filters: { report_type: null, status: null, category: null, is_published: null, is_archived: null, search: '' },
+    filters: { report_type: null, domain: null, data_source: null, status: null, category: null, is_published: null, is_archived: null, search: '' },
     types: [],
     statuses: [],
     categories: [],

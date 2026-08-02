@@ -19,7 +19,7 @@ const initialState = {
 };
 
 export const selectExportState = (state) => {
-    return state?.export || state?.reports?.export || state?.reportplt?.export || initialState;
+    return state?.report?.export || state?.reports?.export || state?.reportplt?.export || state?.export || initialState;
 };
 
 export const selectExports = createSelector(

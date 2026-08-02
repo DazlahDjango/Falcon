@@ -50,7 +50,7 @@ class ReportingViewSet(BaseViewSet):
             params=params,
             async_mode=async_mode
         )
-        if result.get('status') == 'success':
+        if result.get('status') in ['success', 'queued']:
             return Response(result, status=status.HTTP_200_OK)
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 

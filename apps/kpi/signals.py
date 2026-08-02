@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 import logging
-from apps.structure.models import Department, Employment, Employment
+from apps.structure.models import Department, Employment
 from .models import (
     KPI, KPIWeight, AnnualTarget, MonthlyActual, ValidationRecord,
     Score, MonthlyPhasing, Escalation, ActualAdjustment, CascadeMap

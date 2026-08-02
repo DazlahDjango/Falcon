@@ -28,6 +28,15 @@ class ReportRBAC:
             return True
         return False
 
+    def can_generate_report(self, report=None) -> bool:
+        if self._is_super_admin():
+            return True
+        if report and hasattr(report, 'tenant_id') and not self._same_tenant(report):
+            return False
+        if report:
+            return self.can_view_report(report)
+        return True
+
     def can_create_report(self, report_type: str = None) -> bool:
         if self._is_super_admin():
             return True

@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FiFilter, FiX } from 'react-icons/fi';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import './reports.css';
 
 export const ReportFilters = ({
@@ -12,15 +13,7 @@ export const ReportFilters = ({
 }) => {
     const reportTypes = [
         { value: '', label: 'All Types' },
-        { value: 'kpi', label: 'KPI Report' },
-        { value: 'departmental', label: 'Departmental' },
-        { value: 'executive', label: 'Executive' },
-        { value: 'compliance', label: 'Compliance' },
-        { value: 'trend', label: 'Trend Analysis' },
-        { value: 'comparative', label: 'Comparative' },
-        { value: 'mission', label: 'Mission Status' },
-        { value: 'pip', label: 'PIP Tracking' },
-        { value: 'custom', label: 'Custom' },
+        ...Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => ({ value, label }))
     ];
 
     const statuses = [

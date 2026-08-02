@@ -20,7 +20,7 @@ const initialState = {
 };
 
 export const selectShareState = (state) => {
-    return state?.share || state?.reports?.share || state?.reportplt?.share || initialState;
+    return state?.report?.share || state?.reports?.share || state?.reportplt?.share || state?.share || initialState;
 };
 
 export const selectShares = createSelector(

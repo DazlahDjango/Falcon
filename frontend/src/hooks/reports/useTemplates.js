@@ -52,6 +52,13 @@ import {
     selectTemplateTypes,
 } from '../../store/reports/selectors/template.selectors';
 
+// Standalone Selector Hooks (Top-Level Component Use)
+export const useTemplateById = (id) => useSelector((state) => selectTemplateById(state, id));
+export const useTemplatesByType = (type) => useSelector((state) => selectTemplatesByType(state, type));
+export const useTemplatesBySector = (sector) => useSelector((state) => selectTemplatesBySector(state, sector));
+export const useSystemTemplates = () => useSelector(selectSystemTemplates);
+export const usePublishedTemplates = () => useSelector(selectPublishedTemplates);
+
 export const useTemplates = (options = {}) => {
     const {
         autoFetch = true,
@@ -180,25 +187,11 @@ export const useTemplates = (options = {}) => {
         dispatch(clearAllTemplates());
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectTemplateById(state, id));
-    }, []);
-
-    const getByType = useCallback((type) => {
-        return useSelector((state) => selectTemplatesByType(state, type));
-    }, []);
-
-    const getBySector = useCallback((sector) => {
-        return useSelector((state) => selectTemplatesBySector(state, sector));
-    }, []);
-
-    const getSystem = useCallback(() => {
-        return useSelector(selectSystemTemplates);
-    }, []);
-
-    const getPublished = useCallback(() => {
-        return useSelector(selectPublishedTemplates);
-    }, []);
+    const getById = useCallback((id) => templates.find(t => t.id === id), [templates]);
+    const getByType = useCallback((type) => templates.filter(t => t.template_type === type), [templates]);
+    const getBySector = useCallback((sector) => templates.filter(t => t.sector === sector), [templates]);
+    const getSystem = useCallback(() => templates.filter(t => t.is_system), [templates]);
+    const getPublished = useCallback(() => templates.filter(t => t.is_published), [templates]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {

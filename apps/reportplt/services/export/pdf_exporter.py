@@ -118,27 +118,101 @@ class PDFExporter:
         except Exception as e:
             raise ReportExportError(f"PDF export failed: {str(e)}")
 
+    def _format_label(self, raw_key: str) -> str:
+        if not raw_key:
+            return ""
+        words = raw_key.replace('_', ' ').replace('-', ' ').split()
+        return " ".join(w.capitalize() for w in words)
+
     def _add_header(self, story: List, report_name: str):
-        header_text = f"Generated: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        story.append(Paragraph(header_text, self.styles['CustomHeader']))
-        story.append(Spacer(1, 0.2 * inch))
+        pass
 
     def _add_title(self, story: List, report_name: str):
-        title = f"<b>{report_name}</b>"
-        story.append(Paragraph(title, self.styles['CustomTitle']))
-        story.append(Spacer(1, 0.1 * inch))
-        story.append(Paragraph("Performance Management Report", self.styles['CustomBody']))
-        story.append(Spacer(1, 0.2 * inch))
+        header_table = Table([
+            [
+                Paragraph("<font size=14 color='#1E3A8A'><b>FALCON PMS</b></font><br/><font size=8 color='#64748B'>Performance. People. Progress.</font>", self.styles['Normal']),
+                Paragraph(f"<font size=14 color='#0F172A'><b>{report_name.upper()} REPORT</b></font><br/><font size=9 color='#475569'><b>Executive Summary</b></font>", ParagraphStyle('CenterTitle', parent=self.styles['Normal'], alignment=TA_CENTER)),
+                Paragraph(f"<font size=8 color='#475569'><b>Generated On:</b> {timezone.now().strftime('%d %b %Y %H:%M')}<br/><b>Scope:</b> Active Tenants</font>", ParagraphStyle('RightMeta', parent=self.styles['Normal'], alignment=TA_RIGHT))
+            ]
+        ], colWidths=[2.2*inch, 3.2*inch, 2.0*inch])
+        header_table.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('LINEBELOW', (0,0), (-1,-1), 1, colors.HexColor('#CBD5E1')),
+        ]))
+        story.append(header_table)
+        story.append(Spacer(1, 0.15 * inch))
 
     def _add_executive_summary(self, story: List, data: Dict):
-        summary = data.get('executive_summary')
-        if not summary:
-            return
-        story.append(Paragraph("Executive Summary", self.styles['CustomHeading']))
-        story.append(Spacer(1, 0.1 * inch))
-        summary_text = summary if isinstance(summary, str) else str(summary)
-        story.append(Paragraph(summary_text, self.styles['CustomBody']))
-        story.append(Spacer(1, 0.2 * inch))
+        status_val = data.get('status', 'Completed').upper()
+        summary_val = data.get('executive_summary', 'The onboarding and operational processes are tracked successfully.')
+        
+        status_table = Table([
+            [
+                Paragraph(f"<font color='#15803D'><b>STATUS: {status_val}</b></font>", self.styles['Normal']),
+                Paragraph(f"<font color='#334155'><i>{summary_val}</i></font>", self.styles['Normal'])
+            ]
+        ], colWidths=[1.8*inch, 5.6*inch])
+        status_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#DCFCE7')),
+            ('PADDING', (0,0), (-1,-1), 6),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#86EFAC')),
+        ]))
+        story.append(status_table)
+        story.append(Spacer(1, 0.15 * inch))
+
+        metrics = data.get('metrics', {})
+        if metrics:
+            card_items = []
+            for k, v in list(metrics.items())[:4]:
+                lbl = self._format_label(k).upper()
+                val_str = f"{v}%" if 'rate' in k or 'percentage' in k else str(v)
+                card_items.append(
+                    Paragraph(f"<font size=8 color='#475569'><b>{lbl}</b></font><br/><font size=18 color='#0F172A'><b>{val_str}</b></font>", ParagraphStyle('CardContent', parent=self.styles['Normal'], alignment=TA_CENTER))
+                )
+            while len(card_items) < 4:
+                card_items.append(Paragraph("<font size=8 color='#475569'><b>METRIC</b></font><br/><font size=18 color='#0F172A'><b>0</b></font>", ParagraphStyle('CardContent', parent=self.styles['Normal'], alignment=TA_CENTER)))
+
+            cards_table = Table([card_items], colWidths=[1.85*inch, 1.85*inch, 1.85*inch, 1.85*inch])
+            cards_table.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (0,0), colors.HexColor('#EFF6FF')),
+                ('BACKGROUND', (1,0), (1,0), colors.HexColor('#ECFDF5')),
+                ('BACKGROUND', (2,0), (2,0), colors.HexColor('#FEF3C7')),
+                ('BACKGROUND', (3,0), (3,0), colors.HexColor('#F3E8FF')),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('PADDING', (0,0), (-1,-1), 8),
+                ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#CBD5E1')),
+            ]))
+            story.append(cards_table)
+            story.append(Spacer(1, 0.15 * inch))
+
+        if metrics:
+            story.append(Paragraph("Key Metrics Summary", self.styles['CustomHeading']))
+            story.append(Spacer(1, 0.05 * inch))
+            
+            table_rows = [[
+                Paragraph("<b>Metric Name</b>", ParagraphStyle('HdrLeft', parent=self.styles['Normal'], textColor=colors.white)),
+                Paragraph("<b>Value</b>", ParagraphStyle('HdrRight', parent=self.styles['Normal'], textColor=colors.white, alignment=TA_RIGHT))
+            ]]
+            for k, v in metrics.items():
+                lbl = self._format_label(k)
+                val_str = f"{v}%" if 'rate' in k or 'percentage' in k else str(v)
+                table_rows.append([
+                    Paragraph(lbl, self.styles['CustomBody']),
+                    Paragraph(f"<b>{val_str}</b>", ParagraphStyle('ValRight', parent=self.styles['CustomBody'], alignment=TA_RIGHT))
+                ])
+            
+            metrics_table = Table(table_rows, colWidths=[5.4*inch, 2.0*inch])
+            metrics_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E3A8A')),
+                ('PADDING', (0, 0), (-1, -1), 6),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor('#FFFFFF'), colors.HexColor('#F8FAFC')]),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#CBD5E1'))
+            ]))
+            story.append(metrics_table)
+            story.append(Spacer(1, 0.15 * inch))
 
     def _add_kpi_section(self, story: List, data: Dict):
         kpis = data.get('kpis', [])

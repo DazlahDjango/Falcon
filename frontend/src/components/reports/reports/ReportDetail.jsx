@@ -16,6 +16,7 @@ import {
 import { useReport } from '../../../hooks/reports';
 import { useReportPermissions } from '../../../hooks/reports';
 import { ReportLoading, ReportError, ReportStatusBadge, ReportConfirmDialog } from '../common';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import { ReportHistory } from './ReportHistory';
 import './reports.css';
 
@@ -85,20 +86,7 @@ export const ReportDetail = () => {
         });
     };
 
-    const getTypeLabel = (type) => {
-        const labels = {
-            kpi: 'KPI Performance Report',
-            departmental: 'Departmental Performance Report',
-            executive: 'Executive Summary Report',
-            compliance: 'Compliance Report',
-            trend: 'Trend Analysis Report',
-            comparative: 'Comparative Report',
-            mission: 'Mission Status Report',
-            pip: 'PIP Tracking Report',
-            custom: 'Custom Report',
-        };
-        return labels[type] || type;
-    };
+    const getTypeLabel = (type) => REPORT_TYPE_LABELS[type] || type;
 
     if (loading) {
         return <ReportLoading variant="skeleton" text="Loading report..." />;

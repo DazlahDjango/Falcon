@@ -21,7 +21,7 @@ const initialState = {
 };
 
 export const selectScheduleState = (state) => {
-    return state?.schedule || state?.reports?.schedule || state?.reportplt?.schedule || initialState;
+    return state?.report?.schedule || state?.reports?.schedule || state?.reportplt?.schedule || state?.schedule || initialState;
 };
 
 export const selectSchedules = createSelector(

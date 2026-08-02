@@ -183,21 +183,10 @@ export const useDashboards = (options = {}) => {
         dispatch(updateLayoutState(layoutData));
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectDashboardById(state, id));
-    }, []);
-
-    const getByType = useCallback((type) => {
-        return useSelector((state) => selectDashboardsByType(state, type));
-    }, []);
-
-    const getShared = useCallback(() => {
-        return useSelector(selectSharedDashboards);
-    }, []);
-
-    const getPublished = useCallback(() => {
-        return useSelector(selectPublishedDashboards);
-    }, []);
+    const getById = useCallback((id) => dashboards.find(d => d.id === id), [dashboards]);
+    const getByType = useCallback((type) => dashboards.filter(d => d.dashboard_type === type), [dashboards]);
+    const getShared = useCallback(() => dashboards.filter(d => d.is_shared), [dashboards]);
+    const getPublished = useCallback(() => dashboards.filter(d => d.is_published), [dashboards]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {

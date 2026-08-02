@@ -19,7 +19,7 @@ const initialState = {
 };
 
 export const selectAnalyticsState = (state) => {
-    return state?.analytics || state?.reports?.analytics || state?.reportplt?.analytics || initialState;
+    return state?.report?.analytics || state?.reports?.analytics || state?.reportplt?.analytics || state?.analytics || initialState;
 };
 
 export const selectTrendAnalysis = createSelector(

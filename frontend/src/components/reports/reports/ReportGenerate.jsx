@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlay, FiDownload, FiLoader } from 'react-icons/fi';
 import { useReport } from '../../../hooks/reports';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import { ReportLoading, ReportError } from '../common';
 import './reports.css';
 
@@ -103,7 +104,7 @@ export const ReportGenerate = () => {
                             </div>
                             <div className="info-item">
                                 <span className="label">Type</span>
-                                <span className="value">{report.report_type}</span>
+                                <span className="value">{REPORT_TYPE_LABELS[report.report_type] || report.report_type}</span>
                             </div>
                             <div className="info-item">
                                 <span className="label">Status</span>

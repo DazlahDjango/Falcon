@@ -127,29 +127,12 @@ export const useExecutions = (options = {}) => {
         dispatch(clearAllExecutions());
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectExecutionById(state, id));
-    }, []);
-
-    const getByStatus = useCallback((status) => {
-        return useSelector((state) => selectExecutionsByStatus(state, status));
-    }, []);
-
-    const getByReport = useCallback((reportId) => {
-        return useSelector((state) => selectExecutionsByReport(state, reportId));
-    }, []);
-
-    const getCompleted = useCallback(() => {
-        return useSelector(selectCompletedExecutions);
-    }, []);
-
-    const getFailed = useCallback(() => {
-        return useSelector(selectFailedExecutions);
-    }, []);
-
-    const getRunning = useCallback(() => {
-        return useSelector(selectRunningExecutions);
-    }, []);
+    const getById = useCallback((id) => executions.find(e => e.id === id), [executions]);
+    const getByStatus = useCallback((status) => executions.filter(e => e.status === status), [executions]);
+    const getByReport = useCallback((reportId) => executions.filter(e => e.report === reportId), [executions]);
+    const getCompleted = useCallback(() => executions.filter(e => e.status === 'completed'), [executions]);
+    const getFailed = useCallback(() => executions.filter(e => e.status === 'failed'), [executions]);
+    const getRunning = useCallback(() => executions.filter(e => e.status === 'running' || e.status === 'generating'), [executions]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {

@@ -165,25 +165,11 @@ export const useWidgets = (options = {}) => {
         dispatch(clearWidgetData());
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectWidgetById(state, id));
-    }, []);
-
-    const getByType = useCallback((type) => {
-        return useSelector((state) => selectWidgetsByType(state, type));
-    }, []);
-
-    const getActive = useCallback(() => {
-        return useSelector(selectActiveWidgets);
-    }, []);
-
-    const getVisible = useCallback(() => {
-        return useSelector(selectVisibleWidgets);
-    }, []);
-
-    const getByDashboard = useCallback((dashboardId) => {
-        return useSelector((state) => selectWidgetsByDashboard(state, dashboardId));
-    }, []);
+    const getById = useCallback((id) => widgets.find(w => w.id === id), [widgets]);
+    const getByType = useCallback((type) => widgets.filter(w => w.widget_type === type), [widgets]);
+    const getActive = useCallback(() => widgets.filter(w => w.is_active), [widgets]);
+    const getVisible = useCallback(() => widgets.filter(w => w.is_visible), [widgets]);
+    const getByDashboard = useCallback((dashboardId) => widgets.filter(w => w.dashboard === dashboardId), [widgets]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {

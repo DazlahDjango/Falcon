@@ -1,55 +1,16 @@
-# apps/reportplt/models/report.py
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from .base import BaseModel
 from ..managers import ReportManager
+from ..constants import ReportType, ReportStatus, ReportFormat, ReportCategory, ReportDataSource
 
 class Report(BaseModel):
-    REPORT_TYPES = [
-        ('kpi', 'KPI Performance Report'),
-        ('departmental', 'Departmental Performance Report'),
-        ('executive', 'Executive Summary Report'),
-        ('compliance', 'Compliance Report'),
-        ('trend', 'Trend Analysis Report'),
-        ('comparative', 'Comparative Report'),
-        ('mission', 'Mission Status Report'),
-        ('pip', 'PIP Tracking Report'),
-        ('custom', 'Custom Report'),
-    ]
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('queued', 'Queued'),
-        ('generating', 'Generating'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('archived', 'Archived'),
-    ]
-    FORMAT_CHOICES = [
-        ('pdf', 'PDF'),
-        ('excel', 'Excel'),
-        ('csv', 'CSV'),
-        ('json', 'JSON'),
-        ('pptx', 'PowerPoint'),
-        ('html', 'HTML'),
-    ]
-    DATA_SOURCE_CHOICES = [
-        ('kpi', 'KPI Data'),
-        ('reviews', 'Review Data'),
-        ('tasks', 'Task Data'),
-        ('pip', 'PIP Data'),
-        ('combined', 'Combined Data'),
-    ]
-    CATEGORY_CHOICES = [
-        ('operational', 'Operational'),
-        ('strategic', 'Strategic'),
-        ('financial', 'Financial'),
-        ('hr', 'Human Resources'),
-        ('compliance', 'Compliance'),
-        ('impact', 'Impact'),
-        ('project', 'Project'),
-        ('custom', 'Custom'),
-    ]
+    REPORT_TYPES = ReportType.CHOICES
+    STATUS_CHOICES = ReportStatus.CHOICES
+    FORMAT_CHOICES = ReportFormat.CHOICES
+    DATA_SOURCE_CHOICES = ReportDataSource.CHOICES
+    CATEGORY_CHOICES = ReportCategory.CHOICES
     name = models.CharField(_('name'), max_length=255, db_index=True)
     description = models.TextField(_('description'), blank=True)
     report_type = models.CharField(_('report type'), max_length=50, choices=REPORT_TYPES, db_index=True)

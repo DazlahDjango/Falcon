@@ -20,7 +20,7 @@ const initialState = {
 };
 
 export const selectFilterState = (state) => {
-    return state?.filter || state?.reports?.filter || state?.reportplt?.filter || initialState;
+    return state?.report?.filter || state?.reports?.filter || state?.reportplt?.filter || state?.filter || initialState;
 };
 
 export const selectFilters = createSelector(

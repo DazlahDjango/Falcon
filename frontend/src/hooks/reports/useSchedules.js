@@ -174,25 +174,11 @@ export const useSchedules = (options = {}) => {
         dispatch(clearAllSchedules());
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectScheduleById(state, id));
-    }, []);
-
-    const getByFrequency = useCallback((frequency) => {
-        return useSelector((state) => selectSchedulesByFrequency(state, frequency));
-    }, []);
-
-    const getByStatus = useCallback((status) => {
-        return useSelector((state) => selectSchedulesByStatus(state, status));
-    }, []);
-
-    const getActive = useCallback(() => {
-        return useSelector(selectActiveSchedules);
-    }, []);
-
-    const getPaused = useCallback(() => {
-        return useSelector(selectPausedSchedules);
-    }, []);
+    const getById = useCallback((id) => schedules.find(s => s.id === id), [schedules]);
+    const getByFrequency = useCallback((frequency) => schedules.filter(s => s.frequency === frequency), [schedules]);
+    const getByStatus = useCallback((status) => schedules.filter(s => s.status === status), [schedules]);
+    const getActive = useCallback(() => schedules.filter(s => s.is_active), [schedules]);
+    const getPaused = useCallback(() => schedules.filter(s => !s.is_active), [schedules]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {
@@ -410,3 +396,12 @@ export const useSchedule = (id, options = {}) => {
         clearErrors,
     ]);
 };
+
+// Standalone Selector Hooks (Top-Level Component Use)
+export const useScheduleById = (id) => useSelector((state) => selectScheduleById(state, id));
+export const useSchedulesByFrequency = (frequency) => useSelector((state) => selectSchedulesByFrequency(state, frequency));
+export const useSchedulesByStatus = (status) => useSelector((state) => selectSchedulesByStatus(state, status));
+export const useActiveSchedules = () => useSelector(selectActiveSchedules);
+export const usePausedSchedules = () => useSelector(selectPausedSchedules);
+
+export default useSchedules;

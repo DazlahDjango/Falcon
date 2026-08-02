@@ -16,6 +16,71 @@ export const REPORT_TYPES = {
     MISSION: 'mission',
     PIP: 'pip',
     CUSTOM: 'custom',
+
+    // Configs Domain
+    CONFIGS_SYSTEM: 'configs_system',
+    BACKUP_AUDIT: 'backup_audit',
+    DR_COMPLIANCE: 'dr_compliance',
+    HEALTH_SLA: 'health_sla',
+    MAINTENANCE_AUDIT: 'maintenance_audit',
+    KMS_SECURITY: 'kms_security',
+    SYSTEM_AUDIT: 'system_audit',
+    TENANT_QUOTA: 'tenant_quota',
+    RISK_MATRIX: 'risk_matrix',
+
+    // Tenant Domain
+    TENANT_PLATFORM: 'tenant_platform',
+    TENANT_LIFECYCLE: 'tenant_lifecycle',
+    TENANT_RESOURCE_QUOTA: 'tenant_resource_quota',
+    TENANT_SCHEMA_HEALTH: 'tenant_schema_health',
+    TENANT_DOMAIN_SSL: 'tenant_domain_ssl',
+    TENANT_BACKUP_AUDIT: 'tenant_backup_audit',
+    TENANT_EXECUTIVE_SUMMARY: 'tenant_executive_summary',
+
+    // KPI Domain
+    KPI_PERFORMANCE: 'kpi_performance',
+    KPI_INDIVIDUAL_SCORECARD: 'kpi_individual_scorecard',
+    KPI_DEPARTMENTAL_HEATMAP: 'kpi_departmental_heatmap',
+    KPI_CASCADE_TREE: 'kpi_cascade_tree',
+    KPI_RED_ALERTS: 'kpi_red_alerts',
+    KPI_VALIDATION_COMPLIANCE: 'kpi_validation_compliance',
+    KPI_EXECUTIVE_SUMMARY: 'kpi_executive_summary',
+
+    // Structure Domain
+    STRUCTURE_SUMMARY: 'structure_summary',
+    STRUCTURE_ORG_CHART: 'structure_org_chart',
+    STRUCTURE_SPAN_OF_CONTROL: 'structure_span_of_control',
+    STRUCTURE_INTERIM_DELEGATION: 'structure_interim_delegation',
+    STRUCTURE_COST_CENTER_ALLOCATION: 'structure_cost_center_allocation',
+    STRUCTURE_SECURITY_SENSITIVITY: 'structure_security_sensitivity',
+    STRUCTURE_EXECUTIVE_SUMMARY: 'structure_executive_summary',
+
+    // Accounts Domain
+    ACCOUNTS_USER_DIRECTORY: 'accounts_user_directory',
+    ACCOUNTS_LOGIN_SECURITY: 'accounts_login_security',
+    ACCOUNTS_MFA_COMPLIANCE: 'accounts_mfa_compliance',
+    ACCOUNTS_AUDIT_TRAIL: 'accounts_audit_trail',
+    ACCOUNTS_ROLE_PERMISSION_AUDIT: 'accounts_role_permission_audit',
+    ACCOUNTS_SESSION_ACTIVITY: 'accounts_session_activity',
+    ACCOUNTS_PASSWORD_HYGIENE: 'accounts_password_hygiene',
+    ACCOUNTS_SECURITY_ANOMALIES: 'accounts_security_anomalies',
+    ACCOUNTS_EXECUTIVE_SUMMARY: 'accounts_executive_summary',
+
+    // Billing Domain
+    BILLING_SUBSCRIPTION_SUMMARY: 'billing_subscription_summary',
+    BILLING_REVENUE_FINANCIAL: 'billing_revenue_financial',
+    BILLING_PAYMENT_TRANSACTIONS: 'billing_payment_transactions',
+    BILLING_USAGE_QUOTA_AUDIT: 'billing_usage_quota_audit',
+    BILLING_DUNNING_RECOVERY: 'billing_dunning_recovery',
+    BILLING_EXECUTIVE_SUMMARY: 'billing_executive_summary',
+
+    // Reviews Domain
+    REVIEWS_INDIVIDUAL_SUMMARY: 'reviews_individual_summary',
+    REVIEWS_CYCLE_COMPLIANCE: 'reviews_cycle_compliance',
+    REVIEWS_ORGANIZATION_PERFORMANCE: 'reviews_organization_performance',
+    REVIEWS_CALIBRATION_IMPACT: 'reviews_calibration_impact',
+    REVIEWS_PIP_TRACKER: 'reviews_pip_tracker',
+    REVIEWS_EXECUTIVE_SUMMARY: 'reviews_executive_summary',
 };
 
 export const REPORT_TYPE_LABELS = {
@@ -28,6 +93,71 @@ export const REPORT_TYPE_LABELS = {
     [REPORT_TYPES.MISSION]: 'Mission Status Report',
     [REPORT_TYPES.PIP]: 'PIP Tracking Report',
     [REPORT_TYPES.CUSTOM]: 'Custom Report',
+
+    // Configs
+    [REPORT_TYPES.CONFIGS_SYSTEM]: 'System Configuration Audit Report',
+    [REPORT_TYPES.BACKUP_AUDIT]: 'System Backup & Recovery Audit Report',
+    [REPORT_TYPES.DR_COMPLIANCE]: 'Disaster Recovery (DR) Compliance Report',
+    [REPORT_TYPES.HEALTH_SLA]: 'Platform Health & SLA Compliance Report',
+    [REPORT_TYPES.MAINTENANCE_AUDIT]: 'Maintenance Window Audit Log Report',
+    [REPORT_TYPES.KMS_SECURITY]: 'KMS Key Rotation & Encryption Security Audit',
+    [REPORT_TYPES.SYSTEM_AUDIT]: 'Platform Infrastructure System Audit Report',
+    [REPORT_TYPES.TENANT_QUOTA]: 'Tenant System Quota Allocation Report',
+    [REPORT_TYPES.RISK_MATRIX]: 'System Risk & Vulnerability Matrix Report',
+
+    // Tenant
+    [REPORT_TYPES.TENANT_PLATFORM]: 'Multi-Tenant Platform Health & Status Report',
+    [REPORT_TYPES.TENANT_LIFECYCLE]: 'Tenant Onboarding & Lifecycle Audit Report',
+    [REPORT_TYPES.TENANT_RESOURCE_QUOTA]: 'Tenant Resource Quota Consumption Report',
+    [REPORT_TYPES.TENANT_SCHEMA_HEALTH]: 'Tenant Database Schema Isolation Health Report',
+    [REPORT_TYPES.TENANT_DOMAIN_SSL]: 'Tenant Custom Domain & SSL Certificate Report',
+    [REPORT_TYPES.TENANT_BACKUP_AUDIT]: 'Tenant Automated Data Backup Audit Report',
+    [REPORT_TYPES.TENANT_EXECUTIVE_SUMMARY]: 'Multi-Tenant Executive Platform Overview',
+
+    // KPI
+    [REPORT_TYPES.KPI_PERFORMANCE]: 'Strategic KPI Target & Execution Report',
+    [REPORT_TYPES.KPI_INDIVIDUAL_SCORECARD]: 'Individual Employee KPI Scorecard Report',
+    [REPORT_TYPES.KPI_DEPARTMENTAL_HEATMAP]: 'Departmental KPI Performance Heatmap',
+    [REPORT_TYPES.KPI_CASCADE_TREE]: 'Organizational Strategic KPI Alignment Cascade Tree',
+    [REPORT_TYPES.KPI_RED_ALERTS]: 'KPI Underperformance & Red Alert Report',
+    [REPORT_TYPES.KPI_VALIDATION_COMPLIANCE]: 'KPI Monthly Actuals Validation Compliance Report',
+    [REPORT_TYPES.KPI_EXECUTIVE_SUMMARY]: 'Strategic KPI Executive Performance Overview',
+
+    // Structure
+    [REPORT_TYPES.STRUCTURE_SUMMARY]: 'Organizational Hierarchy & Structure Summary Report',
+    [REPORT_TYPES.STRUCTURE_ORG_CHART]: 'Interactive Organizational Chart & Unit Hierarchy',
+    [REPORT_TYPES.STRUCTURE_SPAN_OF_CONTROL]: 'Management Span of Control & Direct Reports Audit',
+    [REPORT_TYPES.STRUCTURE_INTERIM_DELEGATION]: 'Interim Delegation & Authority Transfer Audit',
+    [REPORT_TYPES.STRUCTURE_COST_CENTER_ALLOCATION]: 'Departmental Cost Center & Budget Allocation Report',
+    [REPORT_TYPES.STRUCTURE_SECURITY_SENSITIVITY]: 'Departmental Security & Data Sensitivity Level Matrix',
+    [REPORT_TYPES.STRUCTURE_EXECUTIVE_SUMMARY]: 'Organizational Structure & Headcount Executive Overview',
+
+    // Accounts
+    [REPORT_TYPES.ACCOUNTS_USER_DIRECTORY]: 'Tenant User & Employee Directory Roster',
+    [REPORT_TYPES.ACCOUNTS_LOGIN_SECURITY]: 'Login Security & Authentication Audit Report',
+    [REPORT_TYPES.ACCOUNTS_MFA_COMPLIANCE]: 'Multi-Factor Authentication (MFA) Compliance Report',
+    [REPORT_TYPES.ACCOUNTS_AUDIT_TRAIL]: 'IAM User Activity Audit Trail Report',
+    [REPORT_TYPES.ACCOUNTS_ROLE_PERMISSION_AUDIT]: 'Role & Permission RBAC Entitlement Audit Report',
+    [REPORT_TYPES.ACCOUNTS_SESSION_ACTIVITY]: 'Active User Session & Device Audit Report',
+    [REPORT_TYPES.ACCOUNTS_PASSWORD_HYGIENE]: 'Password Policy Compliance & Expiry Audit Report',
+    [REPORT_TYPES.ACCOUNTS_SECURITY_ANOMALIES]: 'Security Anomaly & Suspicious Login Report',
+    [REPORT_TYPES.ACCOUNTS_EXECUTIVE_SUMMARY]: 'IAM & Identity Security Executive Overview',
+
+    // Billing
+    [REPORT_TYPES.BILLING_SUBSCRIPTION_SUMMARY]: 'Tenant Subscription Plan & Billing Ledger Report',
+    [REPORT_TYPES.BILLING_REVENUE_FINANCIAL]: 'Revenue, Invoicing & Tax Ledger Report',
+    [REPORT_TYPES.BILLING_PAYMENT_TRANSACTIONS]: 'Payment Gateway & Paystack Transaction Audit',
+    [REPORT_TYPES.BILLING_USAGE_QUOTA_AUDIT]: 'Tenant Usage & Quota Breach Audit Report',
+    [REPORT_TYPES.BILLING_DUNNING_RECOVERY]: 'Dunning Pipeline & Payment Recovery Report',
+    [REPORT_TYPES.BILLING_EXECUTIVE_SUMMARY]: 'Billing & Monetization Executive Summary Report',
+
+    // Reviews
+    [REPORT_TYPES.REVIEWS_INDIVIDUAL_SUMMARY]: 'Individual 360 Performance Scorecard Report',
+    [REPORT_TYPES.REVIEWS_CYCLE_COMPLIANCE]: 'Review Cycle Compliance & Completion Status Report',
+    [REPORT_TYPES.REVIEWS_ORGANIZATION_PERFORMANCE]: 'Organization Strategic Review & Bell Curve Report',
+    [REPORT_TYPES.REVIEWS_CALIBRATION_IMPACT]: 'Calibration Session & Score Shift Impact Audit Report',
+    [REPORT_TYPES.REVIEWS_PIP_TRACKER]: 'Performance Improvement Plan (PIP) Tracker Report',
+    [REPORT_TYPES.REVIEWS_EXECUTIVE_SUMMARY]: 'Strategic Performance & Talent Executive Summary Report',
 };
 
 export const REPORT_TYPE_ICONS = {
@@ -40,6 +170,12 @@ export const REPORT_TYPE_ICONS = {
     [REPORT_TYPES.MISSION]: '🎯',
     [REPORT_TYPES.PIP]: '📋',
     [REPORT_TYPES.CUSTOM]: '⚙️',
+    [REPORT_TYPES.CONFIGS_SYSTEM]: '🔧',
+    [REPORT_TYPES.TENANT_PLATFORM]: '🏢',
+    [REPORT_TYPES.STRUCTURE_SUMMARY]: '🌲',
+    [REPORT_TYPES.ACCOUNTS_USER_DIRECTORY]: '👥',
+    [REPORT_TYPES.BILLING_SUBSCRIPTION_SUMMARY]: '💳',
+    [REPORT_TYPES.REVIEWS_INDIVIDUAL_SUMMARY]: '⭐',
 };
 
 // ============================================

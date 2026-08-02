@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { FiEye, FiEdit2, FiTrash2, FiCopy, FiCheck, FiStar } from 'react-icons/fi';
+import { REPORT_TYPE_ICONS, REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import { TemplateStatusBadge } from './TemplateStatusBadge';
 import './templates.css';
 
@@ -29,35 +30,8 @@ export const TemplateCard = ({
         created_at,
     } = template || {};
 
-    const getTypeIcon = (type) => {
-        const icons = {
-            executive: '👔',
-            departmental: '🏢',
-            kpi: '📊',
-            mission: '🎯',
-            compliance: '✅',
-            trend: '📈',
-            comparative: '⚖️',
-            pip: '📋',
-            custom: '⚙️',
-        };
-        return icons[type] || '📄';
-    };
-
-    const getTypeLabel = (type) => {
-        const labels = {
-            executive: 'Executive Dashboard',
-            departmental: 'Departmental Scorecard',
-            kpi: 'KPI Report',
-            mission: 'Mission Status',
-            compliance: 'Compliance Report',
-            trend: 'Trend Analysis',
-            comparative: 'Comparative Analysis',
-            pip: 'PIP Report',
-            custom: 'Custom Template',
-        };
-        return labels[type] || type;
-    };
+    const getTypeIcon = (type) => REPORT_TYPE_ICONS[type] || '📄';
+    const getTypeLabel = (type) => REPORT_TYPE_LABELS[type] || type;
 
     const getSectorLabel = (sector) => {
         const labels = {

@@ -47,6 +47,14 @@ import {
     selectReportsByType,
     selectReportsByStatus,
     selectReportsByCategory,
+    selectReportsByDomain,
+    selectConfigsReports,
+    selectTenantReports,
+    selectKpiReports,
+    selectStructureReports,
+    selectAccountsReports,
+    selectBillingReports,
+    selectReviewsReports,
     selectPublishedReports,
     selectArchivedReports,
     selectActiveReports,
@@ -215,33 +223,13 @@ export const useReports = (options = {}) => {
         dispatch(updateGenerationProgress(progress));
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectReportById(state, id));
-    }, []);
-
-    const getByType = useCallback((type) => {
-        return useSelector((state) => selectReportsByType(state, type));
-    }, []);
-
-    const getByStatus = useCallback((status) => {
-        return useSelector((state) => selectReportsByStatus(state, status));
-    }, []);
-
-    const getByCategory = useCallback((category) => {
-        return useSelector((state) => selectReportsByCategory(state, category));
-    }, []);
-
-    const getPublished = useCallback(() => {
-        return useSelector(selectPublishedReports);
-    }, []);
-
-    const getArchived = useCallback(() => {
-        return useSelector(selectArchivedReports);
-    }, []);
-
-    const getActive = useCallback(() => {
-        return useSelector(selectActiveReports);
-    }, []);
+    const getById = useCallback((id) => reports.find(r => r.id === id), [reports]);
+    const getByType = useCallback((type) => reports.filter(r => r.report_type === type), [reports]);
+    const getByStatus = useCallback((status) => reports.filter(r => r.status === status), [reports]);
+    const getByCategory = useCallback((category) => reports.filter(r => r.category === category), [reports]);
+    const getPublished = useCallback(() => reports.filter(r => r.is_published), [reports]);
+    const getArchived = useCallback(() => reports.filter(r => r.is_archived), [reports]);
+    const getActive = useCallback(() => reports.filter(r => !r.is_archived), [reports]);
 
     const fetchTypes = useCallback(() => {
         return dispatch(fetchReportTypes()).unwrap();
@@ -477,10 +465,15 @@ export const useReport = (id, options = {}) => {
         error,
         fetchOne,
         update: updateOne,
+        updateReport: updateOne,
         remove: removeOne,
+        deleteReport: removeOne,
         generate: generateOne,
+        generateReport: generateOne,
         export: exportOne,
+        exportReport: exportOne,
         updateStatus: updateStatusOne,
+        updateReportStatus: updateStatusOne,
         performAction: performActionOne,
         clearCurrent,
         clearErrors,
@@ -499,3 +492,17 @@ export const useReport = (id, options = {}) => {
         clearErrors,
     ]);
 };
+
+// Standalone Selector Hooks (Top-Level Component Use)
+export const useReportById = (id) => useSelector((state) => selectReportById(state, id));
+export const useReportsByType = (type) => useSelector((state) => selectReportsByType(state, type));
+export const useReportsByDomain = (domain) => useSelector((state) => selectReportsByDomain(state, domain));
+export const useConfigsReports = () => useSelector(selectConfigsReports);
+export const useTenantReports = () => useSelector(selectTenantReports);
+export const useKpiReports = () => useSelector(selectKpiReports);
+export const useStructureReports = () => useSelector(selectStructureReports);
+export const useAccountsReports = () => useSelector(selectAccountsReports);
+export const useBillingReports = () => useSelector(selectBillingReports);
+export const useReviewsReports = () => useSelector(selectReviewsReports);
+
+export default useReports;

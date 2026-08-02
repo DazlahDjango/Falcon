@@ -155,25 +155,11 @@ export const useExports = (options = {}) => {
         dispatch(resetDownloading());
     }, [dispatch]);
 
-    const getById = useCallback((id) => {
-        return useSelector((state) => selectExportById(state, id));
-    }, []);
-
-    const getByFormat = useCallback((format) => {
-        return useSelector((state) => selectExportsByFormat(state, format));
-    }, []);
-
-    const getByStatus = useCallback((status) => {
-        return useSelector((state) => selectExportsByStatus(state, status));
-    }, []);
-
-    const getCompleted = useCallback(() => {
-        return useSelector(selectCompletedExports);
-    }, []);
-
-    const getReady = useCallback(() => {
-        return useSelector(selectReadyExports);
-    }, []);
+    const getById = useCallback((id) => exports.find(e => e.id === id), [exports]);
+    const getByFormat = useCallback((format) => exports.filter(e => e.format === format), [exports]);
+    const getByStatus = useCallback((status) => exports.filter(e => e.status === status), [exports]);
+    const getCompleted = useCallback(() => exports.filter(e => e.status === 'completed'), [exports]);
+    const getReady = useCallback(() => exports.filter(e => e.status === 'completed' && e.file_url), [exports]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {
