@@ -6,7 +6,7 @@
 export const ACCOUNTS_ROUTES = {
     // Base
     BASE: '/accounts',
-    
+
     // ============================================
     // AUTHENTICATION ROUTES
     // ============================================
@@ -14,32 +14,32 @@ export const ACCOUNTS_ROUTES = {
     LOGOUT: '/logout',
     REGISTER: '/register',
     REGISTER_TENANT: '/register/tenant',
-    
+
     // Password
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
     CHANGE_PASSWORD: '/change-password',
-    
+
     // Verification
     VERIFY_EMAIL: '/verify-email',
     RESEND_VERIFICATION: '/resend-verification',
-    
+
     // MFA
     MFA_SETUP: '/mfa/setup',
     MFA_VERIFY: '/mfa/verify',
     MFA_DEVICES: '/mfa/devices',
     MFA_BACKUP_CODES: '/mfa/backup-codes',
     MFA_RECOVER: '/mfa/recover',
-    
+
     // Invitations
     ACCEPT_INVITATION: '/accept-invitation',
-    
+
     // ============================================
     // DASHBOARD & HOME
     // ============================================
     DASHBOARD: '/dashboard',
     HOME: '/',
-    
+
     // ============================================
     // USER MANAGEMENT
     // ============================================
@@ -49,20 +49,20 @@ export const ACCOUNTS_ROUTES = {
     USER_EDIT: (id = ':id') => `/users/${id}/edit`,
     USER_TEAM: (id = ':id') => `/users/${id}/team`,
     USER_REPORTING_CHAIN: (id = ':id') => `/users/${id}/reporting-chain`,
-    
+
     // Current User
     MY_PROFILE: '/profile',
     MY_TEAM: '/team',
     MY_REPORTING_CHAIN: '/reporting-chain',
     MY_SETTINGS: '/settings',
-    
+
     // ============================================
     // PROFILE MANAGEMENT
     // ============================================
     PROFILES: '/profiles',
     PROFILE_DETAIL: (id = ':id') => `/profiles/${id}`,
     PROFILE_EDIT: (id = ':id') => `/profiles/${id}/edit`,
-    
+
     // ============================================
     // ROLE & PERMISSION MANAGEMENT
     // ============================================
@@ -71,17 +71,17 @@ export const ACCOUNTS_ROUTES = {
     ROLE_CREATE: '/roles/create',
     ROLE_EDIT: (id = ':id') => `/roles/${id}/edit`,
     ROLE_PERMISSIONS: (id = ':id') => `/roles/${id}/permissions`,
-    
+
     PERMISSIONS: '/permissions',
     PERMISSION_DETAIL: (id = ':id') => `/permissions/${id}`,
-    
+
     // ============================================
     // SESSION MANAGEMENT
     // ============================================
     SESSIONS: '/sessions',
     SESSION_DETAIL: (id = ':id') => `/sessions/${id}`,
     ACTIVE_SESSIONS: '/sessions/active',
-    
+
     // ============================================
     // AUDIT & SECURITY
     // ============================================
@@ -90,67 +90,67 @@ export const ACCOUNTS_ROUTES = {
     AUDIT_COMPLIANCE: '/audit/compliance',
     AUDIT_SECURITY_EVENTS: '/audit/security-events',
     AUDIT_ANOMALY: '/audit/anomaly',
-    
+
     SECURITY: '/security',
     SECURITY_LOGIN_ATTEMPTS: '/security/login-attempts',
     SECURITY_LOCKOUT_SUMMARY: '/security/lockout-summary',
     SECURITY_MFA_POLICY: '/security/mfa-policy',
-    
+
     // ============================================
     // SYSTEM SETTINGS
     // ============================================
     SYSTEM_SETTINGS: '/system-settings',
     SYSTEM_POLICY: '/system-policy',
-    
+
     // Tenant Settings
-    TENANT_SETTINGS: '/tenant/settings',
+    ORGANIZATION_SETTINGS: '/tenant/settings',
     TENANT_PREFERENCES: '/tenant/preferences',
     TENANT_BRANDING: '/tenant/branding',
     TENANT_USERS: '/tenant/users',
-    
+
     // ============================================
     // ADMIN ROUTES
     // ============================================
     ADMIN: '/admin',
     ADMIN_DASHBOARD: '/admin/dashboard',
-    
+
     // Admin Users
     ADMIN_USERS: '/admin/users',
     ADMIN_USER_DETAIL: (id = ':id') => `/admin/users/${id}`,
     ADMIN_USER_EDIT: (id = ':id') => `/admin/users/${id}/edit`,
-    
+
     // Admin Roles
     ADMIN_ROLES: '/admin/roles',
     ADMIN_ROLE_CREATE: '/admin/roles/create',
     ADMIN_ROLE_EDIT: (id = ':id') => `/admin/roles/${id}/edit`,
-    
+
     // Admin Permissions
     ADMIN_PERMISSIONS: '/admin/permissions',
     ADMIN_PERMISSION_INIT: '/admin/permissions/init',
-    
+
     // Admin Tenants
     ADMIN_TENANTS: '/admin/tenants',
     ADMIN_TENANT_DETAIL: (id = ':id') => `/admin/tenants/${id}`,
     ADMIN_TENANT_CREATE: '/admin/tenants/create',
     ADMIN_TENANT_EDIT: (id = ':id') => `/admin/tenants/${id}/edit`,
-    
+
     // Admin MFA
     ADMIN_MFA: '/admin/mfa',
     ADMIN_MFA_USER: (userId = ':userId') => `/admin/mfa/users/${userId}`,
     ADMIN_MFA_RESET: (userId = ':userId') => `/admin/mfa/users/${userId}/reset`,
-    
+
     // Admin System
     ADMIN_SYSTEM: '/admin/system',
     ADMIN_SYSTEM_HEALTH: '/admin/system/health',
     ADMIN_SYSTEM_CACHE: '/admin/system/cache',
     ADMIN_SYSTEM_STATS: '/admin/system/stats',
-    
+
     // ============================================
     // INVITATIONS
     // ============================================
     INVITATIONS: '/invitations',
     INVITATION_ACCEPT: '/invitation/accept',
-    
+
     // Reports
     REPORTS: '/reports',
     REPORT_USER_DIRECTORY: '/reports/user-directory',
@@ -195,7 +195,7 @@ export const ACCOUNTS_MFA_REQUIRED_PATHS = [
     ACCOUNTS_ROUTES.SESSIONS,
     ACCOUNTS_ROUTES.AUDIT_LOGS,
     ACCOUNTS_ROUTES.ADMIN,
-    ACCOUNTS_ROUTES.TENANT_SETTINGS,
+    ACCOUNTS_ROUTES.ORGANIZATION_SETTINGS,
     ACCOUNTS_ROUTES.SYSTEM_SETTINGS,
 ];
 
@@ -240,32 +240,32 @@ export const LEGACY_ACCOUNTS_REDIRECTS = [
     ['/app/forgot-password', ACCOUNTS_ROUTES.FORGOT_PASSWORD],
     ['/app/reset-password', ACCOUNTS_ROUTES.RESET_PASSWORD],
     ['/app/verify-email', ACCOUNTS_ROUTES.VERIFY_EMAIL],
-    
+
     // MFA
     ['/app/mfa/setup', ACCOUNTS_ROUTES.MFA_SETUP],
     ['/app/mfa/verify', ACCOUNTS_ROUTES.MFA_VERIFY],
     ['/app/mfa/devices', ACCOUNTS_ROUTES.MFA_DEVICES],
     ['/app/mfa/backup-codes', ACCOUNTS_ROUTES.MFA_BACKUP_CODES],
-    
+
     // Users
     ['/app/users', ACCOUNTS_ROUTES.USERS],
     ['/app/users/create', ACCOUNTS_ROUTES.USER_CREATE],
     ['/app/profile', ACCOUNTS_ROUTES.MY_PROFILE],
     ['/app/team', ACCOUNTS_ROUTES.MY_TEAM],
     ['/app/settings', ACCOUNTS_ROUTES.MY_SETTINGS],
-    
+
     // Roles & Permissions
     ['/app/roles', ACCOUNTS_ROUTES.ROLES],
     ['/app/permissions', ACCOUNTS_ROUTES.PERMISSIONS],
-    
+
     // Sessions
     ['/app/sessions', ACCOUNTS_ROUTES.SESSIONS],
-    
+
     // Audit
     ['/app/audit', ACCOUNTS_ROUTES.AUDIT_LOGS],
     ['/app/audit/compliance', ACCOUNTS_ROUTES.AUDIT_COMPLIANCE],
     ['/app/audit/security', ACCOUNTS_ROUTES.AUDIT_SECURITY_EVENTS],
-    
+
     // Admin
     ['/app/admin', ACCOUNTS_ROUTES.ADMIN_DASHBOARD],
     ['/app/admin/users', ACCOUNTS_ROUTES.ADMIN_USERS],
@@ -273,10 +273,10 @@ export const LEGACY_ACCOUNTS_REDIRECTS = [
     ['/app/admin/permissions', ACCOUNTS_ROUTES.ADMIN_PERMISSIONS],
     ['/app/admin/tenants', ACCOUNTS_ROUTES.ADMIN_TENANTS],
     ['/app/admin/system', ACCOUNTS_ROUTES.ADMIN_SYSTEM],
-    
+
     // Settings
     ['/app/system-settings', ACCOUNTS_ROUTES.SYSTEM_SETTINGS],
-    ['/app/tenant-settings', ACCOUNTS_ROUTES.TENANT_SETTINGS],
+    ['/app/tenant-settings', ACCOUNTS_ROUTES.ORGANIZATION_SETTINGS],
 ];
 
 // ============================================

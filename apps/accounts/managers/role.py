@@ -25,7 +25,7 @@ class RoleQuery(TenantAwareQuerySet):
         return self.extra(select={'level': 'WITH RECURSIVE role_tree AS (SELECT id, 0 as level FROM accounts_role WHERE parent_id IS NULL UNION ALL SELECT r.id, rt.level + 1 FROM accounts_role r INNER JOIN role_tree rt ON r.parent_id = rt.id) SELECT level FROM role_tree WHERE id = accounts_role.id'}).order_by('level')
     
     def with_permission(self, permission_codename):
-        return self.filter(permissions_codename=permission_codename).distinct()
+        return self.filter(permissions__codename=permission_codename).distinct()
     
     def get_hierarchy(self, role_id):
         from django.db import connection

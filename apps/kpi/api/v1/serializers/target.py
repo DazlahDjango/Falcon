@@ -124,11 +124,12 @@ class EvidenceSerializer(TenantAwareSerializer):
 
     def get_file_url(self, obj):
         if obj.file:
-            try:
-                return obj.file.url
-            except ValueError:
-                return None
-        return None
+            request = self.context.get('request')
+            endpoint = f"/api/v1/kpis/evidence/{obj.id}/download/"
+            if request:
+                return request.build_absolute_uri(endpoint)
+            return endpoint
+        return obj.url or None
 
 
 class ActualAdjustmentSerializer(TenantAwareSerializer):

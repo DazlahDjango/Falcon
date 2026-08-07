@@ -5,7 +5,7 @@ from .base import BaseManager
 
 class DomainManager(BaseManager):
     def active_domains(self):
-        return self.active().filter(status='active')
+        return self.active().filter(status='ACTIVE')
 
     def by_domain(self, domain):
         try:
@@ -26,13 +26,13 @@ class DomainManager(BaseManager):
             return None
 
     def pending_verification(self):
-        return self.active().filter(status='pending')
+        return self.active().filter(status='PENDING')
 
     def verifying_domains(self):
-        return self.get_queryset().filter(status='verifying', is_deleted=False)
+        return self.get_queryset().filter(status='VERIFYING', is_deleted=False)
 
     def failed_domains(self):
-        return self.get_queryset().filter(status='failed', is_deleted=False)
+        return self.get_queryset().filter(status='FAILED', is_deleted=False)
 
     def expiring_ssl(self, days=30):
         cutoff = timezone.now() + timezone.timedelta(days=days)

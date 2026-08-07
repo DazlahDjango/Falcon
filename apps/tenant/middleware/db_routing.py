@@ -35,17 +35,17 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
         return None
 
     def process_response(self, request, response):
-        # Reset to public schema so the connection is clean for the next request
+        # Reset to public schema and clear session tenant context so the connection is clean for the next request
         try:
             with connection.cursor() as cursor:
-                cursor.execute('SET search_path TO "public"')
+                cursor.execute('SET search_path TO "public"; SET app.current_tenant_id = \'\';')
         except Exception as e:
-            logger.debug(f"Could not reset search_path to public: {e}")
+            logger.debug(f"Could not reset search_path / tenant session to public: {e}")
         return response
 
     def _set_schema_path(self, tenant_id):
         """
-        Resolve the Organisation's schema_name and set PostgreSQL search_path.
+        Resolve the Organisation's schema_name and set PostgreSQL search_path and app.current_tenant_id for RLS policies.
         Uses org.schema_name property (e.g. 'org_airtel') not org.slug.
         """
         from apps.tenant.models import Organization
@@ -57,7 +57,9 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
             schema_name = org.schema_name   # e.g. 'org_airtel'
             with connection.cursor() as cursor:
                 cursor.execute(f'SET search_path TO "{schema_name}", public')
-                logger.debug(f"[DBRouting] search_path → {schema_name}")
+                cursor.execute("SELECT set_config('app.current_tenant_id', %s, false)", [str(tenant_id)])
+                logger.debug(f"[DBRouting] search_path → {schema_name}, app.current_tenant_id → {tenant_id}")
         except Exception as e:
-            logger.warning(f"[DBRouting] Could not set schema path: {e}")
+            logger.warning(f"[DBRouting] Could not set schema path or RLS context: {e}")
+
 

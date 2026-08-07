@@ -19,7 +19,7 @@ class PermissionQuerySet(TenantAwareQuerySet):
         return self.filter(category='review')
     def user_permissions(self):
         return self.filter(category='user')
-    def tenant_permissions(self):
+    def tenant_category_permissions(self):
         return self.filter(category='tenant')
     def report_permissions(self):
         return self.filter(category='report')

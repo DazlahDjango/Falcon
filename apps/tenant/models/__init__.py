@@ -8,7 +8,6 @@ from .resource_snapshot import ResourceUsageSnapshot
 from .connection import OrganizationConnection
 from .migration import OrganizationMigration
 from .system_settings import OrganizationSettings
-from .tenant import Client
 from .backup import TenantBackup
 
 __all__ = [
@@ -22,6 +21,5 @@ __all__ = [
     'OrganizationConnection',
     'OrganizationMigration',
     'OrganizationSettings',
-    'Client',
     'TenantBackup',
 ]

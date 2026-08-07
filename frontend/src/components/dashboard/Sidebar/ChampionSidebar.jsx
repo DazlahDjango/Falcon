@@ -7,7 +7,7 @@ import {
   FiHome, FiShield, FiClock, FiAlertCircle, FiActivity, FiCheckCircle,
   FiPieChart, FiGrid, FiDatabase, FiFileText, FiTarget, FiBarChart2,
   FiDownload, FiSettings, FiBell, FiGitBranch, FiBriefcase, FiDollarSign,
-  FiMapPin, FiLayers, FiTrendingUp
+  FiMapPin, FiLayers, FiTrendingUp, FiUsers
 } from 'react-icons/fi';
 import { HiOutlineBuildingOffice } from 'react-icons/hi2';
 import { BsDiagram3, BsPersonBadge } from 'react-icons/bs';
@@ -26,28 +26,22 @@ const ChampionSidebar = ({ currentTenant, ...props }) => {
   const navigation = {
     main: [
       { path: DASHBOARD_ROUTES.CHAMPION.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
-      { path: DASHBOARD_ROUTES.CHAMPION.CONFIGURATION, name: 'Champion Dashboard', icon: FiShield },
+      { path: KPI_ROUTES.CHAMPION_DASHBOARD, name: 'KPI Overview', icon: FiPieChart },
     ],
     oversight: [
-      { path: DASHBOARD_ROUTES.CHAMPION.APPROVALS, name: 'Pending Approvals', icon: FiClock },
-      { path: DASHBOARD_ROUTES.CHAMPION.MISSING_DATA, name: 'Missing Data', icon: FiAlertCircle },
-      { path: DASHBOARD_ROUTES.CHAMPION.USER_ACTIVITY, name: 'User Activity', icon: FiActivity },
-      { path: '/validations', name: 'Validations Queue', icon: FiCheckCircle },
-      { path: '/escalations', name: 'Escalations', icon: FiAlertCircle },
+      { path: KPI_ROUTES.VALIDATIONS, name: 'Validations Queue', icon: FiCheckCircle },
+      { path: KPI_ROUTES.ESCALATIONS, name: 'Escalations', icon: FiAlertCircle },
     ],
     kpiAdmin: [
       { path: KPI_ADMIN_ROUTES.OVERVIEW, name: 'KPI Admin Overview', icon: FiPieChart },
-      { path: KPI_ADMIN_ROUTES.SECTORS, name: 'Sectors', icon: FiGrid },
-      { path: KPI_ADMIN_ROUTES.FRAMEWORKS, name: 'Frameworks', icon: FiDatabase },
       { path: KPI_ADMIN_ROUTES.CATEGORIES, name: 'Categories', icon: FiFileText },
-      { path: KPI_ADMIN_ROUTES.TEMPLATES, name: 'Templates', icon: FiTarget },
     ],
     kpiManagement: [
       { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'All KPIs', icon: FiTarget },
       { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiUsers },
       { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiBarChart2 },
       { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiCheckCircle },
-      { path: '/bulk-upload', name: 'Bulk Upload', icon: FiDownload },
+      { path: KPI_ROUTES.BULK_UPLOAD, name: 'Bulk Upload', icon: FiDownload },
     ],
     structure: [
       { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Structure Dashboard', icon: FiBarChart2 },
@@ -64,7 +58,7 @@ const ChampionSidebar = ({ currentTenant, ...props }) => {
     reports: [
       { path: KPI_ROUTES.KPI_ANALYTICS, name: 'Analytics Insights', icon: FiTrendingUp },
       { path: KPI_ROUTES.KPI_REPORTS, name: 'Reports', icon: FiFileText },
-      { path: '/organization-health', name: 'Organization Health', icon: FiActivity },
+      { path: KPI_ROUTES.ORGANIZATION_HEALTH, name: 'Organization Health', icon: FiActivity },
     ],
     settings: [
       { path: KPI_ROUTES.SYSTEM_SETTINGS, name: 'System Settings', icon: FiSettings },

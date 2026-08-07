@@ -7,7 +7,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.utils import timezone
 
 from .models import User, Profile, UserPreference, AuditLog, LoginAttempt, UserSession, MFADevice
-from .services import AuditService
+from .services.audit.logger import AuditService
 from .constants import AuditActionTypes
 
 logger = logging.getLogger(__name__)
@@ -109,8 +109,7 @@ def user_post_save(sender, instance, created, **kwargs):
                     action='user.updated',
                     action_type=AuditActionTypes.UPDATE,
                     severity='info',
-                    changes=changes,
-                    metadata={'email': instance.email}
+                    metadata={'email': instance.email, 'changes': changes}
                 )
                 logger.info(f"User updated: {instance.email} - Changes: {list(changes.keys())}")
     except Exception as e:

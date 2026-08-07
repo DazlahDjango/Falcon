@@ -2,6 +2,7 @@ import React from 'react';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
 import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
+import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstants';
 import CollapsibleSidebar from './CollapsibleSidebar';
 import {
   FiHome, FiGrid, FiUsers, FiTrendingUp, FiPieChart, FiAlertCircle,
@@ -14,8 +15,8 @@ import { BsDiagram3 } from 'react-icons/bs';
 const ExecutiveSidebar = ({ currentTenant, ...props }) => {
   const expandedMenus = {
     main: true,
-    performance: true,
-    organization: true,
+    strategicTargets: true,
+    performanceBI: true,
     structure: false,
     reports: true,
     settings: false
@@ -23,22 +24,18 @@ const ExecutiveSidebar = ({ currentTenant, ...props }) => {
 
   const navigation = {
     main: [
-      { path: DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
-      { path: DASHBOARD_ROUTES.EXECUTIVE.DEPARTMENTS, name: 'Departments', icon: FiGrid },
-      { path: DASHBOARD_ROUTES.EXECUTIVE.TEAM, name: 'Organization', icon: FiUsers },
+      { path: DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW, name: 'Executive Overview', icon: FiHome, end: true },
+      { path: KPI_ROUTES.ORGANIZATION_HEALTH, name: 'Organization Health', icon: FiAward },
     ],
-    performance: [
-      { path: DASHBOARD_ROUTES.EXECUTIVE.TRENDS, name: 'KPIs & Trends', icon: FiTrendingUp },
-      { path: DASHBOARD_ROUTES.EXECUTIVE.COMPARISONS, name: 'Comparisons', icon: FiPieChart },
-      { path: DASHBOARD_ROUTES.EXECUTIVE.ALERTS, name: 'Alerts', icon: FiAlertCircle },
-      { path: KPI_ROUTES.KPI_ANALYTICS, name: 'Analytics Insights', icon: FiActivity },
-      { path: '/organization-health', name: 'Organization Health', icon: FiAward },
+    strategicTargets: [
+      { path: KPI_ROUTES.TARGETS, name: 'Annual Targets', icon: FiTarget },
+      { path: KPI_ROUTES.TARGET_CASCADE, name: 'Target Cascade Map', icon: FiGitBranch },
     ],
-    organization: [
-      { path: KPI_ROUTES.TARGETS, name: 'Targets Overview', icon: FiTarget },
-      { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiBarChart2 },
+    performanceBI: [
+      { path: KPI_ROUTES.AGGREGATED_SCORES_RANKING, name: 'Department Rankings', icon: FiAward },
       { path: KPI_ROUTES.AGGREGATED_SCORES_DEPARTMENTS, name: 'Department Scores', icon: FiGrid },
-      { path: KPI_ROUTES.AGGREGATED_SCORES_RANKING, name: 'Department Ranking', icon: FiAward },
+      { path: KPI_ROUTES.KPI_ANALYTICS, name: 'Analytics Insights', icon: FiActivity },
+      { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alerts Oversight', icon: FiAlertCircle },
     ],
     structure: [
       { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Structure Dashboard', icon: FiBarChart2 },
@@ -53,23 +50,21 @@ const ExecutiveSidebar = ({ currentTenant, ...props }) => {
       { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, name: 'Hierarchy', icon: FiLayers },
     ],
     reports: [
-      { path: DASHBOARD_ROUTES.EXECUTIVE.REPORTS, name: 'Reports', icon: FiFileText },
-      { path: DASHBOARD_ROUTES.EXECUTIVE.EXPORTS, name: 'Exports', icon: FiDownload },
-      { path: KPI_ROUTES.KPI_REPORTS, name: 'Custom Reports', icon: FiFileText },
+      { path: KPI_ROUTES.KPI_REPORTS, name: 'Performance Reports', icon: FiFileText },
     ],
     settings: [
-      { path: DASHBOARD_ROUTES.EXECUTIVE.SETTINGS, name: 'Settings', icon: FiSettings },
       { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, name: 'Notifications', icon: FiBell },
+      { path: ACCOUNTS_ROUTES.MY_SETTINGS, name: 'My Settings', icon: FiSettings },
     ]
   };
 
   const groupLabels = {
     main: 'Main',
-    performance: 'Performance Analytics',
-    organization: 'Organization Performance',
-    structure: 'Organization Structure',
-    reports: 'Reports & Exports',
-    settings: 'Settings'
+    strategicTargets: '🎯 Strategic Targets',
+    performanceBI: '📈 Performance BI & Heatmaps',
+    structure: '🏛️ Organization Structure',
+    reports: '📑 Executive Reports',
+    settings: '⚙️ Settings'
   };
 
   return (

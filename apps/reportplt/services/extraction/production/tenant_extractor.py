@@ -7,7 +7,7 @@ from django.utils import timezone
 from apps.tenant.models import (
     Organization, OrganizationDomain, OrganizationSchema,
     OrganizationResource, OrganizationConnection, OrganizationMigration,
-    TenantBackup, Client, OrganizationSector
+    TenantBackup, OrganizationSector
 )
 from apps.tenant.constants import OrganizationStatus, SubscriptionTier, DomainStatus, SchemaStatus, MigrationStatus
 
@@ -22,7 +22,6 @@ class TenantLifecycleExtractor:
 
     def extract(self) -> Dict[str, Any]:
         orgs = Organization.objects.all()
-        clients = Client.objects.all()
 
         if self.tenant_id:
             orgs = orgs.filter(models.Q(id=self.tenant_id) | models.Q(tenant_id=self.tenant_id))

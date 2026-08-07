@@ -53,9 +53,6 @@ class OrganizationContextMiddleware(MiddlewareMixin):
             # Set both request.tenant_id and request.current_organization_id for compatibility
             request.tenant_id = tenant_id
             request.current_organization_id = tenant_id
-            
-            # Cache it
-            cache.set('current_organization', tenant_id, timeout=3600)
         
         return None
 

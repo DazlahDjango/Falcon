@@ -10,7 +10,7 @@ const TargetList = ({
     targets, 
     loading, 
     pagination,
-    filters,
+    filters = {},
     onFilterChange,
     onClearFilters,
     onPageChange,

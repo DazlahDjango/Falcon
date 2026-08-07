@@ -268,6 +268,11 @@ class IdempotentCalculator:
         try:
             result = self.calculator.calculate_period(tenant_id, year, month, force)
             cache.set(processed_key, result, 86400)
+            # Invalidate cached dashboard views for tenant to force fresh evaluation
+            try:
+                cache.delete_pattern(f"kpi_dashboard:{tenant_id}:*")
+            except Exception:
+                pass
             return result
         finally:
             cache.delete(lock_key)

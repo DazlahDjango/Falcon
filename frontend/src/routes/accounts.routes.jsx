@@ -208,7 +208,7 @@ const accountsRoutes = [
         element: <UserPreferencesPage />,
     },
     {
-        path: ACCOUNTS_ROUTES.TENANT_SETTINGS,
+        path: ACCOUNTS_ROUTES.ORGANIZATION_SETTINGS,
         element: <TenantPreferencesPage />,
     },
     {
@@ -264,8 +264,8 @@ const accountsRoutes = [
         element: <TenantPolicyPage />,
     },
     {
-    path: ACCOUNTS_ROUTES.CHANGE_PASSWORD,
-    element: <ChangePasswordPage />,
+        path: ACCOUNTS_ROUTES.CHANGE_PASSWORD,
+        element: <ChangePasswordPage />,
     },
 
     // ============ Settings (General) ============

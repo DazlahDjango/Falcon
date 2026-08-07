@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple
 from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import User, Profile, UserPreference
 from apps.accounts.services.auth.password import PasswordService
-from apps.accounts.services.auth.audit import AuditService
+from apps.accounts.services.audit.logger import AuditService
 
 logger = logging.getLogger(__name__)
 

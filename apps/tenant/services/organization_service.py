@@ -1,5 +1,6 @@
 import re
 import logging
+from urllib.parse import urlparse
 from django.db import transaction
 from django.utils import timezone
 from django.core.validators import validate_email
@@ -77,6 +78,18 @@ class OrganizationService:
             if data.get('favicon'):
                 org.favicon = data['favicon']
             org.save(user=user)
+
+            # Auto-register primary domain if website URL is provided
+            website_url = data.get('website', '').strip()
+            if website_url:
+                domain_name = self._extract_domain_from_url(website_url)
+                if domain_name:
+                    try:
+                        from apps.tenant.services.domain_service import DomainService
+                        DomainService().add_domain(organization_id=org.id, domain_name=domain_name, is_primary=True)
+                        self.logger.info("Automatically registered primary domain '%s' for org %s", domain_name, org.id)
+                    except Exception as exc:
+                        self.logger.warning("Could not auto-register domain for website '%s': %s", website_url, exc)
 
             org.record_audit('created', user_id=getattr(user, 'id', None), details={
                 'subscription_tier': org.subscription_tier,
@@ -363,3 +376,20 @@ class OrganizationService:
             ConnectionService.resume_connection(organization_id)
         except Exception as exc:
             self.logger.warning("Could not resume connections for %s: %s", organization_id, exc)
+
+    def _extract_domain_from_url(self, url_string):
+        if not url_string:
+            return None
+        url = url_string.strip()
+        if not url.startswith(('http://', 'https://')):
+            url = 'http://' + url
+        try:
+            parsed = urlparse(url)
+            hostname = parsed.hostname or parsed.netloc or parsed.path
+            if hostname:
+                hostname = hostname.split(':')[0].lower().strip('/')
+                if '.' in hostname and not hostname.startswith(('localhost', '127.0.0.1')):
+                    return hostname
+        except Exception as exc:
+            self.logger.debug("Failed to parse website URL '%s': %s", url_string, exc)
+        return None

@@ -6,7 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
 from urllib.parse import parse_qs
 from apps.accounts.models import User
-from apps.accounts.services import JWTServices
+from apps.accounts.services.auth.jwt import JWTServices
 
 logger = logging.getLogger(__name__)
 jwt_service = JWTServices()

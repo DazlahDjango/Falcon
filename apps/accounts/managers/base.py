@@ -64,12 +64,15 @@ class TenantAwareQuerySet(BaseQuerySet):
         self._current_tenant_id = tenant_id
         return self
     
-    def bulk_creat_tenant_aware(self, objs, tenant_id=None, **kwargs):
+    def bulk_create_tenant_aware(self, objs, tenant_id=None, **kwargs):
         if tenant_id:
             for obj in objs:
                 if hasattr(obj, 'tenant_id'):
                     obj.tenant_id = tenant_id
         return super().bulk_create(objs, **kwargs)
+    
+    def bulk_creat_tenant_aware(self, objs, tenant_id=None, **kwargs):
+        return self.bulk_create_tenant_aware(objs, tenant_id=tenant_id, **kwargs)
     
 class TenantAwareManager(BaseManager):
     def get_queryset(self):

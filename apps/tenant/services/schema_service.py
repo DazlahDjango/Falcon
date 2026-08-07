@@ -32,13 +32,84 @@ class SchemaService:
             with connection.cursor() as cursor:
                 cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema.schema_name}"')
                 cursor.execute(f'GRANT ALL ON SCHEMA "{schema.schema_name}" TO CURRENT_USER')
+
+            # Auto-apply all pending tenant migrations for this organization schema
+            from apps.tenant.services import MigrationService
+            migration_service = MigrationService()
+            migration_service.apply_all_pending_migrations(schema.organization_id)
+
             schema.mark_active()
-            self.logger.info(f"Provisioned schema: {schema.schema_name}")
+            self.update_schema_stats(schema.id)
+            self.logger.info(f"Provisioned schema & migrated tables: {schema.schema_name}")
             return schema
         except Exception as e:
             schema.mark_failed(str(e))
             self.logger.error(f"Schema provisioning failed: {schema.schema_name} - {str(e)}")
             raise SchemaError(f"Failed to provision schema: {str(e)}")
+
+    def enable_rls(self, schema_id):
+        """
+        Enforces PostgreSQL Row-Level Security (RLS) policies on all tables within the target schema.
+        """
+        schema = OrganizationSchema.objects.get(id=schema_id)
+        if schema.status != 'ACTIVE':
+            raise SchemaError(f"Schema {schema.schema_name} must be ACTIVE to enable RLS")
+        
+        try:
+            rls_count = self.apply_schema_rls_policies(schema.schema_name)
+            self.logger.info(f"Enabled PostgreSQL RLS on {rls_count} tables in schema '{schema.schema_name}'")
+            return {'schema': schema.schema_name, 'tables_protected': rls_count}
+        except Exception as e:
+            self.logger.error(f"Failed to enable RLS for schema {schema.schema_name}: {e}")
+            raise SchemaError(f"Failed to enable RLS: {str(e)}")
+
+    def apply_schema_rls_policies(self, schema_name):
+        """
+        Applies PostgreSQL RLS policies to all user tables in the given schema.
+        """
+        protected_count = 0
+        with connection.cursor() as cursor:
+            # Fetch all user tables in the target schema
+            cursor.execute("""
+                SELECT tablename 
+                FROM pg_tables 
+                WHERE schemaname = %s AND tablename != 'django_migrations'
+            """, [schema_name])
+            tables = [row[0] for row in cursor.fetchall()]
+
+            for table in tables:
+                # Enable Row Level Security on table
+                cursor.execute(f'ALTER TABLE "{schema_name}"."{table}" ENABLE ROW LEVEL SECURITY')
+                cursor.execute(f'ALTER TABLE "{schema_name}"."{table}" FORCE ROW LEVEL SECURITY')
+                
+                # Check if tenant_id or organization_id column exists for tenant-isolation policy
+                cursor.execute("""
+                    SELECT 
+                        EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = %s AND table_name = %s AND column_name = 'tenant_id'),
+                        EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = %s AND table_name = %s AND column_name = 'organization_id')
+                """, [schema_name, table, schema_name, table])
+                has_tenant_col, has_org_col = cursor.fetchone()
+
+                col_name = None
+                if has_tenant_col:
+                    col_name = 'tenant_id'
+                elif has_org_col:
+                    col_name = 'organization_id'
+
+                if col_name:
+                    policy_name = f"{table}_tenant_isolation_policy"
+                    # Drop policy if exists to make it idempotent
+                    cursor.execute(f'DROP POLICY IF EXISTS "{policy_name}" ON "{schema_name}"."{table}"')
+                    cursor.execute(f"""
+                        CREATE POLICY "{policy_name}" ON "{schema_name}"."{table}"
+                        USING (
+                            "{col_name}"::text = current_setting('app.current_tenant_id', true) 
+                            OR current_setting('app.current_tenant_id', true) IS NULL 
+                            OR current_setting('app.current_tenant_id', true) = ''
+                        )
+                    """)
+                protected_count += 1
+        return protected_count
 
     def drop_schema(self, schema_id):
         schema = OrganizationSchema.objects.get(id=schema_id)

@@ -1,5 +1,12 @@
 import React from "react";
 import { KPI_ROUTES } from "../config/constants/kpiRouteConstants";
+import KPIErrorBoundary from "../components/kpi/common/KPIErrorBoundary";
+
+const withBoundary = (element) => (
+    <KPIErrorBoundary>
+        {element}
+    </KPIErrorBoundary>
+);
 
 // LAZY LOAD KPI PAGES
 // ============================================
@@ -53,11 +60,12 @@ const AggregatedScoresPage = React.lazy(() => import('../pages/kpi/scores/Aggreg
 
 const kpiRoutes = [
     // Dashboards
-    { path: KPI_ROUTES.DASHBOARD, element: <IndividualDashboardPage /> },
-    { path: KPI_ROUTES.MANAGER_DASHBOARD, element: <ManagerDashboardPage /> },
-    { path: KPI_ROUTES.EXECUTIVE_DASHBOARD, element: <ExecutiveDashboardPage /> },
-    { path: KPI_ROUTES.CHAMPION_DASHBOARD, element: <ChampionDashboardPage /> },
-    { path: KPI_ROUTES.ADMIN_OVERVIEW, element: <AdminDashboardPage /> },
+    { path: KPI_ROUTES.DASHBOARD, element: withBoundary(<IndividualDashboardPage />) },
+    { path: KPI_ROUTES.MANAGER_DASHBOARD, element: withBoundary(<ManagerDashboardPage />) },
+    { path: KPI_ROUTES.EXECUTIVE_DASHBOARD, element: withBoundary(<ExecutiveDashboardPage />) },
+    { path: KPI_ROUTES.CHAMPION_DASHBOARD, element: withBoundary(<ChampionDashboardPage />) },
+    { path: KPI_ROUTES.ADMIN_OVERVIEW, element: withBoundary(<AdminDashboardPage />) },
+
     // Admin KPI Modules (Framework Management)
     { path: KPI_ROUTES.ADMIN_CATEGORIES, element: <CategoriesPage /> },
     { path: KPI_ROUTES.ADMIN_CATEGORY_CREATE, element: <CategoriesPage /> },

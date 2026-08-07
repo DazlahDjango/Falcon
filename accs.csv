@@ -1,0 +1,31 @@
+email,username,first_name,last_name,role,employee_id,department,title
+sarah.jenkins@globalapex.com,sjenkins,Sarah,Jenkins,executive,KAC_001,Executive Office,Chief Executive Officer
+elena.rostova@globalapex.com,erostova,Elena,Rostova,dashboard_champion,KAC_002,Strategy & Planning,Performance Director
+mark.vance@globalapex.com,mvance,Mark,Vance,supervisor,KAC_003,Sales & Revenue,Sales Manager
+james.wilson@globalapex.com,jwilson,James,Wilson,staff,KAC_004,Sales & Revenue,Senior Account Executive
+emily.clark@globalapex.com,eclark,Emily,Clark,staff,KAC_005,Sales & Revenue,Account Executive
+michael.brown@globalapex.com,mbrown,Michael,Brown,staff,KAC_006,Sales & Revenue,Sales Development Rep
+rachel.adams@globalapex.com,radams,Rachel,Adams,supervisor,KAC_007,Engineering & IT,Engineering Manager
+david.miller@globalapex.com,dmiller,David,Miller,staff,KAC_008,Engineering & IT,Principal Systems Architect
+thomas.wright@globalapex.com,twright,Thomas,Wright,staff,KAC_009,Engineering & IT,Senior Software Engineer
+sophia.martinez@globalapex.com,smartinez,Sophia,Martinez,staff,KAC_010,Engineering & IT,DevOps Lead
+daniel.taylor@globalapex.com,dtaylor,Daniel,Taylor,supervisor,KAC_011,Operations & Logistics,Operations Director
+lisa.ray@globalapex.com,lray,Lisa,Ray,supervisor,KAC_012,Marketing,Marketing Manager
+kevin.white@globalapex.com,kwhite,Kevin,White,staff,KAC_013,Marketing,Digital Marketing Specialist
+amanda.harris@globalapex.com,aharris,Amanda,Harris,staff,KAC_014,Marketing,Content Strategist
+robert.martin@globalapex.com,rmartin,Robert,Martin,supervisor,KAC_015,Customer Success,Customer Support Lead
+jessica.lee@globalapex.com,jlee,Jessica,Lee,staff,KAC_016,Customer Success,Customer Success Manager
+william.thompson@globalapex.com,wthompson,William,Thompson,staff,KAC_017,Customer Success,Support Specialist
+brian.garcia@globalapex.com,bgarcia,Brian,Garcia,supervisor,KAC_018,Finance & Admin,Finance Manager
+olivia.davis@globalapex.com,odavis,Olivia,Davis,staff,KAC_019,Finance & Admin,Senior Accountant
+christopher.lopez@globalapex.com,clopez,Christopher,Lopez,staff,KAC_020,Finance & Admin,Financial Analyst
+victoria.king@globalapex.com,vking,Victoria,King,executive,KAC_021,Executive Office,Chief Operating Officer
+nathan.scott@globalapex.com,nscott,Nathan,Scott,supervisor,KAC_022,Product Management,Product Director
+lauren.green@globalapex.com,lgreen,Lauren,Green,staff,KAC_023,Product Management,Senior Product Manager
+andrew.baker@globalapex.com,abaker,Andrew,Baker,staff,KAC_024,Product Management,UI/UX Designer
+brandon.nelson@globalapex.com,bnelson,Brandon,Nelson,staff,KAC_025,Operations & Logistics,Logistics Coordinator
+hannah.carter@globalapex.com,hcarter,Hannah,Carter,staff,KAC_026,Operations & Logistics,Procurement Specialist
+evelyn.perez@globalapex.com,eperez,Evelyn,Perez,staff,KAC_027,Engineering & IT,QA Automation Lead
+justin.roberts@globalapex.com,jroberts,Justin,Roberts,staff,KAC_028,Sales & Revenue,Enterprise Account Executive
+megan.turner@globalapex.com,mturner,Megan,Turner,staff,KAC_029,Customer Success,Client Relationship Lead
+dylan.phillips@globalapex.com,dphillips,Dylan,Phillips,staff,KAC_030,Operations & Logistics,Supply Chain Analyst

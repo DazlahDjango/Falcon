@@ -4,7 +4,7 @@ from .base import BaseManager
 
 class SchemaManager(BaseManager):
     def active_schemas(self):
-        return self.get_queryset().filter(status='active', is_ready=True)
+        return self.get_queryset().filter(status='ACTIVE', is_ready=True)
 
     def by_organization(self, organization_id):
         return self.get_queryset().filter(organization_id=organization_id)
@@ -16,16 +16,16 @@ class SchemaManager(BaseManager):
             return None
 
     def pending(self):
-        return self.get_queryset().filter(status='pending')
+        return self.get_queryset().filter(status='PENDING')
 
     def creating(self):
-        return self.get_queryset().filter(status='creating')
+        return self.get_queryset().filter(status='CREATING')
 
     def migrating(self):
-        return self.get_queryset().filter(status='migrating')
+        return self.get_queryset().filter(status='MIGRATING')
 
     def failed(self):
-        return self.get_queryset().filter(status='failed')
+        return self.get_queryset().filter(status='FAILED')
 
     def ready(self):
         return self.get_queryset().filter(is_ready=True)

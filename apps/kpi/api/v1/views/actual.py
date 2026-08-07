@@ -148,6 +148,27 @@ class EvidenceViewSet(BaseKpiViewset):
             uploaded_by=self.request.user
         )
 
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        evidence = self.get_object()
+        if not evidence.file:
+            return Response({'error': 'No file attached to this evidence record'}, status=status.HTTP_404_NOT_FOUND)
+        
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+        
+        if str(evidence.tenant_id) != str(tenant_id):
+            return Response({'error': 'Permission denied: Invalid tenant'}, status=status.HTTP_403_FORBIDDEN)
+
+        from django.http import FileResponse
+        filename = evidence.file.name.split('/')[-1]
+        response = FileResponse(evidence.file.open('rb'), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['Cache-Control'] = 'private, max-age=900'  # 15-minute token cache window
+        return response
+
 
 class ActualAdjustmentViewSet(BaseKpiViewset):
     queryset = ActualAdjustment.objects.all()
