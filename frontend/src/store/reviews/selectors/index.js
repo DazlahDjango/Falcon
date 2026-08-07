@@ -83,6 +83,7 @@ export const selectCompetencyCategoryById = (state, id) =>
   selectAllCompetencyCategories(state).find((item) => item.id === id);
 export const selectSelectedCompetencyCategory = (state) => selectCompetencyCategoriesState(state)?.selectedItem;
 export const selectCompetencyCategoriesLoading = (state) => selectCompetencyCategoriesState(state)?.loading;
+export const selectCompetencyCategoryError = (state) => selectCompetencyCategoriesState(state)?.error;
 export const selectCompetencyCategoryPagination = (state) => selectCompetencyCategoriesState(state)?.pagination ?? DEFAULT_PAGINATION;
 export const selectCompetencyCategoryFilters = (state) => selectCompetencyCategoriesState(state)?.filters ?? DEFAULT_EMPTY_OBJECT;
 export const selectCategoryCompetencies = (state) => selectCompetencyCategoriesState(state)?.categoryCompetencies;

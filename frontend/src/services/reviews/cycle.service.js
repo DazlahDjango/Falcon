@@ -36,6 +36,10 @@ class ReviewCycleService extends BaseReviewsService {
     return this.action(id, 'extend', { new_end_date: newEndDate, reason });
   }
 
+  async sendReminders(id) {
+    return this.action(id, 'send_reminders');
+  }
+
   async getProgress(id) {
     const response = await this.apiClient.get(`/cycles/${id}/progress/`);
     return response.data;

@@ -13,6 +13,7 @@ export { default as CalibrationSessionParticipants } from './detail/CalibrationS
 export { default as CalibrationRatingList } from './detail/CalibrationRatingList';
 export { default as CalibrationCommentList } from './detail/CalibrationCommentList';
 export { default as CalibrationCommentForm } from './detail/CalibrationCommentForm';
+export { default as CalibrationChat } from './detail/CalibrationChat';
 
 export { default as CalibrationAdjustmentForm } from './adjustments/CalibrationAdjustmentForm';
 export { default as CalibrationAdjustmentList } from './adjustments/CalibrationAdjustmentList';

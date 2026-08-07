@@ -1,8 +1,21 @@
 /* src/components/reviews/competencies/create/create.css */
 .competency-create {
   padding: 24px;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+.competency-create-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .competency-create-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .competency-create-header {
@@ -121,4 +134,10 @@
   .competency-form-row {
     grid-template-columns: 1fr;
   }
+}
+
+.competency-form-container-single {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }

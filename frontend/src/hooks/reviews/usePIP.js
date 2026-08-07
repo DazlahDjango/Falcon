@@ -298,9 +298,12 @@ const usePIP = () => {
     fetchAll,
     fetchOne,
     create,
+    createPIP: create,
     update,
+    updatePIP: update,
     patch,
     remove,
+    deletePIP: remove,
 
     // Actions
     approve,

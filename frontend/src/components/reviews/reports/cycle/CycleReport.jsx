@@ -7,8 +7,9 @@ import { ReviewLoading, ReviewError } from '../../common';
 import CycleStats from './CycleStats';
 import RatingDistributionReport from './RatingDistributionReport';
 
-const CycleReport = () => {
-  const { cycleId } = useParams();
+const CycleReport = ({ cycleId: propCycleId }) => {
+  const params = useParams();
+  const cycleId = propCycleId || params.cycleId;
   const navigate = useNavigate();
   const { cycleStats, ratingDistribution, loading, error, getCycleStats, getRatingDistribution, exportReport, canView } = useReviewsReports();
   const [isExporting, setIsExporting] = useState(false);

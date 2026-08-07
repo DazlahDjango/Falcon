@@ -303,11 +303,40 @@ def check_missing_reviews():
 
 @shared_task
 def generate_monthly_report():
-    return {'status': 'not_implemented'}
+    from apps.tenant.models import Organization
+    from apps.reviews.services.reporting.organization_report_service import OrganizationReportService
+    results = {}
+    for org in Organization.objects.filter(is_deleted=False):
+        cycle = ReviewCycle.objects.filter(tenant_id=org.id, status='completed').order_by('-end_date').first()
+        if cycle:
+            summary = OrganizationReportService.get_organization_summary(cycle.id, org.id)
+            results[str(org.id)] = {
+                'cycle_name': cycle.name,
+                'summary': summary
+            }
+        else:
+            results[str(org.id)] = {'status': 'no_completed_cycles'}
+    return {'status': 'completed', 'results': results}
 
 @shared_task
 def generate_quarterly_report(quarter=1):
-    return {'status': 'not_implemented', 'quarter': quarter}
+    from apps.tenant.models import Organization
+    from apps.reviews.services.reporting.organization_report_service import OrganizationReportService
+    results = {}
+    for org in Organization.objects.filter(is_deleted=False):
+        cycles = ReviewCycle.objects.filter(tenant_id=org.id, status='completed').order_by('-end_date')[:3]
+        if cycles.exists():
+            summaries = []
+            for cycle in cycles:
+                summary = OrganizationReportService.get_organization_summary(cycle.id, org.id)
+                summaries.append({
+                    'cycle_name': cycle.name,
+                    'summary': summary
+                })
+            results[str(org.id)] = summaries
+        else:
+            results[str(org.id)] = {'status': 'no_completed_cycles'}
+    return {'status': 'completed', 'results': results, 'quarter': quarter}
 
 @shared_task
 def calculate_rating_distribution():

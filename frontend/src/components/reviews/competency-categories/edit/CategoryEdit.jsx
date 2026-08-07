@@ -5,6 +5,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useCompetencyCategories } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError } from '../../common';
 import CategoryForm from '../create/CategoryForm';
+import CategoryHelpGuide from '../create/CategoryHelpGuide';
 
 const CategoryEdit = () => {
   const { id } = useParams();
@@ -12,6 +13,7 @@ const CategoryEdit = () => {
   const { selected, loading, error, fetchOne, updateCategory } = useCompetencyCategories();
   const [formData, setFormData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGuide, setShowGuide] = useState(true);
 
   useEffect(() => {
     if (id) {
@@ -37,7 +39,7 @@ const CategoryEdit = () => {
     setIsSubmitting(true);
     try {
       await updateCategory(id, formData);
-      navigate(`/reviews/competency-categories/${id}`);
+      navigate('/reviews/competency-categories');
     } catch (error) {
       console.error('Failed to update category:', error);
     } finally {
@@ -55,38 +57,51 @@ const CategoryEdit = () => {
 
   return (
     <div className="category-edit">
-      <div className="category-edit-header">
-        <button className="category-edit-back" onClick={() => navigate(`/reviews/competency-categories/${id}`)}>
-          <ArrowLeft size={20} />
-          Back to Category
+      <div className="category-edit-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button className="category-edit-back" onClick={() => navigate('/reviews/competency-categories')}>
+            <ArrowLeft size={20} />
+            Back to Categories
+          </button>
+          <h1 className="category-edit-title">Edit Competency Category</h1>
+        </div>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={() => setShowGuide(!showGuide)}
+        >
+          {showGuide ? 'Hide Help Guide' : 'Show Help Guide'}
         </button>
-        <h1 className="category-edit-title">Edit Competency Category</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="category-edit-form">
-        <CategoryForm
-          data={formData}
-          onChange={handleChange}
-        />
+      <div className={showGuide ? "category-edit-layout" : "category-form-container-single"}>
+        <form onSubmit={handleSubmit} className="category-edit-form">
+          <CategoryForm
+            data={formData}
+            onChange={handleChange}
+          />
 
-        <div className="category-edit-actions">
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={() => navigate(`/reviews/competency-categories/${id}`)}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={isSubmitting || !formData.name}
-          >
-            <Save size={18} />
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
+          <div className="category-edit-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => navigate('/reviews/competency-categories')}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting || !formData.name}
+            >
+              <Save size={18} />
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+
+        {showGuide && <CategoryHelpGuide />}
+      </div>
     </div>
   );
 };

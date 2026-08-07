@@ -195,6 +195,24 @@ const competencyCategorySlice = createSlice({
           state.selectedItem = null;
         }
       })
+      .addCase(activateCompetencyCategory.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.selectedItem?.id === action.payload.id) {
+          state.selectedItem = action.payload;
+        }
+      })
+      .addCase(deactivateCompetencyCategory.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        if (state.selectedItem?.id === action.payload.id) {
+          state.selectedItem = action.payload;
+        }
+      })
       .addCase(fetchCategoryCompetencies.fulfilled, (state, action) => {
         state.categoryCompetencies = action.payload;
       });

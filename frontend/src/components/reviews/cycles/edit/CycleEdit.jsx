@@ -7,6 +7,7 @@ import { ReviewLoading, ReviewError } from '../../common';
 import CycleForm from '../create/CycleForm';
 import CycleCompetencyEditor from '../create/CycleCompetencyEditor';
 import CycleDepartmentSelector from '../create/CycleDepartmentSelector';
+import CycleHelpGuide from '../create/CycleHelpGuide';
 
 const CycleEdit = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const CycleEdit = () => {
   const { selected, loading, error, fetchOne, updateCycle } = useCycles();
   const [formData, setFormData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGuide, setShowGuide] = useState(true);
 
   useEffect(() => {
     if (id) {
@@ -40,7 +42,7 @@ const CycleEdit = () => {
         require_self_assessment: selected.require_self_assessment || true,
         allow_self_assessment_edit: selected.allow_self_assessment_edit || true,
         enable_calibration: selected.enable_calibration || true,
-        rating_scale_id: selected.rating_scale_id || '',
+        rating_scale: selected.rating_scale || '',
         competencies: selected.competencies || [],
         included_departments: selected.included_departments || [],
       });
@@ -71,16 +73,25 @@ const CycleEdit = () => {
 
   return (
     <div className="cycle-edit">
-      <div className="cycle-edit-header">
-        <button className="cycle-edit-back" onClick={() => navigate(`/reviews/cycles/${id}`)}>
-          <ArrowLeft size={20} />
-          Back to Cycle
+      <div className="cycle-edit-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button className="cycle-edit-back" onClick={() => navigate(`/reviews/cycles/${id}`)}>
+            <ArrowLeft size={20} />
+            Back to Cycle
+          </button>
+          <h1 className="cycle-edit-title">Edit Review Cycle</h1>
+        </div>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={() => setShowGuide(!showGuide)}
+        >
+          {showGuide ? 'Hide Help Guide' : 'Show Help Guide'}
         </button>
-        <h1 className="cycle-edit-title">Edit Review Cycle</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="cycle-edit-form">
-        <div className="cycle-edit-grid">
+        <div className={showGuide ? "cycle-edit-grid-with-guide" : "cycle-edit-grid"}>
           <div className="cycle-edit-main">
             <CycleForm data={formData} onChange={handleChange} />
             <CycleCompetencyEditor
@@ -95,6 +106,7 @@ const CycleEdit = () => {
               onChange={(data) => handleChange(data)}
             />
           </div>
+          {showGuide && <CycleHelpGuide />}
         </div>
 
         <div className="cycle-edit-actions">
@@ -108,7 +120,7 @@ const CycleEdit = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={isSubmitting || !formData.name || !formData.start_date || !formData.end_date}
+            disabled={isSubmitting || !formData.name || !formData.start_date || !formData.end_date || !formData.rating_scale}
           >
             <Save size={18} />
             {isSubmitting ? 'Saving...' : 'Save Changes'}

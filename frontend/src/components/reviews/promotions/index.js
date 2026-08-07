@@ -13,3 +13,4 @@ export { default as PromotionForm } from './create/PromotionForm';
 
 export { default as PromotionStats } from './stats/PromotionStats';
 export { default as PromotionAnalytics } from './stats/PromotionAnalytics';
+export { default as PromotionDrawer } from './PromotionDrawer';

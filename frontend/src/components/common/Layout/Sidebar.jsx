@@ -111,21 +111,31 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: ROUTES.KPI_SETTINGS, name: 'KPI Operations', icon: FiSettings, roles: ['super_admin'] },
         ];
         const reviewsItems = [
+            // 1. Entry Point
+            { isHeader: true, name: 'Dashboards', roles: ['staff', 'supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/dashboard', name: 'Reviews Dashboard', icon: FiBarChart2, roles: ['staff', 'supervisor', 'client_admin', 'super_admin', 'executive'] },
+            // 2. Setup & Configuration
+            { isHeader: true, name: 'Setup & Configuration', roles: ['client_admin', 'super_admin'] },
             { path: '/reviews/rating-scales', name: 'Rating Scales', icon: FiGrid, roles: ['client_admin', 'super_admin'] },
             { path: '/reviews/competencies', name: 'Competencies', icon: FiList, roles: ['client_admin', 'super_admin'] },
+            { path: '/reviews/templates', name: 'Templates', icon: FiFileText, roles: ['client_admin', 'super_admin'] },
+            { path: '/reviews/coefficients', name: 'Coefficients', icon: FiActivity, roles: ['client_admin', 'super_admin'] },
+            { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings, roles: ['client_admin', 'super_admin'] },
+            // 3. Cycles & Execution
+            { isHeader: true, name: 'Cycles & Execution', roles: ['staff', 'supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/cycles', name: 'Review Cycles', icon: FiCalendar, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/self-assessment', name: 'Self Assessment', icon: FiUserCheck, roles: ['staff', 'supervisor', 'client_admin', 'super_admin'] },
+            { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers, roles: ['staff', 'supervisor', 'client_admin', 'super_admin'] },
             { path: '/reviews/review-queue', name: 'Review Queue', icon: FiActivity, roles: ['supervisor', 'client_admin', 'super_admin'] },
+            // 5. Calibration & Outcomes
+            { isHeader: true, name: 'Calibration & Outcomes', roles: ['staff', 'supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders, roles: ['supervisor', 'client_admin', 'super_admin'] },
             { path: '/reviews/final-ratings', name: 'Final Ratings', icon: FiBarChart2, roles: ['staff', 'supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/pips', name: 'Performance Plans', icon: FiFlag, roles: ['staff', 'supervisor', 'client_admin', 'super_admin', 'executive'] },
-            { path: '/reviews/feedback', name: '360 Feedback', icon: FiUsers, roles: ['staff', 'supervisor', 'client_admin', 'super_admin'] },
-            { path: '/reviews/calibration', name: 'Calibration', icon: FiSliders, roles: ['supervisor', 'client_admin', 'super_admin'] },
-            { path: '/reviews/coefficients', name: 'Coefficients', icon: FiActivity, roles: ['client_admin', 'super_admin'] },
-            { path: '/reviews/templates', name: 'Templates', icon: FiFileText, roles: ['client_admin', 'super_admin'] },
+            // 6. Analytics & Reports
+            { isHeader: true, name: 'Analytics & Reports', roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/reports', name: 'Reviews Reports', icon: FiFileText, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
             { path: '/reviews/analytics', name: 'Analytics', icon: FiTrendingUp, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
-            { path: '/reviews/settings', name: 'Reviews Settings', icon: FiSettings, roles: ['client_admin', 'super_admin'] },
         ];
         const configItems = [
             { path: '/config/dashboard', name: 'Config Dashboard', icon: FiServer, roles: ['super_admin', 'client_admin'] },
@@ -204,18 +214,27 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
                 </button>
                 {(isExpanded || isCollapsed) && (
                     <ul className="nav-group-items">
-                        {filteredItems.map((item) => (
-                            <li key={item.path}>
-                                <NavLink 
-                                    to={resolvePath(item.path)}
-                                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                                    end={item.path === BILLING_ROUTES.PORTAL || item.path === BILLING_ROUTES.ADMIN_BASE}
-                                >
-                                    <item.icon size={20} />
-                                    {!isCollapsed && <span>{item.name}</span>}
-                                </NavLink>
-                            </li>
-                        ))}
+                        {filteredItems.map((item) => {
+                            if (item.isHeader) {
+                                return (
+                                    <li key={item.name} className="nav-group-subheader">
+                                        {!isCollapsed && <span>{item.name}</span>}
+                                    </li>
+                                );
+                            }
+                            return (
+                                <li key={item.path}>
+                                    <NavLink 
+                                        to={resolvePath(item.path)}
+                                        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                                        end={item.path === BILLING_ROUTES.PORTAL || item.path === BILLING_ROUTES.ADMIN_BASE}
+                                    >
+                                        <item.icon size={20} />
+                                        {!isCollapsed && <span>{item.name}</span>}
+                                    </NavLink>
+                                </li>
+                            );
+                        })}
                     </ul>
                 )}
             </div>

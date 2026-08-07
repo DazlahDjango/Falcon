@@ -81,6 +81,7 @@ const CalibrationOutliersPage = React.lazy(() => import('../pages/reviews/calibr
 // Coefficient Pages
 const CoefficientsPage = React.lazy(() => import('../pages/reviews/coefficients/CoefficientsPage'));
 const CoefficientCreatePage = React.lazy(() => import('../pages/reviews/coefficients/CoefficientCreatePage'));
+const CoefficientEditPage = React.lazy(() => import('../pages/reviews/coefficients/CoefficientEditPage'));
 const CoefficientApplyPage = React.lazy(() => import('../pages/reviews/coefficients/CoefficientApplyPage'));
 
 // Promotion Pages
@@ -197,6 +198,7 @@ const reviewsRoutes = [
     // ============ Coefficient Routes ============
     { path: REVIEW_ROUTES.COEFFICIENTS_LIST, element: <CoefficientsPage /> },
     { path: REVIEW_ROUTES.COEFFICIENTS_CREATE, element: <CoefficientCreatePage /> },
+    { path: REVIEW_ROUTES.COEFFICIENTS_EDIT(':id'), element: <CoefficientEditPage /> },
     { path: REVIEW_ROUTES.COEFFICIENT_APPLY, element: <CoefficientApplyPage /> },
 
     // ============ Promotion Routes ============

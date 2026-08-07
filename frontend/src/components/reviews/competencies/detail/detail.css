@@ -237,3 +237,78 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Behavioral Indicators */
+.competency-detail-behaviors {
+  margin-top: 24px;
+}
+
+.competency-behaviors-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.competency-behaviors-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.behavior-card {
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.behavior-card.excellent {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.behavior-card.excellent h4 {
+  color: #166534;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.behavior-card.excellent p {
+  color: #166534;
+  font-size: 14px;
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.behavior-card.improvement {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.behavior-card.improvement h4 {
+  color: #991b1b;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.behavior-card.improvement p {
+  color: #991b1b;
+  font-size: 14px;
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .competency-behaviors-grid {
+    grid-template-columns: 1fr;
+  }
+}

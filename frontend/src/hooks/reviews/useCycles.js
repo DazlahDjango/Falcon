@@ -29,6 +29,7 @@ import {
   completeCycle,
   forceCompleteCycle,
   archiveCycle,
+  sendCycleReminders,
   unarchiveCycle,
   extendCycle,
   fetchCycleProgress,
@@ -40,7 +41,7 @@ import {
   clearCycleFilters,
   setCyclePagination,
 } from '../../store/reviews/slices/cycle.slice';
-import { useReviewsPermissions } from './';
+import useReviewsPermissions from './useReviewsPermissions';
 
 const useCycles = () => {
   const dispatch = useDispatch();
@@ -202,6 +203,11 @@ const useCycles = () => {
     [dispatch]
   );
 
+  const sendReminders = useCallback(
+    (id) => dispatch(sendCycleReminders(id)),
+    [dispatch]
+  );
+
   const reset = useCallback(
     () => dispatch(resetCycleState()),
     [dispatch]
@@ -269,6 +275,7 @@ const useCycles = () => {
     getParticipants,
     getSummary,
     getActive,
+    sendReminders,
     reset,
     setFilters,
     clearFilters,

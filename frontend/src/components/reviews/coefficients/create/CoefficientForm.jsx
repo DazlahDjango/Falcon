@@ -11,6 +11,10 @@ const CoefficientForm = ({ data, onChange }) => {
   const positions = positionsPage?.results;
   const [formData, setFormData] = useState(data);
 
+  useEffect(() => {
+    setFormData(data);
+  }, [data]);
+
   const handleChange = (field, value) => {
     const updated = { ...formData, [field]: value };
     setFormData(updated);

@@ -33,7 +33,8 @@ import {
   clearCompetencyFilters,
   setCompetencyPagination,
 } from '../../store/reviews/slices/competency.slice';
-import { useReviewsPermissions } from './';
+import useReviewsPermissions from './useReviewsPermissions';
+import { competencyService } from '../../services/reviews';
 
 const useCompetencies = () => {
   const dispatch = useDispatch();
@@ -101,6 +102,28 @@ const useCompetencies = () => {
       return dispatch(deleteCompetency(id));
     },
     [dispatch, permissions.canDeleteCompetency]
+  );
+
+  const cloneCompetency = useCallback(
+    async (id) => {
+      if (!permissions.canCreateCompetency) {
+        throw new Error('You do not have permission to clone competencies');
+      }
+      const itemDetail = await competencyService.get(id);
+      const clonedPayload = {
+        name: `${itemDetail.name} (Copy)`,
+        description: itemDetail.description,
+        category: itemDetail.category,
+        competency_type: itemDetail.competency_type,
+        is_active: itemDetail.is_active,
+        is_required: itemDetail.is_required,
+        default_weight: itemDetail.default_weight
+      };
+      const result = await dispatch(createCompetency(clonedPayload)).unwrap();
+      dispatch(fetchCompetencies({ page: pagination.currentPage, page_size: pagination.pageSize, ...filters }));
+      return result;
+    },
+    [dispatch, permissions.canCreateCompetency, pagination, filters]
   );
 
   const activate = useCallback(
@@ -195,6 +218,7 @@ const useCompetencies = () => {
     update,
     patch,
     remove,
+    deleteCompetency: remove,
 
     // Actions
     activate,
@@ -203,6 +227,7 @@ const useCompetencies = () => {
     getRequired,
     getByType,
     getUsageStats,
+    cloneCompetency,
     reset,
     setFilters,
     clearFilters,

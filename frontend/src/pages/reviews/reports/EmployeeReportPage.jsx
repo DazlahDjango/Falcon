@@ -1,10 +1,12 @@
 // src/pages/reviews/reports/EmployeeReportPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Calendar, Search } from 'lucide-react';
-import { useReviewsPermissions } from '../../../hooks/reviews';
+import { ArrowLeft, User } from 'lucide-react';
+import { useReviewsPermissions, useCycles } from '../../../hooks/reviews';
+import { useEmployees } from '../../../hooks/accounts';
 import { EmployeeReport } from '../../../components/reviews/reports';
-import { ReviewBreadcrumbs, ReviewSearchBar } from '../../../components/reviews/common';
+import { ReviewBreadcrumbs } from '../../../components/reviews/common';
+import '../pages.css';
 
 const EmployeeReportPage = () => {
   const navigate = useNavigate();
@@ -12,10 +14,17 @@ const EmployeeReportPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedCycle, setSelectedCycle] = useState(null);
 
+  const { data: employees, loading: employeesLoading } = useEmployees();
+  const { data: cycles, fetchAll: fetchCycles, loading: cyclesLoading } = useCycles();
+
+  useEffect(() => {
+    fetchCycles();
+  }, [fetchCycles]);
+
   if (!canViewReports) {
     return (
-      <div className="employee-report-page">
-        <div className="employee-report-page-unauthorized">
+      <div className="reviews-page">
+        <div className="reviews-page-unauthorized">
           <h2>Access Denied</h2>
           <p>You do not have permission to view employee reports.</p>
         </div>
@@ -24,9 +33,9 @@ const EmployeeReportPage = () => {
   }
 
   return (
-    <div className="employee-report-page">
-      <div className="employee-report-page-header">
-        <button className="employee-report-page-back" onClick={() => navigate('/reviews/reports')}>
+    <div className="reviews-page">
+      <div className="reviews-page-header">
+        <button className="reviews-page-back" onClick={() => navigate('/reviews/reports')}>
           <ArrowLeft size={20} />
           Back to Reports
         </button>
@@ -36,39 +45,62 @@ const EmployeeReportPage = () => {
             { label: 'Employee Report', path: '/reviews/reports/employee', isActive: true },
           ]}
         />
-        <h1 className="employee-report-page-title">Employee Performance Report</h1>
+        <h1 className="reviews-page-title flex items-center gap-2">
+          <User size={28} className="text-blue-600" />
+          Employee Performance Report
+        </h1>
       </div>
 
-      <div className="employee-report-page-filters">
-        <div className="employee-report-page-filter-group">
-          <label className="employee-report-page-filter-label">Select Employee</label>
+      <div className="reviews-page-filters">
+        <div className="reviews-page-filter-group">
+          <label className="reviews-page-filter-label">Select Employee</label>
           <select
-            className="employee-report-page-filter-select"
+            className="reviews-page-filter-select"
             value={selectedEmployee || ''}
             onChange={(e) => setSelectedEmployee(e.target.value)}
           >
             <option value="">Select employee...</option>
-            {/* Employee options would be populated from API */}
+            {employeesLoading ? (
+              <option disabled>Loading employees...</option>
+            ) : (
+              employees && employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.full_name}
+                </option>
+              ))
+            )}
           </select>
         </div>
-        <div className="employee-report-page-filter-group">
-          <label className="employee-report-page-filter-label">Select Cycle</label>
+        <div className="reviews-page-filter-group">
+          <label className="reviews-page-filter-label">Select Cycle</label>
           <select
-            className="employee-report-page-filter-select"
+            className="reviews-page-filter-select"
             value={selectedCycle || ''}
             onChange={(e) => setSelectedCycle(e.target.value)}
           >
             <option value="">Select cycle...</option>
-            {/* Cycle options would be populated from API */}
+            {cyclesLoading ? (
+              <option disabled>Loading cycles...</option>
+            ) : (
+              cycles && cycles.map((cycle) => (
+                <option key={cycle.id} value={cycle.id}>
+                  {cycle.name}
+                </option>
+              ))
+            )}
           </select>
         </div>
       </div>
 
       {selectedEmployee && selectedCycle ? (
-        <EmployeeReport />
+        <div className="reviews-page-section">
+          <div className="reviews-page-section-content">
+            <EmployeeReport employeeId={selectedEmployee} cycleId={selectedCycle} />
+          </div>
+        </div>
       ) : (
-        <div className="employee-report-page-empty">
-          <User size={48} color="#d1d5db" />
+        <div className="reviews-page-empty">
+          <User size={48} color="#d1d5db" className="mx-auto mb-4" />
           <h3>Select Employee and Cycle</h3>
           <p>Please select an employee and a review cycle to view the report.</p>
         </div>

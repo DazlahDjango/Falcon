@@ -19,7 +19,13 @@ const CompetencyDetail = () => {
     }
   }, [id, fetchOne, getUsageStats]);
 
+  const isUsed = (selected?.usage_count > 0) || (usageStats?.total_ratings > 0);
+
   const handleDelete = async () => {
+    if (isUsed) {
+      alert('Cannot delete a competency that is currently in use.');
+      return;
+    }
     if (window.confirm(`Are you sure you want to delete "${selected?.name}"?`)) {
       await deleteCompetency(id);
       navigate('/reviews/competencies');
@@ -54,7 +60,12 @@ const CompetencyDetail = () => {
                 <Edit size={18} />
                 Edit
               </button>
-              <button className="btn btn-danger" onClick={handleDelete}>
+              <button
+                className="btn btn-danger"
+                onClick={handleDelete}
+                disabled={isUsed}
+                title={isUsed ? 'Competency is in use and cannot be deleted' : 'Delete Competency'}
+              >
                 <Trash2 size={18} />
                 Delete
               </button>
@@ -74,14 +85,40 @@ const CompetencyDetail = () => {
           </div>
         </div>
 
+        {isUsed && (
+          <div className="alert alert-warning mt-3 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
+            ⚠️ This competency is currently in use by {selected.usage_count || usageStats?.total_ratings} rating(s) in review cycles. Scoring parameters (weight, type, rating scale) are locked to protect ongoing evaluations.
+          </div>
+        )}
+
         {selected.description && (
-          <p className="competency-detail-description">{selected.description}</p>
+          <p className="competency-detail-description mt-3">{selected.description}</p>
         )}
 
         <div className="competency-detail-grid">
           <CompetencyInfo competency={selected} />
           <CompetencyUsageStats stats={usageStats} />
         </div>
+
+        {(selected.excellent_behavior || selected.needs_improvement_behavior) && (
+          <div className="competency-detail-behaviors">
+            <h3 className="competency-behaviors-title">Behavioral Indicators</h3>
+            <div className="competency-behaviors-grid">
+              {selected.excellent_behavior && (
+                <div className="behavior-card excellent">
+                  <h4>🌟 Excellent Performance</h4>
+                  <p>{selected.excellent_behavior}</p>
+                </div>
+              )}
+              {selected.needs_improvement_behavior && (
+                <div className="behavior-card improvement">
+                  <h4>⚠️ Needs Improvement</h4>
+                  <p>{selected.needs_improvement_behavior}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

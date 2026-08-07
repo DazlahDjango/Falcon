@@ -1,13 +1,13 @@
 // src/components/reviews/cycles/detail/CycleActions.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Square, Archive, RefreshCw, CalendarPlus, AlertTriangle } from 'lucide-react';
+import { Play, Square, Archive, RefreshCw, CalendarPlus, AlertTriangle, CheckCircle, Send } from 'lucide-react';
 import { useCycles } from '../../../../hooks/reviews';
 import { ReviewConfirmDialog } from '../../common';
 
 const CycleActions = ({ cycle }) => {
   const navigate = useNavigate();
-  const { activate, freeze, complete, forceComplete, archive, unarchive, extend, canManage } = useCycles();
+  const { activate, freeze, complete, forceComplete, archive, unarchive, extend, sendReminders, canManage } = useCycles();
   const [showConfirm, setShowConfirm] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,6 +26,7 @@ const CycleActions = ({ cycle }) => {
   const canComplete = cycle.status === 'active' && canManage;
   const canArchive = (cycle.status === 'completed' || cycle.status === 'approved') && canManage;
   const canExtend = cycle.status === 'active' && canManage;
+  const canSendReminders = cycle.status === 'active' && canManage;
 
   const actions = [
     {
@@ -92,6 +93,19 @@ const CycleActions = ({ cycle }) => {
         variant: 'secondary',
       },
       action: () => handleAction(archive),
+    },
+    {
+      key: 'send_reminders',
+      label: 'Send Reminders',
+      icon: <Send size={16} />,
+      variant: 'secondary',
+      show: canSendReminders,
+      confirm: {
+        title: 'Send Reminders',
+        message: `Are you sure you want to send email reminders to all participants with pending self-assessments or evaluations for "${cycle.name}"?`,
+        variant: 'secondary',
+      },
+      action: () => handleAction(sendReminders),
     },
     {
       key: 'extend',

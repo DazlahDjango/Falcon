@@ -5,6 +5,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useCoefficients } from '../../../../hooks/reviews';
 import { ReviewLoading } from '../../common';
 import CoefficientForm from './CoefficientForm';
+import CoefficientHelpGuide from './CoefficientHelpGuide';
 
 const CoefficientCreate = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const CoefficientCreate = () => {
     is_active: true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGuide, setShowGuide] = useState(true);
 
   console.log('[CoefficientCreate] rendering:', { formData, loading, isSubmitting });
 
@@ -47,38 +49,51 @@ const CoefficientCreate = () => {
 
   return (
     <div className="coefficient-create">
-      <div className="coefficient-create-header">
-        <button className="coefficient-create-back" onClick={() => navigate('/reviews/coefficients')}>
-          <ArrowLeft size={20} />
-          Back to Coefficients
+      <div className="coefficient-create-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button className="coefficient-create-back" onClick={() => navigate('/reviews/coefficients')}>
+            <ArrowLeft size={20} />
+            Back to Coefficients
+          </button>
+          <h1 className="coefficient-create-title">Create Coefficient</h1>
+        </div>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={() => setShowGuide(!showGuide)}
+        >
+          {showGuide ? 'Hide Help Guide' : 'Show Help Guide'}
         </button>
-        <h1 className="coefficient-create-title">Create Coefficient</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="coefficient-create-form">
-        <CoefficientForm
-          data={formData}
-          onChange={handleChange}
-        />
+      <div className={showGuide ? "coefficient-create-layout" : "coefficient-form-container-single"}>
+        <form onSubmit={handleSubmit} className="coefficient-create-form">
+          <CoefficientForm
+            data={formData}
+            onChange={handleChange}
+          />
 
-        <div className="coefficient-create-actions">
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={() => navigate('/reviews/coefficients')}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={isSubmitting || !formData.coefficient_type || !formData.value || !formData.valid_from}
-          >
-            <Save size={18} />
-            {isSubmitting ? 'Creating...' : 'Create Coefficient'}
-          </button>
-        </div>
-      </form>
+          <div className="coefficient-create-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => navigate('/reviews/coefficients')}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting || !formData.coefficient_type || !formData.value || !formData.valid_from}
+            >
+              <Save size={18} />
+              {isSubmitting ? 'Creating...' : 'Create Coefficient'}
+            </button>
+          </div>
+        </form>
+
+        {showGuide && <CoefficientHelpGuide />}
+      </div>
     </div>
   );
 };

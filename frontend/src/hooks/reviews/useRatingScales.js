@@ -26,7 +26,8 @@ import {
   clearRatingScaleFilters,
   setRatingScalePagination,
 } from '../../store/reviews/slices/ratingScale.slice';
-import { useReviewsPermissions } from './';
+import useReviewsPermissions from './useReviewsPermissions';
+import { ratingScaleService } from '../../services/reviews';
 
 const useRatingScales = () => {
   const dispatch = useDispatch();
@@ -91,6 +92,34 @@ const useRatingScales = () => {
       return dispatch(deleteRatingScale(id));
     },
     [dispatch, permissions.canDeleteRatingScale]
+  );
+
+  const cloneScale = useCallback(
+    async (id) => {
+      if (!permissions.canCreateRatingScale) {
+        throw new Error('You do not have permission to clone rating scales');
+      }
+      const scaleDetail = await ratingScaleService.get(id);
+      const clonedPayload = {
+        name: `${scaleDetail.name} (Copy)`,
+        description: scaleDetail.description,
+        min_value: scaleDetail.min_value,
+        max_value: scaleDetail.max_value,
+        allow_decimal: scaleDetail.allow_decimal,
+        reverse_scoring: scaleDetail.reverse_scoring,
+        is_active: scaleDetail.is_active,
+        levels: (scaleDetail.levels || []).map(lvl => ({
+          value: lvl.value,
+          label: lvl.label,
+          description: lvl.description,
+          color: lvl.color
+        }))
+      };
+      const result = await dispatch(createRatingScale(clonedPayload)).unwrap();
+      dispatch(fetchRatingScales({ page: pagination.currentPage, page_size: pagination.pageSize, ...filters }));
+      return result;
+    },
+    [dispatch, permissions.canCreateRatingScale, pagination, filters]
   );
 
   const activate = useCallback(
@@ -172,11 +201,13 @@ const useRatingScales = () => {
     update,
     patch,
     remove,
+    deleteRatingScale: remove,
 
     // Actions
     activate,
     deactivate,
     setDefault,
+    cloneScale,
     reset,
     setFilters,
     clearFilters,

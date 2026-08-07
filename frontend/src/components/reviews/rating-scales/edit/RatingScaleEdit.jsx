@@ -10,7 +10,7 @@ import RatingScaleLevelEditor from '../create/RatingScaleLevelEditor';
 const RatingScaleEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selected, loading, error, fetchOne, updateRatingScale } = useRatingScales();
+  const { selected, loading, error, fetchOne, update: updateRatingScale } = useRatingScales();
   const [formData, setFormData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,11 +38,20 @@ const RatingScaleEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData) return;
+    if (!formData.name.trim()) {
+      alert('Please enter a rating scale name.');
+      return;
+    }
+    if (formData.levels.length === 0) {
+      alert('Please add at least one rating level to the rating scale before saving.');
+      return;
+    }
     setIsSubmitting(true);
     try {
-      await updateRatingScale(id, formData);
+      await updateRatingScale(id, formData).unwrap();
       navigate(`/reviews/rating-scales/${id}`);
     } catch (error) {
+      alert(error?.message || 'Failed to update rating scale. Please check your inputs.');
       console.error('Failed to update rating scale:', error);
     } finally {
       setIsSubmitting(false);
@@ -96,7 +105,7 @@ const RatingScaleEdit = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={isSubmitting || !formData.name || formData.levels.length === 0}
+            disabled={isSubmitting}
           >
             <Save size={18} />
             {isSubmitting ? 'Saving...' : 'Save Changes'}

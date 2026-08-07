@@ -7,6 +7,7 @@ import { ReviewLoading } from '../../common';
 import CycleForm from './CycleForm';
 import CycleCompetencyEditor from './CycleCompetencyEditor';
 import CycleDepartmentSelector from './CycleDepartmentSelector';
+import CycleHelpGuide from './CycleHelpGuide';
 
 const CycleCreate = () => {
   const navigate = useNavigate();
@@ -28,10 +29,11 @@ const CycleCreate = () => {
     require_self_assessment: true,
     allow_self_assessment_edit: true,
     enable_calibration: true,
-    rating_scale_id: '',
+    rating_scale: '',
     competencies: [],
     included_departments: [],
   });
+  const [showGuide, setShowGuide] = useState(true);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,16 +53,25 @@ const CycleCreate = () => {
 
   return (
     <div className="cycle-create">
-      <div className="cycle-create-header">
-        <button className="cycle-create-back" onClick={() => navigate('/reviews/cycles')}>
-          <ArrowLeft size={20} />
-          Back to Cycles
+      <div className="cycle-create-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button className="cycle-create-back" onClick={() => navigate('/reviews/cycles')}>
+            <ArrowLeft size={20} />
+            Back to Cycles
+          </button>
+          <h1 className="cycle-create-title">Create Review Cycle</h1>
+        </div>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={() => setShowGuide(!showGuide)}
+        >
+          {showGuide ? 'Hide Help Guide' : 'Show Help Guide'}
         </button>
-        <h1 className="cycle-create-title">Create Review Cycle</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="cycle-create-form">
-        <div className="cycle-create-grid">
+        <div className={showGuide ? "cycle-create-grid-with-guide" : "cycle-create-grid"}>
           <div className="cycle-create-main">
             <CycleForm data={formData} onChange={handleChange} />
             <CycleCompetencyEditor
@@ -75,6 +86,7 @@ const CycleCreate = () => {
               onChange={(data) => handleChange(data)}
             />
           </div>
+          {showGuide && <CycleHelpGuide />}
         </div>
 
         <div className="cycle-create-actions">
@@ -88,7 +100,7 @@ const CycleCreate = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading || !formData.name || !formData.start_date || !formData.end_date}
+            disabled={loading || !formData.name || !formData.start_date || !formData.end_date || !formData.rating_scale}
           >
             <Save size={18} />
             {loading ? 'Creating...' : 'Create Cycle'}

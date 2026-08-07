@@ -50,6 +50,18 @@
   gap: 24px;
 }
 
+.cycle-create-grid-with-guide {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.2fr;
+  gap: 24px;
+}
+
+@media (max-width: 1200px) {
+  .cycle-create-grid-with-guide {
+    grid-template-columns: 2fr 1.2fr;
+  }
+}
+
 /* Cycle Form */
 .cycle-form {
   margin-bottom: 24px;
@@ -329,4 +341,69 @@
   .cycle-form-row {
     grid-template-columns: 1fr;
   }
+}
+
+.competency-help-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.competency-help-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.competency-help-section {
+  margin-bottom: 16px;
+}
+
+.competency-help-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.competency-help-text {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.competency-help-examples {
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.competency-example-item {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.competency-example-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.competency-example-name {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 13px;
+}
+
+.competency-example-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
 }

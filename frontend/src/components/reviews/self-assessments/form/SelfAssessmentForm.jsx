@@ -7,6 +7,8 @@ import { ReviewLoading, ReviewError, ReviewStatusBadge } from '../../common';
 import SelfAssessmentCompetencyRating from './SelfAssessmentCompetencyRating';
 import SelfAssessmentComment from './SelfAssessmentComment';
 import SelfAssessmentProgress from './SelfAssessmentProgress';
+import SelfAssessmentView from '../detail/SelfAssessmentView';
+import SelfAssessmentHelpGuide from './SelfAssessmentHelpGuide';
 
 const SelfAssessmentForm = () => {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ const SelfAssessmentForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState('');
+  const [showGuide, setShowGuide] = useState(true);
 
   const isSubmitted = mySelfAssessment?.status === 'submitted';
   const isDraft = mySelfAssessment?.status === 'draft' || !mySelfAssessment;
@@ -162,6 +165,16 @@ const SelfAssessmentForm = () => {
           </div>
         </div>
         <div className="self-assessment-form-actions">
+          {canEdit && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => setShowGuide(!showGuide)}
+              style={{ marginRight: '8px' }}
+            >
+              {showGuide ? 'Hide Guide' : 'Show Guide'}
+            </button>
+          )}
           {autosaveStatus && (
             <span className="self-assessment-autosave-status">
               {autosaveStatus}
@@ -209,11 +222,12 @@ const SelfAssessmentForm = () => {
         </div>
       </div>
 
-      <div className="self-assessment-form-content">
-        <SelfAssessmentProgress
-          assessment={mySelfAssessment}
-          cycle={activeCycle}
-        />
+      <div className={showGuide ? "self-assessment-layout-grid" : ""}>
+        <div className="self-assessment-form-content">
+          <SelfAssessmentProgress
+            assessment={mySelfAssessment}
+            cycle={activeCycle}
+          />
 
         <div className="self-assessment-form-sections">
           <SelfAssessmentCompetencyRating
@@ -323,6 +337,8 @@ const SelfAssessmentForm = () => {
             This assessment has been submitted and is read-only.
           </div>
         )}
+        </div>
+        {showGuide && <SelfAssessmentHelpGuide />}
       </div>
     </div>
   );

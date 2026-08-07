@@ -9,12 +9,11 @@ import {
   Gavel, 
   Download,
   TrendingUp,
-  User,
-  Building,
-  Clock
+  User
 } from 'lucide-react';
 import { useReviewsPermissions } from '../../../hooks/reviews';
 import { ReviewBreadcrumbs } from '../../../components/reviews/common';
+import '../pages.css';
 
 const ReportsPage = () => {
   const navigate = useNavigate();
@@ -86,46 +85,47 @@ const ReportsPage = () => {
   const filteredReports = reportTypes.filter(report => report.permission);
 
   return (
-    <div className="reports-page">
-      <div className="reports-page-header">
-        <ReviewBreadcrumbs
-          items={[
-            { label: 'Reports', path: '/reviews/reports', isActive: true },
-          ]}
-        />
-        <div className="reports-page-title-section">
-          <h1 className="reports-page-title">Reports & Analytics</h1>
-          <p className="reports-page-subtitle">
+    <div className="reviews-page">
+      <div className="reviews-page-header">
+        <div>
+          <ReviewBreadcrumbs
+            items={[
+              { label: 'Reports', path: '/reviews/reports', isActive: true },
+            ]}
+          />
+          <h1 className="reviews-page-title flex items-center gap-2 mt-2">
+            <FileText size={28} className="text-blue-600" />
+            Reports & Analytics
+          </h1>
+          <p className="reviews-page-subtitle">
             Access detailed reports and analytics for performance reviews
           </p>
         </div>
       </div>
 
-      <div className="reports-page-grid">
+      <div className="reviews-page-grid reviews-page-grid-3">
         {filteredReports.map((report) => (
           <div
             key={report.id}
-            className="reports-page-card"
+            className="reviews-page-card"
             onClick={() => navigate(report.path)}
           >
-            <div className="reports-page-card-icon" style={{ backgroundColor: report.bgColor, color: report.color }}>
+            <div className="reviews-page-card-icon" style={{ backgroundColor: report.bgColor, color: report.color }}>
               {report.icon}
             </div>
-            <div className="reports-page-card-content">
-              <h3 className="reports-page-card-title">{report.title}</h3>
-              <p className="reports-page-card-description">{report.description}</p>
-              <button className="reports-page-card-btn">
-                View Report
-                <TrendingUp size={16} />
-              </button>
-            </div>
+            <h3 className="reviews-page-card-title">{report.title}</h3>
+            <p className="reviews-page-card-description">{report.description}</p>
+            <button className="reviews-page-card-btn mt-auto">
+              View Report
+              <TrendingUp size={16} />
+            </button>
           </div>
         ))}
       </div>
 
       {filteredReports.length === 0 && (
-        <div className="reports-page-empty">
-          <FileText size={48} color="#d1d5db" />
+        <div className="reviews-page-empty">
+          <FileText size={48} color="#d1d5db" className="mx-auto mb-4" />
           <h3>No Reports Available</h3>
           <p>You do not have permission to view any reports.</p>
         </div>

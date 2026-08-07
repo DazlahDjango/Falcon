@@ -12,14 +12,19 @@ class CompetencyCategorySerializer(BaseTenantSerializer):
     """
     Serializer for CompetencyCategory model.
     """
+    competency_count = serializers.SerializerMethodField()
     
     class Meta:
         model = CompetencyCategory
         fields = [
             'id', 'name', 'description', 'tenant_id', 'tenant_name',
-            'order', 'is_active', 'created_at', 'updated_at'
+            'order', 'is_active', 'competency_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'tenant']
+
+    def get_competency_count(self, obj):
+        return obj.competencies.count()
+
 
 
 class CompetencySerializer(BaseTenantSerializer):
@@ -28,6 +33,7 @@ class CompetencySerializer(BaseTenantSerializer):
     """
     category_name = serializers.CharField(source='category.name', read_only=True)
     rating_scale_name = serializers.CharField(source='rating_scale.name', read_only=True)
+    usage_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Competency
@@ -37,9 +43,12 @@ class CompetencySerializer(BaseTenantSerializer):
             'default_weight', 'rating_scale', 'rating_scale_name',
             'is_active', 'is_required', 'display_order',
             'excellent_behavior', 'needs_improvement_behavior',
-            'created_at', 'updated_at'
+            'usage_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'tenant']
+
+    def get_usage_count(self, obj):
+        return obj.ratings.count()
 
 
 class CompetencyListSerializer(CompetencySerializer):
@@ -50,7 +59,7 @@ class CompetencyListSerializer(CompetencySerializer):
     class Meta(CompetencySerializer.Meta):
         fields = [
             'id', 'name', 'category_name', 'competency_type',
-            'default_weight', 'is_active', 'is_required'
+            'default_weight', 'is_active', 'is_required', 'usage_count'
         ]
 
 
