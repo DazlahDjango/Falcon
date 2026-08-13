@@ -36,6 +36,7 @@ class AuthConsumer(AsyncWebsocketConsumer):
             }))
             logger.info('Websocket auth connected: %s', self.user_id)
         else:
+            await self.accept()
             await self.close(code=4001, reason='Authentication failed')
 
     async def disconnect(self, close_code):

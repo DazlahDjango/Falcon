@@ -10,5 +10,6 @@ export * from './preferences';
 export * from './admin';
 export * from './security';
 export * from './common';
+export * from './bulk';
 
 export { default as accountsStyles } from './accounts.css';

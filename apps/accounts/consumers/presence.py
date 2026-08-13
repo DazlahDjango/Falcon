@@ -80,7 +80,11 @@ class PresenceConsumer(AsyncWebsocketConsumer):
         
     @database_sync_to_async
     def get_online_users(self):
-        keys = cache.keys('user_presence:*')
+        try:
+            keys = cache.keys('user_presence:*')
+        except (AttributeError, Exception) as e:
+            logger.debug(f"Cache backend does not support keys pattern search: {e}")
+            keys = []
         user_ids = [key.split(':')[-1] for key in keys if key.split(':')[-1]]
         if not user_ids:
             return []

@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.exceptions import TokenError as SimpleJWTTokenError
 from apps.accounts.models import User, SessionBlacklist
 from ...exceptions import TokenError
 logger = logging.getLogger(__name__)
@@ -84,7 +85,7 @@ class JWTServices:
                 
                 return refresh.payload
                 
-        except TokenError as e:
+        except (TokenError, SimpleJWTTokenError) as e:
             logger.debug(f"Token verification failed: {str(e)}")
             return None
         except KeyError as e:
@@ -119,7 +120,7 @@ class JWTServices:
                 expires_at=expires_at
             )
             return True
-        except TokenError:
+        except (TokenError, SimpleJWTTokenError):
             return False
         except Exception as e:
             logger.error(f"Token blacklist error: {str(e)}")
@@ -138,28 +139,16 @@ class JWTServices:
             logger.debug(f"Token {jti} blacklisted")
             return True
         except Exception as e:
-            logger.error(f"Token blacklist by jti error: {str(e)}")
+            logger.error(f"Token blacklist by JTI error: {str(e)}")
             return False
-    
+
     def is_blacklisted(self, jti: str) -> bool:
+        if not jti:
+            return False
         try:
-            if not jti:
-                return False
             return SessionBlacklist.objects.is_blacklisted(jti)
         except Exception as e:
-            logger.error(f"Error checking blacklist: {e}")
+            logger.error(f"Error checking blacklist: {str(e)}")
             return False
-    
-    def get_token_payload(self, token: str) -> Optional[Dict]:
-        """Get token payload - FIXED: removed jose dependency"""
-        try:
-            # Use PyJWT (already installed with Django)
-            import jwt
-            payload = jwt.decode(token, options={"verify_signature": False})
-            return payload
-        except Exception as e:
-            logger.error(f"Failed to get token payload: {str(e)}")
-            return None
-    
-    def cleanup_expired_blacklist(self) -> int:
-        return SessionBlacklist.objects.cleanup_expired()
+
+export_jwt_services = JWTServices()

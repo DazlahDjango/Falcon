@@ -60,7 +60,14 @@ class InvitationSerializer(BaseSerializer):
     email = serializers.EmailField(required=True)
     role = serializers.ChoiceField(choices=UserRoles.CHOICES, default=UserRoles.STAFF)
     message = serializers.CharField(required=False, allow_blank=True, max_length=500)
-    department_id = serializers.UUIDField(required=False)
+    department_id = serializers.UUIDField(required=False, allow_null=True)
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+            if data.get('department_id') == '':
+                data['department_id'] = None
+        return super().to_internal_value(data)
 
 class InvitationAcceptSerializer(BaseSerializer):
     token = serializers.CharField(required=True)

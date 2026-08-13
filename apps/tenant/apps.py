@@ -9,10 +9,16 @@ class TenantConfig(AppConfig):
 
     def ready(self):
         import apps.tenant.signals  # noqa: F401
-        if settings.ENABLE_CONNECTION_MIDDLEWARE:
-            from apps.tenant.services import ConnectionCleanupScheduler
-            cleanup_scheduler = ConnectionCleanupScheduler()
-            cleanup_scheduler.start()
+        import sys
+        is_management_cmd = any('manage.py' in arg for arg in sys.argv)
+        if settings.ENABLE_CONNECTION_MIDDLEWARE and not is_management_cmd:
+            try:
+                from apps.tenant.services import ConnectionCleanupScheduler
+                cleanup_scheduler = ConnectionCleanupScheduler()
+                cleanup_scheduler.start()
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning('Failed to start ConnectionCleanupScheduler: %s', e)
         self._register_with_config_app()
 
     def _register_with_config_app(self):

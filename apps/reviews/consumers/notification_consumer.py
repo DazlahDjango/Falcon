@@ -118,8 +118,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 recipient=self.user,
                 unread=True
             ).count()
-        except ImportError:
-            # Notifications library not ready
+        except Exception:
+            # Notifications table or model not available
             return 0
     
     @database_sync_to_async
@@ -153,7 +153,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     'is_read': not getattr(n, 'unread', False)
                 })
             return results
-        except ImportError:
+        except Exception:
             return []
     
     @database_sync_to_async
@@ -165,7 +165,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 id=notification_id,
                 recipient=self.user
             ).update(unread=False)
-        except ImportError:
+        except Exception:
             pass
     
     @database_sync_to_async
@@ -177,7 +177,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 recipient=self.user,
                 unread=True
             ).update(unread=False)
-        except ImportError:
+        except Exception:
             pass
 
 

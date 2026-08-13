@@ -14,6 +14,32 @@ from apps.accounts.services.audit.logger import AuditService
 logger = logging.getLogger(__name__)
 
 
+import os
+import json
+from pathlib import Path
+
+PERSISTENT_STORE_PATH = Path(settings.BASE_DIR) / 'media' / 'invitations_store.json'
+
+
+def _load_persistent_store() -> Dict[str, Dict]:
+    try:
+        if os.path.exists(PERSISTENT_STORE_PATH):
+            with open(PERSISTENT_STORE_PATH, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        logger.warning(f"Error reading invitations store: {e}")
+    return {}
+
+
+def _save_persistent_store(store: Dict[str, Dict]) -> None:
+    try:
+        os.makedirs(os.path.dirname(PERSISTENT_STORE_PATH), exist_ok=True)
+        with open(PERSISTENT_STORE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(store, f, indent=2)
+    except Exception as e:
+        logger.warning(f"Error writing invitations store: {e}")
+
+
 class InvitationService:
     def __init__(self):
         self.user_registration = UserRegistrationService()
@@ -93,9 +119,6 @@ class InvitationService:
     def get_pending_invitations(self, tenant_id: str) -> List[Dict]:
         """
         Get all pending invitations for a tenant.
-        
-        Note: Since Django's cache doesn't support pattern matching natively,
-        we maintain a tenant-specific list of invitation IDs.
         """
         pending = []
         tenant_cache_key = f'invitations:tenant:{tenant_id}'
@@ -104,19 +127,18 @@ class InvitationService:
         for invitation_id in invitation_ids:
             cache_key = f'invitation:{invitation_id}'
             invitation_data = cache.get(cache_key)
+            if not invitation_data:
+                invitation_data = self._get_invitation_data(invitation_id)
             if invitation_data:
-                # Add the invitation ID to the response
                 invitation_data['invitation_id'] = invitation_id
                 pending.append(invitation_data)
             else:
-                # Clean up stale reference
                 invitation_ids.remove(invitation_id)
                 cache.set(tenant_cache_key, invitation_ids, timeout=604800)
         
         return pending
     
     def _generate_invitation_token(self, email: str, tenant_id: str, role: str, department_id: str = None, invited_by: User = None, message: str = '') -> str:
-        import json
         token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         cache_key = f'invitation:{token_hash}'
@@ -137,7 +159,9 @@ class InvitationService:
                 'name': invited_by.get_full_name()
             }
         
-        cache.set(cache_key, invitation_data, timeout=604800)  # 7 days expiry
+        # 1. Save in Django cache (7 days)
+        cache.set(cache_key, invitation_data, timeout=604800)
+        cache.set(f'invitation:{token}', invitation_data, timeout=604800)
         
         # Store in tenant's invitation list for lookup
         tenant_cache_key = f'invitations:tenant:{tenant_id}'
@@ -145,25 +169,64 @@ class InvitationService:
         if token_hash not in invitation_ids:
             invitation_ids.append(token_hash)
             cache.set(tenant_cache_key, invitation_ids, timeout=604800)
+
+        # 2. Save in disk persistent store (survives server restarts)
+        store = _load_persistent_store()
+        invitation_data['expires_at'] = (timezone.now() + timezone.timedelta(days=7)).isoformat()
+        store[token_hash] = invitation_data
+        store[token] = invitation_data
+        _save_persistent_store(store)
         
         return token
     
     def _validate_invitation_token(self, token: str) -> Optional[Dict]:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-        cache_key = f'invitation:{token_hash}'
-        return cache.get(cache_key)
+        
+        # 1. Try cache lookup by hash or raw token
+        inv = cache.get(f'invitation:{token_hash}') or cache.get(f'invitation:{token}')
+        if inv:
+            return inv
+        
+        # 2. Disk persistent fallback lookup
+        store = _load_persistent_store()
+        inv = store.get(token_hash) or store.get(token)
+        if inv:
+            # Check 7-day expiration
+            expires_at_str = inv.get('expires_at')
+            created_at_str = inv.get('created_at')
+            now = timezone.now()
+
+            if expires_at_str:
+                expires_at = timezone.datetime.fromisoformat(expires_at_str)
+                if now > expires_at:
+                    self._delete_invitation_token(token)
+                    return None
+            elif created_at_str:
+                created_at = timezone.datetime.fromisoformat(created_at_str)
+                if (now - created_at).days >= 7:
+                    self._delete_invitation_token(token)
+                    return None
+
+            # Re-populate cache for fast subsequent hits
+            cache.set(f'invitation:{token_hash}', inv, timeout=604800)
+            return inv
+
+        return None
     
     def _get_invitation_data(self, invitation_id: str) -> Optional[Dict]:
         cache_key = f'invitation:{invitation_id}'
-        return cache.get(cache_key)
+        inv = cache.get(cache_key)
+        if inv:
+            return inv
+        store = _load_persistent_store()
+        return store.get(invitation_id)
     
     def _delete_invitation_token(self, token: str) -> None:
         """Delete invitation token and clean up tenant reference."""
         token_hash = token if len(token) == 64 else hashlib.sha256(token.encode()).hexdigest()
         
-        # Get invitation data first to know tenant_id
         cache_key = f'invitation:{token_hash}'
-        invitation_data = cache.get(cache_key)
+        invitation_data = cache.get(cache_key) or self._get_invitation_data(token_hash)
         
         if invitation_data:
             tenant_id = invitation_data.get('tenant_id')
@@ -174,14 +237,26 @@ class InvitationService:
                     invitation_ids.remove(token_hash)
                     cache.set(tenant_cache_key, invitation_ids, timeout=604800)
         
-        # Delete the invitation
+        # Delete from cache
         cache.delete(cache_key)
+        cache.delete(f'invitation:{token}')
+
+        # Delete from disk store
+        store = _load_persistent_store()
+        store.pop(token_hash, None)
+        store.pop(token, None)
+        _save_persistent_store(store)
     
     def _send_invitation_email(self, email: str, token: str, invited_by: User, role: str, message: str):
+        from apps.accounts.constants import UserRoles
         subject = f'Invitation to Join Falcon PMS'
+        role_display = str(dict(UserRoles.CHOICES).get(role, role.replace('_', ' ').title()))
+        org_name = getattr(getattr(invited_by, 'tenant', None), 'name', 'Falcon PMS')
         context = {
             'invited_by': invited_by,
             'role': role,
+            'role_display': role_display,
+            'organization_name': org_name,
             'message': message,
             'invitation_url': f"{settings.FRONTEND_URL}/accept-invitation?token={token}",
             'expiry_days': 7

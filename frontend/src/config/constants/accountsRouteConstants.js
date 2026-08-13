@@ -47,6 +47,7 @@ export const ACCOUNTS_ROUTES = {
     USER_DETAIL: (id = ':id') => `/users/${id}`,
     USER_CREATE: '/users/create',
     USER_EDIT: (id = ':id') => `/users/${id}/edit`,
+    USER_BULK_IMPORT: '/users/bulk-import',
     USER_TEAM: (id = ':id') => `/users/${id}/team`,
     USER_REPORTING_CHAIN: (id = ':id') => `/users/${id}/reporting-chain`,
 

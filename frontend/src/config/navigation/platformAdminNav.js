@@ -426,6 +426,7 @@ export const KPI_DASHBOARDS_NAV_ITEMS = [
 export const ACCOUNTS_SUPER_ADMIN_NAV_ITEMS = [
   { path: ACCOUNTS_ROUTES.USERS, name: 'All Users', icon: FiUsers },
   { path: ACCOUNTS_ROUTES.ADMIN_USERS, name: 'Manage Users', icon: FiUserCheck },
+  { path: ACCOUNTS_ROUTES.USER_BULK_IMPORT, name: 'Import Users', icon: FiPlus },
   { path: ACCOUNTS_ROUTES.ROLES, name: 'Roles', icon: FiShield },
   { path: ACCOUNTS_ROUTES.ADMIN_ROLES, name: 'Manage Roles', icon: FiKey },
   { path: ACCOUNTS_ROUTES.PERMISSIONS, name: 'Permissions', icon: FiLock },
@@ -453,6 +454,7 @@ export const ACCOUNTS_SUPER_ADMIN_NAV_ITEMS = [
 
 export const ACCOUNTS_CLIENT_ADMIN_NAV_ITEMS = [
   { path: ACCOUNTS_ROUTES.USERS, name: 'Users', icon: FiUsers },
+  { path: ACCOUNTS_ROUTES.USER_BULK_IMPORT, name: 'Import Users', icon: FiPlus },
   { path: ACCOUNTS_ROUTES.ROLES, name: 'Roles', icon: FiShield },
   { path: ACCOUNTS_ROUTES.SESSIONS, name: 'Sessions', icon: FiClock },
   { path: ACCOUNTS_ROUTES.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },

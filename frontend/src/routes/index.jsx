@@ -21,6 +21,7 @@ const LoginPage = React.lazy(() => import('../pages/accounts/LoginPage'));
 const RegisterPage = React.lazy(() => import('../pages/accounts/RegisterPage'));
 const PasswordResetPage = React.lazy(() => import('../pages/accounts/PasswordResetPage'));
 const PasswordResetConfirmPage = React.lazy(() => import('../pages/accounts/PasswordResetConfirmPage'));
+const AcceptInvitationPage = React.lazy(() => import('../pages/accounts/AcceptInvitationPage'));
 
 // Error pages
 const Unauthorized = React.lazy(() => import('../pages/accounts/Unauthorized'));
@@ -57,6 +58,7 @@ const AppRouter = () => {
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<PasswordResetPage />} />
                     <Route path="/reset-password" element={<PasswordResetConfirmPage />} />
+                    <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
                 </Route>
             </Route>
             

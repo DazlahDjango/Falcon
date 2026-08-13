@@ -7,7 +7,13 @@ from typing import Dict, Any, Optional
 class OrgEventsConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.tenant_id = self.scope['url_route']['kwargs'].get('tenant_id')
-        self.user_id = self.scope.get('user', {}).get('id') if hasattr(self.scope, 'user') else None
+        user = self.scope.get('user')
+        if user and getattr(user, 'is_authenticated', False):
+            self.user_id = str(user.id)
+        elif isinstance(user, dict):
+            self.user_id = str(user.get('id'))
+        else:
+            self.user_id = None
         self.room_group_name = f"org_events_{self.tenant_id}"
         self.subscribed_units = []
         
@@ -180,6 +186,10 @@ class OrgEventsConsumer(AsyncJsonWebsocketConsumer):
         from apps.structure.models.employment import Employment
         from apps.structure.services.security.hierarchy_access import HierarchyAccessEnforcer
         
+        user = self.scope.get('user')
+        if user and (getattr(user, 'is_superuser', False) or getattr(user, 'role', '') in ['super_admin', 'client_admin']):
+            return True
+
         if not self.user_id:
             return False
         

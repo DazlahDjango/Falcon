@@ -1,73 +1,54 @@
-// ============================================
-// frontend/src/hooks/reports/useReportWebSocket.js
-// ============================================
-
-import { useEffect, useCallback, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-    connectWebSocket,
-    disconnectWebSocket,
-    getWebSocketStatus,
-    isWebSocketConnected,
-    sendWebSocketMessage,
-} from '../../store/reports/middleware/reportWebSocket.middleware';
+import { useEffect, useCallback, useState } from 'react';
+import reportsWebSocketService from '../../services/reports/websocket.service';
 
 export const useReportWebSocket = (channel, options = {}) => {
     const {
         autoConnect = true,
-        params = {},
+        reportId = null,
+        dashboardId = null,
         onMessage = null,
-        onConnected = null,
-        onDisconnected = null,
         onError = null,
     } = options;
 
-    const dispatch = useDispatch();
-    const [status, setStatus] = useState('disconnected');
+    const [isConnected, setIsConnected] = useState(false);
     const [lastMessage, setLastMessage] = useState(null);
-    const wsRef = useRef(null);
-    const connectedRef = useRef(false);
-
-    const isConnected = useSelector((state) => {
-        const wsStatus = getWebSocketStatus(channel);
-        return wsStatus === 'connected';
-    });
 
     const connect = useCallback(() => {
-        if (channel) {
-            dispatch(connectWebSocket(channel, params));
-            wsRef.current = { channel, params };
+        const handleMsg = (data) => {
+            setLastMessage(data);
+            if (onMessage) onMessage(data);
+        };
+
+        if (channel === 'dashboard' && dashboardId) {
+            reportsWebSocketService.connectDashboard(dashboardId, handleMsg, onError).then(() => {
+                setIsConnected(true);
+            });
+        } else if (channel === 'report_status' && reportId) {
+            reportsWebSocketService.connectReportStatus(reportId, handleMsg, onError).then(() => {
+                setIsConnected(true);
+            });
+        } else if (channel === 'notifications') {
+            reportsWebSocketService.connectNotifications(handleMsg, onError).then(() => {
+                setIsConnected(true);
+            });
         }
-    }, [dispatch, channel, params]);
+    }, [channel, reportId, dashboardId, onMessage, onError]);
 
     const disconnect = useCallback(() => {
-        if (channel) {
-            dispatch(disconnectWebSocket(channel));
-            wsRef.current = null;
-            connectedRef.current = false;
+        if (channel === 'dashboard' && dashboardId) {
+            reportsWebSocketService.disconnectDashboard(dashboardId);
+        } else if (channel === 'report_status' && reportId) {
+            reportsWebSocketService.disconnectReportStatus(reportId);
+        } else if (channel === 'notifications') {
+            reportsWebSocketService.disconnectNotifications();
         }
-    }, [dispatch, channel]);
+        setIsConnected(false);
+    }, [channel, reportId, dashboardId]);
 
-    const send = useCallback((data) => {
-        if (channel && isWebSocketConnected(channel)) {
-            return sendWebSocketMessage(channel, data);
-        }
-        return false;
-    }, [channel]);
-
-    const reconnect = useCallback(() => {
-        disconnect();
-        setTimeout(() => {
-            connect();
-        }, 1000);
-    }, [disconnect, connect]);
-
-    const handleMessage = useCallback((data) => {
-        setLastMessage(data);
-        if (onMessage) {
-            onMessage(data);
-        }
-    }, [onMessage]);
+    const send = useCallback((message) => {
+        const key = channel === 'dashboard' ? `reportplt_dashboard_${dashboardId}` : channel === 'report_status' ? `reportplt_status_${reportId}` : 'reportplt_notifications';
+        return reportsWebSocketService.send(key, message);
+    }, [channel, reportId, dashboardId]);
 
     useEffect(() => {
         if (autoConnect && channel) {
@@ -78,62 +59,13 @@ export const useReportWebSocket = (channel, options = {}) => {
         };
     }, [autoConnect, channel, connect, disconnect]);
 
-    useEffect(() => {
-        if (isConnected && !connectedRef.current) {
-            connectedRef.current = true;
-            setStatus('connected');
-            if (onConnected) {
-                onConnected();
-            }
-        } else if (!isConnected && connectedRef.current) {
-            connectedRef.current = false;
-            setStatus('disconnected');
-            if (onDisconnected) {
-                onDisconnected();
-            }
-        }
-    }, [isConnected, onConnected, onDisconnected]);
-
-    useEffect(() => {
-        const wsStatus = getWebSocketStatus(channel);
-        setStatus(wsStatus);
-    }, [channel]);
-
     return {
         isConnected,
-        status,
+        lastMessage,
         connect,
         disconnect,
-        reconnect,
-        send,
-        lastMessage,
-        wsRef,
+        send
     };
-};
-
-export const useDashboardWebSocket = (dashboardId, options = {}) => {
-    return useReportWebSocket('dashboard', {
-        ...options,
-        params: { dashboardId },
-    });
-};
-
-export const useReportStatusWebSocket = (reportId, options = {}) => {
-    return useReportWebSocket('report_status', {
-        ...options,
-        params: { reportId },
-    });
-};
-
-export const useReportProgressWebSocket = (reportId, options = {}) => {
-    return useReportWebSocket('report_progress', {
-        ...options,
-        params: { reportId },
-    });
-};
-
-export const useNotificationsWebSocket = (options = {}) => {
-    return useReportWebSocket('notifications', options);
 };
 
 export default useReportWebSocket;

@@ -413,11 +413,9 @@ class KPIExecutiveConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def is_executive(self):
-        role = getattr(self.user, 'role', '')
+        role = str(getattr(self.user, 'role', '') or '').lower()
         return (self.user.is_superuser or
-                role == 'EXECUTIVE' or
-                role == 'CEO' or
-                role == 'DIRECTOR')
+                role in ['executive', 'ceo', 'director', 'super_admin', 'client_admin'])
 
     @database_sync_to_async
     def get_organization_data(self):
@@ -431,13 +429,15 @@ class KPINotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope.get('user')
         if not self.user or not self.user.is_authenticated:
-            await self.close()
+            await self.accept()
+            await self.close(code=4001, reason='Authentication failed')
             return
 
         self.user_id = self.scope['url_route']['kwargs']['user_id']
 
         if str(self.user.id) != self.user_id and not self.user.is_superuser:
-            await self.close()
+            await self.accept()
+            await self.close(code=4003, reason='Access denied')
             return
 
         self.user_group = f"notifications_{self.user_id}"
@@ -467,11 +467,14 @@ class KPINotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_pending_notifications(self):
-        from .models.notification import NotificationPreference
-        return list(NotificationPreference.objects.filter(
-            user_id=self.user_id,
-            is_read=False
-        ).values('id', 'title', 'message', 'created_at')[:20])
+        try:
+            from .models.notification import NotificationPreference
+            return list(NotificationPreference.objects.filter(
+                user_id=self.user_id,
+            ).values('id', 'user_id', 'created_at')[:20])
+        except Exception as e:
+            logger.warning(f"Could not get pending KPI notifications: {e}")
+            return []
 
 
 class KPIScoreConsumer(AsyncWebsocketConsumer):
@@ -658,11 +661,9 @@ class KPIAnalyticsConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def has_executive_access(self):
-        role = getattr(self.user, 'role', '')
+        role = str(getattr(self.user, 'role', '') or '').lower()
         return (self.user.is_superuser or
-                role == 'EXECUTIVE' or
-                role == 'CEO' or
-                role == 'DIRECTOR')
+                role in ['executive', 'ceo', 'director', 'super_admin', 'client_admin'])
 
     @database_sync_to_async
     def get_analytics_data(self):
@@ -734,11 +735,9 @@ class KPIAlertsConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def has_alert_access(self):
-        role = getattr(self.user, 'role', '')
+        role = str(getattr(self.user, 'role', '') or '').lower()
         return (self.user.is_superuser or
-                role == 'MANAGER' or
-                role == 'EXECUTIVE' or
-                role == 'DASHBOARD_CHAMPION')
+                role in ['manager', 'supervisor', 'executive', 'dashboard_champion', 'super_admin', 'client_admin'])
 
     @database_sync_to_async
     def get_alerts(self):

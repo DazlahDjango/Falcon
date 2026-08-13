@@ -11,6 +11,7 @@ const RegisterPage = React.lazy(() => import('../pages/accounts/RegisterPage'));
 const TenantRegisterPage = React.lazy(() => import('../pages/accounts/TenantRegisterPage'));
 const VerifyEmailPage = React.lazy(() => import('../pages/accounts/VerifyEmailPage'));
 const ChangePasswordPage = React.lazy(() => import('../pages/accounts/ChangePasswordPage'));
+const AcceptInvitationPage = React.lazy(() => import('../pages/accounts/AcceptInvitationPage'));
 
 // ============ Dashboard ============
 const DashboardPage = React.lazy(() => import('../pages/accounts/DashboardPage'));
@@ -20,6 +21,7 @@ const UsersPage = React.lazy(() => import('../pages/accounts/UsersPage'));
 const UserDetailPage = React.lazy(() => import('../pages/accounts/UserDetailPage'));
 const UserCreatePage = React.lazy(() => import('../pages/accounts/UserCreatePage'));
 const UserEditPage = React.lazy(() => import('../pages/accounts/UserEditPage'));
+const BulkImportPage = React.lazy(() => import('../pages/accounts/BulkImportPage'));
 
 // ============ Profile Pages ============
 const ProfilePage = React.lazy(() => import('../pages/accounts/ProfilePage'));
@@ -91,7 +93,7 @@ const accountsRoutes = [
     },
     {
         path: ACCOUNTS_ROUTES.ACCEPT_INVITATION,
-        element: <VerifyEmailPage />, // Or create a dedicated AcceptInvitationPage
+        element: <AcceptInvitationPage />,
     },
 
     // ============ Dashboard ============
@@ -116,6 +118,10 @@ const accountsRoutes = [
     {
         path: ACCOUNTS_ROUTES.USER_CREATE,
         element: <UserCreatePage />,
+    },
+    {
+        path: ACCOUNTS_ROUTES.USER_BULK_IMPORT,
+        element: <BulkImportPage />,
     },
     {
         path: '/users/:id/edit',

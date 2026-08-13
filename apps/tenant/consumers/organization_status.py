@@ -13,14 +13,17 @@ class OrganizationStatusConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope.get('user')
         if not self.user or not self.user.is_authenticated:
-            await self.close()
+            await self.accept()
+            await self.close(code=4001, reason='Authentication failed')
             return
         self.org_id = self.scope['url_route']['kwargs'].get('organization_id')
         if not self.org_id:
-            await self.close()
+            await self.accept()
+            await self.close(code=4000, reason='Organization ID required')
             return
         if not await self._has_access(self.user, self.org_id):
-            await self.close()
+            await self.accept()
+            await self.close(code=4003, reason='Access denied')
             return
         self.room_group_name = f"org_{self.org_id}_status"
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -77,7 +80,7 @@ class OrganizationStatusConsumer(AsyncWebsocketConsumer):
     def _get_organization(self, org_id):
         try:
             return Organization.objects.get(id=org_id, is_deleted=False)
-        except Organization.DoesNotExist:
+        except (Organization.DoesNotExist, Exception):
             return None
 
     @database_sync_to_async

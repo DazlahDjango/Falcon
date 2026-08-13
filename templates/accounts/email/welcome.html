@@ -7,9 +7,18 @@
 {% block content %}
 <h2 style="margin-top: 0; color: #111827;">Hello {{ user.first_name|default:user.username }},</h2>
 
-<p>Welcome to <strong>Falcon PMS</strong> - your performance management platform!</p>
+<p>Welcome to <strong>Falcon PMS</strong> - your performance management platform for {{ tenant_name }}!</p>
 
-<p>We're excited to have you on board. With Falcon PMS, you can:</p>
+{% if raw_password %}
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Your Account Credentials</h3>
+    <p style="margin: 4px 0;"><strong>Username / Email:</strong> {{ user.username }} / {{ user.email }}</p>
+    <p style="margin: 4px 0;"><strong>Default Temporary Password:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #0f172a;">{{ raw_password }}</code></p>
+    <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Please change your password upon your first login for security.</p>
+</div>
+{% endif %}
+
+<p>With Falcon PMS, you can:</p>
 
 <ul style="margin: 16px 0; padding-left: 20px;">
     <li>📊 Track your KPIs and performance goals</li>
@@ -18,8 +27,8 @@
     <li>✅ Complete performance reviews</li>
 </ul>
 
-<div style="text-align: center;">
-    <a href="{{ dashboard_url }}" class="button">Go to Dashboard</a>
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ login_url|default:dashboard_url }}" class="button">Log In to Falcon PMS</a>
 </div>
 
 <div class="divider"></div>

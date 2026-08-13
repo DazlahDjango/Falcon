@@ -229,6 +229,23 @@ export const resendVerification = createAsyncThunk(
   }
 );
 
+export const acceptInvitation = createAsyncThunk(
+  'auth/acceptInvitation',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await authApi.acceptInvitation(data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to accept invitation'
+      );
+    }
+  }
+);
+
 // ============================================
 // SLICE
 // ============================================

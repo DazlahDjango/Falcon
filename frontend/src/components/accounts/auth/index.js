@@ -7,3 +7,4 @@ export { default as RegisterForm } from './RegisterForm';
 export { default as TenantRegisterForm } from './TenantRegisterForm';
 export { default as VerifyEmail } from './VerifyEmail';
 export { default as ChangePasswordForm } from './ChangePasswordForm';
+export { default as AcceptInvitation } from './AcceptInvitation';

@@ -170,9 +170,10 @@ const tenantActions = [
   applyTenantMigration,
 ];
 
-tenantActions.forEach((action) => {
+tenantActions.forEach((thunkAction) => {
+  if (!thunkAction?.typePrefix) return;
   tenantMiddleware.startListening({
-    actionCreator: action,
+    matcher: (act) => typeof act.type === 'string' && act.type.startsWith(thunkAction.typePrefix),
     effect: async (action, listenerApi) => {
       const state = listenerApi.getState();
       const tenantId = state.auth?.user?.tenant_id || state.tenant?.currentTenant?.id;

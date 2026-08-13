@@ -3,7 +3,7 @@ import json
 import logging
 from django.core.management import call_command
 from django.apps import apps
-from django.db import connection
+from django.db import connection, transaction
 from apps.configs.services.backup.backup_strategy import BackupStrategyFactory
 from apps.configs.services.backup.backup_compressor import BackupCompressor
 from apps.configs.services.backup.backup_encryptor import BackupEncryptor
@@ -47,7 +47,8 @@ class SingleAppBackup:
         if raw_bytes is None:
             buffer = io.StringIO()
             try:
-                call_command('dumpdata', app_name, indent=2, stdout=buffer)
+                with transaction.atomic():
+                    call_command('dumpdata', app_name, indent=2, stdout=buffer)
                 raw_bytes = buffer.getvalue().encode('utf-8')
                 dump_format = 'json'
             except Exception as e:

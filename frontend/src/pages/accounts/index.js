@@ -19,6 +19,7 @@ export { default as UsersPage } from './UsersPage';
 export { default as UserDetailPage } from './UserDetailPage';
 export { default as UserCreatePage } from './UserCreatePage';
 export { default as UserEditPage } from './UserEditPage';
+export { default as BulkImportPage } from './BulkImportPage';
 
 export { default as ProfilePage } from './ProfilePage';
 export { default as ProfileEditPage } from './ProfileEditPage';

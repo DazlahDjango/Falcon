@@ -86,6 +86,20 @@ class BulkUserImportService:
 
                 user.save()
 
+                # Dispatch welcome email with credentials to user
+                try:
+                    from apps.accounts.tasks import send_welcome_email
+                    from apps.tenant.models import Organization
+                    org_name = None
+                    try:
+                        org = Organization.objects.get(id=tenant_id)
+                        org_name = org.name
+                    except Exception:
+                        pass
+                    send_welcome_email(str(user.id), tenant_name=org_name, raw_password=raw_password if mode != 'invite_only' else None)
+                except Exception as email_err:
+                    logger.error(f"Failed to send welcome email to {user.email}: {str(email_err)}")
+
                 success_count += 1
                 imported_data.append({
                     'id': str(user.id),

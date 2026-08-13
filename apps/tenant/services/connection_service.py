@@ -241,7 +241,9 @@ class ConnectionService:
             self._usage_counts[key] = 1
             
             connection_id = f"conn_{organization_id}_{int(timezone.now().timestamp())}_{uuid.uuid4().hex[:6]}"
-            self._record_connection(organization_id, conn, connection_id)
+            record = self._record_connection(organization_id, conn, connection_id)
+            if record:
+                conn._connection_record = record
             return conn
         except Exception as e:
             self._increment_metric('failures')
@@ -338,7 +340,7 @@ class ConnectionService:
             self.logger.warning(f"Failed to record stack trace for connection: {e}")
 
         try:
-            OrganizationConnection.objects.create(
+            return OrganizationConnection.objects.create(
                 organization_id=organization_id,
                 connection_id=connection_id,
                 status=ConnectionStatus.ACTIVE,
@@ -349,6 +351,7 @@ class ConnectionService:
             )
         except Exception as e:
             self.logger.warning(f"Failed to record connection: {str(e)}")
+            return None
 
     def _get_max_connections(self, organization_id):
         # 5. Max Connections Limit
@@ -365,6 +368,18 @@ class ConnectionService:
         max_size = self._get_max_connections(organization_id)
         if max_size <= 0:
             return False
+
+        # Auto-close orphaned ACTIVE/IDLE records older than 2 minutes before counting
+        try:
+            stale_threshold = timezone.now() - timedelta(minutes=2)
+            OrganizationConnection.objects.filter(
+                organization_id=organization_id,
+                status__in=[ConnectionStatus.ACTIVE, ConnectionStatus.IDLE],
+                last_used_at__lt=stale_threshold
+            ).update(status=ConnectionStatus.CLOSED, closed_at=timezone.now())
+        except Exception as e:
+            self.logger.debug(f"Could not auto-close stale connections: {e}")
+
         active_count = OrganizationConnection.objects.filter(
             organization_id=organization_id,
             status__in=[ConnectionStatus.ACTIVE, ConnectionStatus.IDLE]
@@ -380,7 +395,7 @@ class ConnectionService:
         self.close_idle_connections()
         self.close_expired_connections()
 
-    def release_connection(self, organization_id, read_only=False):
+    def release_connection(self, organization_id, read_only=False, record_id=None):
         """Release connection back to the pool, resetting search path to public."""
         self.logger.debug(f"Releasing connection for organization: {organization_id} (read_only: {read_only})")
         key = (str(organization_id), read_only)
@@ -395,19 +410,19 @@ class ConnectionService:
             except Exception as e:
                 self.logger.warning(f"Failed to reset search path to public on release: {e}")
 
-        # ✅ FIX: Only mark the MOST RECENT ACTIVE record as IDLE, not ALL active
-        # records for the organization. The old behaviour marked every ACTIVE record
-        # for the org as IDLE on each release, which accumulated 20+ IDLE records
-        # across concurrent requests and permanently exhausted the connection pool.
         try:
-            latest = OrganizationConnection.objects.filter(
-                organization_id=organization_id,
-                status=ConnectionStatus.ACTIVE
-            ).order_by('-created_at').first()
+            qs = OrganizationConnection.objects.filter(organization_id=organization_id)
+            if record_id:
+                qs = qs.filter(id=record_id)
+            else:
+                qs = qs.filter(status=ConnectionStatus.ACTIVE).order_by('-created_at')
+
+            latest = qs.first()
             if latest:
-                latest.status = ConnectionStatus.IDLE
+                latest.status = ConnectionStatus.CLOSED
+                latest.closed_at = timezone.now()
                 latest.last_used_at = timezone.now()
-                latest.save(update_fields=['status', 'last_used_at'])
+                latest.save(update_fields=['status', 'closed_at', 'last_used_at'])
         except Exception as e:
             self.logger.warning(f"Failed to update connection status: {str(e)}")
 
@@ -424,21 +439,80 @@ class ConnectionService:
         except Exception as e:
             self.logger.warning(f"Failed to update closed status: {str(e)}")
 
-    def close_idle_connections(self, idle_minutes=None):
+    def close_idle_connections(self, idle_minutes=None, organization_id=None):
         idle_minutes = idle_minutes if idle_minutes is not None else getattr(settings, 'CONNECTION_IDLE_TIMEOUT_MINUTES', 30)
         cutoff = timezone.now() - timedelta(minutes=idle_minutes)
         stale_records = OrganizationConnection.objects.filter(
             status=ConnectionStatus.IDLE,
             last_used_at__lt=cutoff
         )
+        if organization_id:
+            stale_records = stale_records.filter(organization_id=organization_id)
+
         closed = stale_records.update(
             status=ConnectionStatus.CLOSED,
             closed_at=timezone.now()
         )
         for (org_id, r_only), last_used in list(self._timestamps.items()):
+            if organization_id and str(org_id) != str(organization_id):
+                continue
             if last_used < cutoff:
                 self._remove_connection(org_id, r_only)
         return closed
+
+    def kill_all_connections(self, organization_id=None):
+        """Kill/close all active and idle connections for org or full DB."""
+        count = 0
+        for (org_id, r_only) in list(self._connections.keys()):
+            if organization_id and str(org_id) != str(organization_id):
+                continue
+            self.close_connection(org_id, r_only)
+            count += 1
+
+        query = OrganizationConnection.objects.filter(
+            status__in=[ConnectionStatus.ACTIVE, ConnectionStatus.IDLE]
+        )
+        if organization_id:
+            query = query.filter(organization_id=organization_id)
+
+        db_updated = query.update(
+            status=ConnectionStatus.CLOSED,
+            closed_at=timezone.now()
+        )
+        return max(count, db_updated)
+
+    def delete_connection_records(self, organization_id=None, status_filter='closed'):
+        """Permanently delete connection tracking records from DB."""
+        query = OrganizationConnection.objects.all()
+        if organization_id:
+            query = query.filter(organization_id=organization_id)
+
+        if status_filter and status_filter.lower() != 'all':
+            query = query.filter(status=status_filter.lower())
+
+        deleted_count, _ = query.delete()
+        return deleted_count
+
+    def terminate_pg_backends(self, organization_id=None, idle_only=True):
+        """Terminate backend connections directly in PostgreSQL server."""
+        from django.db import connection
+        sql = """
+            SELECT count(pg_terminate_backend(pid))
+            FROM pg_stat_activity
+            WHERE pid <> pg_backend_pid()
+              AND datname = current_database()
+        """
+        if idle_only:
+            sql += " AND state = 'idle'"
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                row = cursor.fetchone()
+                return row[0] if row else 0
+        except Exception as e:
+            self.logger.warning(f"Failed to terminate PG backends: {e}")
+            return 0
 
     def close_expired_connections(self):
         lifetime_minutes = getattr(settings, 'CONNECTION_MAX_LIFETIME_MINUTES', 120)
@@ -539,12 +613,19 @@ class ConnectionService:
                 organization_ids = []
 
         warmed_count = 0
-        for org_id in organization_ids:
+        try:
+            for org_id in organization_ids:
+                try:
+                    self.get_connection(str(org_id))
+                    warmed_count += 1
+                except Exception as e:
+                    self.logger.warning(f"Failed to pre-warm connection for organization {org_id}: {e}")
+        finally:
             try:
-                self.get_connection(str(org_id))
-                warmed_count += 1
+                with connections['default'].cursor() as cursor:
+                    cursor.execute('SET search_path TO public')
             except Exception as e:
-                self.logger.warning(f"Failed to pre-warm connection for organization {org_id}: {e}")
+                self.logger.warning(f"Failed to reset search path after pre-warming: {e}")
         return warmed_count
 
     # 18. Connection Drain

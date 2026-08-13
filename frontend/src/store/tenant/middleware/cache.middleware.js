@@ -103,9 +103,10 @@ const cacheableActions = [
 
 const cacheStore = new Map();
 
-cacheableActions.forEach(({ action, duration, key }) => {
+cacheableActions.forEach(({ action: thunkAction, duration, key }) => {
+  if (!thunkAction?.fulfilled) return;
   cacheMiddleware.startListening({
-    actionCreator: action,
+    actionCreator: thunkAction.fulfilled,
     effect: async (action, listenerApi) => {
       const cacheKey = `${key}:${JSON.stringify(action.meta?.arg || {})}`;
       const cached = cacheStore.get(cacheKey);

@@ -17,15 +17,6 @@ class DashboardService extends BaseTenantService {
       this.apiClient.get(DASHBOARD_ENDPOINTS.CLIENT_ADMIN)
     );
   }
-
-  async getOrganizationStats(organizationId) {
-    if (!organizationId) throw new Error('Organization ID is required');
-    return this.withRetry(() =>
-      this.apiClient.get(DASHBOARD_ENDPOINTS.ORG_STATS, {
-        params: { organization_id: organizationId },
-      })
-    );
-  }
 }
 
 export const dashboardService = new DashboardService();

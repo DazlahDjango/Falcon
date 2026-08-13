@@ -18,7 +18,7 @@ class ErrorBoundary extends React.Component {
         // Ignore DOM manipulation errors caused by browser extensions
         // (Grammarly, Google Translate, LastPass, etc. inject DOM nodes
         //  that React then tries to remove, causing removeChild errors)
-        const msg = error?.message || '';
+        const msg = typeof error?.message === 'string' ? error.message : String(error?.message || '');
         const isDomExtensionError = (
             msg.includes('removeChild') ||
             msg.includes('insertBefore') ||
@@ -33,7 +33,7 @@ class ErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        const msg = error?.message || '';
+        const msg = typeof error?.message === 'string' ? error.message : String(error?.message || '');
         const isDomExtensionError = (
             msg.includes('removeChild') ||
             msg.includes('insertBefore') ||
@@ -68,11 +68,19 @@ class ErrorBoundary extends React.Component {
                 });
             }
 
+            const rawMessage = this.state.error?.message;
+            let displayMsg = 'An unexpected error occurred';
+            if (typeof rawMessage === 'string') {
+                displayMsg = rawMessage;
+            } else if (rawMessage && typeof rawMessage === 'object') {
+                displayMsg = rawMessage.displayMessage || rawMessage.message || JSON.stringify(rawMessage);
+            }
+
             return (
                 <div className="error-boundary">
                     <div className="error-boundary-content">
                         <h2>Something went wrong</h2>
-                        <p>{this.state.error?.message || 'An unexpected error occurred'}</p>
+                        <p>{displayMsg}</p>
                         {this.props.showDetails && this.state.errorInfo && (
                             <details>
                                 <summary>Error Details</summary>

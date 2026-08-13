@@ -21,14 +21,14 @@ export const ORGANIZATION_ENDPOINTS = {
     UPDATE: (id) => `${API_BASE}/tenant/organizations/${id}/`,
     DELETE: (id) => `${API_BASE}/tenant/organizations/${id}/`,
     PATCH: (id) => `${API_BASE}/tenant/organizations/${id}/`,
-    
+
     // Actions
     ONBOARD: (id) => `${API_BASE}/tenant/organizations/${id}/onboard/`,
     ACTIVATE: (id) => `${API_BASE}/tenant/organizations/${id}/activate/`,
     SUSPEND: (id) => `${API_BASE}/tenant/organizations/${id}/suspend/`,
     PROVISIONING_STATUS: (id) => `${API_BASE}/tenant/organizations/${id}/provisioning_status/`,
     USAGE_SUMMARY: (id) => `${API_BASE}/tenant/organizations/${id}/usage_summary/`,
-    
+
     // Query Params
     QUERY_PARAMS: {
         STATUS: 'status',
@@ -39,7 +39,7 @@ export const ORGANIZATION_ENDPOINTS = {
         SEARCH: 'search',
         ORDERING: 'ordering',
     },
-    
+
     // Subscription Tiers (must match backend SubscriptionTier)
     SUBSCRIPTION_TIERS: ['free', 'basic', 'professional', 'enterprise'],
     ORG_STATUS: ['PENDING', 'PROVISIONING', 'ACTIVE', 'SUSPENDED', 'ARCHIVED', 'FAILED'],
@@ -69,12 +69,12 @@ export const DOMAIN_ENDPOINTS = {
     UPDATE: (id) => `${API_BASE}/tenant/domains/${id}/`,
     DELETE: (id) => `${API_BASE}/tenant/domains/${id}/`,
     PATCH: (id) => `${API_BASE}/tenant/domains/${id}/`,
-    
+
     // Actions
     VERIFY: (id) => `${API_BASE}/tenant/domains/${id}/verify/`,
     SET_PRIMARY: (id) => `${API_BASE}/tenant/domains/${id}/set_primary/`,
     RENEW_SSL: (id) => `${API_BASE}/tenant/domains/${id}/renew_ssl/`,
-    
+
     // Query Params
     QUERY_PARAMS: {
         ORGANIZATION_ID: 'organization_id',
@@ -83,7 +83,7 @@ export const DOMAIN_ENDPOINTS = {
         SEARCH: 'search',
         ORDERING: 'ordering',
     },
-    
+
     // Domain Status
     DOMAIN_STATUS: ['PENDING', 'VERIFYING', 'ACTIVE', 'FAILED', 'EXPIRED', 'REMOVED'],
 };
@@ -99,12 +99,12 @@ export const SCHEMA_ENDPOINTS = {
     CREATE: `${API_BASE}/tenant/schemas/`,
     UPDATE: (id) => `${API_BASE}/tenant/schemas/${id}/`,
     DELETE: (id) => `${API_BASE}/tenant/schemas/${id}/`,
-    
+
     // Actions
     PROVISION: (id) => `${API_BASE}/tenant/schemas/${id}/provision/`,
     DROP: (id) => `${API_BASE}/tenant/schemas/${id}/drop/`,
     UPDATE_STATS: (id) => `${API_BASE}/tenant/schemas/${id}/update_stats/`,
-    
+
     // Query Params
     QUERY_PARAMS: {
         ORGANIZATION_ID: 'organization_id',
@@ -113,7 +113,7 @@ export const SCHEMA_ENDPOINTS = {
         SEARCH: 'search',
         ORDERING: 'ordering',
     },
-    
+
     // Schema Status
     SCHEMA_STATUS: ['PENDING', 'CREATING', 'ACTIVE', 'MIGRATING', 'FAILED', 'DELETED'],
 };
@@ -130,7 +130,7 @@ export const RESOURCE_ENDPOINTS = {
     UPDATE: (id) => `${API_BASE}/tenant/resources/${id}/`,
     DELETE: (id) => `${API_BASE}/tenant/resources/${id}/`,
     PATCH: (id) => `${API_BASE}/tenant/resources/${id}/`,
-    
+
     // Actions
     RESET: (id) => `${API_BASE}/tenant/resources/${id}/reset/`,
     RESET_DAILY_LIMITS: `${API_BASE}/tenant/resources/reset_daily_limits/`,
@@ -142,7 +142,7 @@ export const RESOURCE_ENDPOINTS = {
     SYNC_FROM_BILLING: `${API_BASE}/tenant/resources/sync_from_billing/`,
     BULK_INCREMENT: `${API_BASE}/tenant/resources/bulk_increment/`,
     EXCEEDED: `${API_BASE}/tenant/resources/exceeded/`,
-    
+
     // Query Params
     QUERY_PARAMS: {
         ORGANIZATION_ID: 'organization_id',
@@ -150,7 +150,7 @@ export const RESOURCE_ENDPOINTS = {
         IS_EXCEEDED: 'is_exceeded',
         IS_WARNING: 'is_warning',
     },
-    
+
     // Resource Types
     RESOURCE_TYPES: ['USERS', 'STORAGE_MB', 'API_CALLS_PER_DAY', 'DEPARTMENTS', 'CONCURRENT_SESSIONS', 'KPIS'],
 };
@@ -166,7 +166,7 @@ export const CONNECTION_ENDPOINTS = {
     CREATE: `${API_BASE}/tenant/connections/`,
     UPDATE: (id) => `${API_BASE}/tenant/connections/${id}/`,
     DELETE: (id) => `${API_BASE}/tenant/connections/${id}/`,
-    
+
     // Actions
     CLOSE: (id) => `${API_BASE}/tenant/connections/${id}/close/`,
     STATUS: (id) => `${API_BASE}/tenant/connections/${id}/status/`,
@@ -174,17 +174,17 @@ export const CONNECTION_ENDPOINTS = {
     METRICS: `${API_BASE}/tenant/connections/metrics/`,
     HEALTH_CHECK: `${API_BASE}/tenant/connections/health_check/`,
     DEBUG: `${API_BASE}/tenant/connections/debug/`,
-    
+
     // Query Params
     QUERY_PARAMS: {
         ORGANIZATION_ID: 'organization_id',
         STATUS: 'status',
         ORDERING: 'ordering',
     },
-    
+
     // Connection Status
     CONNECTION_STATUS: ['ACTIVE', 'IDLE', 'CLOSED', 'ERROR'],
-    
+
     // Actions
     ACTIONS: ['close', 'reset', 'recycle', 'close_all_idle', 'pause', 'resume'],
 };
@@ -200,14 +200,14 @@ export const MIGRATION_ENDPOINTS = {
     CREATE: `${API_BASE}/tenant/migrations/`,
     UPDATE: (id) => `${API_BASE}/tenant/migrations/${id}/`,
     DELETE: (id) => `${API_BASE}/tenant/migrations/${id}/`,
-    
+
     // Actions
     APPLY: (id) => `${API_BASE}/tenant/migrations/${id}/apply/`,
     STATS: `${API_BASE}/tenant/migrations/stats/`,
     SYNC: `${API_BASE}/tenant/migrations/sync/`,
     PREVIEW_SQL: (id) => `${API_BASE}/tenant/migrations/${id}/preview-sql/`,
     ROLLBACK: (id) => `${API_BASE}/tenant/migrations/${id}/rollback/`,
-    
+
     // Query Params
     QUERY_PARAMS: {
         ORGANIZATION_ID: 'organization_id',
@@ -215,7 +215,7 @@ export const MIGRATION_ENDPOINTS = {
         STATUS: 'status',
         ORDERING: 'ordering',
     },
-    
+
     // Migration Status
     MIGRATION_STATUS: ['PENDING', 'RUNNING', 'COMPLETED', 'FAILED', 'ROLLED_BACK'],
 };
@@ -231,11 +231,11 @@ export const SETTINGS_ENDPOINTS = {
     UPDATE_SETTINGS: `${API_BASE}/tenant/settings/update_settings/`,
     UPDATE_SECTION: `${API_BASE}/tenant/settings/update_section/`,
     RESET: `${API_BASE}/tenant/settings/reset/`,
-    
+
     // System Settings
     SYSTEM_SETTINGS: `${API_BASE}/tenant/system-settings/`,
     SYSTEM_SETTINGS_RESET: `${API_BASE}/tenant/system-settings/reset/`,
-    
+
     // Query Params
     QUERY_PARAMS: {
         SECTION: 'section',
@@ -247,14 +247,8 @@ export const SETTINGS_ENDPOINTS = {
 // ============================================
 
 export const DASHBOARD_ENDPOINTS = {
-    SUPER_ADMIN: `${API_BASE}/tenant/dashboard/super_admin/`,
-    CLIENT_ADMIN: `${API_BASE}/tenant/dashboard/client_admin/`,
-    ORG_STATS: `${API_BASE}/tenant/dashboard/org_stats/`,
-    
-    // Query Params
-    QUERY_PARAMS: {
-        ORGANIZATION_ID: 'organization_id',
-    },
+    SUPER_ADMIN: `${API_BASE}/tenant/dashboard/super-admin/`,
+    CLIENT_ADMIN: `${API_BASE}/tenant/dashboard/client-admin/`,
 };
 
 // ============================================

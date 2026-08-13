@@ -25,15 +25,19 @@ export const TENANT_WS = {
   DOMAIN_VERIFICATION: (orgId) => buildPath(`organizations/${orgId}/domain-verification/`),
   QUOTA: (orgId) => buildPath(`organizations/${orgId}/quota/`),
   MIGRATIONS: (orgId) => buildPath(`organizations/${orgId}/migrations/`),
-  BACKUP_PROGRESS: (backupId) => buildPath(`tenant/backup/${backupId}/progress/`), // legacy fallback
+  CONNECTION_EVENTS: buildPath('connections/'),
+  SYSTEM_ALERTS: buildPath('system/alerts/'),
+  BACKUP_PROGRESS: (backupId) => buildPath(`tenant/backup/${backupId}/progress/`),
 };
 
 export const STRUCTURE_WS = {
   EVENTS: (tenantId) => buildPath(`structure/${tenantId}/events/`),
   REPORTING: (tenantId) => buildPath(`structure/${tenantId}/reporting/`),
   PERMISSIONS: (tenantId) => buildPath(`structure/${tenantId}/permissions/`),
+  DIVISION: (tenantId, divisionId) => buildPath(`structure/${tenantId}/divisions/${divisionId}/`),
   DEPARTMENT: (tenantId, departmentId) => buildPath(`structure/${tenantId}/departments/${departmentId}/`),
-  TEAM: (tenantId, teamId) => buildPath(`structure/${tenantId}/teams/${teamId}/`),
+  SECTION: (tenantId, sectionId) => buildPath(`structure/${tenantId}/sections/${sectionId}/`),
+  UNIT: (tenantId, unitId) => buildPath(`structure/${tenantId}/units/${unitId}/`),
 };
 
 export const DASHBOARD_WS = {
@@ -55,14 +59,22 @@ export const REVIEWS_WS = {
 };
 
 export const KPI_WS = {
-  DASHBOARD: (userId) => `kpi/dashboard/${userId}/`,
-  TEAM: (managerId) => `kpi/team/${managerId}/`,
-  EXECUTIVE: (tenantId) => `kpi/executive/${tenantId}/`,
-  NOTIFICATIONS: (userId) => `kpi/notifications/${userId}/`,
-  SCORES: (userId) => `kpi/scores/${userId}/`,
-  VALIDATION: (userId) => `kpi/validation/${userId}/`,
-  REPORTS: (reportId) => `kpi/reports/${reportId}/`,
-  ANALYTICS: (tenantId) => `kpi/analytics/${tenantId}/`,
-  ALERTS: (tenantId) => `kpi/alerts/${tenantId}/`,
-  ADMIN: `kpi/admin/`,
+  DASHBOARD: (userId) => buildPath(`kpi/dashboard/${userId}/`),
+  TEAM: (managerId) => buildPath(`kpi/team/${managerId}/`),
+  EXECUTIVE: (tenantId) => buildPath(`kpi/executive/${tenantId}/`),
+  NOTIFICATIONS: (userId) => buildPath(`kpi/notifications/${userId}/`),
+  SCORES: (userId) => buildPath(`kpi/scores/${userId}/`),
+  VALIDATION: (userId) => buildPath(`kpi/validation/${userId}/`),
+  REPORTS: (reportId) => buildPath(`kpi/reports/${reportId}/`),
+  ANALYTICS: (tenantId) => buildPath(`kpi/analytics/${tenantId}/`),
+  ALERTS: (tenantId) => buildPath(`kpi/alerts/${tenantId}/`),
+  ADMIN: buildPath('kpi/admin/monitor/'),
 };
+
+export const REPORTPLT_WS = {
+  DASHBOARD: (dashboardId) => buildPath(`dashboard/${dashboardId}/`),
+  REPORT_STATUS: (reportId) => buildPath(`report/${reportId}/status/`),
+  NOTIFICATIONS: buildPath('notifications/'),
+};
+
+export const REPORT_WS = REPORTPLT_WS;

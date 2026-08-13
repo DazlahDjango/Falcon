@@ -31,16 +31,20 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
         tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_organization_id', None)
         if not tenant_id:
             return None
-        self._set_schema_path(tenant_id)
+        if getattr(request, '_schema_path_set', None) == str(tenant_id):
+            return None
+        if self._set_schema_path(tenant_id):
+            request._schema_path_set = str(tenant_id)
         return None
 
     def process_response(self, request, response):
-        # Reset to public schema and clear session tenant context so the connection is clean for the next request
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute('SET search_path TO "public"; SET app.current_tenant_id = \'\';')
-        except Exception as e:
-            logger.debug(f"Could not reset search_path / tenant session to public: {e}")
+        # Reset to public schema and clear session tenant context only if schema was set for this request
+        if hasattr(request, '_schema_path_set'):
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute('SET search_path TO "public"; SET app.current_tenant_id = \'\';')
+            except Exception as e:
+                logger.debug(f"Could not reset search_path / tenant session to public: {e}")
         return response
 
     def _set_schema_path(self, tenant_id):
@@ -53,13 +57,15 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
             org = Organization.objects.filter(id=tenant_id, is_active=True).first()
             if not org:
                 logger.debug(f"[DBRouting] No active org for tenant_id={tenant_id}")
-                return
+                return False
             schema_name = org.schema_name   # e.g. 'org_airtel'
             with connection.cursor() as cursor:
                 cursor.execute(f'SET search_path TO "{schema_name}", public')
                 cursor.execute("SELECT set_config('app.current_tenant_id', %s, false)", [str(tenant_id)])
                 logger.debug(f"[DBRouting] search_path → {schema_name}, app.current_tenant_id → {tenant_id}")
+            return True
         except Exception as e:
             logger.warning(f"[DBRouting] Could not set schema path or RLS context: {e}")
+            return False
 
 

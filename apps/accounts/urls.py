@@ -18,11 +18,10 @@ def health_check(request):
 # API URL Patterns
 # =================
 urlpatterns = [
+    # Health check endpoint
+    path('accounts/health/', health_check, name='health'),
     # API v1 endpoints
     path('', include('apps.accounts.api.v1.urls')),
-    # WebSocket endpoints (handled by channels routing)
-    # Health check and public endpoints
-    path('health/', health_check, name='health'),
     path('accept-invitation/', TemplateView.as_view(template_name='accounts/accept_invitation.html'), name='accept_invitation'),
     path('verify-email/', TemplateView.as_view(template_name='accounts/verify_email.html'), name='verify_email'),
     path('reset-password/', TemplateView.as_view(template_name='accounts/reset_password.html'), name='reset_password'),

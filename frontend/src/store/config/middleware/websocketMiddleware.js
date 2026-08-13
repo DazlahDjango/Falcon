@@ -1,10 +1,10 @@
-import { configWebSocketService } from '../../../services/config';
+import { configWebSocketService } from '../../../services/config/websocket.service';
 
 let maintenanceId = null;
 let backupId = null;
 let drId = null;
 
-export const websocketMiddleware = (store) => (next) => (action) => {
+export const configWebsocketMiddleware = (store) => (next) => (action) => {
   const result = next(action);
   const state = store.getState();
   const tenantId = state.auth?.user?.tenant_id;
@@ -43,3 +43,5 @@ export const websocketMiddleware = (store) => (next) => (action) => {
 
   return result;
 };
+
+export default configWebsocketMiddleware;

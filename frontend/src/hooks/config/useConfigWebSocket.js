@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { configWebSocketService } from '../../services/config';
+import { configWebSocketService } from '../../services/config/websocket.service';
 
 export const useConfigWebSocket = (type, identifier, onMessage) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -11,7 +11,6 @@ export const useConfigWebSocket = (type, identifier, onMessage) => {
   }, [onMessage]);
 
   useEffect(() => {
-    let ws = null;
     let connectionId = null;
 
     const handleMessage = (data) => {
@@ -22,7 +21,7 @@ export const useConfigWebSocket = (type, identifier, onMessage) => {
     };
 
     const handleError = (error) => {
-      console.error(`[ConfigWS] ${type} error:`, error);
+      console.error(`[ConfigWSHook] ${type} error:`, error);
       setIsConnected(false);
     };
 
@@ -32,37 +31,32 @@ export const useConfigWebSocket = (type, identifier, onMessage) => {
 
     if (type === 'maintenance' && identifier) {
       connectionId = `maintenance_${identifier}`;
-      ws = configWebSocketService.connectMaintenance(identifier, handleMessage, handleError, handleClose);
+      configWebSocketService.connectMaintenance(identifier, handleMessage, handleError, handleClose);
+      setIsConnected(true);
     } else if (type === 'backup' && identifier) {
       connectionId = `backup_${identifier}`;
-      ws = configWebSocketService.connectBackupProgress(identifier, handleMessage, handleError, handleClose);
+      configWebSocketService.connectBackupProgress(identifier, handleMessage, handleError, handleClose);
+      setIsConnected(true);
     } else if (type === 'dr' && identifier) {
       connectionId = `dr_${identifier}`;
-      ws = configWebSocketService.connectDRProgress(identifier, handleMessage, handleError, handleClose);
+      configWebSocketService.connectDRProgress(identifier, handleMessage, handleError, handleClose);
+      setIsConnected(true);
     }
 
-    if (ws) {
-      const checkConnection = setInterval(() => {
-        setIsConnected(configWebSocketService.isConnected(connectionId));
-      }, 1000);
-      return () => {
-        clearInterval(checkConnection);
-        if (connectionId) {
-          configWebSocketService.disconnect(connectionId);
-        }
-      };
-    }
+    return () => {
+      if (connectionId) {
+        configWebSocketService.disconnect(connectionId);
+        setIsConnected(false);
+      }
+    };
   }, [type, identifier]);
 
   const sendMessage = useCallback((data) => {
     const connectionId = type === 'maintenance' ? `maintenance_${identifier}` : type === 'backup' ? `backup_${identifier}` : `dr_${identifier}`;
-    const ws = configWebSocketService.sockets?.get(connectionId);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(data));
-      return true;
-    }
-    return false;
+    return configWebSocketService.send(connectionId, data);
   }, [type, identifier]);
 
   return { isConnected, lastMessage, sendMessage };
 };
+
+export default useConfigWebSocket;

@@ -305,11 +305,9 @@ export const REPORTING_ENDPOINTS = {
 // WEBSOCKET ENDPOINTS
 // ============================================
 
-export const REPORT_WS = {
-    DASHBOARD: (dashboardId) => `${WS_BASE}/dashboard/${dashboardId}/`,
-    REPORT_STATUS: (reportId) => `${WS_BASE}/report/${reportId}/status/`,
-    NOTIFICATIONS: `${WS_BASE}/notifications/`,
-};
+import { REPORTPLT_WS } from './websocketApiConstants';
+
+export const REPORT_WS = REPORTPLT_WS;
 
 // ============================================
 // API STATUS & HTTP CONSTANTS

@@ -2,12 +2,11 @@
 import React from 'react';
 import { AuthProvider } from '../contexts/accounts/AuthContext';
 import { AccountsSecurityProvider } from '../contexts/accounts/AccountsSecurityContext';
-import { KPIRealtimeProvider } from '../contexts/kpi/KPIRealtimeContext';
 import { TenantProvider } from '../contexts/tenant/TenantContext';
-import { TenantRealtimeProvider } from '../contexts/tenant/TenantRealtimeContext';
 import { PermissionProvider } from '../contexts/accounts/PermissionContext';
 import { BillingProviders } from '../contexts/billing';
 import { ConfigProvider, BackupProvider, MaintenanceProvider, DRProvider, ConfigAlertProvider } from '../contexts/config';
+import { WebSocketProvider } from '../contexts/websocket';
 import ThemeProvider from './ThemeProvider';
 import ToastProvider from './ToastProvider';
 import QueryProvider from './QueryProvider';
@@ -24,25 +23,23 @@ const Providers = ({ children }) => {
                             <AuthProvider>
                                 <PermissionProvider>
                                     <AccountsSecurityProvider>
-                                        <KPIRealtimeProvider>
+                                        <WebSocketProvider>
                                             <TenantProvider>
-                                                <TenantRealtimeProvider>
-                                                    <ConfigProvider>
-                                                        <BackupProvider>
-                                                            <MaintenanceProvider>
-                                                                <DRProvider>
-                                                                    <ConfigAlertProvider>
-                                                                        <BillingProviders>
-                                                                            {children}
-                                                                        </BillingProviders>
-                                                                    </ConfigAlertProvider>
-                                                                </DRProvider>
-                                                            </MaintenanceProvider>
-                                                        </BackupProvider>
-                                                    </ConfigProvider>
-                                                </TenantRealtimeProvider>
+                                                <ConfigProvider>
+                                                    <BackupProvider>
+                                                        <MaintenanceProvider>
+                                                            <DRProvider>
+                                                                <ConfigAlertProvider>
+                                                                    <BillingProviders>
+                                                                        {children}
+                                                                    </BillingProviders>
+                                                                </ConfigAlertProvider>
+                                                            </DRProvider>
+                                                        </MaintenanceProvider>
+                                                    </BackupProvider>
+                                                </ConfigProvider>
                                             </TenantProvider>
-                                        </KPIRealtimeProvider>
+                                        </WebSocketProvider>
                                     </AccountsSecurityProvider>
                                 </PermissionProvider>
                             </AuthProvider>

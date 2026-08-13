@@ -76,8 +76,8 @@ export const USER_ENDPOINTS = {
     
     // Invitations & Bulk
     INVITE: `${API_BASE}/users/invite/`,
-    BULK_IMPORT: `${API_BASE}/admin/users/bulk-import/`,
-    BULK_EXPORT: `${API_BASE}/admin/users/bulk-export/`,
+    BULK_IMPORT: `${API_BASE}/users/bulk-import/`,
+    BULK_EXPORT: `${API_BASE}/users/bulk-export/`,
     
     // Query Params
     QUERY_PARAMS: {
@@ -370,6 +370,8 @@ export const ADMIN_ENDPOINTS = {
     USER_VERIFY: (id) => `${API_BASE}/admin/users/${id}/verify/`,
     USER_STATS: `${API_BASE}/admin/users/stats/`,
     USER_MAP_TO_ORGANIZATION: (id) => `${API_BASE}/admin/users/${id}/map-to-organization/`,
+    BULK_IMPORT: `${API_BASE}/admin/users/bulk-import/`,
+    BULK_EXPORT: `${API_BASE}/admin/users/bulk-export/`,
     
     // Roles
     ROLES: `${API_BASE}/admin/roles/`,

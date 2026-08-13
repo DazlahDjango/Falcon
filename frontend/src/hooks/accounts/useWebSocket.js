@@ -5,49 +5,46 @@ export const useWebSocket = (namespace = 'notifications', options = {}) => {
     const [isConnected, setIsConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
     const [lastMessage, setLastMessage] = useState(null);
-    const listenersRef = useRef(new Map());   
-    const { autoConnect = true, onMessage, onConnect, onDisconnect, onError } = options;
+
+    const isConnectedRef = useRef(false);
+    const isConnectingRef = useRef(false);
+    const optionsRef = useRef(options);
+    optionsRef.current = options;
+
     const connect = useCallback(async () => {
-        if (isConnected || isConnecting) return;
+        if (isConnectedRef.current || isConnectingRef.current) return;
+        isConnectingRef.current = true;
         setIsConnecting(true);
         try {
             await wsClient.connect(namespace);
+            isConnectedRef.current = true;
             setIsConnected(true);
-            onConnect?.();
+            optionsRef.current.onConnect?.();
         } catch (error) {
-            console.error('WebSocket connection error:', error);
-            onError?.(error);
+            optionsRef.current.onError?.(error);
         } finally {
+            isConnectingRef.current = false;
             setIsConnecting(false);
         }
-    }, [namespace, isConnected, isConnecting, onConnect, onError]);
+    }, [namespace]);
+
     const disconnect = useCallback(() => {
         wsClient.disconnect();
+        isConnectedRef.current = false;
+        isConnectingRef.current = false;
         setIsConnected(false);
-        onDisconnect?.();
-    }, [onDisconnect]);
+        setIsConnecting(false);
+        optionsRef.current.onDisconnect?.();
+    }, []);
+
     const send = useCallback((data) => {
-        if (isConnected) {
+        if (isConnectedRef.current) {
             wsClient.send(data);
         }
-    }, [isConnected]);
-    const on = useCallback((event, callback) => {
-        if (!listenersRef.current.has(event)) {
-            listenersRef.current.set(event, []);
-        }
-        listenersRef.current.get(event).push(callback);
-        wsClient.on(event, callback);
     }, []);
-    const off = useCallback((event, callback) => {
-        if (!listenersRef.current.has(event)) return;
-        const callbacks = listenersRef.current.get(event);
-        const index = callbacks.indexOf(callback);
-        if (index !== -1) {
-            callbacks.splice(index, 1);
-        }
-        wsClient.off(event, callback);
-    }, []);
+
     useEffect(() => {
+        const autoConnect = optionsRef.current.autoConnect !== false;
         if (autoConnect) {
             connect();
         }
@@ -57,15 +54,14 @@ export const useWebSocket = (namespace = 'notifications', options = {}) => {
                 disconnect();
             }
         };
-    }, [autoConnect, connect, disconnect]);
+    }, [connect, disconnect]);
     
-    // Handle global messages
     useEffect(() => {
-        if (!onMessage) return;
-        
         const handleMessage = (data) => {
             setLastMessage(data);
-            onMessage(data);
+            if (optionsRef.current.onMessage) {
+                optionsRef.current.onMessage(data);
+            }
         };
         
         wsClient.on('message', handleMessage);
@@ -73,7 +69,7 @@ export const useWebSocket = (namespace = 'notifications', options = {}) => {
         return () => {
             wsClient.off('message', handleMessage);
         };
-    }, [onMessage]);
+    }, []);
 
     return {
         isConnected, 
@@ -81,8 +77,8 @@ export const useWebSocket = (namespace = 'notifications', options = {}) => {
         connect,
         disconnect,
         send,
-        on,
-        off,
         lastMessage
     };
 };
+
+export default useWebSocket;

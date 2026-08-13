@@ -1,9 +1,17 @@
 import React from 'react';
-import { DEPARTMENT_SENSITIVITY, DEPARTMENT_SENSITIVITY_LABELS } from '../../../config/constants/structureConstants';
+import { DEPARTMENT_SENSITIVITY } from '../../../config/constants/structureConstants';
 
 const DepartmentBadge = ({ department, size = 'md', showCode = true, className = '' }) => {
+  if (!department) {
+    return <span className={`structure-badge badge-department ${className}`}>N/A</span>;
+  }
+
+  const sensitivityLevel = typeof department === 'object' ? department.sensitivity_level : null;
+  const deptName = typeof department === 'object' ? (department.name || department.code || '') : String(department);
+  const deptCode = typeof department === 'object' ? department.code : null;
+
   const getSensitivityClass = () => {
-    switch (department?.sensitivity_level) {
+    switch (sensitivityLevel) {
       case DEPARTMENT_SENSITIVITY.PUBLIC:
         return 'badge-department';
       case DEPARTMENT_SENSITIVITY.CONFIDENTIAL:
@@ -14,19 +22,18 @@ const DepartmentBadge = ({ department, size = 'md', showCode = true, className =
         return 'badge-department';
     }
   };
+
   const sizeClass = {
     sm: 'structure-badge-sm',
     md: '',
     lg: 'structure-badge-lg',
-  }[size];
-  if (!department) {
-    return <span className={`structure-badge ${sizeClass} ${className}`}>N/A</span>;
-  }
+  }[size] || '';
+
   return (
     <span className={`structure-badge ${getSensitivityClass()} ${sizeClass} ${className}`}>
-      {showCode && <span className="font-mono">{department.code}</span>}
-      {showCode && department.name && <span className="mx-0.5">•</span>}
-      <span>{department.name}</span>
+      {showCode && deptCode && <span className="font-mono">{deptCode}</span>}
+      {showCode && deptCode && deptName && <span className="mx-0.5">•</span>}
+      <span>{deptName}</span>
     </span>
   );
 };

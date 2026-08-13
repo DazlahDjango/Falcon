@@ -34,6 +34,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             }))
             logger.info(f"Notification websocket connected: user: {self.user_id}")
         else:
+            await self.accept()
             await self.close(code=4001, reason='Authentication failed')
 
     async def disconnect(self, close_code):
@@ -90,53 +91,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_unread_count(self):
         """Get unread notification count."""
-        from notifications.models import Notification
-        return Notification.objects.filter(
-            recipient=self.user,
-            unread=True
-        ).count()
-    
-    async def mark_notification_read(self, notification_id):
-        if not notification_id:
-            return
-        from notifications.models import Notification
         try:
-            notification = await database_sync_to_async(
-                lambda: Notification.objects.get(
-                    id=notification_id,
-                    recipient=self.user
-                )
-            )()
-            await database_sync_to_async(notification.mark_as_read)()
-            new_count = await database_sync_to_async(
-                lambda: Notification.objects.filter(
-                    recipient=self.user,
-                    unread=True
-                ).count()
-            )()
-            from channels.layers import get_channel_layer
-            channel_layer = get_channel_layer()
-            await channel_layer.group_send(
-                f'notifications_{self.user_id}',
-                {
-                    'type': 'notification_count',
-                    'count': new_count
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to mark notification read: {str(e)}")
-
-    async def mark_all_read(self):
-        from notifications.models import Notification
-        updated = await database_sync_to_async(
-            lambda: Notification.objects.filter(
+            from notifications.models import Notification
+            return Notification.objects.filter(
                 recipient=self.user,
                 unread=True
-            ).update(unread=False)
-        )()
-        # Send updated count
-        await self.send(text_data=json.dumps({
-            'type': 'count',
-            'unread_count': 0,
-            'marked_count': updated
-        }))
+            ).count()
+        except Exception as e:
+            logger.warning(f"Could not fetch unread notification count: {e}")
+            return 0

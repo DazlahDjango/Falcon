@@ -10,7 +10,7 @@ import {
   clearTokens,
 } from '../accounts/storage/secureStorage';
 import { retryRequestAfterRefresh } from './tokenRefresh';
-import { isAuthUrl } from './constants';
+import { isAuthUrl, isPublicUrl } from './constants';
 import {
   isCircuitOpen,
   recordCircuitFailure,
@@ -76,14 +76,26 @@ export function attachInterceptors(client, options = {}) {
       config.headers['X-Request-ID'] = generateRequestId();
 
       const url = config.url || '';
-      if (!isAuthUrl(url)) {
+      const isPublic = isPublicUrl(url);
+
+      if (!isPublic) {
         const token = await getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+        } else if (!config.allowAnonymous) {
+          return Promise.reject({
+            config,
+            response: {
+              status: 401,
+              data: { detail: 'Authentication credentials were not provided.' },
+            },
+            message: 'Unauthenticated request prevented',
+            isCancelledLocally: true,
+          });
         }
       }
 
-      if (attachTenantHeader && !isAuthUrl(url)) {
+      if (attachTenantHeader && (!isPublic || config.headers.Authorization)) {
         const tenantId = await resolveTenantId();
         if (tenantId) {
           config.headers['X-Tenant-ID'] = String(tenantId);
@@ -145,6 +157,9 @@ export function attachInterceptors(client, options = {}) {
       }
 
       if (status === 401 && originalRequest && !isAuthUrl(originalRequest.url || '')) {
+        if (error.isCancelledLocally) {
+          return Promise.reject(error);
+        }
         try {
           return await retryRequestAfterRefresh(originalRequest, (cfg) => client(cfg));
         } catch (refreshError) {

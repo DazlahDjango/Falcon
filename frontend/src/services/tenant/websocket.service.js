@@ -1,53 +1,48 @@
-// frontend/src/services/tenant/websocket.service.js
-
 import { websocketService } from '../websocket';
 import { getAccessToken } from '../accounts/storage/secureStorage';
 import { TENANT_WS, websocketBase } from '../../config/constants/websocketApiConstants';
 
 class TenantWebSocketService {
     constructor() {
-        this.socket = null;
         this.connectionKey = null;
         this.listeners = {};
-        this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 3000;
     }
 
     async connect(tenantId, eventHandlers = {}) {
         if (!tenantId) {
-            console.error('[TenantWebSocket] Tenant ID is required');
+            console.error('[TenantWS] Tenant ID is required');
             return;
         }
 
-        if (this.socket?.readyState === WebSocket.OPEN || this.socket?.readyState === WebSocket.CONNECTING) {
-            console.log('[TenantWebSocket] Already connected');
+        const key = `tenant_status_${tenantId}`;
+        this.connectionKey = key;
+        this.listeners = eventHandlers;
+
+        if (websocketService.isConnected(key)) {
+            console.log('[TenantWS] Already connected');
             return;
         }
 
         const token = await getAccessToken();
         websocketService.init(websocketBase, token);
 
-        this.listeners = eventHandlers;
-        this.connectionKey = `tenant_status_${tenantId}`;
-
-        this.socket = websocketService.connect(
-            this.connectionKey,
+        websocketService.connect(
+            key,
             TENANT_WS.STATUS(tenantId),
             (data) => this.handleMessage(data),
             () => {
-                this.reconnectAttempts = 0;
+                console.log(`[TenantWS] Connected: ${tenantId}`);
                 if (this.listeners.onOpen) this.listeners.onOpen();
             },
             (error) => {
-                console.error('[TenantWebSocket] Error:', error);
+                console.error('[TenantWS] Error:', error);
                 if (this.listeners.onError) this.listeners.onError(error);
             },
-            () => {
-                if (this.listeners.onClose) this.listeners.onClose();
-                this._scheduleReconnect(tenantId, eventHandlers);
+            (event) => {
+                console.log(`[TenantWS] Closed: ${event?.code}`);
+                if (this.listeners.onClose) this.listeners.onClose(event);
             },
-            { shouldReconnect: false }
+            { shouldReconnect: true }
         );
     }
 
@@ -59,9 +54,6 @@ class TenantWebSocketService {
             case 'quota_warning':
                 if (this.listeners.onQuotaWarning) this.listeners.onQuotaWarning(data);
                 break;
-            case 'audit_log_created':
-                if (this.listeners.onAuditLogCreated) this.listeners.onAuditLogCreated(data);
-                break;
             case 'provisioning_progress':
                 if (this.listeners.onProvisioningProgress) this.listeners.onProvisioningProgress(data);
                 break;
@@ -71,27 +63,8 @@ class TenantWebSocketService {
             case 'provisioning_failed':
                 if (this.listeners.onProvisioningFailed) this.listeners.onProvisioningFailed(data);
                 break;
-            case 'backup_progress':
-                if (this.listeners.onBackupProgress) this.listeners.onBackupProgress(data);
-                break;
-            case 'backup_complete':
-                if (this.listeners.onBackupComplete) this.listeners.onBackupComplete(data);
-                break;
-            case 'backup_failed':
-                if (this.listeners.onBackupFailed) this.listeners.onBackupFailed(data);
-                break;
             default:
                 if (this.listeners.onMessage) this.listeners.onMessage(data);
-        }
-    }
-
-    _scheduleReconnect(tenantId, eventHandlers) {
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectAttempts += 1;
-            setTimeout(() => {
-                console.log(`[TenantWebSocket] Reconnecting... Attempt ${this.reconnectAttempts}`);
-                this.connect(tenantId, eventHandlers);
-            }, this.reconnectDelay * this.reconnectAttempts);
         }
     }
 
@@ -99,23 +72,21 @@ class TenantWebSocketService {
         if (this.connectionKey) {
             return websocketService.send(this.connectionKey, data);
         }
-        console.warn('[TenantWebSocket] Cannot send message: no active connection');
         return false;
     }
 
     disconnect() {
         if (this.connectionKey) {
             websocketService.disconnect(this.connectionKey);
+            this.connectionKey = null;
         }
-        this.socket = null;
-        this.connectionKey = null;
     }
 
     async subscribeToProvisioning(taskId, onProgress, onComplete, onFailed) {
         const token = await getAccessToken();
         websocketService.init(websocketBase, token);
         const key = `tenant_provisioning_${taskId}`;
-        const ws = websocketService.connect(
+        return websocketService.connect(
             key,
             TENANT_WS.PROVISIONING(taskId),
             (data) => {
@@ -140,41 +111,10 @@ class TenantWebSocketService {
             () => websocketService.disconnect(key),
             { shouldReconnect: false }
         );
-
-        return ws;
     }
 
-    async subscribeToBackupProgress(backupId, onProgress, onComplete, onFailed) {
-        const token = await getAccessToken();
-        websocketService.init(websocketBase, token);
-        const key = `tenant_backup_${backupId}`;
-        const ws = websocketService.connect(
-            key,
-            TENANT_WS.BACKUP_PROGRESS(backupId),
-            (data) => {
-                switch (data.type) {
-                    case 'backup_progress':
-                        onProgress?.(data);
-                        break;
-                    case 'backup_complete':
-                        onComplete?.(data);
-                        websocketService.disconnect(key);
-                        break;
-                    case 'backup_failed':
-                        onFailed?.(data);
-                        websocketService.disconnect(key);
-                        break;
-                    default:
-                        break;
-                }
-            },
-            null,
-            null,
-            () => websocketService.disconnect(key),
-            { shouldReconnect: false }
-        );
-
-        return ws;
+    isConnected() {
+        return this.connectionKey ? websocketService.isConnected(this.connectionKey) : false;
     }
 }
 

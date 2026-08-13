@@ -30,6 +30,22 @@ const initialState = {
   },
 };
 
+const extractErrorMessage = (error, fallback) => {
+  if (!error) return fallback;
+  if (typeof error === 'string') return error;
+  const data = error.response?.data;
+  if (!data) return error.message || fallback;
+  if (typeof data === 'string') return data;
+  if (typeof data.error === 'string') return data.error;
+  if (typeof data.message === 'string') return data.message;
+  if (typeof data.displayMessage === 'string') return data.displayMessage;
+  if (typeof data.detail === 'string') return data.detail;
+  if (data.error && typeof data.error === 'object') {
+    return data.error.message || data.error.displayMessage || data.error.detail || JSON.stringify(data.error);
+  }
+  return error.message || fallback;
+};
+
 export const fetchUsers = createAsyncThunk(
   'users/fetchUsers',
   async (params, { rejectWithValue, getState }) => {
@@ -49,7 +65,7 @@ export const fetchUsers = createAsyncThunk(
       const response = await usersApi.getUsers(queryParams);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch users');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch users'));
     }
   }
 );
@@ -61,7 +77,7 @@ export const fetchUser = createAsyncThunk(
       const response = await usersApi.getUser(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch user'));
     }
   }
 );
@@ -73,7 +89,7 @@ export const createUser = createAsyncThunk(
       const response = await usersApi.createUser(data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to create user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to create user'));
     }
   }
 );
@@ -85,7 +101,7 @@ export const updateUser = createAsyncThunk(
       const response = await usersApi.updateUser(id, data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to update user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to update user'));
     }
   }
 );
@@ -97,7 +113,7 @@ export const deleteUser = createAsyncThunk(
       await usersApi.deleteUser(id);
       return id;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to delete user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to delete user'));
     }
   }
 );
@@ -109,7 +125,7 @@ export const activateUser = createAsyncThunk(
       const response = await usersApi.activateUser(id);
       return { id, data: response.data };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to activate user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to activate user'));
     }
   }
 );
@@ -121,7 +137,7 @@ export const deactivateUser = createAsyncThunk(
       const response = await usersApi.deactivateUser(id);
       return { id, data: response.data };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to deactivate user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to deactivate user'));
     }
   }
 );
@@ -133,7 +149,7 @@ export const unlockUser = createAsyncThunk(
       const response = await usersApi.unlockUser(id);
       return { id, data: response.data };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to unlock user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to unlock user'));
     }
   }
 );
@@ -145,7 +161,7 @@ export const verifyUser = createAsyncThunk(
       const response = await usersApi.verifyUser(id);
       return { id, data: response.data };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to verify user');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to verify user'));
     }
   }
 );
@@ -157,7 +173,7 @@ export const assignUserRole = createAsyncThunk(
       const response = await usersApi.assignUserRole(id, { role });
       return { id, data: response.data };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to assign role');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to assign role'));
     }
   }
 );
@@ -169,7 +185,7 @@ export const fetchUserTeam = createAsyncThunk(
       const response = await usersApi.getUserTeam(id);
       return { id, data: response.data };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch team');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch team'));
     }
   }
 );
@@ -181,7 +197,7 @@ export const fetchReportingChain = createAsyncThunk(
       const response = await usersApi.getUserReportingChain(id);
       return { id, data: response.data };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch reporting chain');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch reporting chain'));
     }
   }
 );
@@ -193,7 +209,7 @@ export const fetchMyTeam = createAsyncThunk(
       const response = await usersApi.getMyTeam();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch my team');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch my team'));
     }
   }
 );
@@ -205,7 +221,7 @@ export const fetchMyReportingChain = createAsyncThunk(
       const response = await usersApi.getMyReportingChain();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch reporting chain');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch reporting chain'));
     }
   }
 );
@@ -217,7 +233,7 @@ export const fetchInvitations = createAsyncThunk(
       const response = await usersApi.getInvitations();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch invitations');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to fetch invitations'));
     }
   }
 );
@@ -229,7 +245,31 @@ export const sendInvitation = createAsyncThunk(
       const response = await usersApi.sendInvitation(data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to send invitation');
+      return rejectWithValue(extractErrorMessage(error, 'Failed to send invitation'));
+    }
+  }
+);
+
+export const bulkImportUsersThunk = createAsyncThunk(
+  'users/bulkImportUsers',
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await usersApi.bulkImportUsers(formData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Failed to import users'));
+    }
+  }
+);
+
+export const bulkExportUsersThunk = createAsyncThunk(
+  'users/bulkExportUsers',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await usersApi.bulkExportUsers();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Failed to export users'));
     }
   }
 );

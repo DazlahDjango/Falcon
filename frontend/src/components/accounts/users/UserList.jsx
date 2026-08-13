@@ -20,6 +20,7 @@ import { UserTable } from './UserTable';
 import { UserCard } from './UserCard';
 import { UserFilters } from './UserFilters';
 import { UserInviteForm } from './UserInviteForm';
+import { BulkUserImportModal, BulkExportButton } from '../bulk';
 import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstants';
 
 export const UserList = () => {
@@ -36,14 +37,12 @@ export const UserList = () => {
     setPage,
     setPageSize,
     clearError,
-    importUsers,
-    exportUsers,
   } = useUsers();
 
   const [viewMode, setViewMode] = useState('table');
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const fileInputRef = useRef(null);
 
   const handleExport = async () => {
     try {
@@ -139,23 +138,11 @@ export const UserList = () => {
               </button>
               <button
                 className="btn-secondary flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowBulkImportModal(true)}
               >
                 <FiPlus /> Import CSV
               </button>
-              <button
-                className="btn-secondary flex items-center gap-1.5 px-3 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300"
-                onClick={handleExport}
-              >
-                <FiDownload /> Export CSV
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImport}
-                accept=".csv"
-                style={{ display: 'none' }}
-              />
+              <BulkExportButton />
             </>
           )}
           <button className="btn-icon" onClick={handleRefresh}>
@@ -201,7 +188,7 @@ export const UserList = () => {
 
       {error && (
         <div className="user-list-error">
-          <span>{error}</span>
+          <span>{typeof error === 'string' ? error : error?.displayMessage || error?.message || 'An error occurred'}</span>
           <button onClick={clearError}>×</button>
         </div>
       )}
@@ -288,6 +275,14 @@ export const UserList = () => {
           }}
         />
       )}
+
+      <BulkUserImportModal
+        isOpen={showBulkImportModal}
+        onClose={() => setShowBulkImportModal(false)}
+        onSuccess={() => {
+          handleRefresh();
+        }}
+      />
     </div>
   );
 };
