@@ -1,13 +1,13 @@
 # Core Django and essential packages only
-Django==5.2.12
-djangorestframework==3.16.1
+Django==6.1
+djangorestframework==3.18.0
 django-cors-headers==4.9.0
-django-environ==0.13.0
+django-environ==0.14.0
 django-extensions==4.1
-django-filter==25.2
+django-filter==26.1
 django-model-utils==5.0.0
 django-storages==1.14.6
-django-timezone-field==7.2.1
+django-timezone-field==7.2.2
 
 # Database
 psycopg2-binary==2.9.11
@@ -16,7 +16,7 @@ asyncpg==0.31.0
 # Authentication & Security
 djangorestframework-simplejwt==5.5.1
 django-axes==8.3.1
-django-guardian==3.3.0
+django-guardian==3.3.3
 django-otp==1.7.0
 pyotp==2.9.0
 bcrypt==5.0.0
@@ -25,15 +25,15 @@ django-ratelimit==4.1.0
 
 # Multi-tenancy
 django-multitenant==4.1.1
-django-pgschemas==1.1.1
-django-rls==0.4.1
+django-pgschemas==1.2.0
+django-rls==2.0.1
 
 # Celery & Task Queue
 celery==5.6.2
 django-celery-beat==2.9.0
 django-celery-results==2.6.0
 redis==7.2.1
-django-redis==6.0.0
+django-redis==7.0.0
 kombu==5.6.2
 billiard==4.2.4
 
@@ -48,7 +48,7 @@ drf-spectacular==0.29.0
 uritemplate==4.2.0
 
 # Workflow & State Machine
-django-viewflow==2.2.15
+django-viewflow==2.4.0
 django-fsm==3.0.1
 
 # Notifications
@@ -80,7 +80,7 @@ phonenumbers==9.0.25
 jsonfield==3.2.0
 
 # Health Checks
-django-health-check==3.16.0
+django-health-check==4.5.0
 stripe==14.4.1
 dnspython>=2.4.0
 ldap3==2.9.1
