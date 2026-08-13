@@ -25,7 +25,7 @@ class SubscriptionPlan(BaseBillingModel):
     tenant_id = models.UUIDField(_('tenant ID'), null=True, blank=True, db_index=True)
     name = models.CharField(_('plan name'), max_length=100, db_index=True)
     slug = models.SlugField(_('slug'), unique=True, db_index=True, help_text="URL-friendly identifier (basic, professional, enterprise)")
-    plan_type = models.CharField(_('plan type'), max_length=20, choices=PLAN_CHOICES, unique=True, db_index=True)
+    plan_type = models.CharField(_('plan type'), max_length=20, choices=PLAN_CHOICES, db_index=True)
     billing_interval = models.CharField(_('billing interval'), max_length=10, choices=INTERVAL_CHOICES, default=INTERVAL_MONTHLY)
     price = models.PositiveIntegerField(_('price'), help_text="Price in smallest currency unit (e.g., KES cents)")
     yearly_price = models.PositiveIntegerField(_('yearly price'), null=True, blank=True, help_text="Discounted yearly price")

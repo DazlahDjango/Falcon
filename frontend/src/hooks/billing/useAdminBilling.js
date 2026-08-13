@@ -12,11 +12,12 @@ import {
     selectAdminRevenueReport as selectRevReport,
     selectSubscriptionReport as selectSubReport,
     selectAdminTaxReport as selectTaxRep,
-    selectAdminLoading, selectAdminError, selectBulkUpdateStatus,
+    selectTenantData, selectAdminLoading, selectAdminError, selectBulkUpdateStatus,
 } from '../../store/billing/selectors';
 
 export const useAdminBilling = () => {
     const dispatch = useDispatch();
+    const tenantData = useSelector(selectTenantData) || {};
     const loading = useSelector(selectAdminLoading);
     const error = useSelector(selectAdminError);
     const bulkUpdateStatus = useSelector(selectBulkUpdateStatus);
@@ -40,7 +41,7 @@ export const useAdminBilling = () => {
     const selectTaxReport = useCallback(() => useSelector(selectTaxRep), []);
 
     return {
-        loading, error, bulkUpdateStatus,
+        tenantData, loading, error, bulkUpdateStatus,
         getTenantSubscriptions, getTenantInvoices, getTenantTransactions,
         getRevenueReport, getSubscriptionReport, getTaxReport, bulkUpdate,
         clearTenant, clearAllReports, resetBulk,

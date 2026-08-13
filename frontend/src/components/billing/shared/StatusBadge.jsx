@@ -32,6 +32,12 @@ const STATUS_CONFIG = {
         expired: { icon: FiClock, color: 'error', text: 'Expired' },
         removed: { icon: FiXCircle, color: 'secondary', text: 'Removed' },
     },
+    plan: {
+        trial: { icon: FiGift, color: 'info', text: 'Trial' },
+        basic: { icon: FiCheckCircle, color: 'secondary', text: 'Basic' },
+        professional: { icon: FiCheckCircle, color: 'primary', text: 'Professional' },
+        enterprise: { icon: FiCheckCircle, color: 'success', text: 'Enterprise' },
+    },
 };
 
 export const StatusBadge = ({ type, status, size = 'md', showIcon = true, showText = true, className = '' }) => {

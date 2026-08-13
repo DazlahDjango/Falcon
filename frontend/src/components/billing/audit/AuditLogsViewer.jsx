@@ -12,7 +12,7 @@ import './audit.css';
 
 export const AuditLogsViewer = () => {
     const { permissions } = useBillingPermissions();
-    const { logs, summary, pagination, loading, fetchLogs, exportLogs, applyFilters, setPage, setPageSize, filters } = useAudit({ autoFetch: false });
+    const { logs, summary, pagination, loading, fetchLogs, fetchSummary, exportLogs, applyFilters, setPage, setPageSize, filters } = useAudit({ autoFetch: false });
     const [showFilters, setShowFilters] = useState(false);
     const [selectedLog, setSelectedLog] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
@@ -22,8 +22,9 @@ export const AuditLogsViewer = () => {
     useEffect(() => {
         if (permissions.canViewAnalytics) {
             fetchLogs({ page: pagination.page, pageSize: pagination.pageSize, filters });
+            fetchSummary();
         }
-    }, [pagination.page, pagination.pageSize, filters, fetchLogs, permissions.canViewAnalytics]);
+    }, [pagination.page, pagination.pageSize, filters, fetchLogs, fetchSummary, permissions.canViewAnalytics]);
 
     const handleFilterApply = () => { applyFilters(localFilters); setShowFilters(false); };
     const handleFilterClear = () => { setLocalFilters({ startDate: null, endDate: null, action: null, resourceType: null, userEmail: null, success: null }); applyFilters({}); };

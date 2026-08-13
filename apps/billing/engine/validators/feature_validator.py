@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional, Dict, Any
 from functools import wraps
 from django.core.exceptions import PermissionDenied
-from billing.constants import FeatureFlag
+from apps.billing.constants import FeatureFlag
 logger = logging.getLogger(__name__)
 
 class FeatureValidator:

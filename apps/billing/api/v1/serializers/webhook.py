@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from ....models import WebhookEventLog
 
 class WebhookAuthorizationSerializer(serializers.Serializer):
     authorization_code = serializers.CharField(allow_blank=True)
@@ -59,3 +60,19 @@ class WebhookResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
     event_type = serializers.CharField()
     processed_at = serializers.DateTimeField()
+
+
+class WebhookEventLogSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source='get_processing_status_display', read_only=True)
+    event_display = serializers.CharField(source='get_event_type_display', read_only=True)
+
+    class Meta:
+        model = WebhookEventLog
+        fields = [
+            'id', 'tenant_id', 'event_type', 'event_display',
+            'event_idempotency_key', 'paystack_event_id', 'paystack_data_id',
+            'processing_status', 'status_display', 'raw_payload', 'processed_at',
+            'processing_error', 'retry_count', 'last_retry_at', 'signature_valid',
+            'signature_error', 'related_transaction', 'related_subscription',
+            'created_at', 'updated_at'
+        ]

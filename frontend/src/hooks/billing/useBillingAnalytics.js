@@ -66,7 +66,7 @@ export const useBillingAnalytics = (options = { autoFetch: true }) => {
     return {
         summary, revenue, subscriptions, forecast, taxReport, loading, error,
         mrr, mrrDisplay, totalRevenue, totalRevenueDisplay, activeSubscriptions, churnRate, successRate,
-        fetchSummary, fetchRevenue, fetchSubscriptions, fetchForecast, fetchTax,  // ← fetchRevenue is correct
+        fetchSummary, fetchRevenue, fetchSubscriptions, fetchSubscriptionAnalytics: fetchSubscriptions, fetchForecast, fetchTax,
         updateDateRange, clear, clearAnalyticsError,
     };
 };

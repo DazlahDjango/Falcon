@@ -109,6 +109,8 @@ export const PORTAL_ENDPOINTS = {
 
 export const WEBHOOK_ENDPOINTS = {
     PAYSTACK: `webhook/paystack/`,
+    LOGS: `webhooks/`,
+    RETRY: (id) => `webhooks/${id}/retry/`,
 };
 
 export const SYSTEM_ENDPOINTS = {

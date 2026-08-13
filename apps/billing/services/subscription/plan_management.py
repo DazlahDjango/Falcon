@@ -68,7 +68,7 @@ class DynamicPlanManagementService:
             raise PlanSyncError(f"Failed to sync plan to PayStack: {str(e)}")
 
     def get_all_plans(self, include_inactive: bool = False) -> List[Dict]:
-        cache_key = 'all_plans_with_features'
+        cache_key = f'all_plans_with_features_{include_inactive}'
         cached = cache.get(cache_key)
         if cached:
             return cached

@@ -4,13 +4,13 @@ from typing import Optional, Dict, Any, Tuple
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from billing.services.stripe_client import StripeClient
-from billing.services.audit_service import BillingAuditService
-from billing.exceptions import (
-    SubscriptionError, PaymentError, QuotaError, WebhookError
+from apps.billing.services.paystack.client import PayStackClient
+from apps.billing.services.audit.logger import AuditLogger as BillingAuditService
+from apps.billing.exceptions import (
+    SubscriptionError, PaymentError, UsageError as QuotaError, WebhookError
 )
-from billing.constants import (
-    SubscriptionStatus, InvoiceStatus, PaymentStatus, BillingInterval
+from apps.billing.constants import (
+    SubscriptionStatus, InvoiceStatus, TransactionStatus as PaymentStatus, BillingInterval
 )
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class BillingOrchestrator:
     
     @transaction.atomic
     def create_subscription(self, tenant, plan, billing_interval: str = BillingInterval.MONTHLY, trial_days: int = None, payment_method_id: str = None, created_by=None) -> Dict[str, Any]:
-        from billing.models import Subscription, Plan
+        from apps.billing.models import Subscription, SubscriptionPlan as Plan
         if hasattr(tenant, 'subscription') and tenant.subscription:
             raise SubscriptionError("Tenant already has an active subscription")
         stripe_customer = self._get_or_create_stripe_customer(tenant)
@@ -58,7 +58,7 @@ class BillingOrchestrator:
             cancel_at_period_end=stripe_sub.cancel_at_period_end,
             features_snapshot=self._get_features_snapshot(plan)
         )
-        from billing.services.quota_service import QuotaService
+        from apps.billing.services.usage.service import UsageTrackingService as QuotaService
         QuotaService().initialize_limits(subscription)
         self.audit.log_subscription_creation(
             subscription=subscription,
@@ -78,7 +78,7 @@ class BillingOrchestrator:
     
     @transaction.atomic
     def update_subscription_plan(self, subscription, new_plan, billing_interval: str = None, prorate: bool = True, updated_by=None) -> Dict[str, Any]:
-        from billing.models import SubscriptionHistory
+        from apps.billing.models import Subscription as SubscriptionHistory
         old_plan = subscription.plan
         old_status = subscription.status
         interval = billing_interval or subscription.billing_interval
@@ -108,7 +108,7 @@ class BillingOrchestrator:
         if stripe_sub.current_period_end:
             subscription.current_period_end = timezone.fromtimestamp(stripe_sub.current_period_end)
         subscription.save()
-        from billing.services.quota_service import QuotaService
+        from apps.billing.services.usage.service import UsageTrackingService as QuotaService
         QuotaService().update_limits_for_subscription(subscription)
         SubscriptionHistory.objects.create(
             subscription=subscription,
@@ -172,7 +172,7 @@ class BillingOrchestrator:
     
     @transaction.atomic
     def process_successful_payment(self,stripe_payment_intent,invoice=None,subscription=None) -> Dict[str, Any]:
-        from billing.models import Payment, Invoice
+        from apps.billing.models import Transaction as Payment, Invoice
         if Payment.objects.filter(stripe_payment_intent_id=stripe_payment_intent.id).exists():
             logger.info(f"Payment {stripe_payment_intent.id} already processed")
             return {'already_processed': True}
@@ -204,7 +204,7 @@ class BillingOrchestrator:
     
     @transaction.atomic
     def process_failed_payment(self,stripe_payment_intent,invoice=None,subscription=None) -> Dict[str, Any]:
-        from billing.models import Payment
+        from apps.billing.models import Transaction as Payment
         payment = Payment.objects.create(
             tenant_id=self._extract_tenant_id(stripe_payment_intent.metadata),
             subscription=subscription,
@@ -274,7 +274,7 @@ class BillingOrchestrator:
         }
     
     def _get_or_create_stripe_customer(self, tenant):
-        from billing.models import Subscription
+        from apps.billing.models import Subscription
         existing_sub = Subscription.objects.filter(tenant=tenant).first()
         if existing_sub and existing_sub.stripe_customer_id:
             return self.stripe.get_customer(existing_sub.stripe_customer_id)
@@ -301,7 +301,7 @@ class BillingOrchestrator:
         return status_map.get(stripe_status, SubscriptionStatus.UNPAID)
     
     def _get_features_snapshot(self, plan):
-        from billing.models import PlanFeature
+        from apps.billing.models import SubscriptionPlanFeature as PlanFeature
         features = {}
         for feature in PlanFeature.objects.filter(plan=plan, is_deleted=False):
             features[feature.name] = {

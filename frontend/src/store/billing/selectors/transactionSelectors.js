@@ -3,7 +3,12 @@ import { TRANSACTION_STATUS } from '../../../config/constants/billingConstants';
 
 const selectTransactionState = (state) => state.billing?.transactions || {};
 
-export const selectAllTransactions = createSelector([selectTransactionState], (txState) => txState.items || []);
+export const selectAllTransactions = createSelector([selectTransactionState], (txState) => {
+    const items = txState.items;
+    if (Array.isArray(items)) return items;
+    if (items && Array.isArray(items.results)) return items.results;
+    return [];
+});
 export const selectSelectedTransaction = createSelector([selectTransactionState], (txState) => txState.selectedTransaction);
 export const selectTransactionsLoading = createSelector([selectTransactionState], (txState) => txState.loading);
 export const selectTransactionsError = createSelector([selectTransactionState], (txState) => txState.error);

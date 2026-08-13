@@ -18,6 +18,38 @@ class BillingInterval(models.TextChoices):
     YEARLY = 'yearly', 'Yearly'
 
 
+class QuotaResource(models.TextChoices):
+    """Quota resource types for tracking."""
+    USERS = 'users', 'Users'
+    ADMINS = 'admins', 'Admins'
+    KPIS = 'kpis', 'KPIs'
+    STORAGE_MB = 'storage_mb', 'Storage MB'
+    API_CALLS = 'api_calls', 'API Calls'
+    DEPARTMENTS = 'departments', 'Departments'
+
+
+class FeatureFlag:
+    """Feature flag constants."""
+    CUSTOM_BRANDING = 'custom_branding'
+    API_ACCESS = 'api_access'
+    SSO = 'sso_enabled'
+    ADVANCED_ANALYTICS = 'advanced_analytics'
+    AUDIT_LOGS = 'audit_logs'
+    REPORTS = 'custom_reports'
+    EXPORT = 'data_export'
+    WEBHOOKS = 'webhooks'
+    MULTI_CURRENCY = 'multi_currency'
+    PRIORITY_SUPPORT = 'priority_support'
+    SLA = 'sla'
+    WHITE_LABEL = 'white_label'
+
+    ALL_FLAGS = [
+        CUSTOM_BRANDING, API_ACCESS, SSO, ADVANCED_ANALYTICS,
+        AUDIT_LOGS, REPORTS, EXPORT, WEBHOOKS, MULTI_CURRENCY,
+        PRIORITY_SUPPORT, SLA, WHITE_LABEL
+    ]
+
+
 # Plan limits (from proposal)
 PLAN_LIMITS = {
     PlanType.TRIAL: {

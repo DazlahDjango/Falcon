@@ -6,6 +6,7 @@ from django.utils import timezone
 from datetime import timedelta
 from ....models import Transaction
 from ..serializers import TransactionSerializer, TransactionListSerializer, TransactionDetailSerializer, TransactionVerifySerializer
+from ..filters import TransactionFilter
 from ....services import PaymentVerifier, PayStackClient
 from ..permissions import IsSuperAdmin, IsClientAdmin, IsAuthenticated
 
@@ -13,6 +14,7 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Transaction.objects.filter(is_deleted=False)
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    filterset_class = TransactionFilter
     
     def get_permissions(self):
         if self.action in ['verify', 'refund']:
@@ -35,7 +37,11 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser or user.role == 'super_admin':
-            return super().get_queryset()
+            qs = super().get_queryset()
+            tenant_id = self.request.query_params.get('tenant_id')
+            if tenant_id:
+                qs = qs.filter(tenant_id=tenant_id)
+            return qs
         tenant_id = self.request.tenant_id if hasattr(self.request, 'tenant_id') else user.tenant_id
         return super().get_queryset().filter(tenant_id=tenant_id)
     

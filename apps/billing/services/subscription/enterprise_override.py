@@ -26,7 +26,13 @@ class EnterpriseOverrideService:
             return override
 
     def get_active_override(self, tenant_id: str, subscription: Subscription) -> Optional[TenantSubscriptionOverride]:
-        return TenantSubscriptionOverride.objects.filter(tenant_id=tenant_id, subscription=subscription, valid_until__gte=timezone.now()).first()
+        from django.db.models import Q
+        return TenantSubscriptionOverride.objects.filter(
+            Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.now()),
+            tenant_id=tenant_id,
+            subscription=subscription,
+            is_deleted=False
+        ).first()
 
     def get_effective_limit(self, subscription: Subscription, limit_key: str, default: int) -> int:
         override = self.get_active_override(subscription.tenant_id, subscription)

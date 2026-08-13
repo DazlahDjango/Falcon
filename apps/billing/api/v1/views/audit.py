@@ -39,6 +39,12 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = AuditLogFilterSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset()
+        import logging
+        db_logger = logging.getLogger('django')
+        db_logger.info('=== DEBUG AUDIT LOGS ===')
+        db_logger.info(f'User: {request.user} | Role: {getattr(request.user, "role", None)} | IsSuperUser: {getattr(request.user, "is_superuser", False)}')
+        db_logger.info(f'Queryset count: {queryset.count()}')
+        db_logger.info('========================')
         if serializer.validated_data.get('start_date'):
             queryset = queryset.filter(created_at__date__gte=serializer.validated_data['start_date'])
         if serializer.validated_data.get('end_date'):
@@ -51,8 +57,15 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(user_email=serializer.validated_data['user_email'])
         if serializer.validated_data.get('success') is not None:
             queryset = queryset.filter(success=serializer.validated_data['success'])
-        queryset = queryset.order_by('-created_at')[serializer.validated_data['offset']:serializer.validated_data['offset'] + serializer.validated_data['limit']]
-        return Response(AuditLogListSerializer(queryset, many=True).data)
+        
+        queryset = queryset.order_by('-created_at')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = AuditLogListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = AuditLogListSerializer(queryset, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'], url_path='export')
     def export_logs(self, request):

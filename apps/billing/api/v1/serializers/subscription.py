@@ -22,7 +22,7 @@ class SubscriptionListSerializer(SubscriptionSerializer):
     plan_name = serializers.CharField(source='plan.name', read_only=True)
     plan_type = serializers.CharField(source='plan.plan_type', read_only=True)
     class Meta(SubscriptionSerializer.Meta):
-        fields = ['id', 'subscription_code', 'plan_name', 'plan_type', 'status', 'is_active_status', 'current_period_end', 'amount', 'currency', 'amount_display', 'auto_renew']
+        fields = ['id', 'tenant_id', 'subscription_code', 'plan_name', 'plan_type', 'status', 'is_active_status', 'current_period_end', 'amount', 'currency', 'amount_display', 'auto_renew']
 
 class SubscriptionDetailSerializer(SubscriptionSerializer):
     plan_detail = PlanSerializer(source='plan', read_only=True)

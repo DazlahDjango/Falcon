@@ -3,8 +3,18 @@ import { PLAN_TYPES, BILLING_INTERVALS } from '../../../config/constants/billing
 
 const selectPlanState = (state) => state.billing?.plans || {};
 
-export const selectAllPlans = createSelector([selectPlanState], (planState) => planState.items || []);
-export const selectPublicPlans = createSelector([selectPlanState], (planState) => planState.publicPlans || []);
+export const selectAllPlans = createSelector([selectPlanState], (planState) => {
+    const items = planState.items;
+    if (Array.isArray(items)) return items;
+    if (items && Array.isArray(items.results)) return items.results;
+    return [];
+});
+export const selectPublicPlans = createSelector([selectPlanState], (planState) => {
+    const publicPlans = planState.publicPlans;
+    if (Array.isArray(publicPlans)) return publicPlans;
+    if (publicPlans && Array.isArray(publicPlans.results)) return publicPlans.results;
+    return [];
+});
 export const selectPlanComparison = createSelector([selectPlanState], (planState) => planState.comparison || []);
 export const selectSelectedPlan = createSelector([selectPlanState], (planState) => planState.selectedPlan);
 export const selectPlansLoading = createSelector([selectPlanState], (planState) => planState.loading);

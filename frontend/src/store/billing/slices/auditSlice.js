@@ -2,7 +2,25 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { AuditService } from '../../../services/billing';
 
 export const fetchAuditLogs = createAsyncThunk('billing/audit/fetchAll', async ({ page = 1, pageSize = 50, filters = {} } = {}, { rejectWithValue }) => {
-    try { const response = await AuditService.filterLogs({ page, page_size: pageSize, ...filters }); return { items: response?.data || [], total: response?.count || 0, page, pageSize }; }
+    try {
+        const response = await AuditService.filterLogs({ page, page_size: pageSize, ...filters });
+        console.log('AUDIT LOGS raw response:', response);
+        const data = response?.data;
+        console.log('AUDIT LOGS data:', data);
+        let items = [];
+        let total = 0;
+        if (Array.isArray(data)) {
+            items = data;
+            total = data.length;
+        } else if (data && Array.isArray(data.results)) {
+            items = data.results;
+            total = data.count || data.results.length;
+        } else if (data) {
+            items = data.items || [];
+            total = data.total || items.length;
+        }
+        return { items, total, page, pageSize };
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch audit logs'); }
 });
 

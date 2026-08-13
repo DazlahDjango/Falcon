@@ -2,7 +2,23 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { EnterpriseService } from '../../../services/billing';
 
 export const fetchOverrides = createAsyncThunk('billing/enterprise/fetchOverrides', async ({ page = 1, pageSize = 20 } = {}, { rejectWithValue }) => {
-    try { const response = await EnterpriseService.getOverrides({ page, page_size: pageSize }); return { items: response?.data || [], total: response?.count || 0, page, pageSize }; }
+    try {
+        const response = await EnterpriseService.getOverrides({ page, page_size: pageSize });
+        const data = response?.data;
+        let items = [];
+        let total = 0;
+        if (Array.isArray(data)) {
+            items = data;
+            total = data.length;
+        } else if (data && Array.isArray(data.results)) {
+            items = data.results;
+            total = data.count || data.results.length;
+        } else if (data) {
+            items = data.items || [];
+            total = data.total || items.length;
+        }
+        return { items, total, page, pageSize };
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch overrides'); }
 });
 

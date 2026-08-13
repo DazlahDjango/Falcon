@@ -9,7 +9,10 @@ logger = logging.getLogger(__name__)
 
 class WebhookSignatureVerifier:
     def __init__(self):
-        self.secret = getattr(settings, 'PAYSTACK_WEBHOOK_SECRET', None)
+        secret = getattr(settings, 'PAYSTACK_WEBHOOK_SECRET', None)
+        if not secret or secret == 'your_webhook_signature_secret_here':
+            secret = getattr(settings, 'PAYSTACK_SECRET_KEY', None)
+        self.secret = secret
         self.verify_signature = getattr(settings, 'PAYSTACK_VERIFY_WEBHOOK_SIGNATURE', True)
         if not self.verify_signature:
             logger.warning("Webhook signature verification is DISABLED - only for development!")
