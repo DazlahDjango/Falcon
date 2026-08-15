@@ -39,12 +39,6 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = AuditLogFilterSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset()
-        import logging
-        db_logger = logging.getLogger('django')
-        db_logger.info('=== DEBUG AUDIT LOGS ===')
-        db_logger.info(f'User: {request.user} | Role: {getattr(request.user, "role", None)} | IsSuperUser: {getattr(request.user, "is_superuser", False)}')
-        db_logger.info(f'Queryset count: {queryset.count()}')
-        db_logger.info('========================')
         if serializer.validated_data.get('start_date'):
             queryset = queryset.filter(created_at__date__gte=serializer.validated_data['start_date'])
         if serializer.validated_data.get('end_date'):

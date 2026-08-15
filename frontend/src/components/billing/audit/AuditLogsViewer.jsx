@@ -7,6 +7,7 @@ import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
 import { useAudit } from '../../../hooks/billing/useAudit';
 import { useBillingPermissions } from '../../../hooks/billing/useBillingPermissions';
+import { AuditService } from '../../../services/billing';
 import { AuditDetailModal } from './AuditDetailModal';
 import './audit.css';
 
@@ -28,7 +29,27 @@ export const AuditLogsViewer = () => {
 
     const handleFilterApply = () => { applyFilters(localFilters); setShowFilters(false); };
     const handleFilterClear = () => { setLocalFilters({ startDate: null, endDate: null, action: null, resourceType: null, userEmail: null, success: null }); applyFilters({}); };
-    const handleExport = async () => { setExporting(true); await exportLogs(30); setExporting(false); };
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const response = await AuditService.exportLogs(30);
+            const blob = response?.data;
+            if (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `billing_audit_logs_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.error('Failed to export audit logs:', error);
+        } finally {
+            setExporting(false);
+        }
+    };
     const handleViewDetail = (log) => { setSelectedLog(log); setShowDetail(true); };
 
     const getActionColor = (action) => {

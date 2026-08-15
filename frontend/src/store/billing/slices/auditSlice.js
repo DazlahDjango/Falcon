@@ -4,9 +4,7 @@ import { AuditService } from '../../../services/billing';
 export const fetchAuditLogs = createAsyncThunk('billing/audit/fetchAll', async ({ page = 1, pageSize = 50, filters = {} } = {}, { rejectWithValue }) => {
     try {
         const response = await AuditService.filterLogs({ page, page_size: pageSize, ...filters });
-        console.log('AUDIT LOGS raw response:', response);
         const data = response?.data;
-        console.log('AUDIT LOGS data:', data);
         let items = [];
         let total = 0;
         if (Array.isArray(data)) {

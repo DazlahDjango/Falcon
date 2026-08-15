@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSettings, updateSettings, resetSettings, clearError } from '../../store/billing/slices/systemSettingsSlice';
-import { selectSettings, selectSettingsLoading, selectSettingsError, selectSettingsVersion } from '../../store/billing/selectors';
+import { selectEffectiveSettings, selectSettingsLoading, selectSettingsError, selectSettingsVersion } from '../../store/billing/selectors';
 import { useBillingPermissions } from './useBillingPermissions';
 
 export const useBillingSystemSettings = (options = { autoFetch: true }) => {
     const dispatch = useDispatch();
     const { permissions } = useBillingPermissions();
-    const settings = useSelector(selectSettings);
+    const settings = useSelector(selectEffectiveSettings);
     const loading = useSelector(selectSettingsLoading);
     const error = useSelector(selectSettingsError);
     const version = useSelector(selectSettingsVersion);
