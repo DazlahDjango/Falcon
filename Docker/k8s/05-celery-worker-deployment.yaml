@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: falcon-celery-worker
+  namespace: falcon-pms
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: falcon-celery-worker
+  template:
+    metadata:
+      labels:
+        app: falcon-celery-worker
+    spec:
+      containers:
+        - name: celery-worker
+          image: falcon-pms:latest
+          imagePullPolicy: IfNotPresent
+          command: ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=4"]
+          envFrom:
+            - configMapRef:
+                name: falcon-config
+            - secretRef:
+                name: falcon-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: falcon-celery-beat
+  namespace: falcon-pms
+spec:
+  replicas: 1  # Singleton scheduler to avoid duplicate cron executions
+  selector:
+    matchLabels:
+      app: falcon-celery-beat
+  template:
+    metadata:
+      labels:
+        app: falcon-celery-beat
+    spec:
+      containers:
+        - name: celery-beat
+          image: falcon-pms:latest
+          imagePullPolicy: IfNotPresent
+          command: ["celery", "-A", "config", "beat", "--loglevel=info"]
+          envFrom:
+            - configMapRef:
+                name: falcon-config
+            - secretRef:
+                name: falcon-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"

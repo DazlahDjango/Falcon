@@ -18,7 +18,7 @@ from apps.structure.models.employment import Employment
 
 
 class Command(BaseCommand):
-    help = 'Seeds complete Organization Structure (Divisions, Departments, Sections, Units, Positions, Employments) for a tenant.'
+    help = 'Seeds complete Organization Structure (Divisions, Departments, Sections, Units, Positions, Employments) for all users in a tenant.'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -50,7 +50,8 @@ class Command(BaseCommand):
         if not users_qs.exists():
             raise CommandError(f"No active users found for tenant_id '{tenant_id}'.")
 
-        user_map = {u.email.lower(): u for u in users_qs}
+        user_list = list(users_qs.order_by('date_joined', 'email'))
+        user_map = {u.email.lower(): u for u in user_list}
         self.stdout.write(f"[START] Seeding structure for tenant '{tenant_id}' (schema: {schema_name}) with {len(user_map)} users...")
 
         with transaction.atomic():
@@ -108,13 +109,18 @@ class Command(BaseCommand):
                 departments[code] = dept
                 departments[match_dept] = dept
 
-            self.stdout.write(self.style.SUCCESS(f"  + Created/Updated Departments."))
+            self.stdout.write(self.style.SUCCESS(f"  + Created/Updated {len(depts_def)} Departments."))
 
-            # 3. SECTIONS
+            # 3. SECTIONS (2 per primary department)
             sections_def = [
                 ('SEC_SOFTWARE', 'Software Engineering', 'DEP_ENG', 'david.miller@globalapex.com'),
                 ('SEC_DEVOPS', 'DevOps & Quality Assurance', 'DEP_ENG', 'sophia.martinez@globalapex.com'),
+                ('SEC_PROD_DEV', 'Core Product Development', 'DEP_PROD', 'ierickson@globalapex.com'),
+                ('SEC_UX_DESIGN', 'UX & Design Research', 'DEP_PROD', 'zjarvis@globalapex.com'),
                 ('SEC_ENT_SALES', 'Enterprise Sales', 'DEP_SALES', 'james.wilson@globalapex.com'),
+                ('SEC_GOV_SALES', 'Government & Public Sales', 'DEP_SALES', 'agallagher@globalapex.com'),
+                ('SEC_DIG_MKTG', 'Digital Marketing', 'DEP_MKTG', 'kkeller@globalapex.com'),
+                ('SEC_BRAND', 'Brand & Communications', 'DEP_MKTG', 'mwalsh@globalapex.com'),
                 ('SEC_SUPP', 'Customer Support & Services', 'DEP_CS', 'jessica.lee@globalapex.com'),
                 ('SEC_LOG', 'Supply Chain & Logistics', 'DEP_OPS', 'brandon.nelson@globalapex.com'),
             ]
@@ -136,11 +142,30 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS(f"  + Created/Updated {len(sections)} Sections."))
 
-            # 4. UNITS (Teams)
+            # 4. UNITS (2 per section)
             units_def = [
+                # Engineering
                 ('UNT_BACKEND', 'Core Backend Team', 'SEC_SOFTWARE', 'thomas.wright@globalapex.com'),
-                ('UNT_FRONTEND', 'Frontend & UI Team', 'SEC_SOFTWARE', 'andrew.baker@globalapex.com'),
+                ('UNT_FRONTEND', 'Frontend & UI Team', 'SEC_SOFTWARE', 'fkemp@globalapex.com'),
+                ('UNT_INFRA', 'Cloud Infrastructure Unit', 'SEC_DEVOPS', 'fnorris@globalapex.com'),
+                ('UNT_QA_AUTO', 'QA Automation Unit', 'SEC_DEVOPS', 'gquinn@globalapex.com'),
+                # Product
+                ('UNT_PROD_CORE', 'Platform Product Unit', 'SEC_PROD_DEV', 'gtate@globalapex.com'),
+                ('UNT_PROD_MOBILE', 'Mobile Apps Product Unit', 'SEC_PROD_DEV', 'hwallace@globalapex.com'),
+                ('UNT_UI_DESIGN', 'UI Design Unit', 'SEC_UX_DESIGN', 'hbates@globalapex.com'),
+                ('UNT_USER_RES', 'User Research Unit', 'SEC_UX_DESIGN', 'ibailey@globalapex.com'),
+                # Sales
                 ('UNT_DIRECT_SALES', 'Direct Accounts Team', 'SEC_ENT_SALES', 'emily.clark@globalapex.com'),
+                ('UNT_INSIDE_SALES', 'Inside Sales Team', 'SEC_ENT_SALES', 'cvance@globalapex.com'),
+                ('UNT_GOV_SOUTH', 'Southern Region Unit', 'SEC_GOV_SALES', 'dyates@globalapex.com'),
+                ('UNT_GOV_NORTH', 'Northern Region Unit', 'SEC_GOV_SALES', 'dbarrett@globalapex.com'),
+                # Marketing
+                ('UNT_SEO_SEM', 'SEO & Growth Unit', 'SEC_DIG_MKTG', 'knixon@globalapex.com'),
+                ('UNT_SOC_MEDIA', 'Social Media Unit', 'SEC_DIG_MKTG', 'lquitley@globalapex.com'),
+                ('UNT_CREATIVE', 'Creative Media Unit', 'SEC_BRAND', 'lthornton@globalapex.com'),
+                ('UNT_PR_COMMS', 'Public Relations Unit', 'SEC_BRAND', 'mzimmerman@globalapex.com'),
+                # Support & Logistics
+                ('UNT_CS_TIER1', 'Tier 1 Support Team', 'SEC_SUPP', 'jessica.lee@globalapex.com'),
                 ('UNT_PAYROLL', 'Accounting & Payroll Team', 'SEC_LOG', 'olivia.davis@globalapex.com'),
             ]
 
@@ -163,44 +188,59 @@ class Command(BaseCommand):
 
             # 5. POSITIONS HIERARCHY
             positions_def = [
-                ('POS_CEO', 'Chief Executive Officer', 1, None, 'DEP_EXEC'),
-                ('POS_COO', 'Chief Operating Officer', 2, 'POS_CEO', 'DEP_EXEC'),
-                ('POS_PERF_DIR', 'Performance Director', 2, 'POS_CEO', 'DEP_STRAT'),
-                ('POS_ENG_MGR', 'Engineering Manager', 3, 'POS_COO', 'DEP_ENG'),
-                ('POS_SALES_MGR', 'Sales Manager', 3, 'POS_COO', 'DEP_SALES'),
-                ('POS_OPS_DIR', 'Operations Director', 3, 'POS_COO', 'DEP_OPS'),
-                ('POS_MKTG_MGR', 'Marketing Manager', 3, 'POS_COO', 'DEP_MKTG'),
-                ('POS_CS_LEAD', 'Customer Support Lead', 3, 'POS_COO', 'DEP_CS'),
-                ('POS_FIN_MGR', 'Finance Manager', 3, 'POS_COO', 'DEP_FIN'),
-                ('POS_PROD_DIR', 'Product Director', 3, 'POS_COO', 'DEP_PROD'),
-                # Staff Positions
-                ('POS_ENG_LEAD', 'Principal Systems Architect', 4, 'POS_ENG_MGR', 'DEP_ENG'),
-                ('POS_ENG_STAFF', 'Senior Software Engineer', 5, 'POS_ENG_LEAD', 'DEP_ENG'),
-                ('POS_DEVOPS_LEAD', 'DevOps Lead', 4, 'POS_ENG_MGR', 'DEP_ENG'),
-                ('POS_QA_LEAD', 'QA Automation Lead', 5, 'POS_DEVOPS_LEAD', 'DEP_ENG'),
-                ('POS_SALES_SR_EXEC', 'Senior Account Executive', 4, 'POS_SALES_MGR', 'DEP_SALES'),
-                ('POS_SALES_EXEC', 'Account Executive', 5, 'POS_SALES_SR_EXEC', 'DEP_SALES'),
-                ('POS_SALES_SDR', 'Sales Development Rep', 6, 'POS_SALES_EXEC', 'DEP_SALES'),
-                ('POS_SALES_ENT', 'Enterprise Account Executive', 4, 'POS_SALES_MGR', 'DEP_SALES'),
-                ('POS_MKTG_SPEC', 'Digital Marketing Specialist', 4, 'POS_MKTG_MGR', 'DEP_MKTG'),
-                ('POS_MKTG_STRAT', 'Content Strategist', 5, 'POS_MKTG_SPEC', 'DEP_MKTG'),
-                ('POS_CS_MGR', 'Customer Success Manager', 4, 'POS_CS_LEAD', 'DEP_CS'),
-                ('POS_CS_SPEC', 'Support Specialist', 5, 'POS_CS_MGR', 'DEP_CS'),
-                ('POS_CS_REL', 'Client Relationship Lead', 4, 'POS_CS_LEAD', 'DEP_CS'),
-                ('POS_FIN_ACCT', 'Senior Accountant', 4, 'POS_FIN_MGR', 'DEP_FIN'),
-                ('POS_FIN_ANAL', 'Financial Analyst', 5, 'POS_FIN_ACCT', 'DEP_FIN'),
-                ('POS_PROD_SR', 'Senior Product Manager', 4, 'POS_PROD_DIR', 'DEP_PROD'),
-                ('POS_PROD_UX', 'UI/UX Designer', 5, 'POS_PROD_SR', 'DEP_PROD'),
-                ('POS_OPS_LOG', 'Logistics Coordinator', 4, 'POS_OPS_DIR', 'DEP_OPS'),
-                ('POS_OPS_PROC', 'Procurement Specialist', 5, 'POS_OPS_LOG', 'DEP_OPS'),
-                ('POS_OPS_CHAIN', 'Supply Chain Analyst', 5, 'POS_OPS_LOG', 'DEP_OPS'),
-                ('POS_CLIENT_ADMIN', 'Client Administrator', 1, 'POS_CEO', 'DEP_EXEC'),
+                # Single-Incumbent Leadership Positions
+                ('POS_CEO', 'Chief Executive Officer', 1, None, 'DEP_EXEC', None, None, True),
+                ('POS_COO', 'Chief Operating Officer', 2, 'POS_CEO', 'DEP_EXEC', None, None, True),
+                ('POS_PERF_DIR', 'Performance Director', 2, 'POS_CEO', 'DEP_STRAT', None, None, True),
+                ('POS_ENG_MGR', 'Engineering Manager', 3, 'POS_COO', 'DEP_ENG', 'SEC_SOFTWARE', 'UNT_BACKEND', True),
+                ('POS_SALES_MGR', 'Sales Manager', 3, 'POS_COO', 'DEP_SALES', 'SEC_ENT_SALES', 'UNT_DIRECT_SALES', True),
+                ('POS_OPS_DIR', 'Operations Director', 3, 'POS_COO', 'DEP_OPS', 'SEC_LOG', 'UNT_PAYROLL', True),
+                ('POS_MKTG_MGR', 'Marketing Manager', 3, 'POS_COO', 'DEP_MKTG', 'SEC_DIG_MKTG', 'UNT_SEO_SEM', True),
+                ('POS_CS_LEAD', 'Customer Support Lead', 3, 'POS_COO', 'DEP_CS', 'SEC_SUPP', 'UNT_CS_TIER1', True),
+                ('POS_FIN_MGR', 'Finance Manager', 3, 'POS_COO', 'DEP_FIN', None, None, True),
+                ('POS_PROD_DIR', 'Product Director', 3, 'POS_COO', 'DEP_PROD', 'SEC_PROD_DEV', 'UNT_PROD_CORE', True),
+
+                # Section & Unit Leads (Single Incumbent)
+                ('POS_ENG_LEAD', 'Principal Systems Architect', 4, 'POS_ENG_MGR', 'DEP_ENG', 'SEC_SOFTWARE', 'UNT_BACKEND', True),
+                ('POS_DEVOPS_LEAD', 'DevOps Lead', 4, 'POS_ENG_MGR', 'DEP_ENG', 'SEC_DEVOPS', 'UNT_INFRA', True),
+                ('POS_QA_LEAD', 'QA Automation Lead', 5, 'POS_DEVOPS_LEAD', 'DEP_ENG', 'SEC_DEVOPS', 'UNT_QA_AUTO', True),
+                ('POS_SALES_SR_EXEC', 'Senior Account Executive', 4, 'POS_SALES_MGR', 'DEP_SALES', 'SEC_ENT_SALES', 'UNT_DIRECT_SALES', True),
+                ('POS_CLIENT_ADMIN', 'Client Administrator', 1, 'POS_CEO', 'DEP_EXEC', None, None, True),
+
+                # Multi-Incumbent Staff Positions (Assigned to all employees across Units & Sections)
+                ('POS_ENG_STAFF', 'Software Engineer', 5, 'POS_ENG_LEAD', 'DEP_ENG', 'SEC_SOFTWARE', 'UNT_BACKEND', False),
+                ('POS_FRONTEND_DEV', 'Frontend Developer', 5, 'POS_ENG_LEAD', 'DEP_ENG', 'SEC_SOFTWARE', 'UNT_FRONTEND', False),
+                ('POS_DEVOPS_ENG', 'DevOps Engineer', 5, 'POS_DEVOPS_LEAD', 'DEP_ENG', 'SEC_DEVOPS', 'UNT_INFRA', False),
+                ('POS_QA_ENG', 'QA Test Engineer', 6, 'POS_QA_LEAD', 'DEP_ENG', 'SEC_DEVOPS', 'UNT_QA_AUTO', False),
+
+                ('POS_PROD_MGR', 'Product Manager', 4, 'POS_PROD_DIR', 'DEP_PROD', 'SEC_PROD_DEV', 'UNT_PROD_CORE', False),
+                ('POS_MOBILE_DEV', 'Mobile Specialist', 5, 'POS_PROD_DIR', 'DEP_PROD', 'SEC_PROD_DEV', 'UNT_PROD_MOBILE', False),
+                ('POS_UI_DESIGNER', 'UI Specialist', 5, 'POS_PROD_DIR', 'DEP_PROD', 'SEC_UX_DESIGN', 'UNT_UI_DESIGN', False),
+                ('POS_UX_RESEARCHER', 'UX Researcher', 5, 'POS_PROD_DIR', 'DEP_PROD', 'SEC_UX_DESIGN', 'UNT_USER_RES', False),
+
+                ('POS_SALES_EXEC', 'Account Executive', 5, 'POS_SALES_SR_EXEC', 'DEP_SALES', 'SEC_ENT_SALES', 'UNT_DIRECT_SALES', False),
+                ('POS_INSIDE_SALES', 'Inside Sales Rep', 5, 'POS_SALES_SR_EXEC', 'DEP_SALES', 'SEC_ENT_SALES', 'UNT_INSIDE_SALES', False),
+                ('POS_GOV_SOUTH_REP', 'South Sales Rep', 5, 'POS_SALES_MGR', 'DEP_SALES', 'SEC_GOV_SALES', 'UNT_GOV_SOUTH', False),
+                ('POS_GOV_NORTH_REP', 'North Sales Rep', 5, 'POS_SALES_MGR', 'DEP_SALES', 'SEC_GOV_SALES', 'UNT_GOV_NORTH', False),
+
+                ('POS_SEO_SPEC', 'SEO & Growth Specialist', 5, 'POS_MKTG_MGR', 'DEP_MKTG', 'SEC_DIG_MKTG', 'UNT_SEO_SEM', False),
+                ('POS_SOC_MEDIA_SPEC', 'Social Media Specialist', 5, 'POS_MKTG_MGR', 'DEP_MKTG', 'SEC_DIG_MKTG', 'UNT_SOC_MEDIA', False),
+                ('POS_CREATIVE_SPEC', 'Creative Designer', 5, 'POS_MKTG_MGR', 'DEP_MKTG', 'SEC_BRAND', 'UNT_CREATIVE', False),
+                ('POS_PR_COMMS_SPEC', 'PR Specialist', 5, 'POS_MKTG_MGR', 'DEP_MKTG', 'SEC_BRAND', 'UNT_PR_COMMS', False),
+
+                ('POS_CS_SPEC', 'Support Specialist', 5, 'POS_CS_LEAD', 'DEP_CS', 'SEC_SUPP', 'UNT_CS_TIER1', False),
+                ('POS_OPS_SPEC', 'Logistics Analyst', 5, 'POS_OPS_DIR', 'DEP_OPS', 'SEC_LOG', 'UNT_PAYROLL', False),
+                ('POS_FIN_SPEC', 'Financial Accountant', 5, 'POS_FIN_MGR', 'DEP_FIN', None, None, False),
             ]
 
             positions = {}
-            for job_code, title, level, rpt_code, dept_code in positions_def:
+            for job_code, title, level, rpt_code, dept_code, sec_code, unt_code, single_inc in positions_def:
                 reports_to_pos = positions.get(rpt_code) if rpt_code else None
                 dept_obj = departments.get(dept_code)
+                div_obj = dept_obj.division if dept_obj else None
+                sec_obj = sections.get(sec_code) if sec_code else None
+                unt_obj = units.get(unt_code) if unt_code else None
+
                 pos, _ = Position.objects.update_or_create(
                     tenant_id=tenant_id,
                     job_code=job_code,
@@ -208,7 +248,11 @@ class Command(BaseCommand):
                         'title': title,
                         'level': level,
                         'reports_to': reports_to_pos,
+                        'division': div_obj,
                         'department': dept_obj,
+                        'section': sec_obj,
+                        'unit': unt_obj,
+                        'is_single_incumbent': single_inc,
                         'is_active': True,
                     }
                 )
@@ -216,49 +260,50 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS(f"  + Created/Updated {len(positions)} Positions."))
 
-            # 6. MAP ALL USERS TO POSITIONS VIA EMPLOYMENT
-            user_position_assignment = [
-                ('sarah.jenkins@globalapex.com', 'POS_CEO', True, True),
-                ('victoria.king@globalapex.com', 'POS_COO', True, True),
-                ('elena.rostova@globalapex.com', 'POS_PERF_DIR', True, False),
-                ('rachel.adams@globalapex.com', 'POS_ENG_MGR', True, False),
-                ('mark.vance@globalapex.com', 'POS_SALES_MGR', True, False),
-                ('daniel.taylor@globalapex.com', 'POS_OPS_DIR', True, False),
-                ('lisa.ray@globalapex.com', 'POS_MKTG_MGR', True, False),
-                ('robert.martin@globalapex.com', 'POS_CS_LEAD', True, False),
-                ('brian.garcia@globalapex.com', 'POS_FIN_MGR', True, False),
-                ('nathan.scott@globalapex.com', 'POS_PROD_DIR', True, False),
-                ('david.miller@globalapex.com', 'POS_ENG_LEAD', False, False),
-                ('thomas.wright@globalapex.com', 'POS_ENG_STAFF', False, False),
-                ('sophia.martinez@globalapex.com', 'POS_DEVOPS_LEAD', False, False),
-                ('evelyn.perez@globalapex.com', 'POS_QA_LEAD', False, False),
-                ('james.wilson@globalapex.com', 'POS_SALES_SR_EXEC', False, False),
-                ('emily.clark@globalapex.com', 'POS_SALES_EXEC', False, False),
-                ('michael.brown@globalapex.com', 'POS_SALES_SDR', False, False),
-                ('justin.roberts@globalapex.com', 'POS_SALES_ENT', False, False),
-                ('kevin.white@globalapex.com', 'POS_MKTG_SPEC', False, False),
-                ('amanda.harris@globalapex.com', 'POS_MKTG_STRAT', False, False),
-                ('jessica.lee@globalapex.com', 'POS_CS_MGR', False, False),
-                ('william.thompson@globalapex.com', 'POS_CS_SPEC', False, False),
-                ('megan.turner@globalapex.com', 'POS_CS_REL', False, False),
-                ('olivia.davis@globalapex.com', 'POS_FIN_ACCT', False, False),
-                ('christopher.lopez@globalapex.com', 'POS_FIN_ANAL', False, False),
-                ('lauren.green@globalapex.com', 'POS_PROD_SR', False, False),
-                ('andrew.baker@globalapex.com', 'POS_PROD_UX', False, False),
-                ('brandon.nelson@globalapex.com', 'POS_OPS_LOG', False, False),
-                ('hannah.carter@globalapex.com', 'POS_OPS_PROC', False, False),
-                ('dylan.phillips@globalapex.com', 'POS_OPS_CHAIN', False, False),
-                ('careen@falcontech.com', 'POS_CLIENT_ADMIN', True, False),
+            # 6. MAP ALL USERS TO POSITIONS & EMPLOYMENTS
+            # Known key leaders
+            key_assignments = {
+                'sarah.jenkins@globalapex.com': ('POS_CEO', True, True),
+                'victoria.king@globalapex.com': ('POS_COO', True, True),
+                'elena.rostova@globalapex.com': ('POS_PERF_DIR', True, False),
+                'rachel.adams@globalapex.com': ('POS_ENG_MGR', True, False),
+                'mark.vance@globalapex.com': ('POS_SALES_MGR', True, False),
+                'daniel.taylor@globalapex.com': ('POS_OPS_DIR', True, False),
+                'lisa.ray@globalapex.com': ('POS_MKTG_MGR', True, False),
+                'robert.martin@globalapex.com': ('POS_CS_LEAD', True, False),
+                'brian.garcia@globalapex.com': ('POS_FIN_MGR', True, False),
+                'nathan.scott@globalapex.com': ('POS_PROD_DIR', True, False),
+                'david.miller@globalapex.com': ('POS_ENG_LEAD', True, False),
+                'sophia.martinez@globalapex.com': ('POS_DEVOPS_LEAD', True, False),
+                'evelyn.perez@globalapex.com': ('POS_QA_LEAD', False, False),
+                'james.wilson@globalapex.com': ('POS_SALES_SR_EXEC', True, False),
+                'careen@falcontech.com': ('POS_CLIENT_ADMIN', True, False),
+            }
+
+            # Multi-incumbent staff pool for round-robin assignment of all general employees
+            staff_position_pool = [
+                'POS_ENG_STAFF', 'POS_FRONTEND_DEV', 'POS_DEVOPS_ENG', 'POS_QA_ENG',
+                'POS_PROD_MGR', 'POS_MOBILE_DEV', 'POS_UI_DESIGNER', 'POS_UX_RESEARCHER',
+                'POS_SALES_EXEC', 'POS_INSIDE_SALES', 'POS_GOV_SOUTH_REP', 'POS_GOV_NORTH_REP',
+                'POS_SEO_SPEC', 'POS_SOC_MEDIA_SPEC', 'POS_CREATIVE_SPEC', 'POS_PR_COMMS_SPEC',
+                'POS_CS_SPEC', 'POS_OPS_SPEC', 'POS_FIN_SPEC'
             ]
 
             today = timezone.now().date()
             employment_count = 0
+            pool_idx = 0
 
-            for email, pos_code, is_mgr, is_exec in user_position_assignment:
-                u = user_map.get(email.lower())
-                if not u:
-                    self.stdout.write(self.style.WARNING(f"  [!] User email '{email}' not found in user_map!"))
-                    continue
+            for u in user_list:
+                email = u.email.lower()
+
+                if email in key_assignments:
+                    pos_code, is_mgr, is_exec = key_assignments[email]
+                else:
+                    # Match by department name if available, else pick from pool
+                    pos_code = staff_position_pool[pool_idx % len(staff_position_pool)]
+                    pool_idx += 1
+                    is_mgr = (u.role == 'supervisor')
+                    is_exec = (u.role == 'executive')
 
                 pos = positions.get(pos_code)
                 if not pos:
@@ -279,11 +324,11 @@ class Command(BaseCommand):
                 )
                 employment_count += 1
 
-                # Update User department string
+                # Sync user department string
                 if pos.department:
                     u.department = pos.department.name
                     u.save(update_fields=['department'])
 
-            self.stdout.write(self.style.SUCCESS(f"  + Created/Updated {employment_count} Employments."))
+            self.stdout.write(self.style.SUCCESS(f"  + Created/Updated {employment_count} Employments across all tenant users."))
 
-        self.stdout.write(self.style.SUCCESS(f"\n[SUCCESS] Completed Organization Structure seeding for tenant '{tenant_id}'!"))
+        self.stdout.write(self.style.SUCCESS(f"\n[SUCCESS] Completed complete Organization Structure seeding for tenant '{tenant_id}'!"))

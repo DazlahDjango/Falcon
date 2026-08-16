@@ -270,6 +270,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+DB_PORT_VAL = env('DB_PORT', default='5432')
+DB_OPTIONS_CFG = {}
+if str(DB_PORT_VAL) != '6432':
+    DB_OPTIONS_CFG['options'] = '-c search_path=public'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -277,13 +282,11 @@ DATABASES = {
         'USER': env('DB_USER', default='postgress'),
         'PASSWORD': env('DB_PASSWORD', default='postgress'),
         'HOST': env('DB_HOST', default='localhost'),
-        'PORT': env('DB_PORT', default='5433'),
-        'OPTIONS': {
-            'options': '-c search_path=public',  # For RLS
-        },
+        'PORT': DB_PORT_VAL,
+        'OPTIONS': DB_OPTIONS_CFG,
         'DISABLE_SERVER_SIDE_CURSORS': True,
         # Connection pooling
-        'CONN_MAX_AGE': 60,  # 60 seconds persistent connection
+        'CONN_MAX_AGE': env.int('CONN_MAX_AGE', default=60),  # Persistent connections
         'CONN_HEALTH_CHECKS': True,
     }
 }
@@ -292,6 +295,12 @@ DATABASES = {
 DATABASE_ROUTERS = [
     'apps.tenant.services.router_service.OrganizationDatabaseRouter',
 ]
+
+# Tenant Connection & Multi-Tenant Schema Caching Configuration
+TENANT_SCHEMA_CACHE_TTL = env.int('TENANT_SCHEMA_CACHE_TTL', default=300)
+ENABLE_PGBOUNCER_MODE = env.bool('ENABLE_PGBOUNCER_MODE', default=True)
+CONNECTION_METRICS_ASYNC = env.bool('CONNECTION_METRICS_ASYNC', default=True)
+
 
 # ============================================================
 # Frontend Configuration (for email links, redirects, etc.)
@@ -688,6 +697,8 @@ CHANNEL_LAYERS = {
 
 # LOGGING CONFIGURATION
 # ----------------------------------------------------------------------------
+INSTANCE_PORT = os.environ.get('DJANGO_PORT', '8000')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -711,9 +722,9 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
+            'filename': BASE_DIR / 'logs' / f'django_{INSTANCE_PORT}.log',
             'maxBytes': 1024 * 1024 * 10,  # 10 MB
-            'backupCount': 5,
+            'backupCount': 3,
             'formatter': 'json',
             'delay': True,
         },

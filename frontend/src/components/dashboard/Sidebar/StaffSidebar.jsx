@@ -30,7 +30,7 @@ const StaffSidebar = ({ currentTenant, ...props }) => {
       { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiTarget },
       { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'My Scores', icon: FiTrendingUp },
       { path: KPI_ROUTES.SCORE_STATISTICS, name: 'Performance Stats', icon: FiBarChart2 },
-      { path: '/my-performance', name: 'Mission Status', icon: FiFileText },
+      { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'Mission Status', icon: FiFileText },
     ],
     tasks: [
       { path: KPI_ROUTES.ACTUAL_SUBMIT, name: 'Submit Actuals', icon: FiCheckCircle },

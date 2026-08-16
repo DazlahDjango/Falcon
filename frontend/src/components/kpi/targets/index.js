@@ -15,6 +15,7 @@ export { default as MonthlyPhasingTable } from './phasing/MonthlyPhasingTable';
 export { default as MonthlyPhasingChart } from './phasing/MonthlyPhasingChart';
 export { default as PhasingStrategySelect } from './phasing/PhasingStrategySelect';
 export { default as PhasingLockCycle } from './phasing/PhasingLockCycle';
+export { default as TargetPhasingModal } from './TargetPhasingModal';
 
 // Cascade
 export { default as CascadeRules } from './cascade/CascadeRules';

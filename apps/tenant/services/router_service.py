@@ -22,17 +22,12 @@ class OrganizationDatabaseRouter:
         self.logger = logging.getLogger(__name__)
         self._cache = {}
 
-    def _get_org_db(self, organization_id):
-        from apps.tenant.models import Organization
-        try:
-            if organization_id in self._cache:
-                return self._cache[organization_id]
-            org = Organization.objects.get(id=organization_id)
-            db_name = 'default'
-            self._cache[organization_id] = db_name
-            return db_name
-        except Exception as e:
-            self.logger.warning(f"Failed to get org DB: {e}")
+    def _get_org_db(self, organization_id, read_only=False):
+        if read_only and 'replica' in settings.DATABASES:
+            return 'replica'
+        if organization_id in self._cache:
+            return self._cache[organization_id]
+        self._cache[organization_id] = 'default'
         return 'default'
 
     def _get_current_org_id(self, model, **hints):
@@ -78,12 +73,13 @@ class OrganizationDatabaseRouter:
 
     def db_for_read(self, model, **hints):
         app_label = model._meta.app_label
+        target_db = 'replica' if 'replica' in settings.DATABASES else 'default'
         if self._is_global_app(app_label):
-            return 'default'
+            return target_db
         org_id = self._get_current_org_id(model, **hints)
         if org_id:
-            return self._get_org_db(org_id)
-        return 'default'
+            return self._get_org_db(org_id, read_only=True)
+        return target_db
 
     def db_for_write(self, model, **hints):
         app_label = model._meta.app_label
@@ -91,7 +87,7 @@ class OrganizationDatabaseRouter:
             return 'default'
         org_id = self._get_current_org_id(model, **hints)
         if org_id:
-            return self._get_org_db(org_id)
+            return self._get_org_db(org_id, read_only=False)
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):

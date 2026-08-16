@@ -1,0 +1,225 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.frontend
+    container_name: falcon-frontend-prod
+    restart: always
+    networks:
+      - falcon-prod-net
+
+  nginx:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.nginx
+    container_name: falcon-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - falcon-prod-static-vol:/app/staticfiles:ro
+      - falcon-prod-media-vol:/app/media:ro
+    depends_on:
+      - web-app-1
+      - web-app-2
+      - frontend
+    networks:
+      - falcon-prod-net
+
+  web-app-1:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-web-1-prod
+    restart: always
+    env_file:
+      - ../.env
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - CONTAINER_ROLE=primary_web
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    volumes:
+      - falcon-prod-static-vol:/app/staticfiles
+      - falcon-prod-media-vol:/app/media
+    depends_on:
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - falcon-prod-net
+
+  web-app-2:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-web-2-prod
+    restart: always
+    env_file:
+      - ../.env
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - CONTAINER_ROLE=secondary_web
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    volumes:
+      - falcon-prod-static-vol:/app/staticfiles
+      - falcon-prod-media-vol:/app/media
+    depends_on:
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - falcon-prod-net
+
+  celery-worker-default:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-celery-worker-default
+    restart: always
+    command: ["celery", "-A", "config", "worker", "-Q", "default,high_priority,calculations,aggregation,analytics,dashboard,cascade,notifications,email,cleanup,structure,cache,export,organization", "--loglevel=info", "--concurrency=4"]
+    env_file:
+      - ../.env
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - web-app-1
+    networks:
+      - falcon-prod-net
+
+  celery-worker-billing-report:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-celery-worker-billing-report
+    restart: always
+    command: ["celery", "-A", "config", "worker", "-Q", "billing,webhooks,backup,restore,maintenance,dr,health_check,scheduler,realtime,reportplt_export,reportplt_scheduler,reportplt_cleanup,reviews_default,reviews_batch,reviews_notifications,reviews_deadlines,reviews_calibration,reviews_feedback,reviews_pip,reviews_cleanup,reviews_reports,reviews_aggregation", "--loglevel=info", "--concurrency=4"]
+    env_file:
+      - ../.env
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - web-app-1
+    networks:
+      - falcon-prod-net
+
+  celery-beat:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-celery-beat-prod
+    restart: always
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    env_file:
+      - ../.env
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - web-app-1
+    networks:
+      - falcon-prod-net
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: falcon-pgbouncer-prod
+    restart: always
+    ports:
+      - "6432:6432"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=Dazl2006
+      - DB_NAME=fasc_db
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=10000
+      - DEFAULT_POOL_SIZE=150
+    volumes:
+      - ../config/pgbouncer.docker.ini:/etc/pgbouncer/pgbouncer.ini
+      - ../config/userlist.txt:/etc/pgbouncer/userlist.txt
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - falcon-prod-net
+
+  db:
+    image: postgres:16-alpine
+    container_name: falcon-postgres-prod
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - falcon-prod-postgres-data:/var/lib/postgresql/data
+      - ../config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ../config/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    environment:
+      POSTGRES_DB: fasc_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Dazl2006
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf -c hba_file=/etc/postgresql/pg_hba.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fasc_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - falcon-prod-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: falcon-redis-prod
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - falcon-prod-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - falcon-prod-net
+
+volumes:
+  falcon-prod-postgres-data:
+  falcon-prod-redis-data:
+  falcon-prod-static-vol:
+  falcon-prod-media-vol:
+
+networks:
+  falcon-prod-net:
+    driver: bridge

@@ -52,6 +52,19 @@ const ValidationDetail = ({ validation, onClose }) => {
                                 <span className="value">{validation.notes}</span>
                             </div>
                         )}
+                        {(validation.evidence_url || validation.file_url || validation.evidence) && (
+                            <div className="detail-row">
+                                <span className="label">Evidence File:</span>
+                                <a 
+                                    href={validation.evidence_url || validation.file_url || validation.evidence} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="value link-highlight"
+                                >
+                                    📄 View Evidence Document
+                                </a>
+                            </div>
+                        )}
                     </div>
                     
                     {validation.validated_by && (

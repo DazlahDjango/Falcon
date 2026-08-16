@@ -1,0 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: falcon-ingress
+  namespace: falcon-pms
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "falcon-web-service"
+spec:
+  rules:
+    - host: falcon.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: falcon-frontend-service
+                port:
+                  number: 80
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: falcon-web-service
+                port:
+                  number: 8000
+          - path: /ws/
+            pathType: Prefix
+            backend:
+              service:
+                name: falcon-web-service
+                port:
+                  number: 8000
+          - path: /admin/
+            pathType: Prefix
+            backend:
+              service:
+                name: falcon-web-service
+                port:
+                  number: 8000
+          - path: /health/
+            pathType: Prefix
+            backend:
+              service:
+                name: falcon-web-service
+                port:
+                  number: 8000

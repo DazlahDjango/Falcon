@@ -121,7 +121,9 @@ class ConnectionManagementMiddleware(MiddlewareMixin):
         return getattr(request, 'tenant_id', None) or getattr(request, 'organization_id', None)
 
     def _get_latest_connection_id(self, org_id):
-        """Return the PK of the most-recently created ACTIVE OrganizationConnection record."""
+        """Return the PK of the most-recently created ACTIVE OrganizationConnection record safely."""
+        if getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            return None
         try:
             from apps.tenant.models import OrganizationConnection
             from apps.tenant.constants import ConnectionStatus
