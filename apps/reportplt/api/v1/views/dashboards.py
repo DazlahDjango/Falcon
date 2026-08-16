@@ -31,7 +31,7 @@ class DashboardViewSet(BaseModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset().filter(is_deleted=False)
         if not self.request.user.is_superuser and self.request.user.role != 'super_admin':
-            if self.request.user.role not in ['client_admin', 'dashboard_champion', 'executive']:
+            if self.request.user.role not in ['client_admin', 'hr_admin', 'executive']:
                 queryset = queryset.filter(
                     models.Q(owner=self.request.user) |
                     models.Q(is_shared=True, allowed_roles__contains=[self.request.user.role]) |

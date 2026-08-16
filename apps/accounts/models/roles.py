@@ -19,7 +19,7 @@ class Role(BaseModel):
     # Falcon PMS role maping
     ROLE_SUPER_ADMIN = 'super_admin'
     ROLE_CLIENT_ADMIN = 'client_admin'
-    ROLE_DASHBOARD_CHAMPION = 'dashboard_champion'
+    ROLE_HR_ADMIN = 'hr_admin'
     ROLE_EXECUTIVE = 'executive'
     ROLE_SUPERVISOR = 'supervisor'
     ROLE_STAFF = 'staff'
@@ -27,7 +27,7 @@ class Role(BaseModel):
     SYSTEM_ROLES = [
         ROLE_SUPER_ADMIN,
         ROLE_CLIENT_ADMIN,
-        ROLE_DASHBOARD_CHAMPION,
+        ROLE_HR_ADMIN,
         ROLE_EXECUTIVE,
         ROLE_SUPERVISOR,
         ROLE_STAFF,

@@ -17,7 +17,7 @@ class CanViewPIP(BasePermission):
         user = request.user
         
         # HR/Admin can view everything
-        if user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN, UserRoles.HR_ADMIN]:
             return True
         
         # Employee can view their own PIP
@@ -45,7 +45,7 @@ class CanCreatePIP(BasePermission):
         user = request.user
         
         # HR/Admin can create
-        if user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN, UserRoles.HR_ADMIN]:
             return True
         
         # Managers can create for their team
@@ -67,7 +67,7 @@ class CanCreatePIP(BasePermission):
             except User.DoesNotExist:
                 pass
         
-        return user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN, UserRoles.DASHBOARD_CHAMPION]
+        return user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN, UserRoles.HR_ADMIN]
 
 
 class CanManagePIP(BasePermission):
@@ -80,7 +80,7 @@ class CanManagePIP(BasePermission):
         user = request.user
         
         # HR/Admin can manage everything
-        if user.role in ['admin', 'super_admin', 'hr']:
+        if user.role in ['admin', 'super_admin', 'client_admin', 'hr', 'hr_admin']:
             return True
         
         # Owner can manage
@@ -102,11 +102,11 @@ class CanApprovePIP(BasePermission):
     """
     def has_permission(self, request, view):
         user = request.user
-        return user.role in ['admin', 'super_admin', 'hr']
+        return user.role in ['admin', 'super_admin', 'client_admin', 'hr', 'hr_admin']
     
     def has_object_permission(self, request, view, obj):
         user = request.user
-        return user.role in ['admin', 'super_admin', 'hr']
+        return user.role in ['admin', 'super_admin', 'client_admin', 'hr', 'hr_admin']
 
 
 class CanCompletePIPAction(BasePermission):
@@ -120,7 +120,7 @@ class CanCompletePIPAction(BasePermission):
         user = request.user
         
         # HR/Admin can complete anything
-        if user.role in ['admin', 'super_admin', 'hr']:
+        if user.role in ['admin', 'super_admin', 'client_admin', 'hr', 'hr_admin']:
             return True
         
         # Employee can complete their own actions

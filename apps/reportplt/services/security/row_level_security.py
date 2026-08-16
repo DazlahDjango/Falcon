@@ -44,7 +44,7 @@ class RLSEnforcer:
         qs = self.enforce_tenant_isolation(queryset)
         if self.user.role == 'client_admin':
             return qs
-        if self.user.role == 'dashboard_champion':
+        if self.user.role == 'hr_admin':
             return qs
         if self.user.role == 'executive':
             return qs
@@ -68,7 +68,7 @@ class RLSEnforcer:
 
     def _filter_dashboards(self, queryset):
         qs = self.enforce_tenant_isolation(queryset)
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return qs
         if self.user.role == 'supervisor':
             team_ids = self.user.get_team_ids()
@@ -88,7 +88,7 @@ class RLSEnforcer:
 
     def _filter_templates(self, queryset):
         qs = self.enforce_tenant_isolation(queryset)
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return qs
         if self.user.role == 'supervisor':
             return qs.filter(
@@ -118,7 +118,7 @@ class RLSEnforcer:
 
     def _filter_schedules(self, queryset):
         qs = self.enforce_tenant_isolation(queryset)
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return qs
         if self.user.role == 'supervisor':
             team_ids = self.user.get_team_ids()
@@ -176,7 +176,7 @@ class RLSEnforcer:
             return True
         if self.user.department and self.user.department in report.allowed_departments:
             return True
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return True
         if self.user.role == 'supervisor' and report.owner_id in self.user.get_team_ids():
             return True
@@ -192,7 +192,7 @@ class RLSEnforcer:
                 return True
             if self.user.department and self.user.department in dashboard.allowed_departments:
                 return True
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return True
         if self.user.role == 'supervisor' and dashboard.owner_id in self.user.get_team_ids():
             return True
@@ -203,7 +203,7 @@ class RLSEnforcer:
             return True
         if template.owner_id == self.user.id:
             return True
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return True
         return False
 
@@ -219,7 +219,7 @@ class RLSEnforcer:
     def _check_schedule_access(self, schedule):
         if schedule.owner_id == self.user.id:
             return True
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return True
         if self.user.role == 'supervisor' and schedule.owner_id in self.user.get_team_ids():
             return True

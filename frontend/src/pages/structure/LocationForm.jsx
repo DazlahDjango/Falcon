@@ -21,6 +21,7 @@ const LocationForm = () => {
     const locData = locationsResponse?.data?.results || locationsResponse?.results || locationsResponse;
     return Array.isArray(locData) ? locData : [];
   }, [locationsResponse]);
+  const [isCodeTouched, setIsCodeTouched] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -63,14 +64,25 @@ const LocationForm = () => {
         phone_number: existingLocation.phone_number || '',
         email: existingLocation.email || '',
       });
+      setIsCodeTouched(true);
     }
   }, [isEditMode, existingLocation]);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    if (name === 'code') {
+      setIsCodeTouched(true);
+    }
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+      if (name === 'name' && !isCodeTouched && !isEditMode) {
+        const cleanName = value.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        updated.code = cleanName ? `LOC-${cleanName}`.substring(0, 50) : '';
+      }
+      return updated;
+    });
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -94,7 +106,6 @@ const LocationForm = () => {
   };
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.code.trim()) newErrors.code = 'Location code is required';
     if (!formData.name.trim()) newErrors.name = 'Location name is required';
     if (!formData.country) newErrors.country = 'Country is required';
     if (formData.seating_capacity !== '' && formData.seating_capacity < 0) {
@@ -111,8 +122,13 @@ const LocationForm = () => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
+    let finalCode = formData.code.trim().toUpperCase();
+    if (!finalCode && formData.name) {
+      const cleanName = formData.name.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      finalCode = `LOC-${cleanName}`.substring(0, 50);
+    }
     const submitData = {
-      code: formData.code.toUpperCase(),
+      code: finalCode,
       name: formData.name,
       type: formData.type,
       parent_id: formData.parent_id || null,
@@ -180,20 +196,21 @@ const LocationForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location Code <span className="text-red-500">*</span>
+                Location Code <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
                 name="code"
                 value={formData.code}
                 onChange={handleChange}
-                placeholder="e.g., NBO-001"
+                placeholder="e.g., LOC-NAIROBI"
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
                   errors.code ? 'border-red-500' : 'border-gray-300'
                 }`}
                 disabled={isEditMode}
               />
               {errors.code && <p className="mt-1 text-sm text-red-500">{errors.code}</p>}
+              <p className="mt-1 text-xs text-gray-400">Unique identifier for the location (Auto-generated from name if left blank)</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

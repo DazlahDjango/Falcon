@@ -31,7 +31,7 @@ class DataSeederService:
                 default_roles = [
                     {'name': 'Super Admin', 'code': Role.ROLE_SUPER_ADMIN, 'description': 'Full administrative control over all tenant operations.', 'order': 1},
                     {'name': 'Client Admin', 'code': Role.ROLE_CLIENT_ADMIN, 'description': 'Tenant-level administrative access.', 'order': 2},
-                    {'name': 'Dashboard Champion', 'code': Role.ROLE_DASHBOARD_CHAMPION, 'description': 'Responsible for managing metrics and KPI dashboards.', 'order': 3},
+                    {'name': 'HR Admin', 'code': Role.ROLE_HR_ADMIN, 'description': 'Responsible for managing HR performance review cycles, rating scales, competencies, calibration, and PIPs.', 'order': 3},
                     {'name': 'Executive', 'code': Role.ROLE_EXECUTIVE, 'description': 'High-level reporting and view-only analytics access.', 'order': 4},
                     {'name': 'Supervisor', 'code': Role.ROLE_SUPERVISOR, 'description': 'Manages teams, assigns tasks, and reviews progress.', 'order': 5},
                     {'name': 'Staff', 'code': Role.ROLE_STAFF, 'description': 'Performs tasks, inputs KPI actuals, and updates personal dashboard.', 'order': 6},

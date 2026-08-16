@@ -19,7 +19,7 @@ class AnalyticsViewPermission(AnalyticsPermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.DASHBOARD_CHAMPION]:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.HR_ADMIN]:
             return True
         return False
 
@@ -39,7 +39,7 @@ class TrendAnalysisPermission(AnalyticsPermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.DASHBOARD_CHAMPION]:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.HR_ADMIN]:
             return True
         if request.user.role == UserRoles.SUPERVISOR:
             return True
@@ -51,7 +51,7 @@ class ComparativeAnalysisPermission(AnalyticsPermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.DASHBOARD_CHAMPION]:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE, UserRoles.HR_ADMIN]:
             return True
         return False
 

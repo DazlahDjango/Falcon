@@ -11,6 +11,7 @@ export { default as ExecutiveReports } from './ExecutiveDashboard/ExecutiveRepor
 
 // ==================== CLIENT ADMIN DASHBOARD ====================
 export { default as ClientAdminDashboard } from './ClientAdminDashboard/ClientAdminDashboard';
+export { default as ClientAdminOverview } from './ClientAdminDashboard/ClientAdminDashboard';
 export { default as TenantOverview } from './ClientAdminDashboard/TenantOverview';
 export { default as CompliancePanel } from './ClientAdminDashboard/CompliancePanel';
 export { default as PendingApprovalsPanel } from './ClientAdminDashboard/PendingApprovalsPanel';

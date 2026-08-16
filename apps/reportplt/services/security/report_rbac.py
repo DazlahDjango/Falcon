@@ -40,7 +40,7 @@ class ReportRBAC:
     def can_create_report(self, report_type: str = None) -> bool:
         if self._is_super_admin():
             return True
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive', 'supervisor']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive', 'supervisor']:
             return True
         if self.user.role == 'staff' and report_type == 'personal':
             return True
@@ -92,7 +92,7 @@ class ReportRBAC:
             return False
         if report.owner_id == self.user.id:
             return True
-        if self.user.role in ['client_admin', 'dashboard_champion']:
+        if self.user.role in ['client_admin', 'hr_admin']:
             return True
         return False
 
@@ -150,7 +150,7 @@ class ReportRBAC:
     def can_create_template(self) -> bool:
         if self._is_super_admin():
             return True
-        if self.user.role in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return True
         return False
 

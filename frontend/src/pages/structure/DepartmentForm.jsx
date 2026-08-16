@@ -18,6 +18,7 @@ const DepartmentForm = () => {
   const { data: existingDepartment, isLoading: isLoadingDepartment } = useDepartment(id, { enabled: isEditMode });
   const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
   const departments = departmentsPage?.results ?? [];
+  const [isCodeTouched, setIsCodeTouched] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -40,14 +41,25 @@ const DepartmentForm = () => {
         sensitivity_level: existingDepartment.sensitivity_level || 'internal',
         is_active: existingDepartment.is_active,
       });
+      setIsCodeTouched(true);
     }
   }, [isEditMode, existingDepartment]);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    if (name === 'code') {
+      setIsCodeTouched(true);
+    }
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+      if (name === 'name' && !isCodeTouched && !isEditMode) {
+        const cleanName = value.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        updated.code = cleanName ? `DEP-${cleanName}`.substring(0, 50) : '';
+      }
+      return updated;
+    });
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -60,9 +72,8 @@ const DepartmentForm = () => {
   };
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.code.trim()) newErrors.code = 'Department code is required';
     if (!formData.name.trim()) newErrors.name = 'Department name is required';
-    if (formData.code && !/^[A-Z0-9][A-Z0-9\-_]{2,49}$/.test(formData.code)) {
+    if (formData.code.trim() && !/^[A-Z0-9][A-Z0-9\-_]{2,49}$/.test(formData.code.trim())) {
       newErrors.code = 'Code must be 3-50 characters: uppercase letters, numbers, hyphens, underscores';
     }
     if (formData.headcount_limit && formData.headcount_limit < 0) {
@@ -75,8 +86,13 @@ const DepartmentForm = () => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
+    let finalCode = formData.code.trim().toUpperCase();
+    if (!finalCode && formData.name) {
+      const cleanName = formData.name.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      finalCode = `DEP-${cleanName}`.substring(0, 50);
+    }
     const submitData = {
-      code: formData.code.toUpperCase(),
+      code: finalCode,
       name: formData.name,
       description: formData.description,
       parent_id: formData.parent_id || null,
@@ -128,21 +144,21 @@ const DepartmentForm = () => {
         <div className="p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Department Code <span className="text-red-500">*</span>
+              Department Code <span className="text-gray-400 font-normal">(Optional)</span>
             </label>
             <input
               type="text"
               name="code"
               value={formData.code}
               onChange={handleChange}
-              placeholder="e.g., FIN-001"
+              placeholder="e.g., DEP-FINANCE"
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.code ? 'border-red-500' : 'border-gray-300'
               }`}
               disabled={isEditMode}
             />
             {errors.code && <p className="mt-1 text-sm text-red-500">{errors.code}</p>}
-            <p className="mt-1 text-xs text-gray-400">Unique identifier for the department</p>
+            <p className="mt-1 text-xs text-gray-400">Unique identifier for the department (Auto-generated from name if left blank)</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -69,7 +69,7 @@ class IsOrganizationUser(BasePermission):
             return True
         return request.user.role in [
             UserRoles.CLIENT_ADMIN,
-            UserRoles.DASHBOARD_CHAMPION,
+            UserRoles.HR_ADMIN,
             UserRoles.EXECUTIVE,
             UserRoles.SUPERVISOR,
             UserRoles.STAFF,
@@ -156,7 +156,7 @@ class CanViewOrganization(BasePermission):
             return True
         return request.user.role in [
             UserRoles.CLIENT_ADMIN,
-            UserRoles.DASHBOARD_CHAMPION,
+            UserRoles.HR_ADMIN,
             UserRoles.EXECUTIVE,
             UserRoles.SUPERVISOR,
             UserRoles.STAFF,
@@ -286,7 +286,7 @@ class CanViewResource(BasePermission):
             return True
         return request.user.role in [
             UserRoles.CLIENT_ADMIN,
-            UserRoles.DASHBOARD_CHAMPION,
+            UserRoles.HR_ADMIN,
             UserRoles.EXECUTIVE,
             UserRoles.SUPERVISOR,
         ]

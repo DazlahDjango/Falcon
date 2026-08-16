@@ -14,7 +14,7 @@ class UserRoles:
     """User role constants."""
     SUPER_ADMIN = 'super_admin'
     CLIENT_ADMIN = 'client_admin'
-    DASHBOARD_CHAMPION = 'dashboard_champion'
+    HR_ADMIN = 'hr_admin'
     EXECUTIVE = 'executive'
     SUPERVISOR = 'supervisor'
     STAFF = 'staff'
@@ -23,7 +23,7 @@ class UserRoles:
     ALL = [
         SUPER_ADMIN,
         CLIENT_ADMIN,
-        DASHBOARD_CHAMPION,
+        HR_ADMIN,
         EXECUTIVE,
         SUPERVISOR,
         STAFF,
@@ -33,7 +33,7 @@ class UserRoles:
     CHOICES = [
         (SUPER_ADMIN, _('Super Admin')),
         (CLIENT_ADMIN, _('Client Admin')),
-        (DASHBOARD_CHAMPION, _('Dashboard Champion')),
+        (HR_ADMIN, _('HR Admin')),
         (EXECUTIVE, _('Executive')),
         (SUPERVISOR, _('Supervisor')),
         (STAFF, _('Staff')),
@@ -43,9 +43,9 @@ class UserRoles:
     HIERARCHY = {
         SUPER_ADMIN: 0,
         CLIENT_ADMIN: 1,
+        HR_ADMIN: 2,
         EXECUTIVE: 2,
         SUPERVISOR: 3,
-        DASHBOARD_CHAMPION: 3,
         STAFF: 4,
         READ_ONLY: 5,
     }
@@ -304,9 +304,9 @@ SYSTEM_ROLES_DATA = [
         'order': 2,
     },
     {
-        'code': UserRoles.DASHBOARD_CHAMPION,
-        'name': _('Dashboard Champion'),
-        'description': _('Enter company targets, monitor aggregate performance.'),
+        'code': UserRoles.HR_ADMIN,
+        'name': _('HR Admin'),
+        'description': _('Manage performance review cycles, rating scales, competencies, calibration, and PIPs.'),
         'is_assignable': True,
         'order': 3,
     },

@@ -21,6 +21,7 @@ const CostCenterForm = () => {
     const ccData = costCentersResponse?.data?.results || costCentersResponse?.results || costCentersResponse;
     return Array.isArray(ccData) ? ccData : [];
   }, [costCentersResponse]);
+  const [isCodeTouched, setIsCodeTouched] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -53,14 +54,25 @@ const CostCenterForm = () => {
         requires_budget_approval: existingCostCenter.requires_budget_approval ?? true,
         authorized_approver_ids: existingCostCenter.authorized_approver_ids || [],
       });
+      setIsCodeTouched(true);
     }
   }, [isEditMode, existingCostCenter]);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    if (name === 'code') {
+      setIsCodeTouched(true);
+    }
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+      if (name === 'name' && !isCodeTouched && !isEditMode) {
+        const cleanName = value.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        updated.code = cleanName ? `CC-${cleanName}`.substring(0, 20) : '';
+      }
+      return updated;
+    });
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -75,7 +87,6 @@ const CostCenterForm = () => {
   };
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.code.trim()) newErrors.code = 'Cost center code is required';
     if (!formData.name.trim()) newErrors.name = 'Cost center name is required';
     if (formData.budget_amount !== '' && formData.budget_amount < 0) {
       newErrors.budget_amount = 'Budget amount cannot be negative';
@@ -93,8 +104,13 @@ const CostCenterForm = () => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
+    let finalCode = formData.code.trim().toUpperCase();
+    if (!finalCode && formData.name) {
+      const cleanName = formData.name.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      finalCode = `CC-${cleanName}`.substring(0, 20);
+    }
     const submitData = {
-      code: formData.code.toUpperCase(),
+      code: finalCode,
       name: formData.name,
       description: formData.description,
       parent_id: formData.parent_id || null,
@@ -154,21 +170,21 @@ const CostCenterForm = () => {
         <div className="p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cost Center Code <span className="text-red-500">*</span>
+              Cost Center Code <span className="text-gray-400 font-normal">(Optional)</span>
             </label>
             <input
               type="text"
               name="code"
               value={formData.code}
               onChange={handleChange}
-              placeholder="e.g., FIN-001"
+              placeholder="e.g., CC-OPERATIONS"
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${
                 errors.code ? 'border-red-500' : 'border-gray-300'
               }`}
               disabled={isEditMode}
             />
             {errors.code && <p className="mt-1 text-sm text-red-500">{errors.code}</p>}
-            <p className="mt-1 text-xs text-gray-400">Unique identifier for the cost center</p>
+            <p className="mt-1 text-xs text-gray-400">Unique identifier for the cost center (Auto-generated from name if left blank)</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
