@@ -34,11 +34,26 @@ export const AUTH_URL_FRAGMENTS = [
   '/auth/verify-email',
   '/auth/resend-verification',
   '/auth/mfa/',
+  '/auth/invitation/accept',
   '/auth/invitations/accept',
+];
+
+export const PUBLIC_URL_FRAGMENTS = [
+  ...AUTH_URL_FRAGMENTS,
+  '/health/',
+  '/docs/',
+  '/public/',
+  '/.well-known/',
+  '/static/',
+  '/media/',
 ];
 
 export function isAuthUrl(url = '') {
   return AUTH_URL_FRAGMENTS.some((frag) => url.includes(frag));
+}
+
+export function isPublicUrl(url = '') {
+  return PUBLIC_URL_FRAGMENTS.some((frag) => url.includes(frag));
 }
 
 export function moduleBaseUrl(modulePath = '') {

@@ -13,12 +13,19 @@ export { default as ExecutiveReports } from './ExecutiveDashboard/ExecutiveRepor
 export { default as ClientAdminDashboard } from './ClientAdminDashboard/ClientAdminDashboard';
 export { default as ClientAdminOverview } from './ClientAdminDashboard/ClientAdminDashboard';
 export { default as TenantOverview } from './ClientAdminDashboard/TenantOverview';
+export { default as ClientAdminTenant } from './ClientAdminDashboard/TenantOverview';
 export { default as CompliancePanel } from './ClientAdminDashboard/CompliancePanel';
+export { default as ClientAdminCompliance } from './ClientAdminDashboard/CompliancePanel';
 export { default as PendingApprovalsPanel } from './ClientAdminDashboard/PendingApprovalsPanel';
+export { default as ClientAdminApprovals } from './ClientAdminDashboard/PendingApprovalsPanel';
 export { default as MissingDataPanel } from './ClientAdminDashboard/MissingDataPanel';
+export { default as ClientAdminMissingData } from './ClientAdminDashboard/MissingDataPanel';
 export { default as KpiBreakdownPanel } from './ClientAdminDashboard/KpiBreakdownPanel';
+export { default as ClientAdminKpiBreakdown } from './ClientAdminDashboard/KpiBreakdownPanel';
 export { default as UserActivityPanel } from './ClientAdminDashboard/UserActivityPanel';
+export { default as ClientAdminUsers } from './ClientAdminDashboard/UserActivityPanel';
 export { default as SettingsPanel } from './ClientAdminDashboard/SettingsPanel';
+export { default as ClientAdminSettings } from './ClientAdminDashboard/SettingsPanel';
 
 // ==================== SUPER ADMIN DASHBOARD ====================
 export { default as SuperAdminDashboard } from './SuperAdminDashboard/SuperAdminDashboard';

@@ -1,8 +1,8 @@
 import logging
 from typing import Tuple, Optional, Dict, Any
 from django.core.exceptions import ValidationError
-from billing.constants import QuotaResource
-from billing.services.quota_service import QuotaService
+from apps.billing.constants import QuotaResource
+from apps.billing.services.usage.service import UsageTrackingService as QuotaService
 logger = logging.getLogger(__name__)
 
 class QuotaValidator:

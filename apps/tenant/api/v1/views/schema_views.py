@@ -34,7 +34,7 @@ class SchemaViewSet(viewsets.ModelViewSet):
         return action_serializers.get(self.action, SchemaSerializer)
 
     def get_permissions(self):
-        if self.action in ['provision', 'drop']:
+        if self.action in ['provision', 'drop', 'enable_rls']:
             self.permission_classes = [IsAuthenticated, IsSuperAdmin]
         else:
             self.permission_classes = [IsAuthenticated, CanManageSchema]
@@ -59,10 +59,25 @@ class SchemaViewSet(viewsets.ModelViewSet):
         result = service.provision_schema(schema.id)
         return Response({
             'success': True,
-            'message': f'Schema {result.schema_name} provisioned',
+            'message': f'Schema {result.schema_name} provisioned and migrated',
             'schema_id': str(result.id),
             'status': result.status
         })
+
+    @action(detail=True, methods=['post'], url_path='enable-rls')
+    def enable_rls(self, request, pk=None):
+        schema = self.get_object()
+        service = SchemaService()
+        try:
+            result = service.enable_rls(schema.id)
+            return Response({
+                'success': True,
+                'message': f"Enabled Row-Level Security on {result['tables_protected']} tables in schema '{result['schema']}'",
+                'schema_id': str(schema.id),
+                'tables_protected': result['tables_protected']
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def drop(self, request, pk=None):

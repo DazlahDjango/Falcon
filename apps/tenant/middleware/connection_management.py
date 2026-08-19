@@ -39,10 +39,8 @@ class ConnectionManagementMiddleware(MiddlewareMixin):
                 request.organization_connection = connection
                 request.organization_id = org_id
 
-                # ✅ FIX 2: Record the specific connection_id on the request so that
-                # release_connection() can close ONLY this record (not all ACTIVE records
-                # for the org, which was the leak that exhausted the pool).
-                request._connection_record_id = self._get_latest_connection_id(org_id)
+                record = getattr(connection, '_connection_record', None)
+                request._connection_record_id = record.id if record else self._get_latest_connection_id(org_id)
 
                 self._set_thread_local(org_id, connection)
                 logger.debug(f"Connection established for organization {org_id}")
@@ -55,18 +53,12 @@ class ConnectionManagementMiddleware(MiddlewareMixin):
         if hasattr(request, 'organization_connection'):
             try:
                 org_id = str(request.organization_id)
-                self.connection_service.release_connection(org_id)
-
-                # ✅ FIX 3: After releasing, immediately mark this specific connection
-                # record as CLOSED (not IDLE). Per-request connections are ephemeral —
-                # they should not accumulate as IDLE records and count against the pool
-                # limit on the next request. Persistent connections managed by the
-                # thread-local pool can remain IDLE.
-                self._close_request_connection_record(org_id, request)
+                record_id = getattr(request, '_connection_record_id', None)
+                self.connection_service.release_connection(org_id, record_id=record_id)
 
                 logger.debug(f"Connection released for organization {request.organization_id}")
             except Exception as e:
-                logger.warning(f"Failed to release connection: {str(e)})")
+                logger.warning(f"Failed to release connection: {str(e)}")
         self._clear_thread_local()
         return response
 

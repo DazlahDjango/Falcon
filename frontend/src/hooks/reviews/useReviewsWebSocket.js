@@ -1,92 +1,88 @@
-// src/hooks/reviews/useReviewsWebSocket.js
-import { useEffect, useCallback, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { websocketActions } from '../../store/reviews/middleware/websocketMiddleware';
+import { useEffect, useCallback, useState, useRef } from 'react';
+import reviewsWebSocketService from '../../services/reviews/websocket.service';
 
-const useReviewsWebSocket = (options = {}) => {
+export const useReviewsWebSocket = (options = {}) => {
   const {
     autoConnect = true,
-    onMessage,
-    onOpen,
-    onClose,
-    onError,
-    channels = ['reviews', 'notifications', 'dashboard'],
+    cycleId = null,
+    sessionId = null,
+    channel = 'notifications',
   } = options;
 
-  const dispatch = useDispatch();
   const [isConnected, setIsConnected] = useState(false);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
+  const [lastMessage, setLastMessage] = useState(null);
 
-  // Connect to WebSocket
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const isConnectingRef = useRef(false);
+  const isConnectedRef = useRef(false);
+
   const connect = useCallback(() => {
-    dispatch(websocketActions.connect());
-  }, [dispatch]);
+    if (isConnectingRef.current || isConnectedRef.current) return;
+    isConnectingRef.current = true;
 
-  // Disconnect from WebSocket
+    const handleMsg = (data) => {
+      setLastMessage(data);
+      optionsRef.current.onMessage?.(data);
+    };
+
+    const handleError = (err) => {
+      isConnectingRef.current = false;
+      optionsRef.current.onError?.(err);
+    };
+
+    const handleConnectSuccess = () => {
+      isConnectedRef.current = true;
+      isConnectingRef.current = false;
+      setIsConnected(true);
+    };
+
+    if (channel === 'status' && cycleId) {
+      reviewsWebSocketService.connectStatus(cycleId, handleMsg, handleError).then(handleConnectSuccess);
+    } else if (channel === 'calibration' && sessionId) {
+      reviewsWebSocketService.connectCalibration(sessionId, handleMsg, handleError).then(handleConnectSuccess);
+    } else if (channel === 'dashboard') {
+      reviewsWebSocketService.connectDashboard(handleMsg, handleError).then(handleConnectSuccess);
+    } else {
+      reviewsWebSocketService.connectNotifications(handleMsg, handleError).then(handleConnectSuccess);
+    }
+  }, [channel, cycleId, sessionId]);
+
   const disconnect = useCallback(() => {
-    dispatch(websocketActions.disconnect());
+    if (channel === 'status' && cycleId) {
+      reviewsWebSocketService.disconnectStatus(cycleId);
+    } else if (channel === 'calibration' && sessionId) {
+      reviewsWebSocketService.disconnectCalibration(sessionId);
+    } else if (channel === 'dashboard') {
+      reviewsWebSocketService.disconnectDashboard();
+    } else {
+      reviewsWebSocketService.disconnectNotifications();
+    }
+    isConnectedRef.current = false;
+    isConnectingRef.current = false;
     setIsConnected(false);
-  }, [dispatch]);
+  }, [channel, cycleId, sessionId]);
 
-  // Send message
-  const send = useCallback(
-    (payload) => {
-      if (!isConnected) {
-        console.warn('WebSocket: Cannot send - not connected');
-        return false;
-      }
-      dispatch(websocketActions.send(payload));
-      return true;
-    },
-    [dispatch, isConnected]
-  );
+  const send = useCallback((message) => {
+    const key = channel === 'status' ? `reviews_status_${cycleId}` : channel === 'calibration' ? `reviews_calibration_${sessionId}` : channel === 'dashboard' ? 'reviews_dashboard' : 'reviews_notifications';
+    return reviewsWebSocketService.send(key, message);
+  }, [channel, cycleId, sessionId]);
 
-  // Subscribe to channels
-  const subscribe = useCallback(
-    (newChannels) => {
-      const channelsToSubscribe = newChannels || channels;
-      dispatch(websocketActions.subscribe(channelsToSubscribe));
-    },
-    [dispatch, channels]
-  );
-
-  // Reconnect
-  const reconnect = useCallback(() => {
-    disconnect();
-    setTimeout(connect, 3000);
-  }, [connect, disconnect]);
-
-  // Auto-connect on mount
   useEffect(() => {
     if (autoConnect) {
       connect();
-      // Subscribe to channels after connection
-      setTimeout(() => subscribe(), 100);
     }
-
-    // Set up connection status listener
-    const checkConnection = setInterval(() => {
-      // Check if WebSocket is connected via middleware state
-      // This would need to be implemented in the middleware
-    }, 5000);
-
     return () => {
-      clearInterval(checkConnection);
-      if (autoConnect) {
-        disconnect();
-      }
+      disconnect();
     };
-  }, [autoConnect, connect, disconnect, subscribe]);
+  }, [autoConnect, connect, disconnect]);
 
   return {
+    isConnected,
+    lastMessage,
     connect,
     disconnect,
-    reconnect,
     send,
-    subscribe,
-    isConnected,
-    reconnectAttempts: reconnectAttempts.current,
   };
 };
 

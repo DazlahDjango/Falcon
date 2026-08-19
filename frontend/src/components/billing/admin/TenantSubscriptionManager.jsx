@@ -3,6 +3,7 @@ import { FiX, FiRefreshCw, FiCreditCard, FiCalendar, FiDollarSign, FiAlertCircle
 import { StatusBadge } from '../shared/StatusBadge';
 import { CurrencyFormatter } from '../shared/CurrencyFormatter';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
+import { EmptyState } from '../shared/EmptyState';
 import { useAdminBilling } from '../../../hooks/billing/useAdminBilling';
 import { useSubscription } from '../../../hooks/billing/useSubscription';
 import { useEnterprise } from '../../../hooks/billing/useEnterprise';
@@ -16,9 +17,9 @@ export const TenantSubscriptionManager = ({ tenant, onClose }) => {
     const [updating, setUpdating] = useState(false);
     const [override, setOverride] = useState(null);
 
-    const subscriptions = tenantData[tenant.id]?.subscriptions || [];
-    const invoices = tenantData[tenant.id]?.invoices || [];
-    const transactions = tenantData[tenant.id]?.transactions || [];
+    const subscriptions = tenantData?.[tenant.id]?.subscriptions || [];
+    const invoices = tenantData?.[tenant.id]?.invoices || [];
+    const transactions = tenantData?.[tenant.id]?.transactions || [];
     const currentSubscription = subscriptions.find(s => s.status === 'active' || s.status === 'trialing');
 
     useEffect(() => {
@@ -87,7 +88,7 @@ export const TenantSubscriptionManager = ({ tenant, onClose }) => {
                                     {currentSubscription ? (
                                         <div className="subscription-details">
                                             <div className="sub-detail-header"><StatusBadge type="subscription" status={currentSubscription.status} size="lg" /><div className="sub-actions">{override && <span className="discount-badge"><FiAward /> {override.discount_percentage}% OFF</span>}</div></div>
-                                            <div className="sub-detail-row"><span className="label">Plan:</span><span className="value">{currentSubscription.plan?.name}</span></div>
+                                            <div className="sub-detail-row"><span className="label">Plan:</span><span className="value">{currentSubscription.plan?.name || currentSubscription.plan_name}</span></div>
                                             <div className="sub-detail-row"><span className="label">Amount:</span><span className="value"><CurrencyFormatter amount={currentSubscription.amount} />/{currentSubscription.billing_interval}</span></div>
                                             <div className="sub-detail-row"><span className="label">Current Period:</span><span className="value">{new Date(currentSubscription.current_period_start).toLocaleDateString()} - {new Date(currentSubscription.current_period_end).toLocaleDateString()}</span></div>
                                             <div className="sub-detail-row"><span className="label">Auto Renew:</span><span className="value">{currentSubscription.auto_renew ? 'Yes' : 'No'}</span></div>

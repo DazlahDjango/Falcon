@@ -28,8 +28,11 @@ schema_view = get_schema_view(
     permission_classes=[permissions.AllowAny]
 )
 
+from apps.tenant.views import falcon_verification_view
+
 urlpatterns = [
     path('', home_view, name='home'),
+    path('.well-known/falcon-verification.txt', falcon_verification_view, name='falcon-domain-verification'),
     path(settings.ADMIN_URL, admin.site.urls),  # Added trailing slash
     # Health
     path('health/', include('health_check.urls')),

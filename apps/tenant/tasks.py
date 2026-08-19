@@ -58,10 +58,11 @@ def provision_organization(self, organization_id):
 @shared_task(name='organization.create_schema_step')
 def create_schema_step_task(organization_id):
     from .services import ProvisioningService
-    return ProvisioningService().create_schema_step(organization_id)
+    ProvisioningService().create_schema_step(organization_id)
+    return organization_id
 
 @shared_task(name='organization.apply_migrations_step')
-def apply_migrations_step_task(schema_name, organization_id):
+def apply_migrations_step_task(organization_id):
     from .services import ProvisioningService
     ProvisioningService().apply_migrations_step(organization_id)
     return organization_id

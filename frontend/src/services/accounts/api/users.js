@@ -47,7 +47,7 @@ export const getUserPreferences = (userId) =>
 
 export const getInvitations = () => request.get(USER_ENDPOINTS.INVITATIONS);
 
-export const sendInvitation = (data) => request.post(USER_ENDPOINTS.INVITATIONS, data);
+export const sendInvitation = (data) => request.post(USER_ENDPOINTS.INVITE, data);
 
 export const bulkImportUsers = (formData) => {
     return request.post(USER_ENDPOINTS.BULK_IMPORT, formData, {

@@ -1,23 +1,28 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectEmployments, selectEmploymentsLoading } from '../../store/structure';
+import { selectEmploymentsItems, selectEmploymentsLoading } from '../../store/structure';
 import { fetchEmployments } from '../../store/structure/slice/employmentSlice';
-import { selectUsersTotal, selectUsersLoading } from '../../store/accounts';
+import { selectUsers, selectUsersLoading } from '../../store/accounts';
 import { fetchUsers } from '../../store/accounts/slice/userSlice';
 
 export const useEmployees = () => {
   const dispatch = useDispatch();
-  const users = useSelector(selectUsersTotal) || [];
+  const rawUsers = useSelector(selectUsers);
+  const users = Array.isArray(rawUsers) ? rawUsers : (rawUsers?.results || []);
   const usersLoading = useSelector(selectUsersLoading);
   
-  
-  const employments = useSelector(selectEmployments) || [];
+  const rawEmployments = useSelector(selectEmploymentsItems);
+  const employments = Array.isArray(rawEmployments) ? rawEmployments : (rawEmployments?.items || rawEmployments?.results || []);
   const employmentsLoading = useSelector(selectEmploymentsLoading);
 
   useEffect(() => {
-    dispatch(fetchUsers());
-    dispatch(fetchEmployments({ filters: { is_current: 'true', is_active: 'true' } }));
-  }, [dispatch]);
+    if (!users.length) {
+      dispatch(fetchUsers({ pageSize: 200 }));
+    }
+    if (!employments.length) {
+      dispatch(fetchEmployments({ filters: { is_current: 'true', is_active: 'true' } }));
+    }
+  }, [dispatch, users.length, employments.length]);
 
   const loading = usersLoading || employmentsLoading;
 

@@ -5,13 +5,13 @@ class AdminBillingServiceClass extends BillingBaseService {
     constructor() { super('admin'); }
 
     async getTenantSubscriptions(tenantId) {
-        return this.withRetry(() => this.apiClient.get(ADMIN_BILLING_ENDPOINTS.TENANT_SUBSCRIPTIONS(tenantId)));
+        return this.withRetry(() => this.apiClient.get('/subscriptions/', { params: { tenant_id: tenantId } }));
     }
     async getTenantInvoices(tenantId) {
-        return this.withRetry(() => this.apiClient.get(ADMIN_BILLING_ENDPOINTS.TENANT_INVOICES(tenantId)));
+        return this.withRetry(() => this.apiClient.get('/invoices/', { params: { tenant_id: tenantId } }));
     }
     async getTenantTransactions(tenantId) {
-        return this.withRetry(() => this.apiClient.get(ADMIN_BILLING_ENDPOINTS.TENANT_TRANSACTIONS(tenantId)));
+        return this.withRetry(() => this.apiClient.get('/transactions/', { params: { tenant_id: tenantId } }));
     }
     async bulkUpdateSubscriptions(updates) {
         return this.withRetry(() => this.apiClient.post(ADMIN_BILLING_ENDPOINTS.BULK_UPDATE_SUBSCRIPTIONS, { updates }));

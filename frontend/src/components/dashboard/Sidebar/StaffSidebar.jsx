@@ -2,11 +2,12 @@ import React from 'react';
 import { DASHBOARD_ROUTES } from '../../../config/constants/dashboardRouteConstants';
 import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
+import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstants';
 import CollapsibleSidebar from './CollapsibleSidebar';
-import { 
-  FiHome, FiBarChart2, FiTarget, FiTrendingUp, FiFileText, 
-  FiCheckCircle, FiClock, FiAlertCircle, FiBriefcase, 
-  FiGitBranch, FiAward, FiCalendar, FiSettings, FiBell 
+import {
+  FiHome, FiBarChart2, FiTarget, FiTrendingUp, FiFileText,
+  FiCheckCircle, FiClock, FiAlertCircle, FiBriefcase,
+  FiGitBranch, FiAward, FiCalendar, FiSettings, FiBell
 } from 'react-icons/fi';
 import { BsPersonBadge } from 'react-icons/bs';
 
@@ -49,6 +50,7 @@ const StaffSidebar = ({ currentTenant, ...props }) => {
     settings: [
       { path: KPI_ROUTES.NOTIFICATION_PREFERENCES, name: 'Preferences', icon: FiSettings },
       { path: KPI_ROUTES.REFERENCE_DATA, name: 'Reference', icon: FiBell },
+      { path: ACCOUNTS_ROUTES.MY_SETTINGS, name: 'My Settings', icon: FiSettings },
     ]
   };
 

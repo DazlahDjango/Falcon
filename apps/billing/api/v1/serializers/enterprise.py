@@ -33,7 +33,7 @@ class TenantOverrideSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     tenant_id = serializers.UUIDField()
     plan_id = serializers.UUIDField()
-    plan_name = serializers.CharField()
+    plan_name = serializers.CharField(source='plan.name', read_only=True)
     override_type = serializers.ChoiceField(choices=['pricing', 'limits', 'features', 'all'])
     custom_price_monthly = serializers.IntegerField(allow_null=True)
     custom_price_yearly = serializers.IntegerField(allow_null=True)

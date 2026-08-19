@@ -13,6 +13,7 @@ from .views import (
     AuditLogViewSet,
     EnterpriseOverrideViewSet,
     SystemSettingsView,
+    WebhookEventLogViewSet,
 )
 from .views.webhook import WebhookView
 
@@ -27,6 +28,7 @@ router.register(r'analytics', BillingAnalyticsViewSet, basename='billing-analyti
 router.register(r'usage', UsageViewSet, basename='usage')
 router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 router.register(r'enterprise', EnterpriseOverrideViewSet, basename='enterprise')
+router.register(r'webhooks', WebhookEventLogViewSet, basename='webhook-log')
 
 app_name = 'billing'
 

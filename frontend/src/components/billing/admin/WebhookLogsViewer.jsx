@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiActivity, FiRotateCcw, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiActivity, FiRotateCcw, FiChevronLeft, FiChevronRight, FiRadio, FiCheckCircle, FiXCircle, FiClock, FiBarChart2 } from 'react-icons/fi';
 import { BillingShell } from '../common/BillingShell';
 import { BillingCard } from '../shared/BillingCard';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -55,11 +55,11 @@ export const WebhookLogsViewer = () => {
         <BillingShell title="Webhook Logs" subtitle="Monitor and manage incoming webhook events">
             <div className="webhooks-container">
                 <div className="webhooks-stats-grid">
-                    <div className="webhook-stat-card"><div className="webhook-stat-icon total">📡</div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.total || 0}</span><span className="webhook-stat-label">Total Events</span></div></div>
-                    <div className="webhook-stat-card"><div className="webhook-stat-icon success">✅</div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.processed || 0}</span><span className="webhook-stat-label">Processed</span></div></div>
-                    <div className="webhook-stat-card"><div className="webhook-stat-icon failed">❌</div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.failed || 0}</span><span className="webhook-stat-label">Failed</span></div></div>
-                    <div className="webhook-stat-card"><div className="webhook-stat-icon pending">⏳</div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.pending || 0}</span><span className="webhook-stat-label">Pending</span></div></div>
-                    <div className="webhook-stat-card"><div className="webhook-stat-icon rate">📊</div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.success_rate?.toFixed(1) || 0}%</span><span className="webhook-stat-label">Success Rate</span></div></div>
+                    <div className="webhook-stat-card"><div className="webhook-stat-icon total"><FiRadio /></div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.total || 0}</span><span className="webhook-stat-label">Total Events</span></div></div>
+                    <div className="webhook-stat-card"><div className="webhook-stat-icon success"><FiCheckCircle /></div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.processed || 0}</span><span className="webhook-stat-label">Processed</span></div></div>
+                    <div className="webhook-stat-card"><div className="webhook-stat-icon failed"><FiXCircle /></div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.failed || 0}</span><span className="webhook-stat-label">Failed</span></div></div>
+                    <div className="webhook-stat-card"><div className="webhook-stat-icon pending"><FiClock /></div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.pending || 0}</span><span className="webhook-stat-label">Pending</span></div></div>
+                    <div className="webhook-stat-card"><div className="webhook-stat-icon rate"><FiBarChart2 /></div><div className="webhook-stat-info"><span className="webhook-stat-value">{safeStats.success_rate?.toFixed(1) || 0}%</span><span className="webhook-stat-label">Success Rate</span></div></div>
                 </div>
 
                 <BillingCard title="Webhook Events" icon={<FiActivity />}>

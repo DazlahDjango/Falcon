@@ -1,0 +1,6 @@
+email,username,first_name,last_name,role,employee_id,department,title
+sarah.jenkins@careentech.com,sjenkins_careen,Sarah,Jenkins,executive,CAR_001,Executive Office,Chief Executive Officer
+elena.rostova@careentech.com,erostova_careen,Elena,Rostova,dashboard_champion,CAR_002,Strategy & Planning,Performance Director
+mark.vance@careentech.com,mvance_careen,Mark,Vance,supervisor,CAR_003,Sales & Revenue,Sales Manager
+james.wilson@careentech.com,jwilson_careen,James,Wilson,staff,CAR_004,Sales & Revenue,Senior Account Executive
+emily.clark@careentech.com,eclark_careen,Emily,Clark,staff,CAR_005,Sales & Revenue,Account Executive

@@ -426,6 +426,7 @@ export const KPI_DASHBOARDS_NAV_ITEMS = [
 export const ACCOUNTS_SUPER_ADMIN_NAV_ITEMS = [
   { path: ACCOUNTS_ROUTES.USERS, name: 'All Users', icon: FiUsers },
   { path: ACCOUNTS_ROUTES.ADMIN_USERS, name: 'Manage Users', icon: FiUserCheck },
+  { path: ACCOUNTS_ROUTES.USER_BULK_IMPORT, name: 'Import Users', icon: FiPlus },
   { path: ACCOUNTS_ROUTES.ROLES, name: 'Roles', icon: FiShield },
   { path: ACCOUNTS_ROUTES.ADMIN_ROLES, name: 'Manage Roles', icon: FiKey },
   { path: ACCOUNTS_ROUTES.PERMISSIONS, name: 'Permissions', icon: FiLock },
@@ -445,7 +446,7 @@ export const ACCOUNTS_SUPER_ADMIN_NAV_ITEMS = [
   { path: ACCOUNTS_ROUTES.MFA_BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
   { path: ACCOUNTS_ROUTES.ADMIN_SYSTEM, name: 'System Settings', icon: FiServer },
   { path: ACCOUNTS_ROUTES.SYSTEM_SETTINGS, name: 'System Policy', icon: FiSettings },
-  { path: ACCOUNTS_ROUTES.TENANT_SETTINGS, name: 'Tenant Settings', icon: FiSettings },
+  { path: ACCOUNTS_ROUTES.ORGANIZATION_SETTINGS, name: 'Organization Settings', icon: FiSettings },
   { path: ACCOUNTS_ROUTES.MY_PROFILE, name: 'My Profile', icon: FiUser },
   { path: ACCOUNTS_ROUTES.MY_SETTINGS, name: 'My Settings', icon: FiSettings },
   { path: ACCOUNTS_ROUTES.CHANGE_PASSWORD, name: 'Change Password', icon: FiLock },
@@ -453,6 +454,7 @@ export const ACCOUNTS_SUPER_ADMIN_NAV_ITEMS = [
 
 export const ACCOUNTS_CLIENT_ADMIN_NAV_ITEMS = [
   { path: ACCOUNTS_ROUTES.USERS, name: 'Users', icon: FiUsers },
+  { path: ACCOUNTS_ROUTES.USER_BULK_IMPORT, name: 'Import Users', icon: FiPlus },
   { path: ACCOUNTS_ROUTES.ROLES, name: 'Roles', icon: FiShield },
   { path: ACCOUNTS_ROUTES.SESSIONS, name: 'Sessions', icon: FiClock },
   { path: ACCOUNTS_ROUTES.AUDIT_LOGS, name: 'Audit Logs', icon: FiFileText },
@@ -464,7 +466,7 @@ export const ACCOUNTS_CLIENT_ADMIN_NAV_ITEMS = [
   { path: ACCOUNTS_ROUTES.ADMIN_MFA, name: 'MFA Management', icon: FiSmartphone },
   { path: ACCOUNTS_ROUTES.MFA_DEVICES, name: 'My MFA Devices', icon: FiSmartphone },
   { path: ACCOUNTS_ROUTES.MFA_BACKUP_CODES, name: 'Backup Codes', icon: FiCode },
-  { path: ACCOUNTS_ROUTES.TENANT_SETTINGS, name: 'Tenant Settings', icon: FiSettings },
+  { path: ACCOUNTS_ROUTES.ORGANIZATION_SETTINGS, name: 'Organization Settings', icon: FiSettings },
   { path: ACCOUNTS_ROUTES.MY_PROFILE, name: 'My Profile', icon: FiUser },
   { path: ACCOUNTS_ROUTES.MY_SETTINGS, name: 'My Settings', icon: FiSettings },
   { path: ACCOUNTS_ROUTES.CHANGE_PASSWORD, name: 'Change Password', icon: FiLock },
@@ -718,6 +720,7 @@ export const CLIENT_ADMIN_NAV_GROUPS = {
     { path: ROUTES.ROLES, name: 'Role Management', icon: FiShield },
   ],
   reviews: CLIENT_ADMIN_REVIEWS_NAV_ITEMS,
+  accounts: ACCOUNTS_CLIENT_ADMIN_NAV_ITEMS,
   reporting: FLATTENED_REPORTS_NAV_ITEMS,
   mfa: MFA_NAV_ITEMS,
   compliance: [
@@ -775,6 +778,7 @@ export const CLIENT_ADMIN_DEFAULT_EXPANDED = {
   structureAdmin: false,
   management: true,
   reviews: true,
+  accounts: true,
   reporting: true,
   mfa: false,
   compliance: false,
@@ -822,6 +826,7 @@ export const CLIENT_ADMIN_GROUP_LABELS = {
   structureAdmin: '⚙️ Structure Administration',
   management: 'Management',
   reviews: '⭐ Performance Reviews',
+  accounts: '👥 Accounts Management',
   reporting: '📑 Enterprise Reporting',
   mfa: 'Multi-Factor Authentication',
   compliance: 'Reports & Compliance',

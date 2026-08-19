@@ -100,6 +100,20 @@ security_urls = [
     path('auth/step-up/verify/', StepUpVerifyView.as_view(), name='step-up-verify'),
 ]
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def unread_count_view(request):
+    try:
+        from notifications.models import Notification
+        unread = Notification.objects.filter(recipient=request.user, unread=True).count()
+    except Exception:
+        unread = 0
+    return Response({'unread_count': unread})
+
 # URL Patterns
 urlpatterns = [
     path('', include(router.urls)),
@@ -107,4 +121,6 @@ urlpatterns = [
     path('auth/', include(auth_urls)),
     path('', include(admin_urls)),
     path('', include(security_urls)),
+    path('notifications/unread-count/', unread_count_view, name='notification-unread-count'),
+    path('notifications/unread-count', unread_count_view, name='notification-unread-count-noslash'),
 ]

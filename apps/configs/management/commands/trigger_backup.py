@@ -45,10 +45,10 @@ class Command(BaseCommand):
                     triggered_by_role=role
                 )
             
-            self.stdout.write(self.style.SUCCESS(f'  ✓ Backup triggered! Job ID: {job.id}'))
+            self.stdout.write(self.style.SUCCESS(f'  [+] Backup triggered! Job ID: {job.id}'))
             
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'  ✗ Failed: {e}'))
+            self.stdout.write(self.style.ERROR(f'  [X] Failed: {e}'))
             self.stdout.write(self.style.WARNING('\nTry running with --force flag or provide a valid user-id:'))
             self.stdout.write(self.style.WARNING('  python manage.py trigger_backup --app configs --type full --force'))
             self.stdout.write(self.style.WARNING('  python manage.py trigger_backup --app configs --type full --user-id 1'))

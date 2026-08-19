@@ -1,4 +1,3 @@
-// frontend/src/hooks/tenant/useTenantWebSocket.js
 import { useState, useEffect, useCallback, useRef } from 'react';
 import TenantWebSocketService from '../../services/tenant/websocket.service';
 
@@ -8,86 +7,62 @@ export const useTenantWebSocket = (tenantId = null, options = {}) => {
     const [statusEvents, setStatusEvents] = useState([]);
     const [quotaWarnings, setQuotaWarnings] = useState([]);
     const [provisioningProgress, setProvisioningProgress] = useState(null);
-    const [backupProgress, setBackupProgress] = useState(null);
 
     const wsService = useRef(TenantWebSocketService);
-
-    const onStatusChange = useCallback((data) => {
-        setStatusEvents(prev => [data, ...prev].slice(0, 50));
-        if (options.onStatusChange) options.onStatusChange(data);
-    }, [options]);
-
-    const onQuotaWarning = useCallback((data) => {
-        setQuotaWarnings(prev => [data, ...prev].slice(0, 20));
-        if (options.onQuotaWarning) options.onQuotaWarning(data);
-    }, [options]);
-
-    const onProvisioningProgress = useCallback((data) => {
-        setProvisioningProgress(data);
-        if (options.onProvisioningProgress) options.onProvisioningProgress(data);
-    }, [options]);
-
-    const onBackupProgress = useCallback((data) => {
-        setBackupProgress(data);
-        if (options.onBackupProgress) options.onBackupProgress(data);
-    }, [options]);
-
-    const onOpen = useCallback(() => {
-        setIsConnected(true);
-        if (options.onOpen) options.onOpen();
-    }, [options]);
-
-    const onClose = useCallback(() => {
-        setIsConnected(false);
-        if (options.onClose) options.onClose();
-    }, [options]);
-
-    const onError = useCallback((error) => {
-        if (options.onError) options.onError(error);
-    }, [options]);
-
-    const onMessage = useCallback((data) => {
-        setLastMessage(data);
-        if (options.onMessage) options.onMessage(data);
-    }, [options]);
+    const isConnectingRef = useRef(false);
+    const isConnectedRef = useRef(false);
+    const optionsRef = useRef(options);
+    optionsRef.current = options;
 
     const connect = useCallback(() => {
-        if (!tenantId) return;
+        if (!tenantId || isConnectingRef.current || isConnectedRef.current) return;
+        isConnectingRef.current = true;
 
         wsService.current.connect(tenantId, {
-            onOpen,
-            onClose,
-            onError,
-            onStatusChange,
-            onQuotaWarning,
-            onProvisioningProgress,
-            onBackupProgress,
-            onMessage,
+            onOpen: () => {
+                isConnectedRef.current = true;
+                isConnectingRef.current = false;
+                setIsConnected(true);
+                optionsRef.current.onOpen?.();
+            },
+            onClose: () => {
+                isConnectedRef.current = false;
+                isConnectingRef.current = false;
+                setIsConnected(false);
+                optionsRef.current.onClose?.();
+            },
+            onError: (error) => {
+                isConnectingRef.current = false;
+                optionsRef.current.onError?.(error);
+            },
+            onStatusChange: (data) => {
+                setStatusEvents(prev => [data, ...prev].slice(0, 50));
+                optionsRef.current.onStatusChange?.(data);
+            },
+            onQuotaWarning: (data) => {
+                setQuotaWarnings(prev => [data, ...prev].slice(0, 20));
+                optionsRef.current.onQuotaWarning?.(data);
+            },
+            onProvisioningProgress: (data) => {
+                setProvisioningProgress(data);
+                optionsRef.current.onProvisioningProgress?.(data);
+            },
+            onMessage: (data) => {
+                setLastMessage(data);
+                optionsRef.current.onMessage?.(data);
+            },
         });
-    }, [tenantId, onOpen, onClose, onError, onStatusChange, onQuotaWarning, onProvisioningProgress, onBackupProgress, onMessage]);
+    }, [tenantId]);
 
     const disconnect = useCallback(() => {
         wsService.current.disconnect();
+        isConnectedRef.current = false;
+        isConnectingRef.current = false;
         setIsConnected(false);
     }, []);
 
     const sendMessage = useCallback((data) => {
         wsService.current.send(data);
-    }, []);
-
-    const subscribeToProvisioning = useCallback((taskId, onProgress, onComplete, onFailed) => {
-        return wsService.current.subscribeToProvisioning(taskId, onProgress, onComplete, onFailed);
-    }, []);
-
-    const subscribeToBackupProgress = useCallback((backupId, onProgress, onComplete, onFailed) => {
-        return wsService.current.subscribeToBackupProgress(backupId, onProgress, onComplete, onFailed);
-    }, []);
-
-    const clearEvents = useCallback(() => {
-        setStatusEvents([]);
-        setQuotaWarnings([]);
-        setProvisioningProgress(null);
-        setBackupProgress(null);
     }, []);
 
     useEffect(() => {
@@ -105,16 +80,10 @@ export const useTenantWebSocket = (tenantId = null, options = {}) => {
         statusEvents,
         quotaWarnings,
         provisioningProgress,
-        backupProgress,
         connect,
         disconnect,
         sendMessage,
-        clearEvents,
-        subscribeToProvisioning,
-        subscribeToBackupProgress,
-        hasStatusEvents: statusEvents.length > 0,
-        hasQuotaWarnings: quotaWarnings.length > 0,
-        isProvisioning: !!provisioningProgress,
-        isBackingUp: !!backupProgress,
     };
 };
+
+export default useTenantWebSocket;

@@ -47,7 +47,13 @@ export const UserInviteForm = ({ onClose, onSuccess }) => {
     }
 
     try {
-      const result = await sendInvitation(formData);
+      const payload = {
+        email: formData.email,
+        role: formData.role,
+        ...(formData.message && { message: formData.message }),
+        ...(formData.department_id && { department_id: formData.department_id }),
+      };
+      const result = await sendInvitation(payload);
       if (result.success !== false) {
         setSuccess(true);
         setTimeout(() => {

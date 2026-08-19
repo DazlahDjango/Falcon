@@ -13,7 +13,7 @@ class ConnectionCleanupScheduler:
         self.running = False
         self.thread = None
         self.interval = getattr(settings, 'CONNECTION_CLEANUP_INTERVAL_SECONDS', 60)
-        self.idle_timeout_minutes = getattr(settings, 'CONNECTION_IDLE_TIMEOUT_MINUTES', 30)
+        self.idle_timeout_minutes = getattr(settings, 'CONNECTION_IDLE_TIMEOUT_MINUTES', 5)
         self.prewarm_on_startup = getattr(settings, 'CONNECTION_PREWARM_ON_STARTUP', True)
 
     def start(self):

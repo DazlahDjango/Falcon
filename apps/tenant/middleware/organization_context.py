@@ -50,12 +50,9 @@ class OrganizationContextMiddleware(MiddlewareMixin):
             # Set thread-local context for OrganizationDatabaseRouter
             set_current_tenant_id(tenant_id)
             
-            # Set both request.tenant_id and request.current_organization_id for compatibility
             request.tenant_id = tenant_id
+            request.current_tenant_id = tenant_id
             request.current_organization_id = tenant_id
-            
-            # Cache it
-            cache.set('current_organization', tenant_id, timeout=3600)
         
         return None
 
@@ -64,6 +61,8 @@ class OrganizationContextMiddleware(MiddlewareMixin):
         return response
 
     def _is_public_path(self, path):
+        if '/health' in path:
+            return True
         public_paths = [
             '/api/v1/auth/login',
             '/api/v1/auth/register',
@@ -91,10 +90,16 @@ class OrganizationContextMiddleware(MiddlewareMixin):
         return None
 
     def _extract_tenant_from_token(self, request):
+        token = None
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-        if not auth_header.startswith('Bearer '):
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+        elif hasattr(request, 'GET') and request.GET.get('token'):
+            token = request.GET.get('token')
+        
+        if not token:
             return None
-        token = auth_header.split(' ')[1]
+
         try:
             from apps.accounts.services import JWTServices
             payload = JWTServices().verify_token(token)

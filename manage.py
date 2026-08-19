@@ -28,6 +28,35 @@ def patched_contribute_to_class(self, cls, name):
 options.Options.contribute_to_class = patched_contribute_to_class
 # ===== END PATCH =====
 
+# ===== DIRECT PATCH FOR RUNSERVER MIGRATION CHECK =====
+try:
+    from django.core.management.commands.runserver import Command as RunserverCommand
+    def patched_check_migrations(self):
+        from django.db import connections, DEFAULT_DB_ALIAS
+        from django.db.migrations.executor import MigrationExecutor
+        try:
+            connection = connections[DEFAULT_DB_ALIAS]
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO public;')
+            executor = MigrationExecutor(connection)
+            executor.loader.build_graph()
+            plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
+        except Exception:
+            return
+        if plan:
+            apps = sorted({target[0].app_label for target in plan})
+            self.stdout.write(
+                self.style.WARNING(
+                    f"You have {len(plan)} unapplied migration(s). Your project may not work "
+                    f"properly until you apply the migrations for app(s): {', '.join(apps)}.\n"
+                    f"Run 'python manage.py migrate' to apply them."
+                )
+            )
+    RunserverCommand.check_migrations = patched_check_migrations
+except Exception:
+    pass
+# ===== END PATCH =====
+
 
 
 def main():

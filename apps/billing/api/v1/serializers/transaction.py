@@ -18,10 +18,10 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class TransactionListSerializer(TransactionSerializer):
     class Meta(TransactionSerializer.Meta):
-        fields = ['id', 'reference', 'transaction_type', 'type_display', 'amount_display', 'total_display', 'status', 'status_display', 'payment_date', 'created_at']
+        fields = ['id', 'reference', 'transaction_type', 'type_display', 'amount_display', 'total_amount', 'total_display', 'currency', 'status', 'status_display', 'payment_method', 'payment_date', 'created_at']
 
 class TransactionDetailSerializer(TransactionSerializer):
-    is_successful = serializers.BooleanField(source='is_successful', read_only=True)
+    is_successful = serializers.BooleanField(read_only=True)
     can_refund = serializers.SerializerMethodField()
     class Meta(TransactionSerializer.Meta):
         fields = TransactionSerializer.Meta.fields + ['is_successful', 'can_refund', 'paystack_response', 'metadata']

@@ -36,7 +36,11 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser or user.role == 'super_admin':
-            return super().get_queryset()
+            qs = super().get_queryset()
+            tenant_id = self.request.query_params.get('tenant_id')
+            if tenant_id:
+                qs = qs.filter(tenant_id=tenant_id)
+            return qs
         if hasattr(self.request, 'tenant_id'):
             return super().get_queryset().filter(tenant_id=self.request.tenant_id)
         return super().get_queryset().filter(tenant_id=user.tenant_id)

@@ -28,6 +28,7 @@ export const REVIEW_ROUTES = {
   COMPETENCY_CATEGORIES: '/reviews/competency-categories',
   COMPETENCY_CATEGORIES_CREATE: '/reviews/competency-categories/create',
   COMPETENCY_CATEGORIES_EDIT: (id) => `/reviews/competency-categories/${id}/edit`,
+  COMPETENCY_CATEGORIES_DETAIL: (id) => `/reviews/competency-categories/${id}`,
   
   // Review Cycles
   REVIEW_CYCLES: '/reviews/cycles',

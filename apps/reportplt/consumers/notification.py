@@ -104,7 +104,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             user = User.objects.get(id=self.user.id)
             return Notification.objects.unread().filter(recipient=user).count()
-        except ObjectDoesNotExist:
+        except Exception:
             return 0
 
     @database_sync_to_async
@@ -113,7 +113,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             user = User.objects.get(id=self.user.id)
             notifications = Notification.objects.filter(recipient=user).order_by('-timestamp')[:limit]
             return self._serialize_notifications(notifications)
-        except ObjectDoesNotExist:
+        except Exception:
             return []
 
     @database_sync_to_async
@@ -122,7 +122,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             user = User.objects.get(id=self.user.id)
             notifications = Notification.objects.filter(recipient=user).order_by('-timestamp')[offset:offset + limit]
             return self._serialize_notifications(notifications)
-        except ObjectDoesNotExist:
+        except Exception:
             return []
 
     @database_sync_to_async
@@ -130,7 +130,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             user = User.objects.get(id=self.user.id)
             return Notification.objects.filter(recipient=user).count()
-        except ObjectDoesNotExist:
+        except Exception:
             return 0
 
     @database_sync_to_async
@@ -139,7 +139,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             user = User.objects.get(id=self.user.id)
             notification = Notification.objects.get(id=notification_id, recipient=user)
             notification.mark_as_read()
-        except ObjectDoesNotExist:
+        except Exception:
             pass
 
     @database_sync_to_async
@@ -147,7 +147,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             user = User.objects.get(id=self.user.id)
             Notification.objects.filter(recipient=user, unread=True).mark_all_as_read()
-        except ObjectDoesNotExist:
+        except Exception:
             pass
 
     def _serialize_notifications(self, notifications) -> List[Dict]:

@@ -123,7 +123,9 @@ class PasswordService:
         from apps.accounts.models import TenantPreference
         pref = TenantPreference.objects.filter(client_id=tenant_id).first()
         if not pref:
-            return None, True, 'invite_only'
+            import secrets
+            raw_password = secrets.token_urlsafe(9)[:12]
+            return raw_password, True, 'system_generated'
             
         mode = pref.default_password_mode
         force_change = pref.force_password_change_on_first_login

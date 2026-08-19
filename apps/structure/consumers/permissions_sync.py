@@ -6,7 +6,13 @@ from uuid import UUID
 class PermissionsSyncConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.tenant_id = self.scope['url_route']['kwargs'].get('tenant_id')
-        self.user_id = self.scope.get('user', {}).get('id') if hasattr(self.scope, 'user') else None
+        user = self.scope.get('user')
+        if user and getattr(user, 'is_authenticated', False):
+            self.user_id = str(user.id)
+        elif isinstance(user, dict):
+            self.user_id = str(user.get('id'))
+        else:
+            self.user_id = None
         self.room_group_name = f"permissions_{self.tenant_id}_{self.user_id}"
         
         if not self.tenant_id or not self.user_id:
@@ -89,13 +95,22 @@ class PermissionsSyncConsumer(AsyncJsonWebsocketConsumer):
         from apps.structure.models.employment import Employment
         from apps.structure.models.organizational_unit import OrganizationalUnit
         
-        employment = Employment.objects.filter(
-            user_id=self.user_id,
-            tenant_id=self.tenant_id,
-            is_current=True,
-            is_deleted=False,
-            is_active=True
-        ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit').first()
+        try:
+            employment = Employment.objects.filter(
+                user_id=self.user_id,
+                tenant_id=self.tenant_id,
+                is_current=True,
+                is_deleted=False,
+                is_active=True
+            ).select_related('position').first()
+        except Exception as e:
+            return {
+                'user_id': self.user_id,
+                'is_manager': False,
+                'is_executive': False,
+                'is_board_member': False,
+                'tenant_id': self.tenant_id
+            }
         
         if not employment:
             return {

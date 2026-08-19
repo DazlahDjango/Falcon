@@ -28,6 +28,7 @@ const CompetencyEditPage = React.lazy(() => import('../pages/reviews/competencie
 const CategoriesPage = React.lazy(() => import('../pages/reviews/competency-categories/CategoriesPage'));
 const CategoryCreatePage = React.lazy(() => import('../pages/reviews/competency-categories/CategoryCreatePage'));
 const CategoryEditPage = React.lazy(() => import('../pages/reviews/competency-categories/CategoryEditPage'));
+const CategoryDetailPage = React.lazy(() => import('../pages/reviews/competency-categories/CategoryDetailPage'));
 
 // Review Cycle Pages
 const CyclesPage = React.lazy(() => import('../pages/reviews/cycles/CyclesPage'));
@@ -143,6 +144,7 @@ const reviewsRoutes = [
     { path: REVIEW_ROUTES.COMPETENCY_CATEGORIES, element: <CategoriesPage /> },
     { path: REVIEW_ROUTES.COMPETENCY_CATEGORIES_CREATE, element: <CategoryCreatePage /> },
     { path: REVIEW_ROUTES.COMPETENCY_CATEGORIES_EDIT(':id'), element: <CategoryEditPage /> },
+    { path: REVIEW_ROUTES.COMPETENCY_CATEGORIES_DETAIL(':id'), element: <CategoryDetailPage /> },
 
     // ============ Review Cycle Routes ============
     { path: REVIEW_ROUTES.REVIEW_CYCLES_LIST, element: <CyclesPage /> },

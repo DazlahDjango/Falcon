@@ -98,21 +98,24 @@ class Invoice(BaseBillingModel):
 
     @classmethod
     def generate_invoice_number(cls, tenant_id):
-        """Generate unique invoice number."""
+        """Generate unique invoice number atomically."""
         from django.utils import timezone
+        from django.db import transaction
+        
         prefix = "FALCON"
         year = timezone.now().strftime("%Y")
         month = timezone.now().strftime("%m")
         prefix_pattern = f"{prefix}-{year}{month}"
         
-        last_invoice = cls.objects.all_including_deleted().filter(invoice_number__startswith=prefix_pattern).order_by('-invoice_number').first()
-        
-        new_number = 1
-        if last_invoice:
-            try:
-                last_number = int(last_invoice.invoice_number.split('-')[-1])
-                new_number = last_number + 1
-            except (ValueError, IndexError):
-                new_number = 1
-        
-        return f"{prefix_pattern}-{new_number:06d}"
+        with transaction.atomic():
+            last_invoice = cls.objects.all_including_deleted().select_for_update().filter(invoice_number__startswith=prefix_pattern).order_by('-invoice_number').first()
+            
+            new_number = 1
+            if last_invoice:
+                try:
+                    last_number = int(last_invoice.invoice_number.split('-')[-1])
+                    new_number = last_number + 1
+                except (ValueError, IndexError):
+                    new_number = 1
+            
+            return f"{prefix_pattern}-{new_number:06d}"

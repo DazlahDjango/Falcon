@@ -68,6 +68,8 @@ const GROUP_ICONS = {
   kpiAnalytics: FiActivity,
   kpiOperations: FiDatabase,
   kpiDashboards: FiHome,
+  reviewGovernance: FiSliders,
+  reviewExecution: FiCalendar,
   structure: BsDiagram3,
   reviews: FiStar,
   accounts: FiUsers,

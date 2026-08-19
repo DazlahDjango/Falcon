@@ -6,7 +6,25 @@ class AuditServiceClass extends BillingBaseService {
 
     async getAuditLogs(params = {}) { return this.list(params); }
     async filterLogs(filters = {}) {
-        return this.withRetry(() => this.apiClient.get(AUDIT_ENDPOINTS.FILTER, { params: filters }));
+        const { page = 1, page_size = 50, ...restFilters } = filters;
+        const cleanedParams = {
+            limit: page_size,
+            offset: (page - 1) * page_size
+        };
+        
+        Object.entries(restFilters).forEach(([key, val]) => {
+            let backendKey = key;
+            if (key === 'startDate') backendKey = 'start_date';
+            if (key === 'endDate') backendKey = 'end_date';
+            if (key === 'resourceType') backendKey = 'resource_type';
+            if (key === 'userEmail') backendKey = 'user_email';
+            
+            if (val !== null && val !== undefined && val !== '') {
+                cleanedParams[backendKey] = val;
+            }
+        });
+        
+        return this.withRetry(() => this.apiClient.get(AUDIT_ENDPOINTS.FILTER, { params: cleanedParams }));
     }
     async exportLogs(days = 30) {
         return this.withRetry(() => this.apiClient.get(AUDIT_ENDPOINTS.EXPORT, { params: { days }, responseType: 'blob' }));

@@ -9,7 +9,7 @@ import CoefficientFilters from './CoefficientFilters';
 
 const CoefficientList = () => {
   const navigate = useNavigate();
-  const { data, loading, error, fetchAll, getActive, pagination, setPagination, filters, setFilters, clearFilters, canManage } = useCoefficients();
+  const { data, activeCoefficients, loading, error, fetchAll, getActive, pagination, setPagination, filters, setFilters, clearFilters, canManage } = useCoefficients();
   const [showActive, setShowActive] = useState(false);
 
   console.log('[CoefficientList] rendering:', { 
@@ -69,7 +69,7 @@ const CoefficientList = () => {
   if (loading && !data.length) return <ReviewLoading size="lg" text="Loading coefficients..." />;
   if (error) return <ReviewError error={error} onRetry={() => fetchAll()} />;
 
-  const displayData = showActive ? data : data;
+  const displayData = showActive ? (activeCoefficients || []) : data;
 
   return (
     <div className="coefficient-list">

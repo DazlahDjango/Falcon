@@ -4,9 +4,12 @@ class WebSocketService {
     constructor() {
         this.connections = new Map();
         this.reconnectAttempts = new Map();
-        this.reconnectDelay = 1000;
-        this.maxReconnectAttempts = 5;
+        this.reconnectTimers = new Map();
+        this.failedConnections = new Set();
+        this.reconnectDelay = 3000;
+        this.maxReconnectAttempts = 2;
         this.listeners = new Map();
+        this.pingTimers = new Map();
         this.baseUrl = environment.WS_URL?.replace(/\/ws\/?$/, '') || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
         this.authToken = null;
     }
@@ -45,38 +48,53 @@ class WebSocketService {
             return existing;
         }
 
+        if (this.failedConnections.has(key)) {
+            return null;
+        }
+
         const wsUrl = this.getWebSocketUrl(endpoint);
-        const ws = new WebSocket(wsUrl);
+        let ws;
+        try {
+            ws = new WebSocket(wsUrl);
+        } catch (err) {
+            this.failedConnections.add(key);
+            return null;
+        }
+
+        ws.key = key;
+        ws.isManualClose = false;
         const shouldReconnect = options.shouldReconnect !== false;
 
         ws.onopen = () => {
-            console.log(`WebSocket connected: ${key}`);
+            console.log(`[WebSocket] Connected: ${key}`);
             this.reconnectAttempts.delete(key);
+            this.failedConnections.delete(key);
             if (onOpen) onOpen(ws);
-            this.sendPing(key);
+            this.startHeartbeat(key);
         };
 
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+                if (data.type === 'pong') return;
                 if (onMessage) onMessage(data);
                 const listeners = this.listeners.get(key) || [];
                 listeners.forEach(listener => listener(data));
             } catch (error) {
-                console.error('WebSocket message parse error:', error);
+                console.error(`[WebSocket] Parse error (${key}):`, error);
             }
         };
 
         ws.onerror = (error) => {
-            console.error(`WebSocket error: ${key}`, error);
             if (onError) onError(error);
         };
 
         ws.onclose = (event) => {
-            console.log(`WebSocket closed: ${key}`);
+            this.stopHeartbeat(key);
             this.connections.delete(key);
             if (onClose) onClose(event);
-            if (shouldReconnect) {
+
+            if (shouldReconnect && !ws.isManualClose) {
                 this.reconnect(key, endpoint, onMessage, onOpen, onError, onClose);
             }
         };
@@ -85,86 +103,89 @@ class WebSocketService {
         return ws;
     }
 
-    sendPing(key) {
-        const ws = this.connections.get(key);
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'ping' }));
-        }
-        setTimeout(() => {
-            if (this.connections.has(key)) {
-                this.sendPing(key);
+    startHeartbeat(key) {
+        this.stopHeartbeat(key);
+        const timer = setInterval(() => {
+            const ws = this.connections.get(key);
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
             }
         }, 30000);
+        this.pingTimers.set(key, timer);
+    }
+
+    stopHeartbeat(key) {
+        if (this.pingTimers.has(key)) {
+            clearInterval(this.pingTimers.get(key));
+            this.pingTimers.delete(key);
+        }
     }
 
     reconnect(key, endpoint, onMessage, onOpen, onError, onClose) {
+        if (this.reconnectTimers.has(key)) {
+            clearTimeout(this.reconnectTimers.get(key));
+            this.reconnectTimers.delete(key);
+        }
+
         const attempts = (this.reconnectAttempts.get(key) || 0) + 1;
         this.reconnectAttempts.set(key, attempts);
 
         if (attempts <= this.maxReconnectAttempts) {
             const delay = this.reconnectDelay * Math.pow(2, attempts - 1);
-            console.log(`Reconnecting ${key} in ${delay}ms (attempt ${attempts}/${this.maxReconnectAttempts})`);
 
-            setTimeout(() => {
+            const timer = setTimeout(() => {
+                this.reconnectTimers.delete(key);
                 this.connect(key, endpoint, onMessage, onOpen, onError, onClose);
             }, delay);
+            this.reconnectTimers.set(key, timer);
         } else {
-            console.error(`Max reconnect attempts reached for ${key}`);
+            console.warn(`[WebSocket] Max reconnect attempts reached for ${key}. Socket paused.`);
+            this.failedConnections.add(key);
         }
     }
 
     disconnect(key) {
+        this.stopHeartbeat(key);
+        if (this.reconnectTimers.has(key)) {
+            clearTimeout(this.reconnectTimers.get(key));
+            this.reconnectTimers.delete(key);
+        }
         const ws = this.connections.get(key);
         if (ws) {
-            ws.close();
+            ws.isManualClose = true;
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            } else if (ws.readyState === WebSocket.CONNECTING) {
+                ws.onopen = () => {
+                    ws.close();
+                };
+            }
             this.connections.delete(key);
-            this.reconnectAttempts.delete(key);
+        }
+        this.reconnectAttempts.delete(key);
+        this.failedConnections.delete(key);
+    }
+
+    disconnectAll() {
+        for (const key of Array.from(this.connections.keys())) {
+            this.disconnect(key);
         }
     }
 
     send(key, message) {
         const ws = this.connections.get(key);
         if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(message));
+            ws.send(typeof message === 'string' ? message : JSON.stringify(message));
             return true;
         }
         return false;
     }
 
-    addListener(key, callback) {
-        if (!this.listeners.has(key)) {
-            this.listeners.set(key, []);
-        }
-        this.listeners.get(key).push(callback);
-    }
-
-    removeListener(key, callback) {
-        const listeners = this.listeners.get(key);
-        if (listeners) {
-            const index = listeners.indexOf(callback);
-            if (index !== -1) {
-                listeners.splice(index, 1);
-            }
-        }
-    }
-
     isConnected(key) {
         const ws = this.connections.get(key);
-        return ws && ws.readyState === WebSocket.OPEN;
-    }
-
-    getReadyState(key) {
-        const ws = this.connections.get(key);
-        return ws ? ws.readyState : WebSocket.CLOSED;
-    }
-
-    disconnectAll() {
-        for (const [key, ws] of this.connections) {
-            ws.close();
-            this.connections.delete(key);
-        }
-        this.listeners.clear();
+        return !!ws && ws.readyState === WebSocket.OPEN;
     }
 }
 
-export default new WebSocketService();
+export const websocketService = new WebSocketService();
+export default websocketService;

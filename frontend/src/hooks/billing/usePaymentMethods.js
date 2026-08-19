@@ -16,7 +16,9 @@ export const usePaymentMethods = (options = { autoFetch: true }) => {
     const hasFetched = useRef(false);
     const paymentMethods = useSelector(selectAllPaymentMethods);
     const defaultMethod = useSelector(selectDefaultPaymentMethod);
-    const loading = useSelector(selectPaymentMethodsLoading);
+    const isMethodsLoading = useSelector(selectPaymentMethodsLoading);
+    const isMethodsAdding = useSelector((state) => state.billing?.paymentMethods?.adding || false);
+    const loading = isMethodsLoading || isMethodsAdding;
     const error = useSelector(selectPaymentMethodsError);
     const activeMethods = useSelector(selectActivePaymentMethods);
     const cardMethods = useSelector(selectCardPaymentMethods);
@@ -44,6 +46,7 @@ export const usePaymentMethods = (options = { autoFetch: true }) => {
         paymentMethods, defaultMethod, loading, error, activeMethods, cardMethods,
         hasPaymentMethod, expiringCards, fetchAll, add, remove, setDefault,
         selectMethod, clearSelected, clearPaymentError,
+        addPaymentMethod: add,
     };
 };
 

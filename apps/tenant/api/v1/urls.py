@@ -9,7 +9,8 @@ from .views import (
     ConnectionViewSet,
     MigrationViewSet,
     SettingsViewSet,
-    DashboardViewSet,
+    SuperAdminDashboardViewSet,
+    ClientAdminDashboardViewSet,
     AdminOrganizationViewSet,
     SectorViewSet,
     ProvisioningViewSet,
@@ -27,7 +28,8 @@ router.register(r'resources', ResourceViewSet, basename='resource')
 router.register(r'connections', ConnectionViewSet, basename='connection')
 router.register(r'migrations', MigrationViewSet, basename='migration')
 router.register(r'settings', SettingsViewSet, basename='settings')
-router.register(r'dashboard', DashboardViewSet, basename='dashboard')
+router.register(r"dashboard/super-admin", SuperAdminDashboardViewSet, basename="dashboard-super-admin")
+router.register(r"dashboard/client-admin", ClientAdminDashboardViewSet, basename="dashboard-client-admin")
 router.register(r'admin/organizations', AdminOrganizationViewSet, basename='admin-organization')
 router.register(r'sectors', SectorViewSet, basename='sector')
 router.register(r'provisioning', ProvisioningViewSet, basename='provisioning')

@@ -39,7 +39,7 @@ const StructureDashboard = () => {
   const { data: employmentsPage } = useEmployments({ filters: { is_current: 'true' }, page: 1, pageSize: 5 });
   const employments = employmentsPage?.results ?? [];
   const departmentBreakdownData = departments.map(dept => ({
-    name: dept.name,
+    name: typeof dept.name === 'string' ? dept.name : String(dept.name || 'Unknown'),
     value: dept.employee_count || 0,
   })) || [];
   const headcountTrendData = [
@@ -73,12 +73,13 @@ const StructureDashboard = () => {
     { level: 10, count: 8 },
   ];
   const typeData = employments?.reduce((acc, emp) => {
-    const type = emp.employment_type;
-    acc[type] = (acc[type] || 0) + 1;
+    const type = emp.employment_type || 'Full-Time';
+    const key = typeof type === 'string' ? type : String(type);
+    acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {}) || {};
   const typeDistributionData = Object.entries(typeData).map(([name, value]) => ({
-    name: name.charAt(0).toUpperCase() + name.slice(1),
+    name: typeof name === 'string' ? name.charAt(0).toUpperCase() + name.slice(1) : String(name),
     value,
   }));
   const isLoading = statsLoading || healthLoading;
@@ -89,8 +90,8 @@ const StructureDashboard = () => {
       </div>
     );
   }
-  const healthScore = health?.health_score || 0;
-  const healthStatus = health?.status || 'unknown';
+  const healthScore = typeof health?.health_score === 'number' ? health.health_score : 0;
+  const healthStatus = typeof health?.status === 'string' ? health.status : 'unknown';
 
   return (
     <div className="p-6">
@@ -256,7 +257,7 @@ const StructureDashboard = () => {
           </div>
         </div>
       </div>
-      {health?.issues && health.issues.length > 0 && (
+      {health?.issues && Array.isArray(health.issues) && health.issues.length > 0 && (
         <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <div className="flex items-start gap-3">
             <AlertTriangle size={20} className="text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -266,7 +267,7 @@ const StructureDashboard = () => {
                 {health.issues.slice(0, 5).map((issue, idx) => (
                   <li key={idx} className="text-sm text-yellow-700 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                    {issue}
+                    {typeof issue === 'object' ? (issue?.message || issue?.displayMessage || issue?.detail || JSON.stringify(issue)) : String(issue)}
                   </li>
                 ))}
               </ul>

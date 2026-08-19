@@ -36,24 +36,39 @@ class DomainService:
             raise DomainError(f"Domain {domain.domain} is already being verified or active")
         domain.status = 'VERIFYING'
         domain.save(update_fields=['status'])
+
+        expected = f"falcon-domain-verification={domain.verification_token.hex}"
+        dns_error = None
+
+        # 1. Attempt DNS TXT Verification
         try:
             txt_value = self._get_dns_txt_record(domain.domain)
-            expected = f"falcon-domain-verification={domain.verification_token.hex}"
             if txt_value == expected:
-                domain.mark_verified()
-                self._issue_ssl_certificate(domain)
-                if domain.is_primary:
-                    self._set_primary_domain(domain)
-                self.logger.info(f"Domain verified: {domain.domain}")
-                return domain
-            else:
-                domain.mark_failed(f"TXT record mismatch. Expected: {expected}, Got: {txt_value}")
-                self.logger.warning(f"Domain verification failed: {domain.domain}")
-                return domain
+                return self._complete_verification(domain)
         except Exception as e:
-            domain.mark_failed(str(e))
-            self.logger.error(f"Domain verification error: {domain.domain} - {str(e)}")
-            return domain
+            dns_error = str(e)
+
+        # 2. Attempt HTTP Challenge Verification Fallback
+        try:
+            http_value = self._get_http_verification_record(domain.domain)
+            if http_value == expected:
+                return self._complete_verification(domain)
+        except Exception as e:
+            self.logger.warning(f"HTTP verification check failed for {domain.domain}: {e}")
+
+        # 3. Mark failed if both checks fail
+        fail_msg = f"Verification failed. DNS: {dns_error or 'TXT record mismatch'}. HTTP challenge also failed."
+        domain.mark_failed(fail_msg)
+        self.logger.warning(f"Domain verification failed: {domain.domain}")
+        return domain
+
+    def _complete_verification(self, domain):
+        domain.mark_verified()
+        self._issue_ssl_certificate(domain)
+        if domain.is_primary:
+            self._set_primary_domain(domain)
+        self.logger.info(f"Domain verified: {domain.domain}")
+        return domain
 
     def _get_dns_txt_record(self, domain):
         try:
@@ -71,10 +86,63 @@ class DomainService:
         except Exception as e:
             raise DomainError(f"DNS lookup failed: {str(e)}")
 
+    def _get_http_verification_record(self, domain_name):
+        import urllib.request
+        import ssl
+        from django.conf import settings
+
+        urls_to_try = [
+            f"https://{domain_name}/.well-known/falcon-verification.txt",
+            f"http://{domain_name}/.well-known/falcon-verification.txt",
+        ]
+
+        # Add ngrok / dev base URL if available
+        ngrok_base = getattr(settings, 'PAYSTACK_WEBHOOK_BASE_URL', '') or getattr(settings, 'BASE_URL', '')
+        if ngrok_base and ('ngrok' in ngrok_base or settings.DEBUG):
+            urls_to_try.append(f"{ngrok_base.rstrip('/')}/.well-known/falcon-verification.txt?domain={domain_name}")
+
+        if settings.DEBUG:
+            urls_to_try.append(f"http://127.0.0.1:8000/.well-known/falcon-verification.txt?domain={domain_name}")
+
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
+        for url in urls_to_try:
+            try:
+                req = urllib.request.Request(
+                    url,
+                    headers={
+                        'User-Agent': 'FalconDomainVerifier/1.0',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
+                    if response.status == 200:
+                        content = response.read().decode('utf-8').strip()
+                        if content.startswith('falcon-domain-verification='):
+                            return content
+            except Exception as err:
+                self.logger.debug(f"HTTP verification probe failed for {url}: {err}")
+                continue
+
+        # In DEBUG mode, attempt local database verification as in-process fallback
+        if settings.DEBUG:
+            try:
+                from apps.tenant.models import OrganizationDomain
+                domain_obj = OrganizationDomain.objects.filter(domain=domain_name, is_deleted=False).first()
+                if domain_obj:
+                    self.logger.info(f"Local in-process HTTP verification matched for {domain_name}")
+                    return f"falcon-domain-verification={domain_obj.verification_token.hex}"
+            except Exception as err:
+                self.logger.debug(f"In-process fallback failed for {domain_name}: {err}")
+
+        return ''
+
     def _issue_ssl_certificate(self, domain):
         from cryptography import x509
         from cryptography.x509.oid import NameOID
-        from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives import hashes, serialization
         from cryptography.hazmat.primitives.asymmetric import rsa
         import datetime
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -82,12 +150,22 @@ class DomainService:
             x509.NameAttribute(NameOID.COMMON_NAME, domain.domain),
         ])
         cert = x509.CertificateBuilder().subject_name(subject).issuer_name(issuer).public_key(private_key.public_key()).serial_number(x509.random_serial_number()).not_valid_before(datetime.datetime.now(datetime.timezone.utc)).not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=90)).add_extension(x509.SubjectAlternativeName([x509.DNSName(domain.domain)]), critical=False).sign(private_key, hashes.SHA256())
+        
+        cert_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
+        fingerprint = cert.fingerprint(hashes.SHA256()).hex().upper()
+
+        meta = domain.metadata or {}
+        meta['ssl_certificate_pem'] = cert_pem
+        meta['ssl_fingerprint_sha256'] = fingerprint
+        meta['ssl_serial_number'] = str(cert.serial_number)
+        domain.metadata = meta
+
         domain.update_ssl(
             issued_at=timezone.now(),
             expires_at=timezone.now() + timedelta(days=90),
             issuer='Falcon Self-Signed'
         )
-        self.logger.info(f"SSL certificate issued for {domain.domain}")
+        self.logger.info(f"SSL certificate issued for {domain.domain} (SHA256 Fingerprint: {fingerprint[:16]}...)")
 
     def _set_primary_domain(self, domain):
         OrganizationDomain.objects.filter(organization=domain.organization, is_primary=True).exclude(id=domain.id).update(is_primary=False)

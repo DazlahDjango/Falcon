@@ -2,7 +2,18 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { PaymentMethodService } from '../../../services/billing';
 
 export const fetchPaymentMethods = createAsyncThunk('billing/paymentMethods/fetchAll', async (_, { rejectWithValue }) => {
-    try { const response = await PaymentMethodService.getPaymentMethods(); return response?.data || []; }
+    try {
+        const response = await PaymentMethodService.getPaymentMethods();
+        const data = response?.data;
+        if (Array.isArray(data)) {
+            return data;
+        } else if (data && Array.isArray(data.results)) {
+            return data.results;
+        } else if (data && Array.isArray(data.items)) {
+            return data.items;
+        }
+        return [];
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch payment methods'); }
 });
 

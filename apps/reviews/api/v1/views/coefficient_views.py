@@ -8,7 +8,9 @@ from .base_views import BaseReviewViewSet
 from apps.reviews.api.v1.permissions import IsAdminOnly
 
 class CoefficientViewSet(BaseReviewViewSet):
-    queryset = Coefficient.objects.all()
+    queryset = Coefficient.objects.select_related(
+        'tenant', 'division', 'department', 'section', 'unit', 'position', 'user', 'created_by'
+    ).all()
     def get_serializer_class(self):
         return CoefficientListSerializer if self.action == 'list' else CoefficientSerializer
     def get_permissions(self):
@@ -16,7 +18,15 @@ class CoefficientViewSet(BaseReviewViewSet):
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
-        serializer.save(tenant_id=self.request.user.tenant_id, created_by=self.request.user)
+        tenant = getattr(self.request.user, 'tenant', None)
+        tenant_id = getattr(self.request.user, 'tenant_id', None)
+        if not tenant and not tenant_id:
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.first()
+        if tenant:
+            serializer.save(tenant=tenant, created_by=self.request.user)
+        else:
+            serializer.save(tenant_id=tenant_id, created_by=self.request.user)
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         coeff = self.get_object()

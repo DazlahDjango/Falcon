@@ -66,32 +66,36 @@ export const StructurePage = () => {
     );
   }
 
-  const orgUnits = overview?.organizational_units || {};
-  const employmentsStats = overview?.employments || {};
-  const positions = overview?.positions || {};
-  const locations = overview?.locations || {};
-  const costCenters = overview?.cost_centers || {};
+  const realOverview = overview?.organizational_units ? overview : (overview?.data || {});
+  const realHealth = health?.health_score !== undefined ? health : (health?.data || {});
+  const realTrends = trends?.trends !== undefined ? trends : (trends?.data || {});
+
+  const orgUnits = realOverview.organizational_units || {};
+  const employmentsStats = realOverview.employments || {};
+  const positions = realOverview.positions || {};
+  const locations = realOverview.locations || {};
+  const costCenters = realOverview.cost_centers || {};
 
   const departmentBreakdownData = departments.map(dept => ({
     name: dept.name,
     value: dept.employee_count || 0,
   })) || [];
 
-  const headcountTrendData = (trends?.trends || []).map(t => ({
+  const headcountTrendData = (realTrends.trends || []).map(t => ({
     month: t.date ? new Date(t.date).toLocaleString('default', { month: 'short' }) : `v${t.version_number}`,
     total: t.units_count || 0,
   })).reverse();
 
   const managerCount = employmentsStats.managers || 0;
-  const nonManagerCount = (employmentsStats.total_current || 0) - managerCount;
+  const nonManagerCount = Math.max(0, (employmentsStats.total_current || 0) - managerCount);
 
   const spanData = [
-    { range: '0', count: health?.details?.span_of_control_distribution?.['0'] || 5 },
-    { range: '1-5', count: health?.details?.span_of_control_distribution?.['1-5'] || 12 },
-    { range: '6-10', count: health?.details?.span_of_control_distribution?.['6-10'] || 8 },
-    { range: '11-15', count: health?.details?.span_of_control_distribution?.['11-15'] || 4 },
-    { range: '16-20', count: health?.details?.span_of_control_distribution?.['16-20'] || 2 },
-    { range: '20+', count: health?.details?.span_of_control_distribution?.['20+'] || 1 },
+    { range: '0', count: realHealth.details?.span_of_control_distribution?.['0'] ?? 0 },
+    { range: '1-5', count: realHealth.details?.span_of_control_distribution?.['1-5'] ?? 0 },
+    { range: '6-10', count: realHealth.details?.span_of_control_distribution?.['6-10'] ?? 0 },
+    { range: '11-15', count: realHealth.details?.span_of_control_distribution?.['11-15'] ?? 0 },
+    { range: '16-20', count: realHealth.details?.span_of_control_distribution?.['16-20'] ?? 0 },
+    { range: '20+', count: realHealth.details?.span_of_control_distribution?.['20+'] ?? 0 },
   ];
 
   const levelData = Object.entries(orgUnits.level_distribution || {}).map(([level, count]) => ({
@@ -104,8 +108,8 @@ export const StructurePage = () => {
     value,
   }));
 
-  const healthScore = health?.health_score || 0;
-  const healthStatus = health?.status || 'unknown';
+  const healthScore = realHealth.health_score ?? 100;
+  const healthStatus = realHealth.status || 'healthy';
 
   return (
     <div className="p-6">

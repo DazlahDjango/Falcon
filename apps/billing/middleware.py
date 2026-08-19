@@ -74,6 +74,15 @@ class SubscriptionGuardMiddleware(MiddlewareMixin):
         tenant_id = getattr(request, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
         if not tenant_id:
             return None
+        
+        # Enforce multi-tenant isolation access check
+        try:
+            from apps.tenant.services.isolation_service import IsolationEnforcer
+            from apps.tenant.exceptions import IsolationError
+            IsolationEnforcer(request=request).validate_access(tenant_id)
+        except IsolationError as e:
+            logger.warning(f"Tenant isolation enforcement blocked request for tenant {tenant_id}: {str(e)}")
+            return JsonResponse({'error': 'isolation_denied', 'message': str(e), 'code': 'ISOLATION_DENIED'}, status=403)
         cache_key = f"subscription_valid_{tenant_id}"
         cached_data = cache.get(cache_key)
         if cached_data is None:

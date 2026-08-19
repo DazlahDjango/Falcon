@@ -15,8 +15,8 @@ class BaseReviewService:
                 raise ValidationError(f"Service error: {str(e)}")
         return wrapper
     @staticmethod
-    @transaction.atomic
     def atomic_operation(func):
+        @transaction.atomic
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         return wrapper

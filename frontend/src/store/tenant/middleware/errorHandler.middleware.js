@@ -81,7 +81,6 @@ const errorActions = [
   { action: 'migration/applyMigration/rejected', clear: clearMigrationErrors },
   { action: 'dashboard/fetchSuperAdminDashboard/rejected', clear: clearDashboardErrors },
   { action: 'dashboard/fetchClientAdminDashboard/rejected', clear: clearDashboardErrors },
-  { action: 'dashboard/fetchOrganizationStats/rejected', clear: clearDashboardErrors },
   { action: 'settings/fetchSettings/rejected', clear: clearSettingsErrors },
   { action: 'settings/updateSettings/rejected', clear: clearSettingsErrors },
   { action: 'settings/resetSettings/rejected', clear: clearSettingsErrors },
@@ -92,7 +91,7 @@ const errorActions = [
 
 errorActions.forEach(({ action: actionType, clear }) => {
   errorHandlerMiddleware.startListening({
-    type: actionType,
+    matcher: (act) => act.type === actionType,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(clear());
     },

@@ -61,6 +61,28 @@ const TargetsPage = () => {
         }
     };
 
+    const [filters, setFilters] = useState({ year: '', status: '', search: '' });
+
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleClearFilters = () => {
+        setFilters({ year: '', status: '', search: '' });
+    };
+
+    const filteredTargets = (targets || []).filter(t => {
+        if (filters.year && String(t.year) !== String(filters.year)) return false;
+        if (filters.status && (t.status || '').toLowerCase() !== filters.status.toLowerCase()) return false;
+        if (filters.search) {
+            const q = filters.search.toLowerCase();
+            const kpiName = (t.kpi_name || t.kpi?.name || '').toLowerCase();
+            const userName = (t.user_name || t.user?.email || t.user_email || '').toLowerCase();
+            if (!kpiName.includes(q) && !userName.includes(q)) return false;
+        }
+        return true;
+    });
+
     const currentTab = location.pathname === '/kpi/targets/cascade/rules' 
         ? 'rules' 
         : location.pathname === '/kpi/targets/cascade' 
@@ -153,8 +175,11 @@ const TargetsPage = () => {
                             )}
                         </div>
                         <TargetList
-                            targets={targets}
+                            targets={filteredTargets}
                             loading={loading}
+                            filters={filters}
+                            onFilterChange={handleFilterChange}
+                            onClearFilters={handleClearFilters}
                             onRowClick={handleViewTarget}
                             onEdit={handleEditTarget}
                             onDelete={remove}

@@ -18,14 +18,16 @@ class BillingWebSocketService {
             throw new Error('Billing WebSocket requires a tenant ID');
         }
 
-        return `${websocketBase}${BILLING_WS.TENANT(tenantId)}?token=${encodeURIComponent(token)}`;
+        return { token, endpoint: BILLING_WS.TENANT(tenantId) };
     }
 
     async connect(onMessage, onOpen = null, onError = null, onClose = null, options = { shouldReconnect: true }) {
-        const wsUrl = await this.getWebSocketUrl();
+        const { token, endpoint } = await this.getWebSocketUrl();
+        websocketService.init(websocketBase, token);
+
         return websocketService.connect(
             this.connectionKey,
-            wsUrl,
+            endpoint,
             onMessage,
             onOpen,
             onError,
@@ -40,6 +42,10 @@ class BillingWebSocketService {
 
     send(message) {
         return websocketService.send(this.connectionKey, message);
+    }
+
+    isConnected() {
+        return websocketService.isConnected(this.connectionKey);
     }
 }
 

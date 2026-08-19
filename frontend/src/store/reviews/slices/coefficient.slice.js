@@ -3,34 +3,23 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { coefficientService } from '../../../services/reviews';
 
 // ============ Thunks ============
-
+ 
 export const fetchCoefficients = createAsyncThunk(
   'coefficients/fetchAll',
   async (params = {}, { rejectWithValue }) => {
-    console.log('[coefficientSlice] fetchCoefficients called with params:', params);
     try {
       const response = await coefficientService.list(params);
-      console.log('[coefficientSlice] fetchCoefficients full Axios response:', response);
-      console.log('[coefficientSlice] fetchCoefficients response.data:', response.data);
-      console.log('[coefficientSlice] fetchCoefficients response.data.results:', response.data?.results);
-      console.log('[coefficientSlice] fetchCoefficients response.data.count:', response.data?.count);
-      
-      // Handle both pagination formats and direct array responses
-      if (Array.isArray(response.data)) {
-        console.log('[coefficientSlice] fetchCoefficients returning array directly');
-        return response.data;
-      } else if (response.data?.results) {
-        console.log('[coefficientSlice] fetchCoefficients returning results array with count:', response.data.count);
+      if (Array.isArray(response)) {
+        return response;
+      } else if (response?.results) {
         return {
-          results: response.data.results,
-          count: response.data.count
+          results: response.results,
+          count: response.count,
         };
       } else {
-        console.log('[coefficientSlice] fetchCoefficients no results found, returning empty array');
-        return [];
+        return response || [];
       }
     } catch (error) {
-      console.error('[coefficientSlice] fetchCoefficients failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -39,13 +28,9 @@ export const fetchCoefficients = createAsyncThunk(
 export const fetchCoefficient = createAsyncThunk(
   'coefficients/fetchOne',
   async (id, { rejectWithValue }) => {
-    console.log('[coefficientSlice] fetchCoefficient called with id:', id);
     try {
-      const response = await coefficientService.getById(id);
-      console.log('[coefficientSlice] fetchCoefficient successful:', response);
-      return response.data;
+      return await coefficientService.getById(id);
     } catch (error) {
-      console.error('[coefficientSlice] fetchCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -54,13 +39,9 @@ export const fetchCoefficient = createAsyncThunk(
 export const createCoefficient = createAsyncThunk(
   'coefficients/create',
   async (data, { rejectWithValue }) => {
-    console.log('[coefficientSlice] createCoefficient called with data:', data);
     try {
-      const response = await coefficientService.create(data);
-      console.log('[coefficientSlice] createCoefficient successful:', response);
-      return response.data;
+      return await coefficientService.create(data);
     } catch (error) {
-      console.error('[coefficientSlice] createCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -69,13 +50,9 @@ export const createCoefficient = createAsyncThunk(
 export const updateCoefficient = createAsyncThunk(
   'coefficients/update',
   async ({ id, data }, { rejectWithValue }) => {
-    console.log('[coefficientSlice] updateCoefficient called with id:', id, 'data:', data);
     try {
-      const response = await coefficientService.update(id, data, false);
-      console.log('[coefficientSlice] updateCoefficient successful:', response);
-      return response.data;
+      return await coefficientService.update(id, data, false);
     } catch (error) {
-      console.error('[coefficientSlice] updateCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -84,13 +61,9 @@ export const updateCoefficient = createAsyncThunk(
 export const patchCoefficient = createAsyncThunk(
   'coefficients/patch',
   async ({ id, data }, { rejectWithValue }) => {
-    console.log('[coefficientSlice] patchCoefficient called with id:', id, 'data:', data);
     try {
-      const response = await coefficientService.update(id, data, true);
-      console.log('[coefficientSlice] patchCoefficient successful:', response);
-      return response.data;
+      return await coefficientService.update(id, data, true);
     } catch (error) {
-      console.error('[coefficientSlice] patchCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -99,13 +72,10 @@ export const patchCoefficient = createAsyncThunk(
 export const deleteCoefficient = createAsyncThunk(
   'coefficients/delete',
   async (id, { rejectWithValue }) => {
-    console.log('[coefficientSlice] deleteCoefficient called with id:', id);
     try {
       await coefficientService.delete(id);
-      console.log('[coefficientSlice] deleteCoefficient successful:', id);
       return id;
     } catch (error) {
-      console.error('[coefficientSlice] deleteCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -114,13 +84,9 @@ export const deleteCoefficient = createAsyncThunk(
 export const activateCoefficient = createAsyncThunk(
   'coefficients/activate',
   async (id, { rejectWithValue }) => {
-    console.log('[coefficientSlice] activateCoefficient called with id:', id);
     try {
-      const response = await coefficientService.activate(id);
-      console.log('[coefficientSlice] activateCoefficient successful:', response);
-      return response.data;
+      return await coefficientService.activate(id);
     } catch (error) {
-      console.error('[coefficientSlice] activateCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -129,13 +95,9 @@ export const activateCoefficient = createAsyncThunk(
 export const deactivateCoefficient = createAsyncThunk(
   'coefficients/deactivate',
   async (id, { rejectWithValue }) => {
-    console.log('[coefficientSlice] deactivateCoefficient called with id:', id);
     try {
-      const response = await coefficientService.deactivate(id);
-      console.log('[coefficientSlice] deactivateCoefficient successful:', response);
-      return response.data;
+      return await coefficientService.deactivate(id);
     } catch (error) {
-      console.error('[coefficientSlice] deactivateCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -144,13 +106,9 @@ export const deactivateCoefficient = createAsyncThunk(
 export const fetchActiveCoefficients = createAsyncThunk(
   'coefficients/fetchActive',
   async (_, { rejectWithValue }) => {
-    console.log('[coefficientSlice] fetchActiveCoefficients called');
     try {
-      const response = await coefficientService.getActive();
-      console.log('[coefficientSlice] fetchActiveCoefficients successful:', response);
-      return response;
+      return await coefficientService.getActive();
     } catch (error) {
-      console.error('[coefficientSlice] fetchActiveCoefficients failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -159,13 +117,9 @@ export const fetchActiveCoefficients = createAsyncThunk(
 export const applyCoefficient = createAsyncThunk(
   'coefficients/apply',
   async ({ score, coefficientValue }, { rejectWithValue }) => {
-    console.log('[coefficientSlice] applyCoefficient called with score:', score, 'coefficientValue:', coefficientValue);
     try {
-      const response = await coefficientService.applyCoefficient(score, coefficientValue);
-      console.log('[coefficientSlice] applyCoefficient successful:', response);
-      return response;
+      return await coefficientService.applyCoefficient(score, coefficientValue);
     } catch (error) {
-      console.error('[coefficientSlice] applyCoefficient failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -174,13 +128,9 @@ export const applyCoefficient = createAsyncThunk(
 export const fetchCoefficientsByDepartment = createAsyncThunk(
   'coefficients/fetchByDepartment',
   async (departmentId, { rejectWithValue }) => {
-    console.log('[coefficientSlice] fetchCoefficientsByDepartment called with departmentId:', departmentId);
     try {
-      const response = await coefficientService.getByDepartment(departmentId);
-      console.log('[coefficientSlice] fetchCoefficientsByDepartment successful:', response);
-      return response;
+      return await coefficientService.getByDepartment(departmentId);
     } catch (error) {
-      console.error('[coefficientSlice] fetchCoefficientsByDepartment failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -189,13 +139,9 @@ export const fetchCoefficientsByDepartment = createAsyncThunk(
 export const fetchCoefficientsByPosition = createAsyncThunk(
   'coefficients/fetchByPosition',
   async (positionId, { rejectWithValue }) => {
-    console.log('[coefficientSlice] fetchCoefficientsByPosition called with positionId:', positionId);
     try {
-      const response = await coefficientService.getByPosition(positionId);
-      console.log('[coefficientSlice] fetchCoefficientsByPosition successful:', response);
-      return response;
+      return await coefficientService.getByPosition(positionId);
     } catch (error) {
-      console.error('[coefficientSlice] fetchCoefficientsByPosition failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -204,13 +150,9 @@ export const fetchCoefficientsByPosition = createAsyncThunk(
 export const fetchCoefficientsByUser = createAsyncThunk(
   'coefficients/fetchByUser',
   async (userId, { rejectWithValue }) => {
-    console.log('[coefficientSlice] fetchCoefficientsByUser called with userId:', userId);
     try {
-      const response = await coefficientService.getByUser(userId);
-      console.log('[coefficientSlice] fetchCoefficientsByUser successful:', response);
-      return response;
+      return await coefficientService.getByUser(userId);
     } catch (error) {
-      console.error('[coefficientSlice] fetchCoefficientsByUser failed:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }

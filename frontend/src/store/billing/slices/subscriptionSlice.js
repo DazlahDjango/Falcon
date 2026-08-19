@@ -8,7 +8,23 @@ export const fetchCurrentSubscription = createAsyncThunk('billing/subscriptions/
 });
 
 export const fetchSubscriptions = createAsyncThunk('billing/subscriptions/fetchAll', async ({ page = 1, pageSize = 20, filters = {} } = {}, { rejectWithValue }) => {
-    try { const response = await SubscriptionService.getSubscriptions({ page, page_size: pageSize, ...filters }); return { items: response?.data || [], total: response?.count || 0, page, pageSize }; }
+    try {
+        const response = await SubscriptionService.getSubscriptions({ page, page_size: pageSize, ...filters });
+        const data = response?.data;
+        let items = [];
+        let total = 0;
+        if (Array.isArray(data)) {
+            items = data;
+            total = data.length;
+        } else if (data && Array.isArray(data.results)) {
+            items = data.results;
+            total = data.count || data.results.length;
+        } else if (data) {
+            items = data.items || [];
+            total = data.total || items.length;
+        }
+        return { items, total, page, pageSize };
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch subscriptions'); }
 });
 

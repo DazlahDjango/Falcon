@@ -33,7 +33,7 @@ class PlanSerializer(serializers.ModelSerializer):
 
 class PlanListSerializer(PlanSerializer):
     class Meta(PlanSerializer.Meta):
-        fields = ['id', 'name', 'slug', 'plan_type', 'plan_type_display', 'billing_interval', 'price_display', 'currency', 'max_users', 'max_kpis', 'is_active', 'display_order']
+        fields = ['id', 'name', 'slug', 'plan_type', 'plan_type_display', 'billing_interval', 'price', 'price_display', 'yearly_price', 'yearly_price_display', 'currency', 'description', 'max_users', 'max_kpis', 'max_departments', 'max_storage_mb', 'custom_branding', 'api_access', 'sso_enabled', 'advanced_analytics', 'audit_logs', 'custom_reports', 'priority_support', 'is_active', 'display_order']
 
 class PlanDetailSerializer(PlanSerializer):
     yearly_savings = serializers.SerializerMethodField()
@@ -66,7 +66,13 @@ class PlanCreateSerializer(serializers.ModelSerializer):
         return data
     def create(self, validated_data):
         from django.utils.text import slugify
-        validated_data['slug'] = slugify(validated_data['name'])
+        base_slug = slugify(validated_data['name'])
+        slug = base_slug
+        counter = 1
+        while SubscriptionPlan.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        validated_data['slug'] = slug
         return super().create(validated_data)
 
 class PlanUpdateSerializer(serializers.ModelSerializer):

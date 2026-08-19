@@ -43,4 +43,4 @@ class IsAdminOnly(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]

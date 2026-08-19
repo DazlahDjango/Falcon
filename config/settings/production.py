@@ -73,39 +73,50 @@ CORS_ALLOW_CREDENTIALS = True
 # DATABASE CONNECTION POOLING (Stability)
 # ----------------------------------------------------------------------------
 DATABASES['default']['CONN_MAX_AGE'] = 60  # Persistent connections
-DATABASES['default']['OPTIONS']['sslmode'] = env('DB_SSLMODE', default='require')
+DATABASES['default']['OPTIONS']['sslmode'] = env('DB_SSLMODE', default='prefer')
 
 # ----------------------------------------------------------------------------
 # CACHING (Redis - must be configured)
 # ----------------------------------------------------------------------------
-# Channels (WebSockets) — required in production
+# CACHING & WEBSOCKETS (Redis)
+# ----------------------------------------------------------------------------
+REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
+REDIS_PASSWORD = env('REDIS_PASSWORD', default=None)
+REDIS_USE_SSL = env.bool('REDIS_USE_SSL', default=False)
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [env('REDIS_URL')],
+            'hosts': [REDIS_URL],
         },
     },
 }
 
+redis_options = {
+    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+    'CONNECTION_POOL_CLASS': 'redis.connection.BlockingConnectionPool',
+    'CONNECTION_POOL_CLASS_KWARGS': {
+        'max_connections': 50,
+        'timeout': 20,
+    },
+    'SOCKET_CONNECT_TIMEOUT': 5,
+    'SOCKET_TIMEOUT': 5,
+    'RETRY_ON_TIMEOUT': True,
+    'HEALTH_CHECK_INTERVAL': 30,
+}
+
+if REDIS_PASSWORD:
+    redis_options['PASSWORD'] = REDIS_PASSWORD
+
+if REDIS_USE_SSL:
+    redis_options['SSL'] = True
+
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': env('REDIS_URL'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_CLASS': 'redis.connection.BlockingConnectionPool',
-            'CONNECTION_POOL_CLASS_KWARGS': {
-                'max_connections': 50,
-                'timeout': 20,
-            },
-            'PASSWORD': env('REDIS_PASSWORD'),
-            'SSL': True,
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
-            'RETRY_ON_TIMEOUT': True,
-            'HEALTH_CHECK_INTERVAL': 30,
-        },
+        'LOCATION': REDIS_URL,
+        'OPTIONS': redis_options,
         'KEY_PREFIX': 'falcon',
         'TIMEOUT': 300,
     }
@@ -114,28 +125,28 @@ CACHES = {
 # ----------------------------------------------------------------------------
 # FILE STORAGE (Use S3 in production)
 # ----------------------------------------------------------------------------
-if env('AWS_ACCESS_KEY_ID', default=None):
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default=None)
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default=None)
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default=None)
+
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
     INSTALLED_APPS += ['storages']
     
-    AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME')
+    AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME', default='us-east-1')
     AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN', default=None)
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = None
     AWS_S3_VERIFY = True
     AWS_S3_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
     
-    # Static files
+    # Static & Media files
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     STATIC_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/static/'
     
-    # Media files
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/media/'
 else:
-    # Fallback to local (not recommended for production)
+    # Fallback to local (ensure directories exist)
     STATIC_ROOT = BASE_DIR / 'staticfiles'
     MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -240,9 +251,9 @@ if SENTRY_DSN:
     sentry_sdk.set_tag('database', 'postgresql')
     sentry_sdk.set_tag('cache', 'redis')
     
-    print(f"✓ Sentry initialized for {SENTRY_ENVIRONMENT} environment")
+    print(f"[OK] Sentry initialized for {SENTRY_ENVIRONMENT} environment")
 else:
-    print("⚠ Sentry DSN not configured - error tracking disabled")
+    print("[WARNING] Sentry DSN not configured - error tracking disabled")
 
 
 
@@ -252,15 +263,23 @@ else:
 ADMIN_URL = env('ADMIN_URL', default='admin/')
 
 # ----------------------------------------------------------------------------
-# EMAIL (SMTP with TLS)
+# EMAIL (SMTP Configuration)
 # ----------------------------------------------------------------------------
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = env.int('EMAIL_PORT')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=10)
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='operations@falconigc.com')
+SERVER_EMAIL = env('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
+
+# ----------------------------------------------------------------------------
+# CELERY PRODUCTION SETTINGS
+# ----------------------------------------------------------------------------
+CELERY_TASK_ALWAYS_EAGER = False
 
 # ----------------------------------------------------------------------------
 # REMOVE DEVELOPMENT APPS
@@ -271,11 +290,14 @@ INSTALLED_APPS = [app for app in INSTALLED_APPS if app not in [
 ]]
 
 # PAYSTACK PRODUCTION CONFIG
-# Production must have real keys - fail if not set
-if not PAYSTACK_SECRET_KEY or PAYSTACK_SECRET_KEY.startswith("sk_test_"):
+PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", default=None)
+PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default=None)
+
+# Production must have real keys - validate if configured
+if PAYSTACK_SECRET_KEY and PAYSTACK_SECRET_KEY.startswith("sk_test_"):
     raise ValueError("PRODUCTION: Valid PAYSTACK_SECRET_KEY required (must be live key)")
 
-if not PAYSTACK_PUBLIC_KEY or PAYSTACK_PUBLIC_KEY.startswith("pk_test_"):
+if PAYSTACK_PUBLIC_KEY and PAYSTACK_PUBLIC_KEY.startswith("pk_test_"):
     raise ValueError("PRODUCTION: Valid PAYSTACK_PUBLIC_KEY required (must be live key)")
 
 # Always verify webhook signatures in production

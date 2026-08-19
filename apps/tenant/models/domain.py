@@ -73,7 +73,7 @@ class OrganizationDomain(BaseModel):
         self.ssl_issued_at = issued_at
         self.ssl_expires_at = expires_at
         self.ssl_issuer = issuer
-        self.save(update_fields=['ssl_issued_at', 'ssl_expires_at', 'ssl_issuer'])
+        self.save(update_fields=['ssl_issued_at', 'ssl_expires_at', 'ssl_issuer', 'metadata'])
 
     def get_full_url(self, path=''):
         protocol = 'https' if self.force_https else 'http'

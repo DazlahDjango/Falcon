@@ -4,14 +4,24 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import rootReducer from './rootReducer';
-import kpiModuleReducer from './kpi/index';
 
 import { authMiddleware } from './accounts/middlewares/authMiddleware';
 import { errorHandlerMiddleware, networkErrorMiddleware, retryMiddleware } from './accounts/middlewares/errorMiddleware';
 import { loggerMiddleware } from './middleware';
-// Tenant Middlewares
+
+// WebSocket Middlewares
+import { accountsWebsocketMiddleware } from './accounts/middlewares/websocketMiddleware';
+import { tenantWebsocketMiddleware } from './tenant/middleware/websocketMiddleware';
+import { billingWebsocketMiddleware } from './billing/middleware/websocketMiddleware';
+import { structureWebsocketMiddleware } from './structure/middleware/websocketMiddleware';
+import { kpiWebsocketMiddleware } from './kpi/middleware/websocketMiddleware';
+import { configWebsocketMiddleware } from './config/middleware/websocketMiddleware';
+import { dashboardWebsocketMiddleware } from './dashboard/middleware/dashboardWebsocket';
+import { reportWebSocketMiddleware } from './reports/middleware/reportWebSocket.middleware';
+import { websocketMiddleware as reviewsWebsocketMiddleware } from './reviews/middleware/websocketMiddleware';
+
+// Tenant & Billing Middlewares
 import { tenantMiddlewares } from './tenant/middleware';
-// Billing
 import { billingMiddlewares } from './billing/middleware';
 import { backupMiddleware, maintenanceMiddleware } from './config';
 
@@ -109,6 +119,15 @@ export const store = configureStore({
             networkErrorMiddleware,
             retryMiddleware,
             loggerMiddleware,
+            accountsWebsocketMiddleware,
+            tenantWebsocketMiddleware,
+            billingWebsocketMiddleware,
+            structureWebsocketMiddleware,
+            kpiWebsocketMiddleware,
+            configWebsocketMiddleware,
+            dashboardWebsocketMiddleware,
+            reportWebSocketMiddleware,
+            reviewsWebsocketMiddleware,
             ...tenantMiddlewares,
             backupMiddleware,
             maintenanceMiddleware,

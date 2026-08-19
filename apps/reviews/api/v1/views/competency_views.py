@@ -16,7 +16,15 @@ class CompetencyCategoryViewSet(BaseReviewViewSet):
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
-        serializer.save(tenant_id=self.request.user.tenant_id)
+        tenant = getattr(self.request.user, 'tenant', None)
+        tenant_id = getattr(self.request.user, 'tenant_id', None)
+        if not tenant and not tenant_id:
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.first()
+        if tenant:
+            serializer.save(tenant=tenant)
+        else:
+            serializer.save(tenant_id=tenant_id)
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         category = self.get_object()
@@ -44,7 +52,15 @@ class CompetencyViewSet(BaseReviewViewSet):
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
-        serializer.save(tenant_id=self.request.user.tenant_id)
+        tenant = getattr(self.request.user, 'tenant', None)
+        tenant_id = getattr(self.request.user, 'tenant_id', None)
+        if not tenant and not tenant_id:
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.first()
+        if tenant:
+            serializer.save(tenant=tenant)
+        else:
+            serializer.save(tenant_id=tenant_id)
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         competency = self.get_object()

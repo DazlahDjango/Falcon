@@ -2,17 +2,32 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { AdminBillingService } from '../../../services/billing';
 
 export const fetchTenantSubscriptions = createAsyncThunk('billing/admin/fetchTenantSubscriptions', async (tenantId, { rejectWithValue }) => {
-    try { const response = await AdminBillingService.getTenantSubscriptions(tenantId); return { tenantId, data: response?.data || [] }; }
+    try {
+        const response = await AdminBillingService.getTenantSubscriptions(tenantId);
+        const raw = response?.data;
+        const data = Array.isArray(raw) ? raw : (raw?.results || []);
+        return { tenantId, data };
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch tenant subscriptions'); }
 });
 
 export const fetchTenantInvoices = createAsyncThunk('billing/admin/fetchTenantInvoices', async (tenantId, { rejectWithValue }) => {
-    try { const response = await AdminBillingService.getTenantInvoices(tenantId); return { tenantId, data: response?.data || [] }; }
+    try {
+        const response = await AdminBillingService.getTenantInvoices(tenantId);
+        const raw = response?.data;
+        const data = Array.isArray(raw) ? raw : (raw?.results || []);
+        return { tenantId, data };
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch tenant invoices'); }
 });
 
 export const fetchTenantTransactions = createAsyncThunk('billing/admin/fetchTenantTransactions', async (tenantId, { rejectWithValue }) => {
-    try { const response = await AdminBillingService.getTenantTransactions(tenantId); return { tenantId, data: response?.data || [] }; }
+    try {
+        const response = await AdminBillingService.getTenantTransactions(tenantId);
+        const raw = response?.data;
+        const data = Array.isArray(raw) ? raw : (raw?.results || []);
+        return { tenantId, data };
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch tenant transactions'); }
 });
 

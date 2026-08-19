@@ -242,7 +242,7 @@ Pushes events directly to connected clients using django-channels.
 ### 3.15 Reporting
 Structures document generation for cycles, PIPs, and calibration results.
 * **Core Files**:
-  * [review_summary_service.py](file:///d:/Falcon/apps/reviews/services/reporting/review_summary_service.py)
+  * [review_summary_service.py](file:///d:/Falcon/apps/reviews/services/reporting/review_summary_service.py)   
   * [organization_report_service.py](file:///d:/Falcon/apps/reviews/services/reporting/organization_report_service.py)
   * [pip_report_service.py](file:///d:/Falcon/apps/reviews/services/reporting/pip_report_service.py)
   * [calibration_report_service.py](file:///d:/Falcon/apps/reviews/services/reporting/calibration_report_service.py)

@@ -174,10 +174,10 @@ export {
   default as dashboardReducer,
   fetchSuperAdminDashboard,
   fetchClientAdminDashboard,
-  fetchOrganizationStats,
   clearDashboard,
+  clearSuperAdminDashboard,
+  clearClientAdminDashboard,
   clearErrors as clearDashboardErrors,
-  clearOrganizationStats,
 } from './dashboard.slice';
 
 export {

@@ -38,6 +38,7 @@ export const usePlans = (options = { autoFetch: false }) => {
     useEffect(() => { 
         if (options.autoFetch && !hasFetched.current) {
             hasFetched.current = true;
+            fetchAllPlans({});
             fetchPublic(); 
         }
     }, [options.autoFetch]);

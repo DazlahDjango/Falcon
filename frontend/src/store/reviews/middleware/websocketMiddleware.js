@@ -1,29 +1,17 @@
-// src/store/middleware/websocketMiddleware.js
-import { notificationActions } from '../slices/notification.slice';
-import { dashboardActions } from '../slices/dashboard.slice';
-import { cycleActions } from '../slices/cycle.slice';
-import { finalRatingActions } from '../slices/finalRating.slice';
+import reviewsWebSocketService from '../../../services/reviews/websocket.service';
 
-// WebSocket event handlers mapping
 const WS_EVENT_HANDLERS = {
   'review_submitted': (store, payload) => {
-    // Handle review submitted event
-    store.dispatch(cycleActions.setProgress(payload.progress));
+    store.dispatch({ type: 'cycle/setProgress', payload: payload.progress });
   },
   'review_approved': (store, payload) => {
-    store.dispatch(finalRatingActions.selectItem(payload));
+    store.dispatch({ type: 'finalRating/selectItem', payload });
   },
   'review_completed': (store, payload) => {
-    store.dispatch(cycleActions.setProgress(payload.progress));
+    store.dispatch({ type: 'cycle/setProgress', payload: payload.progress });
   },
   'review_rejected': (store, payload) => {
-    store.dispatch(cycleActions.setProgress(payload.progress));
-  },
-  'cycle_progress': (store, payload) => {
-    store.dispatch(cycleActions.setProgress(payload));
-  },
-  'pip_updated': (store, payload) => {
-    store.dispatch({ type: 'pips/updateItem', payload });
+    store.dispatch({ type: 'cycle/setProgress', payload: payload.progress });
   },
   'calibration_adjustment': (store, payload) => {
     store.dispatch({ type: 'calibrationSessions/updateItem', payload });
@@ -32,146 +20,60 @@ const WS_EVENT_HANDLERS = {
     store.dispatch({ type: 'calibrationSessions/addComment', payload });
   },
   'notification': (store, payload) => {
-    store.dispatch(notificationActions.websocketNotification(payload));
+    store.dispatch({ type: 'notification/websocketNotification', payload });
   },
   'dashboard_metrics': (store, payload) => {
-    store.dispatch(dashboardActions.setMetrics(payload));
-  },
-  'dependency_sync': (store, payload) => {
-    // Handle dependency sync events
-    if (payload.source === 'structure') {
-      store.dispatch({ type: 'referenceData/updateDepartments', payload: payload.departments });
-    } else if (payload.source === 'accounts') {
-      store.dispatch({ type: 'referenceData/updateUsers', payload: payload.users });
-    } else if (payload.source === 'kpi') {
-      store.dispatch(dashboardActions.setMetrics(payload));
-    }
+    store.dispatch({ type: 'dashboard/setMetrics', payload });
   },
 };
 
-export const websocketMiddleware = (store) => {
-  let socket = null;
-  let reconnectAttempts = 0;
-  const MAX_RECONNECT_ATTEMPTS = 5;
-  const RECONNECT_DELAY = 3000;
+export const websocketMiddleware = (store) => (next) => (action) => {
+  const result = next(action);
 
-  const connect = () => {
-    const token = localStorage.getItem('access_token');
-    const tenantId = localStorage.getItem('tenant_id');
-    
-    if (!token || !tenantId) {
-      console.warn('WebSocket: Missing token or tenant ID');
-      return;
+  if (action.type === 'reviews/initializeWebSockets') {
+    const handleWsData = (data) => {
+      const handler = WS_EVENT_HANDLERS[data.type];
+      if (handler) {
+        handler(store, data.payload || data);
+      }
+    };
+
+    if (action.payload?.cycleId) {
+      reviewsWebSocketService.connectStatus(action.payload.cycleId, handleWsData).catch(err => console.error('[ReviewsWSMiddleware] Error:', err));
     }
 
-    const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8000'}/ws/reviews/?token=${token}&tenant=${tenantId}`;
-    
-    try {
-      socket = new WebSocket(wsUrl);
-
-      socket.onopen = () => {
-        console.log('WebSocket: Connected successfully');
-        reconnectAttempts = 0;
-        // Send subscription message
-        socket.send(JSON.stringify({
-          type: 'subscribe',
-          channels: ['reviews', 'notifications', 'dashboard'],
-        }));
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          const { type, payload } = data;
-
-          // Find and execute handler
-          const handler = WS_EVENT_HANDLERS[type];
-          if (handler) {
-            handler(store, payload);
-          } else {
-            console.debug('WebSocket: Unhandled event type:', type);
-          }
-        } catch (error) {
-          console.error('WebSocket: Error processing message:', error);
-        }
-      };
-
-      socket.onclose = (event) => {
-        console.log('WebSocket: Disconnected', event.code, event.reason);
-        socket = null;
-        attemptReconnect();
-      };
-
-      socket.onerror = (error) => {
-        console.error('WebSocket: Error:', error);
-        socket?.close();
-      };
-
-    } catch (error) {
-      console.error('WebSocket: Connection error:', error);
-      attemptReconnect();
-    }
-  };
-
-  const attemptReconnect = () => {
-    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      reconnectAttempts += 1;
-      console.log(`WebSocket: Reconnecting attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
-      setTimeout(connect, RECONNECT_DELAY * reconnectAttempts);
-    } else {
-      console.warn('WebSocket: Max reconnection attempts reached');
-      store.dispatch({ type: 'websocket/maxReconnectAttempts' });
-    }
-  };
-
-  const disconnect = () => {
-    if (socket) {
-      socket.close(1000, 'Client disconnecting');
-      socket = null;
-    }
-  };
-
-  const send = (data) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(data));
-      return true;
-    }
-    console.warn('WebSocket: Cannot send - socket not open');
-    return false;
-  };
-
-  // Return middleware API
-  return (next) => (action) => {
-    // Handle WebSocket actions
-    switch (action.type) {
-      case 'WEBSOCKET_CONNECT':
-        if (!socket || socket.readyState !== WebSocket.OPEN) {
-          connect();
-        }
-        break;
-      case 'WEBSOCKET_DISCONNECT':
-        disconnect();
-        break;
-      case 'WEBSOCKET_SEND':
-        send(action.payload);
-        break;
-      case 'WEBSOCKET_RECONNECT':
-        disconnect();
-        setTimeout(connect, RECONNECT_DELAY);
-        break;
-      default:
-        break;
+    if (action.payload?.sessionId) {
+      reviewsWebSocketService.connectCalibration(action.payload.sessionId, handleWsData).catch(err => console.error('[ReviewsWSMiddleware] Error:', err));
     }
 
-    return next(action);
-  };
+    reviewsWebSocketService.connectNotifications(handleWsData).catch(err => console.error('[ReviewsWSMiddleware] Error:', err));
+    reviewsWebSocketService.connectDashboard(handleWsData).catch(err => console.error('[ReviewsWSMiddleware] Error:', err));
+  }
+
+  if (action.type === 'reviews/closeWebSockets') {
+    reviewsWebSocketService.disconnectAll();
+  }
+
+  return result;
 };
 
-// Action creators for WebSocket
+export const connectWebSocket = (payload) => (dispatch) => {
+  dispatch({ type: 'reviews/initializeWebSockets', payload });
+};
+
+export const disconnectWebSocket = () => (dispatch) => {
+  dispatch({ type: 'reviews/closeWebSockets' });
+};
+
+export const disconnectAllWebSockets = () => (dispatch) => {
+  dispatch({ type: 'reviews/closeWebSockets' });
+};
+
 export const websocketActions = {
-  connect: () => ({ type: 'WEBSOCKET_CONNECT' }),
-  disconnect: () => ({ type: 'WEBSOCKET_DISCONNECT' }),
-  reconnect: () => ({ type: 'WEBSOCKET_RECONNECT' }),
-  send: (payload) => ({ type: 'WEBSOCKET_SEND', payload }),
-  subscribe: (channels) => ({ type: 'WEBSOCKET_SEND', payload: { type: 'subscribe', channels } }),
+  connect: (payload) => ({ type: 'reviews/initializeWebSockets', payload }),
+  disconnect: () => ({ type: 'reviews/closeWebSockets' }),
+  send: (payload) => ({ type: 'reviews/sendWebSocketMessage', payload }),
+  subscribe: (channels) => ({ type: 'reviews/subscribeWebSockets', payload: channels }),
 };
+
+export default websocketMiddleware;

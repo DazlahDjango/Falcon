@@ -257,17 +257,67 @@ const actualSlice = createSlice({
       })
       
       // ============ Approve Actual ============
+      .addCase(approveActual.pending, (state, action) => {
+        const id = action.meta.arg?.id;
+        const index = state.actuals.findIndex(a => a.id === id);
+        if (index !== -1) {
+          state.actuals[index]._previousStatus = state.actuals[index].status;
+          state.actuals[index].status = 'APPROVED';
+        }
+        if (state.currentActual?.id === id) {
+          state.currentActual._previousStatus = state.currentActual.status;
+          state.currentActual.status = 'APPROVED';
+        }
+      })
       .addCase(approveActual.fulfilled, (state, action) => {
         const index = state.actuals.findIndex(a => a.id === action.payload.id);
         if (index !== -1) state.actuals[index] = action.payload;
         if (state.currentActual?.id === action.payload.id) state.currentActual = action.payload;
       })
+      .addCase(approveActual.rejected, (state, action) => {
+        const id = action.meta.arg?.id;
+        const index = state.actuals.findIndex(a => a.id === id);
+        if (index !== -1 && state.actuals[index]._previousStatus) {
+          state.actuals[index].status = state.actuals[index]._previousStatus;
+          delete state.actuals[index]._previousStatus;
+        }
+        if (state.currentActual?.id === id && state.currentActual._previousStatus) {
+          state.currentActual.status = state.currentActual._previousStatus;
+          delete state.currentActual._previousStatus;
+        }
+        state.error = action.payload;
+      })
       
       // ============ Reject Actual ============
+      .addCase(rejectActual.pending, (state, action) => {
+        const id = action.meta.arg?.id;
+        const index = state.actuals.findIndex(a => a.id === id);
+        if (index !== -1) {
+          state.actuals[index]._previousStatus = state.actuals[index].status;
+          state.actuals[index].status = 'REJECTED';
+        }
+        if (state.currentActual?.id === id) {
+          state.currentActual._previousStatus = state.currentActual.status;
+          state.currentActual.status = 'REJECTED';
+        }
+      })
       .addCase(rejectActual.fulfilled, (state, action) => {
         const index = state.actuals.findIndex(a => a.id === action.payload.id);
         if (index !== -1) state.actuals[index] = action.payload;
         if (state.currentActual?.id === action.payload.id) state.currentActual = action.payload;
+      })
+      .addCase(rejectActual.rejected, (state, action) => {
+        const id = action.meta.arg?.id;
+        const index = state.actuals.findIndex(a => a.id === id);
+        if (index !== -1 && state.actuals[index]._previousStatus) {
+          state.actuals[index].status = state.actuals[index]._previousStatus;
+          delete state.actuals[index]._previousStatus;
+        }
+        if (state.currentActual?.id === id && state.currentActual._previousStatus) {
+          state.currentActual.status = state.currentActual._previousStatus;
+          delete state.currentActual._previousStatus;
+        }
+        state.error = action.payload;
       })
       
       // ============ Resubmit Actual ============

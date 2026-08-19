@@ -5,7 +5,8 @@ from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.cache import cache
-from ..services import JWTServices, SessionService
+from ..services.auth.jwt import JWTServices
+from ..services.auth.session import SessionService
 from .ws_utils import get_scope_user, extract_token_from_scope
 
 User = get_user_model()
@@ -35,6 +36,7 @@ class AuthConsumer(AsyncWebsocketConsumer):
             }))
             logger.info('Websocket auth connected: %s', self.user_id)
         else:
+            await self.accept()
             await self.close(code=4001, reason='Authentication failed')
 
     async def disconnect(self, close_code):

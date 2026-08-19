@@ -35,9 +35,9 @@ export const PlanManager = () => {
                                 {plans.map(plan => (
                                     <tr key={plan.id}>
                                         <td><span className="plan-name">{plan.name}</span><span className="plan-slug">{plan.slug}</span></td>
-                                        <td><StatusBadge type="subscription" status={plan.plan_type} size="sm" /></td>
-                                        <td><CurrencyFormatter amount={plan.price} /></td>
-                                        <td>{plan.yearly_price ? <CurrencyFormatter amount={plan.yearly_price} /> : '-'}</td>
+                                        <td><StatusBadge type="plan" status={plan.plan_type} size="sm" /></td>
+                                        <td><CurrencyFormatter amount={plan.price} currency={plan.currency} /></td>
+                                        <td>{plan.yearly_price ? <CurrencyFormatter amount={plan.yearly_price} currency={plan.currency} /> : '-'}</td>
                                         <td>{plan.max_users === -1 ? '∞' : plan.max_users}</td>
                                         <td>{plan.max_kpis === -1 ? '∞' : plan.max_kpis}</td>
                                         <td><StatusBadge type="payment_method" status={plan.is_active ? 'active' : 'removed'} size="sm" /></td>

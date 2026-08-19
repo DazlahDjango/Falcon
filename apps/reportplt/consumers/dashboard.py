@@ -109,7 +109,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
     def get_dashboard(self, dashboard_id: str) -> ReportDashboard:
         try:
             return ReportDashboard.objects.get(id=dashboard_id)
-        except ObjectDoesNotExist:
+        except Exception:
             return None
 
     @database_sync_to_async

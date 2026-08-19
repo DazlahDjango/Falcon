@@ -103,9 +103,9 @@ class OrganizationStatsService:
                 'type_display': r.get_resource_type_display(),
                 'current': r.current_value,
                 'limit': r.limit_value,
-                'percentage': r.percentage_used(),
-                'is_exceeded': r.is_exceeded(),
-                'is_warning': r.is_warning_level(),
+                'percentage': r.percentage_used,
+                'is_exceeded': r.is_exceeded,
+                'is_warning': r.is_warning_level,
             } for r in resources]
         except Exception:
             return []

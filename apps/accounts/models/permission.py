@@ -9,7 +9,7 @@ class Permission(BaseModel):
     name = models.CharField(_('name'), max_length=255)
     codename = models.CharField(_('code name'), max_length=100, unique=True, db_index=True)
     description = models.TextField(_('description'), blank=True)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='custom_permissios', verbose_name=_('content type'))
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='custom_permissions', verbose_name=_('content type'))
     CATEGORY_KPI = 'kpi'
     CATEGORY_REVIEW = 'review'
     CATEGORY_USER = 'user'

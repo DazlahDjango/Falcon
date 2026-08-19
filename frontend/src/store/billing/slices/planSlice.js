@@ -2,12 +2,24 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { PlanService } from '../../../services/billing';
 
 export const fetchPlans = createAsyncThunk('billing/plans/fetchAll', async ({ params = {} } = {}, { rejectWithValue }) => {
-    try { const response = await PlanService.getPlans(params); return response?.data || []; }
+    try {
+        const response = await PlanService.getPlans(params);
+        const data = response?.data;
+        if (Array.isArray(data)) return data;
+        if (data && Array.isArray(data.results)) return data.results;
+        return [];
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch plans'); }
 });
 
 export const fetchPublicPlans = createAsyncThunk('billing/plans/fetchPublic', async (_, { rejectWithValue }) => {
-    try { const response = await PlanService.getPublicPlans(); return response?.data || []; }
+    try {
+        const response = await PlanService.getPublicPlans();
+        const data = response?.data;
+        if (Array.isArray(data)) return data;
+        if (data && Array.isArray(data.results)) return data.results;
+        return [];
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch public plans'); }
 });
 

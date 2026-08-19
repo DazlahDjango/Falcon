@@ -31,7 +31,7 @@ class Competency(ReviewBaseModel):
         TEAMWORK = 'teamwork', 'Teamwork & Collaboration'
     tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE, related_name='competencies', db_column='tenant_id_id')
     name = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(blank=True, default='')
     category = models.ForeignKey(CompetencyCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='competencies')
     competency_type = models.CharField(max_length=20, choices=CompetencyType.choices, default=CompetencyType.SOFT_SKILL)
     default_weight = models.DecimalField(max_digits=5, decimal_places=2, default=10.00, validators=[MinValueValidator(0), MaxValueValidator(100)])

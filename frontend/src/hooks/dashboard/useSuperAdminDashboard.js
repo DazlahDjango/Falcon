@@ -164,7 +164,18 @@ export const useSuperAdminDashboard = (options = {}) => {
 
   useEffect(() => {
     refreshAllRef.current = refreshAll;
-  }, [refreshAll]);
+    if (options.autoRefresh !== false && options.autoFetch !== false) {
+      refreshAll().catch(() => {});
+
+      const timer = setInterval(() => {
+        if (refreshAllRef.current) {
+          refreshAllRef.current().catch(() => {});
+        }
+      }, options.refreshInterval || 10000);
+
+      return () => clearInterval(timer);
+    }
+  }, [refreshAll, options.autoRefresh, options.autoFetch, options.refreshInterval]);
 
   return {
     dashboardData,

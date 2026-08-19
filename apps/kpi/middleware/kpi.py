@@ -9,20 +9,21 @@ class KPIContextMiddleware(MiddlewareMixin):
     _thread_local = threading.local()
 
     def process_request(self, request):
-        print(f"[KPI MIDDLEWARE] Processing request: {request.path}")
-        print(f"[KPI MIDDLEWARE] current_tenant_id before: {getattr(request, 'current_tenant_id', 'NOT SET')}")
-        # Use current_tenant_id from TenantMiddleware (not 'tenant')
-        tenant_id = getattr(request, 'current_tenant_id', None)
+        tenant_id = (
+            getattr(request, 'current_tenant_id', None) or
+            getattr(request, 'tenant_id', None) or
+            getattr(request, 'current_organization_id', None)
+        )
         if not tenant_id and hasattr(request, 'user') and request.user.is_authenticated:
-            tenant_id = str(request.user.tenant_id)
-            print(f"[KPI MIDDLEWARE] Got tenant_id from user: {tenant_id}")
+            user_tenant_id = getattr(request.user, 'tenant_id', None) or getattr(request.user, 'organization_id', None)
+            if user_tenant_id:
+                tenant_id = str(user_tenant_id)
         
         if tenant_id:
-            self._thread_local.tenant_id = tenant_id
-            # Also set it on request if missing
+            self._thread_local.tenant_id = str(tenant_id)
             if not hasattr(request, 'current_tenant_id'):
-                request.current_tenant_id = tenant_id
-                print(f"[KPI MIDDLEWARE] Set request.current_tenant_id = {tenant_id}")
+                request.current_tenant_id = str(tenant_id)
+            logger.debug(f"[KPI MIDDLEWARE] Set tenant context for request: {tenant_id}")
         
         if hasattr(request, 'user') and request.user.is_authenticated:
             self._thread_local.user_id = str(request.user.id)

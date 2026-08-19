@@ -38,49 +38,56 @@ const CompetencyHelpGuide = () => {
           Form Configuration Tips:
         </span>
         <ul className="competency-help-text" style={{ fontSize: '13px', color: '#475569', lineHeight: 1.5, paddingLeft: '20px', margin: 0, listStyleType: 'disc' }}>
-          <li style={{ marginBottom: '6px' }}><strong>Type:</strong> Classification of the skill (e.g. <i>Technical</i> for developers, <i>Leadership</i> for managers).</li>
-          <li style={{ marginBottom: '6px' }}><strong>Default Weight:</strong> The impact percentage of this competency on the total review score. Typically 5% - 25%.</li>
-          <li style={{ marginBottom: '6px' }}><strong>Rating Scale:</strong> Select a custom scale to override the standard cycle scale for this specific competency.</li>
-          <li style={{ marginBottom: '6px' }}><strong>Behavioral Indicators:</strong> Real examples of poor (needs improvement) and outstanding (excellent) performance to guide reviews.</li>
+          <li style={{ marginBottom: '6px' }}><strong>Default Weight (%):</strong> The percentage score contribution of this competency (e.g. 10%, 15%). Total weights of evaluated competencies sum up to 100%.</li>
+          <li style={{ marginBottom: '6px' }}><strong>Display Order:</strong> The visual sequence (1, 2, 3, 4) in which this skill appears on review forms and report tables.</li>
+          <li style={{ marginBottom: '6px' }}><strong>Type & Category:</strong> Categorization (e.g. <i>Technical Skills</i> under <i>Technical & Operational Excellence</i>).</li>
+          <li style={{ marginBottom: '6px' }}><strong>Behavioral Indicators:</strong> Specific baseline benchmarks for Outstanding (5/5) vs. Poor (1/5) ratings.</li>
         </ul>
       </div>
 
       <div className="competency-help-section">
         <span className="competency-help-section-title" style={{ fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px', display: 'block' }}>
-          💡 Predefined Examples:
+          💡 Examples by Category:
         </span>
         <div className="competency-help-examples" style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px' }}>
           
           <div className="competency-example-item" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '8px' }}>
             <div className="competency-example-name" style={{ fontWeight: 600, color: '#2563eb', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              🔧 1. Technical Problem Solving
+              🌟 1. Integrity & Ethical Conduct
             </div>
             <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
-              <strong>Type:</strong> Technical Skills. <strong>Weight:</strong> 15%<br />
-              <strong>Excellent:</strong> "Finds optimal solutions to complex bugs, drafts robust tests, mentors peers."<br />
-              <strong>Needs Improvement:</strong> "Struggles with fundamental coding, avoids reviews, ignores errors."
+              <strong>Category:</strong> Core Values & Culture<br />
+              <strong>Type:</strong> Cultural | <strong>Weight:</strong> 10% | <strong>Order:</strong> 1
             </div>
           </div>
 
           <div className="competency-example-item" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '8px' }}>
-            <div className="competency-example-name" style={{ fontWeight: 600, color: '#d97706', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              ⭐ 2. Initiative & Ownership
+            <div className="competency-example-name" style={{ fontWeight: 600, color: '#16a34a', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              ⚙️ 2. Job Knowledge & Technical Skill
             </div>
             <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
-              <strong>Type:</strong> Soft Skills. <strong>Weight:</strong> 10%<br />
-              <strong>Excellent:</strong> "Proactively tackles issues, takes accountability for success and failures."<br />
-              <strong>Needs Improvement:</strong> "Waits for instructions, shifts blame, resists changes."
+              <strong>Category:</strong> Technical & Operational Excellence<br />
+              <strong>Type:</strong> Technical Skills | <strong>Weight:</strong> 15% | <strong>Order:</strong> 2
+            </div>
+          </div>
+
+          <div className="competency-example-item" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '8px' }}>
+            <div className="competency-example-name" style={{ fontWeight: 600, color: '#0284c7', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              💬 3. Effective Communication
+            </div>
+            <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
+              <strong>Category:</strong> Communication & Delivery<br />
+              <strong>Type:</strong> Soft Skills | <strong>Weight:</strong> 10% | <strong>Order:</strong> 3
             </div>
           </div>
 
           <div className="competency-example-item">
-            <div className="competency-example-name" style={{ fontWeight: 600, color: '#16a34a', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              👑 3. Strategic Planning
+            <div className="competency-example-name" style={{ fontWeight: 600, color: '#d97706', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              👥 4. People Leadership & Mentorship
             </div>
             <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
-              <strong>Type:</strong> Leadership. <strong>Weight:</strong> 20%<br />
-              <strong>Excellent:</strong> "Creates long-term objectives, aligns teams with business value, anticipates risks."<br />
-              <strong>Needs Improvement:</strong> "Focuses solely on short-term tasks, fails to build plan targets."
+              <strong>Category:</strong> Leadership & Strategic Management<br />
+              <strong>Type:</strong> Leadership | <strong>Weight:</strong> 15% | <strong>Order:</strong> 4
             </div>
           </div>
 

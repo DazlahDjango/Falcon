@@ -15,15 +15,17 @@ password_service = PasswordService()
 # Email tasks
 # ===========
 @shared_task(name='accounts.send_welcome_email')
-def send_welcome_email(user_id, tenant_name=None):
+def send_welcome_email(user_id, tenant_name=None, raw_password=None):
     try:
         # ✅ FIXED: Use is_deleted=False instead of is_deleted=None
         user = User.objects.get(id=user_id, is_deleted=False)
-        subject = f"Welcome to Falcon PMS"
+        subject = f"Welcome to Falcon PMS - Account Created"
         context = {
             'user': user,
             'tenant_name': tenant_name or 'your organization',
+            'raw_password': raw_password,
             'login_url': f"{settings.FRONTEND_URL}/login",
+            'dashboard_url': f"{settings.FRONTEND_URL}/dashboard",
             'support_email': settings.DEFAULT_FROM_EMAIL
         }
         html_content = render_to_string('accounts/email/welcome.html', context)

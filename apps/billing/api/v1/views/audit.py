@@ -51,8 +51,15 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(user_email=serializer.validated_data['user_email'])
         if serializer.validated_data.get('success') is not None:
             queryset = queryset.filter(success=serializer.validated_data['success'])
-        queryset = queryset.order_by('-created_at')[serializer.validated_data['offset']:serializer.validated_data['offset'] + serializer.validated_data['limit']]
-        return Response(AuditLogListSerializer(queryset, many=True).data)
+        
+        queryset = queryset.order_by('-created_at')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = AuditLogListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = AuditLogListSerializer(queryset, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'], url_path='export')
     def export_logs(self, request):

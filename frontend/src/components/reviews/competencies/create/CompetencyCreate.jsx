@@ -30,7 +30,12 @@ const CompetencyCreate = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await create(formData);
+      const payload = {
+        ...formData,
+        category: formData.category ? formData.category : null,
+        rating_scale: formData.rating_scale ? formData.rating_scale : null,
+      };
+      await create(payload);
       navigate('/reviews/competencies');
     } catch (error) {
       console.error('Failed to create competency:', error);

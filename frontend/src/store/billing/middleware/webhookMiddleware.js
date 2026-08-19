@@ -16,7 +16,7 @@ webhookMiddleware.startListening({
 });
 
 webhookMiddleware.startListening({
-    type: 'webhook/chargeSuccess',
+    matcher: (action) => action.type === 'webhook/chargeSuccess',
     effect: async (action, { dispatch }) => {
         dispatch(fetchCurrentSubscription());
         dispatch(fetchInvoiceSummary());
@@ -24,14 +24,14 @@ webhookMiddleware.startListening({
 });
 
 webhookMiddleware.startListening({
-    type: 'webhook/subscriptionDisabled',
+    matcher: (action) => action.type === 'webhook/subscriptionDisabled',
     effect: async (action, { dispatch }) => {
         dispatch(fetchCurrentSubscription());
     },
 });
 
 webhookMiddleware.startListening({
-    type: 'webhook/invoicePaymentFailed',
+    matcher: (action) => action.type === 'webhook/invoicePaymentFailed',
     effect: async (action, { dispatch }) => {
         dispatch(fetchCurrentSubscription());
     },

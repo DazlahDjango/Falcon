@@ -19,7 +19,7 @@ class UserPreferenceManager(SoftDeleteManager):
         preferences = self.get_or_create_preferences(user)
         settings = preferences.notification_settings
         settings[event_type] = channels
-        preferences.save(updated_fields=['notification_settings'])
+        preferences.save(update_fields=['notification_settings'])
         return preferences
     def get_notification_channels(self, user, event_type):
         preferences = self.get_or_create_preferences(user)
@@ -51,7 +51,7 @@ class TenantPreferencesManager(SoftDeleteManager):
         current_features = preferences.features
         current_features.update(features)
         preferences.features = current_features
-        preferences.save(updated_fields=['features'])
+        preferences.save(update_fields=['features'])
     def update_branding(self, client_id, logo_url=None, primary_color=None, secondary_color=None):
         preferences = self.get_or_create_preferences(client_id)
         if logo_url:

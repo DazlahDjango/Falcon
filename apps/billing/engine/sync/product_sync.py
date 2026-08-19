@@ -1,9 +1,8 @@
 import logging
 from typing import Dict, Any, List, Optional
 from django.db import transaction
-from billing.services.stripe_client import StripeClient
-from billing.models import Plan, PlanFeature
-from billing.exceptions import SyncError
+from apps.billing.models import SubscriptionPlan as Plan
+from apps.billing.exceptions import PlanError as SyncError
 logger = logging.getLogger(__name__)
 
 class ProductSync:

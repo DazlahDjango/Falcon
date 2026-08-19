@@ -80,7 +80,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-dev-key-not-for-p
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[
-                         'localhost', '127.0.0.1'])
+                         'localhost', '127.0.0.1', '.ngrok.io'])
 
 # ----------------------------------------------------------------------------
 # ADMIN URL (Change from default for security)
@@ -162,10 +162,10 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 
 # Connection Management Settings
 ENABLE_CONNECTION_MIDDLEWARE = True
-CONNECTION_IDLE_TIMEOUT_MINUTES = 30
+CONNECTION_IDLE_TIMEOUT_MINUTES = 5
 CONNECTION_MAX_LIFETIME_MINUTES = 120
 CONNECTION_POOL_MAX_SIZE = 20
-CONNECTION_WAIT_TIMEOUT_SECONDS = 5
+CONNECTION_WAIT_TIMEOUT_SECONDS = 10
 CONNECTION_RETRY_COUNT = 3
 CONNECTION_RETRY_BACKOFF_BASE_SECONDS = 0.2
 CONNECTION_CLEANUP_INTERVAL_SECONDS = 60
@@ -174,7 +174,7 @@ CONNECTION_MIDDLEWARE_EXCLUDED_PATHS = [
     '/metrics/',
     '/static/',
     '/media/',
-    '/api/v1/auth/login/',
+    '/api/v1/auth/',
 ]
 
 MIDDLEWARE = [
@@ -281,6 +281,7 @@ DATABASES = {
         'OPTIONS': {
             'options': '-c search_path=public',  # For RLS
         },
+        'DISABLE_SERVER_SIDE_CURSORS': True,
         # Connection pooling
         'CONN_MAX_AGE': 60,  # 60 seconds persistent connection
         'CONN_HEALTH_CHECKS': True,

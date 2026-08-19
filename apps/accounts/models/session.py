@@ -64,7 +64,7 @@ class UserSession(BaseModel):
     def is_active(self):
         if self.status != self.SESSION_ACTIVE:
             return False
-        if timezone.now() > self.expires_at:
+        if self.expires_at and timezone.now() > self.expires_at:
             self.expire()
             return False
         return True
@@ -90,7 +90,7 @@ class UserSession(BaseModel):
     def add_security_alert(self, alert_type, details=None):
         alert = {
             'type': alert_type,
-            'timestamp': timezone.now(),
+            'timestamp': timezone.now().isoformat(),
             'details': details or {}
         }
         self.security_alerts.append(alert)

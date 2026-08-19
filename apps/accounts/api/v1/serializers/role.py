@@ -10,6 +10,9 @@ class RoleMinimalSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'code']
 
 class RoleListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
+    permission_count = serializers.SerializerMethodField()
+    child_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Role
         fields = [
@@ -20,10 +23,10 @@ class RoleListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
     
     def get_permission_count(self, obj):
-        return obj.permissions.count()
+        return obj.permissions.count() if hasattr(obj, 'permissions') else 0
     
     def get_child_count(self, obj):
-        return obj.children.count()
+        return obj.children.count() if hasattr(obj, 'children') else 0
     
 class RoleDetailSerializer(RoleListSerializer):
     permissions = serializers.SlugRelatedField(many=True, read_only=True, slug_field='codename')

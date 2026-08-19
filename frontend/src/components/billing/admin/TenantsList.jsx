@@ -7,32 +7,57 @@ import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
 import { useAdminBilling } from '../../../hooks/billing/useAdminBilling';
 import { TenantSubscriptionManager } from './TenantSubscriptionManager';
+import { tenantApiClient, billingApiClient } from '../../../services/api';
 import './admin.css';
 
 export const TenantsList = () => {
     const { getTenantSubscriptions, getTenantInvoices, getTenantTransactions, loading } = useAdminBilling();
     const [tenants, setTenants] = useState([]);
+    const [fetching, setFetching] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTenant, setSelectedTenant] = useState(null);
     const [showManager, setShowManager] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, pageSize: 10, total: 0 });
 
     const fetchTenants = useCallback(async () => {
+        setFetching(true);
         try {
-            // Updated to use the correct 'tenant' app API for fetching real tenant/client data
-            const response = await fetch('/api/v1/tenant/tenants/?page=' + pagination.page + '&page_size=' + pagination.pageSize);
-            const data = await response.json();
-            
-            // The tenant app returns a paginated response with 'results'
-            if (data?.results) {
-                setTenants(data.results);
-                setPagination(prev => ({ ...prev, total: data.count || 0 }));
-            } else if (Array.isArray(data)) {
-                setTenants(data);
-                setPagination(prev => ({ ...prev, total: data.length }));
-            }
+            const [orgRes, subRes] = await Promise.allSettled([
+                tenantApiClient.get('/organizations/', { params: { page: pagination.page, page_size: pagination.pageSize } }),
+                billingApiClient.get('/subscriptions/')
+            ]);
+
+            const orgData = orgRes.status === 'fulfilled' ? orgRes.value.data : null;
+            const subData = subRes.status === 'fulfilled' ? subRes.value.data : null;
+
+            const orgList = Array.isArray(orgData) ? orgData : (orgData?.results || []);
+            const totalOrgs = orgData?.count || orgList.length;
+            const subList = Array.isArray(subData) ? subData : (subData?.results || []);
+
+            const subMap = {};
+            subList.forEach(sub => {
+                if (sub.tenant_id) {
+                    subMap[sub.tenant_id] = sub;
+                }
+            });
+
+            const enrichedTenants = orgList.map(org => {
+                const sub = subMap[org.id];
+                return {
+                    ...org,
+                    plan_name: sub?.plan_name || sub?.plan?.name || 'Trial',
+                    subscription_status: sub?.status || (org.is_active ? 'active' : 'inactive'),
+                    monthly_spend: sub?.amount || 0,
+                    email: org.email || org.contact_email || `${org.slug || 'tenant'}@falcontech.com`,
+                };
+            });
+
+            setTenants(enrichedTenants);
+            setPagination(prev => ({ ...prev, total: totalOrgs }));
         } catch (error) {
-            console.error('Failed to fetch tenants from tenant app:', error);
+            console.error('Failed to fetch tenants/subscriptions:', error);
+        } finally {
+            setFetching(false);
         }
     }, [pagination.page, pagination.pageSize]);
 
@@ -54,7 +79,7 @@ export const TenantsList = () => {
         t.id?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading && tenants.length === 0) return <LoadingSkeleton type="table" count={1} />;
+    if ((loading || fetching) && tenants.length === 0) return <LoadingSkeleton type="table" count={1} />;
 
     return (
         <>

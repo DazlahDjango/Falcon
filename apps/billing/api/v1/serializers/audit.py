@@ -39,7 +39,7 @@ class AuditLogFilterSerializer(serializers.Serializer):
     action = serializers.CharField(required=False)
     resource_type = serializers.CharField(required=False)
     user_email = serializers.EmailField(required=False)
-    success = serializers.BooleanField(required=False)
+    success = serializers.BooleanField(required=False, allow_null=True, default=None)
     tenant_id = serializers.UUIDField(required=False)
     limit = serializers.IntegerField(default=50, min_value=1, max_value=500)
     offset = serializers.IntegerField(default=0, min_value=0)

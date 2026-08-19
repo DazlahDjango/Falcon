@@ -44,6 +44,8 @@ class OrganizationIsolationMiddleware(MiddlewareMixin):
         return None
 
     def _should_skip(self, request):
+        if '/health' in request.path or request.headers.get('X-Health-Check') == 'true':
+            return True
         skip_paths = [
             '/admin/',
             '/api/v1/auth/',

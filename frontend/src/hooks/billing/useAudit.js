@@ -20,7 +20,7 @@ export const useAudit = (options = { autoFetch: false }) => {
     const hasFetchedSummary = useRef(false);
 
     const fetchLogs = useCallback((params) => { if (canView) return dispatch(fetchAuditLogs(params)); return Promise.reject('Unauthorized'); }, [dispatch, canView]);
-    const fetchSummary = useCallback(() => { if (canView && !hasFetchedSummary.current) { hasFetchedSummary.current = true; return dispatch(fetchAuditSummary()); } return Promise.reject('Unauthorized'); }, [dispatch, canView]);
+    const fetchSummary = useCallback(() => { if (!canView) return Promise.reject('Unauthorized'); if (hasFetchedSummary.current) return Promise.resolve(); hasFetchedSummary.current = true; return dispatch(fetchAuditSummary()); }, [dispatch, canView]);
     const exportLogs = useCallback((days = 30, format = 'csv') => { if (canView) return dispatch(exportAuditLogs({ days, format })); return Promise.reject('Unauthorized'); }, [dispatch, canView]);
     const applyFilters = useCallback((newFilters) => { 
         dispatch(setFilters(newFilters)); 

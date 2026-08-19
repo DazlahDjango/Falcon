@@ -1,15 +1,40 @@
 // src/components/reviews/coefficients/create/CoefficientForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useEmployees } from '../../../../hooks/accounts';
-import { useDepartments, usePositions } from '../../../../hooks/structure';
+import { useDivisions, useDepartments, useSections, useUnits, usePositions } from '../../../../hooks/structure';
 
 const CoefficientForm = ({ data, onChange }) => {
-  const { data: users, loading: usersLoading } = useEmployees();
-  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
-  const { data: positionsPage } = usePositions({ page: 1, pageSize: 1000 });
-  const departments = departmentsPage?.results;
-  const positions = positionsPage?.results;
+  const selectedType = data?.coefficient_type || 'department';
+  
+  const { data: usersData } = useEmployees();
+  const { items: divisionsItems, fetchAll: fetchDivisions } = useDivisions({ autoFetch: false });
+  const { items: departmentsItems, fetchAll: fetchDepartments } = useDepartments({ autoFetch: false });
+  const { items: sectionsItems, fetchAll: fetchSections } = useSections({ autoFetch: false });
+  const { items: unitsItems, fetchAll: fetchUnits } = useUnits({ autoFetch: false });
+  const { items: positionsItems, fetchAll: fetchPositions } = usePositions({ autoFetch: false });
+
+  const divisions = Array.isArray(divisionsItems) ? divisionsItems : (divisionsItems?.results || []);
+  const departments = Array.isArray(departmentsItems) ? departmentsItems : (departmentsItems?.results || []);
+  const sections = Array.isArray(sectionsItems) ? sectionsItems : (sectionsItems?.results || []);
+  const units = Array.isArray(unitsItems) ? unitsItems : (unitsItems?.results || []);
+  const positions = Array.isArray(positionsItems) ? positionsItems : (positionsItems?.results || []);
+  const users = Array.isArray(usersData) ? usersData : (usersData?.results || []);
+
   const [formData, setFormData] = useState(data);
+
+  useEffect(() => {
+    if (selectedType === 'division' && !divisions.length && fetchDivisions) {
+      fetchDivisions({ page: 1, pageSize: 200 });
+    } else if (selectedType === 'department' && !departments.length && fetchDepartments) {
+      fetchDepartments({ page: 1, pageSize: 200 });
+    } else if (selectedType === 'section' && !sections.length && fetchSections) {
+      fetchSections({ page: 1, pageSize: 200 });
+    } else if (selectedType === 'unit' && !units.length && fetchUnits) {
+      fetchUnits({ page: 1, pageSize: 200 });
+    } else if (selectedType === 'position' && !positions.length && fetchPositions) {
+      fetchPositions({ page: 1, pageSize: 200 });
+    }
+  }, [selectedType, fetchDivisions, fetchDepartments, fetchSections, fetchUnits, fetchPositions]);
 
   useEffect(() => {
     setFormData(data);
@@ -22,12 +47,18 @@ const CoefficientForm = ({ data, onChange }) => {
   };
 
   const coefficientTypes = [
-    { value: 'individual', label: 'Individual Level' },
+    { value: 'division', label: 'Division Level' },
     { value: 'department', label: 'Department Level' },
+    { value: 'section', label: 'Section Level' },
+    { value: 'unit', label: 'Unit Level' },
     { value: 'position', label: 'Position Level' },
+    { value: 'individual', label: 'Individual Level' },
   ];
 
+  const showDivision = formData.coefficient_type === 'division';
   const showDepartment = formData.coefficient_type === 'department';
+  const showSection = formData.coefficient_type === 'section';
+  const showUnit = formData.coefficient_type === 'unit';
   const showPosition = formData.coefficient_type === 'position';
   const showUser = formData.coefficient_type === 'individual';
 
@@ -49,6 +80,24 @@ const CoefficientForm = ({ data, onChange }) => {
         </select>
       </div>
 
+      {showDivision && (
+        <div className="coefficient-form-group">
+          <label className="coefficient-form-label">Division</label>
+          <select
+            className="coefficient-form-select"
+            value={formData.division || ''}
+            onChange={(e) => handleChange('division', e.target.value)}
+          >
+            <option value="">Select division...</option>
+            {divisions?.map((div) => (
+              <option key={div.id} value={div.id}>
+                {div.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {showDepartment && (
         <div className="coefficient-form-group">
           <label className="coefficient-form-label">Department</label>
@@ -61,6 +110,42 @@ const CoefficientForm = ({ data, onChange }) => {
             {departments?.map((dept) => (
               <option key={dept.id} value={dept.id}>
                 {dept.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {showSection && (
+        <div className="coefficient-form-group">
+          <label className="coefficient-form-label">Section</label>
+          <select
+            className="coefficient-form-select"
+            value={formData.section || ''}
+            onChange={(e) => handleChange('section', e.target.value)}
+          >
+            <option value="">Select section...</option>
+            {sections?.map((sec) => (
+              <option key={sec.id} value={sec.id}>
+                {sec.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {showUnit && (
+        <div className="coefficient-form-group">
+          <label className="coefficient-form-label">Unit</label>
+          <select
+            className="coefficient-form-select"
+            value={formData.unit || ''}
+            onChange={(e) => handleChange('unit', e.target.value)}
+          >
+            <option value="">Select unit...</option>
+            {units?.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
               </option>
             ))}
           </select>
@@ -92,7 +177,6 @@ const CoefficientForm = ({ data, onChange }) => {
             className="coefficient-form-select"
             value={formData.user || ''}
             onChange={(e) => handleChange('user', e.target.value)}
-            disabled={usersLoading}
           >
             <option value="">Select user...</option>
             {users?.map((user) => (

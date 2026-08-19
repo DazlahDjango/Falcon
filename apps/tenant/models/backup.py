@@ -31,7 +31,7 @@ class TenantBackup(BaseModel):
     Tracks backups for each tenant.
     """
 
-    tenant = models.ForeignKey('tenant.Client', on_delete=models.CASCADE,
+    tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE,
                                related_name='backups', help_text="Tenant this backup belongs to")
 
     backup_type = models.CharField(max_length=20, choices=BackupType.choices,

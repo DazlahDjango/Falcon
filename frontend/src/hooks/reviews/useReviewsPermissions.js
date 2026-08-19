@@ -22,6 +22,7 @@ const useReviewsPermissions = () => {
         const isSuperAdmin = user?.is_superuser || role === 'super_admin' || role === 'superadmin';
         const isClientAdmin = isSuperAdmin || role === 'client_admin';
         const isHrAdmin = isClientAdmin || role === 'hr_admin' || role === 'hr' || role === 'dashboard_champion';
+        const isDashboardChampion = isHrAdmin;
         const isExecutive = isClientAdmin || role === 'executive';
         const isSupervisor = isClientAdmin || isHrAdmin || role === 'supervisor' || (user?.get_direct_reports?.length > 0);
         const isStaff = role === 'staff' || isSuperAdmin;
@@ -156,6 +157,7 @@ const useReviewsPermissions = () => {
             isSuperAdmin,
             isClientAdmin,
             isExecutive,
+            isHrAdmin,
             isDashboardChampion,
             isSupervisor,
             isStaff,

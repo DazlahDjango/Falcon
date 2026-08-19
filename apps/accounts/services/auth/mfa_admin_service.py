@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from apps.accounts.models import User, MFADevice, MFABackupCode, MFAAuditLog
-from apps.accounts.services import AuditService
+from apps.accounts.services.audit.logger import AuditService
 logger = logging.getLogger(__name__)
 class MFAAdminService:
     def __init__(self):

@@ -21,7 +21,10 @@ class Coefficient(ReviewBaseModel):
     """
     
     class CoefficientType(models.TextChoices):
+        DIVISION = 'division', 'Division Level'
         DEPARTMENT = 'department', 'Department Level'
+        SECTION = 'section', 'Section Level'
+        UNIT = 'unit', 'Unit Level'
         POSITION = 'position', 'Position Level'
         INDIVIDUAL = 'individual', 'Individual Level'
     
@@ -38,8 +41,32 @@ class Coefficient(ReviewBaseModel):
         choices=CoefficientType.choices
     )
     
+    division = models.ForeignKey(
+        'structure.Division',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='coefficients'
+    )
+    
     department = models.ForeignKey(
         'structure.Department',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='coefficients'
+    )
+    
+    section = models.ForeignKey(
+        'structure.Section',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='coefficients'
+    )
+    
+    unit = models.ForeignKey(
+        'structure.Unit',
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -96,29 +123,38 @@ class Coefficient(ReviewBaseModel):
         indexes = [
             models.Index(fields=['tenant', 'is_active']),
             models.Index(fields=['coefficient_type']),
+            models.Index(fields=['division', 'valid_from']),
             models.Index(fields=['department', 'valid_from']),
+            models.Index(fields=['section', 'valid_from']),
+            models.Index(fields=['unit', 'valid_from']),
             models.Index(fields=['position', 'valid_from']),
             models.Index(fields=['user', 'valid_from']),
         ]
     
     def __str__(self):
+        if self.division:
+            return f"Division {self.division.name}: {self.value}"
         if self.department:
-            return f"{self.department.name}: {self.value}"
+            return f"Dept {self.department.name}: {self.value}"
+        if self.section:
+            return f"Section {self.section.name}: {self.value}"
+        if self.unit:
+            return f"Unit {self.unit.name}: {self.value}"
         if self.position:
-            return f"{self.position.title}: {self.value}"
+            return f"Position {self.position.title}: {self.value}"
         if self.user:
-            return f"{self.user.email}: {self.value}"
+            return f"User {self.user.email}: {self.value}"
         return f"Coefficient: {self.value}"
     
     def clean(self):
         super().clean()
         
         # Exactly one target must be selected
-        targets = [self.department, self.position, self.user]
+        targets = [self.division, self.department, self.section, self.unit, self.position, self.user]
         selected_count = sum(1 for t in targets if t is not None)
         
         if selected_count == 0:
-            raise ValidationError("Must select a department, position, or user")
+            raise ValidationError("Must select a division, department, section, unit, position, or user")
         
         if selected_count > 1:
             raise ValidationError("Cannot select multiple targets")

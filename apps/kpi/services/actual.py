@@ -274,7 +274,7 @@ class ActualEvidence:
             {
                 'id': str(e.id),
                 'type': e.evidence_type,
-                'url': e.file.url if e.file else e.url,
+                'url': f"/api/v1/kpis/evidence/{e.id}/download/" if e.file else e.url,
                 'description': e.description,
                 'uploaded_by': e.uploaded_by.email if e.uploaded_by else None,
                 'uploaded_at': e.uploaded_at.isoformat()

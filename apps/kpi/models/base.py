@@ -4,6 +4,50 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
+class TenantScopedQuerySet(models.QuerySet):
+    def for_tenant(self, tenant_id=None):
+        if not tenant_id:
+            try:
+                from apps.tenant.context import get_current_tenant_id
+                tenant_id = get_current_tenant_id()
+            except ImportError:
+                tenant_id = None
+        if tenant_id and hasattr(self.model, 'tenant_id'):
+            return self.filter(tenant_id=tenant_id)
+        return self
+
+    def alive(self):
+        if hasattr(self.model, 'is_deleted'):
+            return self.filter(is_deleted=False)
+        return self
+
+
+class TenantScopedManager(models.Manager):
+    def get_queryset(self):
+        qs = TenantScopedQuerySet(self.model, using=self._db)
+        if hasattr(self.model, 'is_deleted'):
+            qs = qs.filter(is_deleted=False)
+        try:
+            from apps.tenant.context import get_current_tenant_id
+            tid = get_current_tenant_id()
+            if tid and hasattr(self.model, 'tenant_id'):
+                qs = qs.filter(tenant_id=tid)
+        except ImportError:
+            pass
+        return qs
+
+    def all_with_deleted(self):
+        qs = TenantScopedQuerySet(self.model, using=self._db)
+        try:
+            from apps.tenant.context import get_current_tenant_id
+            tid = get_current_tenant_id()
+            if tid and hasattr(self.model, 'tenant_id'):
+                qs = qs.filter(tenant_id=tid)
+        except ImportError:
+            pass
+        return qs
+
+
 class BaseKPIModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tenant_id = models.UUIDField(db_index=True, editable=False)
@@ -11,6 +55,8 @@ class BaseKPIModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='+', editable=False)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='+', editable=False)
+
+    objects = TenantScopedManager()
 
     class Meta:
         abstract = True

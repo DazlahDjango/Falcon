@@ -38,9 +38,12 @@ const CoefficientTable = ({ data }) => {
 
   const getTypeLabel = (type) => {
     const labels = {
-      individual: 'Individual',
+      division: 'Division',
       department: 'Department',
+      section: 'Section',
+      unit: 'Unit',
       position: 'Position',
+      individual: 'Individual',
     };
     return labels[type] || type;
   };
@@ -83,7 +86,7 @@ const CoefficientTable = ({ data }) => {
                 </span>
               </td>
               <td className="coefficient-table-applied">
-                {coefficient.user_name || coefficient.department_name || coefficient.position_title || '—'}
+                {coefficient.target_name || coefficient.user_name || coefficient.division_name || coefficient.department_name || coefficient.section_name || coefficient.unit_name || coefficient.position_title || '—'}
               </td>
               <td className="coefficient-table-date">{formatDate(coefficient.valid_from)}</td>
               <td className="coefficient-table-date">{formatDate(coefficient.valid_to)}</td>

@@ -16,23 +16,62 @@ export const useClientAdminDashboard = (options = {}) => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [approvalLoading, setApprovalLoading] = useState(false);
 
+  const [fetchedData, setFetchedData] = useState(null);
+  const [restLoading, setRestLoading] = useState(false);
+  const [restError, setRestError] = useState(null);
+
   const refreshAllRef = useRef(null);
 
   const onWebsocketMessage = useCallback((message) => {
-    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update') {
+    const realTimeTypes = [
+      'kpi_update',
+      'dashboard_update',
+      'update',
+      'submission_update',
+      'submission_approved',
+      'submission_rejected',
+      'user_update',
+      'alert',
+      'notification',
+      'initial'
+    ];
+    if (realTimeTypes.includes(message.type) || message.type?.endsWith('_update')) {
       if (refreshAllRef.current) {
-        // Run refresh but don't await so we don't block
         refreshAllRef.current().catch(console.error);
       }
     }
   }, []);
 
   const {
-    data: dashboardData,
-    loading,
-    error,
+    data: wsDashboardData,
+    loading: wsLoading,
+    error: wsError,
     refresh: refreshDashboard
   } = useDashboard('client_admin', { ...options, onWebsocketMessage });
+
+  const fetchDashboardData = useCallback(async () => {
+    setRestLoading(true);
+    try {
+      const response = await clientAdminDashboardService.getDashboardData();
+      if (response?.success) {
+        setFetchedData(response.data);
+        return response.data;
+      } else if (response?.summary_cards || response?.user_overview) {
+        setFetchedData(response);
+        return response;
+      }
+    } catch (err) {
+      setRestError(err);
+      console.error('Failed to fetch client admin dashboard data:', err);
+      return null;
+    } finally {
+      setRestLoading(false);
+    }
+  }, []);
+
+  const dashboardData = wsDashboardData || fetchedData;
+  const loading = wsLoading && restLoading;
+  const error = wsError || restError;
 
   const fetchCompliance = useCallback(async () => {
     try {
@@ -168,17 +207,29 @@ export const useClientAdminDashboard = (options = {}) => {
   const refreshAll = useCallback(async () => {
     await refreshDashboard();
     await Promise.all([
+      fetchDashboardData(),
       fetchCompliance(),
       fetchPendingApprovals(),
       fetchMissingData(),
       fetchUserActivity(),
       fetchKpiBreakdown()
     ]);
-  }, [refreshDashboard, fetchCompliance, fetchPendingApprovals, fetchMissingData, fetchUserActivity, fetchKpiBreakdown]);
+  }, [refreshDashboard, fetchDashboardData, fetchCompliance, fetchPendingApprovals, fetchMissingData, fetchUserActivity, fetchKpiBreakdown]);
 
   useEffect(() => {
     refreshAllRef.current = refreshAll;
-  }, [refreshAll]);
+    if (options.autoRefresh !== false && options.autoFetch !== false) {
+      refreshAll().catch(() => {});
+
+      const timer = setInterval(() => {
+        if (refreshAllRef.current) {
+          refreshAllRef.current().catch(() => {});
+        }
+      }, options.refreshInterval || 10000);
+
+      return () => clearInterval(timer);
+    }
+  }, [refreshAll, options.autoRefresh, options.autoFetch, options.refreshInterval]);
 
   return {
     dashboardData,
@@ -193,6 +244,7 @@ export const useClientAdminDashboard = (options = {}) => {
     approvalLoading,
     loading,
     error,
+    fetchDashboardData,
     fetchCompliance,
     fetchPendingApprovals,
     approveSubmission,
@@ -202,7 +254,7 @@ export const useClientAdminDashboard = (options = {}) => {
     fetchKpiBreakdown,
     fetchUsers,
     getUserDetails,
-    refreshDashboard,
+    refreshDashboard: refreshAll,
     refreshAll
   };
 };

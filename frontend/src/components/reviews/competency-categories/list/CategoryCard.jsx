@@ -1,13 +1,19 @@
 // src/components/reviews/competency-categories/list/CategoryCard.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, FolderOpen, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, Trash2, FolderOpen, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { ReviewStatusBadge } from '../../common';
 import { useCompetencyCategories } from '../../../../hooks/reviews';
+import { REVIEW_ROUTES } from '../../../../config/constants/reviewRouteConstants';
 
 const CategoryCard = ({ category }) => {
   const navigate = useNavigate();
   const { deleteCategory, activate, deactivate, canManage } = useCompetencyCategories();
+
+  const handleView = (e) => {
+    e?.stopPropagation();
+    navigate(REVIEW_ROUTES.COMPETENCY_CATEGORIES_DETAIL(category.id));
+  };
 
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -39,13 +45,13 @@ const CategoryCard = ({ category }) => {
 
   const handleEdit = (e) => {
     e.stopPropagation();
-    navigate(`/reviews/competency-categories/${category.id}/edit`);
+    navigate(REVIEW_ROUTES.COMPETENCY_CATEGORIES_EDIT(category.id));
   };
 
   const competencyCount = category.competency_count || 0;
 
   return (
-    <div className="category-card">
+    <div className="category-card cursor-pointer hover:shadow-md transition-shadow" onClick={handleView}>
       <div className="category-card-header">
         <div className="category-card-icon">
           <FolderOpen size={24} />
@@ -71,6 +77,14 @@ const CategoryCard = ({ category }) => {
           </div>
         </div>
         <div className="category-card-actions">
+          <button
+            className="category-card-action-btn"
+            onClick={handleView}
+            aria-label="View Details"
+            title="View Category Details"
+          >
+            <Eye size={16} />
+          </button>
           {canManage && (
             <>
               <button

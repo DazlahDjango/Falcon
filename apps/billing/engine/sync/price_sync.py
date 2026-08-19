@@ -3,9 +3,9 @@ from decimal import Decimal
 from typing import Dict, Any, List, Optional
 from django.db import transaction
 from django.utils import timezone
-from billing.services.stripe_client import StripeClient
-from billing.models import Price, Plan
-from billing.exceptions import SyncError
+from apps.billing.services.paystack.client import PayStackClient as StripeClient
+from apps.billing.models import SubscriptionPlan as Plan
+from apps.billing.exceptions import PlanError as SyncError
 logger = logging.getLogger(__name__)
 
 class PriceSync:
@@ -37,38 +37,34 @@ class PriceSync:
             logger.error(f"Price sync failed: {str(e)}")
             raise SyncError(f"Failed to sync prices: {str(e)}")
     
-    def _sync_single_price(self, stripe_price) -> Price:
+    def _sync_single_price(self, stripe_price) -> Any:
         plan = None
         if stripe_price.product:
             try:
                 plan = Plan.objects.get(stripe_product_id=stripe_price.product)
             except Plan.DoesNotExist:
                 logger.warning(f"Plan not found for product {stripe_price.product}")
-        interval = Price.INTERVAL_MONTH
+        interval = 'monthly'
         if stripe_price.recurring:
             interval = stripe_price.recurring.get('interval', 'month')
-        price, created = Price.objects.update_or_create(
-            stripe_price_id=stripe_price.id,
+        price, created = Plan.objects.update_or_create(
+            paystack_plan_code=stripe_price.id,
             defaults={
-                'stripe_product_id': stripe_price.product,
-                'plan': plan,
-                'amount': Decimal(stripe_price.unit_amount) / 100 if stripe_price.unit_amount else Decimal('0.00'),
-                'currency': stripe_price.currency.upper(),
-                'interval': interval,
-                'interval_count': stripe_price.recurring.get('interval_count', 1) if stripe_price.recurring else 1,
-                'is_active': stripe_price.active,
-                'is_recurring': stripe_price.recurring is not None,
-                'last_synced_at': timezone.now()
+                'name': stripe_price.name if hasattr(stripe_price, 'name') else 'Plan',
+                'billing_interval': interval,
+                'price': Decimal(stripe_price.unit_amount) / 100 if getattr(stripe_price, 'unit_amount', None) else Decimal('0.00'),
+                'currency': getattr(stripe_price, 'currency', 'KES').upper(),
+                'is_active': getattr(stripe_price, 'active', True),
             }
         )
         if created:
-            logger.info(f"Created new price: {price.amount} {price.currency}/{price.interval}")
+            logger.info(f"Created new price: {price.price} {price.currency}")
         else:
-            logger.info(f"Updated price: {price.amount} {price.currency}/{price.interval}")
+            logger.info(f"Updated price: {price.price} {price.currency}")
         return price
     
     @transaction.atomic
-    def sync_price_by_id(self, stripe_price_id: str) -> Optional[Price]:
+    def sync_price_by_id(self, stripe_price_id: str) -> Optional[Any]:
         try:
             price = self.stripe.stripe.Price.retrieve(stripe_price_id)
             return self._sync_single_price(price)

@@ -3,9 +3,8 @@ from decimal import Decimal
 from typing import Dict, Any, List, Optional
 from django.db import transaction
 from django.utils import timezone
-from billing.services.stripe_client import StripeClient
-from billing.models import Invoice, InvoiceLineItem, Subscription
-from billing.exceptions import SyncError
+from apps.billing.models import Invoice, Subscription
+from apps.billing.exceptions import InvoiceError as SyncError
 logger = logging.getLogger(__name__)
 
 class InvoiceSync:

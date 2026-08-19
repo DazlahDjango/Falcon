@@ -34,6 +34,8 @@ class OrganizationLimitsMiddleware(MiddlewareMixin):
         return None
 
     def _should_skip(self, request):
+        if '/health' in request.path or request.headers.get('X-Health-Check') == 'true':
+            return True
         skip_paths = ['/admin/', '/health/', '/api/v1/auth/']
         for path in skip_paths:
             if request.path.startswith(path):

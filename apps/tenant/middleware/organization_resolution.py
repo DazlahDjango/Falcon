@@ -39,6 +39,8 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
         return HttpResponseBadRequest("Unable to identify organization. Please provide X-Tenant-ID header.")
 
     def _should_skip(self, request):
+        if '/health' in request.path or request.headers.get('X-Health-Check') == 'true':
+            return True
         skip_paths = [
             '/admin/',
             '/api/v1/auth/',
@@ -47,6 +49,7 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
             '/api/v1/organizations/',
             '/media/',
             '/static/',
+            '/ws/',
         ]
         for path in skip_paths:
             if request.path.startswith(path):

@@ -7,12 +7,13 @@ import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 import { EmptyState } from '../shared/EmptyState';
 import { useAudit } from '../../../hooks/billing/useAudit';
 import { useBillingPermissions } from '../../../hooks/billing/useBillingPermissions';
+import { AuditService } from '../../../services/billing';
 import { AuditDetailModal } from './AuditDetailModal';
 import './audit.css';
 
 export const AuditLogsViewer = () => {
     const { permissions } = useBillingPermissions();
-    const { logs, summary, pagination, loading, fetchLogs, exportLogs, applyFilters, setPage, setPageSize, filters } = useAudit({ autoFetch: false });
+    const { logs, summary, pagination, loading, fetchLogs, fetchSummary, exportLogs, applyFilters, setPage, setPageSize, filters } = useAudit({ autoFetch: false });
     const [showFilters, setShowFilters] = useState(false);
     const [selectedLog, setSelectedLog] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
@@ -22,12 +23,33 @@ export const AuditLogsViewer = () => {
     useEffect(() => {
         if (permissions.canViewAnalytics) {
             fetchLogs({ page: pagination.page, pageSize: pagination.pageSize, filters });
+            fetchSummary();
         }
-    }, [pagination.page, pagination.pageSize, filters, fetchLogs, permissions.canViewAnalytics]);
+    }, [pagination.page, pagination.pageSize, filters, fetchLogs, fetchSummary, permissions.canViewAnalytics]);
 
     const handleFilterApply = () => { applyFilters(localFilters); setShowFilters(false); };
     const handleFilterClear = () => { setLocalFilters({ startDate: null, endDate: null, action: null, resourceType: null, userEmail: null, success: null }); applyFilters({}); };
-    const handleExport = async () => { setExporting(true); await exportLogs(30); setExporting(false); };
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const response = await AuditService.exportLogs(30);
+            const blob = response?.data;
+            if (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `billing_audit_logs_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.error('Failed to export audit logs:', error);
+        } finally {
+            setExporting(false);
+        }
+    };
     const handleViewDetail = (log) => { setSelectedLog(log); setShowDetail(true); };
 
     const getActionColor = (action) => {

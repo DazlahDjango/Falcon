@@ -136,8 +136,8 @@ const billingRoutes = [
             { path: 'enterprise', element: withSuspense(EnterprisePage) },
 
             // Platform Settings (Super Admin)
-            { path: 'platform-settings', element: withSuspense(BillingPlatformSettingsPage) },
-            { path: 'system-settings', element: withSuspense(BillingSettingsPage) },
+            { path: 'platform-settings', element: withSuspense(BillingSettingsPage) },
+            { path: 'system-settings', element: withSuspense(BillingPlatformSettingsPage) },
         ],
     },
 ];

@@ -2,7 +2,30 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { TransactionService } from '../../../services/billing';
 
 export const fetchTransactions = createAsyncThunk('billing/transactions/fetchAll', async ({ page = 1, pageSize = 20, filters = {} } = {}, { rejectWithValue }) => {
-    try { const response = await TransactionService.getTransactions({ page, page_size: pageSize, ...filters }); return { items: response?.data || [], total: response?.count || 0, page, pageSize }; }
+    try {
+        const queryParams = { page, page_size: pageSize };
+        if (filters.status) queryParams.status = filters.status;
+        if (filters.type) queryParams.transaction_type = filters.type;
+        if (filters.reference) queryParams.reference = filters.reference;
+        if (filters.startDate) queryParams.created_after = `${filters.startDate}T00:00:00`;
+        if (filters.endDate) queryParams.created_before = `${filters.endDate}T23:59:59`;
+
+        const response = await TransactionService.getTransactions(queryParams);
+        const data = response?.data;
+        let items = [];
+        let total = 0;
+        if (Array.isArray(data)) {
+            items = data;
+            total = data.length;
+        } else if (data && Array.isArray(data.results)) {
+            items = data.results;
+            total = data.count || data.results.length;
+        } else if (data) {
+            items = data.items || [];
+            total = data.total || items.length;
+        }
+        return { items, total, page, pageSize };
+    }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch transactions'); }
 });
 

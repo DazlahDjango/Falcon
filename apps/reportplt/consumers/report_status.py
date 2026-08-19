@@ -95,7 +95,7 @@ class ReportStatusConsumer(AsyncWebsocketConsumer):
     def get_report(self, report_id: str) -> Report:
         try:
             return Report.objects.get(id=report_id)
-        except ObjectDoesNotExist:
+        except Exception:
             return None
 
     @database_sync_to_async

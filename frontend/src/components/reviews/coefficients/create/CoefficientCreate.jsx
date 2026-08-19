@@ -12,7 +12,10 @@ const CoefficientCreate = () => {
   const { create, loading } = useCoefficients();
   const [formData, setFormData] = useState({
     coefficient_type: 'department',
+    division: '',
     department: '',
+    section: '',
+    unit: '',
     position: '',
     user: '',
     value: 1.0,
@@ -31,7 +34,21 @@ const CoefficientCreate = () => {
     console.log('[CoefficientCreate] handleSubmit called with formData:', formData);
     setIsSubmitting(true);
     try {
-      const result = await create(formData);
+      const payload = {
+        coefficient_type: formData.coefficient_type,
+        value: Number(formData.value) || 1.0,
+        reason: formData.reason || '',
+        valid_from: formData.valid_from,
+        valid_to: formData.valid_to ? formData.valid_to : null,
+        is_active: formData.is_active !== undefined ? formData.is_active : true,
+        division: formData.coefficient_type === 'division' && formData.division ? formData.division : null,
+        department: formData.coefficient_type === 'department' && formData.department ? formData.department : null,
+        section: formData.coefficient_type === 'section' && formData.section ? formData.section : null,
+        unit: formData.coefficient_type === 'unit' && formData.unit ? formData.unit : null,
+        position: formData.coefficient_type === 'position' && formData.position ? formData.position : null,
+        user: formData.coefficient_type === 'individual' && formData.user ? formData.user : null,
+      };
+      const result = await create(payload);
       console.log('[CoefficientCreate] create successful:', result);
       navigate('/reviews/coefficients');
     } catch (error) {

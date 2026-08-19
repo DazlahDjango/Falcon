@@ -9,3 +9,4 @@ export { default as KPISearchBar } from './KPISearchBar';
 export { default as KPIDateRangePicker } from './KPIDateRangePicker';
 export { default as KPIStatusBadge } from './KPIStatusBadge';
 export { default as KPIScoreGauge } from './KPIScoreGauge';
+export { default as KPIErrorBoundary } from './KPIErrorBoundary';

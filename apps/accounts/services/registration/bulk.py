@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple
 from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import User, Profile, UserPreference
 from apps.accounts.services.auth.password import PasswordService
-from apps.accounts.services.auth.audit import AuditService
+from apps.accounts.services.audit.logger import AuditService
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +85,20 @@ class BulkUserImportService:
                     user.password_change_required = password_change_required
 
                 user.save()
+
+                # Dispatch welcome email with credentials to user
+                try:
+                    from apps.accounts.tasks import send_welcome_email
+                    from apps.tenant.models import Organization
+                    org_name = None
+                    try:
+                        org = Organization.objects.get(id=tenant_id)
+                        org_name = org.name
+                    except Exception:
+                        pass
+                    send_welcome_email(str(user.id), tenant_name=org_name, raw_password=raw_password if mode != 'invite_only' else None)
+                except Exception as email_err:
+                    logger.error(f"Failed to send welcome email to {user.email}: {str(email_err)}")
 
                 success_count += 1
                 imported_data.append({
