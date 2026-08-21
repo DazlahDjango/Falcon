@@ -1,464 +1,474 @@
-# Falcon Enterprise KPI System — Complete Operational & System Flow
+# Falcon Enterprise System — KPI Subsystem Architecture & System Flow Specification
 
-## Executive Overview & Organizational Context
+> **Document Version**: 1.0.0  
+> **Target Subsystem**: `apps/kpi` (Indicator Definitions, Category Trees, Strategy Linkage, Weight Allocation, Annual Target Setting, Monthly Phasing, Target Cascading, Monthly Actual Data Submission, Evidence Attachment, Supervisor Validation & Escalation, Polymorphic Calculation Engine, RAG Traffic Light Evaluation, Hierarchical Rollups, Real-Time Event Broadcasting)  
+> **Classification**: Technical & Operational Architecture Specification  
 
-This document outlines the complete operational lifecycle, architectural design, data flow, and business logic of the **Falcon KPI Subsystem**. 
+---
 
-To illustrate how every component in your codebase functions in a real-world enterprise setting, this document uses a concrete organizational scenario throughout:
+## 1. Subsystem Architecture Overview
 
-### Organizational Baseline Scenario: "Global Apex Solutions"
-* **Total Headcount:** 50 Employees across a single multi-tenant organization (`tenant_id = "tenant-global-apex-2026"`).
-* **Annual Corporate Target:** **$100,000,000 USD** ($100M Net Sales Revenue) set for Fiscal Year 2026.
-* **Review Cadence:** Monthly actual entries & supervisor approvals, Quarterly performance reviews & trend analyses, Annual year-end target reconciliation.
+The **KPI Subsystem** (`apps/kpi`) serves as the core quantitative performance management engine for the Falcon Enterprise platform. Designed on Django REST Framework (DRF) with multi-tenant schema isolation, it orchestrates the entire Key Performance Indicator lifecycle: indicator taxonomy definition, corporate strategy alignment, annual target setting, 12-month target phasing, top-down target cascading, monthly actual data submissions with digital evidence, multi-tier supervisor validation, mathematical score calculations, Red/Yellow/Green (RAG) traffic light evaluations, multi-tier hierarchical rollups, real-time WebSocket event broadcasting, and automated background calculation tasks.
 
-```
-                               ┌─────────────────────────────────────────┐
-                               │       Global Apex Solutions (Org)       │
-                               │    Executive: Sarah Jenkins (CEO)       │
-                               │  Annual Target: $100,000,000 USD Net   │
-                               └────────────────────┬────────────────────┘
-                                                    │
-                 ┌──────────────────────────────────┴──────────────────────────────────┐
-                 │                                                                     │
-                 ▼                                                                     ▼
-┌──────────────────────────────────┐                               ┌──────────────────────────────────┐
-│   Commercial Division ($60M)     │                               │   Engineering Division ($40M)    │
-├──────────────────────────────────┤                               ├──────────────────────────────────┤
-│ • Sales Department ($50M)        │                               │ • Software Dev Dept ($25M)        │
-│   - Enterprise Unit ($30M)       │                               │   - Core Platform Team           │
-│   - SMB Sales Unit ($20M)        │                               │   - Mobile Dev Team              │
-│ • Marketing Department ($10M)    │                               │ • DevOps & Cloud Dept ($15M)     │
-└──────────────────────────────────┘                               └──────────────────────────────────┘
+```mermaid
+graph TD
+    Client[Frontend Client / API Consumer] --> AuthMiddleware[TenantAwareJWTAuthentication]
+    AuthMiddleware --> Router[DRF Router & URL Dispatcher]
+    Router --> Throttles[Rate Throttles / KPI Rate Limiters]
+    Throttles --> Permissions[RBAC / ABAC Permission Evaluator]
+    Permissions --> Views[API Views / ViewSets]
+    Views --> Services[Business Logic Service Layer]
+    Services --> CalcEngine[CalculationOrchestrator / Polymorphic Calculators]
+    Services --> RollupEngine[HierarchyAggregator / Organizational Rollups]
+    Services --> Managers[Tenant-Aware & Soft-Delete Managers]
+    Managers --> Models[Database Models / PostgreSQL Tenant Schemas]
+    Services --> EventBroadcaster[KPIEventBroadcaster / WebSockets]
+    Services --> CeleryTasks[Celery Async Tasks / Recalculation Worker]
+    Services --> RedisCache[(Redis Cache / Calculation Lock Store)]
 ```
 
+### 1.1 Architectural Layers
+
+1. **Models Layer (`models/`)**: Defines database schemas extending custom base classes (`UUIDModel`, `TimestampModel`, `SoftDeleteModel`, `TenantAwareModel`, `AuditModel`). Includes `KPICategory`, `KPI`, `KPIWeight`, `KPIDependency`, `AnnualTarget`, `MonthlyPhasing`, `TargetLock`, `TargetCascade`, `CascadeHistory`, `ActualEntry`, `Evidence`, `ActualAdjustment`, `ValidationRecord`, `RejectionReason`, `Escalation`, `CalculationRun`, `PeriodScore`, `OrganizationalScore`, and `KPISystemSettings`.
+2. **Managers Layer (`managers/`)**: Intercepts database queries to enforce tenant isolation (`TenantAwareManager` injecting thread-local `tenant_id`) and soft-delete exclusions (`SoftDeleteManager`). Provides custom aggregators for monthly actual status filtering and RAG counts.
+3. **Services Layer (`services/`)**: Encapsulates all domain business logic across 8 specialized sub-packages:
+   - **`definition/`**: `KPICreator`, `KPITaxonomyService`, `WeightValidator`, `DependencyGraphValidator`.
+   - **`target/`**: `TargetSetter`, `TargetPhaser` (Phasing Strategies: Equal, Seasonal, Custom), `TargetLocker`.
+   - **`cascade/`**: `TargetCascader` (Split Strategies: Equal, Weighted, Budget, Custom), `CascadeRollbackService`.
+   - **`actual/`**: `ActualEntryService`, `EvidenceManager`, `ActualAdjustmentService`.
+   - **`validation/`**: `ValidationApprover`, `ValidationRejecter`, `AutoApprovalService`, `EscalationService`.
+   - **`calculation/`**: `CalculationOrchestrator`, Polymorphic Calculators (`Numeric`, `Percentage`, `Financial`, `Milestone`, `Time`, `Impact`), `RAGScoreEvaluator`, `TrendAnalyzer`.
+   - **`analytics/`**: `HierarchyAggregator` (`Individual`, `Unit`, `Department`, `Organization`), `KPIDashboardService`.
+   - **`realtime/`**: `KPIEventBroadcaster` (WebSocket channel push) & Celery async task dispatchers.
+4. **API / Serialization / Permissions Layer (`api/v1/`)**:
+   - **Serializers**: Payload validation, weight sum assertions ($100\% \pm 0.01\%$), target phasing distribution checks, and evidence file uploads.
+   - **Permissions**: Granular check classes (`IsSuperAdmin`, `IsClientAdmin`, `IsKPIChampion`, `IsKPIManager`, `IsKPIOwner`, `CanValidateActual`).
+   - **Throttles**: Scope-based rate limiters (`KPIAPIThrottle`, `BulkUploadThrottle`, `CalculationTriggerThrottle`).
+   - **Views**: REST ViewSets and APIViews implementing single and bulk endpoints.
+5. **Real-time Event Broadcaster (`services/realtime/`)**: Dispatches live WebSocket messages via Django Channels to update interactive dashboard counters and team progress views in real-time.
+
 ---
 
-### Organizational Role Mapping (`accounts_user` Model Integration)
+## 2. Multi-Tenancy Architecture & Schema Isolation
 
-Your application leverages Django's `User` model (`apps.accounts.models.user`), utilizing specific role flags and manager relationships:
-
-| Role Code | Role Name | Concrete Scenario Person | Key System Responsibilities & Permissions |
-| :--- | :--- | :--- | :--- |
-| `executive` | Executive / C-Level | **Sarah Jenkins** (CEO) | • Sets top-level corporate targets ($100M).<br>• Accesses Executive Dashboard & Org Health Metrics.<br>• Receives system-wide Red Alerts & High-Risk Predictions. |
-| `client_admin` | Client Admin / CFO | **Alex Mercer** (CFO) | • Configures KPI Frameworks & Categories.<br>• Sets operational settings & performance cycle lock dates.<br>• Resolves final escalated validation disputes. |
-| `dashboard_champion` | Dashboard Champion | **Elena Rostova** (Operations Lead) | • Monitors organization-wide monthly submission compliance.<br>• Executes bulk CSV/Excel data imports.<br>• Manages calculation triggers & red alert dispatches. |
-| `supervisor` | Supervisor / Manager | **Mark Vance** (Sales Manager) | • Manages direct reports via `user.get_direct_reports()`.<br>• Validates monthly actual entries (Approve / Reject).<br>• Accesses Manager Dashboard & Team Scorecards. |
-| `staff` | Staff / Employee | **James Wilson** (Enterprise Sales Lead) | • Submits monthly actual values & attaches evidence files.<br>• Tracks personal KPI Scorecards & progress trends.<br>• Requests historical actual adjustments if corrections are needed. |
+The KPI subsystem operates within Falcon's **hybrid multi-tenant database strategy**:
+- **Tenant Scope Enforcement**: Every model inherits from `BaseKPIModel`, enforcing a mandatory `tenant_id` UUID field.
+- **Dynamic PostgreSQL Schema Switching**: `BaseKpiViewset.initial()` automatically resolves `tenant_id` from the context or current user and executes:
+  ```sql
+  SET search_path TO "<tenant_schema_name>", public;
+  ```
+- **Isolation Enforcer**:
+  - `super_admin` / `platform_admin`: Bypasses tenant filtering on querysets and can perform global operational monitoring.
+  - `client_admin` / `executive` / `kpi_champion` / `manager` / `staff`: Strictly scoped by `tenant_id`. Cross-tenant data leakage is prevented via `IsolationEnforcer`.
 
 ---
 
-## Complete End-to-End System Flow
+## 3. Super Admin vs Client Admin vs Champion Role Distinction Matrix
+
+The KPI app enforces strict functional separation across administrative and operational roles:
+
+| Feature / Responsibility | Super Admin (`super_admin`) | Client Admin (`client_admin`) | KPI Champion (`kpi_champion`) | Executive (`executive`) | Manager (`supervisor`) | Staff (`staff`) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Schema & Tenant Scope** | Global system-wide | Assigned `tenant_id` | Assigned `tenant_id` | Assigned `tenant_id` | Direct Team Scope | Personal Scope |
+| **KPI Definitions & Taxonomy** | Full CRUD (Any Tenant) | Full CRUD (Tenant) | Full CRUD (Tenant) | Read Only | Read Only | View Assigned |
+| **Target Setting & Phasing** | Full Access | Full Access | Full Access & Cascading | View Org Targets | Team Target Phasing | View Own Targets |
+| **Target Cycle Locking** | Lock/Unlock Any | Lock/Unlock Tenant | Lock/Unlock Tenant | View Only | View Only | View Only |
+| **Monthly Actual Submissions** | Full Access | Manage Any Actual | View Tenant Actuals | View Org Actuals | View Team Actuals | Submit Own |
+| **Actual Validations & Approvals** | Override Approve | Override Approve | Monitor Validations | View Approvals | Approve/Reject Team | Resubmit Rejected |
+| **Calculation Triggers** | Trigger System-wide | Trigger Tenant-wide | Trigger Tenant-wide | Trigger Org Rollup | Trigger Team Rollup | View Personal Score |
+| **Audit & Rollbacks** | Full Access | Full Tenant Access | Full Tenant Access | View Only | View Team History | View Own History |
+| **Dashboard Access** | All Dashboards | Tenant Dashboards | Champion Dashboard | Executive Dashboard | Manager Dashboard | Individual Dashboard|
+
+---
+
+## 4. Comprehensive User Role Mapping & Action Matrix (RBAC + ABAC)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                                SYSTEM LIFECYCLE FLOW                                    │
-│                                                                                         │
-│  [1. KPI Definition] ──► [2. Target Setting] ──► [3. Target Cascading] ──► [4. Monthly Entry]│
-│         │                                                                     │         │
-│         ▼                                                                     ▼         │
-│  [7. Score Engine]  ◄── [6. Supervisor Approval] ◄── [5. Evidence Upload] ◄──┘         │
-│         │                                                                               │
-│         ▼                                                                               │
-│  [8. 4-Tier Rollup] ──► [9. Traffic Lights] ──► [10. Alerts & Predictions] ──► [11. Dashboards]│
-└─────────────────────────────────────────────────────────────────────────────────────────┘
+Legend:  [✓ Allowed]   [P Partial / Scope Restricted]   [✗ Forbidden]
+```
+
+| Subsystem Module & Action | Super Admin | Client Admin | KPI Champion | Executive | Manager | Staff | Read-Only |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1. KPI DEFINITIONS & TAXONOMY** | | | | | | | |
+| Create / Edit / Delete KPI | Any Tenant | Own Tenant | Own Tenant | ✗ | ✗ | ✗ | ✗ |
+| Manage Categories & Category Trees | Any Tenant | Own Tenant | Own Tenant | ✗ | ✗ | ✗ | ✗ |
+| Bulk CSV KPI Import / Export | Any Tenant | Own Tenant | Own Tenant | ✗ | ✗ | ✗ | ✗ |
+| Activate / Deactivate KPI | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Configure Weight Matrix | Any User | Tenant Users | Tenant Users | ✗ | Direct Team | ✗ | ✗ |
+| Validate Weight Totals ($100\%$) | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Set KPI Dependencies (DAG Check) | Any Tenant | Own Tenant | Own Tenant | ✗ | ✗ | ✗ | ✗ |
+| **2. TARGET SETTING & PHASING** | | | | | | | |
+| Set Annual Targets | Any User | Tenant Users | Tenant Users | Org Level | Direct Team | ✗ | ✗ |
+| Phase Target (Equal/Seasonal/Custom) | Any User | Tenant Users | Tenant Users | ✗ | Direct Team | ✗ | ✗ |
+| Lock Monthly Target Phasing | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| **3. TARGET CASCADING** | | | | | | | |
+| Execute Top-Down Target Cascade | Any Tenant | Own Tenant | Own Tenant | Org Scope | ✗ | ✗ | ✗ |
+| Select Split Strategy (Equal/Weight/Budget)| ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Execute Atomic Cascade Rollback | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| View Cascade Tree History | Global | Tenant | Tenant | Org Scope | Team Scope | Self Scope | Tenant (RO) |
+| **4. ACTUAL DATA SUBMISSIONS & EVIDENCE** | | | | | | | |
+| Enter Monthly Actual Performance | Any User | Tenant Users | Tenant Users | ✗ | Direct Team | Own Assigned | ✗ |
+| Attach Digital Evidence Files | Any User | Tenant Users | Tenant Users | ✗ | Direct Team | Own Actuals | ✗ |
+| Request Post-Approval Adjustment | Any User | Tenant Users | Tenant Users | ✗ | Direct Team | Own Actuals | ✗ |
+| View Submission History & Audit | Global | Tenant | Tenant | Org Scope | Team Scope | Own History | Tenant (RO) |
+| **5. VALIDATION & APPROVAL WORKFLOW** | | | | | | | |
+| Approve Monthly Actual Submission | Override | Override | View/Monitor | View | Direct Reports | ✗ | ✗ |
+| Reject Submission with Reason | Override | Override | View/Monitor | View | Direct Reports | ✗ | ✗ |
+| Auto-Approval Policy Threshold ($\le 5\%$) | Manage | Manage | Manage | View | View | ✗ | ✗ |
+| Escalate Unresolved Submission | Override | Override | Override | View | Escalate Up | ✗ | ✗ |
+| Resubmit Rejected Actual | Any User | Tenant Users | ✗ | ✗ | Direct Team | Own Actuals | ✗ |
+| **6. CALCULATIONS & RAG EVALUATION** | | | | | | | |
+| Trigger Calculation Run | System-wide | Tenant-wide | Tenant-wide | Org Scope | Team Scope | ✗ | ✗ |
+| View RAG Score (Red/Yellow/Green) | Global | Tenant | Tenant | Department | Team | Personal Score | Tenant (RO) |
+| View Red Streak & Risk Trend | Global | Tenant | Tenant | Department | Team | Personal Trend | Tenant (RO) |
+| Recalculate Period Scores | System-wide | Tenant-wide | Tenant-wide | ✗ | Team Scope | ✗ | ✗ |
+| **7. HIERARCHICAL ROLLUPS & DASHBOARDS** | | | | | | | |
+| Individual Dashboard View | Any User | Tenant Users | Tenant Users | View Self | View Self | Personal Only | ✗ |
+| Manager Dashboard View | Any Manager | Tenant Managers | Tenant Managers | Department | Direct Team | ✗ | ✗ |
+| Executive Dashboard View | Any Tenant | Own Tenant | Own Tenant | Department | ✗ | ✗ | ✗ |
+| Champion Dashboard View | Any Tenant | Own Tenant | Own Tenant | ✗ | ✗ | ✗ | ✗ |
+| **8. REPORTS & EXPORTS** | | | | | | | |
+| Export System Reports (PDF/XLSX/CSV) | Global | Tenant | Tenant | Department | Team | Personal | Tenant (RO) |
+| Configure KPI Subsystem Settings | Global | Read Only | Read Only | Read Only | ✗ | ✗ | ✗ |
+
+---
+
+## 5. End-to-End System Flows & Service Execution Logic
+
+### 5.1 Indicator Definition, Category Taxonomy & Weight Allocation Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Client Admin / KPI Champion
+    participant Taxonomy as KPITaxonomyService
+    participant Creator as KPICreator
+    participant WeightVal as WeightValidator
+    participant GraphVal as DependencyGraphValidator
+    
+    Admin->>Taxonomy: POST /categories/ (Create KPICategory Hierarchy)
+    Admin->>Creator: POST /kpis/ (Define KPI Metadata & Formula)
+    Creator->>Creator: Assert Metric Type & Calculation Logic Bounds
+    
+    Admin->>WeightVal: POST /weights/bulk_assign/ (Assign Weights per User)
+    WeightVal->>WeightVal: Validate Weight Sum = 100% (+/- 0.01%)
+    alt Weight Sum != 100%
+        WeightVal-->>Admin: 400 Bad Request (Weight Sum Violation)
+    else Weight Sum Valid
+        WeightVal->>WeightVal: Save Weight Matrix
+    end
+    
+    Admin->>GraphVal: POST /dependencies/ (Link Dependent KPIs)
+    GraphVal->>GraphVal: Execute DFS Directed Acyclic Graph (DAG) Check
+    alt Circular Dependency Detected
+        GraphVal-->>Admin: 400 Bad Request (Circular Dependency Detected)
+    else DAG Valid
+        GraphVal->>Admin: 201 Created (Dependency Linked)
+    end
+```
+
+#### Detailed Execution Steps:
+1. **Category Tree Building**: Framework admins construct multi-level category trees (`KPICategory`) supporting parent-child hierarchy navigation.
+2. **KPI Definition & Formula Assignment**: `KPICreator` provisions indicator records defining metric types (`COUNT`, `PERCENTAGE`, `FINANCIAL`, `MILESTONE`, `TIME`, `IMPACT`), direction (`HIGHER_IS_BETTER`, `LOWER_IS_BETTER`), measurement type (`CUMULATIVE`, `NON_CUMULATIVE`), and dynamic JSON scoring formulas.
+3. **Weight Allocation & Matrix Assertion (`WeightValidator`)**:
+   - Every employee's assigned KPI matrix must sum to exactly $100\%$ ($\sum W_i = 100\% \pm 0.01\%$).
+   - Rejects partial weight allocations to guarantee score calculation integrity.
+4. **Dependency Graph Validation (`DependencyGraphValidator`)**:
+   - Uses Depth-First Search (DFS) traversal to detect and block circular dependencies across calculated KPIs ($A \rightarrow B \rightarrow C \rightarrow A$).
+
+---
+
+### 5.2 Target Setting, Monthly Phasing & Period Locking Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Manager as Manager / KPI Champion
+    participant Setter as TargetSetter
+    participant Phaser as TargetPhaser
+    participant Locker as TargetLocker
+    
+    Manager->>Setter: POST /annual-targets/ (Assign Annual Target Value)
+    Manager->>Phaser: POST /monthly-phasings/phase/ (Apply Phasing Strategy)
+    
+    alt Strategy = Equal Split
+        Phaser->>Phaser: Distribute Annual / 12 (Remainder to Month 12)
+    else Strategy = Seasonal
+        Phaser->>Phaser: Apply Weighted Monthly Profile
+    else Strategy = Custom
+        Phaser->>Phaser: Assert Sum of 12 Months = Annual Target
+    end
+    
+    Phaser->>Setter: Save 12 MonthlyPhasing Records
+    Manager->>Locker: POST /target-locks/lock_period/
+    Locker->>Locker: Set is_locked = True (Block Direct Edits)
+    Locker-->>Manager: 200 OK (Target Phasing Locked)
+```
+
+#### Phasing Strategies (`TargetPhaser`):
+1. **Equal Split Strategy**: Divides annual target equally into 12 monthly targets ($T_{\text{monthly}} = T_{\text{annual}} / 12$), applying floating-point remainder corrections to Month 12.
+2. **Seasonal Strategy**: Applies custom monthly percentage weights (e.g., Q4 retail peak: Jan-Sep $5\%/\text{mo}$, Oct-Dec $18.33\%/\text{mo}$).
+3. **Custom Pattern Strategy**: Accepts 12 explicit monthly values, enforcing $\sum_{m=1}^{12} T_m = T_{\text{annual}}$.
+
+#### Target Locking (`TargetLocker`):
+- Locks monthly targets (`is_locked = True`) prior to period execution. Once locked, targets cannot be altered without administrative unlock authorization.
+
+---
+
+### 5.3 Top-Down Target Cascading & Tree Rollback Engine
+
+```mermaid
+graph TD
+    CorpTarget[Organization Target] --> SplitEngine{TargetCascader Split Strategy}
+    SplitEngine -->|EQUAL_SPLIT| Div1[Division 1 Target]
+    SplitEngine -->|WEIGHTED| Div2[Division 2 Target (Headcount Weighted)]
+    SplitEngine -->|WEIGHTED_BY_BUDGET| Div3[Division 3 Target (Budget Weighted)]
+    
+    Div1 --> Dept1[Department 1 Target]
+    Dept1 --> Sec1[Section 1 Target]
+    Sec1 --> Unit1[Unit 1 Target]
+    Unit1 --> Ind1[Individual Employee Target]
+    
+    CorpTarget -.-> AuditLog[(CascadeHistory & Rollback Snapshot)]
+```
+
+#### Cascade Allocation Strategies (`TargetCascader`):
+- **Organigram Hierarchy**: Cascades targets down through organigram levels:
+  $$\text{Organization} \longrightarrow \text{Division} \longrightarrow \text{Department} \longrightarrow \text{Section} \longrightarrow \text{Unit} \longrightarrow \text{Individual}$$
+- **Split Strategies**:
+  - `EQUAL_SPLIT`: Divides target value equally among child nodes.
+  - `WEIGHTED`: Divides target value proportionally based on headcount (`Employment` records).
+  - `WEIGHTED_BY_BUDGET`: Divides target value based on cost center budgets (`CostCenter`).
+  - `CUSTOM`: Applies user-defined custom percentage distributions.
+- **Atomic Rollback (`CascadeRollbackService`)**: Creates an immutable snapshot in `CascadeHistory` before execution. If cascading errors occur or targets are revoked, an atomic rollback restores the entire tree.
+
+---
+
+### 5.4 Monthly Actual Data Submission, Evidence & Adjustment Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Employee as Staff Employee
+    participant ActualView as ActualEntryViewSet
+    participant EvidenceMgr as EvidenceManager
+    participant AdjustService as ActualAdjustmentService
+    
+    Employee->>ActualView: POST /actuals/ (Submit Monthly Actual Value)
+    Employee->>EvidenceMgr: POST /evidence/ (Upload Supporting Document / Image)
+    ActualView->>ActualView: Set status = PENDING
+    
+    opt Post-Approval Correction Required
+        Employee->>AdjustService: POST /adjustments/ (Request Adjustment)
+        AdjustService->>AdjustService: Require Justification Narrative & Manager Approval
+    end
+```
+
+#### Data Submission Rules:
+- **Actual Entry**: Staff enter monthly values (`value`, `entry_date`, `notes`).
+- **Digital Evidence Attachment (`EvidenceManager`)**: Supports `DOCUMENT`, `IMAGE`, `LINK`, and `NOTE` evidence types with file size and MIME-type verification.
+- **Status Lifecycle**: `PENDING` $\rightarrow$ `APPROVED` or `REJECTED` or `ADJUSTED`.
+- **Post-Approval Adjustments (`ActualAdjustmentService`)**: Approved actuals are locked against direct editing; modifications require a formal `ActualAdjustment` request subject to supervisor approval.
+
+---
+
+### 5.5 Multi-Tier Supervisor Validation, Auto-Approval & Escalation Workflow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: Employee Submits Actual
+    
+    state Pending {
+        [*] --> Evaluating
+        Evaluating --> AutoApproved: Variance <= 5% (AutoApprovalService)
+        Evaluating --> ManualReview: Variance > 5%
+    }
+    
+    state ManualReview {
+        [*] --> ManagerQueue
+        ManagerQueue --> Approved: Manager Approves
+        ManagerQueue --> Rejected: Manager Rejects with Reason
+        ManagerQueue --> Escalated: Pending > 7 Days
+    }
+    
+    Rejected --> Pending: Employee Resubmits Entry
+    Escalated --> Approved: Admin / HR Resolves Escalation
+    AutoApproved --> [*]
+    Approved --> [*]
+```
+
+#### Validation & Escalation Logic:
+1. **Auto-Approval Engine (`AutoApprovalService`)**:
+   - Automatically approves entries if the actual variance $|A - T| / T \le 5\%$ or if the employee has 3 consecutive months of clean approved entries.
+2. **Manual Supervisor Approval / Rejection**:
+   - Supervisors review entries in `pending_summary`.
+   - Rejections mandate a structured `RejectionReason` (e.g., *Insufficient Evidence*, *Incorrect Figure*, *Wrong Period*).
+3. **Resubmission**: Employee modifies the entry and resubmits (`ValidationResubmission`), clearing previous rejection flags.
+4. **Escalation Service (`EscalationService`)**:
+   - If an entry remains unvalidated for $> 7$ days, it automatically escalates to the supervisor's manager (`Escalation`).
+
+---
+
+### 5.6 Mathematical Calculation Engine, Polymorphic Formulas & RAG Evaluation
+
+$$\text{KPI Score} = \text{PolymorphicCalculator}(\text{Actual}, \text{Target}, \text{Direction})$$
+
+#### Polymorphic Score Calculators (`CalculationOrchestrator`):
+
+1. **Numeric Calculator (`NumericCalculator`)**:
+   - `HIGHER_IS_BETTER`: $\text{Score} = \left(\frac{\text{Actual}}{\text{Target}}\right) \times 100$
+   - `LOWER_IS_BETTER`: $\text{Score} = \left(\frac{\text{Target}}{\text{Actual}}\right) \times 100$
+2. **Percentage Calculator (`PercentageCalculator`)**: Normalizes scale and respects score caps ($0\% - 150\%$).
+3. **Financial Calculator (`FinancialCalculator`)**: Computes revenue/profit variance without arbitrary clamping.
+4. **Milestone Calculator (`MilestoneCalculator`)**: Binary evaluation ($0\%$ for incomplete, $100\%$ for milestone achieved).
+5. **Time Calculator (`TimeCalculator`)**: Applies linear penalty decay for completion delays beyond deadline target.
+
+#### RAG Traffic Light Evaluation (`RAGScoreEvaluator`):
+- 🟢 **GREEN**: $\text{Score} \ge 90\%$
+- 🟡 **YELLOW**: $50\% \le \text{Score} < 90\%$
+- 🔴 **RED**: $\text{Score} < 50\%$
+
+#### Red Streak & Trend Analysis (`TrendAnalyzer`):
+- Tracks `consecutive_red_count`. Three consecutive red months trigger automated notifications.
+- Computes linear regression slope across 6 months to classify trends: `IMPROVING`, `DECLINING`, `STABLE`, `VOLATILE`.
+
+---
+
+### 5.7 Multi-Tier Hierarchical Rollup Engine
+
+```mermaid
+graph TD
+    IndScore[Individual Score = Sum(KPI_Score * Weight)] --> UnitRollup[Unit Score = Headcount Avg of Member Scores]
+    UnitRollup --> DeptRollup[Department Score = Headcount Weighted Unit Scores]
+    DeptRollup --> OrgRollup[Organization Health Score = Corporate Weighted Dept Scores]
+    OrgRollup --> RiskEval{Corporate Risk Rating}
+    RiskEval -->|Score >= 85%| LowRisk[LOW RISK]
+    RiskEval -->|65% <= Score < 85%| MedRisk[MEDIUM RISK]
+    RiskEval -->|Score < 65%| HighRisk[HIGH RISK]
+```
+
+#### Rollup Aggregation Layers (`HierarchyAggregator`):
+1. **`IndividualAggregator`**: $\text{User Score} = \sum_{i=1}^n (\text{KPI Score}_i \times \text{Weight}_i)$
+2. **`UnitAggregator`**: Headcount-weighted average of member employee scores.
+3. **`DepartmentAggregator`**: Headcount-weighted average of child unit scores.
+4. **`OrganizationAggregator`**: Organization-wide health score and corporate risk assessment (`LOW`, `MEDIUM`, `HIGH`).
+
+---
+
+### 5.8 Analytics, Multi-Role Dashboards, Realtime WebSockets & Celery Async Tasks
+
+1. **Multi-Role Dashboards (`KPIDashboardService`)**:
+   - `IndividualDashboardView`: Personal KPI scores, RAG breakdown, and recent activity log.
+   - `ManagerDashboardView`: Team average score, member RAG distribution, and pending validation queue.
+   - `ExecutiveDashboardView`: Organization health score, red KPI percentage, and department rankings.
+   - `ChampionDashboardView`: Tenant compliance rate, submission rates, and red streak alerts.
+2. **Realtime WebSocket Broadcasting (`KPIEventBroadcaster`)**:
+   - Pushes live updates (`score_update`, `validation_update`, `team_update`, `red_alert_update`) over Django Channels.
+3. **Background Celery Tasks**:
+   - `calculate_period_scores_task`: Asynchronous periodic calculation runs.
+   - `process_bulk_upload_task`: Background processing of large CSV KPI/Target uploads.
+   - `generate_custom_report_task`: Asynchronous PDF/Excel report rendering.
+
+---
+
+## 6. End-to-End API Endpoint Reference Map
+
+```
+/api/v1/kpis/
+├── health/                                   [GET]   Health check endpoint
+├── reference-data/                           [GET]   Reference data lookup (users, units, positions)
+├── system-settings/                          [GET/PATCH] KPI subsystem configuration settings
+│   └── reset/                                [POST]  Reset settings to platform defaults
+├── categories/                               [REST]  KPI Category ViewSet (CRUD, tree, activate)
+│   ├── tree/                                 [GET]   Get category hierarchical tree
+│   ├── active/                               [GET]   List active categories
+│   ├── {id}/activate/                        [POST]  Activate category
+│   └── {id}/deactivate/                      [POST]  Deactivate category
+├── kpis/                                     [REST]  KPI Definition ViewSet (CRUD, bulk import)
+│   ├── active/                               [GET]   List active KPI indicators
+│   ├── by-category/{category_id}/            [GET]   List KPIs by category
+│   ├── bulk_upload/                          [POST]  Import KPIs via CSV file
+│   ├── {id}/activate/                        [POST]  Activate KPI indicator
+│   └── {id}/deactivate/                      [POST]  Deactivate KPI indicator
+├── weights/                                  [REST]  KPI Weight Allocation ViewSet
+│   ├── my/                                   [GET]   Get authenticated user KPI weight matrix
+│   ├── validate_matrix/                      [POST]  Assert user weight sum equals 100%
+│   ├── bulk_assign/                          [POST]  Bulk assign weights to employee
+│   └── by-user/{user_id}/                    [GET]   List weights for specific user
+├── dependencies/                             [REST]  KPI Dependency ViewSet
+│   ├── graph/                                [GET]   Get complete dependency graph
+│   └── check_circular/                       [POST]  Validate DAG graph against circular links
+├── annual-targets/                           [REST]  Annual Target ViewSet
+│   ├── by-year/{year}/                       [GET]   List annual targets by year
+│   └── for-kpi/{kpi_id}/                     [GET]   List annual targets for KPI
+├── monthly-phasings/                         [REST]  Monthly Phasing ViewSet
+│   ├── phase/                                [POST]  Apply phasing strategy (Equal/Seasonal/Custom)
+│   ├── by-target/{target_id}/                [GET]   List 12 monthly phased targets
+│   └── lock/                                 [POST]  Lock monthly phasing period
+├── target-locks/                             [REST]  Target Lock ViewSet
+│   ├── status/                               [GET]   Get period locking status
+│   ├── lock_period/                          [POST]  Lock target phasing period
+│   └── unlock_period/                        [POST]  Unlock target phasing period
+├── cascades/                                 [REST]  Target Cascade ViewSet
+│   ├── execute/                              [POST]  Execute top-down target cascade
+│   ├── rollback/                             [POST]  Execute atomic cascade rollback
+│   └── tree/{cascade_id}/                    [GET]   Get target cascade hierarchy tree
+├── actuals/                                  [REST]  Monthly Actual Entry ViewSet
+│   ├── my/                                   [GET]   Get authenticated user actual entries
+│   ├── pending_summary/                      [GET]   Get manager pending validation list
+│   ├── for-period/                           [POST]  Filter actual entries by period
+│   ├── {id}/submit/                          [POST]  Submit actual entry for supervisor approval
+│   ├── {id}/approve/                         [POST]  Approve actual entry
+│   ├── {id}/reject/                          [POST]  Reject actual entry with reason
+│   └── {id}/resubmit/                        [POST]  Resubmit rejected actual entry
+├── evidence/                                 [REST]  Digital Evidence ViewSet
+│   └── for-actual/{actual_id}/               [GET]   List digital evidence for actual entry
+├── adjustments/                              [REST]  Actual Adjustment ViewSet
+│   ├── pending/                              [GET]   List pending adjustment requests
+│   ├── {id}/approve/                         [POST]  Approve post-approval actual adjustment
+│   └── {id}/reject/                          [POST]  Reject actual adjustment request
+├── validations/                              [REST]  Validation Record Read-Only ViewSet
+│   └── history/{actual_id}/                  [GET]   Get validation audit history for actual
+├── calculations/                             [REST]  Calculation ViewSet
+│   ├── trigger/                              [POST]  Trigger period score calculation run
+│   ├── period_scores/                        [GET]   Get calculated period scores
+│   ├── org_scores/                           [GET]   Get aggregated organizational scores
+│   └── status/{run_id}/                      [GET]   Get calculation run progress status
+├── dashboard/
+│   ├── individual/                           [GET]   Individual employee personal dashboard
+│   ├── manager/                              [GET]   Manager team oversight dashboard
+│   ├── executive/                            [GET]   Executive org health dashboard
+│   └── champion/                             [GET]   KPI Champion compliance dashboard
+└── export/                                   [REST]  Report Export ViewSet
+    ├── pdf/                                  [POST]  Export subsystem PDF report
+    ├── excel/                                [POST]  Export subsystem Excel report
+    └── csv/                                  [POST]  Export raw data CSV report
 ```
 
 ---
 
-### Phase 1: Strategic KPI Definition & Architecture Configuration
+## 7. Production Readiness Checklist & Verification Guidelines
 
-Before targets can be assigned, the structural foundation is configured by the **Client Admin** (**Alex Mercer**):
+To verify that the KPI subsystem is **100% production-ready**:
 
-#### 1. Category Tree Hierarchy (`KPICategory`)
-Categories organize KPIs into logical corporate pillars (e.g., Financial Performance, Customer Growth, Operational Efficiency).
-* *Example:* Category `"Financial Performance"` (`code="FIN"`) is created. Sub-category `"Revenue & Sales"` (`code="FIN-REV"`) is assigned to parent `"FIN"`.
+1. **Multi-Tenancy Verification**:
+   - Confirm `BaseKpiViewset.initial()` executes `SET search_path TO "<tenant_schema>", public;`.
+   - Verify that cross-tenant access to `KPI`, `AnnualTarget`, `ActualEntry`, or `PeriodScore` returns `404 Not Found` or `403 Forbidden`.
 
-#### 2. KPI Definition (`KPI` Model)
-A distinct KPI is created with strict mathematical parameters:
-* **KPI Code & Name:** `REV_001` — *"Net Sales Revenue"*.
-* **KPI Type (`kpi_type`):** `FINANCIAL` (Evaluated via `FinancialCalculator`).
-* **Calculation Logic (`calculation_logic`):** `HIGHER_IS_BETTER` (Score increases as actual approaches/exceeds target).
-* **Measurement Type (`measure_type`):** `CUMULATIVE` (Year-to-Date total accumulating across months).
-* **Unit & Precision:** Unit = `"USD"`, Decimal Places = `2`.
-* **Owner & Department:** Owned by **Mark Vance** (Sales Department).
+2. **Weight & Dependency Integrity**:
+   - Verify that `WeightValidator` rejects any user KPI matrix where $\sum W_i \neq 100\% \pm 0.01\%$.
+   - Confirm that `DependencyGraphValidator` blocks circular KPI dependencies ($A \rightarrow B \rightarrow A$) using DFS graph inspection.
 
-#### 3. Individual Weight Allocations (`KPIWeight`)
-Employees are evaluated on multiple KPIs. The system enforces that an employee's active KPI weights sum to exactly **100%**:
-* *Example for James Wilson (Sales Lead):*
-  - `REV_001` (Net Sales Revenue): **60% Weight**
-  - `CUST_002` (New Enterprise Accounts Acquired): **30% Weight**
-  - `SAT_001` (Customer Satisfaction CSAT): **10% Weight**
-  - *Total Allocation:* **100%** (Verified via `KPIWeightViewSet.validate_sum`).
+3. **Calculation & RAG Accuracy**:
+   - Verify that `NumericCalculator`, `PercentageCalculator`, `FinancialCalculator`, `MilestoneCalculator`, and `TimeCalculator` execute exact math formulas without rounding errors.
+   - Confirm RAG boundaries: Green ($\ge 90\%$), Yellow ($50-89\%$), Red ($< 50\%$).
 
-#### 4. Driver/Outcome Dependencies (`KPIDependency`)
-KPIs are linked to model operational impact:
-* *Example:* Marketing Lead KPI `LEAD_001` (*"Qualified Sales Leads"*) is flagged as an `UPSTREAM_DRIVER` for Sales KPI `REV_001` (*"Net Sales Revenue"*).
-* *Circular Dependency Check:* `KPIValidator.validate_circular_dependency()` runs a Depth-First Search (DFS) traversal over `KPIDependency` records. If someone attempts to link `REV_001` back as a driver for `LEAD_001`, the system blocks the creation and returns a circular dependency path error.
+4. **Cascade Rollback Safety**:
+   - Confirm that `CascadeRollbackService` safely reverts organigram target splits using immutable `CascadeHistory` snapshots.
 
-#### 5. Strategic Linkage (`StrategicLinkage`)
-Links `REV_001` directly to corporate objective *"Expand Market Share in North America"* with a strategic importance weight of $0.85$.
+5. **Asynchronous Execution & WebSockets**:
+   - Confirm that background calculation runs execute via Celery (`calculate_period_scores_task`) under Redis distributed lock (`calc_lock:<tenant_id>:<year>:<month>`).
+   - Verify real-time event distribution over WebSockets (`KPIEventBroadcaster`).
 
 ---
-
-### Phase 2: Annual Target Setting & Phasing Engine
-
-#### 1. Organizational Annual Target Setting (`AnnualTarget`)
-At the start of Fiscal Year 2026, CEO **Sarah Jenkins** sets the top-level corporate goal:
-* **KPI:** `REV_001` (*Net Sales Revenue*).
-* **Year:** `2026`.
-* **Target Value:** **$100,000,000.00 USD**.
-
-#### 2. Target Phasing Engine (`MonthlyPhasing` & `TargetPhaser`)
-The annual target of $100M must be split into 12 monthly operational targets. The system supports three phasing strategies:
-
-1. **Equal Split Strategy (`EqualSplitStrategy`):**
-   - Distributes $100M / 12 = **$8,333,333.33 USD** per month.
-2. **Seasonal Pattern Strategy (`SeasonalStrategy`):**
-   - Applies historical weighting (e.g., Q1 = 15%, Q2 = 25%, Q3 = 25%, Q4 = 35% due to year-end enterprise buying cycles).
-   - *Result:* January = $5M, July = $8.33M, December = $15M.
-3. **Custom Pattern Strategy (`CustomPatternStrategy`):**
-   - Explicit manual target entry for each of the 12 months.
-
-#### 3. Performance Cycle Locking (`PhasingLock` & `TargetLocker`)
-Once the performance cycle begins (e.g., January 1, 2026), **Alex Mercer** triggers `TargetLocker.lock_phasing_for_cycle()`. 
-* All 12 `MonthlyPhasing` records for 2026 transition `is_locked = True`.
-* Any subsequent API attempt by staff or managers to edit monthly target values is blocked with HTTP 403 (`PhasingLockedError`).
-
----
-
-### Phase 3: Multi-Level Target Cascading Engine
-
-The top-level $100M organizational target must cascade down the 4-tier hierarchy to divisions, departments, units, and individual staff.
-
-```
-Level 4: Organization Target ──► $100,000,000 USD (CEO: Sarah Jenkins)
-                                        │
-           ┌────────────────────────────┴────────────────────────────┐
-           ▼ (WEIGHTED_BY_BUDGET Rule)                               ▼
-Level 3: Commercial Dept Target ──► $60,000,000 USD        Engineering Dept ──► $40,000,000 USD
-                                        │
-           ┌────────────────────────────┴────────────────────────────┐
-           ▼ (WEIGHTED_BY_HEADCOUNT Rule)                            ▼
-Level 2: Enterprise Sales Unit ──► $30,000,000 USD        SMB Sales Unit ──► $20,000,000 USD
-                                        │
-           ┌────────────────────────────┴────────────────────────────┐
-           ▼ (EQUAL_SPLIT Rule)                                      ▼
-Level 1: James Wilson Target ──► $6,000,000 USD           Other Staff Targets (x4) ──► $6M each
-```
-
-#### Cascading Rules (`CascadeRule` & `TargetCascader`):
-The `CascadeEngine` supports four mathematical distribution rules:
-
-1. **`WEIGHTED_BY_BUDGET`:** Department target = Parent Target $\times \frac{\text{Department Budget}}{\text{Total Division Budget}}$.
-   - Commercial Division gets **$60M** ($60\%$), Engineering gets **$40M** ($40\%$).
-2. **`WEIGHTED_BY_HEADCOUNT`:** Unit target = Department Target $\times \frac{\text{Unit Headcount}}{\text{Total Department Headcount}}$.
-   - Enterprise Sales Unit (5 people) gets **$30M**, SMB Sales Unit (5 people) gets **$20M**.
-3. **`EQUAL_SPLIT`:** Divides target equally among all members.
-   - $30M Enterprise Sales target split equally among 5 sales leads = **$6,000,000.00 USD annual target per sales lead**.
-4. **`CUSTOM`:** Explicit user-specified contribution percentages.
-
-#### Audit & Safety (`CascadeMap` & `CascadeRollback`):
-* Every relationship is recorded in `CascadeMap` with `contribution_percentage` tracking.
-* If a target reorganization occurs, `CascadeRollback.rollback_cascade()` cleanly reverses the cascade tree within a database transaction without leaving orphaned child targets.
-
----
-
-### Phase 4: Monthly Actual Entry, Bulk Ingestion & Secure Evidence Upload
-
-#### 1. Monthly Actual Submission (`MonthlyActual` & `ActualEntry`)
-At the end of July 2026, **James Wilson** logs into the system to report his July sales actual:
-* **KPI:** `REV_001` (*Net Sales Revenue*).
-* **Period:** Year `2026`, Month `7` (July).
-* **Monthly Target:** $500,000.00 USD.
-* **Actual Value Entered:** **$550,000.00 USD**.
-* **Status:** Set to `PENDING` (awaiting supervisor validation).
-
-#### 2. Bulk Data Ingestion (`BulkActualUploadView` & Celery Task)
-For teams where actuals come from ERP/CRM exports, **Elena Rostova** (Dashboard Champion) uploads a 500-row CSV file:
-* **Dry-Run Validation:** Setting `dry_run = True` validates all rows, KPI IDs, and date ranges inside a rollback transaction without committing data to the database.
-* **Background Ingestion:** File is saved to temporary workspace storage (`tmp/uploads/`) and processed asynchronously by `process_bulk_upload_task.delay()`.
-
-#### 3. Evidence Attachment & Secure Download Access (`Evidence` Model & `EvidenceViewSet`)
-To prove the $550,000 actual, James uploads an enterprise deal closing invoice (`July_Deal_Closure.pdf`):
-* File is stored under tenant storage directory.
-* **Security & Permission Control:** Raw `/media/uploads/...` URLs are strictly hidden. `EvidenceSerializer.get_file_url()` generates authorized download endpoints:
-  `https://api.globalapex.com/api/v1/kpis/evidence/{evidence_id}/download/`.
-* When accessed, `EvidenceViewSet.download()` inspects `request.user.tenant_id` and permission flags. If a user from another tenant or unauthorized role requests the URL, access is denied with HTTP 403 Forbidden.
-
----
-
-### Phase 5: Supervisor Validation & Multi-Stage Approval Workflow
-
-```
-[Staff Enters Actual] ──► Status: PENDING
-                               │
-                               ▼
-                    [Supervisor Review Queue]
-                               │
-            ┌──────────────────┴──────────────────┐
-            ▼                                     ▼
-   [Supervisor Approves]                 [Supervisor Rejects]
-            │                                     │
-            ▼                                     ▼
-Status: APPROVED (Immutable)            Status: REJECTED
-            │                                     │
-            ▼                                     ▼
-[Triggers Calculation Engine]           [Notification Sent to Staff]
-                                                  │
-                                                  ▼
-                                        [Staff Resubmits Entry]
-```
-
-#### 1. Pending Supervisor Queue (`ValidationRecordViewSet.pending_summary`)
-Sales Manager **Mark Vance** logs into his portal. The system queries `request.user.get_direct_reports()` and displays his pending validation queue:
-* Pending Count: 5 submissions.
-* Oldest Pending: James Wilson (July Actual, 2 days pending).
-
-#### 2. The Approval Path (`ValidationApprover`)
-Mark reviews James's $550,000 entry and opens the attached `July_Deal_Closure.pdf`:
-* Mark clicks **Approve** with comment *"Verified against Q3 Salesforce report"*.
-* `MonthlyActual` status transitions from `PENDING` $\rightarrow$ `APPROVED`.
-* **Immutability Enforcement:** Once `APPROVED`, direct edits to `actual_value` are blocked by `HistoricalDataError`.
-
-#### 3. The Rejection & Resubmission Path (`ValidationRejecter` & `ValidationResubmission`)
-If another sales lead submits $500,000 without evidence:
-* Mark clicks **Reject**, selecting `RejectionReason` = `MISSING_EVIDENCE` with comment *"Please attach customer signed PO"*.
-* Status transitions to `REJECTED`. A notification is dispatched to the staff member.
-* The staff member attaches the signed PO and calls `ValidationResubmission.resubmit()`, resetting status back to `PENDING` for re-evaluation.
-
----
-
-### Phase 6: Disputed Escalations & Retroactive Actual Adjustments
-
-#### 1. Validation Dispute Escalations (`Escalation` Model & `ValidationEscalator`)
-If a staff member believes their supervisor unfairly rejected a valid submission:
-* Staff creates an `Escalation` record routing to **Alex Mercer** (Client Admin / CFO).
-* Escalation status becomes `PENDING` / `REVIEWING`.
-* Alex reviews the audit trail and calls `ValidationEscalator.resolve_escalation()`, overriding the rejection decision.
-
-#### 2. Retroactive Historical Adjustments (`ActualAdjustment` & `ActualAdjustmentService`)
-Three months later (in October), an audit reveals that a July sales contract value was revised from $550,000 down to $520,000 due to a credit memo:
-* Because approved actuals are immutable, James cannot edit the July record directly.
-* James submits an `ActualAdjustment` request:
-  - Original Actual ID: July Record ($550,000).
-  - Adjusted Value: $520,000.
-  - Reason: *"Post-closing credit memo adjustment"*.
-* Manager Mark Vance receives the request and clicks **Approve Adjustment**.
-* The system updates the historical July `MonthlyActual`, creates an `ActualHistory` audit snapshot, and triggers periodic score recalculation for July.
-
----
-
-### Phase 7: Score Calculation Engine & Mathematical Formulas
-
-Once a monthly actual is `APPROVED`, the **Calculation Engine** (`CalculationOrchestrator`) evaluates performance.
-
-#### 1. Strategy Calculators (`calculators.py`)
-Depending on `kpi.kpi_type`, the orchestrator instantiates the appropriate calculator:
-* `FinancialCalculator`: Handles currency targets & cumulative sums.
-* `PercentageCalculator`: Evaluates ratios & percentage metrics.
-* `MilestoneCalculator`: Evaluates binary/phase completion ($0\%$ to $100\%$).
-* `TimeCalculator`: Evaluates duration/latency metrics.
-
-#### 2. Directional Math Formulas (`formulas.py`)
-
-##### A. Higher-Is-Better Formula (`HigherIsBetterFormula`):
-For Revenue (`REV_001`): Target = $500,000, Actual = $550,000.
-$$\text{Score} = \left( \frac{\text{Actual}}{\text{Target}} \right) \times 100 = \left( \frac{550,000}{500,000} \right) \times 100 = \mathbf{110.00\%}$$
-
-##### B. Lower-Is-Better Formula (`LowerIsBetterFormula`):
-For Customer Churn Rate: Target = 2.0%, Actual = 1.0%.
-$$\text{Score} = \left( 2 - \frac{\text{Actual}}{\text{Target}} \right) \times 100 = \left( 2 - \frac{1.0}{2.0} \right) \times 100 = \mathbf{150.00\%}$$
-
-#### 3. Mathematical Precision Safeguards
-All score outputs are calculated using Python `Decimal` data types, avoiding IEEE 754 floating-point rounding bugs, and capped according to KPI boundary rules (`target_min`, `target_max`).
-
----
-
-### Phase 8: 4-Tier Hierarchy Score Aggregation Rollups
-
-Score aggregation operates bottom-up across four organizational tiers (`HierarchyAggregator`):
-
-```
-Level 4: Organization Rollup Score ──► 96.50% (Weighted Average across Departments)
-                                                ▲
-                                                │
-Level 3: Department Rollup Score  ──► 98.20% (Headcount-Weighted Avg of Units)
-                                                ▲
-                                                │
-Level 2: Unit Rollup Score        ──► 102.50% (Unweighted Avg of Member Scores)
-                                                ▲
-                                                │
-Level 1: Individual Score         ──► James Wilson overall score: 106.00%
-                                      (60% Net Sales + 30% New Accounts + 10% CSAT)
-```
-
-1. **Level 1 — Individual Score (`IndividualAggregator`):**
-   - James Wilson's Weighted Score = $(110.00\% \times 0.60) + (100.00\% \times 0.30) + (100.00\% \times 0.10) = \mathbf{106.00\%}$.
-2. **Level 2 — Unit Rollup (`UnitAggregator`):**
-   - Unweighted average of the 5 sales leads in Enterprise Sales Unit = $\mathbf{102.50\%}$.
-3. **Level 3 — Department Rollup (`DepartmentAggregator`):**
-   - Headcount-weighted average of Enterprise Sales Unit (5 people @ 102.5%) and SMB Sales Unit (5 people @ 93.9%) = $\mathbf{98.20\%}$.
-4. **Level 4 — Organization Rollup (`OrganizationAggregator`):**
-   - Department-weighted average across Commercial, Engineering, and Operations = $\mathbf{96.50\%}$.
-
----
-
-### Phase 9: Traffic Lights, Multi-Month Red Alerts & Risk Predictions
-
-#### 1. Traffic Light Evaluation (`TrafficLightEvaluator` & `TrafficLight` Model)
-Every score is automatically assigned a visual status badge:
-
-| Score Range | Status | Badge | Description |
-| :--- | :---: | :---: | :--- |
-| **Score $\ge 90.00\%$** | `GREEN` | 🟢 | Target Achieved / Excellent Performance |
-| **$50.00\% \le \text{Score} < 90.00\%$** | `YELLOW` | 🟡 | Target Partially Met / Needs Attention |
-| **Score $< 50.00\%$** | `RED` | 🔴 | Critical Underperformance |
-
-#### 2. Consecutive Red Month Alert Trigger
-The system tracks `consecutive_red_count`. If a staff member or KPI scores `RED` ($<50\%$) for **2 or more consecutive months**:
-* The system flags a **Red Alert** state (`consecutive_red_count >= 2`).
-* An automated high-priority notification is immediately generated for Manager Mark Vance and CEO Sarah Jenkins.
-
-#### 3. Trend Analysis & Slope Regression (`TrendAnalyzer`)
-Calculates moving averages and performance trajectory across 3 to 12 months:
-* `IMPROVING` (Positive slope $> +2.0$)
-* `STABLE` (Slope between $-2.0$ and $+2.0$)
-* `DECLINING` (Negative slope $< -2.0$)
-
-#### 4. Predictive Risk Machine (`RiskPredictor`)
-Uses multi-month historical variance and slope regression to predict future underperformance:
-* If an employee's score trajectory indicates a $75\%$ probability of missing next quarter's target, `RiskPredictionsView` highlights the KPI under **High Risk Indicators**.
-
----
-
-### Phase 10: Automated Notifications & Alert Dispatch Engine
-
-Your `NotificationService` (`apps/kpi/services/notifications.py`) runs automated background schedules:
-
-1. **Red Alert Dispatches:** Triggered immediately when `consecutive_red_count >= 2`. Sends email/in-app alert to Manager and Executive.
-2. **Missing Data Reminders:** Scans for users who have not submitted actuals 3 days prior to the monthly cutoff date, sending automated push reminders.
-3. **Pending Validation Alerts:** Daily summary email sent to Managers listing unvalidated direct-report submissions.
-
----
-
-### Phase 11: Role-Based Dashboard Ecosystem
-
-The system provides 5 specialized dashboard API views (`apps/kpi/api/v1/views/dashboard.py`):
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                ROLE DASHBOARD VIEWS                                    │
-├───────────────────┬───────────────────┬───────────────────┬────────────────────────────┤
-│ Individual View   │ Manager View      │ Executive View    │ Champion View              │
-├───────────────────┼───────────────────┼───────────────────┼────────────────────────────┤
-│ • Personal Score  │ • Team Avg Score  │ • Org Health      │ • Org Submission Rate      │
-│ • Progress Bars   │ • Pending Reviews │ • Dept Rankings   │ • Unvalidated Bottlenecks  │
-│ • Achievement Badges│ • Status Breakdown│ • Risk Level      │ • Red Alert Overview       │
-└───────────────────┴───────────────────┴───────────────────┴────────────────────────────┘
-```
-
-1. **Individual Dashboard (`IndividualDashboardView`):**
-   - Shows James Wilson his overall score (106.0%), personal KPI scorecards, target vs actual progress bars, and recent approval logs.
-2. **Manager Dashboard (`ManagerDashboardView`):**
-   - Shows Mark Vance his team average score (98.2%), team status breakdown (3 Green, 2 Yellow, 0 Red), pending validation count, and team ranking.
-3. **Executive Dashboard (`ExecutiveDashboardView`):**
-   - Shows CEO Sarah Jenkins total Organization Health (96.5%), tenant completion rate, high-risk KPI count, department leaderboard, and 12-month health trend line.
-4. **Champion Dashboard (`ChampionDashboardView`):**
-   - Shows Operations Lead Elena Rostova cross-department submission compliance rates (e.g., Sales 100%, Marketing 85%), pending escalations, and system bottlenecks.
-5. **Admin System Overview (`KPIOverviewDashboardView`):**
-   - System-wide statistics on active categories, KPI activation rates, and audit logs.
-
----
-
-### Phase 12: Performance Heatmaps & Materialized View Caching
-
-#### 1. Performance Heatmap (`PerformanceHeatmapView`)
-Generates a two-dimensional grid matrix:
-* **Y-Axis:** Departments (Sales, Marketing, Software Dev, DevOps, Finance).
-* **X-Axis:** Core KPIs (`REV_001`, `CUST_002`, `SAT_001`).
-* **Cells:** Color-coded average score intensity (Green / Yellow / Red), allowing executives to spot organizational weak spots in seconds.
-
-#### 2. Materialized View Caching & Live Fallback (`live_analytics.py`)
-To ensure executive dashboards load in $<50\text{ms}$ across large datasets:
-* Queries read from PostgreSQL materialized views (`kpi_summary_mv`, `department_rollup_mv`, `organization_health_mv`).
-* If materialized views are being refreshed or unavailable, `get_department_rollups(prefer_mv=False)` seamlessly executes live database aggregation fallbacks.
-
----
-
-### Phase 13: Reporting & Multi-Format Export Engine
-
-The reporting subsystem (`apps/kpi/services/report.py` & `export.py`) produces publication-ready exports:
-
-1. **Executive PDF Reports (`ReportGenerator.generate_pdf_report`):**
-   - Generated via **ReportLab**. Includes branded corporate header, Executive Summary, Department Performance Table, and Traffic Light breakdown pie charts.
-2. **Excel Analytics Workbooks (`generate_excel_report`):**
-   - Generated via **OpenPyXL**. Multi-tab formatted workbooks with conditional formatting (green/yellow/red cell highlights), auto-fitted columns, and formula summaries.
-3. **CSV Exports (`KPIExportView` / `ScoreExportView`):**
-   - Raw data streams formatted for BI tool ingestion (Tableau, PowerBI).
-
----
-
-### Phase 14: Multi-Tenancy Isolation, PostgreSQL RLS & Full Audit Trail
-
-```
-                        ┌────────────────────────────────────────┐
-                        │         Incoming API Request           │
-                        └───────────────────┬────────────────────┘
-                                            │
-                                            ▼
-                  ┌────────────────────────────────────────────────────┐
-                  │          OrganizationContextMiddleware             │
-                  │   Extracts Tenant ID & sets Thread-Local Context   │
-                  └─────────────────────────┬──────────────────────────┘
-                                            │
-                                            ▼
-                  ┌────────────────────────────────────────────────────┐
-                  │           TenantDatabaseRouterMiddleware           │
-                  │  1. SET search_path TO "org_tenant_schema", public │
-                  │  2. SET app.current_tenant_id = 'tenant-uuid'      │
-                  └─────────────────────────┬──────────────────────────┘
-                                            │
-                                            ▼
-                  ┌────────────────────────────────────────────────────┐
-                  │    PostgreSQL Engine Row-Level Security (RLS)      │
-                  │   Filters database rows at native engine layer     │
-                  └─────────────────────────┬──────────────────────────┘
-                                            │
-                                            ▼
-                  ┌────────────────────────────────────────────────────┐
-                  │      Django ORM Default TenantScopedManager        │
-                  │ Automatically appends .filter(tenant_id=tenant_id) │
-                  │     & excludes soft-deleted records (is_deleted)   │
-                  └─────────────────────────┬──────────────────────────┘
-```
-
-#### 1. Native PostgreSQL Row-Level Security (RLS)
-* `TenantDatabaseRouterMiddleware` executes `set_config('app.current_tenant_id', tenant_id)` on every database session.
-* PostgreSQL RLS policies automatically filter table rows at the database engine layer. Even if raw SQL is executed, cross-tenant data leakage is physically impossible.
-
-#### 2. ORM Defense-in-Depth (`TenantScopedManager`)
-* Every KPI model's default `objects` manager automatically injects `tenant_id` filtering and excludes `is_deleted=True` soft-deleted records.
-
-#### 3. Enterprise Audit Trail (`KPIHistory`, `ActualHistory`, `TargetHistory`)
-* Every change, update, target adjustment, or validation decision writes an immutable snapshot to audit history tables, capturing the user ID, timestamp, old value, new value, JSON diff, and reason text.
-
----
-
-## Summary Matrix: Operational Scenario Reference
-
-| Scenario Step | Actor | Action Performed | System Model / Class Involved | Outcome |
-| :--- | :--- | :--- | :--- | :--- |
-| **1. Target Setting** | Sarah Jenkins (CEO) | Sets $100M annual corporate target | `AnnualTarget`, `TargetSetter` | $100M target stored for 2026. |
-| **2. Phasing & Locking** | Alex Mercer (CFO) | Phases target into 12 months & locks cycle | `MonthlyPhasing`, `TargetPhaser`, `TargetLocker` | Target locked ($8.33M/mo or seasonal). |
-| **3. Cascading** | System Engine | Cascades target to departments & staff | `CascadeEngine`, `CascadeRule`, `CascadeMap` | James Wilson assigned $6M annual target. |
-| **4. Monthly Submission** | James Wilson (Staff) | Submits July actual ($550k) + uploads PDF invoice | `MonthlyActual`, `Evidence`, `ActualEntry` | Entry created with status `PENDING`. |
-| **5. Evidence Security** | System API | Generates permission-checked download URL | `EvidenceSerializer`, `EvidenceViewSet.download` | Download URL secured via API endpoint. |
-| **6. Validation** | Mark Vance (Manager) | Reviews & approves July actual | `ValidationRecord`, `ValidationApprover` | Status becomes `APPROVED` (Immutable). |
-| **7. Calculation** | Orchestrator | Calculates score for July ($550k / $500k) | `CalculationOrchestrator`, `FinancialCalculator` | Score = **110.00%**, Traffic Light = 🟢. |
-| **8. Aggregation** | Hierarchy Aggregator | Rolls up scores to Unit, Dept, and Org | `HierarchyAggregator`, `AggregatedScore` | Org Health Score updated to **96.50%**. |
-| **9. Red Alert Check** | Alert Engine | Checks consecutive red month counts | `TrafficLightEvaluator`, `NotificationService` | 🟢 Green status (No alert triggered). |
-| **10. Executive Review** | Sarah Jenkins (CEO) | Opens Executive Dashboard & downloads PDF | `ExecutiveDashboardView`, `ReportGenerator` | Interactive dashboard & PDF report generated. |
-
----
-
-This complete system flow reflects the full capabilities and architectural excellence of your Falcon KPI Subsystem!
+*End of KPI Subsystem System Flow Specification.*

@@ -5,8 +5,8 @@ const selectAnalyticsState = (state) => state.billing?.analytics || {};
 export const selectBillingSummary = createSelector([selectAnalyticsState], (analytics) => analytics.summary);
 export const selectRevenueReport = createSelector([selectAnalyticsState], (analytics) => analytics.revenue);
 export const selectSubscriptionAnalytics = createSelector([selectAnalyticsState], (analytics) => analytics.subscriptions);
-export const selectRevenueForecast = createSelector([selectAnalyticsState], (analytics) => analytics.forecast);
-export const selectTaxReport = createSelector([selectAnalyticsState], (analytics) => analytics.taxReport);
+export const selectAdminRevenueAnalytics = createSelector([selectAnalyticsState], (analytics) => analytics.adminRevenue);
+export const selectAdminSubscriptionAnalytics = createSelector([selectAnalyticsState], (analytics) => analytics.adminSubscriptions);
 export const selectAnalyticsLoading = createSelector([selectAnalyticsState], (analytics) => analytics.loading);
 export const selectAnalyticsError = createSelector([selectAnalyticsState], (analytics) => analytics.error);
 
@@ -26,5 +26,4 @@ export const selectChurnRate = createSelector([selectSubscriptionAnalytics], (su
     const active = subscriptions.total_active || 0;
     return active + cancelled === 0 ? 0 : (cancelled / (active + cancelled)) * 100;
 });
-export const selectTotalTaxCollected = createSelector([selectTaxReport], (tax) => tax?.total_tax_collected || 0);
-export const selectMonthlyRevenueTrend = createSelector([selectRevenueReport], (revenue) => revenue?.monthly_breakdown || []);
+export const selectMonthlyRevenueTrend = createSelector([selectRevenueReport], (revenue) => revenue?.monthly_breakdown || []);

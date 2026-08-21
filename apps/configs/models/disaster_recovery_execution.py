@@ -3,6 +3,7 @@ from django.db import models
 from .base import BaseConfigModel
 from .disaster_recovery_plan import DisasterRecoveryPlan
 from .backup_job import BackupJob
+from apps.configs.managers.disaster_recovery_manager import DisasterRecoveryExecutionManager
 
 class DisasterRecoveryExecution(BaseConfigModel):
     EXECUTION_TYPE_CHOICES = [('drill', 'Drill/Test - No Production Impact'), ('actual', 'Actual Disaster Recovery'), ('failover', 'Failover to Standby'), ('failback', 'Failback to Primary')]
@@ -24,6 +25,8 @@ class DisasterRecoveryExecution(BaseConfigModel):
     issues_encountered = models.JSONField(default=list, help_text="Issues during recovery")
     notes = models.TextField(blank=True)
     customer_notified = models.BooleanField(default=False, help_text="Was client admin notified?")
+    
+    objects = DisasterRecoveryExecutionManager()
     
     class Meta:
         db_table = 'config_disaster_recovery_execution'

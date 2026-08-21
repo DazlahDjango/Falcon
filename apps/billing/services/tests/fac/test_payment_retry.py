@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from django.utils import timezone
 from datetime import timedelta
 from . import SubscriptionFactory, FailedPaymentRetryFactory
-from services.payment.retry import PaymentRetryService
+from ...payment.retry import PaymentRetryService
 
 class PaymentRetryServiceTest(TestCase):
     def setUp(self):

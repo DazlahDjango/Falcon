@@ -6,7 +6,7 @@ import { useSubscription } from '../../../hooks/billing/useSubscription';
 import './billing-portal.css';
 
 export const PortalSettings = ({ subscription, onUpdate }) => {
-    const { updateSubscriptionSettings, loading } = useSubscription();
+    const { updateSettings, loading } = useSubscription();
     const [autoRenew, setAutoRenew] = useState(subscription?.auto_renew || false);
     const [saving, setSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -17,7 +17,7 @@ export const PortalSettings = ({ subscription, onUpdate }) => {
         setSaving(true);
         setSaveSuccess(false);
         try {
-            await updateSubscriptionSettings(subscription?.id, newValue);
+            await updateSettings(subscription?.id, newValue);
             if (onUpdate) onUpdate();
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);

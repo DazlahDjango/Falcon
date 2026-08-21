@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 from decimal import Decimal
 from uuid import uuid4
 from . import SubscriptionFactory, UsageRecordFactory
-from services.usage.service import UsageTrackingService
+from ...usage.service import UsageTrackingService
 from ....exceptions import UsageLimitExceededError
 
 class UsageTrackingServiceTest(TestCase):

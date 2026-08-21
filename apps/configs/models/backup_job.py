@@ -1,6 +1,7 @@
 from django.db import models
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
+from apps.configs.managers.backup_job_manager import BackupJobManager, BackupJobDetailManager
 
 class BackupJob(BaseConfigModel):
     BACKUP_TYPE_CHOICES = [('full', 'Full Backup'), ('incremental', 'Incremental'), ('differential', 'Differential'), ('synthetic', 'Synthetic'), ('cdp', 'CDP')]
@@ -25,6 +26,8 @@ class BackupJob(BaseConfigModel):
     retry_count = models.IntegerField(default=0)
     metadata = models.JSONField(default=dict, blank=True)
     
+    objects = BackupJobManager()
+    
     class Meta:
         db_table = 'config_backup_job'
         ordering = ['-started_at']
@@ -44,6 +47,8 @@ class BackupJobDetail(BaseConfigModel):
     status = models.CharField(max_length=20, default='pending')
     error_message = models.TextField(blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    
+    objects = BackupJobDetailManager()
     
     class Meta:
         db_table = 'config_backup_job_detail'

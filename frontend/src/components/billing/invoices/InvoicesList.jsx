@@ -17,17 +17,19 @@ import './invoices.css';
 export const InvoicesList = () => {
     const navigate = useNavigate();
     const { permissions } = useBillingPermissions();
-    const { invoices, pagination, summary, loading, fetchAll, setPage, setPageSize, applyFilters, filters } = useInvoices({ autoFetch: false });
+    const { invoices, pagination, summary, loading, fetchAll, setPage, setPageSize, applyFilters, filters, downloadPdf, sendEmail } = useInvoices({ autoFetch: false });
     const [showFilters, setShowFilters] = useState(false);
     const [localFilters, setLocalFilters] = useState(filters);
+    const [downloadingId, setDownloadingId] = useState(null);
 
     useEffect(() => { fetchAll({ page: pagination.page, pageSize: pagination.pageSize, filters }); }, [pagination.page, pagination.pageSize, filters, fetchAll]);
 
     const handleFilterApply = () => { applyFilters(localFilters); setShowFilters(false); };
-    const handleFilterClear = () => { setLocalFilters({ status: null, unpaidOnly: false, startDate: null, endDate: null }); applyFilters({ status: null, unpaidOnly: false, startDate: null, endDate: null }); };
+    const handleFilterClear = () => { setLocalFilters({ status: null, startDate: null, endDate: null, invoiceNumber: null }); applyFilters({ status: null, startDate: null, endDate: null, invoiceNumber: null }); };
 
+    const handleDownloadPdf = async (id, number) => { setDownloadingId(id); await downloadPdf(id, number); setDownloadingId(null); };
     const handleViewInvoice = (id) => { navigate(`/billing/invoices/${id}`); };
-    const handleSendEmail = async (id) => { await sendInvoiceEmail(id); };
+    const handleSendEmail = async (id) => { await sendEmail(id); };
 
     const stats = [
         { label: 'Total Invoices', value: pagination.total, icon: FiFileText, color: '#3b82f6' },

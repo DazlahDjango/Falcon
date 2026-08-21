@@ -27,7 +27,11 @@ class MaintenanceNotifier:
             'scheduled_end': window.scheduled_end,
             'reason': window.reason,
         }
-        html_body = render_to_string('config/email/maintenance_notice.html', context)
+        try:
+            html_body = render_to_string('config/email/maintenance_notice.html', context)
+        except Exception:
+            html_body = None
+
         send_mail(
             subject=f"[Falcon PMS] Maintenance Notice: {window.title}",
             message=f"Maintenance scheduled from {window.scheduled_start} to {window.scheduled_end}. Reason: {window.reason}",
@@ -42,7 +46,11 @@ class MaintenanceNotifier:
             'window': window,
             'affected_apps': list(window.affected_apps.values_list('name', flat=True)),
         }
-        html_body = render_to_string('config/email/admin_maintenance_alert.html', context)
+        try:
+            html_body = render_to_string('config/email/admin_maintenance_alert.html', context)
+        except Exception:
+            html_body = None
+
         send_mail(
             subject=f"[Falcon PMS ADMIN] Maintenance Window {window.status}: {window.title}",
             message=f"Maintenance window {window.title} is {window.status}",

@@ -1,5 +1,5 @@
 # apps/reportplt/api/v1/views/filters.py
-from django.db import transaction
+from django.db import transaction, models
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response

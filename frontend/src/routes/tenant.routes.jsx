@@ -87,7 +87,7 @@ const tenantRoutes = [
     { path: TENANT_ROUTES.RESOURCE_DASHBOARD_ORGANIZATION(':orgId'), element: <ResourceDashboardPage /> },
     { path: TENANT_ROUTES.RESOURCE_ANALYTICS, element: <ResourceDashboardPage /> },
     // Tenant-scoped resource management page (used when coming from org detail)
-    { path: '/tenant/organizations/:orgId/resources/manage', element: <TenantResourcesPage /> },
+    { path: TENANT_ROUTES.RESOURCE_MANAGE(':orgId'), element: <TenantResourcesPage /> },
     
     // Connection Management
     { path: TENANT_ROUTES.CONNECTIONS, element: <ConnectionsPage /> },
@@ -102,9 +102,9 @@ const tenantRoutes = [
     { path: TENANT_ROUTES.MIGRATIONS_ORGANIZATION(':orgId'), element: <MigrationsPage /> },
     
     // Sector Management
-    { path: '/tenant/sectors', element: <SectorsPage /> },
-    { path: '/tenant/sectors/create', element: <SectorsPage /> },
-    { path: '/tenant/sectors/:id/edit', element: <SectorsPage /> },
+    { path: TENANT_ROUTES.SECTORS, element: <SectorsPage /> },
+    { path: TENANT_ROUTES.SECTOR_CREATE, element: <SectorsPage /> },
+    { path: TENANT_ROUTES.SECTOR_EDIT(':id'), element: <SectorsPage /> },
     
     // Settings
     { path: TENANT_ROUTES.SETTINGS, element: <SettingsPage /> },
@@ -176,7 +176,7 @@ export const TenantPaths = {
     ResourceDashboard: TENANT_ROUTES.RESOURCE_DASHBOARD,
     ResourceDashboardOrganization: (orgId) => buildTenantPath(TENANT_ROUTES.RESOURCE_DASHBOARD_ORGANIZATION(':orgId'), { orgId }),
     ResourceAnalytics: TENANT_ROUTES.RESOURCE_ANALYTICS,
-    ResourceManage: (orgId) => `/tenant/organizations/${orgId}/resources/manage`,
+    ResourceManage: (orgId) => buildTenantPath(TENANT_ROUTES.RESOURCE_MANAGE(':orgId'), { orgId }),
     
     // Connections
     Connections: TENANT_ROUTES.CONNECTIONS,
@@ -191,9 +191,9 @@ export const TenantPaths = {
     MigrationsOrganization: (orgId) => buildTenantPath(TENANT_ROUTES.MIGRATIONS_ORGANIZATION(':orgId'), { orgId }),
     
     // Sectors
-    Sectors: '/tenant/sectors',
-    SectorCreate: '/tenant/sectors/create',
-    SectorEdit: (id) => `/tenant/sectors/${id}/edit`,
+    Sectors: TENANT_ROUTES.SECTORS,
+    SectorCreate: TENANT_ROUTES.SECTOR_CREATE,
+    SectorEdit: (id) => buildTenantPath(TENANT_ROUTES.SECTOR_EDIT(':id'), { id }),
     
     // Settings
     Settings: TENANT_ROUTES.SETTINGS,

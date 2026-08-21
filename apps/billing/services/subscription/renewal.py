@@ -107,7 +107,7 @@ class RenewalService:
             message = f"Dear {tenant.name},\n\nYour {subscription.plan.name} subscription will expire in {days_left} days on {subscription.current_period_end.strftime('%B %d, %Y')}.\n\nTo avoid service interruption, please ensure your payment method is up to date or manually renew at:\n{getattr(settings, 'BASE_URL', '')}/billing/subscriptions/{subscription.id}\n\nBest regards,\nFalcon PMS Team"
             send_mail(subject=subject, message=message, from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'billing@falconpms.com'), recipient_list=[email], fail_silently=True)
             logger.info(f"Sent renewal reminder to {email} for {subscription.subscription_code}")
-        except Client.DoesNotExist:
+        except Organization.DoesNotExist:
             logger.warning(f"Tenant not found for subscription {subscription.subscription_code}")
 
     def _send_renewal_failed_notification(self, subscription: Subscription):
@@ -120,7 +120,7 @@ class RenewalService:
             subject = "Subscription Renewal Failed - Action Required"
             message = f"Dear {tenant.name},\n\nWe were unable to automatically renew your {subscription.plan.name} subscription.\n\nPlease update your payment method or manually renew at:\n{getattr(settings, 'BASE_URL', '')}/billing/subscriptions/{subscription.id}\n\nIf not renewed by {subscription.current_period_end.strftime('%B %d, %Y')}, your subscription will expire.\n\nBest regards,\nFalcon PMS Team"
             send_mail(subject=subject, message=message, from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'billing@falconpms.com'), recipient_list=[email], fail_silently=True)
-        except Client.DoesNotExist:
+        except Organization.DoesNotExist:
             logger.warning(f"Tenant not found for subscription {subscription.subscription_code}")
 
     def _send_renewal_invoice_notification(self, subscription: Subscription, invoice: Invoice):

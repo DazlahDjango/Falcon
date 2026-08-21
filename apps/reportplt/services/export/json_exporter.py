@@ -56,3 +56,10 @@ class JSONExporter:
 
     def export_to_dict(self, data: Dict[str, Any], report_name: str) -> Dict:
         return self._prepare_json(data, report_name)
+
+    def export_to_bytes(self, data: Dict[str, Any], report_name: str = "Report", config: Optional[Dict] = None) -> bytes:
+        if config:
+            self.config.update(config)
+        json_data = self._prepare_json(data, report_name)
+        content = json.dumps(json_data, indent=self.indent, sort_keys=self.sort_keys, ensure_ascii=self.ensure_ascii, default=str)
+        return content.encode('utf-8')

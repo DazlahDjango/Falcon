@@ -55,7 +55,7 @@ export const TemplateStatusBadge = ({
     return (
         <div className={`template-status-badges ${getSizeClass()}`}>
             {badges.map((badge, index) => (
-                <span key={index} className={`status-badge ${badge.class}`}>
+                <span key={index} className={`status-badge ${badge.className}`}>
                     {badge.icon}
                     {showLabels && <span className="badge-label">{badge.label}</span>}
                 </span>

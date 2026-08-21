@@ -20,10 +20,11 @@ class BackupJobSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'started_at', 'completed_at', 'duration_seconds', 'size_bytes', 'checksum']
     def get_size_display(self, obj):
         if obj.size_bytes:
+            size = float(obj.size_bytes)
             for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-                if obj.size_bytes < 1024.0:
-                    return f"{obj.size_bytes:.2f} {unit}"
-                obj.size_bytes /= 1024.0
+                if size < 1024.0:
+                    return f"{size:.2f} {unit}"
+                size /= 1024.0
         return "N/A"
     def get_duration_display(self, obj):
         if obj.duration_seconds:
@@ -32,10 +33,10 @@ class BackupJobSerializer(serializers.ModelSerializer):
             return f"{minutes}m {seconds}s"
         return "N/A"
 
-class BackupJobDetailSerializer(serializers.ModelSerializer):
+class BackupJobItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = BackupJobDetail
-        fields = ['id', 'backup_job', 'detail_type', 'name', 'rows_processed', 'size_bytes', 'status', 'error_message', 'completed_at']
+        fields = ['id', 'detail_type', 'name', 'rows_processed', 'size_bytes', 'status', 'error_message', 'completed_at']
         read_only_fields = ['id']
 
 class BackupArtifactSerializer(serializers.ModelSerializer):
@@ -44,6 +45,13 @@ class BackupArtifactSerializer(serializers.ModelSerializer):
         model = BackupArtifact
         fields = ['id', 'backup_job', 'backup_job_info', 'storage_location', 'storage_path', 'encrypted_key_id', 'iv_initialization_vector', 'status', 'verified_at', 'verification_checksum', 'download_url_expires_at', 'restored_at', 'restore_count', 'archived_at', 'archive_tier', 'created_at']
         read_only_fields = ['id', 'created_at', 'verified_at', 'restored_at', 'restore_count']
+
+class BackupJobDetailSerializer(BackupJobSerializer):
+    artifact = BackupArtifactSerializer(read_only=True)
+    details = BackupJobItemSerializer(many=True, read_only=True)
+
+    class Meta(BackupJobSerializer.Meta):
+        fields = BackupJobSerializer.Meta.fields + ['artifact', 'details']
 
 class BackupTriggerSerializer(serializers.Serializer):
     app_name = serializers.CharField(max_length=100)

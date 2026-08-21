@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchTenantSubscriptions, fetchTenantInvoices, fetchTenantTransactions,
-    fetchRevenueReport, fetchSubscriptionReport, fetchTaxReport, bulkUpdateSubscriptions,
-    clearTenantData, clearReports, resetBulkUpdate,
+    fetchRevenueReport, fetchSubscriptionReport, fetchTransactionStats, fetchOverdueInvoices,
+    clearTenantData, clearReports,
 } from '../../store/billing/slices/adminBillingSlice';
 import {
     selectTenantSubscriptions as selectTenantSubs,
@@ -11,8 +11,9 @@ import {
     selectTenantTransactions as selectTenantTxns,
     selectAdminRevenueReport as selectRevReport,
     selectSubscriptionReport as selectSubReport,
-    selectAdminTaxReport as selectTaxRep,
-    selectTenantData, selectAdminLoading, selectAdminError, selectBulkUpdateStatus,
+    selectAdminTransactionStats as selectTxStats,
+    selectAdminOverdueInvoices as selectOverdueInvs,
+    selectTenantData, selectAdminLoading, selectAdminError,
 } from '../../store/billing/selectors';
 
 export const useAdminBilling = () => {
@@ -20,33 +21,32 @@ export const useAdminBilling = () => {
     const tenantData = useSelector(selectTenantData) || {};
     const loading = useSelector(selectAdminLoading);
     const error = useSelector(selectAdminError);
-    const bulkUpdateStatus = useSelector(selectBulkUpdateStatus);
+    const overdueInvoices = useSelector(selectOverdueInvs);
 
     const getTenantSubscriptions = useCallback((tenantId) => dispatch(fetchTenantSubscriptions(tenantId)), [dispatch]);
     const getTenantInvoices = useCallback((tenantId) => dispatch(fetchTenantInvoices(tenantId)), [dispatch]);
     const getTenantTransactions = useCallback((tenantId) => dispatch(fetchTenantTransactions(tenantId)), [dispatch]);
-    const getRevenueReport = useCallback((startDate, endDate) => dispatch(fetchRevenueReport({ startDate, endDate })), [dispatch]);
-    const getSubscriptionReport = useCallback((startDate, endDate) => dispatch(fetchSubscriptionReport({ startDate, endDate })), [dispatch]);
-    const getTaxReport = useCallback((year) => dispatch(fetchTaxReport(year)), [dispatch]);
-    const bulkUpdate = useCallback((updates) => dispatch(bulkUpdateSubscriptions(updates)), [dispatch]);
+    const getRevenueReport = useCallback((year = null) => dispatch(fetchRevenueReport(year)), [dispatch]);
+    const getSubscriptionReport = useCallback(() => dispatch(fetchSubscriptionReport()), [dispatch]);
+    const getTransactionStats = useCallback((year = null) => dispatch(fetchTransactionStats(year)), [dispatch]);
+    const getOverdueInvoices = useCallback(() => dispatch(fetchOverdueInvoices()), [dispatch]);
     const clearTenant = useCallback((tenantId) => dispatch(clearTenantData(tenantId)), [dispatch]);
     const clearAllReports = useCallback(() => dispatch(clearReports()), [dispatch]);
-    const resetBulk = useCallback(() => dispatch(resetBulkUpdate()), [dispatch]);
 
     const selectTenantSubscriptions = useCallback((tenantId) => useSelector((state) => selectTenantSubs(state, tenantId)), []);
     const selectTenantInvoices = useCallback((tenantId) => useSelector((state) => selectTenantInvs(state, tenantId)), []);
     const selectTenantTransactions = useCallback((tenantId) => useSelector((state) => selectTenantTxns(state, tenantId)), []);
     const selectRevenueReport = useCallback(() => useSelector(selectRevReport), []);
     const selectSubscriptionReport = useCallback(() => useSelector(selectSubReport), []);
-    const selectTaxReport = useCallback(() => useSelector(selectTaxRep), []);
+    const selectTransactionStats = useCallback(() => useSelector(selectTxStats), []);
 
     return {
-        tenantData, loading, error, bulkUpdateStatus,
+        tenantData, loading, error, overdueInvoices,
         getTenantSubscriptions, getTenantInvoices, getTenantTransactions,
-        getRevenueReport, getSubscriptionReport, getTaxReport, bulkUpdate,
-        clearTenant, clearAllReports, resetBulk,
+        getRevenueReport, getSubscriptionReport, getTransactionStats, getOverdueInvoices,
+        clearTenant, clearAllReports,
         selectTenantSubscriptions, selectTenantInvoices, selectTenantTransactions,
-        selectRevenueReport, selectSubscriptionReport, selectTaxReport,
+        selectRevenueReport, selectSubscriptionReport, selectTransactionStats,
     };
 };
 

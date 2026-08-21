@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiLayers, FiUsers, FiActivity } from 'react-icons/fi';
-import { useDivisions } from '../../../hooks/structure';
+import { useDivisions, useStructurePermissions } from '../../../hooks/structure';
 import {
   StructureTable,
   StructureSearchBar,
@@ -18,6 +18,8 @@ import './division.css';
 
 export const DivisionList = () => {
   const navigate = useNavigate();
+  const { permissions } = useStructurePermissions();
+  const canManage = permissions?.canManageDepartments || permissions?.isClientAdmin;
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +50,7 @@ export const DivisionList = () => {
   const handleToggleActive = useCallback(async (item, e) => {
     e.stopPropagation();
     try {
-      await update(item.id, { is_active: !item.is_active }).unwrap();
+      await update(item.id, { is_active: !item.is_active });
       const params = {
         page,
         page_size: pageSize,
@@ -243,10 +245,12 @@ export const DivisionList = () => {
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
-          <button onClick={handleCreate} className="btn btn-primary">
-            <FiPlus size={16} />
-            New Division
-          </button>
+          {canManage && (
+            <button onClick={handleCreate} className="btn btn-primary">
+              <FiPlus size={16} />
+              New Division
+            </button>
+          )}
         </div>
       </div>
 
@@ -280,8 +284,8 @@ export const DivisionList = () => {
         data={items}
         loading={isLoading}
         onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
+        onEdit={canManage ? handleEdit : undefined}
+        onDelete={canManage ? handleDeleteClick : undefined}
         pagination={paginationProps}
         hideEmptyState={true}
       />
@@ -290,8 +294,8 @@ export const DivisionList = () => {
         <StructureEmptyState
           title="No Divisions Found"
           description="Create your first division to start organizing your structure."
-          actionLabel="Create Division"
-          onAction={handleCreate}
+          actionLabel={canManage ? "Create Division" : undefined}
+          onAction={canManage ? handleCreate : undefined}
         />
       )}
 

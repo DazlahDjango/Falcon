@@ -9,11 +9,17 @@ class EncryptionKeySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'key_id', 'last_used_at', 'usage_count']
 
 class EncryptionKeyRotateSerializer(serializers.Serializer):
-    old_key_id = serializers.UUIDField()
+    old_key_id = serializers.CharField(max_length=255)
     new_key_alias = serializers.CharField(max_length=255)
     key_source = serializers.ChoiceField(choices=EncryptionKeySource.CHOICES, default=EncryptionKeySource.AWS_KMS)
     def validate_old_key_id(self, value):
         from apps.configs.models import EncryptionKey
-        if not EncryptionKey.objects.filter(id=value, key_status=EncryptionKeyStatus.ACTIVE).exists():
+        from django.db.models import Q
+        qs = EncryptionKey.objects.filter(key_status=EncryptionKeyStatus.ACTIVE)
+        try:
+            is_valid = qs.filter(Q(id=value) | Q(key_id=str(value))).exists()
+        except Exception:
+            is_valid = qs.filter(key_id=str(value)).exists()
+        if not is_valid:
             raise serializers.ValidationError(f"Key {value} not found or not active")
         return value

@@ -2,6 +2,7 @@
 import uuid
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
+from django.conf import settings
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -64,7 +65,7 @@ class ScheduleManager:
             max_retries=data.get('max_retries', 3),
             retry_delay=data.get('retry_delay', 300),
             cron_expression=data.get('cron_expression', ''),
-            timezone=data.get('timezone', 'Africa/Nairobi'),
+            timezone=data.get('timezone', getattr(settings, 'TIME_ZONE', 'UTC')),
             custom_params=data.get('custom_params', {}),
             include_attachments=data.get('include_attachments', True),
             compress_attachments=data.get('compress_attachments', False),

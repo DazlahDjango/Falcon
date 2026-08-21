@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiUser, FiBriefcase } from 'react-icons/fi';
-import { useEmployments } from '../../../hooks/structure';
+import { useEmployments, useStructurePermissions } from '../../../hooks/structure';
 import {
   StructureTable,
   StructureSearchBar,
@@ -85,6 +85,8 @@ const COLUMNS = [
 
 export const EmploymentList = () => {
   const navigate = useNavigate();
+  const { permissions } = useStructurePermissions();
+  const canManage = permissions?.canManageEmployments;
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [searchTerm, setSearchTerm] = useState('');
@@ -218,10 +220,12 @@ export const EmploymentList = () => {
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
-          <button onClick={handleCreate} className="btn btn-primary">
-            <FiPlus size={16} />
-            New Employment
-          </button>
+          {canManage && (
+            <button onClick={handleCreate} className="btn btn-primary">
+              <FiPlus size={16} />
+              New Employment
+            </button>
+          )}
         </div>
       </div>
 
@@ -323,8 +327,8 @@ export const EmploymentList = () => {
         data={items}
         loading={isLoading}
         onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
+        onEdit={canManage ? handleEdit : undefined}
+        onDelete={canManage ? handleDeleteClick : undefined}
         pagination={paginationProps}
       />
 
@@ -332,8 +336,8 @@ export const EmploymentList = () => {
         <StructureEmptyState
           title="No Employments Found"
           description="Create your first employment to assign employees to positions."
-          actionLabel="Create Employment"
-          onAction={handleCreate}
+          actionLabel={canManage ? "Create Employment" : undefined}
+          onAction={canManage ? handleCreate : undefined}
         />
       )}
 

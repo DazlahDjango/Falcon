@@ -11,7 +11,7 @@ import {
     updateReport,
     deleteReport,
     generateReport,
-    exportReport,
+    exportReport as exportReportThunk,
     updateReportStatus,
     performReportAction,
     fetchMyReports,
@@ -176,7 +176,7 @@ export const useReports = (options = {}) => {
     const exportReport = useCallback((id, data) => {
         if (!id) return Promise.reject(new Error('Report ID is required'));
         if (!data) return Promise.reject(new Error('Export data is required'));
-        return dispatch(exportReport({ id, data })).unwrap();
+        return dispatch(exportReportThunk({ id, data })).unwrap();
     }, [dispatch]);
 
     const updateStatus = useCallback((id, status) => {
@@ -421,7 +421,7 @@ export const useReport = (id, options = {}) => {
     const exportOne = useCallback((reportId, data) => {
         if (!reportId) return Promise.reject(new Error('Report ID is required'));
         if (!data) return Promise.reject(new Error('Export data is required'));
-        return dispatch(exportReport({ id: reportId, data })).unwrap();
+        return dispatch(exportReportThunk({ id: reportId, data })).unwrap();
     }, [dispatch]);
 
     const updateStatusOne = useCallback((reportId, status) => {

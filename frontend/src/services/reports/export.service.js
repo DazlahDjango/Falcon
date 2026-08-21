@@ -60,6 +60,14 @@ class ExportService extends ReportBaseService {
             return response;
         });
     }
+
+    async deleteExport(id) {
+        if (!id) throw new Error('Export ID is required');
+        return withRetry(async () => {
+            const response = await this.apiClient.delete(EXPORT_ENDPOINTS.DETAIL(id));
+            return response;
+        });
+    }
 }
 
 export const exportService = new ExportService();

@@ -171,12 +171,17 @@ const notificationSlice = createSlice({
 
     // ===== Mark As Read =====
     builder
+      .addCase(markNotificationAsRead.pending, (state, action) => {
+        const id = action.meta.arg;
+        const item = state.items.find((i) => i.id === id);
+        if (item && !item.is_read) {
+          item.is_read = true;
+          state.unreadCount = Math.max(0, state.unreadCount - 1);
+        }
+      })
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) {
-          if (!state.items[index].is_read) {
-            state.unreadCount = Math.max(0, state.unreadCount - 1);
-          }
           state.items[index] = action.payload;
         }
         if (state.selectedItem?.id === action.payload.id) {
@@ -186,6 +191,10 @@ const notificationSlice = createSlice({
 
     // ===== Mark All As Read =====
     builder
+      .addCase(markAllNotificationsAsRead.pending, (state) => {
+        state.items = state.items.map((item) => ({ ...item, is_read: true }));
+        state.unreadCount = 0;
+      })
       .addCase(markAllNotificationsAsRead.fulfilled, (state) => {
         state.items = state.items.map((item) => ({ ...item, is_read: true }));
         state.unreadCount = 0;

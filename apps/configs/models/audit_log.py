@@ -1,6 +1,7 @@
 from django.db import models
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
+from apps.configs.managers.audit_log_manager import ConfigAuditLogManager
 
 class ConfigAuditLog(BaseConfigModel):
     ACTION_CHOICES = [
@@ -26,6 +27,8 @@ class ConfigAuditLog(BaseConfigModel):
     result = models.CharField(max_length=20, choices=RESULT_CHOICES, default='pending')
     error_message = models.TextField(blank=True)
     request_id = models.CharField(max_length=100, blank=True, db_index=True, help_text="Correlation ID for tracing")
+    
+    objects = ConfigAuditLogManager()
     
     class Meta:
         db_table = 'config_audit_log'

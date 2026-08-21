@@ -273,18 +273,37 @@ class RowLevelSecurity:
             check_expression=f"{user_column} = current_setting('app.current_user_id')::uuid"
         )
 
-    def set_tenant_context(self, tenant_id: str):
+    def set_tenant_context(self, tenant_id: str, local: bool = False):
+        command = "SET LOCAL app.current_tenant_id = %s;" if local else "SET app.current_tenant_id = %s;"
         with connection.cursor() as cursor:
-            cursor.execute(f"SET app.current_tenant_id = '{tenant_id}';")
+            cursor.execute(command, [str(tenant_id)])
 
-    def set_user_context(self, user_id: str):
+    def set_user_context(self, user_id: str, local: bool = False):
+        command = "SET LOCAL app.current_user_id = %s;" if local else "SET app.current_user_id = %s;"
         with connection.cursor() as cursor:
-            cursor.execute(f"SET app.current_user_id = '{user_id}';")
+            cursor.execute(command, [str(user_id)])
 
     def clear_context(self):
         with connection.cursor() as cursor:
             cursor.execute("RESET app.current_tenant_id;")
             cursor.execute("RESET app.current_user_id;")
+
+    def rls_context(self, tenant_id: str, user_id: Optional[str] = None):
+        """Transaction-safe RLS context manager compatible with PgBouncer transaction pooling."""
+        from contextlib import contextmanager
+        @contextmanager
+        def _context():
+            from django.db import transaction
+            with transaction.atomic():
+                self.set_tenant_context(tenant_id, local=True)
+                if user_id:
+                    self.set_user_context(user_id, local=True)
+                try:
+                    yield
+                finally:
+                    pass
+        return _context()
+
 
     def apply_report_rls(self):
         tables = [

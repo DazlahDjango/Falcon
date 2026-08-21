@@ -118,6 +118,8 @@ const structureRoutes = [
     
     // Organizational Units
     { path: STRUCTURE_ROUTES.ORG_UNITS, element: withSuspense(OrgUnitList) },
+    { path: STRUCTURE_ROUTES.ORG_UNIT_TREE, element: withSuspense(DepartmentTree) },
+    { path: STRUCTURE_ROUTES.ORG_UNIT_DETAIL(), element: withSuspense(DepartmentDetail) },
     
     // Divisions
     { path: STRUCTURE_ROUTES.DIVISIONS, element: withSuspense(DivisionList) },
@@ -147,6 +149,8 @@ const structureRoutes = [
     // Positions
     { path: STRUCTURE_ROUTES.POSITIONS, element: withSuspense(PositionList) },
     { path: STRUCTURE_ROUTES.POSITION_CREATE, element: withSuspense(PositionForm) },
+    { path: STRUCTURE_ROUTES.POSITION_VACANT, element: withSuspense(PositionList) },
+    { path: STRUCTURE_ROUTES.POSITION_REPORTING_CHAIN(), element: withSuspense(ReportingChain) },
     { path: STRUCTURE_ROUTES.POSITION_DETAIL(), element: withSuspense(PositionDetail) },
     { path: STRUCTURE_ROUTES.POSITION_EDIT(), element: withSuspense(PositionForm) },
     
@@ -154,6 +158,8 @@ const structureRoutes = [
     { path: STRUCTURE_ROUTES.EMPLOYMENTS, element: withSuspense(EmploymentList) },
     { path: STRUCTURE_ROUTES.EMPLOYMENT_CREATE, element: withSuspense(EmploymentForm) },
     { path: STRUCTURE_ROUTES.EMPLOYMENT_TRANSFER, element: withSuspense(EmploymentTransfer) },
+    { path: STRUCTURE_ROUTES.EMPLOYMENT_CURRENT, element: withSuspense(EmploymentList) },
+    { path: STRUCTURE_ROUTES.EMPLOYMENT_BY_USER(), element: withSuspense(EmploymentList) },
     { path: STRUCTURE_ROUTES.EMPLOYMENT_DETAIL(), element: withSuspense(EmploymentDetail) },
     { path: STRUCTURE_ROUTES.EMPLOYMENT_EDIT(), element: withSuspense(EmploymentForm) },
     { path: STRUCTURE_ROUTES.MY_EMPLOYMENT, element: withSuspense(EmploymentDetail) },
@@ -171,12 +177,15 @@ const structureRoutes = [
     // Interim
     { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENTS, element: withSuspense(InterimAssignmentList) },
     { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENT_CREATE, element: withSuspense(InterimAssignmentForm) },
+    { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENT_ACTIVE, element: withSuspense(InterimAssignmentList) },
+    { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENT_EXPIRING, element: withSuspense(InterimAssignmentList) },
     { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENT_DETAIL(), element: withSuspense(InterimAssignmentDetail) },
     { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENT_EDIT(), element: withSuspense(InterimAssignmentForm) },
     
     // Cost Centers
     { path: STRUCTURE_ROUTES.COST_CENTERS, element: withSuspense(CostCenterList) },
     { path: STRUCTURE_ROUTES.COST_CENTER_CREATE, element: withSuspense(CostCenterForm) },
+    { path: STRUCTURE_ROUTES.COST_CENTER_STATS, element: withSuspense(CostCenterList) },
     { path: STRUCTURE_ROUTES.COST_CENTER_DETAIL(), element: withSuspense(CostCenterDetail) },
     { path: STRUCTURE_ROUTES.COST_CENTER_EDIT(), element: withSuspense(CostCenterForm) },
     { path: STRUCTURE_ROUTES.COST_CENTER_UTILIZATION(), element: withSuspense(CostCenterUtilization) },
@@ -184,6 +193,8 @@ const structureRoutes = [
     // Locations
     { path: STRUCTURE_ROUTES.LOCATIONS, element: withSuspense(LocationList) },
     { path: STRUCTURE_ROUTES.LOCATION_CREATE, element: withSuspense(LocationForm) },
+    { path: STRUCTURE_ROUTES.LOCATION_HEADQUARTERS, element: withSuspense(LocationList) },
+    { path: STRUCTURE_ROUTES.LOCATION_STATS, element: withSuspense(LocationList) },
     { path: STRUCTURE_ROUTES.LOCATION_DETAIL(), element: withSuspense(LocationDetail) },
     { path: STRUCTURE_ROUTES.LOCATION_EDIT(), element: withSuspense(LocationForm) },
     
@@ -191,7 +202,7 @@ const structureRoutes = [
     { path: STRUCTURE_ROUTES.HIERARCHY, element: withSuspense(HierarchyVersionList) },
     { path: STRUCTURE_ROUTES.HIERARCHY_CAPTURE, element: withSuspense(HierarchySnapshotCapture) },
     { path: STRUCTURE_ROUTES.HIERARCHY_DIFF(), element: withSuspense(HierarchyVersionDiff) },
-    { path: STRUCTURE_ROUTES.HIERARCHY_DETAIL, element: withSuspense(HierarchyVersionDetail) },
+    { path: STRUCTURE_ROUTES.HIERARCHY_DETAIL(), element: withSuspense(HierarchyVersionDetail) },
     { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, element: withSuspense(HierarchyCurrent) },
     { path: STRUCTURE_ROUTES.HIERARCHY_HISTORY, element: withSuspense(HierarchyVersionList) },
     { path: STRUCTURE_ROUTES.HIERARCHY_VALIDATE, element: withSuspense(HierarchyValidate) },

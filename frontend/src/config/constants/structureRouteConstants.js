@@ -98,6 +98,7 @@ export const STRUCTURE_ROUTES = {
     HIERARCHY_CURRENT: '/structure/hierarchy/current',
     HIERARCHY_HISTORY: '/structure/hierarchy/history',
     HIERARCHY_CAPTURE: '/structure/hierarchy/capture',
+    HIERARCHY_DETAIL: (id = ':id') => `/structure/hierarchy/${id}`,
     HIERARCHY_RESTORE: (id = ':id') => `/structure/hierarchy/${id}/restore`,
     HIERARCHY_DIFF: (id = ':id', compareToId = ':compareToId') => 
         `/structure/hierarchy/${id}/diff/${compareToId}`,
@@ -116,6 +117,7 @@ export const STRUCTURE_ROUTES = {
     ORG_CHART_VISIO: '/structure/org-charts/visio',
     ORG_CHART_TREE: '/structure/org-charts/tree',
     ORG_CHART_PREVIEW: '/structure/org-charts/preview',
+    ORG_CHART_EXPORT: '/structure/org-charts/export',
     
     // Dashboard
     DASHBOARD: '/structure/dashboard',

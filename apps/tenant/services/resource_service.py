@@ -345,13 +345,40 @@ class ResourceService:
         """
         Safely increment usage with:
           - Subscription/grace-period check
-          - Redis distributed lock
-          - DB select_for_update
+          - Atomic Redis LUA script execution
+          - DB select_for_update fallback
           - Quota enforcement (soft / hard limits)
           - Audit log (billing)
           - Alert signals
         """
         self._check_subscription_access(organization_id, resource_type, writing=True)
+
+        # Atomic Redis Lua script execution for zero race condition quota checks
+        cache_key = f"quota_counter:{organization_id}:{resource_type}"
+        lua_script = """
+            local current = redis.call('INCRBY', KEYS[1], ARGV[1])
+            local limit = tonumber(ARGV[2])
+            if limit > 0 and current > limit then
+                redis.call('DECRBY', KEYS[1], ARGV[1])
+                return -1
+            end
+            return current
+        """
+        try:
+            from django_redis import get_redis_connection
+            redis_conn = get_redis_connection("default")
+            resource_ref = OrganizationResource.objects.filter(
+                organization_id=organization_id, resource_type=resource_type
+            ).first()
+            if resource_ref:
+                effective_limit = resource_ref.effective_hard_limit if resource_ref.burst_allowed else resource_ref.limit_value
+                res = redis_conn.eval(lua_script, 1, cache_key, amount, effective_limit)
+                if res == -1:
+                    raise ResourceError(f"Quota exceeded for {resource_type}: limit {effective_limit} reached.")
+        except Exception as e:
+            if isinstance(e, ResourceError):
+                raise
+            self.logger.debug(f"Redis Lua script skipped, falling back to DB locks: {e}")
 
         with self._lock(organization_id, resource_type):
             with transaction.atomic():

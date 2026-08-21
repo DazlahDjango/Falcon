@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { FiRotateCcw } from 'react-icons/fi';
 
 export const WebhookRetryButton = ({ webhookId, onRetry, size = 'medium' }) => {
     const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export const WebhookRetryButton = ({ webhookId, onRetry, size = 'medium' }) => {
                 <span className="retry-spinner"></span>
             ) : (
                 <>
-                    <span className="retry-icon">{renderBillingIcon('renewal', { size: 16 })}</span>
+                    <span className="retry-icon"><FiRotateCcw size={16} /></span>
                     <span>Retry</span>
                 </>
             )}

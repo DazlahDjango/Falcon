@@ -40,6 +40,7 @@ export const TENANT_ROUTES = {
     RESOURCE_DASHBOARD: '/tenant/resources/dashboard',
     RESOURCE_DASHBOARD_ORGANIZATION: (orgId = ':orgId') => `/tenant/organizations/${orgId}/resources/dashboard`,
     RESOURCE_ANALYTICS: '/tenant/resources/analytics',
+    RESOURCE_MANAGE: (orgId = ':orgId') => `/tenant/organizations/${orgId}/resources/manage`,
     
     // Connection Management
     CONNECTIONS: '/tenant/connections',
@@ -52,12 +53,17 @@ export const TENANT_ROUTES = {
     MIGRATION_DETAIL: (id = ':id') => `/tenant/migrations/${id}`,
     MIGRATION_STATS: '/tenant/migrations/stats',
     MIGRATIONS_ORGANIZATION: (orgId = ':orgId') => `/tenant/organizations/${orgId}/migrations`,
-    
+
+    // Sector Management
+    SECTORS: '/tenant/sectors',
+    SECTOR_CREATE: '/tenant/sectors/create',
+    SECTOR_EDIT: (id = ':id') => `/tenant/sectors/${id}/edit`,
+
     // Settings
     SETTINGS: '/tenant/settings',
     SETTINGS_SECTION: (section = ':section') => `/tenant/settings/${section}`,
     SYSTEM_SETTINGS: '/tenant/system-settings',
-    
+
     // Health
     HEALTH: '/tenant/health',
     HEALTH_ORGANIZATIONS: '/tenant/health/organizations',

@@ -56,7 +56,8 @@ class BackupJobViewSet(viewsets.ReadOnlyModelViewSet):
             triggered_by=request.user.id,
             triggered_by_role=getattr(request.user, 'role', 'unknown'),
             ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', '')
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            tenant_id=getattr(request.user, 'tenant_id', None)
         )
         return Response({'backup_job_id': str(job.id), 'status': job.status}, status=status.HTTP_202_ACCEPTED)
 

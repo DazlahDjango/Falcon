@@ -490,7 +490,9 @@ class ExcelExporter:
         for col in range(1, len(columns) + 1):
             ws.column_dimensions[get_column_letter(col)].width = 20
 
-    def export_to_bytes(self, data: Dict[str, Any], report_name: str) -> bytes:
+    def export_to_bytes(self, data: Dict[str, Any], report_name: str = "Report", config: Optional[Dict] = None) -> bytes:
+        if config:
+            self.config.update(config)
         self.export(data, report_name)
         buffer = io.BytesIO()
         self.wb.save(buffer)

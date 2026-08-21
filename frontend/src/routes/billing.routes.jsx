@@ -22,8 +22,12 @@ const BillingShell = React.lazy(() => import('../components/billing/common/Billi
 
 // Customer Pages
 const PlansPage = React.lazy(() => import('../pages/billing/PlansPage'));
+const PlanDetailPage = React.lazy(() => import('../pages/billing/PlanDetailPage'));
 const SubscriptionPage = React.lazy(() => import('../pages/billing/SubscriptionPage'));
 const SubscriptionsPage = React.lazy(() => import('../pages/billing/SubscriptionsPage'));
+const SubscriptionDetailPage = React.lazy(() => import('../pages/billing/SubscriptionDetailPage'));
+const UpgradePage = React.lazy(() => import('../pages/billing/UpgradePage'));
+const CancelPage = React.lazy(() => import('../pages/billing/CancelPage'));
 const InvoicesPage = React.lazy(() => import('../pages/billing/InvoicesPage'));
 const InvoiceDetailPage = React.lazy(() => import('../pages/billing/InvoiceDetailPage'));
 const TransactionsPage = React.lazy(() => import('../pages/billing/TransactionsPage'));
@@ -73,6 +77,7 @@ const billingRoutes = [
             // Plans
             { path: 'plans', element: withSuspense(PlansPage) },
             { path: 'plans/compare', element: withSuspense(PlansPage) },
+            { path: 'plans/:id', element: withSuspense(PlanDetailPage) },
 
             // Checkout
             { path: 'checkout', element: withSuspense(CheckoutPage) },
@@ -83,9 +88,9 @@ const billingRoutes = [
             // Subscriptions
             { path: 'subscriptions', element: withSuspense(SubscriptionsPage) },
             { path: 'subscriptions/current', element: <Navigate to={BILLING_ROUTES.SUBSCRIPTIONS} replace /> },
-            { path: 'subscriptions/upgrade', element: withSuspense(SubscriptionPage) },
-            { path: 'subscriptions/cancel', element: withSuspense(SubscriptionPage) },
-            { path: 'subscriptions/:id', element: withSuspense(SubscriptionPage) },
+            { path: 'subscriptions/upgrade', element: withSuspense(UpgradePage) },
+            { path: 'subscriptions/cancel', element: withSuspense(CancelPage) },
+            { path: 'subscriptions/:id', element: withSuspense(SubscriptionDetailPage) },
 
             // Invoices
             { path: 'invoices', element: withSuspense(InvoicesPage) },

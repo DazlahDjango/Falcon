@@ -1,6 +1,7 @@
 from django.db import models
 from .base import BaseConfigModel
 from .maintenance_window import MaintenanceWindow
+from apps.configs.managers.maintenance_log_manager import MaintenanceLogManager
 
 class MaintenanceLog(BaseConfigModel):
     ACTION_CHOICES = [('start', 'Maintenance Started'), ('stop', 'Maintenance Stopped'), ('extend', 'Maintenance Extended'), ('cancel', 'Maintenance Cancelled'), ('fail', 'Maintenance Failed'), ('rollback', 'Rollback Executed')]
@@ -14,6 +15,8 @@ class MaintenanceLog(BaseConfigModel):
     previous_status = models.CharField(max_length=50, blank=True)
     new_status = models.CharField(max_length=50, blank=True)
     duration_seconds = models.IntegerField(null=True, blank=True)
+    
+    objects = MaintenanceLogManager()
     
     class Meta:
         db_table = 'config_maintenance_log'

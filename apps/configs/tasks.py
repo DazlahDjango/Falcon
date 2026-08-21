@@ -21,12 +21,12 @@ def check_maintenance_pause(task_name: str) -> bool:
     return False
 
 @shared_task(bind=True, max_retries=3)
-def execute_backup_task(self, job_id):
+def execute_backup_task(self, job_id, tenant_id=None):
     if check_maintenance_pause('execute_backup_task'):
         return {'status': 'paused', 'reason': 'full_maintenance_active', 'job_id': job_id}
     orchestrator = BackupOrchestrator()
     try:
-        result = orchestrator.execute_backup(job_id)
+        result = orchestrator.execute_backup(job_id, tenant_id=tenant_id)
         return {'status': 'success', 'job_id': job_id, 'result': str(result)}
     except Exception as e:
         logger.error(f"Backup task failed for job {job_id}: {e}")
@@ -36,6 +36,8 @@ def execute_backup_task(self, job_id):
 
 @shared_task
 def apply_retention_policies_task():
+    if check_maintenance_pause('apply_retention_policies_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     retention = BackupRetention()
     deleted_count = retention.apply_retention_policy()
     logger.info(f"Retention policy applied, deleted {deleted_count} backups")
@@ -43,6 +45,8 @@ def apply_retention_policies_task():
 
 @shared_task
 def verify_backups_task():
+    if check_maintenance_pause('verify_backups_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     from apps.configs.models import BackupArtifact
     verifier = BackupVerification()
     unverified = BackupArtifact.objects.filter(status__in=['uploaded', 'verifying'])[:100]
@@ -57,6 +61,8 @@ def verify_backups_task():
 
 @shared_task
 def risk_based_maintenance_task():
+    if check_maintenance_pause('risk_based_maintenance_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     risk = MaintenanceRisk()
     system_user_id = '00000000-0000-0000-0000-000000000000'
     results = risk.assess_and_schedule(system_user_id)
@@ -65,6 +71,8 @@ def risk_based_maintenance_task():
 
 @shared_task
 def health_check_all_apps_task():
+    if check_maintenance_pause('health_check_all_apps_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     checker = HealthChecker()
     results = checker.check_all_apps()
     logger.info(f"Health check completed for {len(results)} apps")
@@ -72,6 +80,8 @@ def health_check_all_apps_task():
 
 @shared_task
 def conditional_maintenance_trigger_task():
+    if check_maintenance_pause('conditional_maintenance_trigger_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     trigger = ConditionalTrigger()
     system_user_id = '00000000-0000-0000-0000-000000000000'
     windows = trigger.check_and_trigger(system_user_id)
@@ -80,6 +90,8 @@ def conditional_maintenance_trigger_task():
 
 @shared_task
 def execute_due_schedules_task():
+    if check_maintenance_pause('execute_due_schedules_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     executor = ScheduleExecutor()
     system_user_id = '00000000-0000-0000-0000-000000000000'
     results = executor.execute_due_schedules(system_user_id)
@@ -88,6 +100,8 @@ def execute_due_schedules_task():
 
 @shared_task
 def disaster_recovery_drill_task(plan_id):
+    if check_maintenance_pause('disaster_recovery_drill_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     from apps.configs.services.disaster_recovery.dr_drill import DisasterRecoveryDrill
     drill = DisasterRecoveryDrill()
     system_user_id = '00000000-0000-0000-0000-000000000000'
@@ -96,6 +110,8 @@ def disaster_recovery_drill_task(plan_id):
 
 @shared_task
 def cleanup_old_artifacts_task(days=90):
+    if check_maintenance_pause('cleanup_old_artifacts_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     from apps.configs.services.backup.backup_retention import BackupRetention
     retention = BackupRetention()
     retention.archive_to_glacier(days)
@@ -104,6 +120,8 @@ def cleanup_old_artifacts_task(days=90):
 
 @shared_task
 def sync_dr_metrics_task():
+    if check_maintenance_pause('sync_dr_metrics_task'):
+        return {'status': 'paused', 'reason': 'full_maintenance_active'}
     metrics = DisasterRecoveryMetrics()
     from apps.configs.models import RegisteredApp
     results = {}

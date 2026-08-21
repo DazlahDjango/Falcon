@@ -12,7 +12,7 @@ import './admin.css';
 export const TenantSubscriptionManager = ({ tenant, onClose }) => {
     const { getTenantSubscriptions, getTenantInvoices, getTenantTransactions, tenantData, loading } = useAdminBilling();
     const { cancelSubscription, renewSubscription, upgradeSubscription, downgradeSubscription, extendTrial } = useSubscription();
-    const { getActiveOverride, addOverride } = useEnterprise();
+    const { fetchActive, addOverride } = useEnterprise();
     const [activeTab, setActiveTab] = useState('subscriptions');
     const [updating, setUpdating] = useState(false);
     const [override, setOverride] = useState(null);
@@ -24,11 +24,11 @@ export const TenantSubscriptionManager = ({ tenant, onClose }) => {
 
     useEffect(() => {
         const loadOverride = async () => {
-            const result = await getActiveOverride(tenant.id);
+            const result = await fetchActive(tenant.id);
             if (result?.data) setOverride(result.data);
         };
         loadOverride();
-    }, [tenant.id, getActiveOverride]);
+    }, [tenant.id, fetchActive]);
 
     const handleCancel = async () => {
         if (!window.confirm(`Are you sure you want to cancel ${tenant.name}'s subscription?`)) return;

@@ -29,11 +29,17 @@ export const RecentActivityList = ({ activities, isLoading }) => {
     );
   }
 
+  const recentBackups = activities?.recentBackups || activities?.recent_backups || [];
+  const recentMaintenance = activities?.recentMaintenance || activities?.recent_maintenance || [];
+  const recentDR = activities?.recentDR || activities?.recent_disaster_recovery || [];
+  const recentAudit = activities?.recentAuditActions || activities?.recent_audit_actions || [];
+
   const allActivities = [
-    ...(activities?.recentBackups || []).map(a => ({ ...a, type: 'backup' })),
-    ...(activities?.recentMaintenance || []).map(a => ({ ...a, type: 'maintenance' })),
-    ...(activities?.recentDR || []).map(a => ({ ...a, type: 'disaster_recovery' }))
-  ].sort((a, b) => new Date(b.created_at || b.triggered_at) - new Date(a.created_at || a.triggered_at)).slice(0, 10);
+    ...recentBackups.map(a => ({ ...a, type: 'backup' })),
+    ...recentMaintenance.map(a => ({ ...a, type: 'maintenance' })),
+    ...recentDR.map(a => ({ ...a, type: 'disaster_recovery' })),
+    ...recentAudit.map(a => ({ ...a, type: 'audit' }))
+  ].sort((a, b) => new Date(b.created_at || b.triggered_at || b.started_at || b.performed_at) - new Date(a.created_at || a.triggered_at || a.started_at || a.performed_at)).slice(0, 10);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
@@ -50,11 +56,11 @@ export const RecentActivityList = ({ activities, isLoading }) => {
           <p className="text-gray-500 text-sm text-center py-8">No recent activity</p>
         ) : (
           allActivities.map((activity, index) => {
-            const Icon = ACTIVITY_ICONS[activity.type];
-            const colorClass = ACTIVITY_COLORS[activity.type];
-            const date = new Date(activity.created_at || activity.triggered_at || activity.performed_at);
-            const timeAgo = formatDistanceToNow(date, { addSuffix: true });
-            const title = activity.title || activity.name || `${activity.type} operation`;
+            const Icon = ACTIVITY_ICONS[activity.type] || FiList;
+            const colorClass = ACTIVITY_COLORS[activity.type] || 'text-gray-600 bg-gray-100';
+            const date = new Date(activity.created_at || activity.triggered_at || activity.started_at || activity.performed_at);
+            const timeAgo = isNaN(date.getTime()) ? 'Recently' : formatDistanceToNow(date, { addSuffix: true });
+            const title = activity.title || activity.name || activity.app_display_name || activity.app_name || activity.action || `${activity.type} operation`;
             const status = activity.status || activity.result;
 
             return (

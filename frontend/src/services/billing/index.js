@@ -12,3 +12,5 @@ export { AuditService } from './AuditService';
 export { EnterpriseService } from './EnterpriseService';
 export { WebhookService } from './WebhookService';
 export { AdminBillingService } from './AdminBillingService';
+export { billingSettingsService } from './settings.service';
+export { billingWebSocketService } from './websocket.service';

@@ -6,7 +6,7 @@ from django.db import transaction
 from django.conf import settings
 from ...models import Subscription, SubscriptionPlan, Transaction, Invoice
 from ...exceptions import SubscriptionUpgradeError, SubscriptionDowngradeError
-from ...utils import calculate_prorated_amount, calculate_total_amount, calculate_tax
+from ...utils import calculate_prorated_amount, calculate_total_amount, calculate_tax, generate_invoice_number
 from ..paystack.client import PayStackClient
 from ..billing.invoice import InvoiceService
 from ..audit.logger import audit_logger
@@ -107,11 +107,52 @@ class PlanChangeService:
         return subscription
 
     def _create_upgrade_invoice(self, subscription: Subscription, new_plan: SubscriptionPlan, amount: int, tax_amount: int, total_amount: int) -> Invoice:
-        invoice = Invoice.objects.create(tenant_id=subscription.tenant_id, subscription=subscription, invoice_number=self.invoice_service._generate_number(), invoice_date=timezone.now(), due_date=timezone.now() + timedelta(days=30), subtotal=amount, tax_amount=tax_amount, total_amount=total_amount, currency=subscription.currency, status=Invoice.STATUS_PENDING, line_items=[{'description': f"Plan Upgrade: {subscription.plan.name} → {new_plan.name}", 'quantity': 1, 'unit_price': amount, 'total': amount}, {'description': f"Tax ({getattr(settings, 'BILLING_TAX_RATE', 16)}% VAT)", 'quantity': 1, 'unit_price': tax_amount, 'total': tax_amount, 'is_tax': True}])
+        invoice = Invoice.objects.create(tenant_id=subscription.tenant_id, subscription=subscription, invoice_number=generate_invoice_number(subscription.tenant_id), invoice_date=timezone.now(), due_date=timezone.now() + timedelta(days=30), subtotal=amount, tax_amount=tax_amount, total_amount=total_amount, currency=subscription.currency, status=Invoice.STATUS_PENDING, line_items=[{'description': f"Plan Upgrade: {subscription.plan.name} → {new_plan.name}", 'quantity': 1, 'unit_price': amount, 'total': amount}, {'description': f"Tax ({getattr(settings, 'BILLING_TAX_RATE', 16)}% VAT)", 'quantity': 1, 'unit_price': tax_amount, 'total': tax_amount, 'is_tax': True}])
         return invoice
 
     def _charge_for_upgrade(self, subscription: Subscription, invoice: Invoice, amount: int):
-        pass
+        try:
+            from apps.tenant.models import Organization
+            tenant = Organization.objects.get(id=subscription.tenant_id)
+            email = tenant.contact_email or f"tenant-{subscription.tenant_id}@falconpms.com"
+            reference = f"UPGRADE_{subscription.subscription_code}_{invoice.invoice_number}"
+            charge_response = self.paystack_client._request(
+                'POST', '/transaction/charge_authorization',
+                data={
+                    'authorization_code': subscription.paystack_authorization_code,
+                    'email': email,
+                    'amount': invoice.total_amount,
+                    'reference': reference,
+                    'metadata': {
+                        'tenant_id': str(subscription.tenant_id),
+                        'subscription_code': subscription.subscription_code,
+                        'invoice_id': str(invoice.id),
+                        'transaction_type': 'upgrade',
+                    }
+                }
+            )
+            if charge_response.get('status') == 'success':
+                invoice.mark_paid()
+                Transaction.objects.create(
+                    tenant_id=subscription.tenant_id,
+                    subscription=subscription,
+                    invoice=invoice,
+                    reference=reference,
+                    transaction_type='upgrade',
+                    amount=invoice.subtotal,
+                    tax_amount=invoice.tax_amount,
+                    total_amount=invoice.total_amount,
+                    currency=invoice.currency,
+                    status=Transaction.STATUS_SUCCESS,
+                    payment_date=timezone.now(),
+                )
+                logger.info(f"Upgrade charge successful for {subscription.subscription_code}")
+            else:
+                logger.warning(f"Upgrade charge failed for {subscription.subscription_code}: {charge_response.get('message')}")
+                self.invoice_service.send_invoice_email(str(invoice.id), email)
+        except Exception as e:
+            logger.error(f"Failed to charge for upgrade {subscription.subscription_code}: {str(e)}")
+            self.invoice_service.send_invoice_email(str(invoice.id), f"tenant-{subscription.tenant_id}@falconpms.com")
 
     def _process_downgrade_refund(self, subscription: Subscription, refund_amount: int):
         Transaction.objects.create(tenant_id=subscription.tenant_id, subscription=subscription, transaction_type=Transaction.TYPE_REFUND, amount=refund_amount, total_amount=refund_amount, currency=subscription.currency, status=Transaction.STATUS_PENDING, metadata={'refund_reason': 'plan_downgrade'})

@@ -1,10 +1,10 @@
 import { FiShield, FiTarget, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
 
 export const DRSummaryCard = ({ stats }) => {
-  const activePlans = Number(stats?.activePlans) || 0;
-  const successfulDrills = Number(stats?.successfulDrills) || 0;
-  const highRiskApps = Number(stats?.highRiskApps) || 0;
-  const rtoRate = Number(stats?.rtoAchievementRate) || 0;
+  const activePlans = Number(stats?.activePlans ?? stats?.active_plans) || 0;
+  const successfulDrills = Number(stats?.successfulDrills ?? stats?.successful_drills) || 0;
+  const highRiskApps = Number(stats?.highRiskApps ?? stats?.high_risk_apps) || 0;
+  const rtoRate = Number(stats?.rtoAchievementRate ?? stats?.rto_achievement_rate) || 0;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">

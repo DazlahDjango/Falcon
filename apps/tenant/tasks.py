@@ -269,6 +269,60 @@ def forecast_resource_exhaustion():
         return {'error': str(e)}
 
 
+@shared_task(name='organization.detect_stuck_provisioning')
+def detect_stuck_provisioning_task(timeout_minutes=15):
+    """Scan and recover organizations stuck in PROVISIONING state."""
+    try:
+        from .services import ProvisioningService
+        service = ProvisioningService()
+        recovered = service.detect_stuck_provisioning_tasks(timeout_minutes=timeout_minutes)
+        logger.info(f"Stuck provisioning cleanup: {recovered} organizations recovered.")
+        return {'recovered_count': recovered}
+    except Exception as e:
+        logger.error(f"Stuck provisioning task failed: {str(e)}")
+        return {'error': str(e)}
+
+
+@shared_task(name='organization.cleanup_idle_connections')
+def cleanup_idle_connections_task(idle_minutes=30):
+    """Periodic task: close database connections idle for > idle_minutes."""
+    try:
+        from .services import ConnectionService
+        service = ConnectionService()
+        closed_count = service.close_idle_connections(idle_minutes=idle_minutes)
+        logger.info(f"Idle connection cleanup: {closed_count} idle connection records closed.")
+        return {'closed_count': closed_count}
+    except Exception as e:
+        logger.error(f"Idle connection cleanup task failed: {str(e)}")
+        return {'error': str(e)}
+
+
+@shared_task(name='organization.auto_renew_ssl_certificates')
+def auto_renew_ssl_certificates_task(days_before_expiry=30):
+    """Periodic task: auto-renew self-signed or CA SSL certificates expiring within days_before_expiry."""
+    try:
+        from .services import DomainService
+        service = DomainService()
+        expiring_domains = OrganizationDomain.objects.filter(
+            status='ACTIVE',
+            is_deleted=False,
+            ssl_expires_at__lte=timezone.now() + timedelta(days=days_before_expiry)
+        )
+        renewed_count = 0
+        for domain in expiring_domains:
+            try:
+                service.renew_ssl(domain.id)
+                renewed_count += 1
+                logger.info(f"Auto-renewed SSL for domain: {domain.domain}")
+            except Exception as exc:
+                logger.error(f"Auto-renewal failed for domain {domain.domain}: {exc}")
+
+        return {'renewed_count': renewed_count}
+    except Exception as e:
+        logger.error(f"SSL auto-renewal task failed: {str(e)}")
+        return {'error': str(e)}
+
+
 @shared_task(name='organization.run_daily_maintenance')
 def run_daily_maintenance():
     """Orchestrate all daily maintenance tasks."""
@@ -278,6 +332,9 @@ def run_daily_maintenance():
             'quota_warnings': check_quota_warnings.delay().get(timeout=120),
             'snapshots': take_resource_snapshots.delay('daily').get(timeout=120),
             'forecast': forecast_resource_exhaustion.delay().get(timeout=120),
+            'stuck_provisioning': detect_stuck_provisioning_task.delay().get(timeout=120),
+            'idle_connections': cleanup_idle_connections_task.delay().get(timeout=120),
+            'ssl_renewals': auto_renew_ssl_certificates_task.delay().get(timeout=120),
         }
         logger.info("Daily maintenance completed")
         return results

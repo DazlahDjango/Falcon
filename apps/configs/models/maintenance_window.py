@@ -1,6 +1,7 @@
 from django.db import models
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
+from apps.configs.managers.maintenance_window_manager import MaintenanceWindowManager
 
 class MaintenanceWindow(BaseConfigModel):
     MAINTENANCE_TYPE_CHOICES = [('full', 'Full Maintenance - ALL apps stopped'), ('partial', 'Partial Maintenance - Specific apps stopped'), ('rolling', 'Rolling Maintenance - Apps restart one by one'), ('emergency', 'Emergency Maintenance - Immediate, no schedule')]
@@ -23,6 +24,8 @@ class MaintenanceWindow(BaseConfigModel):
     notification_message = models.TextField(blank=True, help_text="Custom message shown to users")
     rollback_plan = models.TextField(blank=True, help_text="Steps to rollback if maintenance fails")
     completed_by = models.UUIDField(null=True, blank=True)
+    
+    objects = MaintenanceWindowManager()
     
     class Meta:
         db_table = 'config_maintenance_window'

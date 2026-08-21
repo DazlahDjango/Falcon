@@ -52,10 +52,19 @@ class SingleAppRestore:
             # Fallback for JSON fixture restoration via loaddata
             tmp_file_path = None
             try:
-                with tempfile.NamedTemporaryFile(suffix='.json', mode='wb', delete=False) as tmp_file:
-                    tmp_file.write(decrypted_data)
-                    tmp_file_path = tmp_file.name
-                call_command('loaddata', tmp_file_path, app=app_name)
+                from django.apps import apps as django_apps
+                from django.db import transaction
+                app_config = django_apps.get_app_config(app_name)
+                with transaction.atomic():
+                    # Clear existing app configuration records before loaddata to avoid unique constraint duplicates
+                    log_models = ['DisasterRecoveryExecution', 'BackupJob', 'BackupArtifact', 'MaintenanceLog', 'ConfigAuditLog']
+                    for model in reversed(list(app_config.get_models())):
+                        if hasattr(model, 'objects') and model.__name__ not in log_models:
+                            model.objects.all().delete()
+                    with tempfile.NamedTemporaryFile(suffix='.json', mode='wb', delete=False) as tmp_file:
+                        tmp_file.write(decrypted_data)
+                        tmp_file_path = tmp_file.name
+                    call_command('loaddata', tmp_file_path, app=app_name)
             except Exception as e:
                 raise RestoreError(f"Failed to load data for app {app_name}: {str(e)}")
             finally:
@@ -65,7 +74,9 @@ class SingleAppRestore:
                     except OSError as e:
                         logger.warning(f"Failed to unlink temp restore file {tmp_file_path}: {e}")
 
-        artifact.restored_at = timezone.now()
-        artifact.restore_count += 1
-        artifact.save(update_fields=['restored_at', 'restore_count'])
+        refreshed_artifact = BackupArtifact.objects.filter(id=artifact.id).first()
+        if refreshed_artifact:
+            refreshed_artifact.restored_at = timezone.now()
+            refreshed_artifact.restore_count += 1
+            refreshed_artifact.save()
         return {'app': app_name, 'backup_job_id': str(backup_job_id), 'status': 'success'}

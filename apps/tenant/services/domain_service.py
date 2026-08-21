@@ -145,11 +145,28 @@ class DomainService:
         from cryptography.hazmat.primitives import hashes, serialization
         from cryptography.hazmat.primitives.asymmetric import rsa
         import datetime
+        
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         subject = issuer = x509.Name([
             x509.NameAttribute(NameOID.COMMON_NAME, domain.domain),
         ])
-        cert = x509.CertificateBuilder().subject_name(subject).issuer_name(issuer).public_key(private_key.public_key()).serial_number(x509.random_serial_number()).not_valid_before(datetime.datetime.now(datetime.timezone.utc)).not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=90)).add_extension(x509.SubjectAlternativeName([x509.DNSName(domain.domain)]), critical=False).sign(private_key, hashes.SHA256())
+        
+        # Add SAN support for apex and www subdomain
+        san_dns_names = [x509.DNSName(domain.domain)]
+        if not domain.domain.startswith("www."):
+            san_dns_names.append(x509.DNSName(f"www.{domain.domain}"))
+
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(subject)
+            .issuer_name(issuer)
+            .public_key(private_key.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
+            .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=90))
+            .add_extension(x509.SubjectAlternativeName(san_dns_names), critical=False)
+            .sign(private_key, hashes.SHA256())
+        )
         
         cert_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
         fingerprint = cert.fingerprint(hashes.SHA256()).hex().upper()
@@ -158,6 +175,7 @@ class DomainService:
         meta['ssl_certificate_pem'] = cert_pem
         meta['ssl_fingerprint_sha256'] = fingerprint
         meta['ssl_serial_number'] = str(cert.serial_number)
+        meta['san_domains'] = [d.value for d in san_dns_names]
         domain.metadata = meta
 
         domain.update_ssl(
@@ -165,7 +183,7 @@ class DomainService:
             expires_at=timezone.now() + timedelta(days=90),
             issuer='Falcon Self-Signed'
         )
-        self.logger.info(f"SSL certificate issued for {domain.domain} (SHA256 Fingerprint: {fingerprint[:16]}...)")
+        self.logger.info(f"SSL certificate issued for {domain.domain} with SANs {meta['san_domains']} (Fingerprint: {fingerprint[:16]}...)")
 
     def _set_primary_domain(self, domain):
         OrganizationDomain.objects.filter(organization=domain.organization, is_primary=True).exclude(id=domain.id).update(is_primary=False)

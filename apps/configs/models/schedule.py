@@ -3,6 +3,7 @@ from .base import BaseConfigModel
 from .backup_policy import BackupPolicy
 from .maintenance_window import MaintenanceWindow
 from .disaster_recovery_plan import DisasterRecoveryPlan
+from apps.configs.managers.schedule_manager import ScheduleManager
 
 class Schedule(BaseConfigModel):
     SCHEDULE_TYPE_CHOICES = [('backup', 'Backup Schedule'), ('maintenance', 'Maintenance Schedule'), ('health_check', 'Health Check Schedule'), ('dr_drill', 'DR Drill Schedule')]
@@ -28,6 +29,8 @@ class Schedule(BaseConfigModel):
     associated_backup_policy = models.ForeignKey(BackupPolicy, on_delete=models.SET_NULL, null=True, blank=True, related_name='schedules')
     associated_maintenance = models.ForeignKey(MaintenanceWindow, on_delete=models.SET_NULL, null=True, blank=True, related_name='schedules')
     associated_dr_plan = models.ForeignKey(DisasterRecoveryPlan, on_delete=models.SET_NULL, null=True, blank=True, related_name='schedules')
+    
+    objects = ScheduleManager()
     
     class Meta:
         db_table = 'config_schedule'

@@ -84,8 +84,49 @@ class ProvisioningService:
             msg = f"Applying migration {idx}/{total_migrations}: {migration.app_name}.{migration.migration_name}"
             self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40 + int((idx / max(total_migrations, 1)) * 25), msg)
             self.migration_service.apply_migration(org.id, migration.app_name, migration.migration_name)
+        
+        # Post-migration Schema Audit Check
+        schema_name = org.schema_name
         with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = %s",
+                [schema_name]
+            )
+            table_count = cursor.fetchone()[0]
             cursor.execute('SET search_path TO "public"')
+
+        if table_count == 0:
+            raise ProvisioningError(f"Migration audit failed: Schema '{schema_name}' contains zero tables after migration step.")
+        
+        self.logger.info("Schema audit passed for %s: %d tables verified.", schema_name, table_count)
+
+    def detect_stuck_provisioning_tasks(self, timeout_minutes=15):
+        """
+        Scans for organizations stuck in PROVISIONING state longer than `timeout_minutes`.
+        Auto-triggers rollback or flags for admin intervention.
+        """
+        cutoff = timezone.now() - timezone.timedelta(minutes=timeout_minutes)
+        stuck_orgs = Organization.objects.filter(
+            status=OrganizationStatus.PROVISIONING,
+            updated_at__lt=cutoff,
+            is_deleted=False
+        )
+
+        recovered_count = 0
+        for org in stuck_orgs:
+            self.logger.warning(
+                "Detected stuck provisioning for Organization %s (%s). Initiating auto-rollback.",
+                org.id, org.name
+            )
+            try:
+                self._rollback_provisioning(
+                    org.id, org.schema_name, f"Provisioning timed out after {timeout_minutes} minutes."
+                )
+                recovered_count += 1
+            except Exception as e:
+                self.logger.error("Failed to recover stuck org %s: %s", org.id, e)
+
+        return recovered_count
 
     def seed_initial_data_step(self, organization_id):
         with transaction.atomic():

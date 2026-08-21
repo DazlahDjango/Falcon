@@ -405,3 +405,8 @@ class PDFExporter:
         doc.build(story)
         buffer.seek(0)
         return buffer.getvalue()
+
+    def export_to_bytes(self, data: Dict[str, Any], report_name: str = "Report", config: Optional[Dict] = None) -> bytes:
+        if config:
+            self.config.update(config)
+        return self.export_to_string(data, report_name)

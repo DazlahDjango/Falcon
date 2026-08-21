@@ -27,80 +27,159 @@ class ConfigDashboardOverview(APIView):
     def get(self, request):
         role = getattr(request.user, 'role', None)
         tenant_id = getattr(request.user, 'tenant_id', None)
+        now = timezone.now()
 
-        total_apps = RegisteredApp.objects.filter(is_registered=True).count()
-        critical_apps = RegisteredApp.objects.filter(is_registered=True, is_critical=True).count()
-        
-        healthy_apps = HealthCheck.objects.filter(status=HealthStatus.HEALTHY).values('app').distinct().count()
-        unhealthy_apps = HealthCheck.objects.filter(status=HealthStatus.UNHEALTHY).values('app').distinct().count()
-        
+        registered_apps = RegisteredApp.objects.filter(is_registered=True)
+        total_apps = registered_apps.count()
+        critical_apps = registered_apps.filter(is_critical=True).count()
+
+        # 1. Health Status: Check the LATEST health check record per app
+        healthy_apps = 0
+        degraded_apps = 0
+        unhealthy_apps = 0
+        for app in registered_apps:
+            latest_hc = HealthCheck.objects.filter(app=app).order_by('-created_at').first()
+            if latest_hc:
+                if latest_hc.status == HealthStatus.HEALTHY:
+                    healthy_apps += 1
+                elif latest_hc.status == HealthStatus.DEGRADED:
+                    degraded_apps += 1
+                elif latest_hc.status == HealthStatus.UNHEALTHY:
+                    unhealthy_apps += 1
+            else:
+                healthy_apps += 1
+
+        # 2. Maintenance Status
         active_maintenance = MaintenanceWindow.objects.filter(status=MaintenanceStatus.IN_PROGRESS).count()
         scheduled_maintenance = MaintenanceWindow.objects.filter(status=MaintenanceStatus.SCHEDULED).count()
-        
+        completed_maintenance = MaintenanceWindow.objects.filter(status=MaintenanceStatus.COMPLETED).count()
+
+        completed_windows = MaintenanceWindow.objects.filter(
+            status=MaintenanceStatus.COMPLETED,
+            actual_start__isnull=False,
+            actual_end__isnull=False
+        )
+        total_downtime_seconds = sum(
+            (w.actual_end - w.actual_start).total_seconds() for w in completed_windows if w.actual_start and w.actual_end
+        )
+        total_downtime_hours = round(total_downtime_seconds / 3600.0, 1)
+
+        # 3. Backup Status
+        total_backups = BackupJob.objects.count()
+        successful_backups = BackupJob.objects.filter(status=BackupStatus.COMPLETED).count()
         pending_backups = BackupJob.objects.filter(status=BackupStatus.PENDING).count()
         running_backups = BackupJob.objects.filter(status=BackupStatus.RUNNING).count()
         failed_backups_today = BackupJob.objects.filter(
             status=BackupStatus.FAILED,
-            started_at__date=timezone.now().date()
+            started_at__date=now.date()
         ).count()
-        
-        total_backup_size = BackupArtifact.objects.filter(
-            backup_job__status=BackupStatus.COMPLETED
-        ).aggregate(total=models.Sum('backup_job__size_bytes'))['total'] or 0
-        
+
+        total_backup_size_bytes = BackupJob.objects.filter(
+            status=BackupStatus.COMPLETED
+        ).aggregate(total=models.Sum('size_bytes'))['total'] or 0
+
+        if total_backup_size_bytes == 0:
+            total_backup_size_bytes = BackupArtifact.objects.aggregate(total=models.Sum('file_size_bytes'))['total'] or 0
+
+        total_storage_gb = round(total_backup_size_bytes / (1024**3), 3)
+
+        # 4. Disaster Recovery Status
         dr_plans_active = DisasterRecoveryPlan.objects.filter(status='active').count()
         dr_drills_passed = DisasterRecoveryExecution.objects.filter(
             execution_type='drill',
             status=DisasterRecoveryStatus.SUCCESS
         ).count()
-        
+
         high_risk_apps = RiskAssessment.objects.filter(
             risk_level__in=[RiskLevel.HIGH, RiskLevel.CRITICAL],
-            expires_at__gt=timezone.now()
+            expires_at__gt=now
         ).values('app').distinct().count()
-        
-        active_schedules = Schedule.objects.filter(status='active').count()
-        
+
+        total_dr_executions = DisasterRecoveryExecution.objects.filter(status=DisasterRecoveryStatus.SUCCESS).count()
+        dr_executions_met_rto = DisasterRecoveryExecution.objects.filter(
+            status=DisasterRecoveryStatus.SUCCESS,
+            rto_achieved_minutes__lte=models.F('dr_plan__rto_target_minutes')
+        ).count()
+        rto_achievement_rate = (dr_executions_met_rto / total_dr_executions * 100) if total_dr_executions > 0 else 100
+
+        # 5. Storage Quota
         quota_usage = 0
+        total_quota_bytes = 100 * (1024**3)
+        used_quota_bytes = total_backup_size_bytes
         if role == 'super_admin':
-            total_quota = BackupQuota.objects.aggregate(total=models.Sum('total_backup_storage_bytes'))['total'] or 1
-            used_quota = BackupQuota.objects.aggregate(used=models.Sum('used_backup_storage_bytes'))['used'] or 0
-            quota_usage = (used_quota / total_quota * 100) if total_quota > 0 else 0
+            tq = BackupQuota.objects.aggregate(total=models.Sum('total_backup_storage_bytes'))['total']
+            uq = BackupQuota.objects.aggregate(used=models.Sum('used_backup_storage_bytes'))['used']
+            if tq:
+                total_quota_bytes = tq
+            if uq:
+                used_quota_bytes = uq
+            quota_usage = (used_quota_bytes / total_quota_bytes * 100) if total_quota_bytes > 0 else 0
         elif role == 'client_admin' and tenant_id:
             quotas = BackupQuota.objects.filter(tenant_id=tenant_id)
-            total_quota = quotas.aggregate(total=models.Sum('total_backup_storage_bytes'))['total'] or 0
-            used_quota = quotas.aggregate(used=models.Sum('used_backup_storage_bytes'))['used'] or 0
-            quota_usage = (used_quota / total_quota * 100) if total_quota > 0 else 0
+            tq = quotas.aggregate(total=models.Sum('total_backup_storage_bytes'))['total']
+            uq = quotas.aggregate(used=models.Sum('used_backup_storage_bytes'))['used']
+            if tq:
+                total_quota_bytes = tq
+            if uq:
+                used_quota_bytes = uq
+            quota_usage = (used_quota_bytes / total_quota_bytes * 100) if total_quota_bytes > 0 else 0
+
+        active_schedules = Schedule.objects.filter(status='active').count()
 
         return Response({
             'apps': {
                 'total': total_apps,
                 'critical': critical_apps,
                 'healthy': healthy_apps,
+                'degraded': degraded_apps,
                 'unhealthy': unhealthy_apps,
             },
             'maintenance': {
                 'active': active_maintenance,
                 'scheduled': scheduled_maintenance,
+                'completed': completed_maintenance,
+                'totalDowntimeHours': total_downtime_hours,
+                'total_downtime_hours': total_downtime_hours,
             },
             'backups': {
                 'pending': pending_backups,
                 'running': running_backups,
+                'failedToday': failed_backups_today,
                 'failed_today': failed_backups_today,
-                'total_storage_gb': round(total_backup_size / (1024**3), 2),
+                'successfulBackups': successful_backups,
+                'successful_backups': successful_backups,
+                'totalBackups': total_backups,
+                'total_backups': total_backups,
+                'totalStorageGB': total_storage_gb,
+                'total_storage_gb': total_storage_gb,
+                'totalStorageBytes': total_backup_size_bytes,
+            },
+            'disasterRecovery': {
+                'activePlans': dr_plans_active,
+                'active_plans': dr_plans_active,
+                'successfulDrills': dr_drills_passed,
+                'successful_drills': dr_drills_passed,
+                'highRiskApps': high_risk_apps,
+                'high_risk_apps': high_risk_apps,
+                'rtoAchievementRate': round(rto_achievement_rate, 1),
+                'rto_achievement_rate': round(rto_achievement_rate, 1),
             },
             'disaster_recovery': {
                 'active_plans': dr_plans_active,
                 'successful_drills': dr_drills_passed,
                 'high_risk_apps': high_risk_apps,
+                'rto_achievement_rate': round(rto_achievement_rate, 1),
             },
             'schedules': {
                 'active': active_schedules,
             },
             'quota': {
+                'usagePercent': round(quota_usage, 2),
                 'usage_percent': round(quota_usage, 2),
+                'totalGB': round(total_quota_bytes / (1024**3), 2),
+                'usedGB': round(used_quota_bytes / (1024**3), 2),
             },
-            'timestamp': timezone.now().isoformat(),
+            'timestamp': now.isoformat(),
         })
 
 
@@ -483,11 +562,20 @@ class ConfigRecentActivityDashboard(APIView):
             performed_at__gte=last_24h
         ).order_by('-performed_at')[:10]
 
+        backups_data = BackupJobSerializer(recent_backups, many=True).data
+        maintenance_data = MaintenanceWindowSerializer(recent_maintenance, many=True).data
+        dr_data = DisasterRecoveryExecutionSerializer(recent_dr, many=True).data
+        audit_data = ConfigAuditLogSerializer(recent_audit, many=True).data
+
         return Response({
-            'recent_backups': BackupJobSerializer(recent_backups, many=True).data,
-            'recent_maintenance': MaintenanceWindowSerializer(recent_maintenance, many=True).data,
-            'recent_disaster_recovery': DisasterRecoveryExecutionSerializer(recent_dr, many=True).data,
-            'recent_audit_actions': ConfigAuditLogSerializer(recent_audit, many=True).data,
+            'recentBackups': backups_data,
+            'recent_backups': backups_data,
+            'recentMaintenance': maintenance_data,
+            'recent_maintenance': maintenance_data,
+            'recentDR': dr_data,
+            'recent_disaster_recovery': dr_data,
+            'recentAuditActions': audit_data,
+            'recent_audit_actions': audit_data,
             'timestamp': now.isoformat(),
         })
 
