@@ -10,7 +10,7 @@
         "dev": "vite",
         "build": "node --max-old-space-size=8192 ./node_modules/vite/bin/vite.js build",
         "preview": "vite preview",
-        "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings",
+        "lint": "eslint . --ext js,jsx --report-unused-disable-directives",
         "lint:fix": "eslint . --ext js,jsx --fix",
         "format": "prettier --write \"src/**/*.{js,jsx,css,md}\"",
         "test": "jest",
@@ -87,8 +87,7 @@
         ]
     },
     "engines": {
-        "node": ">=24.14.0",
-        "npm": ">=11.9.0"
+        "node": ">=18.0.0"
     },
     "jest": {
         "testEnvironment": "jsdom",
