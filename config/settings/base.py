@@ -2,6 +2,7 @@
 Django base settings for Falcon project.
 
 Imports modular setting components from config/settings/components/
+and reads environment configuration files from envs/ directory.
 """
 
 from pathlib import Path
@@ -43,8 +44,16 @@ env = environ.Env(
     BACKUP_SCHEDULE_ENABLED=(bool, True),
 )
 
-# Read .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+# Read modular env files from envs/ directory
+ENVS_DIR = BASE_DIR / 'envs'
+if ENVS_DIR.exists():
+    for env_file in sorted(ENVS_DIR.glob('*.env')):
+        environ.Env.read_env(str(env_file))
+
+# Read root .env file as fallback/override if present
+main_env = os.path.join(BASE_DIR, '.env')
+if os.path.exists(main_env):
+    environ.Env.read_env(main_env)
 
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-dev-key-not-for-production')
 DEBUG = env('DEBUG')
