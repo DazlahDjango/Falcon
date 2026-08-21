@@ -90,8 +90,8 @@ export const DepartmentList = () => {
       header: 'Status',
       width: '100px',
       render: (item) => (
-        <div 
-          onClick={(e) => handleToggleActive(item, e)} 
+        <div
+          onClick={(e) => handleToggleActive(item, e)}
           style={{ cursor: 'pointer', display: 'inline-block' }}
           title={item.is_active ? "Click to deactivate" : "Click to activate"}
         >
@@ -208,9 +208,9 @@ export const DepartmentList = () => {
           <span className="header-count">{totalCount} total</span>
         </div>
         <div className="header-right">
-          <button 
-            onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENT_TREE)} 
-            className="btn btn-secondary" 
+          <button
+            onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENT_TREE)}
+            className="btn btn-secondary"
             title="View Hierarchy Tree"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
           >
