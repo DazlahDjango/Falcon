@@ -24,14 +24,20 @@ export const ConfigDashboardOverview = () => {
   }
 
   const stats = overview?.data || { apps: {}, backups: {}, maintenance: {}, disasterRecovery: {}, quota: {} };
+  const drStats = stats.disasterRecovery || stats.disaster_recovery;
+  const quotaStats = stats.quota || {};
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <BackupStatsCard stats={stats.backups} />
         <MaintenanceStatusCard stats={stats.maintenance} />
-        <DRSummaryCard stats={stats.disasterRecovery} />
-        <QuotaUsageCard usagePercent={stats.quota?.usagePercent || 0} />
+        <DRSummaryCard stats={drStats} />
+        <QuotaUsageCard
+          usagePercent={quotaStats.usagePercent ?? quotaStats.usage_percent ?? 0}
+          totalGB={quotaStats.totalGB ?? quotaStats.total_gb ?? 0}
+          usedGB={quotaStats.usedGB ?? quotaStats.used_gb ?? 0}
+        />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <HealthStatusCard apps={stats.apps} />

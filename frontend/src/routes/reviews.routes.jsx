@@ -59,7 +59,6 @@ const PIPsPage = React.lazy(() => import('../pages/reviews/pips/PIPsPage'));
 const PIPDetailPage = React.lazy(() => import('../pages/reviews/pips/PIPDetailPage'));
 const PIPCreatePage = React.lazy(() => import('../pages/reviews/pips/PIPCreatePage'));
 const PIPEditPage = React.lazy(() => import('../pages/reviews/pips/PIPEditPage'));
-const PIPReportPageFromPips = React.lazy(() => import('../pages/reviews/pips/PIPReportPage'));
 
 // PIP Action Pages
 const PIPActionsPage = React.lazy(() => import('../pages/reviews/pip-actions/PIPActionsPage'));
@@ -77,7 +76,6 @@ const CalibrationSessionsPage = React.lazy(() => import('../pages/reviews/calibr
 const CalibrationSessionDetailPage = React.lazy(() => import('../pages/reviews/calibration/CalibrationSessionDetailPage'));
 const CalibrationSessionCreatePage = React.lazy(() => import('../pages/reviews/calibration/CalibrationSessionCreatePage'));
 const CalibrationSessionEditPage = React.lazy(() => import('../pages/reviews/calibration/CalibrationSessionEditPage'));
-const CalibrationReportPageFromCalibration = React.lazy(() => import('../pages/reviews/calibration/CalibrationReportPage'));
 const CalibrationOutliersPage = React.lazy(() => import('../pages/reviews/calibration/CalibrationOutliersPage'));
 
 // Coefficient Pages
@@ -182,8 +180,7 @@ const reviewsRoutes = [
     { path: REVIEW_ROUTES.PIPS_CREATE, element: <PIPCreatePage /> },
     { path: REVIEW_ROUTES.PIPS_DETAIL(':id'), element: <PIPDetailPage /> },
     { path: REVIEW_ROUTES.PIPS_EDIT(':id'), element: <PIPEditPage /> },
-    // PIP Report from pips module (report page within PIP module)
-    { path: REVIEW_ROUTES.PIPS_REPORT, element: <PIPReportPageFromPips /> },
+    { path: REVIEW_ROUTES.PIPS_REPORT, element: <PIPReportPage /> },
 
     // ============ PIP Action Routes ============
     { path: REVIEW_ROUTES.PIP_ACTIONS(':pipId'), element: <PIPActionsPage /> },
@@ -207,8 +204,7 @@ const reviewsRoutes = [
     { path: '/reviews/calibration/:id', element: <CalibrationSessionDetailPage /> },
     { path: REVIEW_ROUTES.CALIBRATION_SESSION_CREATE, element: <CalibrationSessionCreatePage /> },
     { path: REVIEW_ROUTES.CALIBRATION_SESSION_EDIT(':id'), element: <CalibrationSessionEditPage /> },
-    // Calibration Report from calibration module
-    { path: REVIEW_ROUTES.CALIBRATION_REPORT, element: <CalibrationReportPageFromCalibration /> },
+    { path: REVIEW_ROUTES.CALIBRATION_REPORT, element: <CalibrationReportPage /> },
     { path: REVIEW_ROUTES.CALIBRATION_OUTLIERS, element: <CalibrationOutliersPage /> },
 
     // ============ Coefficient Routes ============
@@ -234,9 +230,7 @@ const reviewsRoutes = [
     { path: REVIEW_ROUTES.REPORTS_EMPLOYEE, element: <EmployeeReportPage /> },
     { path: REVIEW_ROUTES.REPORTS_TEAM, element: <TeamReportPage /> },
     { path: REVIEW_ROUTES.REPORTS_CYCLE, element: <CycleReportPage /> },
-    // PIP Report from reports module (global report page)
     { path: REVIEW_ROUTES.REPORTS_PIP, element: <PIPReportPage /> },
-    // Calibration Report from reports module (global report page)
     { path: REVIEW_ROUTES.REPORTS_CALIBRATION, element: <CalibrationReportPage /> },
     { path: REVIEW_ROUTES.REPORTS_EXPORT, element: <ReportExportPage /> },
 
@@ -254,9 +248,13 @@ const reviewsRoutes = [
 
 // HELPER FUNCTION TO BUILD PATHS WITH PARAMS
 export const buildReviewPath = (path, params = {}) => {
-    let result = path;
+    if (typeof path === 'function') {
+        const firstVal = Object.values(params)[0];
+        return firstVal !== undefined ? path(firstVal) : path(':id');
+    }
+    let result = String(path || '');
     Object.entries(params).forEach(([key, value]) => {
-        result = result.replace(`:${key}`, String(value));
+        result = result.replace(`:${key}`, String(value ?? ''));
     });
     return result;
 };

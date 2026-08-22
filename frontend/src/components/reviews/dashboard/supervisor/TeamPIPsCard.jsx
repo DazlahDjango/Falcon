@@ -5,12 +5,12 @@ import { ShieldAlert, Calendar, CheckSquare } from 'lucide-react';
 const TeamPIPsCard = ({ pips = [] }) => {
   if (!pips || pips.length === 0) {
     return (
-      <div className="self-assessment-progress-card" style={{ marginTop: '24px' }}>
+      <div className="self-assessment-progress-card review-dashboard-card">
         <h3 className="self-assessment-progress-card-title">
           <ShieldAlert size={18} />
           Active Team PIPs
         </h3>
-        <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+        <div className="review-dashboard-card-empty">
           No active PIPs for your direct reports
         </div>
       </div>
@@ -18,7 +18,7 @@ const TeamPIPsCard = ({ pips = [] }) => {
   }
 
   return (
-    <div className="self-assessment-progress-card" style={{ marginTop: '24px' }}>
+    <div className="self-assessment-progress-card review-dashboard-card">
       <h3 className="self-assessment-progress-card-title">
         <ShieldAlert size={18} />
         Active Team PIPs

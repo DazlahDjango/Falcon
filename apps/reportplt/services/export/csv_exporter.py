@@ -30,6 +30,17 @@ class CSVExporter:
     def _generate_csv(self, data: Dict) -> bytes:
         output = io.StringIO()
         writer = csv.writer(output, delimiter=self.delimiter, quotechar=self.quotechar, quoting=csv.QUOTE_MINIMAL)
+        
+        if 'title' in data:
+            writer.writerow([data['title']])
+            writer.writerow([])
+            
+        summary = data.get('summary')
+        if isinstance(summary, dict) and summary:
+            for k, v in summary.items():
+                writer.writerow([k, v])
+            writer.writerow([])
+
         kpis = data.get('kpis', [])
         if kpis:
             headers = ['KPI', 'Target', 'Actual', 'Progress', 'Status']
@@ -52,7 +63,17 @@ class CSVExporter:
                 writer.writerow(columns)
             for row in rows:
                 writer.writerow(row)
+                
+        details = data.get('details', [])
+        if details and isinstance(details, list) and len(details) > 0 and isinstance(details[0], dict):
+            writer.writerow([])
+            headers = list(details[0].keys())
+            writer.writerow(headers)
+            for item in details:
+                writer.writerow([item.get(h, '') for h in headers])
+
         return output.getvalue().encode(self.encoding)
+
 
     def export_kpis_only(self, kpis: List[Dict]) -> bytes:
         output = io.StringIO()
@@ -75,3 +96,8 @@ class CSVExporter:
         for row in rows:
             writer.writerow(row)
         return output.getvalue().encode(self.encoding)
+
+    def export_to_bytes(self, data: Dict[str, Any], report_name: str = "Report", config: Optional[Dict] = None) -> bytes:
+        if config:
+            self.config.update(config)
+        return self._generate_csv(data)

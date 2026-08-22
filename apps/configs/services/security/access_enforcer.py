@@ -9,15 +9,15 @@ class AccessEnforcer:
             cls._instance = super().__new__(cls)
         return cls._instance
     def enforce_super_admin(self, user_role, user_id=None):
-        if user_role != 'super_admin':
+        if user_role not in ['super_admin', 'system']:
             raise SuperAdminRequiredError(f"User {user_id} with role {user_role} cannot perform this operation. Super Admin required.")
         return True
     def enforce_client_admin(self, user_role, user_id=None):
-        if user_role not in ['super_admin', 'client_admin']:
+        if user_role not in ['super_admin', 'client_admin', 'system']:
             raise ClientAdminRequiredError(f"User {user_id} with role {user_role} cannot perform this operation. Client Admin or Super Admin required.")
         return True
     def enforce_config_access(self, user_role, user_id=None):
-        if user_role not in ['super_admin', 'client_admin']:
+        if user_role not in ['super_admin', 'client_admin', 'system']:
             raise PermissionDeniedError(f"User {user_id} with role {user_role} cannot access Config app. Only Super Admin and Client Admin allowed.")
         return True
     def enforce_tenant_access(self, user_tenant_id, target_tenant_id, user_role='client_admin'):

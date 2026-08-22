@@ -8,10 +8,17 @@ logger = logging.getLogger(__name__)
 
 class OrganizationResolutionMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            if getattr(user, 'is_superuser', False) or getattr(user, 'role', None) == 'super_admin':
+                return None
+
         if self._should_skip(request):
             return None
+
         if getattr(request, 'tenant_id', None) or getattr(request, 'current_organization_id', None):
             return None
+
         org_id = None
         org_id = request.headers.get('X-Tenant-ID') or request.headers.get('X-Organization-ID')
         if org_id:
@@ -19,6 +26,7 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
             request.organization_id = org_id
             request.tenant_id = org_id
             return None
+
         host = request.get_host().split(':')[0]
         parts = host.split('.')
         if len(parts) >= 3 and parts[-2] == getattr(settings, 'BASE_DOMAIN', 'falcon') and parts[-1] == 'com':
@@ -29,12 +37,14 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
                 request.organization_id = org_id
                 request.tenant_id = org_id
                 return None
+
         org_id = self._get_org_id_from_domain(host)
         if org_id:
             logger.debug(f"Organization identified via custom domain: {host}")
             request.organization_id = org_id
             request.tenant_id = org_id
             return None
+
         logger.warning(f"No organization identified for request: {request.path}")
         return HttpResponseBadRequest("Unable to identify organization. Please provide X-Tenant-ID header.")
 
@@ -47,6 +57,8 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
             '/health/',
             '/docs/',
             '/api/v1/organizations/',
+            '/api/v1/config/',
+            '/api/v1/configs/',
             '/media/',
             '/static/',
             '/ws/',

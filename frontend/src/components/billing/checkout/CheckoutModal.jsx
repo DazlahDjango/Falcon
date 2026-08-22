@@ -9,7 +9,7 @@ import './checkout.css';
 
 export const CheckoutModal = ({ isOpen, onClose, planId, amount, description, onSuccess }) => {
     const { initSubscription, initOneTime, loading, error, clearCheckoutError } = useCheckout();
-    const { getPlanById, plans, loading: plansLoading, fetchPublicPlans } = usePlans();
+    const { selectedPlan, plans, loading: plansLoading, fetchPublicPlans } = usePlans();
     const [selectedMethod, setSelectedMethod] = useState(null);
     const [processing, setProcessing] = useState(false);
 
@@ -21,7 +21,7 @@ export const CheckoutModal = ({ isOpen, onClose, planId, amount, description, on
         if (!isOpen) { clearCheckoutError(); setProcessing(false); setSelectedMethod(null); }
     }, [isOpen, clearCheckoutError]);
 
-    const plan = planId ? getPlanById(planId) : null;
+    const plan = planId ? (plans.find(p => p.id === planId) || selectedPlan) : null;
     const displayAmount = amount || plan?.price || 0;
     const displayCurrency = plan?.currency || 'KES';
     const displayDescription = description || `${plan?.name} Plan Subscription`;

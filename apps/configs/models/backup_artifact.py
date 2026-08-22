@@ -1,6 +1,7 @@
 from django.db import models
 from .base import BaseConfigModel
 from .backup_job import BackupJob
+from apps.configs.managers.backup_artifact_manager import BackupArtifactManager
 
 class BackupArtifact(BaseConfigModel):
     STORAGE_LOCATION_CHOICES = [('s3', 'AWS S3'), ('gcs', 'Google Cloud Storage'), ('azure', 'Azure Blob'), ('local', 'Local Filesystem'), ('nfs', 'Network File System'), ('tape', 'Tape Archive')]
@@ -19,6 +20,8 @@ class BackupArtifact(BaseConfigModel):
     restore_count = models.IntegerField(default=0)
     archived_at = models.DateTimeField(null=True, blank=True)
     archive_tier = models.CharField(max_length=50, blank=True, help_text="Glacier, Deep Archive, etc.")
+    
+    objects = BackupArtifactManager()
     
     class Meta:
         db_table = 'config_backup_artifact'

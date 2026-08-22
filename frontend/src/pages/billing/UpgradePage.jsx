@@ -8,14 +8,14 @@ import { LoadingSkeleton } from '../../components/billing/shared/LoadingSkeleton
 
 export const UpgradePage = () => {
     const navigate = useNavigate();
-    const { subscription, upgradePlan, loading: subLoading } = useSubscription();
-    const { plans, loading: plansLoading } = usePlans({ excludeTrial: true });
+    const { subscription, upgrade, loading: subLoading } = useSubscription();
+    const { publicPlans, loading: plansLoading, fetchPublic } = usePlans({ autoFetch: true });
     const [upgrading, setUpgrading] = useState(false);
 
     const handleUpgrade = async (plan, billingCycle) => {
         setUpgrading(true);
         try {
-            await upgradePlan(plan.id, false);
+            await upgrade(subscription.id, plan.id, true);
             navigate(BILLING_ROUTES.SUBSCRIPTIONS);
         } catch (error) {
             console.error('Upgrade error:', error);

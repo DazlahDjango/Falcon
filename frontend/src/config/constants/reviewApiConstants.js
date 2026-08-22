@@ -267,6 +267,42 @@ export const REVIEW_API_ENDPOINTS = {
   // ========== Nested Endpoints (via calibration sessions) ==========
   SESSION_RATINGS: (sessionId) => `/calibration-sessions/${sessionId}/ratings/`,
   SESSION_COMMENTS: (sessionId) => `/calibration-sessions/${sessionId}/comments/`,
+
+  // ========== Analytics ==========
+  ANALYTICS_COMPANY: '/analytics/company/',
+  ANALYTICS_COMPANY_TRENDS: '/analytics/trends/',
+  ANALYTICS_COMPANY_SUMMARY: '/analytics/company/',
+  ANALYTICS_DEPARTMENTS: '/analytics/departments/',
+  ANALYTICS_DEPARTMENT_DETAIL: (id) => `/analytics/departments/?department_id=${id}`,
+  ANALYTICS_DEPARTMENT_TRENDS: (id) => `/analytics/trends/?department_id=${id}`,
+  ANALYTICS_MANAGERS: '/analytics/managers/',
+  ANALYTICS_MANAGER_DETAIL: (id) => `/analytics/managers/?manager_id=${id}`,
+  ANALYTICS_MANAGER_TEAM: (id) => `/analytics/managers/?manager_id=${id}`,
+  ANALYTICS_INSIGHTS: '/analytics/insights/',
+  ANALYTICS_INSIGHTS_GENERATE: '/analytics/refresh/',
+  ANALYTICS_INSIGHTS_DISMISS: (id) => `/analytics/insights/${id}/dismiss/`,
+  ANALYTICS_PREDICTIONS: '/analytics/predictions/',
+  ANALYTICS_HIGH_RISK_EMPLOYEES: '/analytics/predictions/',
+  ANALYTICS_EMPLOYEE_RISK: (id) => `/analytics/predictions/?employee_id=${id}`,
+  ANALYTICS_TRENDS: '/analytics/trends/',
+  ANALYTICS_SKILL_GAPS: '/analytics/skill-gaps/',
+  ANALYTICS_REFRESH: '/analytics/refresh/',
+
+  // ========== Dashboard Widgets ==========
+  DASHBOARD_WIDGETS: '/dashboard/widgets/',
+  DASHBOARD_WIDGET_DATA: (id) => `/dashboard/widgets/${id}/data/`,
+  DASHBOARD_WIDGET_REFRESH: (id) => `/dashboard/widgets/${id}/refresh/`,
+  DASHBOARD_WIDGET_REORDER: '/dashboard/widgets/reorder/',
+  DASHBOARD_WIDGET_CONFIG: (id) => `/dashboard/widgets/${id}/config/`,
+
+  // ========== Analytics & Report Exports ==========
+  EXPORT_ANALYTICS: '/reports/export/',
+  EXPORT_REPORTS: '/reports/export/',
+  EXPORT_ASSESSMENTS: '/reports/export/',
+  EXPORT_PIPS: '/reports/export/',
+  EXPORT_FEEDBACK: '/reports/export/',
+  EXPORT_STATUS: (id) => `/reports/export/${id}/`,
+  EXPORT_DOWNLOAD: (id) => `/reports/export/${id}/download/`,
 };
 
 // HTTP Methods

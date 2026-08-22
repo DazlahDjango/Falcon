@@ -201,3 +201,28 @@ class ReportViewSet(BaseModelViewSet):
     def report_statuses(self, request):
         from apps.reportplt.constants import ReportStatus
         return Response([{'value': s[0], 'label': s[1]} for s in ReportStatus.CHOICES])
+
+    @action(detail=False, methods=['post'], url_path='bulk_delete')
+    @audit_log(action=AuditAction.DELETE)
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'ids is required'}, status=status.HTTP_400_BAD_REQUEST)
+        reports = self.get_queryset().filter(id__in=ids)
+        deleted_count = 0
+        for report in reports:
+            if hasattr(report, 'soft_delete'):
+                report.soft_delete()
+            else:
+                report.delete()
+            deleted_count += 1
+        return Response({'status': 'success', 'count': deleted_count})
+
+    @action(detail=False, methods=['post'], url_path='bulk_publish')
+    @audit_log(action=AuditAction.EDIT)
+    def bulk_publish(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'ids is required'}, status=status.HTTP_400_BAD_REQUEST)
+        updated_count = self.get_queryset().filter(id__in=ids).update(is_published=True)
+        return Response({'status': 'success', 'count': updated_count})

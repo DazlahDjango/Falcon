@@ -5,6 +5,7 @@ import {
   PositionForm,
   PositionDetail,
 } from '../../components/structure/position';
+import { ReportingChain } from '../../components/structure/reporting';
 
 export const PositionPages = () => {
   return (
@@ -13,6 +14,7 @@ export const PositionPages = () => {
       <Route path="create" element={<PositionForm />} />
       <Route path=":id" element={<PositionDetail />} />
       <Route path=":id/edit" element={<PositionForm />} />
+      <Route path=":id/chain" element={<ReportingChain />} />
     </Routes>
   );
 };

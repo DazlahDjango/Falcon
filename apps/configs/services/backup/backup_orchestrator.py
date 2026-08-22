@@ -11,6 +11,8 @@ from apps.configs.services.backup.single_app_backup import SingleAppBackup
 from apps.configs.services.backup.multi_app_backup import MultiAppBackup
 from apps.configs.services.realtime import ConfigProgressBroadcaster
 
+logger = logging.getLogger(__name__)
+
 class BackupOrchestrator:
     _instance = None
     def __new__(cls):
@@ -22,7 +24,7 @@ class BackupOrchestrator:
         self.audit_logger = AuditLogger()
         self.single_backup = SingleAppBackup()
         self.multi_backup = MultiAppBackup()
-    def trigger_backup(self, app_name, backup_type, triggered_by, triggered_by_role, ip_address=None, user_agent=None):
+    def trigger_backup(self, app_name, backup_type, triggered_by, triggered_by_role, ip_address=None, user_agent=None, tenant_id=None):
         self.access_enforcer.enforce_config_access(triggered_by_role)
         app = RegisteredApp.objects.filter(name=app_name, is_registered=True).first()
         if not app:
@@ -34,13 +36,24 @@ class BackupOrchestrator:
                 status=BackupStatus.PENDING,
                 triggered_by=triggered_by,
                 triggered_by_role=triggered_by_role,
+                metadata={'tenant_id': str(tenant_id)} if tenant_id else {},
             )
         self.audit_logger.log_success('trigger_backup', triggered_by, triggered_by_role, target_app=app, target_id=str(job.id))
         from apps.configs.tasks import execute_backup_task
         execute_backup_task.delay(str(job.id))
         return job
-    def execute_backup(self, job_id):
+    def execute_backup(self, job_id, tenant_id=None):
         job = BackupJob.objects.select_related('app').get(id=job_id)
+        if job.status == BackupStatus.COMPLETED:
+            logger.info(f"Backup job {job_id} already completed.")
+            return job
+        effective_tenant_id = tenant_id or job.metadata.get('tenant_id')
+        if effective_tenant_id:
+            try:
+                from apps.tenant.context import set_current_tenant_id
+                set_current_tenant_id(effective_tenant_id)
+            except Exception:
+                pass
         broadcaster = ConfigProgressBroadcaster()
         try:
             job.status = BackupStatus.RUNNING
@@ -56,9 +69,9 @@ class BackupOrchestrator:
                 job_id,
                 status=BackupStatus.RUNNING,
                 progress_percent=25,
-                completed_items=0,
+                completed_items=1,
                 total_items=4,
-                current_item='Exporting application data',
+                current_item='Extracting app data and schema',
             )
             result = self.single_backup.execute(job.app.name, job.backup_type)
             broadcaster.broadcast_backup_progress(
@@ -77,13 +90,15 @@ class BackupOrchestrator:
             if 'compression_algorithm' in result:
                 job.metadata['compression_algorithm'] = result.get('compression_algorithm')
             job.save()
-            BackupArtifact.objects.create(
+            BackupArtifact.objects.update_or_create(
                 backup_job=job,
-                storage_location=result.get('storage_location', 's3'),
-                storage_path=result.get('storage_path'),
-                encrypted_key_id=result.get('encrypted_key_id'),
-                iv_initialization_vector=result.get('iv'),
-                status='uploaded',
+                defaults={
+                    'storage_location': result.get('storage_location', 's3'),
+                    'storage_path': result.get('storage_path'),
+                    'encrypted_key_id': result.get('encrypted_key_id'),
+                    'iv_initialization_vector': result.get('iv'),
+                    'status': 'uploaded',
+                }
             )
             broadcaster.broadcast_backup_progress(
                 job_id,

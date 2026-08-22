@@ -2,6 +2,7 @@ from django.db import models
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
 from .maintenance_window import MaintenanceWindow
+from apps.configs.managers.health_check_manager import HealthCheckManager, HealthCheckHistoryManager
 
 class HealthCheck(BaseConfigModel):
     STATUS_CHOICES = [('healthy', 'Healthy - All Systems Operational'), ('degraded', 'Degraded - Some Issues'), ('unhealthy', 'Unhealthy - Critical Issues'), ('unknown', 'Unknown - No Data'), ('maintenance', 'Maintenance Mode')]
@@ -15,6 +16,8 @@ class HealthCheck(BaseConfigModel):
     details = models.JSONField(default=dict, help_text="Detailed metrics from health endpoint")
     consecutive_failures = models.IntegerField(default=0)
     last_successful_check = models.DateTimeField(null=True, blank=True)
+    
+    objects = HealthCheckManager()
     
     class Meta:
         db_table = 'config_health_check'
@@ -31,6 +34,8 @@ class HealthCheckHistory(BaseConfigModel):
     changed_at = models.DateTimeField(auto_now_add=True, db_index=True)
     trigger_conditional_maintenance = models.BooleanField(default=False, help_text="Did this status change trigger conditional maintenance?")
     maintenance_window = models.ForeignKey(MaintenanceWindow, on_delete=models.SET_NULL, null=True, blank=True, related_name='triggered_by_health')
+    
+    objects = HealthCheckHistoryManager()
     
     class Meta:
         db_table = 'config_health_check_history'

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePlans } from '../../hooks/billing';
 import { PlanFeatureList } from '../../components/billing/plans/PlanFeatureList';
@@ -11,9 +11,10 @@ import { EmptyState } from '../../components/billing/shared/EmptyState';
 export const PlanDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { plans, loading, billingCycle, setBillingCycle } = usePlans();
+    const { publicPlans, loading, fetchPublic } = usePlans({ autoFetch: true });
+    const [billingCycle, setBillingCycle] = useState('monthly');
     
-    const plan = plans.find(p => p.id === id);
+    const plan = publicPlans.find(p => p.id === id);
     const isLoading = loading && !plan;
 
     const getPrice = () => {
@@ -23,10 +24,8 @@ export const PlanDetailPage = () => {
         return plan?.price;
     };
 
-    const getPeriod = () => billingCycle === 'yearly' ? 'year' : 'month';
-
     const handleSelect = () => {
-        navigate(BILLING_ROUTES.CHECKOUT, { state: { plan, billingCycle } });
+        navigate(`${BILLING_ROUTES.CHECKOUT}?plan=${plan.id}`, { state: { plan, billingCycle } });
     };
 
     if (isLoading) {
@@ -59,7 +58,7 @@ export const PlanDetailPage = () => {
             <div className="plan-detail-page">
                 <div className="plan-detail-header">
                     <div className="plan-detail-pricing">
-                        <PriceDisplay amount={getPrice()} period={getPeriod()} size="xlarge" />
+                        <PriceDisplay price={getPrice()} currency={plan.currency} showYearly={billingCycle === 'yearly'} />
                         {billingCycle === 'yearly' && plan.yearly_price && (
                             <div className="plan-detail-savings">
                                 Save {Math.round(((plan.price * 12 - plan.yearly_price) / (plan.price * 12)) * 100)}% with yearly billing

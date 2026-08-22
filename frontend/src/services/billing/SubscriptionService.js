@@ -1,5 +1,5 @@
 import { BillingBaseService } from './BillingBaseService';
-import { SUBSCRIPTION_ENDPOINTS } from '../../config/constants/billingApiConstants';
+import { SUBSCRIPTION_ENDPOINTS, INVOICE_ENDPOINTS, TRANSACTION_ENDPOINTS } from '../../config/constants/billingApiConstants';
 
 class SubscriptionServiceClass extends BillingBaseService {
     constructor() { super('subscriptions'); }
@@ -33,11 +33,13 @@ class SubscriptionServiceClass extends BillingBaseService {
     async getSubscriptionUsage(id) {
         return this.withRetry(() => this.apiClient.get(SUBSCRIPTION_ENDPOINTS.USAGE(id)));
     }
+    // Invoices for a subscription: filter the standard invoices list by subscription_id
     async getSubscriptionInvoices(id) {
-        return this.withRetry(() => this.apiClient.get(SUBSCRIPTION_ENDPOINTS.INVOICES(id)));
+        return this.withRetry(() => this.apiClient.get(INVOICE_ENDPOINTS.LIST, { params: { subscription_id: id } }));
     }
+    // Transactions for a subscription: filter the standard transactions list by subscription_id
     async getSubscriptionTransactions(id) {
-        return this.withRetry(() => this.apiClient.get(SUBSCRIPTION_ENDPOINTS.TRANSACTIONS(id)));
+        return this.withRetry(() => this.apiClient.get(TRANSACTION_ENDPOINTS.LIST, { params: { subscription_id: id } }));
     }
     async adminCancelTenant(tenantId, reason = 'Admin action') {
         return this.withRetry(() => this.apiClient.post(SUBSCRIPTION_ENDPOINTS.ADMIN_CANCEL, { tenant_id: tenantId, reason }));

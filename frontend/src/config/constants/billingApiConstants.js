@@ -27,8 +27,9 @@ export const SUBSCRIPTION_ENDPOINTS = {
     DOWNGRADE: (id, planId) => `subscriptions/${id}/downgrade/${planId}/`,
     EXTEND_TRIAL: (id) => `subscriptions/${id}/extend-trial/`,
     USAGE: (id) => `subscriptions/${id}/usage/`,
-    INVOICES: (id) => `subscriptions/${id}/invoices/`,
-    TRANSACTIONS: (id) => `subscriptions/${id}/transactions/`,
+    // NOTE: Subscription invoices/transactions use their own list endpoints with subscription_id query param:
+    //   INVOICE_ENDPOINTS.LIST  + { params: { subscription_id: id } }
+    //   TRANSACTION_ENDPOINTS.LIST + { params: { subscription_id: id } }
     ADMIN_CANCEL: `subscriptions/admin/cancel/`,
     QUERY_PARAMS: { STATUS: 'status', PLAN_TYPE: 'plan_type', ACTIVE_ONLY: 'active_only' },
 };
@@ -103,8 +104,8 @@ export const ANALYTICS_ENDPOINTS = {
 };
 
 export const PORTAL_ENDPOINTS = {
-    ACCESS: `portal/`,
-    INFO: `portal/`,
+    ACCESS: `portal/`,    // POST — generate a portal session
+    INFO_GET: `portal/`,  // GET  — read current subscription info
 };
 
 export const WEBHOOK_ENDPOINTS = {
@@ -150,18 +151,21 @@ export const WEBHOOK_EVENTS = {
 };
 
 export const ADMIN_BILLING_ENDPOINTS = {
-    // Tenant management
-    TENANT_SUBSCRIPTIONS: (tenantId) => `/admin/tenants/${tenantId}/subscriptions/`,
-    TENANT_INVOICES: (tenantId) => `/admin/tenants/${tenantId}/invoices/`,
-    TENANT_TRANSACTIONS: (tenantId) => `/admin/tenants/${tenantId}/transactions/`,
-    
-    // Bulk operations
-    BULK_UPDATE_SUBSCRIPTIONS: `/admin/subscriptions/bulk-update/`,
-    
-    // Reports
-    REVENUE_REPORT: `/admin/reports/revenue/`,
-    SUBSCRIPTION_REPORT: `/admin/reports/subscriptions/`,
-    TAX_REPORT: `/admin/reports/tax/`,
+    // Tenant management — filtered via query params on standard endpoints
+    TENANT_SUBSCRIPTIONS: `subscriptions/`,       // GET ?tenant_id=<id>
+    TENANT_INVOICES: `invoices/`,                 // GET ?tenant_id=<id>
+    TENANT_TRANSACTIONS: `transactions/`,         // GET ?tenant_id=<id>
+
+    // Admin subscription actions
+    ADMIN_CANCEL: `subscriptions/admin/cancel/`,  // POST
+
+    // Reports — mapped to real implemented analytics endpoints
+    REVENUE_REPORT: `analytics/admin/revenue/`,           // GET ?year=<year>
+    SUBSCRIPTION_REPORT: `analytics/admin/subscriptions/`, // GET
+    TRANSACTION_STATS: `transactions/admin/stats/`,        // GET ?year=<year>
+
+    // Admin invoice
+    OVERDUE_INVOICES: `invoices/admin/overdue/`,           // GET
 };
 
 

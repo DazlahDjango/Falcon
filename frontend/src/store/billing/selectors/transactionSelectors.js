@@ -26,10 +26,10 @@ export const selectTransactionById = (id) => createSelector([selectAllTransactio
 export const selectRecentTransactions = (limit = 5) => createSelector([selectAllTransactions], (txs) => [...txs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, limit));
 export const selectSubscriptionTransactions = (subscriptionId) => createSelector([selectAllTransactions], (txs) => txs.filter(t => t.subscription_id === subscriptionId));
 // Add this to your existing transactionSelectors.js
-export const selectAdminTransactionStats = (state) => state.billing?.transactions?.adminStats || null;
+export const selectTransactionAdminStats = (state) => state.billing?.transactions?.adminStats || null;
 export const selectAdminStatsLoading = (state) => state.billing?.transactions?.adminStatsLoading || false;
-export const selectMonthlyRevenueBreakdown = (state) => selectAdminTransactionStats(state)?.monthly_breakdown || [];
-export const selectYearlyRevenueTotal = (state) => selectAdminTransactionStats(state)?.total_revenue || 0;
+export const selectMonthlyRevenueBreakdown = (state) => selectTransactionAdminStats(state)?.monthly_breakdown || [];
+export const selectYearlyRevenueTotal = (state) => selectTransactionAdminStats(state)?.total_revenue || 0;
 export const selectYearlyRevenueDisplay = (state) => {
     const total = selectYearlyRevenueTotal(state);
     return total ? `KES ${(total / 100).toFixed(2)}` : 'KES 0.00';

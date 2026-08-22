@@ -6,7 +6,7 @@ import { BILLING_ROUTES } from '../../config/constants/billingRouteConstants';
 
 export const CancelPage = () => {
     const navigate = useNavigate();
-    const { subscription, cancelSubscription, loading } = useSubscription();
+    const { subscription, cancel, loading } = useSubscription();
     const [reason, setReason] = useState('');
     const [atPeriodEnd, setAtPeriodEnd] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -14,7 +14,7 @@ export const CancelPage = () => {
     const handleCancel = async () => {
         setSubmitting(true);
         try {
-            await cancelSubscription(subscription.id, { at_period_end: atPeriodEnd, reason });
+            await cancel(subscription.id, atPeriodEnd, reason);
             navigate(BILLING_ROUTES.SUBSCRIPTIONS);
         } catch (error) {
             console.error('Cancel error:', error);

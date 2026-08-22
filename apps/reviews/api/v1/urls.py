@@ -8,6 +8,16 @@ from .views.health_views import ReviewsHealthView, ReviewsDashboardMetricsView
 from .views.reference_data_views import ReviewsReferenceDataView
 from .views.system_settings_views import ReviewsSystemSettingsView, ReviewsSystemSettingsResetView
 from .views.dashboard_views import StaffDashboardView, SupervisorDashboardView, ExecutiveDashboardView, AdminDashboardView
+from .views.analytics_views import (
+    CompanyAnalyticsView,
+    DepartmentAnalyticsView,
+    ManagerAnalyticsView,
+    InsightsView,
+    PredictionsView,
+    TrendAnalyticsView,
+    SkillGapAnalyticsView,
+    RefreshAnalyticsView,
+)
 from .views import (
     RatingScaleViewSet,
     CompetencyCategoryViewSet,
@@ -343,6 +353,14 @@ urlpatterns = [
     path('reference-data/', ReviewsReferenceDataView.as_view(), name='reviews-reference-data'),
     path('system-settings/', ReviewsSystemSettingsView.as_view(), name='reviews-system-settings'),
     path('system-settings/reset/', ReviewsSystemSettingsResetView.as_view(), name='reviews-system-settings-reset'),
+    path('analytics/company/', CompanyAnalyticsView.as_view(), name='analytics-company'),
+    path('analytics/departments/', DepartmentAnalyticsView.as_view(), name='analytics-departments'),
+    path('analytics/managers/', ManagerAnalyticsView.as_view(), name='analytics-managers'),
+    path('analytics/insights/', InsightsView.as_view(), name='analytics-insights'),
+    path('analytics/predictions/', PredictionsView.as_view(), name='analytics-predictions'),
+    path('analytics/trends/', TrendAnalyticsView.as_view(), name='analytics-trends'),
+    path('analytics/skill-gaps/', SkillGapAnalyticsView.as_view(), name='analytics-skill-gaps'),
+    path('analytics/refresh/', RefreshAnalyticsView.as_view(), name='analytics-refresh'),
     path('', include(router.urls)),
     path('', include(cycles_router.urls)),
     path('', include(pips_router.urls)),

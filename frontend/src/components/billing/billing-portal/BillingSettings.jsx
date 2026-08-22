@@ -3,15 +3,15 @@ import { useSubscription, useBillingPortal } from '../../../hooks/billing';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';
 
 export const BillingSettings = () => {
-    const { subscription, loading, updateAutoRenew, cancelSubscription } = useSubscription();
-    const { settings, updateSettings, loading: portalLoading } = useBillingPortal();
+    const { subscription, loading, updateSettings, cancelSubscription } = useSubscription();
+    const { settings, updateSettings: updatePortalSettings, loading: portalLoading } = useBillingPortal();
     const [updating, setUpdating] = useState(false);
     const [cancelling, setCancelling] = useState(false);
 
     const handleAutoRenewChange = async (value) => {
         setUpdating(true);
         try {
-            await updateAutoRenew(value);
+            await updateSettings(subscription?.id, value);
         } finally {
             setUpdating(false);
         }

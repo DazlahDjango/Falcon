@@ -166,8 +166,8 @@ class ReportGenerateSerializer(serializers.Serializer):
         report_id = attrs.get('report_id')
         if not report and report_id:
             try:
-                report = Report.objects.get(id=report_id)
-            except (Report.DoesNotExist, ValueError):
+                report = Report.objects.filter(id=report_id).first()
+            except Exception:
                 pass
                 
         if request and report:
@@ -200,8 +200,8 @@ class ReportExportSerializer(serializers.Serializer):
         report_id = attrs.get('report_id')
         if not report and report_id:
             try:
-                report = Report.objects.get(id=report_id)
-            except (Report.DoesNotExist, ValueError):
+                report = Report.objects.filter(id=report_id).first()
+            except Exception:
                 pass
                 
         if request and report:

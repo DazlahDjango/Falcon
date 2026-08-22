@@ -10,13 +10,13 @@ import { EmptyState } from '../../components/billing/shared/EmptyState';
 export const SubscriptionDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { subscription, loading, error, fetchSubscription } = useSubscription();
+    const { subscription, loading, error, fetchById } = useSubscription();
 
     React.useEffect(() => {
         if (id) {
-            fetchSubscription(id);
+            fetchById(id);
         }
-    }, [id]);
+    }, [id, fetchById]);
 
     if (loading) {
         return (
@@ -47,7 +47,7 @@ export const SubscriptionDetailPage = () => {
         <BillingLayout title="Subscription Details">
             <SubscriptionDetails 
                 subscription={subscription}
-                onRefresh={() => fetchSubscription(id)}
+                onRefresh={() => fetchById(id)}
             />
         </BillingLayout>
     );

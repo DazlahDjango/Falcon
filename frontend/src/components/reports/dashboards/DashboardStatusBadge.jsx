@@ -35,7 +35,7 @@ export const DashboardStatusBadge = ({
     return (
         <div className={`dashboard-status-badges ${sizeClasses[size]}`}>
             {badges.map((badge, index) => (
-                <span key={index} className={`status-badge ${badge.class}`}>
+                <span key={index} className={`status-badge ${badge.className}`}>
                     {badge.icon}
                     {showLabels && <span className="badge-label">{badge.label}</span>}
                 </span>

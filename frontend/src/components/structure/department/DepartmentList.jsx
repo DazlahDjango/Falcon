@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiMove, FiFolder, FiList } from 'react-icons/fi';
-import { useDepartments } from '../../../hooks/structure';
+import { useDepartments, useStructurePermissions } from '../../../hooks/structure';
 import {
   StructureTable,
   StructureSearchBar,
@@ -18,6 +18,8 @@ import './department.css';
 
 export const DepartmentList = () => {
   const navigate = useNavigate();
+  const { permissions } = useStructurePermissions();
+  const canManage = permissions?.canManageDepartments;
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [searchTerm, setSearchTerm] = useState('');
@@ -88,8 +90,8 @@ export const DepartmentList = () => {
       header: 'Status',
       width: '100px',
       render: (item) => (
-        <div 
-          onClick={(e) => handleToggleActive(item, e)} 
+        <div
+          onClick={(e) => handleToggleActive(item, e)}
           style={{ cursor: 'pointer', display: 'inline-block' }}
           title={item.is_active ? "Click to deactivate" : "Click to activate"}
         >
@@ -206,9 +208,9 @@ export const DepartmentList = () => {
           <span className="header-count">{totalCount} total</span>
         </div>
         <div className="header-right">
-          <button 
-            onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENT_TREE)} 
-            className="btn btn-secondary" 
+          <button
+            onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENT_TREE)}
+            className="btn btn-secondary"
             title="View Hierarchy Tree"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
           >
@@ -218,10 +220,12 @@ export const DepartmentList = () => {
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
-          <button onClick={handleCreate} className="btn btn-primary">
-            <FiPlus size={16} />
-            New Department
-          </button>
+          {canManage && (
+            <button onClick={handleCreate} className="btn btn-primary">
+              <FiPlus size={16} />
+              New Department
+            </button>
+          )}
         </div>
       </div>
 
@@ -268,8 +272,8 @@ export const DepartmentList = () => {
         data={items}
         loading={isLoading}
         onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
+        onEdit={canManage ? handleEdit : undefined}
+        onDelete={canManage ? handleDeleteClick : undefined}
         pagination={paginationProps}
       />
 
@@ -277,8 +281,8 @@ export const DepartmentList = () => {
         <StructureEmptyState
           title="No Departments Found"
           description="Create your first department to start organizing your structure."
-          actionLabel="Create Department"
-          onAction={handleCreate}
+          actionLabel={canManage ? "Create Department" : undefined}
+          onAction={canManage ? handleCreate : undefined}
         />
       )}
 

@@ -37,6 +37,15 @@ class CalculationService extends BaseKPIService {
       return response;
     });
   }
+
+  async getCalculationHistory(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CALCULATION_ENDPOINTS.TRIGGER, {
+        params,
+      });
+      return response;
+    });
+  }
 }
 
 export const calculationService = new CalculationService();

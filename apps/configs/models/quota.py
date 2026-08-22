@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
+from apps.configs.managers.quota_manager import BackupQuotaManager
 
 class BackupQuota(BaseConfigModel):
     tenant = models.ForeignKey('tenant.Organization', on_delete=models.CASCADE, related_name='backup_quotas', null=True, blank=True, help_text="Null means system-wide default")
@@ -13,6 +14,8 @@ class BackupQuota(BaseConfigModel):
     backup_retention_days_override = models.IntegerField(null=True, blank=True, help_text="Override app default")
     warning_threshold_percent = models.IntegerField(default=80, help_text="Alert when usage exceeds this %")
     alert_sent_at = models.DateTimeField(null=True, blank=True)
+    
+    objects = BackupQuotaManager()
     
     class Meta:
         db_table = 'config_backup_quota'

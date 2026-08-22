@@ -4,7 +4,6 @@ import { WEBHOOK_ENDPOINTS } from '../../config/constants/billingApiConstants';
 class WebhookServiceClass extends BillingBaseService {
     constructor() {
         super('webhook');
-        this.apiClient = this.apiClient; // Uses same client but bypasses auth for webhook
     }
 
     async getWebhookLogs(params = {}) {

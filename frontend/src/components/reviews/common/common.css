@@ -664,6 +664,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -674,6 +675,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -684,17 +686,57 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 @keyframes review-pulse {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
+  }
+}
+
+/* ========== Dashboard Card Helpers ========== */
+.review-dashboard-card {
+  margin-top: 24px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.review-dashboard-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+}
+
+.review-dashboard-card-empty {
+  padding: 16px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.review-dashboard-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .review-dashboard-grid-2 {
+    grid-template-columns: 1fr;
   }
 }

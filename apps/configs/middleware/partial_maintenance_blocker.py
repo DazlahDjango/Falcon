@@ -12,6 +12,8 @@ class PartialMaintenanceBlockerMiddleware(MiddlewareMixin):
         'tenant': ['/api/v1/tenant/', '/api/v1/tenants/', '/admin/tenant/', '/admin/tenants/'],
         'structure': ['/api/v1/structure/', '/admin/structure/'],
         'dashboard': ['/api/v1/dashboard/', '/admin/dashboard/'],
+        'configs': ['/api/v1/config/', '/api/v1/configs/', '/admin/config/'],
+        'reportplt': ['/api/v1/reportplt/', '/admin/reportplt/'],
     }
     
     def process_request(self, request):

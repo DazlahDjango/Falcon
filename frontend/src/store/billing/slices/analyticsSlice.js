@@ -19,9 +19,9 @@ export const fetchBillingSummary = createAsyncThunk(
 
 export const fetchRevenueReport = createAsyncThunk(
     'billing/analytics/fetchRevenue',
-    async ({ days = 30, period = 'daily', startDate = null, endDate = null } = {}, { rejectWithValue }) => {
+    async ({ period = 'month', year = null } = {}, { rejectWithValue }) => {
         try {
-            const response = await BillingAnalyticsService.getRevenueReport({ days, period, start_date: startDate, end_date: endDate });
+            const response = await BillingAnalyticsService.getRevenueReport(period, year);
             return response?.data;
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to fetch revenue report');
@@ -41,26 +41,26 @@ export const fetchSubscriptionAnalytics = createAsyncThunk(
     }
 );
 
-export const fetchRevenueForecast = createAsyncThunk(
-    'billing/analytics/fetchForecast',
-    async (_, { rejectWithValue }) => {
+export const fetchAdminRevenue = createAsyncThunk(
+    'billing/analytics/fetchAdminRevenue',
+    async (year = null, { rejectWithValue }) => {
         try {
-            const response = await BillingAnalyticsService.getRevenueForecast();
+            const response = await BillingAnalyticsService.getAdminRevenue(year);
             return response?.data;
         } catch (error) {
-            return rejectWithValue(error.message || 'Failed to fetch revenue forecast');
+            return rejectWithValue(error.message || 'Failed to fetch admin revenue report');
         }
     }
 );
 
-export const fetchTaxReport = createAsyncThunk(
-    'billing/analytics/fetchTax',
-    async (year = null, { rejectWithValue }) => {
+export const fetchAdminSubscriptions = createAsyncThunk(
+    'billing/analytics/fetchAdminSubscriptions',
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await BillingAnalyticsService.getTaxReport({ year: year || new Date().getFullYear() });
+            const response = await BillingAnalyticsService.getAdminSubscriptions();
             return response?.data;
         } catch (error) {
-            return rejectWithValue(error.message || 'Failed to fetch tax report');
+            return rejectWithValue(error.message || 'Failed to fetch admin subscription analytics');
         }
     }
 );
@@ -73,22 +73,20 @@ const initialState = {
     summary: null,
     revenue: null,
     subscriptions: null,
-    forecast: null,
-    taxReport: null,
+    adminRevenue: null,
+    adminSubscriptions: null,
     loading: false,
     error: null,
     lastFetched: {
         summary: null,
         revenue: null,
         subscriptions: null,
-        forecast: null,
-        tax: null,
+        adminRevenue: null,
+        adminSubscriptions: null,
     },
     dateRange: {
-        days: 30,
-        period: 'daily',
-        startDate: null,
-        endDate: null,
+        period: 'month',
+        year: null,
     },
 };
 
@@ -107,8 +105,8 @@ const analyticsSlice = createSlice({
             state.summary = null;
             state.revenue = null;
             state.subscriptions = null;
-            state.forecast = null;
-            state.taxReport = null;
+            state.adminRevenue = null;
+            state.adminSubscriptions = null;
         },
         clearError: (state) => {
             state.error = null;
@@ -160,16 +158,16 @@ const analyticsSlice = createSlice({
             state.error = action.payload;
         });
 
-        // Fetch Revenue Forecast
-        builder.addCase(fetchRevenueForecast.fulfilled, (state, action) => {
-            state.forecast = action.payload;
-            state.lastFetched.forecast = Date.now();
+        // Fetch Admin Revenue
+        builder.addCase(fetchAdminRevenue.fulfilled, (state, action) => {
+            state.adminRevenue = action.payload;
+            state.lastFetched.adminRevenue = Date.now();
         });
 
-        // Fetch Tax Report
-        builder.addCase(fetchTaxReport.fulfilled, (state, action) => {
-            state.taxReport = action.payload;
-            state.lastFetched.tax = Date.now();
+        // Fetch Admin Subscriptions
+        builder.addCase(fetchAdminSubscriptions.fulfilled, (state, action) => {
+            state.adminSubscriptions = action.payload;
+            state.lastFetched.adminSubscriptions = Date.now();
         });
     },
 });

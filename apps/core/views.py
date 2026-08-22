@@ -8,29 +8,49 @@ def home_view(request):
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db import connections
-from django.db.utils import OperationalError
-import json
-from datetime import datetime
+from django.db import connection
+from django.core.cache import cache
+from django.utils import timezone
 
 @csrf_exempt
 def health_check(request):
-    """Simple health check endpoint returning JSON"""
-    status = {
-        'status': 'healthy',
-        'timestamp': datetime.now().isoformat(),
-        'services': {
-            'database': 'unknown',
-            'api': 'running'
-        }
-    }
-    
-    # Check database connection
+    """Production-ready real-time health check endpoint for platform core services."""
+    status_code = 200
+    overall_status = 'healthy'
+    checks = {'api': 'running'}
+
+    # Real-time Database Query Check
     try:
-        connections['default'].cursor()
-        status['services']['database'] = 'connected'
-    except OperationalError:
-        status['status'] = 'degraded'
-        status['services']['database'] = 'disconnected'
-    
-    return JsonResponse(status)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        checks['database'] = 'connected'
+    except Exception as e:
+        checks['database'] = f'disconnected: {str(e)}'
+        overall_status = 'unhealthy'
+        status_code = 503
+
+    # Real-time Cache Ping Check
+    try:
+        cache.set('core_health_ping', 'ok', 10)
+        val = cache.get('core_health_ping')
+        checks['cache'] = 'connected' if val == 'ok' else 'degraded'
+        if val != 'ok' and overall_status == 'healthy':
+            overall_status = 'degraded'
+    except Exception as e:
+        checks['cache'] = f'error: {str(e)}'
+        if overall_status == 'healthy':
+            overall_status = 'degraded'
+
+    # Registered Apps Count Check
+    try:
+        from apps.configs.models import RegisteredApp
+        checks['registered_apps_count'] = RegisteredApp.objects.filter(is_registered=True).count()
+    except Exception:
+        checks['registered_apps_count'] = 0
+
+    return JsonResponse({
+        'status': overall_status,
+        'timestamp': timezone.now().isoformat(),
+        'services': checks
+    }, status=status_code)

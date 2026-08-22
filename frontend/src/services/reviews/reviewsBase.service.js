@@ -82,6 +82,23 @@ class BaseReviewsService extends BaseResourceService {
       { logLabel: this.logLabel }
     );
   }
+
+  /**
+   * Helper to normalize paginated or flat list response objects into { results, count }
+   * @param {Object|Array} response - Axios response or response data
+   * @returns {{ results: Array, count: number }} Standardized list container
+   */
+  static normalizeListResponse(response) {
+    if (!response) return { results: [], count: 0 };
+    const data = response.data || response;
+    if (Array.isArray(data)) {
+      return { results: data, count: data.length };
+    }
+    return {
+      results: Array.isArray(data.results) ? data.results : [],
+      count: data.count !== undefined ? data.count : (Array.isArray(data.results) ? data.results.length : 0),
+    };
+  }
 }
 
 // Export the base class and shared client

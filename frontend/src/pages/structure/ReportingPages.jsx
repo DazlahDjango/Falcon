@@ -13,7 +13,9 @@ export const ReportingPages = () => {
       <Route index element={<ReportingLineList />} />
       <Route path="create" element={<ReportingLineForm />} />
       <Route path="chain" element={<ReportingChain />} />
+      <Route path="chain/:userId" element={<ReportingChain />} />
       <Route path="span-of-control" element={<SpanOfControl />} />
+      <Route path="span/:managerId" element={<SpanOfControl />} />
       <Route path=":id" element={<ReportingLineList />} />
       <Route path=":id/edit" element={<ReportingLineForm />} />
     </Routes>

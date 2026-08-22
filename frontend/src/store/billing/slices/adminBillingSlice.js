@@ -31,29 +31,29 @@ export const fetchTenantTransactions = createAsyncThunk('billing/admin/fetchTena
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch tenant transactions'); }
 });
 
-export const fetchRevenueReport = createAsyncThunk('billing/admin/fetchRevenueReport', async ({ startDate, endDate }, { rejectWithValue }) => {
-    try { const response = await AdminBillingService.getRevenueReport(startDate, endDate); return response?.data; }
+export const fetchRevenueReport = createAsyncThunk('billing/admin/fetchRevenueReport', async (year = null, { rejectWithValue }) => {
+    try { const response = await AdminBillingService.getRevenueReport(year); return response?.data; }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch revenue report'); }
 });
 
-export const fetchSubscriptionReport = createAsyncThunk('billing/admin/fetchSubscriptionReport', async ({ startDate, endDate }, { rejectWithValue }) => {
-    try { const response = await AdminBillingService.getSubscriptionReport(startDate, endDate); return response?.data; }
+export const fetchSubscriptionReport = createAsyncThunk('billing/admin/fetchSubscriptionReport', async (_, { rejectWithValue }) => {
+    try { const response = await AdminBillingService.getSubscriptionReport(); return response?.data; }
     catch (error) { return rejectWithValue(error.message || 'Failed to fetch subscription report'); }
 });
 
-export const fetchTaxReport = createAsyncThunk('billing/admin/fetchTaxReport', async (year, { rejectWithValue }) => {
-    try { const response = await AdminBillingService.getTaxReport(year); return response?.data; }
-    catch (error) { return rejectWithValue(error.message || 'Failed to fetch tax report'); }
+export const fetchTransactionStats = createAsyncThunk('billing/admin/fetchTransactionStats', async (year = null, { rejectWithValue }) => {
+    try { const response = await AdminBillingService.getTransactionStats(year); return response?.data; }
+    catch (error) { return rejectWithValue(error.message || 'Failed to fetch transaction stats'); }
 });
 
-export const bulkUpdateSubscriptions = createAsyncThunk('billing/admin/bulkUpdate', async (updates, { rejectWithValue, dispatch }) => {
-    try { const response = await AdminBillingService.bulkUpdateSubscriptions(updates); return response?.data; }
-    catch (error) { return rejectWithValue(error.message || 'Failed to bulk update subscriptions'); }
+export const fetchOverdueInvoices = createAsyncThunk('billing/admin/fetchOverdueInvoices', async (_, { rejectWithValue }) => {
+    try { const response = await AdminBillingService.getOverdueInvoices(); return response?.data; }
+    catch (error) { return rejectWithValue(error.message || 'Failed to fetch overdue invoices'); }
 });
 
 const initialState = {
-    tenantData: {}, revenueReport: null, subscriptionReport: null, taxReport: null,
-    loading: false, error: null, bulkUpdateStatus: { loading: false, success: false, message: null },
+    tenantData: {}, revenueReport: null, subscriptionReport: null, transactionStats: null, overdueInvoices: [],
+    loading: false, error: null,
 };
 
 const adminBillingSlice = createSlice({
@@ -61,8 +61,7 @@ const adminBillingSlice = createSlice({
     reducers: {
         clearError: (state) => { state.error = null; },
         clearTenantData: (state, action) => { if (action.payload) delete state.tenantData[action.payload]; else state.tenantData = {}; },
-        clearReports: (state) => { state.revenueReport = null; state.subscriptionReport = null; state.taxReport = null; },
-        resetBulkUpdate: (state) => { state.bulkUpdateStatus = { loading: false, success: false, message: null }; },
+        clearReports: (state) => { state.revenueReport = null; state.subscriptionReport = null; state.transactionStats = null; state.overdueInvoices = []; },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchTenantSubscriptions.fulfilled, (state, action) => { state.tenantData[action.payload.tenantId] = { ...state.tenantData[action.payload.tenantId], subscriptions: action.payload.data }; });
@@ -70,12 +69,10 @@ const adminBillingSlice = createSlice({
         builder.addCase(fetchTenantTransactions.fulfilled, (state, action) => { state.tenantData[action.payload.tenantId] = { ...state.tenantData[action.payload.tenantId], transactions: action.payload.data }; });
         builder.addCase(fetchRevenueReport.fulfilled, (state, action) => { state.revenueReport = action.payload; });
         builder.addCase(fetchSubscriptionReport.fulfilled, (state, action) => { state.subscriptionReport = action.payload; });
-        builder.addCase(fetchTaxReport.fulfilled, (state, action) => { state.taxReport = action.payload; });
-        builder.addCase(bulkUpdateSubscriptions.pending, (state) => { state.bulkUpdateStatus = { loading: true, success: false, message: null }; });
-        builder.addCase(bulkUpdateSubscriptions.fulfilled, (state, action) => { state.bulkUpdateStatus = { loading: false, success: true, message: action.payload?.message || 'Bulk update completed successfully' }; });
-        builder.addCase(bulkUpdateSubscriptions.rejected, (state, action) => { state.bulkUpdateStatus = { loading: false, success: false, message: action.payload }; });
+        builder.addCase(fetchTransactionStats.fulfilled, (state, action) => { state.transactionStats = action.payload; });
+        builder.addCase(fetchOverdueInvoices.fulfilled, (state, action) => { state.overdueInvoices = action.payload; });
     },
 });
 
-export const { clearError, clearTenantData, clearReports, resetBulkUpdate } = adminBillingSlice.actions;
+export const { clearError, clearTenantData, clearReports } = adminBillingSlice.actions;
 export default adminBillingSlice.reducer;

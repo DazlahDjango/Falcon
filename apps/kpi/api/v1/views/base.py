@@ -14,6 +14,36 @@ logger = logging.getLogger(__name__)
 class BaseKpiViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsTenantMember]
 
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        tenant_id = (
+            getattr(request, 'current_tenant_id', None) or
+            getattr(request, 'tenant_id', None) or
+            getattr(request, 'current_organization_id', None)
+        )
+        if not tenant_id and hasattr(request, 'user') and request.user.is_authenticated:
+            tenant_id = getattr(request.user, 'tenant_id', None) or getattr(request.user, 'organization_id', None)
+            if tenant_id:
+                tenant_id = str(tenant_id)
+                request.current_tenant_id = tenant_id
+
+        if tenant_id:
+            try:
+                from apps.tenant.models import Organization, OrganizationSchema
+                schema_obj = OrganizationSchema.objects.filter(organization_id=tenant_id).first()
+                if schema_obj:
+                    schema_name = schema_obj.schema_name
+                else:
+                    org = Organization.objects.filter(id=tenant_id).first()
+                    schema_name = org.schema_name if org else None
+
+                if schema_name:
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        cursor.execute(f'SET search_path TO "{schema_name}", public')
+            except Exception as e:
+                logger.warning(f"Failed setting schema search path in BaseKpiViewset: {e}")
+
     def get_queryset(self):
         queryset = super().get_queryset()
         tenant_id = getattr(self.request, 'current_tenant_id', None)

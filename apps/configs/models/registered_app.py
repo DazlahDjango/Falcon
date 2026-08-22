@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from .base import BaseConfigModel
-from apps.configs.managers.registered_app_manager import RegisteredAppManager
+from apps.configs.managers.registered_app_manager import RegisteredAppManager, AppDependencyManager
 
 class RegisteredApp(BaseConfigModel):
     APP_CHOICES = [
@@ -46,6 +46,8 @@ class AppDependency(BaseConfigModel):
     target_app = models.ForeignKey(RegisteredApp, on_delete=models.CASCADE, related_name='dependencies_as_target', help_text="Source depends on this app")
     dependency_type = models.CharField(max_length=20, choices=DEPENDENCY_TYPE_CHOICES, default='hard')
     description = models.CharField(max_length=255, blank=True)
+    
+    objects = AppDependencyManager()
     
     class Meta:
         db_table = 'config_app_dependency'

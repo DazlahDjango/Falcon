@@ -1,6 +1,7 @@
 from django.db import models
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
+from apps.configs.managers.disaster_recovery_manager import DisasterRecoveryPlanManager
 
 class DisasterRecoveryPlan(BaseConfigModel):
     STATUS_CHOICES = [('draft', 'Draft'), ('active', 'Active'), ('tested', 'Tested - Verified'), ('expired', 'Expired - Needs Review'), ('archived', 'Archived')]
@@ -27,6 +28,8 @@ class DisasterRecoveryPlan(BaseConfigModel):
     approval_required = models.BooleanField(default=True, help_text="Does this plan need Super Admin approval?")
     approved_by = models.UUIDField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
+    
+    objects = DisasterRecoveryPlanManager()
     
     class Meta:
         db_table = 'config_disaster_recovery_plan'

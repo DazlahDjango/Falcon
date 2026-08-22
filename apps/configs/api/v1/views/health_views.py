@@ -38,8 +38,11 @@ class HealthCheckViewSet(viewsets.ReadOnlyModelViewSet):
             app = RegisteredApp.objects.filter(name=app_name).first()
             if app:
                 latest = HealthCheck.objects.filter(app=app).order_by('-created_at').first()
-                serializer = self.get_serializer(latest)
-                return Response(serializer.data)
+                if latest:
+                    serializer = self.get_serializer(latest)
+                    return Response(serializer.data)
+                return Response({'message': f'No health check record found for app {app_name}'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': f'App {app_name} not found'}, status=status.HTTP_404_NOT_FOUND)
         latest_all = []
         from django.db.models import Max
         apps = HealthCheck.objects.values('app').annotate(latest=Max('created_at'))

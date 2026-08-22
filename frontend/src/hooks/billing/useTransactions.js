@@ -8,7 +8,7 @@ import {
 import {
     selectAllTransactions, selectSelectedTransaction, selectTransactionSummary,
     selectTransactionFilters, selectTransactionPagination, selectTransactionsLoading,
-    selectTransactionsError, selectAdminTransactionStats,
+    selectTransactionsError, selectTransactionAdminStats,
 } from '../../store/billing/selectors';
 
 export const useTransactions = (options = { autoFetch: false }) => {
@@ -21,7 +21,7 @@ export const useTransactions = (options = { autoFetch: false }) => {
     const pagination = useSelector(selectTransactionPagination) || { page: 1, pageSize: 20, total: 0 };
     const loading = useSelector(selectTransactionsLoading);
     const error = useSelector(selectTransactionsError);
-    const adminStats = useSelector(selectAdminTransactionStats);
+    const adminStats = useSelector(selectTransactionAdminStats);
 
     const fetchAll = useCallback((params) => dispatch(fetchTransactions(params)), [dispatch]);
     const fetchById = useCallback((id) => dispatch(fetchTransactionById(id)), [dispatch]);

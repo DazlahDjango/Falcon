@@ -2,6 +2,7 @@ from django.db import models
 from .base import BaseConfigModel
 from .registered_app import RegisteredApp
 from .maintenance_window import MaintenanceWindow
+from apps.configs.managers.risk_assessment_manager import RiskAssessmentManager
 
 class RiskAssessment(BaseConfigModel):
     RISK_LEVEL_CHOICES = [('low', 'Low Risk'), ('medium', 'Medium Risk'), ('high', 'High Risk'), ('critical', 'Critical Risk - Immediate Action Required')]
@@ -17,6 +18,8 @@ class RiskAssessment(BaseConfigModel):
     assessed_by = models.UUIDField(help_text="User ID or 'system' for automated")
     assessed_at = models.DateTimeField(auto_now_add=True, db_index=True)
     expires_at = models.DateTimeField(help_text="When this assessment expires and needs recalculation")
+    
+    objects = RiskAssessmentManager()
     
     class Meta:
         db_table = 'config_risk_assessment'

@@ -1,5 +1,5 @@
 # apps/reportplt/api/v1/views/dashboards.py
-from django.db import transaction
+from django.db import transaction, models
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action

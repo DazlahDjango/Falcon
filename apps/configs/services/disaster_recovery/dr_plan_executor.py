@@ -24,17 +24,32 @@ class DisasterRecoveryPlanExecutor:
             total_steps=3,
         )
         start_time = time.time()
-        latest_backup = BackupJob.objects.filter(
+        import os
+        completed_backups = BackupJob.objects.filter(
             app=plan.app,
             status='completed',
             backup_type='full'
-        ).order_by('-completed_at').first()
+        ).order_by('-completed_at')
+
+        latest_backup = None
+        for job in completed_backups:
+            from apps.configs.models import BackupArtifact
+            artifact = BackupArtifact.objects.filter(backup_job=job).first()
+            if artifact and artifact.storage_path and os.path.exists(artifact.storage_path):
+                latest_backup = job
+                break
+
         if not latest_backup:
-            broadcaster.broadcast_dr_progress(
-                execution_id, status=DisasterRecoveryStatus.FAILED, progress_percent=0,
-                current_step='No backup found',
+            from apps.configs.services.backup.backup_orchestrator import BackupOrchestrator
+            orchestrator = BackupOrchestrator()
+            new_job = orchestrator.trigger_backup(
+                app_name=plan.app.name,
+                backup_type='full',
+                triggered_by=execution.triggered_by,
+                triggered_by_role=execution.triggered_by_role
             )
-            raise Exception(f"No backup found for app {plan.app.name}")
+            orchestrator.execute_backup(new_job.id)
+            latest_backup = BackupJob.objects.get(id=new_job.id)
         broadcaster.broadcast_dr_progress(
             execution_id,
             status=DisasterRecoveryStatus.IN_PROGRESS,

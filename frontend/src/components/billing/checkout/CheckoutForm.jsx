@@ -10,7 +10,7 @@ import './checkout.css';
 
 export const CheckoutForm = ({ planId, onSuccess, onCancel, redirectToPaystack = true }) => {
     const { initSubscription, loading, error, clearCheckoutError } = useCheckout();
-    const { getPlanById, plans, loading: plansLoading, fetchPublicPlans } = usePlans();
+    const { selectedPlan, plans, loading: plansLoading, fetchPublicPlans } = usePlans();
     const [formData, setFormData] = useState({ email: '', fullName: '', phone: '', companyName: '', address: '', city: '', country: 'KE', taxId: '' });
     const [formErrors, setFormErrors] = useState({});
     const [processing, setProcessing] = useState(false);
@@ -22,7 +22,7 @@ export const CheckoutForm = ({ planId, onSuccess, onCancel, redirectToPaystack =
 
     useEffect(() => { clearCheckoutError(); }, [clearCheckoutError]);
 
-    const plan = getPlanById(planId);
+    const plan = plans.find(p => p.id === planId) || selectedPlan;
     const displayPrice = billingInterval === 'monthly' ? plan?.price : plan?.yearly_price || plan?.price * 10;
     const savings = billingInterval === 'yearly' && plan?.yearly_price ? Math.round(((plan.price * 12) - plan.yearly_price) / (plan.price * 12) * 100) : 0;
 

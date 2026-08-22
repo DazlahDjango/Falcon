@@ -24,9 +24,11 @@ class DisasterRecoveryDrill:
             execution.completed_at = timezone.now()
             execution.steps_executed = result.get('steps', [])
             execution.save()
-            plan.last_tested_at = timezone.now()
-            plan.test_successful = True
-            plan.save(update_fields=['last_tested_at', 'test_successful'])
+            refreshed_plan = DisasterRecoveryPlan.objects.filter(app=plan.app).first()
+            if refreshed_plan:
+                refreshed_plan.last_tested_at = timezone.now()
+                refreshed_plan.test_successful = True
+                refreshed_plan.save()
             self.audit_logger.log_success('run_dr_drill', triggered_by, triggered_by_role, target_app=plan.app, target_id=str(plan_id))
             return execution
         except Exception as e:
@@ -34,7 +36,12 @@ class DisasterRecoveryDrill:
             execution.completed_at = timezone.now()
             execution.issues_encountered = [str(e)]
             execution.save()
-            plan.test_successful = False
-            plan.save(update_fields=['test_successful'])
+            try:
+                refreshed_plan = DisasterRecoveryPlan.objects.filter(app=plan.app).first()
+                if refreshed_plan:
+                    refreshed_plan.test_successful = False
+                    refreshed_plan.save()
+            except Exception:
+                pass
             self.audit_logger.log_failure('run_dr_drill', triggered_by, triggered_by_role, error_message=str(e), target_app=plan.app)
             raise e

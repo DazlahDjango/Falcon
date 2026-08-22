@@ -43,8 +43,49 @@ class ConnectionService:
     }
     _metrics_lock = threading.Lock()
 
+    # Circuit Breaker for DB High Availability
+    _circuit_failures = {}
+    _circuit_tripped_until = {}
+    _circuit_lock = threading.Lock()
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+
+    @classmethod
+    def check_circuit_breaker(cls, organization_id):
+        """Check if circuit breaker is active for organization."""
+        org_str = str(organization_id)
+        with cls._circuit_lock:
+            tripped_until = cls._circuit_tripped_until.get(org_str)
+            if tripped_until:
+                if timezone.now() < tripped_until:
+                    return False, int((tripped_until - timezone.now()).total_seconds())
+                else:
+                    # Cooldown expired, reset
+                    cls._circuit_tripped_until.pop(org_str, None)
+                    cls._circuit_failures.pop(org_str, None)
+            return True, 0
+
+    @classmethod
+    def record_circuit_failure(cls, organization_id, threshold=3, cooldown_seconds=30):
+        """Record a connection failure and trip circuit breaker if threshold reached."""
+        org_str = str(organization_id)
+        with cls._circuit_lock:
+            count = cls._circuit_failures.get(org_str, 0) + 1
+            cls._circuit_failures[org_str] = count
+            if count >= threshold:
+                cls._circuit_tripped_until[org_str] = timezone.now() + timedelta(seconds=cooldown_seconds)
+                logger.warning(
+                    f"Circuit breaker TRIPPED for organization {organization_id} after {count} consecutive failures. Cooldown {cooldown_seconds}s."
+                )
+
+    @classmethod
+    def record_circuit_success(cls, organization_id):
+        """Reset failure count on successful connection."""
+        org_str = str(organization_id)
+        with cls._circuit_lock:
+            cls._circuit_failures.pop(org_str, None)
+            cls._circuit_tripped_until.pop(org_str, None)
 
     @property
     def _connections(self):
@@ -112,6 +153,7 @@ class ConnectionService:
 
         if not acquired:
             self._increment_metric('failures')
+            self.record_circuit_failure(organization_id)
             raise ConnectionPoolExhaustedError(
                 f"Timeout waiting for connection slot for organization {organization_id}"
             )
@@ -126,6 +168,13 @@ class ConnectionService:
         Supports read/write splitting, proactive timeouts, and stale recycling.
         """
         self.logger.debug(f"Getting connection for organization: {organization_id} (read_only: {read_only})")
+
+        # Circuit Breaker validation
+        is_allowed, remaining_seconds = self.check_circuit_breaker(organization_id)
+        if not is_allowed:
+            raise ConnectionError(
+                f"Circuit breaker TRIPPED for organization {organization_id}. Try again in {remaining_seconds}s."
+            )
 
         # 18. Check if draining/shutting down
         with self._draining_lock:

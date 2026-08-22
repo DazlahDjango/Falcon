@@ -45,7 +45,7 @@ export const FilterStatusBadge = ({
     return (
         <div className={`filter-status-badges size-${size}`}>
             {badges.map((badge, index) => (
-                <span key={index} className={`badge-item ${badge.class}`}>
+                <span key={index} className={`badge-item ${badge.className}`}>
                     {badge.icon}
                     {size !== 'small' && <span className="badge-label">{badge.label}</span>}
                 </span>

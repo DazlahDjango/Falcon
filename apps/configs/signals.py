@@ -4,6 +4,8 @@ from apps.configs.models import RegisteredApp, BackupPolicy, BackupJob, BackupAr
 
 @receiver(post_save, sender=RegisteredApp)
 def on_app_registered(sender, instance, created, **kwargs):
+    if kwargs.get('raw'):
+        return
     if created:
         BackupPolicy.objects.get_or_create(
             app=instance,
@@ -17,6 +19,8 @@ def on_app_registered(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=BackupJob)
 def on_backup_complete(sender, instance, created, **kwargs):
+    if kwargs.get('raw'):
+        return
     if instance.status == 'completed' and not created:
         from apps.configs.services.backup.backup_retention import BackupRetention
         retention = BackupRetention()
@@ -30,6 +34,8 @@ def on_artifact_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=MaintenanceWindow)
 def on_maintenance_created(sender, instance, created, **kwargs):
+    if kwargs.get('raw'):
+        return
     if created:
         from apps.configs.services.maintenance.maintenance_notifier import MaintenanceNotifier
         notifier = MaintenanceNotifier()

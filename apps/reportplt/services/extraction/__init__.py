@@ -14,6 +14,7 @@ from apps.reportplt.services.extraction.production.tenant_extractor import (
     TenantSchemaExtractor, TenantDomainExtractor, TenantBackupExtractor
 )
 
+from apps.reportplt.services.extraction.kpi_extractor import KPIDataExtractor
 from apps.reportplt.services.extraction.production.kpi_extractor import (
     KPIUnifiedExtractor, KPIIndividualScorecardExtractor, KPIDepartmentalHeatmapExtractor,
     KPICascadeTreeExtractor, KPIRedAlertsExtractor, KPIValidationComplianceExtractor

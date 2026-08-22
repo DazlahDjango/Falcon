@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiUsers } from 'react-icons/fi';
-import { usePositions } from '../../../hooks/structure';
+import { usePositions, useStructurePermissions } from '../../../hooks/structure';
 import {
   StructureTable,
   StructureSearchBar,
@@ -91,6 +91,8 @@ const COLUMNS = [
 
 export const PositionList = () => {
   const navigate = useNavigate();
+  const { permissions } = useStructurePermissions();
+  const canManage = permissions?.canManagePositions;
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [searchTerm, setSearchTerm] = useState('');
@@ -224,10 +226,12 @@ export const PositionList = () => {
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
-          <button onClick={handleCreate} className="btn btn-primary">
-            <FiPlus size={16} />
-            New Position
-          </button>
+          {canManage && (
+            <button onClick={handleCreate} className="btn btn-primary">
+              <FiPlus size={16} />
+              New Position
+            </button>
+          )}
         </div>
       </div>
 
@@ -319,8 +323,8 @@ export const PositionList = () => {
         data={items}
         loading={isLoading}
         onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
+        onEdit={canManage ? handleEdit : undefined}
+        onDelete={canManage ? handleDeleteClick : undefined}
         pagination={paginationProps}
       />
 
@@ -328,8 +332,8 @@ export const PositionList = () => {
         <StructureEmptyState
           title="No Positions Found"
           description="Create your first position to start defining roles in your organization."
-          actionLabel="Create Position"
-          onAction={handleCreate}
+          actionLabel={canManage ? "Create Position" : undefined}
+          onAction={canManage ? handleCreate : undefined}
         />
       )}
 

@@ -1,8 +1,12 @@
+# apps/reportplt/services/orchestrator.py
 import time
-from typing import Dict, Any
+import logging
+from typing import Dict, Any, Optional
 from django.db import transaction
-from apps.reportplt.models import GeneratedReport, ReportAuditLog
-from apps.reportplt.constants import ExportFormat, GenerationStatus, AuditActionType
+from apps.reportplt.models import Report, ReportAudit
+from apps.reportplt.constants import ReportFormat, ReportStatus
+from apps.reportplt.services.dtos import ReportPayloadDTO, ExportResultDTO
+from apps.reportplt.services.generation.report_generator import ReportGenerator
 from apps.reportplt.services.extraction import (
     KPIDataExtractor,
     ReviewsDataExtractor,
@@ -63,6 +67,8 @@ from apps.reportplt.services.rendering import (
     CSVDocumentRenderer,
     JSONDocumentRenderer
 )
+
+logger = logging.getLogger(__name__)
 
 class ReportEngineService:
     EXTRACTORS = {
@@ -125,49 +131,46 @@ class ReportEngineService:
     }
 
     RENDERERS = {
-        ExportFormat.PDF: PDFDocumentRenderer,
-        ExportFormat.EXCEL: ExcelDocumentRenderer,
-        ExportFormat.CSV: CSVDocumentRenderer,
-        ExportFormat.JSON: JSONDocumentRenderer,
+        'pdf': PDFDocumentRenderer,
+        'excel': ExcelDocumentRenderer,
+        'csv': CSVDocumentRenderer,
+        'json': JSONDocumentRenderer,
     }
 
     @classmethod
     @transaction.atomic
-    def generate_report(cls, report_id: str) -> GeneratedReport:
-        report = GeneratedReport.objects.select_for_update().get(id=report_id)
+    def generate_report(cls, report_id: str, params: Optional[Dict[str, Any]] = None, user: Any = None) -> ReportPayloadDTO:
+        """Atomic orchestrator method to extract, process, render, and log report execution."""
         start_time = time.time()
+        generator = ReportGenerator(user=user)
+        res = generator.generate_report(report_id, params=params)
+        
+        duration = time.time() - start_time
+        
+        # Log Audit
         try:
-            report.status = GenerationStatus.PROCESSING
-            report.save(update_fields=['status'])
-            extractor_cls = cls.EXTRACTORS.get(report.report_type, KPIDataExtractor)
-            extractor = extractor_cls(tenant_id=report.tenant_id, filters=report.filters_used)
-            raw_data = extractor.extract()
-            renderer_cls = cls.RENDERERS.get(report.format, PDFDocumentRenderer)
-            renderer = renderer_cls(title=report.title, data=raw_data)
-            file_bytes = renderer.render()
-            execution_time_ms = int((time.time() - start_time) * 1000)
-            file_ext = report.format
-            file_name = f"{report.report_type}_{report.id}.{file_ext}"
-            report.mark_completed(file_name, file_bytes, execution_time_ms=execution_time_ms)
-            ReportAuditLog.objects.create(
-                tenant_id=report.tenant_id,
-                generated_report=report,
-                template_code=report.report_type,
-                action=AuditActionType.GENERATE,
-                actor=report.created_by,
-                sensitivity_level=report.sensitivity_level,
-                details={'execution_time_ms': execution_time_ms, 'status': 'success'}
-            )
-            return report
-        except Exception as e:
-            report.mark_failed(str(e))
-            ReportAuditLog.objects.create(
-                tenant_id=report.tenant_id,
-                generated_report=report,
-                template_code=report.report_type,
-                action=AuditActionType.EXPORT_FAIL,
-                actor=report.created_by,
-                sensitivity_level=report.sensitivity_level,
-                details={'error': str(e)}
-            )
-            raise e
+            report_obj = Report.objects.filter(id=report_id).first()
+            if report_obj:
+                ReportAudit.log_action(
+                    user=user or getattr(report_obj, 'owner', None),
+                    action='generate',
+                    report=report_obj,
+                    details={'duration_seconds': duration, 'status': res.get('status')}
+                )
+        except Exception as audit_err:
+            logger.warning(f"Audit log creation failed in ReportEngineService: {audit_err}")
+
+        payload_data = res.get('data', {})
+        return ReportPayloadDTO(
+            report_id=str(report_id),
+            report_name=payload_data.get('report_name', 'Report'),
+            report_type=payload_data.get('report_type', 'custom'),
+            data=payload_data,
+            metrics=payload_data.get('metrics', {}),
+            charts=payload_data.get('charts', []),
+            tables=payload_data.get('tables', []),
+            executive_summary=payload_data.get('executive_summary', ''),
+            row_count=payload_data.get('row_count', 0),
+            status=res.get('status', 'completed'),
+            execution_id=res.get('execution_id')
+        )

@@ -1,5 +1,6 @@
 from django.db import models
 from .base import BaseConfigModel
+from apps.configs.managers.encryption_key_manager import EncryptionKeyManager
 
 class EncryptionKey(BaseConfigModel):
     KEY_STATUS_CHOICES = [('active', 'Active - Currently Used'), ('inactive', 'Inactive - Not Used'), ('compromised', 'Compromised - Needs Rotation'), ('expired', 'Expired - Cannot Use'), ('deleted', 'Deleted')]
@@ -20,6 +21,8 @@ class EncryptionKey(BaseConfigModel):
     rotated_by = models.UUIDField(null=True, blank=True)
     rotation_reason = models.CharField(max_length=255, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+    
+    objects = EncryptionKeyManager()
     
     class Meta:
         db_table = 'config_encryption_key'

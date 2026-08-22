@@ -46,6 +46,7 @@ class TenantOverrideSerializer(serializers.Serializer):
     approval_notes = serializers.CharField()
 
 class TenantOverrideCreateSerializer(serializers.Serializer):
+    tenant_id = serializers.UUIDField()
     plan_id = serializers.UUIDField()
     custom_price_monthly = serializers.IntegerField(required=False, min_value=0)
     custom_price_yearly = serializers.IntegerField(required=False, min_value=0)

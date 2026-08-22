@@ -68,9 +68,9 @@ export const PositionForm = () => {
       );
       try {
         if (isEditing) {
-          await update(id, submitData).unwrap();
+          await update(id, submitData);
         } else {
-          await create(submitData).unwrap();
+          await create(submitData);
         }
         navigate(STRUCTURE_ROUTES.POSITIONS);
       } catch (err) {

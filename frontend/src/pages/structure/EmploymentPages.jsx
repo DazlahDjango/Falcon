@@ -13,6 +13,7 @@ export const EmploymentPages = () => {
       <Route index element={<EmploymentList />} />
       <Route path="create" element={<EmploymentForm />} />
       <Route path="transfer" element={<EmploymentTransfer />} />
+      <Route path="user/:userId" element={<EmploymentList />} />
       <Route path=":id" element={<EmploymentDetail />} />
       <Route path=":id/edit" element={<EmploymentForm />} />
     </Routes>
