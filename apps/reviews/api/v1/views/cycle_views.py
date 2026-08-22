@@ -12,8 +12,17 @@ from apps.reviews.api.v1.permissions import IsAdminOnly
 
 
 
+from rest_framework import filters as rest_filters
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.reviews.api.v1.filters.cycle_filters import CycleFilter
+
 class ReviewCycleViewSet(BaseReviewViewSet):
     queryset = ReviewCycle.objects.all()
+    filter_backends = [DjangoFilterBackend, rest_filters.SearchFilter, rest_filters.OrderingFilter]
+    filterset_class = CycleFilter
+    search_fields = ['name', 'description']
+    ordering_fields = ['start_date', 'end_date', 'name', 'created_at', 'status']
+    ordering = ['-start_date']
     def get_serializer_class(self):
         if self.action == 'list':
             return ReviewCycleListSerializer

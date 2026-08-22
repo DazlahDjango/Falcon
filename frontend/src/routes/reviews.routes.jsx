@@ -67,6 +67,7 @@ const PIPActionDetailPage = React.lazy(() => import('../pages/reviews/pip-action
 
 // Feedback Pages
 const FeedbackRequestsPage = React.lazy(() => import('../pages/reviews/feedback/FeedbackRequestsPage'));
+const FeedbackRequestDetailPage = React.lazy(() => import('../pages/reviews/feedback/FeedbackRequestDetailPage'));
 const FeedbackRequestCreatePage = React.lazy(() => import('../pages/reviews/feedback/FeedbackRequestCreatePage'));
 const FeedbackResponsePage = React.lazy(() => import('../pages/reviews/feedback/FeedbackResponsePage'));
 const FeedbackSummaryPage = React.lazy(() => import('../pages/reviews/feedback/FeedbackSummaryPage'));
@@ -159,10 +160,16 @@ const reviewsRoutes = [
 
     // ============ Supervisor Review Routes ============
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_QUEUE, element: <ReviewQueuePage /> },
+    { path: '/reviews/supervisor-reviews/queue', element: <ReviewQueuePage /> },
+    { path: '/reviews/review-queue', element: <ReviewQueuePage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_FORM(':employeeId'), element: <SupervisorReviewFormPage /> },
+    { path: '/reviews/supervisor-reviews/:employeeId/form', element: <SupervisorReviewFormPage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_VIEW(':id'), element: <SupervisorReviewDetailPage /> },
+    { path: '/reviews/supervisor-reviews/:id', element: <SupervisorReviewDetailPage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_PENDING_APPROVALS, element: <PendingApprovalsPage /> },
+    { path: '/reviews/supervisor-reviews/pending-approvals', element: <PendingApprovalsPage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_LIST, element: <SupervisorReviewListPage /> },
+    { path: '/reviews/supervisor-reviews', element: <SupervisorReviewListPage /> },
 
     // ============ Final Rating Routes ============
     { path: REVIEW_ROUTES.FINAL_RATINGS_LIST, element: <FinalRatingsPage /> },
@@ -183,14 +190,21 @@ const reviewsRoutes = [
     { path: REVIEW_ROUTES.PIP_ACTION_DETAIL(':pipId', ':actionId'), element: <PIPActionDetailPage /> },
 
     // ============ Feedback Routes ============
+    { path: REVIEW_ROUTES.FEEDBACK, element: <FeedbackRequestsPage /> },
     { path: REVIEW_ROUTES.FEEDBACK_REQUESTS, element: <FeedbackRequestsPage /> },
+    { path: REVIEW_ROUTES.FEEDBACK_REQUEST_DETAIL(':id'), element: <FeedbackRequestDetailPage /> },
+    { path: '/reviews/feedback/requests/:id', element: <FeedbackRequestDetailPage /> },
+    { path: '/reviews/feedback/:id', element: <FeedbackRequestDetailPage /> },
     { path: REVIEW_ROUTES.FEEDBACK_REQUEST_CREATE, element: <FeedbackRequestCreatePage /> },
     { path: REVIEW_ROUTES.FEEDBACK_RESPOND(':requestId'), element: <FeedbackResponsePage /> },
     { path: REVIEW_ROUTES.FEEDBACK_SUMMARY, element: <FeedbackSummaryPage /> },
 
     // ============ Calibration Routes ============
+    { path: REVIEW_ROUTES.CALIBRATION, element: <CalibrationSessionsPage /> },
     { path: REVIEW_ROUTES.CALIBRATION_SESSIONS, element: <CalibrationSessionsPage /> },
     { path: REVIEW_ROUTES.CALIBRATION_SESSION_DETAIL(':id'), element: <CalibrationSessionDetailPage /> },
+    { path: '/reviews/calibration/sessions/:id', element: <CalibrationSessionDetailPage /> },
+    { path: '/reviews/calibration/:id', element: <CalibrationSessionDetailPage /> },
     { path: REVIEW_ROUTES.CALIBRATION_SESSION_CREATE, element: <CalibrationSessionCreatePage /> },
     { path: REVIEW_ROUTES.CALIBRATION_SESSION_EDIT(':id'), element: <CalibrationSessionEditPage /> },
     // Calibration Report from calibration module

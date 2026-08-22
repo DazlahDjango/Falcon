@@ -19,7 +19,7 @@ const CycleList = () => {
       page_size: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.currentPage, pagination.pageSize, filters]);
+  }, [fetchAll, pagination.currentPage, pagination.pageSize, filters]);
 
   const handleSearch = useCallback((searchTerm) => {
     setFilters({ search: searchTerm });

@@ -105,7 +105,12 @@ class SupervisorReviewViewSet(BaseReviewViewSet):
         if request.user.role not in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         direct_reports = request.user.direct_reports.all()
-        reviews = self.get_queryset().filter(employee__in=direct_reports, status='submitted').select_related('employee', 'review_cycle', 'self_assessment')
+        if direct_reports.exists():
+            reviews = self.get_queryset().filter(employee__in=direct_reports).exclude(status__in=['approved', 'rejected', 'archived', 'cancelled']).select_related('employee', 'review_cycle', 'self_assessment')
+        elif request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+            reviews = self.get_queryset().exclude(status__in=['approved', 'rejected', 'archived', 'cancelled']).select_related('employee', 'review_cycle', 'self_assessment')
+        else:
+            reviews = self.get_queryset().filter(supervisor=request.user).exclude(status__in=['approved', 'rejected', 'archived', 'cancelled']).select_related('employee', 'review_cycle', 'self_assessment')
         return Response(self.get_serializer(reviews, many=True).data)
     @action(detail=False, methods=['get'], url_path='for-cycle/(?P<cycle_id>[^/.]+)')
     def for_cycle(self, request, cycle_id=None):
@@ -122,7 +127,7 @@ class SupervisorReviewViewSet(BaseReviewViewSet):
             employee = User.objects.get(id=employee_id)
             if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != employee.manager:
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
-            cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status__in=['submitted', 'completed']).order_by('-end_date').first()
+            cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, is_deleted=False).order_by('-end_date').first()
             if not cycle:
                 return Response({'message': 'No review cycle found'}, status=status.HTTP_404_NOT_FOUND)
             review = self.get_queryset().filter(review_cycle=cycle, employee=employee).first()
@@ -141,7 +146,7 @@ class SupervisorReviewViewSet(BaseReviewViewSet):
     def stats(self, request):
         cycle_id = request.query_params.get('cycle_id')
         if not cycle_id:
-            cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status__in=['submitted', 'completed', 'archived']).order_by('-end_date').first()
+            cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, is_deleted=False).order_by('-end_date').first()
             if not cycle:
                 return Response({'total_employees': 0, 'completed': 0, 'pending': 0, 'percentage': 0})
         else:
@@ -152,9 +157,12 @@ class SupervisorReviewViewSet(BaseReviewViewSet):
         total = cycle.get_participating_employees().count()
         completed = self.get_queryset().filter(review_cycle=cycle, status='approved').count()
         return Response({'total_employees': total, 'completed': completed, 'pending': total - completed, 'percentage': round((completed / total) * 100, 1) if total > 0 else 0})
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='pending_approvals')
     def pending_approvals(self, request):
-        if request.user.role not in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
+        if request.user.role not in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN, UserRoles.EXECUTIVE]:
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         reviews = self.get_queryset().filter(status='submitted').select_related('employee', 'supervisor', 'review_cycle')
         return Response(self.get_serializer(reviews, many=True).data)
+    @action(detail=False, methods=['get'], url_path='pending-approvals')
+    def pending_approvals_hyphen(self, request):
+        return self.pending_approvals(request)

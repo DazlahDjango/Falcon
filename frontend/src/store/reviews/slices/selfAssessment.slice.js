@@ -20,28 +20,34 @@ const customReducers = {
 Object.assign(selfAssessmentSlice.actions, customReducers);
 
 // ===== Custom thunks =====
-export const submitSelfAssessment = (id) => async (dispatch) => {
+export const submitSelfAssessment = (idOrObj) => async (dispatch) => {
   try {
+    const id = typeof idOrObj === 'object' && idOrObj !== null ? idOrObj.id : idOrObj;
     const response = await selfAssessmentService.submit(id);
     dispatch(selfAssessmentSlice.actions.updateItem(response));
+    dispatch(selfAssessmentSlice.actions.selectItem(response));
     return response;
   } catch (error) {
     throw error;
   }
 };
 
-export const saveSelfAssessmentDraft = (id, data) => async (dispatch) => {
+export const saveSelfAssessmentDraft = (idOrObj, maybeData) => async (dispatch) => {
   try {
+    const id = typeof idOrObj === 'object' && idOrObj !== null ? idOrObj.id : idOrObj;
+    const data = typeof idOrObj === 'object' && idOrObj !== null ? idOrObj.data : maybeData;
     const response = await selfAssessmentService.saveDraft(id, data);
     dispatch(selfAssessmentSlice.actions.updateItem(response));
+    dispatch(selfAssessmentSlice.actions.selectItem(response));
     return response;
   } catch (error) {
     throw error;
   }
 };
 
-export const resetSelfAssessmentToDraft = (id) => async (dispatch) => {
+export const resetSelfAssessmentToDraft = (idOrObj) => async (dispatch) => {
   try {
+    const id = typeof idOrObj === 'object' && idOrObj !== null ? idOrObj.id : idOrObj;
     const response = await selfAssessmentService.resetToDraft(id);
     dispatch(selfAssessmentSlice.actions.updateItem(response));
     return response;
@@ -53,7 +59,7 @@ export const resetSelfAssessmentToDraft = (id) => async (dispatch) => {
 export const softDeleteSelfAssessment = (id) => async (dispatch) => {
   try {
     const response = await selfAssessmentService.softDelete(id);
-    dispatch(selfAssessmentSlice.actions.remove(id));
+    dispatch(selfAssessmentSlice.actions.removeItem(id));
     return response;
   } catch (error) {
     throw error;

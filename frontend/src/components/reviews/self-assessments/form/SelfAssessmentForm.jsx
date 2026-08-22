@@ -13,7 +13,7 @@ import SelfAssessmentHelpGuide from './SelfAssessmentHelpGuide';
 const SelfAssessmentForm = () => {
   const navigate = useNavigate();
   const { mySelfAssessment, loading, error, fetchMy, submit, saveDraft, resetToDraft } = useSelfAssessment();
-  const { activeCycle } = useCycles();
+  const { activeCycle, fetchActiveCycle } = useCycles();
   const [formData, setFormData] = useState({
     overall_comment: '',
     strengths: '',
@@ -32,13 +32,23 @@ const SelfAssessmentForm = () => {
   const [autosaveStatus, setAutosaveStatus] = useState('');
   const [showGuide, setShowGuide] = useState(true);
 
+  const effectiveCycle = activeCycle || (mySelfAssessment?.review_cycle ? {
+    id: mySelfAssessment.review_cycle,
+    name: mySelfAssessment.review_cycle_name,
+    self_assessment_deadline: mySelfAssessment.self_assessment_deadline || mySelfAssessment.review_cycle_deadline,
+    allow_self_assessment_edit: true,
+  } : null);
+
   const isSubmitted = mySelfAssessment?.status === 'submitted';
   const isDraft = mySelfAssessment?.status === 'draft' || !mySelfAssessment;
-  const canEdit = isDraft || (activeCycle ? activeCycle.allow_self_assessment_edit : false);
+  const canEdit = isDraft || (effectiveCycle ? effectiveCycle.allow_self_assessment_edit : false);
 
   useEffect(() => {
     fetchMy();
-  }, [fetchMy]);
+    if (fetchActiveCycle) {
+      fetchActiveCycle();
+    }
+  }, [fetchMy, fetchActiveCycle]);
 
   useEffect(() => {
     if (mySelfAssessment) {
@@ -105,10 +115,19 @@ const SelfAssessmentForm = () => {
   const handleSaveDraft = async () => {
     setIsSaving(true);
     try {
-      await saveDraft(mySelfAssessment.id, formData);
-      const now = new Date();
-      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      setAutosaveStatus(`Draft saved at ${timeString}`);
+      let targetId = mySelfAssessment?.id;
+      if (!targetId) {
+        const fresh = await fetchMy();
+        targetId = fresh?.id || fresh?.payload?.id;
+      }
+      if (targetId) {
+        await saveDraft(targetId, formData);
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setAutosaveStatus(`Draft saved at ${timeString}`);
+      }
+    } catch (err) {
+      console.error('Failed to save draft:', err);
     } finally {
       setIsSaving(false);
     }
@@ -117,10 +136,20 @@ const SelfAssessmentForm = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await submit(mySelfAssessment.id);
-      navigate('/reviews/self-assessment/view');
+      let targetId = mySelfAssessment?.id;
+      if (!targetId) {
+        const fresh = await fetchMy();
+        targetId = fresh?.id || fresh?.payload?.id;
+      }
+      if (targetId) {
+        await saveDraft(targetId, formData);
+        await submit(targetId);
+        await fetchMy();
+        navigate('/reviews');
+      }
     } catch (error) {
       console.error('Failed to submit:', error);
+      alert('Failed to submit self assessment: ' + (error.response?.data?.error || error.message || 'Unknown error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -135,7 +164,7 @@ const SelfAssessmentForm = () => {
 
   if (loading) return <ReviewLoading size="lg" text="Loading self assessment..." />;
   if (error) return <ReviewError error={error} onRetry={fetchMy} />;
-  if (!activeCycle) {
+  if (!effectiveCycle && !mySelfAssessment) {
     return (
       <div className="self-assessment-no-cycle">
         <AlertCircle size={48} />
@@ -145,7 +174,7 @@ const SelfAssessmentForm = () => {
     );
   }
 
-  if (isSubmitted && !activeCycle.allow_self_assessment_edit) {
+  if (isSubmitted && effectiveCycle && !effectiveCycle.allow_self_assessment_edit) {
     return <SelfAssessmentView assessment={mySelfAssessment} onReset={handleReset} />;
   }
 
@@ -156,10 +185,10 @@ const SelfAssessmentForm = () => {
           <h1 className="self-assessment-form-title">Self Assessment</h1>
           <div className="self-assessment-form-badges">
             <ReviewStatusBadge status={mySelfAssessment?.status || 'draft'} />
-            {activeCycle && (
+            {effectiveCycle?.self_assessment_deadline && (
               <span className="self-assessment-form-deadline">
                 <Clock size={14} />
-                Deadline: {new Date(activeCycle.self_assessment_deadline).toLocaleDateString()}
+                Deadline: {new Date(effectiveCycle.self_assessment_deadline).toLocaleDateString()}
               </span>
             )}
           </div>
@@ -183,17 +212,19 @@ const SelfAssessmentForm = () => {
           {isDraft && (
             <>
               <button
+                type="button"
                 className="btn btn-outline"
                 onClick={handleSaveDraft}
-                disabled={isSaving}
+                disabled={isSaving || isSubmitting}
               >
                 <Save size={18} />
                 {isSaving ? 'Saving...' : 'Save Draft'}
               </button>
               <button
+                type="button"
                 className="btn btn-success"
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isSaving}
               >
                 <Send size={18} />
                 {isSubmitting ? 'Submitting...' : 'Submit'}
@@ -203,6 +234,7 @@ const SelfAssessmentForm = () => {
           {isSubmitted && canEdit && (
             <>
               <button
+                type="button"
                 className="btn btn-outline"
                 onClick={handleReset}
               >
@@ -210,9 +242,10 @@ const SelfAssessmentForm = () => {
                 Reset to Draft
               </button>
               <button
+                type="button"
                 className="btn btn-success"
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isSaving}
               >
                 <Send size={18} />
                 {isSubmitting ? 'Submitting...' : 'Resubmit'}
@@ -226,7 +259,7 @@ const SelfAssessmentForm = () => {
         <div className="self-assessment-form-content">
           <SelfAssessmentProgress
             assessment={mySelfAssessment}
-            cycle={activeCycle}
+            cycle={effectiveCycle}
           />
 
         <div className="self-assessment-form-sections">

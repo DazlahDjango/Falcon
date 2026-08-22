@@ -114,7 +114,7 @@ export const selectCyclesPagination = (state) => selectCyclesState(state)?.pagin
 export const selectCyclesFilters = (state) => selectCyclesState(state)?.filters ?? {};
 export const selectActiveCycle = (state) => selectCyclesState(state)?.activeCycle;
 export const selectCycleProgress = (state) => selectCyclesState(state)?.progress;
-export const selectCycleParticipants = (state) => selectCyclesState(state)?.participants;
+export const selectCycleParticipants = (state) => selectCyclesState(state)?.participants ?? [];
 export const selectCycleSummary = (state) => selectCyclesState(state)?.summary;
 
 // Memoized Cycle Selectors
@@ -159,8 +159,14 @@ export const selectSelfAssessmentsError = (state) => selectSelfAssessmentsState(
 export const selectSelfAssessmentStats = (state) => selectSelfAssessmentsState(state)?.stats;
 
 export const selectMySelfAssessment = createSelector(
-  [selectAllSelfAssessments, (state) => state.auth?.user?.id],
-  (assessments, userId) => assessments.find((item) => item.employee === userId)
+  [selectSelectedSelfAssessment, selectAllSelfAssessments, (state) => state.auth?.user?.id],
+  (selected, assessments, userId) => {
+    if (selected) return selected;
+    if (userId && assessments.length > 0) {
+      return assessments.find((item) => String(item.employee) === String(userId)) || null;
+    }
+    return assessments[0] || null;
+  }
 );
 
 export const selectPendingSelfAssessments = createSelector(
@@ -189,17 +195,22 @@ export const selectSupervisorReviewsError = (state) => selectSupervisorReviewsSt
 export const selectSupervisorReviewComparison = (state) => selectSupervisorReviewsState(state)?.comparison;
 export const selectSupervisorReviewStats = (state) => selectSupervisorReviewsState(state)?.stats;
 
-export const selectMyReviewQueue = createSelector(
-  [selectAllSupervisorReviews, (state) => state.auth?.user?.id],
-  (reviews, userId) => reviews.filter((item) => 
-    item.supervisor === userId && item.status === 'submitted'
-  )
-);
+export const selectMyReviewQueue = (state) => {
+  const sliceState = selectSupervisorReviewsState(state);
+  const queue = sliceState?.myQueue;
+  if (Array.isArray(queue)) return queue;
+  if (Array.isArray(queue?.results)) return queue.results;
+  return Array.isArray(sliceState?.items) ? sliceState.items : [];
+};
 
-export const selectPendingApprovals = createSelector(
-  [selectAllSupervisorReviews],
-  (reviews) => reviews.filter((item) => item.status === 'pending_approval' || item.status === 'submitted')
-);
+export const selectPendingApprovals = (state) => {
+  const sliceState = selectSupervisorReviewsState(state);
+  const approvals = sliceState?.pendingApprovals;
+  if (Array.isArray(approvals)) return approvals;
+  if (Array.isArray(approvals?.results)) return approvals.results;
+  const reviews = selectAllSupervisorReviews(state) || [];
+  return reviews.filter((item) => item.status === 'pending_approval' || item.status === 'submitted');
+};
 
 export const selectApprovedReviews = createSelector(
   [selectAllSupervisorReviews],

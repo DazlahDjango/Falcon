@@ -18,6 +18,7 @@ const CycleCompetencyEditor = ({ competencies = [], onChange }) => {
     onChange([
       ...competencies,
       {
+        competency: selectedCompetency,
         competency_id: selectedCompetency,
         competency_name: comp.name,
         weight: comp.default_weight || 10,

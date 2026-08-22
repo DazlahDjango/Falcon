@@ -3,11 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from django.db import models
-from apps.reviews.models import SelfAssessment, ReviewCycle
+from apps.reviews.models import SelfAssessment, ReviewCycle, SupervisorReview
 from apps.reviews.services.cycle.cycle_service import CycleService
 from apps.reviews.services.assessment.self_assessment_service import SelfAssessmentService
 from apps.reviews.api.v1.serializers import SelfAssessmentSerializer, SelfAssessmentDetailSerializer, SelfAssessmentSubmitSerializer
 from .base_views import BaseReviewViewSet
+from apps.reviews.api.v1.permissions.base_permissions import IsAuthenticated, IsAdminOnly
 from apps.accounts.constants import UserRoles
 
 class SelfAssessmentViewSet(BaseReviewViewSet):
@@ -15,10 +16,10 @@ class SelfAssessmentViewSet(BaseReviewViewSet):
     def get_serializer_class(self):
         return SelfAssessmentDetailSerializer if self.action == 'retrieve' else SelfAssessmentSerializer
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'save_draft']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.STAFF, UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
-        elif self.action == 'submit':
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.STAFF, UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+        if self.action in ['destroy', 'reset_to_draft']:
+            self.permission_classes = [IsAdminOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(employee=self.request.user, tenant_id=self.request.user.tenant_id)
@@ -36,6 +37,18 @@ class SelfAssessmentViewSet(BaseReviewViewSet):
         assessment.status = 'submitted'
         assessment.submitted_at = timezone.now()
         assessment.save()
+        supervisor = getattr(assessment.employee, 'manager', None) or getattr(assessment.employee, 'supervisor', None)
+        if supervisor:
+            SupervisorReview.objects.get_or_create(
+                employee=assessment.employee,
+                review_cycle=assessment.review_cycle,
+                defaults={
+                    'supervisor': supervisor,
+                    'self_assessment': assessment,
+                    'status': 'submitted',
+                    'tenant_id': assessment.tenant_id
+                }
+            )
         from apps.reviews.services.notification.notification_service import NotificationService
         NotificationService.notify_supervisor_review_ready(assessment)
         return Response(self.get_serializer(assessment).data)

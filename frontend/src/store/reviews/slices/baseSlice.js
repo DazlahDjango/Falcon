@@ -131,6 +131,37 @@ export const createCrudSlice = (name, service, options = {}) => {
       selectItem: (state, action) => {
         state.selectedItem = action.payload;
       },
+      updateItem: (state, action) => {
+        if (action.payload) {
+          state.selectedItem = action.payload;
+          if (Array.isArray(state.items)) {
+            const index = state.items.findIndex(
+              (item) => String(item.id) === String(action.payload.id)
+            );
+            if (index !== -1) {
+              state.items[index] = action.payload;
+            } else {
+              state.items.unshift(action.payload);
+            }
+          }
+        }
+      },
+      addItem: (state, action) => {
+        if (action.payload && Array.isArray(state.items)) {
+          state.items.unshift(action.payload);
+        }
+      },
+      removeItem: (state, action) => {
+        const id = typeof action.payload === 'object' && action.payload !== null
+          ? action.payload.id
+          : action.payload;
+        if (Array.isArray(state.items)) {
+          state.items = state.items.filter((item) => String(item.id) !== String(id));
+        }
+        if (state.selectedItem && String(state.selectedItem.id) === String(id)) {
+          state.selectedItem = null;
+        }
+      },
       clearSelected: (state) => {
         state.selectedItem = null;
       },

@@ -3,15 +3,22 @@ from django.utils import timezone
 from apps.reviews.models import PIP, PIPAction, PIPReview
 from .base_serializers import BaseTenantSerializer
 
-class PIPActionSerializer(BaseTenantSerializer):
+class PIPActionSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     priority_display = serializers.CharField(source='get_priority_display', read_only=True)
     is_overdue = serializers.SerializerMethodField()
     evidence_url = serializers.SerializerMethodField()
     def get_is_overdue(self, obj):
-        if obj.status in ['completed', 'waived']:
+        if obj.status in ['completed', 'waived'] or not obj.due_date:
             return False
-        return obj.due_date < timezone.now().date()
+        due_date = obj.due_date
+        if isinstance(due_date, str):
+            from datetime import date
+            try:
+                due_date = date.fromisoformat(due_date.split('T')[0])
+            except Exception:
+                return False
+        return due_date < timezone.now().date()
     def get_evidence_url(self, obj):
         return obj.evidence.url if obj.evidence else None
     class Meta:
@@ -20,16 +27,15 @@ class PIPActionSerializer(BaseTenantSerializer):
             'id', 'pip', 'title', 'description', 'priority', 'priority_display',
             'due_date', 'completed_at', 'status', 'status_display', 'progress_notes',
             'requires_evidence', 'evidence', 'evidence_url', 'evidence_verified_by',
-            'evidence_verified_at', 'manager_notes', 'employee_notes', 'is_overdue',
-            'created_at', 'updated_at'
+            'evidence_verified_at', 'manager_notes', 'employee_notes', 'is_overdue'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'completed_at', 'evidence_verified_at']
+        read_only_fields = ['id', 'completed_at', 'evidence_verified_at']
 
 class PIPActionCompleteSerializer(serializers.Serializer):
     evidence = serializers.FileField(required=False)
     notes = serializers.CharField(required=False, allow_blank=True)
 
-class PIPReviewSerializer(BaseTenantSerializer):
+class PIPReviewSerializer(serializers.ModelSerializer):
     rating_display = serializers.CharField(source='get_rating_display', read_only=True)
     reviewer_name = serializers.CharField(source='reviewer.get_full_name', read_only=True)
     employee_name = serializers.CharField(source='employee.get_full_name', read_only=True)
@@ -38,10 +44,9 @@ class PIPReviewSerializer(BaseTenantSerializer):
         fields = [
             'id', 'pip', 'reviewer', 'reviewer_name', 'employee', 'employee_name',
             'review_date', 'rating', 'rating_display', 'summary', 'accomplishments',
-            'challenges', 'action_items', 'employee_attended', 'employee_signature',
-            'created_at', 'updated_at'
+            'challenges', 'action_items', 'employee_attended', 'employee_signature'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id']
 
 class PIPSerializer(BaseTenantSerializer):
     employee_name = serializers.CharField(source='employee.get_full_name', read_only=True)
@@ -61,6 +66,14 @@ class PIPSerializer(BaseTenantSerializer):
         if obj.status == 'completed':
             return 0
         effective_end = obj.extended_to_date or obj.end_date
+        if not effective_end:
+            return 0
+        if isinstance(effective_end, str):
+            from datetime import date
+            try:
+                effective_end = date.fromisoformat(effective_end.split('T')[0])
+            except Exception:
+                return 0
         today = timezone.now().date()
         if today > effective_end:
             return 0
@@ -75,6 +88,14 @@ class PIPSerializer(BaseTenantSerializer):
         if obj.status == 'completed':
             return False
         effective_end = obj.extended_to_date or obj.end_date
+        if not effective_end:
+            return False
+        if isinstance(effective_end, str):
+            from datetime import date
+            try:
+                effective_end = date.fromisoformat(effective_end.split('T')[0])
+            except Exception:
+                return False
         return timezone.now().date() > effective_end
     class Meta:
         model = PIP
@@ -103,6 +124,7 @@ class PIPDetailSerializer(PIPSerializer):
 class PIPCreateSerializer(PIPSerializer):
     actions = PIPActionSerializer(many=True, required=False)
     class Meta(PIPSerializer.Meta):
+        fields = PIPSerializer.Meta.fields + ['actions']
         read_only_fields = ['id', 'created_at', 'updated_at', 'status']
 
 class PIPApproveSerializer(serializers.Serializer):

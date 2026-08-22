@@ -27,16 +27,27 @@ const TemplateSectionEditor = ({ sections = [], requiredSections = [], onChange 
     { value: 'bonus_recommendation', label: 'Bonus Recommendation' },
   ];
 
+  const [isCustomMode, setIsCustomMode] = useState(false);
+  const [customSectionName, setCustomSectionName] = useState('');
   const [isNewRequired, setIsNewRequired] = useState(true);
 
   const addSection = () => {
-    if (!newSection.trim()) return;
-    const updated = [...sections, newSection];
+    const sectionToAdd = isCustomMode ? customSectionName.trim() : newSection.trim();
+    if (!sectionToAdd) return;
+    if (sections.includes(sectionToAdd)) {
+      alert('This section is already added.');
+      return;
+    }
+    const updated = [...sections, sectionToAdd];
     const updatedRequired = isNewRequired
-      ? (requiredSections.includes(newSection) ? requiredSections : [...requiredSections, newSection])
-      : requiredSections.filter((s) => s !== newSection);
+      ? (requiredSections.includes(sectionToAdd) ? requiredSections : [...requiredSections, sectionToAdd])
+      : requiredSections.filter((s) => s !== sectionToAdd);
     onChange(updated, updatedRequired);
-    setNewSection('');
+    if (isCustomMode) {
+      setCustomSectionName('');
+    } else {
+      setNewSection('');
+    }
   };
 
   const removeSection = (index) => {
@@ -61,32 +72,69 @@ const TemplateSectionEditor = ({ sections = [], requiredSections = [], onChange 
 
   return (
     <div className="template-section-editor">
-      <h3 className="template-section-editor-title">Sections</h3>
-      <p className="template-section-editor-subtitle">
-        Add appraisal form sections and toggle whether they are required or optional.
-      </p>
+      <div className="template-section-editor-header">
+        <div>
+          <h3 className="template-section-editor-title">Sections</h3>
+          <p className="template-section-editor-subtitle">
+            Add standard or custom company appraisal sections.
+          </p>
+        </div>
+      </div>
+
+      <div className="template-section-mode-toggle">
+        <button
+          type="button"
+          className={`template-mode-btn ${!isCustomMode ? 'active' : ''}`}
+          onClick={() => setIsCustomMode(false)}
+        >
+          Standard List
+        </button>
+        <button
+          type="button"
+          className={`template-mode-btn ${isCustomMode ? 'active' : ''}`}
+          onClick={() => setIsCustomMode(true)}
+        >
+          + Custom Section
+        </button>
+      </div>
 
       <div className="template-section-editor-add-container">
         <div className="template-section-editor-add">
-          <select
-            className="template-section-editor-select"
-            value={newSection}
-            onChange={(e) => setNewSection(e.target.value)}
-          >
-            <option value="">Select a section to add...</option>
-            {availableSections
-              .filter((s) => !sections.includes(s.value))
-              .map((section) => (
-                <option key={section.value} value={section.value}>
-                  {section.label}
-                </option>
-              ))}
-          </select>
+          {!isCustomMode ? (
+            <select
+              className="template-section-editor-select"
+              value={newSection}
+              onChange={(e) => setNewSection(e.target.value)}
+            >
+              <option value="">Select a standard section...</option>
+              {availableSections
+                .filter((s) => !sections.includes(s.value))
+                .map((section) => (
+                  <option key={section.value} value={section.value}>
+                    {section.label}
+                  </option>
+                ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              className="template-section-editor-input"
+              value={customSectionName}
+              onChange={(e) => setCustomSectionName(e.target.value)}
+              placeholder="e.g. Safety & Compliance, Client CSAT..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addSection();
+                }
+              }}
+            />
+          )}
           <button
             type="button"
             className="btn btn-primary btn-sm"
             onClick={addSection}
-            disabled={!newSection}
+            disabled={isCustomMode ? !customSectionName.trim() : !newSection}
           >
             <Plus size={16} />
             Add

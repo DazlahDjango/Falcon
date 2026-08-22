@@ -29,16 +29,35 @@ class DatabaseDumpService:
         db_password = db_config.get('PASSWORD', '')
         if db_password:
             env['PGPASSWORD'] = str(db_password)
-        return env, db_config
+
+        # Resolve host & port for pg_dump / pg_restore:
+        # pg_dump and pg_restore require direct connection to PostgreSQL (port 5432)
+        # because PgBouncer in transaction mode (port 6432) does not support dump/restore sessions.
+        host = getattr(settings, 'DB_DIRECT_HOST', None) or os.environ.get('DB_DIRECT_HOST') or db_config.get('HOST', 'localhost') or 'localhost'
+        port = getattr(settings, 'DB_DIRECT_PORT', None) or os.environ.get('DB_DIRECT_PORT')
+        if not port:
+            configured_port = str(db_config.get('PORT', 5432) or 5432)
+            if configured_port == '6432':  # PgBouncer port
+                port = '5432'              # Bypass PgBouncer for direct Postgres connection
+            else:
+                port = configured_port
+
+        db_info = {
+            'HOST': host,
+            'PORT': str(port),
+            'USER': db_config.get('USER', 'postgres'),
+            'NAME': db_config.get('NAME', ''),
+        }
+        return env, db_info
 
     def dump_tenant_schema(self, schema_name: str, output_file_path: str) -> bool:
         env, db_config = self._get_db_env()
         cmd = [
             'pg_dump',
-            '-h', db_config.get('HOST', 'localhost') or 'localhost',
-            '-p', str(db_config.get('PORT', 5432) or 5432),
-            '-U', db_config.get('USER', 'postgres'),
-            '-d', db_config.get('NAME', ''),
+            '-h', db_config['HOST'],
+            '-p', db_config['PORT'],
+            '-U', db_config['USER'],
+            '-d', db_config['NAME'],
             '-n', schema_name,
             '-F', 'c',
             '-f', output_file_path
@@ -61,10 +80,10 @@ class DatabaseDumpService:
         env, db_config = self._get_db_env()
         cmd = [
             'pg_dump',
-            '-h', db_config.get('HOST', 'localhost') or 'localhost',
-            '-p', str(db_config.get('PORT', 5432) or 5432),
-            '-U', db_config.get('USER', 'postgres'),
-            '-d', db_config.get('NAME', ''),
+            '-h', db_config['HOST'],
+            '-p', db_config['PORT'],
+            '-U', db_config['USER'],
+            '-d', db_config['NAME'],
             '-t', table_name,
             '-F', 'c',
         ]
@@ -84,10 +103,10 @@ class DatabaseDumpService:
         env, db_config = self._get_db_env()
         cmd = [
             'pg_restore',
-            '-h', db_config.get('HOST', 'localhost') or 'localhost',
-            '-p', str(db_config.get('PORT', 5432) or 5432),
-            '-U', db_config.get('USER', 'postgres'),
-            '-d', db_config.get('NAME', ''),
+            '-h', db_config['HOST'],
+            '-p', db_config['PORT'],
+            '-U', db_config['USER'],
+            '-d', db_config['NAME'],
             '--clean',
             '--if-exists',
         ]

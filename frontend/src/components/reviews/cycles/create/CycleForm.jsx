@@ -3,7 +3,8 @@ import React, { useEffect } from 'react';
 import { useRatingScales } from '../../../../hooks/reviews';
 
 const CycleForm = ({ data, onChange }) => {
-  const { activeScales: ratingScales = [], fetchAll: fetchRatingScales } = useRatingScales();
+  const { data: allScales = [], activeScales = [], fetchAll: fetchRatingScales } = useRatingScales();
+  const ratingScales = activeScales && activeScales.length > 0 ? activeScales : allScales;
 
   useEffect(() => {
     fetchRatingScales();
@@ -11,7 +12,7 @@ const CycleForm = ({ data, onChange }) => {
 
   // Auto-select standard default rating scale if available
   useEffect(() => {
-    if (!data.rating_scale && ratingScales.length > 0) {
+    if (!data.rating_scale && ratingScales && ratingScales.length > 0) {
       const defaultScale = ratingScales.find(s => s.is_default) || ratingScales[0];
       if (defaultScale) {
         onChange({ rating_scale: defaultScale.id });

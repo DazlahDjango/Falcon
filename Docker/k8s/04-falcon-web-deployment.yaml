@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: falcon-web
+  namespace: falcon-pms
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: falcon-web
+  template:
+    metadata:
+      labels:
+        app: falcon-web
+    spec:
+      containers:
+        - name: falcon-web
+          image: falcon-pms:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: falcon-config
+            - secretRef:
+                name: falcon-secrets
+          env:
+            - name: CONTAINER_ROLE
+              value: "primary_web"
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: falcon-web-service
+  namespace: falcon-pms
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: falcon-web
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: falcon-web-hpa
+  namespace: falcon-pms
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: falcon-web
+  minReplicas: 3
+  maxReplicas: 15
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

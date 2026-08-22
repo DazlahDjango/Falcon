@@ -7,7 +7,7 @@ from .base_views import BaseReviewViewSet
 from apps.reviews.api.v1.permissions import IsAdminOnly
 
 class ReviewTemplateViewSet(BaseReviewViewSet):
-    queryset = ReviewTemplate.objects.all()
+    queryset = ReviewTemplate.objects.select_related('tenant', 'created_by').all()
     def get_serializer_class(self):
         return ReviewTemplateListSerializer if self.action == 'list' else ReviewTemplateSerializer
     def get_permissions(self):
@@ -15,7 +15,16 @@ class ReviewTemplateViewSet(BaseReviewViewSet):
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
-        serializer.save(tenant_id=self.request.user.tenant_id, created_by=self.request.user)
+        tenant = getattr(self.request.user, 'tenant', None)
+        if not tenant:
+            tenant_id = getattr(self.request.user, 'tenant_id', None)
+            if tenant_id:
+                from apps.tenant.models import Organization
+                tenant = Organization.objects.filter(id=tenant_id).first()
+            if not tenant:
+                from apps.tenant.models import Organization
+                tenant = Organization.objects.first()
+        serializer.save(tenant=tenant, created_by=self.request.user)
     @action(detail=True, methods=['post'])
     def set_default(self, request, pk=None):
         template = self.get_object()

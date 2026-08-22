@@ -423,6 +423,84 @@ class NotificationService(BaseReviewService):
             email_template='reviews/email/promotion_rejected.html',
             email_context={'promotion': promotion, 'reason': reason}
         )
+
+    @staticmethod
+    def notify_feedback_reminder(feedback_request):
+        """
+        Notify reviewer that a 360 feedback request is awaiting their input.
+        """
+        try:
+            NotificationService._send_notification(
+                user=feedback_request.reviewer,
+                notification_type='feedback_reminder',
+                title="Reminder: 360 Feedback Request",
+                message=f"You have a pending 360-degree feedback request for {feedback_request.subject.get_full_name()}.",
+                link=f"/reviews/feedback/{feedback_request.id}/",
+                email_template='reviews/email/feedback_reminder.html',
+                email_context={'feedback_request': feedback_request}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send feedback reminder notification: {e}")
+
+    @staticmethod
+    def notify_calibration_invited(session, participant):
+        try:
+            NotificationService._send_notification(
+                user=participant,
+                notification_type='calibration_invited',
+                title="Calibration Session Invitation",
+                message=f"You are invited to the calibration session: {session.name}.",
+                link=f"/reviews/calibration/sessions/{session.id}/",
+                email_template='reviews/email/calibration_invited.html',
+                email_context={'session': session}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send calibration invitation notification: {e}")
+
+    @staticmethod
+    def notify_calibration_completed(session, participant):
+        try:
+            NotificationService._send_notification(
+                user=participant,
+                notification_type='calibration_completed',
+                title="Calibration Session Completed",
+                message=f"The calibration session {session.name} has concluded.",
+                link=f"/reviews/calibration/sessions/{session.id}/",
+                email_template='reviews/email/calibration_completed.html',
+                email_context={'session': session}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send calibration completed notification: {e}")
+
+    @staticmethod
+    def notify_promotion_approved(promotion):
+        try:
+            NotificationService._send_notification(
+                user=promotion.employee,
+                notification_type='promotion_approved',
+                title="Promotion Approved",
+                message=f"Congratulations! Your promotion to {promotion.proposed_title or 'a new role'} has been approved.",
+                link=f"/reviews/promotions/{promotion.id}/",
+                email_template='reviews/email/promotion_approved.html',
+                email_context={'promotion': promotion}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send promotion approved notification: {e}")
+
+    @staticmethod
+    def notify_promotion_rejected(promotion, reason=""):
+        try:
+            NotificationService._send_notification(
+                user=promotion.recommended_by or promotion.employee,
+                notification_type='promotion_rejected',
+                title="Promotion Recommendation Update",
+                message=f"The promotion recommendation for {promotion.employee.get_full_name()} was not approved. {reason}".strip(),
+                link=f"/reviews/promotions/{promotion.id}/",
+                email_template='reviews/email/promotion_rejected.html',
+                email_context={'promotion': promotion, 'reason': reason}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send promotion rejected notification: {e}")
     
     # ========== Helper Methods ==========
     

@@ -14,6 +14,8 @@ in that request transparently hit the correct schema.
 import logging
 from django.utils.deprecation import MiddlewareMixin
 from django.db import connection
+from django.core.cache import cache
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -42,30 +44,45 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
         if hasattr(request, '_schema_path_set'):
             try:
                 with connection.cursor() as cursor:
-                    cursor.execute('SET search_path TO "public"; SET app.current_tenant_id = \'\';')
+                    cursor.execute('SET search_path TO "public"; SELECT set_config(\'app.current_tenant_id\', \'\', true);')
             except Exception as e:
                 logger.debug(f"Could not reset search_path / tenant session to public: {e}")
         return response
 
+    def _get_schema_name(self, tenant_id):
+        cache_key = f"tenant_schema_name:{tenant_id}"
+        schema_name = cache.get(cache_key)
+        if not schema_name:
+            try:
+                from apps.tenant.models import Organization
+                org = Organization.objects.filter(id=tenant_id, is_active=True).first()
+                if org and hasattr(org, 'schema_name') and org.schema_name:
+                    schema_name = org.schema_name
+                    ttl = getattr(settings, 'TENANT_SCHEMA_CACHE_TTL', 300)
+                    cache.set(cache_key, schema_name, timeout=ttl)
+            except Exception as e:
+                logger.warning(f"[DBRouting] Error fetching schema_name for tenant {tenant_id}: {e}")
+        return schema_name
+
     def _set_schema_path(self, tenant_id):
         """
         Resolve the Organisation's schema_name and set PostgreSQL search_path and app.current_tenant_id for RLS policies.
-        Uses org.schema_name property (e.g. 'org_airtel') not org.slug.
+        Uses cached org.schema_name (e.g. 'org_airtel') and transaction-scoped set_config for PgBouncer compatibility.
         """
-        from apps.tenant.models import Organization
+        schema_name = self._get_schema_name(tenant_id)
+        if not schema_name:
+            return False
+
         try:
-            org = Organization.objects.filter(id=tenant_id, is_active=True).first()
-            if not org:
-                logger.debug(f"[DBRouting] No active org for tenant_id={tenant_id}")
-                return False
-            schema_name = org.schema_name   # e.g. 'org_airtel'
             with connection.cursor() as cursor:
                 cursor.execute(f'SET search_path TO "{schema_name}", public')
-                cursor.execute("SELECT set_config('app.current_tenant_id', %s, false)", [str(tenant_id)])
+                # 3rd argument 'true' scopes setting to local transaction (PgBouncer transaction mode safe)
+                cursor.execute("SELECT set_config('app.current_tenant_id', %s, true)", [str(tenant_id)])
                 logger.debug(f"[DBRouting] search_path → {schema_name}, app.current_tenant_id → {tenant_id}")
             return True
         except Exception as e:
             logger.warning(f"[DBRouting] Could not set schema path or RLS context: {e}")
             return False
+
 
 

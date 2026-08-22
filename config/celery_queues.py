@@ -36,6 +36,10 @@ task_queues = [
     Queue('health_check', Exchange('health_check'), routing_key='health_check'),
     Queue('scheduler', Exchange('scheduler'), routing_key='scheduler'),
     Queue('realtime', Exchange('realtime'), routing_key='realtime.#', consumer_arguments={'prefetch_count': 1}),
+    Queue('reportplt_export', Exchange('reportplt_export'), routing_key='reportplt_export'),
+    Queue('reportplt_scheduler', Exchange('reportplt_scheduler'), routing_key='reportplt_scheduler'),
+    Queue('reportplt_cleanup', Exchange('reportplt_cleanup'), routing_key='reportplt_cleanup'),
+    Queue('organization', Exchange('organization'), routing_key='organization.#'),
 ]
 
 task_default_queue = 'default'

@@ -1,6 +1,6 @@
 // src/hooks/reviews/useCycles.js
 import { useSelector, useDispatch } from 'react-redux';
-import { useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import {
   selectAllCycles,
   selectCyclesLoading,
@@ -43,7 +43,8 @@ import {
 } from '../../store/reviews/slices/cycle.slice';
 import useReviewsPermissions from './useReviewsPermissions';
 
-const useCycles = () => {
+const useCycles = (options = {}) => {
+  const { autoFetch = false } = typeof options === 'boolean' ? { autoFetch: options } : options;
   const dispatch = useDispatch();
   const permissions = useReviewsPermissions();
 
@@ -74,41 +75,41 @@ const useCycles = () => {
   );
 
   const create = useCallback(
-    (data) => {
+    async (data) => {
       if (!permissions.canCreateCycle) {
         throw new Error('You do not have permission to create review cycles');
       }
-      return dispatch(createCycle(data));
+      return await dispatch(createCycle(data)).unwrap();
     },
     [dispatch, permissions.canCreateCycle]
   );
 
   const update = useCallback(
-    (id, data) => {
+    async (id, data) => {
       if (!permissions.canUpdateCycle) {
         throw new Error('You do not have permission to update review cycles');
       }
-      return dispatch(updateCycle({ id, data }));
+      return await dispatch(updateCycle({ id, data })).unwrap();
     },
     [dispatch, permissions.canUpdateCycle]
   );
 
   const patch = useCallback(
-    (id, data) => {
+    async (id, data) => {
       if (!permissions.canUpdateCycle) {
         throw new Error('You do not have permission to update review cycles');
       }
-      return dispatch(patchCycle({ id, data }));
+      return await dispatch(patchCycle({ id, data })).unwrap();
     },
     [dispatch, permissions.canUpdateCycle]
   );
 
   const remove = useCallback(
-    (id) => {
+    async (id) => {
       if (!permissions.canDeleteCycle) {
         throw new Error('You do not have permission to delete review cycles');
       }
-      return dispatch(deleteCycle(id));
+      return await dispatch(deleteCycle(id)).unwrap();
     },
     [dispatch, permissions.canDeleteCycle]
   );
@@ -228,6 +229,13 @@ const useCycles = () => {
     [dispatch]
   );
 
+  // Auto-fetch if requested
+  useEffect(() => {
+    if (autoFetch) {
+      fetchAll();
+    }
+  }, [autoFetch, fetchAll]);
+
   // Computed
   const canManage = useMemo(
     () => permissions.canManageCycles,
@@ -242,6 +250,8 @@ const useCycles = () => {
   return {
     // Data
     data,
+    cycles: data,
+    items: data,
     loading,
     error,
     selected,
@@ -257,25 +267,44 @@ const useCycles = () => {
 
     // CRUD Operations
     fetchAll,
+    fetchCycles: fetchAll,
     fetchOne,
+    fetchCycle: fetchOne,
+    getCycle: fetchOne,
     create,
     update,
     patch,
     remove,
+    createCycle: create,
+    updateCycle: update,
+    deleteCycle: remove,
+    extendCycle: extend,
 
     // Actions
     activate,
+    activateCycle: activate,
     freeze,
+    freezeCycle: freeze,
     complete,
+    completeCycle: complete,
+    closeCycle: complete,
     forceComplete,
+    forceCompleteCycle: forceComplete,
     archive,
+    archiveCycle: archive,
     unarchive,
+    unarchiveCycle: unarchive,
     extend,
     getProgress,
+    fetchCycleProgress: getProgress,
     getParticipants,
+    fetchCycleParticipants: getParticipants,
     getSummary,
+    fetchCycleSummary: getSummary,
     getActive,
+    fetchActiveCycle: getActive,
     sendReminders,
+    sendCycleReminders: sendReminders,
     reset,
     setFilters,
     clearFilters,
@@ -288,7 +317,7 @@ const useCycles = () => {
     // Utilities
     isEmpty: data.length === 0,
     totalCount: data.length,
-    getById: (id) => data.find((item) => item.id === id),
+    getById: (id) => data.find((item) => String(item.id) === String(id)),
     getByType: (type) => data.filter((item) => item.cycle_type === type),
   };
 };

@@ -22,6 +22,8 @@ class CanParticipateInCalibration(BasePermission):
         return user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]
 
 class CanFacilitateCalibration(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
     def has_object_permission(self, request, view, obj):
         user = request.user
         if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:

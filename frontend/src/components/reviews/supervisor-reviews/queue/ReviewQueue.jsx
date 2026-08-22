@@ -33,7 +33,10 @@ const ReviewQueue = () => {
     navigate(`/reviews/supervisor-reviews/${id}`);
   }, [navigate]);
 
-  const filteredQueue = myQueue.filter((item) => {
+  const queueList = Array.isArray(myQueue) ? myQueue : (myQueue?.results || []);
+  console.log('[ReviewQueue] Loaded queueList:', queueList.length, queueList);
+
+  const filteredQueue = queueList.filter((item) => {
     // 1. Search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();

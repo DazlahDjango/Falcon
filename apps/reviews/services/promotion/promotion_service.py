@@ -16,7 +16,8 @@ class PromotionService(BaseReviewService):
         existing = PromotionRecommendation.objects.filter(tenant_id=final_rating.tenant_id, employee=final_rating.employee, review_cycle=final_rating.review_cycle).first()
         if existing:
             raise ValidationError("Promotion recommendation already exists for this cycle")
-        promotion_data = {'tenant_id': final_rating.tenant_id, 'employee': final_rating.employee, 'review_cycle': final_rating.review_cycle, 'final_rating': final_rating, 'recommended_by': final_rating.supervisor_review.supervisor if final_rating.supervisor_review else None, 'current_role': final_rating.employee.title or '', 'recommended_role': final_rating.promotion_target_role, 'priority': 'medium', 'justification': final_rating.supervisor_review.overall_comment if final_rating.supervisor_review else '', 'status': 'pending'}
+        employee_title = getattr(final_rating.employee, 'title', None) or getattr(final_rating.employee, 'position', '') or ''
+        promotion_data = {'tenant_id': final_rating.tenant_id, 'employee': final_rating.employee, 'review_cycle': final_rating.review_cycle, 'final_rating': final_rating, 'recommended_by': final_rating.supervisor_review.supervisor if final_rating.supervisor_review else None, 'current_role': employee_title, 'recommended_role': final_rating.promotion_target_role or 'Senior Level', 'priority': 'medium', 'justification': final_rating.supervisor_review.overall_comment if final_rating.supervisor_review else '', 'status': 'pending'}
         if data:
             promotion_data.update(data)
         promotion = PromotionRecommendation.objects.create(**promotion_data)

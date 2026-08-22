@@ -9,7 +9,7 @@ export const fetchCycles = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await reviewCycleService.list(params);
-      return response.results || response;
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -285,11 +285,28 @@ const cycleSlice = createSlice({
       })
       .addCase(fetchCycles.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = Array.isArray(action.payload) ? action.payload : action.payload.results || [];
-        state.pagination.totalItems = action.payload.count || state.items.length;
-        state.pagination.totalPages = Math.ceil(
-          (action.payload.count || state.items.length) / state.pagination.pageSize
-        );
+        const payload = action.payload;
+        if (Array.isArray(payload)) {
+          state.items = payload;
+          state.pagination.totalItems = payload.length;
+          state.pagination.totalPages = Math.ceil(payload.length / (state.pagination.pageSize || 20));
+        } else if (payload && Array.isArray(payload.results)) {
+          state.items = payload.results;
+          state.pagination.totalItems = payload.count !== undefined ? payload.count : payload.results.length;
+          state.pagination.totalPages = Math.ceil((payload.count !== undefined ? payload.count : payload.results.length) / (state.pagination.pageSize || 20));
+        } else if (payload && payload.data && Array.isArray(payload.data.results)) {
+          state.items = payload.data.results;
+          state.pagination.totalItems = payload.data.count !== undefined ? payload.data.count : payload.data.results.length;
+          state.pagination.totalPages = Math.ceil((payload.data.count !== undefined ? payload.data.count : payload.data.results.length) / (state.pagination.pageSize || 20));
+        } else if (payload && Array.isArray(payload.data)) {
+          state.items = payload.data;
+          state.pagination.totalItems = payload.data.length;
+          state.pagination.totalPages = Math.ceil(payload.data.length / (state.pagination.pageSize || 20));
+        } else {
+          state.items = [];
+          state.pagination.totalItems = 0;
+          state.pagination.totalPages = 0;
+        }
       })
       .addCase(fetchCycles.rejected, (state, action) => {
         state.loading = false;
@@ -347,9 +364,12 @@ const cycleSlice = createSlice({
     // Delete
     builder
       .addCase(deleteCycle.fulfilled, (state, action) => {
-        state.items = state.items.filter((item) => item.id !== action.payload);
-        if (state.selectedItem?.id === action.payload) {
+        state.items = state.items.filter((item) => String(item.id) !== String(action.payload));
+        if (String(state.selectedItem?.id) === String(action.payload)) {
           state.selectedItem = null;
+        }
+        if (String(state.activeCycle?.id) === String(action.payload)) {
+          state.activeCycle = null;
         }
       });
 

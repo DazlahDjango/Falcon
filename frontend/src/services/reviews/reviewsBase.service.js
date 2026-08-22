@@ -48,10 +48,11 @@ class BaseReviewsService extends BaseResourceService {
     if (!id) throw new Error('ID is required for action');
     if (!action) throw new Error('Action name is required');
     
-    return this.withRetry(() => 
+    const response = await this.withRetry(() => 
       this.apiClient.post(this.getEndpoint(`${id}/${action}/`), data),
       { logLabel: this.logLabel }
     );
+    return this.unwrap(response);
   }
 
   /**
@@ -60,10 +61,11 @@ class BaseReviewsService extends BaseResourceService {
    * @returns {Promise<Object>} Statistics
    */
   async getStats(params = {}) {
-    return this.withRetry(() => 
+    const response = await this.withRetry(() => 
       this.apiClient.get(this.getEndpoint('stats/'), { params }),
       { logLabel: this.logLabel }
     );
+    return this.unwrap(response);
   }
 
   /**

@@ -11,6 +11,7 @@ from apps.reviews.api.v1.serializers import CalibrationSessionSerializer, Calibr
 from .base_views import BaseReadOnlyReviewViewSet, BaseReviewViewSet
 from apps.accounts.constants import UserRoles
 from apps.reviews.api.v1.permissions import CanFacilitateCalibration
+from apps.reviews.api.v1.permissions.base_permissions import IsAuthenticated, IsAdminOnly
 
 class CalibrationSessionViewSet(BaseReviewViewSet):
     queryset = CalibrationSession.objects.all()
@@ -24,7 +25,9 @@ class CalibrationSessionViewSet(BaseReviewViewSet):
         return CalibrationSessionSerializer
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'start', 'complete', 'add_rating', 'cancel']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsAdminOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(tenant_id=self.request.user.tenant_id)
@@ -73,12 +76,22 @@ class CalibrationSessionViewSet(BaseReviewViewSet):
         serializer = CalibrationRatingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        rating = CalibrationRating.objects.create(calibration_session=session, final_rating_id=data['final_rating'], adjusted_by=request.user, before_score=data['before_score'], after_score=data['after_score'], adjustment_reason=data['adjustment_reason'])
-        rating.final_rating.final_score = data['after_score']
-        rating.final_rating.calibration_adjustment = data['after_score'] - data['before_score']
-        rating.final_rating.calibration_adjustment_reason = data['adjustment_reason']
-        rating.final_rating.status = 'calibrated'
-        rating.final_rating.save()
+        final_rating_val = data['final_rating']
+        from apps.reviews.models import FinalRating
+        final_rating_obj = final_rating_val if isinstance(final_rating_val, FinalRating) else FinalRating.objects.get(id=final_rating_val)
+        rating = CalibrationRating.objects.create(
+            calibration_session=session,
+            final_rating=final_rating_obj,
+            adjusted_by=request.user,
+            before_score=data['before_score'],
+            after_score=data['after_score'],
+            adjustment_reason=data['adjustment_reason']
+        )
+        final_rating_obj.final_score = data['after_score']
+        final_rating_obj.calibration_adjustment = data['after_score'] - data['before_score']
+        final_rating_obj.calibration_adjustment_reason = data['adjustment_reason']
+        final_rating_obj.status = 'calibrated'
+        final_rating_obj.save()
         return Response(CalibrationRatingSerializer(rating).data, status=status.HTTP_201_CREATED)
     @action(detail=True, methods=['post'], url_path='add-comment')
     def add_comment(self, request, pk=None):

@@ -10,6 +10,7 @@ from apps.reviews.services.promotion.promotion_service import PromotionService
 from apps.reviews.api.v1.serializers import FinalRatingSerializer, FinalRatingListSerializer, FinalRatingDetailSerializer, FinalRatingApproveSerializer, FinalRatingLockSerializer, FinalRatingCalibrateSerializer, FinalRatingExportSerializer, RatingDistributionSerializer
 from .base_views import BaseReviewViewSet
 from apps.accounts.constants import UserRoles
+from apps.reviews.api.v1.permissions.base_permissions import IsAuthenticated, IsAdminOnly, IsSupervisorOrAdmin
 
 class FinalRatingViewSet(BaseReviewViewSet):
     queryset = FinalRating.objects.all()
@@ -21,9 +22,11 @@ class FinalRatingViewSet(BaseReviewViewSet):
         return FinalRatingSerializer
     def get_permissions(self):
         if self.action in ['approve', 'lock', 'calibrate', 'recalibrate', 'force_lock']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsAdminOnly]
         elif self.action == 'generate_pip':
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsSupervisorOrAdmin]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -85,6 +88,8 @@ class FinalRatingViewSet(BaseReviewViewSet):
     def recalculate(self, request, pk=None):
         rating = self.get_object()
         rating = FinalRatingService.recalculate_kpi_component(rating.id)
+        rating.status = 'pending'
+        rating.save()
         return Response(self.get_serializer(rating).data)
     @action(detail=True, methods=['post'])
     def generate_pip(self, request, pk=None):

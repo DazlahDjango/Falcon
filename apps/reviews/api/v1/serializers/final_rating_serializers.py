@@ -22,9 +22,9 @@ class FinalRatingSerializer(BaseTenantSerializer):
             'promotion_target_role', 'promotion_timeline', 'bonus_amount', 'bonus_percentage',
             'pip_recommended', 'pip_reason', 'action_outcome', 'action_outcome_display',
             'status', 'status_display', 'approved_by', 'approved_at', 'notes',
-            'previous_version', 'integrity_checksum', 'created_at', 'updated_at'
+            'previous_version', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'approved_at', 'integrity_checksum']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'approved_at']
 
 class FinalRatingListSerializer(FinalRatingSerializer):
     class Meta(FinalRatingSerializer.Meta):

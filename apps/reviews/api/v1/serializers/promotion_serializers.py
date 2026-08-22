@@ -31,6 +31,10 @@ class PromotionRecommendationSerializer(BaseTenantSerializer):
             'days_pending', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'recommended_date', 'approved_at']
+        extra_kwargs = {
+            'final_rating': {'required': False, 'allow_null': True},
+            'current_role': {'required': False, 'allow_blank': True}
+        }
 
 class PromotionRecommendationListSerializer(PromotionRecommendationSerializer):
     class Meta(PromotionRecommendationSerializer.Meta):

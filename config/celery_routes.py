@@ -1,14 +1,26 @@
 task_routes_dict = {
+    # Accounts tasks
+    'accounts.send_*': {'queue': 'email'},
+    'accounts.cleanup_*': {'queue': 'cleanup'},
+    'accounts.unlock_*': {'queue': 'cleanup'},
+    'accounts.remind_*': {'queue': 'email'},
+    'accounts.check_*': {'queue': 'cleanup'},
     'apps.accounts.tasks.send_*': {'queue': 'email'},
     'apps.accounts.tasks.cleanup_*': {'queue': 'cleanup'},
     'apps.accounts.tasks.unlock_*': {'queue': 'cleanup'},
     'apps.accounts.tasks.remind_*': {'queue': 'email'},
     'apps.accounts.tasks.check_*': {'queue': 'cleanup'},
+
+    # Organization / Tenant tasks
+    'organization.*': {'queue': 'organization'},
+
+    # KPI tasks
     'apps.kpi.tasks.calculations.calculate_*': {'queue': 'calculations'},
     'apps.kpi.tasks.calculations.update_traffic_light_task': {'queue': 'calculations'},
     'apps.kpi.tasks.aggregates.update_aggregated_scores_task': {'queue': 'aggregation'},
     'apps.kpi.tasks.aggregates.refresh_materialized_views_task': {'queue': 'analytics'},
     'apps.kpi.tasks.aggregates.precompute_dashboard_cache_task': {'queue': 'dashboard'},
+    'apps.kpi.tasks.dashboard.*': {'queue': 'dashboard'},
     'apps.kpi.tasks.notifications.send_*': {'queue': 'notifications'},
     'apps.kpi.tasks.notifications.*_reminder_task': {'queue': 'notifications'},
     'apps.kpi.tasks.alerts.*_alert_task': {'queue': 'notifications'},
@@ -16,6 +28,9 @@ task_routes_dict = {
     'apps.kpi.tasks.email_tasks.send_*_email_task': {'queue': 'email'},
     'apps.kpi.tasks.cleanup.cleanup_*': {'queue': 'cleanup'},
     'apps.kpi.tasks.cascade.cascade_*': {'queue': 'cascade'},
+    'apps.kpi.tasks.backup.*': {'queue': 'backup'},
+
+    # Reviews tasks
     'apps.reviews.tasks.batch_*': {'queue': 'reviews_batch'},
     'apps.reviews.tasks.*_reminder*': {'queue': 'reviews_notifications'},
     'apps.reviews.tasks.send_*': {'queue': 'reviews_notifications'},
@@ -31,6 +46,8 @@ task_routes_dict = {
     'apps.reviews.tasks.warm_*': {'queue': 'reviews_default'},
     'apps.reviews.tasks.health_*': {'queue': 'reviews_default'},
     'apps.reviews.tasks.*': {'queue': 'reviews_default'},
+
+    # Billing tasks
     'billing.tasks.process_due_renewals': {'queue': 'billing'},
     'billing.tasks.process_expired_trials': {'queue': 'billing'},
     'billing.tasks.apply_pending_plan_changes': {'queue': 'billing'},
@@ -43,6 +60,8 @@ task_routes_dict = {
     'billing.tasks.process_webhook': {'queue': 'webhooks'},
     'billing.tasks.retry_failed_webhooks': {'queue': 'webhooks'},
     'billing.tasks.cleanup_*': {'queue': 'cleanup'},
+
+    # Config app tasks
     'apps.configs.tasks.execute_backup_task': {'queue': 'backup'},
     'apps.configs.tasks.apply_retention_policies_task': {'queue': 'maintenance'},
     'apps.configs.tasks.verify_backups_task': {'queue': 'backup'},
@@ -56,10 +75,21 @@ task_routes_dict = {
     'apps.configs.tasks.restore_*': {'queue': 'restore'},
     'apps.configs.tasks.backup_*': {'queue': 'backup'},
     'apps.configs.tasks.dr_*': {'queue': 'dr'},
+
+    # Structure app tasks
     'structure.tasks.*': {'queue': 'structure'},
     'structure.tasks.export_*': {'queue': 'export'},
     'structure.tasks.warm_*': {'queue': 'cache'},
     'structure.tasks.cache_*': {'queue': 'cache'},
+
+    # Dashboard app tasks
+    'dashboard.warm_*': {'queue': 'dashboard'},
+    'dashboard.process_due_exports': {'queue': 'export'},
+    'dashboard.clean_expired_exports': {'queue': 'cleanup'},
+    'dashboard.check_alerts': {'queue': 'notifications'},
+    'dashboard.send_daily_digest': {'queue': 'email'},
+    'dashboard._send_digest_email': {'queue': 'email'},
+    'dashboard.refresh_tenant_snapshots': {'queue': 'analytics'},
     'apps.dashboard.tasks.warm_*': {'queue': 'dashboard'},
     'apps.dashboard.tasks.warm_all_tenant_dashboards': {'queue': 'dashboard'},
     'apps.dashboard.tasks.rebuild_org_tree_cache': {'queue': 'dashboard'},
@@ -92,11 +122,18 @@ task_routes_dict = {
     'apps.dashboard.tasks.refresh_*': {'queue': 'dashboard'},
     'apps.dashboard.tasks.realtime_*': {'queue': 'realtime'},
     'apps.dashboard.tasks.websocket_*': {'queue': 'realtime'},
+
+    # Notification & Priority tasks
     'notifications.tasks.*': {'queue': 'notification'},
     'priority.*': {'queue': 'priority'},
-    'apps.reportplt.tasks.async_generate_report_task': {'queue': 'reportplt_export'},
-    'apps.reportplt.tasks.process_scheduled_reports_task': {'queue': 'reportplt_scheduler'},
-    'apps.reportplt.tasks.cleanup_expired_reports_task': {'queue': 'reportplt_cleanup'},
+
+    # Report Platform tasks
+    'apps.reportplt.tasks.generate_report_task': {'queue': 'reportplt_export'},
+    'apps.reportplt.tasks.export_report_task': {'queue': 'reportplt_export'},
+    'apps.reportplt.tasks.run_scheduled_report': {'queue': 'reportplt_scheduler'},
+    'apps.reportplt.tasks.run_all_due_schedules': {'queue': 'reportplt_scheduler'},
+    'apps.reportplt.tasks.clean_expired_cache': {'queue': 'reportplt_cleanup'},
+    'apps.reportplt.tasks.clean_old_exports': {'queue': 'reportplt_cleanup'},
     'apps.reportplt.tasks.*': {'queue': 'reportplt_export'},
 }
 

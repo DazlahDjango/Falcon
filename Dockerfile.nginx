@@ -1,0 +1,9 @@
+FROM nginx:1.25-alpine
+
+# Copy custom Nginx Docker load balancer configuration
+COPY config/nginx.docker.conf /etc/nginx/nginx.conf
+
+# Expose ports
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]

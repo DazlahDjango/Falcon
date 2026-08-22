@@ -10,3 +10,5 @@ export { default as EscalationList } from './EscalationList';
 export { default as EscalationDetail } from './EscalationDetail';
 export { default as PendingSummaryCard } from './PendingSummaryCard';
 export { default as ValidationDetail } from './ValidationDetail';
+export { default as ValidationQueue } from './ValidationQueue';
+export { default as EscalationFormModal } from './EscalationFormModal';

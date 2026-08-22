@@ -25,7 +25,12 @@ const ExecutiveSidebar = ({ currentTenant, ...props }) => {
   const navigation = {
     main: [
       { path: DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW, name: 'Executive Overview', icon: FiHome, end: true },
+      { path: KPI_ROUTES.EXECUTIVE_DASHBOARD, name: 'KPI Dashboard', icon: FiBarChart2 },
       { path: KPI_ROUTES.ORGANIZATION_HEALTH, name: 'Organization Health', icon: FiAward },
+    ],
+    kpiLibrary: [
+      { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'KPI Library', icon: FiTarget },
+      { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiTarget },
     ],
     strategicTargets: [
       { path: KPI_ROUTES.TARGETS, name: 'Annual Targets', icon: FiTarget },
@@ -60,6 +65,7 @@ const ExecutiveSidebar = ({ currentTenant, ...props }) => {
 
   const groupLabels = {
     main: 'Main',
+    kpiLibrary: '📚 KPI Library',
     strategicTargets: '🎯 Strategic Targets',
     performanceBI: '📈 Performance BI & Heatmaps',
     structure: '🏛️ Organization Structure',

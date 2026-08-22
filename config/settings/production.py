@@ -70,10 +70,32 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS')
 CORS_ALLOW_CREDENTIALS = True
 
 # ----------------------------------------------------------------------------
-# DATABASE CONNECTION POOLING (Stability)
+# DATABASE CONNECTION POOLING & HIGH-SCALE TOPOLOGY (Stability)
 # ----------------------------------------------------------------------------
-DATABASES['default']['CONN_MAX_AGE'] = 60  # Persistent connections
+DATABASES['default']['HOST'] = env('DB_HOST', default='localhost')
+DATABASES['default']['PORT'] = env('DB_PORT', default='6432')  # Default PgBouncer port
+DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)  # Persistent connection pooling
 DATABASES['default']['OPTIONS']['sslmode'] = env('DB_SSLMODE', default='prefer')
+
+# Optional Read Replica Configuration for Horizontal Read Scaling
+DB_REPLICA_HOST = env('DB_REPLICA_HOST', default=None)
+if DB_REPLICA_HOST:
+    DATABASES['replica'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DB_NAME', default='postgres'),
+        'USER': env('DB_USER', default='postgress'),
+        'PASSWORD': env('DB_PASSWORD', default='postgress'),
+        'HOST': DB_REPLICA_HOST,
+        'PORT': env('DB_REPLICA_PORT', default='6432'),
+        'OPTIONS': {
+            'options': '-c search_path=public',
+            'sslmode': env('DB_SSLMODE', default='prefer'),
+        },
+        'DISABLE_SERVER_SIDE_CURSORS': True,
+        'CONN_MAX_AGE': env.int('CONN_MAX_AGE', default=60),
+        'CONN_HEALTH_CHECKS': True,
+    }
+
 
 # ----------------------------------------------------------------------------
 # CACHING (Redis - must be configured)

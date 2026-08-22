@@ -184,12 +184,26 @@ class ConnectionService:
 
             return self._create_connection(organization_id, read_only)
 
+    def _get_cached_schema_name(self, organization_id):
+        from django.core.cache import cache
+        cache_key = f"tenant_schema_name:{organization_id}"
+        schema_name = cache.get(cache_key)
+        if not schema_name:
+            try:
+                from apps.tenant.models import Organization
+                org = Organization.objects.filter(id=organization_id, is_active=True).first()
+                if org and hasattr(org, 'schema_name') and org.schema_name:
+                    schema_name = org.schema_name
+                    ttl = getattr(settings, 'TENANT_SCHEMA_CACHE_TTL', 300)
+                    cache.set(cache_key, schema_name, timeout=ttl)
+            except Exception as e:
+                self.logger.warning(f"Error fetching cached schema for tenant {organization_id}: {e}")
+        return schema_name
+
     def _ensure_schema_path(self, organization_id, connection):
         """Ensures pg search_path is set to the correct tenant schema."""
         try:
-            from apps.tenant.models import Organization
-            org = Organization.objects.get(id=organization_id)
-            schema = self._get_schema_name(org)
+            schema = self._get_cached_schema_name(organization_id)
             if schema:
                 with connection.cursor() as cursor:
                     cursor.execute(f'SET search_path TO "{schema}", public')
@@ -200,9 +214,6 @@ class ConnectionService:
         self.logger.info(f"Creating connection for organization: {organization_id} (read_only: {read_only})")
         key = (str(organization_id), read_only)
         try:
-            from apps.tenant.models import Organization
-            org = Organization.objects.get(id=organization_id)
-            
             # 11. Read/Write Splitting & 12. Failover
             db_alias = 'default'
             if read_only:
@@ -231,7 +242,7 @@ class ConnectionService:
             if enforce_ssl and not self._is_encrypted(conn):
                 raise ConnectionError("SSL/TLS connection is required but pg_stat_ssl verification failed.")
 
-            schema = self._get_schema_name(org)
+            schema = self._get_cached_schema_name(organization_id)
             if schema:
                 with conn.cursor() as cursor:
                     cursor.execute(f'SET search_path TO "{schema}", public')
@@ -251,8 +262,11 @@ class ConnectionService:
             raise ConnectionError(f"Failed to create connection: {str(e)}")
 
     def _get_schema_name(self, organization):
+        if hasattr(organization, 'schema_name') and organization.schema_name:
+            return organization.schema_name
         if hasattr(organization, 'schema') and organization.schema:
             return organization.schema.schema_name
+        return None
         return None
 
     def _connect_with_retries(self, connection):
@@ -369,7 +383,6 @@ class ConnectionService:
         if max_size <= 0:
             return False
 
-        # Auto-close orphaned ACTIVE/IDLE records older than 2 minutes before counting
         try:
             stale_threshold = timezone.now() - timedelta(minutes=2)
             OrganizationConnection.objects.filter(
@@ -377,18 +390,19 @@ class ConnectionService:
                 status__in=[ConnectionStatus.ACTIVE, ConnectionStatus.IDLE],
                 last_used_at__lt=stale_threshold
             ).update(status=ConnectionStatus.CLOSED, closed_at=timezone.now())
-        except Exception as e:
-            self.logger.debug(f"Could not auto-close stale connections: {e}")
 
-        active_count = OrganizationConnection.objects.filter(
-            organization_id=organization_id,
-            status__in=[ConnectionStatus.ACTIVE, ConnectionStatus.IDLE]
-        ).count()
-        if active_count >= max_size:
-            self.logger.warning(
-                f"Organization {organization_id} has {active_count} active/idle connections; max is {max_size}"
-            )
-            return True
+            active_count = OrganizationConnection.objects.filter(
+                organization_id=organization_id,
+                status__in=[ConnectionStatus.ACTIVE, ConnectionStatus.IDLE]
+            ).count()
+            if active_count >= max_size:
+                self.logger.warning(
+                    f"Organization {organization_id} has {active_count} active/idle connections; max is {max_size}"
+                )
+                return True
+        except Exception as e:
+            self.logger.debug(f"Could not check connection pool exhaustion: {e}")
+            return False
         return False
 
     def _cleanup_stale_connections(self):

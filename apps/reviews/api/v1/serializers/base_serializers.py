@@ -14,7 +14,7 @@ class BaseReviewSerializer(serializers.ModelSerializer):
     
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
-    id = serializers.UUIDField(read_only=True)
+    id = serializers.CharField(read_only=True)
     
     class Meta:
         abstract = True

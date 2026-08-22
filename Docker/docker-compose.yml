@@ -1,0 +1,243 @@
+version: '3.8'
+
+services:
+  # --------------------------------------------------------------------------
+  # React / Vite Frontend SPA Server
+  # --------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.frontend
+    container_name: falcon-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - app-1
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # Nginx Reverse Proxy & Load Balancer
+  # --------------------------------------------------------------------------
+  nginx:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.nginx
+    container_name: falcon-nginx-dev
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - falcon-static-vol:/app/staticfiles
+      - falcon-media-vol:/app/media
+    depends_on:
+      - app-1
+      - app-2
+      - frontend
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # Django Application Server Node 1
+  # --------------------------------------------------------------------------
+  app-1:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-app-1
+    restart: unless-stopped
+    volumes:
+      - ..:/app
+      - falcon-static-vol:/app/staticfiles
+      - falcon-media-vol:/app/media
+    environment:
+      - DJANGO_ENV=development
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - CONTAINER_ROLE=primary_web
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - DB_NAME=fasc_db
+      - DB_USER=postgres
+      - DB_PASSWORD=Dazl2006
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # Django Application Server Node 2
+  # --------------------------------------------------------------------------
+  app-2:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-app-2
+    restart: unless-stopped
+    volumes:
+      - ..:/app
+      - falcon-static-vol:/app/staticfiles
+      - falcon-media-vol:/app/media
+    environment:
+      - DJANGO_ENV=development
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - CONTAINER_ROLE=secondary_web
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - DB_NAME=fasc_db
+      - DB_USER=postgres
+      - DB_PASSWORD=Dazl2006
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # Celery Worker Node
+  # --------------------------------------------------------------------------
+  celery-worker:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-celery-worker-dev
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "worker", "--loglevel=info"]
+    volumes:
+      - ..:/app
+    environment:
+      - DJANGO_ENV=development
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - DB_NAME=fasc_db
+      - DB_USER=postgres
+      - DB_PASSWORD=Dazl2006
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - app-1
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # Celery Beat Scheduler Node
+  # --------------------------------------------------------------------------
+  celery-beat:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    container_name: falcon-celery-beat-dev
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    volumes:
+      - ..:/app
+    environment:
+      - DJANGO_ENV=development
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - DB_HOST=pgbouncer
+      - DB_PORT=6432
+      - DB_NAME=fasc_db
+      - DB_USER=postgres
+      - DB_PASSWORD=Dazl2006
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - app-1
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # PgBouncer Connection Multiplexer
+  # --------------------------------------------------------------------------
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: falcon-pgbouncer-dev
+    restart: unless-stopped
+    ports:
+      - "6432:6432"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=Dazl2006
+      - DB_NAME=fasc_db
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=10000
+      - DEFAULT_POOL_SIZE=150
+    volumes:
+      - ../config/pgbouncer.docker.ini:/etc/pgbouncer/pgbouncer.ini
+      - ../config/userlist.txt:/etc/pgbouncer/userlist.txt
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL 16 Primary Database Engine
+  # --------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: falcon-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - falcon-postgres-data:/var/lib/postgresql/data
+      - ../config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ../config/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    environment:
+      POSTGRES_DB: fasc_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Dazl2006
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf -c hba_file=/etc/postgresql/pg_hba.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fasc_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - falcon-net
+
+  # --------------------------------------------------------------------------
+  # Redis Cache Engine
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: falcon-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - falcon-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - falcon-net
+
+volumes:
+  falcon-postgres-data:
+  falcon-redis-data:
+  falcon-static-vol:
+  falcon-media-vol:
+
+networks:
+  falcon-net:
+    driver: bridge

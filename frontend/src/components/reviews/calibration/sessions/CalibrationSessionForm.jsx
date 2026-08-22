@@ -5,11 +5,16 @@ import { useEmployees } from '../../../../hooks/accounts';
 import { useDepartments } from '../../../../hooks/structure';
 
 const CalibrationSessionForm = ({ data, onChange }) => {
-  const { data: cycles, loading: cyclesLoading } = useCycles();
+  const { data: cycles, loading: cyclesLoading } = useCycles({ autoFetch: true });
   const { data: employees, loading: employeesLoading } = useEmployees();
-  const { data: departmentsPage } = useDepartments({ page: 1, pageSize: 1000 });
-  const departments = departmentsPage?.results;
-  const [formData, setFormData] = useState(data);
+  const { items: departments, isLoading: departmentsLoading } = useDepartments({ autoFetch: true, params: { pageSize: 1000 } });
+  const [formData, setFormData] = useState(data || {});
+
+  useEffect(() => {
+    if (data) {
+      setFormData(data);
+    }
+  }, [data]);
 
   const handleChange = (field, value) => {
     const updated = { ...formData, [field]: value };

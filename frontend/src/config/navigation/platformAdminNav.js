@@ -552,6 +552,7 @@ export const REVIEWS_NAV_ITEMS = [
   { isHeader: true, name: 'Cycles & Execution' },
   { path: REVIEW_ROUTES.REVIEW_CYCLES_LIST, name: 'Review Cycles', icon: FiCalendar },
   { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, name: 'Self Assessment', icon: FiCheckCircle },
+  { path: REVIEW_ROUTES.SELF_ASSESSMENT_LIST, name: 'Self Assessments List', icon: FiList },
   { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_QUEUE, name: 'Review Queue', icon: FiActivity },
   { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_PENDING_APPROVALS, name: 'Pending Approvals', icon: FiClock },
   { path: REVIEW_ROUTES.FEEDBACK_REQUESTS, name: '360 Feedback', icon: FiMessageSquare },
@@ -593,6 +594,7 @@ export const CLIENT_ADMIN_REVIEWS_NAV_ITEMS = [
   { isHeader: true, name: 'Cycles & Execution' },
   { path: REVIEW_ROUTES.REVIEW_CYCLES_LIST, name: 'Review Cycles', icon: FiCalendar },
   { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, name: 'Self Assessment', icon: FiCheckCircle },
+  { path: REVIEW_ROUTES.SELF_ASSESSMENT_LIST, name: 'Self Assessments List', icon: FiList },
   { path: REVIEW_ROUTES.FEEDBACK_REQUESTS, name: '360 Feedback', icon: FiMessageSquare },
 
   // Calibration & Outcomes
