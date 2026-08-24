@@ -19,4 +19,9 @@ class ReviewTemplateSerializer(BaseTenantSerializer):
 
 class ReviewTemplateListSerializer(ReviewTemplateSerializer):
     class Meta(ReviewTemplateSerializer.Meta):
-        fields = ['id', 'name', 'is_default', 'is_active', 'version', 'tenant_name']
+        fields = [
+            'id', 'name', 'description', 'is_default', 'is_active', 'version',
+            'tenant_name', 'included_sections', 'required_sections',
+            'applies_to_self_assessment', 'applies_to_supervisor_review',
+            'applies_to_360_feedback', 'created_by_name', 'created_at', 'updated_at'
+        ]

@@ -1,6 +1,6 @@
 // frontend/src/pages/dashboard/ClientAdminDashboard/ClientAdminDashboard.jsx
 
-import React from 'react';
+import { useAuthContext } from '../../../contexts/accounts/AuthContext';
 import { useClientAdminDashboard } from '../../../hooks/dashboard/useClientAdminDashboard';
 import {
   UsersIcon,
@@ -8,100 +8,76 @@ import {
   BuildingOffice2Icon,
   ChartBarIcon,
   CalendarIcon,
-  ArrowUpIcon,
-  ArrowPathIcon,
-  ClockIcon,
+  ChevronRightIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   CreditCardIcon,
   UserIcon,
   QuestionMarkCircleIcon,
-  ChevronRightIcon
+  ArrowUpIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 const ClientAdminDashboard = () => {
+  const { user: authUser, currentTenant } = useAuthContext();
   const { dashboardData, loading, refreshDashboard } = useClientAdminDashboard({ autoRefresh: true });
 
   const rawData = dashboardData || {};
   const user = rawData.user || {
-    name: 'Michael Otieno',
-    title: 'Organization Admin',
-    role: 'Organization Administrator',
-    tenant_name: 'ABC Holdings Ltd',
-    tenant_id: 'ORG-ABC-001'
+    name: authUser ? `${authUser.first_name || ''} ${authUser.last_name || ''}`.trim() || authUser.email : 'Client Admin',
+    title: authUser?.title || 'Client Administrator',
+    role: authUser?.role ? authUser.role.replace('_', ' ').toUpperCase() : 'Client Admin',
+    tenant_name: currentTenant?.name || authUser?.tenant_name || 'Organization',
+    tenant_id: currentTenant?.id || authUser?.tenant_id || '-'
   };
 
   const summary = rawData.summary_cards || {
-    total_users: 1284,
-    total_users_change: '+5.2% vs last month',
-    active_users: 1213,
-    active_users_percentage: 94.5,
-    roles_count: 8,
-    departments_count: 22,
-    kpi_frameworks_count: 6,
-    active_cycle: '2026 Annual',
-    active_cycle_dates: 'Jan 1 - Dec 31, 2026'
+    total_users: rawData.total_users ?? 0,
+    total_users_change: '-',
+    active_users: rawData.active_users ?? 0,
+    active_users_percentage: rawData.active_users_percentage ?? 0,
+    roles_count: rawData.roles_count ?? 0,
+    departments_count: rawData.departments_count ?? 0,
+    kpi_frameworks_count: rawData.kpi_frameworks_count ?? 0,
+    active_cycle: rawData.active_cycle || 'None Active',
+    active_cycle_dates: rawData.active_cycle_dates || '-'
   };
 
   const userOverview = rawData.user_overview || {
-    total_users: 1284,
-    active_users: 1213,
-    active_percentage: 94.5,
-    inactive_users: 41,
-    inactive_percentage: 3.2,
-    on_leave_users: 20,
-    on_leave_percentage: 1.6,
-    suspended_users: 10,
-    suspended_percentage: 0.8
+    total_users: summary.total_users || 0,
+    active_users: summary.active_users || 0,
+    active_percentage: summary.active_users_percentage || 0,
+    inactive_users: rawData.inactive_users ?? 0,
+    inactive_percentage: 0,
+    on_leave_users: 0,
+    on_leave_percentage: 0,
+    suspended_users: 0,
+    suspended_percentage: 0
   };
 
-  const usersByRole = rawData.users_by_role || [
-    { role: 'Staff', count: 652 },
-    { role: 'Manager / Supervisor', count: 238 },
-    { role: 'Executive', count: 92 },
-    { role: 'Read-Only', count: 126 },
-    { role: 'Client Admin', count: 12 },
-    { role: 'Dashboard Champion', count: 10 },
-    { role: 'Integrator / API User', count: 6 }
-  ];
+  const usersByRole = rawData.users_by_role || [];
 
-  const systemUsage = rawData.system_usage || [
-    { metric: 'Logins', value: '2,842', change: '+12%' },
-    { metric: 'Mission Reports', value: '1,236', change: '+15%' },
-    { metric: 'Reviews Completed', value: '842', change: '+10%' },
-    { metric: 'Tasks Completed', value: '1,512', change: '+9%' }
-  ];
+  const systemUsage = rawData.system_usage || [];
 
-  const userActivity = rawData.recent_user_activity || [
-    { id: 'a1', user: 'Susan Akinyi', email: 'susan.akinyi@abcholdings.com', action: 'Mission Report', details: 'Submitted mission report', time: '10:24 AM', badge: 'blue' },
-    { id: 'a2', user: 'Peter Mburu', email: 'peter.mburu@abcholdings.com', action: 'Mission Report', details: 'Submitted mission report', time: '09:45 AM', badge: 'blue' },
-    { id: 'a3', user: 'Mary Wanjiku', email: 'mary.wanjiku@abcholdings.com', action: 'User Created', details: 'New user account created', time: 'Yesterday, 04:30 PM', badge: 'purple' },
-    { id: 'a4', user: 'David Mwangi', email: 'david.mwangi@abcholdings.com', action: 'Review Completed', details: 'Completed self assessment', time: 'Yesterday, 02:10 PM', badge: 'emerald' },
-    { id: 'a5', user: 'Grace Otieno', email: 'grace.otieno@abcholdings.com', action: 'Role Updated', details: 'Role changed to Manager', time: 'Yesterday, 11:05 AM', badge: 'amber' }
-  ];
+  const userActivity = rawData.recent_user_activity || [];
 
   const pendingApprovals = rawData.pending_approvals || {
-    items: [
-      { title: 'User Role Change Requests', count: 3 },
-      { title: 'New User Registrations', count: 8 },
-      { title: 'Department Creation Requests', count: 2 },
-      { title: 'Review Exceptions', count: 4 }
-    ],
-    total_pending: 17
+    items: [],
+    total_pending: 0
   };
 
   const orgHealth = rawData.organization_health || [
     { service: 'Database', status: 'Healthy', type: 'success' },
-    { service: 'Storage', status: '72% Used', type: 'warning' },
-    { service: 'Backup', status: 'Last: 02:00 AM', type: 'success' },
+    { service: 'Storage', status: 'Operational', type: 'success' },
+    { service: 'Backup', status: 'Operational', type: 'success' },
     { service: 'Email Service', status: 'Operational', type: 'success' },
     { service: 'WebSocket', status: 'Connected', type: 'success' },
     { service: 'API Status', status: 'Healthy', type: 'success' }
   ];
 
   const subscription = rawData.subscription || {
-    plan: 'Enterprise Plan',
-    valid_until: 'Dec 31, 2026'
+    plan: currentTenant?.plan || 'Active Plan',
+    valid_until: '-'
   };
 
   const maxRoleCount = Math.max(...usersByRole.map(r => r.count), 1);
@@ -338,9 +314,8 @@ const ClientAdminDashboard = () => {
                       <p className="text-[10px] text-slate-400">{act.email}</p>
                     </td>
                     <td className="py-2.5 px-2">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                        act.badge === 'blue' ? 'bg-blue-50 text-blue-600' : act.badge === 'purple' ? 'bg-purple-50 text-purple-600' : act.badge === 'emerald' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${act.badge === 'blue' ? 'bg-blue-50 text-blue-600' : act.badge === 'purple' ? 'bg-purple-50 text-purple-600' : act.badge === 'emerald' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                        }`}>
                         {act.action}
                       </span>
                     </td>
@@ -389,9 +364,8 @@ const ClientAdminDashboard = () => {
               {orgHealth.map((item) => (
                 <div key={item.service} className="flex items-center justify-between">
                   <span className="text-slate-600 font-medium">{item.service}</span>
-                  <span className={`text-[11px] font-bold flex items-center gap-1 ${
-                    item.type === 'warning' ? 'text-amber-600' : 'text-emerald-600'
-                  }`}>
+                  <span className={`text-[11px] font-bold flex items-center gap-1 ${item.type === 'warning' ? 'text-amber-600' : 'text-emerald-600'
+                    }`}>
                     {item.status}
                     {item.type === 'success' && <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-600" />}
                     {item.type === 'warning' && <ExclamationTriangleIcon className="w-3.5 h-3.5 text-amber-600" />}

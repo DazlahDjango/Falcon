@@ -60,6 +60,7 @@ class CostCenterDetailSerializer(BaseStructureDetailSerializer):
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at', 'deleted_at']
 
 class CostCenterCreateUpdateSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(required=False, allow_blank=True, max_length=50)
     allocations = serializers.ListField(child=serializers.DictField(), required=False, write_only=True)
     
     class Meta:
@@ -74,6 +75,8 @@ class CostCenterCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_code(self, value):
+        if not value:
+            return value
         from apps.structure.validators import validate_cost_center_code
         validate_cost_center_code(value)
         request = self.context.get('request')
@@ -83,6 +86,16 @@ class CostCenterCreateUpdateSerializer(serializers.ModelSerializer):
                 return value
             raise serializers.ValidationError(_("Cost center with this code already exists."))
         return value
+
+    def validate(self, attrs):
+        if not attrs.get('code'):
+            name = attrs.get('name') or (self.instance.name if self.instance else '')
+            if name:
+                import re
+                clean_name = re.sub(r'[^A-Z0-9]', '-', name.upper())
+                clean_name = re.sub(r'-+', '-', clean_name).strip('-')
+                attrs['code'] = f"CC-{clean_name}"[:20]
+        return super().validate(attrs)
     
     def validate_budget_amount(self, value):
         from apps.structure.validators import validate_budget_amount

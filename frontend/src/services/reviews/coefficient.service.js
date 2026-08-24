@@ -9,39 +9,41 @@ class CoefficientService extends BaseReviewsService {
   }
 
   async activate(id) {
-    return this.action(id, 'activate');
+    const response = await this.action(id, 'activate');
+    return this.unwrap(response);
   }
 
   async deactivate(id) {
-    return this.action(id, 'deactivate');
+    const response = await this.action(id, 'deactivate');
+    return this.unwrap(response);
   }
 
   async getActive() {
-    const response = await this.apiClient.get('/coefficients/active/');
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('active/')));
+    return this.unwrap(response);
   }
 
   async applyCoefficient(score, coefficientValue) {
-    const response = await this.apiClient.post('/coefficients/apply/', {
+    const response = await this.withRetry(() => this.apiClient.post(this.getEndpoint('apply/'), {
       score,
       coefficient_value: coefficientValue,
-    });
-    return response.data;
+    }));
+    return this.unwrap(response);
   }
 
   async getByDepartment(departmentId) {
-    const response = await this.apiClient.get(`/coefficients/by-department/${departmentId}/`);
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(`by-department/${departmentId}/`)));
+    return this.unwrap(response);
   }
 
   async getByPosition(positionId) {
-    const response = await this.apiClient.get(`/coefficients/by-position/${positionId}/`);
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(`by-position/${positionId}/`)));
+    return this.unwrap(response);
   }
 
   async getByUser(userId) {
-    const response = await this.apiClient.get(`/coefficients/by-user/${userId}/`);
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(`by-user/${userId}/`)));
+    return this.unwrap(response);
   }
 }
 

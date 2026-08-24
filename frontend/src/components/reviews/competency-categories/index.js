@@ -7,3 +7,4 @@ export { default as CategoryCreate } from './create/CategoryCreate';
 export { default as CategoryForm } from './create/CategoryForm';
 
 export { default as CategoryEdit } from './edit/CategoryEdit';
+export { default as CategoryDetail } from './detail/CategoryDetail';

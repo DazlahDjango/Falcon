@@ -88,6 +88,7 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
             return None
 
 class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(required=False, allow_blank=True, max_length=50)
     division_id = serializers.UUIDField(required=False, allow_null=True)
     
     class Meta:
@@ -99,6 +100,8 @@ class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_code(self, value):
+        if not value:
+            return value
         from apps.structure.validators import validate_department_code
         validate_department_code(value)
         request = self.context.get('request')
@@ -108,6 +111,16 @@ class DepartmentCreateUpdateSerializer(serializers.ModelSerializer):
                 return value
             raise serializers.ValidationError(_("Department with this code already exists."))
         return value
+
+    def validate(self, attrs):
+        if not attrs.get('code'):
+            name = attrs.get('name') or (self.instance.name if self.instance else '')
+            if name:
+                import re
+                clean_name = re.sub(r'[^A-Z0-9]', '-', name.upper())
+                clean_name = re.sub(r'-+', '-', clean_name).strip('-')
+                attrs['code'] = f"DEP-{clean_name}"[:50]
+        return super().validate(attrs)
     
 
     def validate_headcount_limit(self, value):

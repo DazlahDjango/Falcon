@@ -1,6 +1,6 @@
 // src/components/reviews/templates/detail/TemplateInfo.jsx
 import React from 'react';
-import { FileText, CheckCircle, XCircle, Clock, User, Calendar, Layers } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, Clock, User, Users, Calendar, Layers } from 'lucide-react';
 
 const TemplateInfo = ({ template }) => {
   const infoItems = [

@@ -7,13 +7,34 @@ from apps.dashboard.utils import safe_cache_get, safe_cache_set, log_dashboard_a
 logger = logging.getLogger(__name__)
 
 class BaseDashboardService:
-    def __init__(self, user, tenant_id):
+    def __init__(self, user, tenant_id=None):
         self.user = user
-        self.tenant_id = tenant_id
         self.user_role = getattr(user, 'role', 'staff')
-        self.user_id = str(user.id) if hasattr(user, 'id') else None
+        self.user_id = str(user.id) if hasattr(user, 'id') and user.id else None
+
+        # Resolve tenant_id with robust fallbacks for role preview & testing
+        resolved_tenant = (
+            tenant_id or
+            getattr(user, 'tenant_id', None) or
+            getattr(user, 'organization_id', None)
+        )
+        if not resolved_tenant and hasattr(user, 'organization') and user.organization:
+            resolved_tenant = str(user.organization.id)
+
+        if not resolved_tenant:
+            try:
+                from apps.tenant.models import Organization
+                first_org = Organization.objects.filter(is_deleted=False).first()
+                if first_org:
+                    resolved_tenant = str(first_org.id)
+            except Exception:
+                pass
+
+        self.tenant_id = resolved_tenant
         
     def _validate_dashboard_access(self, dashboard_type):
+        if self.user_role == 'super_admin':
+            return True
         allowed = DashboardType.ROLE_DASHBOARD_MAP.get(self.user_role, [])
         if dashboard_type not in allowed:
             raise DashboardAccessError(

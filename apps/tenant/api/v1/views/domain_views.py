@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from apps.accounts.constants import UserRoles
 from apps.tenant.models import OrganizationDomain
 from apps.tenant.api.v1.serializers import (
     DomainSerializer,
@@ -46,6 +47,18 @@ class DomainViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        user = self.request.user
+
+        # Enforce strict multi-tenant isolation for non-SuperAdmins
+        if user.is_authenticated and getattr(user, 'role', None) != UserRoles.SUPER_ADMIN and not getattr(user, 'is_staff', False):
+            user_org_id = getattr(user, 'tenant_id', None) or getattr(user, 'organization_id', None)
+            if not user_org_id and hasattr(user, 'organization') and user.organization:
+                user_org_id = user.organization.id
+            if user_org_id:
+                queryset = queryset.filter(organization_id=user_org_id)
+            else:
+                queryset = queryset.none()
+
         org_id = self.request.query_params.get('organization_id')
         if org_id:
             queryset = queryset.filter(organization_id=org_id)

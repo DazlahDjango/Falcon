@@ -2,6 +2,7 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiRefreshCw, FiGrid, FiList, FiX } from 'react-icons/fi';
 import { useOrganizations } from '../../../hooks/tenant';
+import { useAuth } from '../../../hooks/accounts/useAuth';
 import OrganizationCard from './OrganizationCard';
 import OrganizationTable from './OrganizationTable';
 import OrganizationFilters from './OrganizationFilters';
@@ -11,6 +12,8 @@ import './organization.css';
 
 const OrganizationList = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [viewMode, setViewMode] = useState('grid');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showOnboardModal, setShowOnboardModal] = useState(false);
@@ -126,33 +129,41 @@ const OrganizationList = () => {
     <div className="org-container">
       <div className="org-header">
         <div>
-          <h1 className="org-title">Organizations</h1>
-          <p className="org-subtitle">{count} organizations total</p>
+          <h1 className="org-title">{isSuperAdmin ? 'Organizations' : 'Organization'}</h1>
+          <p className="org-subtitle">
+            {isSuperAdmin ? `${count} organizations total` : 'Your Organization Profile'}
+          </p>
         </div>
         <div className="org-flex org-gap-3">
           <button className="org-btn org-btn-secondary" onClick={handleRefresh} disabled={loading}>
             <FiRefreshCw size={16} className={loading ? 'org-loading-spinner' : ''} style={loading ? { width: '16px', height: '16px', borderWidth: '2px' } : {}} />
             {!loading && 'Refresh'}
           </button>
-          <button
-            className="org-btn org-btn-secondary org-btn-sm"
-            onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')}
-            disabled={loading}
-          >
-            {viewMode === 'grid' ? <FiList size={16} /> : <FiGrid size={16} />}
-          </button>
-          <button className="org-btn org-btn-primary" onClick={() => { setShowCreateModal(true); setEditingOrg(null); }} disabled={loading}>
-            <FiPlus size={16} /> New Organization
-          </button>
+          {isSuperAdmin && (
+            <button
+              className="org-btn org-btn-secondary org-btn-sm"
+              onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')}
+              disabled={loading}
+            >
+              {viewMode === 'grid' ? <FiList size={16} /> : <FiGrid size={16} />}
+            </button>
+          )}
+          {isSuperAdmin && (
+            <button className="org-btn org-btn-primary" onClick={() => { setShowCreateModal(true); setEditingOrg(null); }} disabled={loading}>
+              <FiPlus size={16} /> New Organization
+            </button>
+          )}
         </div>
       </div>
 
-      <OrganizationFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onReset={handleResetFilters}
-        loading={loading}
-      />
+      {isSuperAdmin && (
+        <OrganizationFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onReset={handleResetFilters}
+          loading={loading}
+        />
+      )}
 
       {loading && organizations.length === 0 ? (
         <div className="org-loading">

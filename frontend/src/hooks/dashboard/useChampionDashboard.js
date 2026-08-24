@@ -1,12 +1,11 @@
-// frontend/src/hooks/dashboard/useChampionDashboard.js
-
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { championService } from '../../services/dashboard/champion.service';
 import { showToast } from '../../store/ui/slices/uiSlice';
+import { useDashboard } from './useDashboard';
 
 export const useChampionDashboard = (options = {}) => {
-  const { autoFetch = true, targetUserId: initialTargetUserId = null, period: initialPeriod = 'current' } = options;
+  const { autoFetch = true, targetUserId: initialTargetUserId = null, period: initialPeriod = 'current', refreshInterval = 10000 } = options;
   const dispatch = useDispatch();
   
   const [dashboardData, setDashboardData] = useState(null);
@@ -19,6 +18,23 @@ export const useChampionDashboard = (options = {}) => {
   const [saving, setSaving] = useState(false);
   const [creatingTemplate, setCreatingTemplate] = useState(false);
   const [applyingTemplate, setApplyingTemplate] = useState(false);
+
+  const refreshAllRef = useRef(null);
+
+  const onWebsocketMessage = useCallback((message) => {
+    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update' || message.type?.endsWith('_update')) {
+      if (refreshAllRef.current) {
+        refreshAllRef.current().catch(console.error);
+      }
+    }
+  }, []);
+
+  const {
+    data: wsDashboardData,
+    loading: wsLoading,
+    error: wsError,
+    refresh: refreshWsDashboard
+  } = useDashboard('champion', { ...options, onWebsocketMessage });
 
   const fetchEditableDashboard = useCallback(async () => {
     setLoading(true);
@@ -214,30 +230,42 @@ export const useChampionDashboard = (options = {}) => {
   }, [targetUserId, dispatch, fetchEditableDashboard, fetchAssignedKPIs]);
 
   const refreshAll = useCallback(async () => {
+    await refreshWsDashboard();
     await Promise.all([
       fetchEditableDashboard(),
       fetchAssignedKPIs(),
       fetchAvailableKPIs(),
       fetchTemplates(),
     ]);
-  }, [fetchEditableDashboard, fetchAssignedKPIs, fetchAvailableKPIs, fetchTemplates]);
+  }, [refreshWsDashboard, fetchEditableDashboard, fetchAssignedKPIs, fetchAvailableKPIs, fetchTemplates]);
 
   useEffect(() => {
+    refreshAllRef.current = refreshAll;
     if (autoFetch && targetUserId) {
-      refreshAll();
+      refreshAll().catch(() => {});
     } else if (autoFetch && !targetUserId) {
-      fetchTemplates();
+      fetchTemplates().catch(() => {});
     }
-  }, [autoFetch, targetUserId, refreshAll, fetchTemplates]);
+
+    if (autoFetch && refreshInterval > 0) {
+      const timer = setInterval(() => {
+        if (refreshAllRef.current) {
+          refreshAllRef.current().catch(() => {});
+        }
+      }, refreshInterval);
+      return () => clearInterval(timer);
+    }
+  }, [autoFetch, targetUserId, refreshAll, fetchTemplates, refreshInterval]);
 
   return {
-    dashboardData,
+    dashboardData: wsDashboardData || dashboardData,
     availableKPIs,
     assignedKPIs,
     templates,
     targetUserId,
     period,
-    loading,
+    loading: loading || wsLoading,
+    error: wsError,
     saving,
     creatingTemplate,
     applyingTemplate,
@@ -255,5 +283,6 @@ export const useChampionDashboard = (options = {}) => {
     createTemplate,
     applyTemplate,
     refreshAll,
+    refreshDashboard: refreshAll,
   };
 };

@@ -199,6 +199,10 @@ const useTemplates = () => {
     update,
     patch,
     remove,
+    deleteTemplate: remove,
+    duplicateTemplate: duplicate,
+    createTemplate: create,
+    updateTemplate: update,
 
     // Actions
     setDefault,

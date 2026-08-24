@@ -46,7 +46,7 @@ class ShareCreatePermission(BasePermission):
             return False
         if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
             return True
-        if request.user.role in [UserRoles.EXECUTIVE, UserRoles.DASHBOARD_CHAMPION]:
+        if request.user.role in [UserRoles.EXECUTIVE, UserRoles.HR_ADMIN]:
             return True
         return False
 

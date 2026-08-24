@@ -25,13 +25,19 @@ class ReviewTemplateService extends BaseReviewsService {
   }
 
   async getDefault() {
-    const response = await this.apiClient.get('/templates/default/');
-    return response.data;
+    const response = await this.withRetry(() =>
+      this.apiClient.get(this.getEndpoint('default/')),
+      { logLabel: this.logLabel }
+    );
+    return this.unwrap(response);
   }
 
   async getActive() {
-    const response = await this.apiClient.get('/templates/active/');
-    return response.data;
+    const response = await this.withRetry(() =>
+      this.apiClient.get(this.getEndpoint('active/')),
+      { logLabel: this.logLabel }
+    );
+    return this.unwrap(response);
   }
 }
 

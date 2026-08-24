@@ -3,7 +3,7 @@ from django.utils import timezone
 from apps.reviews.models import CalibrationSession, CalibrationRating, CalibrationComment
 from .base_serializers import BaseTenantSerializer, BaseStatusSerializer
 
-class CalibrationCommentSerializer(BaseTenantSerializer):
+class CalibrationCommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     author_email = serializers.EmailField(source='author.email', read_only=True)
     class Meta:
@@ -11,7 +11,7 @@ class CalibrationCommentSerializer(BaseTenantSerializer):
         fields = ['id', 'calibration_session', 'author', 'author_name', 'author_email', 'comment', 'created_at']
         read_only_fields = ['id', 'created_at']
 
-class CalibrationRatingSerializer(BaseTenantSerializer):
+class CalibrationRatingSerializer(serializers.ModelSerializer):
     adjusted_by_name = serializers.CharField(source='adjusted_by.get_full_name', read_only=True)
     employee_name = serializers.CharField(source='final_rating.employee.get_full_name', read_only=True)
     adjustment_amount = serializers.SerializerMethodField()
@@ -30,7 +30,7 @@ class CalibrationRatingSerializer(BaseTenantSerializer):
 
 class CalibrationRatingCreateSerializer(CalibrationRatingSerializer):
     class Meta(CalibrationRatingSerializer.Meta):
-        read_only_fields = ['id', 'adjusted_at', 'adjusted_by']
+        read_only_fields = ['id', 'adjusted_at', 'adjusted_by', 'calibration_session']
 
 class CalibrationSessionSerializer(BaseTenantSerializer, BaseStatusSerializer):
     session_type_display = serializers.CharField(source='get_session_type_display', read_only=True)
@@ -61,6 +61,10 @@ class CalibrationSessionSerializer(BaseTenantSerializer, BaseStatusSerializer):
             'is_upcoming', 'is_in_progress', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'participants': {'required': False},
+            'departments_included': {'required': False}
+        }
 
 class CalibrationSessionListSerializer(CalibrationSessionSerializer):
     class Meta(CalibrationSessionSerializer.Meta):

@@ -1,9 +1,10 @@
 // src/components/reviews/competency-categories/list/CategoryTree.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, FolderOpen, Folder, Edit, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, FolderOpen, Folder, Edit, Trash2, Eye } from 'lucide-react';
 import { ReviewStatusBadge } from '../../common';
 import { useCompetencyCategories } from '../../../../hooks/reviews';
+import { REVIEW_ROUTES } from '../../../../config/constants/reviewRouteConstants';
 
 const CategoryTree = ({ categories = [] }) => {
   const navigate = useNavigate();
@@ -49,11 +50,19 @@ const CategoryTree = ({ categories = [] }) => {
             <ReviewStatusBadge status={category.is_active ? 'active' : 'inactive'} size="sm" />
           </div>
           <div className="category-tree-node-right">
+            <button
+              className="category-tree-action-btn"
+              onClick={() => navigate(REVIEW_ROUTES.COMPETENCY_CATEGORIES_DETAIL(category.id))}
+              aria-label="View Details"
+              title="View Category Details"
+            >
+              <Eye size={14} />
+            </button>
             {canManage && (
               <>
                 <button
                   className="category-tree-action-btn"
-                  onClick={() => navigate(`/reviews/competency-categories/${category.id}/edit`)}
+                  onClick={() => navigate(REVIEW_ROUTES.COMPETENCY_CATEGORIES_EDIT(category.id))}
                   aria-label="Edit"
                   title="Edit Category"
                 >

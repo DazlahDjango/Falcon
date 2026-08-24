@@ -26,7 +26,7 @@ import {
   resetSupervisorReviewToDraft,
   compareSupervisorWithSelf,
   fetchMyReviewQueue,
-  fetchPendingApprovals,
+  fetchPendingApprovals as fetchPendingApprovalsThunk,
   fetchSupervisorReviewStats,
   resetSupervisorReviewState,
 } from '../../store/reviews/slices/supervisorReview.slice';
@@ -122,7 +122,7 @@ const useSupervisorReview = () => {
       if (!permissions.canApproveSupervisorReview) {
         throw new Error('You do not have permission to approve supervisor reviews');
       }
-      return dispatch(approveSupervisorReview({ id, notes }));
+      return dispatch(approveSupervisorReview({ id, comments: notes }));
     },
     [dispatch, permissions.canApproveSupervisorReview]
   );
@@ -168,14 +168,11 @@ const useSupervisorReview = () => {
   );
 
   const fetchApprovals = useCallback(
-    () => dispatch(fetchPendingApprovals()),
+    () => dispatch(fetchPendingApprovalsThunk()),
     [dispatch]
   );
 
-  const fetchPendingApprovalsAction = useCallback(
-    () => dispatch(fetchPendingApprovals()),
-    [dispatch]
-  );
+  const fetchPendingApprovals = fetchApprovals;
 
   const getStats = useCallback(
     (cycleId) => dispatch(fetchSupervisorReviewStats(cycleId)),

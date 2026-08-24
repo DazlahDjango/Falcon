@@ -30,7 +30,7 @@ class TemplateViewPermission(TemplatePermission):
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             return True
         if obj.is_published:
             return True
@@ -44,7 +44,7 @@ class TemplateCreatePermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             return True
         if request.user.role in [UserRoles.EXECUTIVE, UserRoles.SUPERVISOR]:
             return True
@@ -84,7 +84,7 @@ class TemplatePublishPermission(TemplatePermission):
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             return True
         if obj.owner_id == request.user.id:
             return True

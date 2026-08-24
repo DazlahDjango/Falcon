@@ -20,42 +20,39 @@ import {
   AdjustmentsHorizontalIcon
 } from '@heroicons/react/24/outline';
 
+import { useAuthContext } from '../../../contexts/accounts/AuthContext';
+
 const SuperAdminDashboard = () => {
+  const { user: authUser } = useAuthContext();
   const { dashboardData, loading, refreshDashboard } = useSuperAdminDashboard({ autoRefresh: true });
 
   const rawData = dashboardData || {};
   const user = rawData.user || {
-    name: 'Platform Administrator',
-    title: 'Super Administrator',
-    role: 'Super Admin'
+    name: authUser ? `${authUser.first_name || ''} ${authUser.last_name || ''}`.trim() || authUser.email : 'Platform Administrator',
+    title: authUser?.title || 'Super Administrator',
+    role: authUser?.role ? authUser.role.replace('_', ' ').toUpperCase() : 'Super Admin'
   };
 
   const overview = rawData.platform_overview || {
-    total_tenants: 48,
-    total_tenants_change: '+4 new this month',
-    total_users: 18420,
-    total_users_change: '+12% vs last month',
-    platform_health: '99.98%',
-    mrr: '$42,500',
-    mrr_change: '+8.4% MRR growth',
-    active_subscriptions: 42,
-    trial_tenants: 6,
-    platform_submissions_30d: '142,850'
+    total_tenants: rawData.total_tenants ?? 0,
+    total_tenants_change: '-',
+    total_users: rawData.total_users ?? 0,
+    total_users_change: '-',
+    platform_health: rawData.platform_health || '100%',
+    mrr: rawData.mrr || '$0',
+    mrr_change: '-',
+    active_subscriptions: rawData.active_subscriptions ?? 0,
+    trial_tenants: rawData.trial_tenants ?? 0,
+    platform_submissions_30d: rawData.platform_submissions_30d ?? '0'
   };
 
   const growthTrend = rawData.platform_growth_trend || {
-    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    tenants: [28, 30, 32, 35, 38, 42, 48],
-    users: [10200, 11500, 13000, 14200, 15800, 17100, 18420]
+    months: [],
+    tenants: [],
+    users: []
   };
 
-  const subscriptionsBreakdown = rawData.subscriptions_breakdown || [
-    { plan: 'Enterprise Plan', count: 24 },
-    { plan: 'Professional Plan', count: 18 },
-    { plan: 'Starter Plan', count: 6 },
-    { plan: 'Trial Period', count: 4 },
-    { plan: 'Expiring Soon', count: 3 }
-  ];
+  const subscriptionsBreakdown = rawData.subscriptions_breakdown || [];
 
   const systemHealth = rawData.system_health || [
     { service: 'Multi-Tenant Isolation Engine', status: 'Operational', type: 'success' },
@@ -63,22 +60,12 @@ const SuperAdminDashboard = () => {
     { service: 'Redis Cache Grid', status: 'Connected', type: 'success' },
     { service: 'Celery Background Workers', status: 'Healthy', type: 'success' },
     { service: 'Email Dispatch Service', status: 'Operational', type: 'success' },
-    { service: 'S3 Asset Storage', status: '99.9% Uptime', type: 'success' }
+    { service: 'S3 Asset Storage', status: 'Operational', type: 'success' }
   ];
 
-  const tenants = rawData.tenant_summaries || [
-    { id: 't1', name: 'ABC Holdings Ltd', plan: 'Enterprise', users: 1213, status: 'Active', health_score: '94.5%', expiry_date: 'Dec 31, 2026' },
-    { id: 't2', name: 'Global Logistics Corp', plan: 'Enterprise', users: 840, status: 'Active', health_score: '91.2%', expiry_date: 'Nov 15, 2026' },
-    { id: 't3', name: 'Horizon Tech Solutions', plan: 'Professional', users: 310, status: 'Active', health_score: '88.0%', expiry_date: 'Oct 20, 2026' },
-    { id: 't4', name: 'Apex Financial Group', plan: 'Enterprise', users: 1520, status: 'Active', health_score: '96.4%', expiry_date: 'Jan 15, 2027' },
-    { id: 't5', name: 'Zenith Retail Systems', plan: 'Starter', users: 85, status: 'Trial', health_score: '78.5%', expiry_date: 'Aug 14, 2026' }
-  ];
+  const tenants = rawData.tenant_summaries || [];
 
-  const alerts = rawData.subscription_alerts || [
-    { id: 'sa1', tenant: 'Zenith Retail Systems', alert: 'Trial expires in 5 days', time: '2 hours ago', severity: 'critical' },
-    { id: 'sa2', tenant: 'Horizon Tech Solutions', alert: 'Seat limit (310/350) reached 88%', time: '5 hours ago', severity: 'warning' },
-    { id: 'sa3', tenant: 'Global Logistics Corp', alert: 'Annual renewal due in 30 days', time: '1 day ago', severity: 'info' }
-  ];
+  const alerts = rawData.subscription_alerts || [];
 
   const maxSubCount = Math.max(...subscriptionsBreakdown.map(s => s.count), 1);
 

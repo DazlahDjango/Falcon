@@ -9,13 +9,17 @@ from apps.reviews.api.v1.serializers import PromotionRecommendationSerializer, P
 from .base_views import BaseReviewViewSet
 from apps.accounts.constants import UserRoles
 
+from apps.reviews.api.v1.permissions.base_permissions import IsAuthenticated, IsAdminOnly, IsSupervisorOrAdmin
+
 class PromotionRecommendationViewSet(BaseReviewViewSet):
     queryset = PromotionRecommendation.objects.all()
     def get_serializer_class(self):
         return PromotionRecommendationListSerializer if self.action == 'list' else PromotionRecommendationSerializer
     def get_permissions(self):
         if self.action in ['approve', 'reject', 'complete', 'hold']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsAdminOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(tenant_id=self.request.user.tenant_id, recommended_by=self.request.user)

@@ -7,6 +7,11 @@ from apps.reviews.services.security.integrity import IntegrityService
 logger = logging.getLogger(__name__)
 
 class ReviewAuditService:
+    ACTION_CREATE = 'create'
+    ACTION_UPDATE = 'update'
+    ACTION_DELETE = 'delete'
+    ACTION_VIEW = 'view'
+
     @classmethod
     def is_enabled(cls) -> bool:
         return ReviewsSettingsService.get_section('security').get('audit_trail_enabled', True)

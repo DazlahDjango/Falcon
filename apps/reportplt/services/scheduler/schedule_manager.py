@@ -21,7 +21,7 @@ class ScheduleManager:
     def _is_admin(self) -> bool:
         if not self.user:
             return False
-        return self.user.is_superuser or self.user.role in ['super_admin', 'client_admin', 'dashboard_champion']
+        return self.user.is_superuser or self.user.role in ['super_admin', 'client_admin', 'hr_admin']
 
     def create_schedule(self, data: Dict[str, Any]) -> ReportSchedule:
         if not self.user:

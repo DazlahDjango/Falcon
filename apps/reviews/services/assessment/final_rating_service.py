@@ -33,8 +33,6 @@ class FinalRatingService(BaseReviewService):
                 final_rating.final_rating_label = rating_level.get('label', '')
                 final_rating.final_rating_color = rating_level.get('color', 'gray')
         final_rating.save()
-        IntegrityService.apply_checksum(final_rating, ['final_score', 'kpi_score', 'competency_score'], 'integrity_checksum')
-        final_rating.save(update_fields=['integrity_checksum'])
         return final_rating
     @staticmethod
     @BaseReviewService.atomic_operation

@@ -43,7 +43,7 @@ const ReviewQueueItem = ({ review, onView }) => {
       </div>
 
       <div className="review-queue-item-right">
-        {review.self_assessment_submitted && (
+        {(review.self_assessment_submitted || review.has_self_assessment) && (
           <span className="review-queue-item-badge submitted">
             <CheckCircle size={12} />
             Self Assessment Done

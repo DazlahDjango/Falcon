@@ -46,37 +46,47 @@ const CategoryHelpGuide = () => {
 
       <div className="competency-help-section">
         <span className="competency-help-section-title" style={{ fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px', display: 'block' }}>
-          💡 Category Group Examples:
+          💡 Recommended Standard Categories:
         </span>
         <div className="competency-help-examples" style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px' }}>
           
           <div className="competency-example-item" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '8px' }}>
             <div className="competency-example-name" style={{ fontWeight: 600, color: '#2563eb', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              🌟 1. Organization Core Values
+              🌟 1. Core Values & Culture (Order: 1)
             </div>
             <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
-              <strong>Used for:</strong> Foundational skills required of every employee.<br />
-              <strong>Examples:</strong> Integrity, Customer Focus, Teamwork.
+              <strong>Description:</strong> Foundational behaviors expected of every employee.<br />
+              <strong>Competency Examples:</strong> Integrity & Ethical Conduct, Teamwork & Collaboration.
             </div>
           </div>
 
           <div className="competency-example-item" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '8px' }}>
-            <div className="competency-example-name" style={{ fontWeight: 600, color: '#d97706', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              👥 2. Leadership & Management
+            <div className="competency-example-name" style={{ fontWeight: 600, color: '#16a34a', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              ⚙️ 2. Technical & Operational Excellence (Order: 2)
             </div>
             <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
-              <strong>Used for:</strong> Behaviors expected from managers and team leads.<br />
-              <strong>Examples:</strong> Conflict Resolution, Strategic Planning, Talent Mentoring.
+              <strong>Description:</strong> Functional skills, quality of work, and execution capabilities.<br />
+              <strong>Competency Examples:</strong> Job Knowledge & Technical Skill, Problem Solving.
+            </div>
+          </div>
+
+          <div className="competency-example-item" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '8px' }}>
+            <div className="competency-example-name" style={{ fontWeight: 600, color: '#0284c7', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              💬 3. Communication & Delivery (Order: 3)
+            </div>
+            <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
+              <strong>Description:</strong> Interpersonal skills, teamwork, and accountability.<br />
+              <strong>Competency Examples:</strong> Effective Communication, Accountability & Reliability.
             </div>
           </div>
 
           <div className="competency-example-item">
-            <div className="competency-example-name" style={{ fontWeight: 600, color: '#16a34a', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              💻 3. Technical Standards
+            <div className="competency-example-name" style={{ fontWeight: 600, color: '#d97706', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              👥 4. Leadership & Strategic Management (Order: 4)
             </div>
             <div className="competency-example-desc" style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
-              <strong>Used for:</strong> Domain-specific software and engineering practices.<br />
-              <strong>Examples:</strong> Code Quality, System Architecture, Code Design.
+              <strong>Description:</strong> Advanced competencies for supervisors, managers, and executives.<br />
+              <strong>Competency Examples:</strong> People Leadership & Mentorship, Strategic Thinking.
             </div>
           </div>
 

@@ -168,6 +168,7 @@ export const formatRole = (role) => {
     const roles = {
         super_admin: 'Super Admin',
         client_admin: 'Admin',
+        hr_admin: 'HR Admin',
         executive: 'Executive',
         supervisor: 'Supervisor',
         dashboard_champion: 'Dashboard Champion',
@@ -181,6 +182,7 @@ export const formatRoleBadgeClass = (role) => {
     const classes = {
         super_admin: 'role-super-admin',
         client_admin: 'role-client-admin',
+        hr_admin: 'role-hr-admin',
         executive: 'role-executive',
         supervisor: 'role-supervisor',
         dashboard_champion: 'role-dashboard-champion',

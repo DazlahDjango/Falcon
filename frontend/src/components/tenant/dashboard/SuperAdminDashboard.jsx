@@ -18,7 +18,7 @@ import {
   FiLayers,
   FiUser,
 } from 'react-icons/fi';
-import { useSuperAdminDashboard } from '../../../hooks/tenant';
+import { useSuperAdminDashboard } from '../../../hooks/tenant/useDashboard';
 
 // ============================================================
 // DONUT CHART COMPONENT
@@ -111,7 +111,7 @@ const SuperAdminDashboard = () => {
     fetchDashboard,
     refresh,
     clearAllErrors,
-  } = useSuperAdminDashboard({ autoFetch: true, refreshInterval: 60000 });
+  } = useSuperAdminDashboard({ autoFetch: true, refreshInterval: 10000 });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -216,12 +216,20 @@ const SuperAdminDashboard = () => {
     { label: 'Failed', value: provFailed, color: '#ef4444' },
   ];
 
-  // Resource Usage List
-  const resourceList = [
-    { name: 'Database', icon: FiDatabase, percentage: 72, usageText: '720 / 1000 GB', color: 'blue' },
-    { name: 'Storage', icon: FiHardDrive, percentage: 58, usageText: '2.9 / 5 TB', color: 'blue' },
-    { name: 'Bandwidth', icon: FiActivity, percentage: 41, usageText: '4.1 / 10 TB', color: 'blue' },
-  ];
+  // Resource Usage List (Dynamic from real backend payload)
+  const resourceList = Array.isArray(resources?.usage) && resources.usage.length > 0
+    ? resources.usage.slice(0, 5).map((r) => ({
+        name: r.resource_display || r.resource_type || 'Resource',
+        icon: r.resource_type?.toLowerCase().includes('storage') ? FiHardDrive : FiDatabase,
+        percentage: Math.min(Math.round(r.percentage || 0), 100),
+        usageText: `${r.current || 0} / ${r.limit || '∞'}`,
+        color: r.is_exceeded ? 'red' : r.is_warning ? 'amber' : 'blue',
+      }))
+    : [
+        { name: 'Database Connections', icon: FiDatabase, percentage: Math.min(Math.round((connectedInfra / (healthyInfra || 1)) * 100), 100), usageText: `${connectedInfra} Active`, color: 'blue' },
+        { name: 'Tenant Schemas', icon: FiHardDrive, percentage: isolatedPct, usageText: `${readySchemas} / ${totalSchemas}`, color: 'blue' },
+        { name: 'Active Domains', icon: FiActivity, percentage: Math.min(Math.round((activeDomains / (totalDomains || 1)) * 100), 100), usageText: `${activeDomains} / ${totalDomains}`, color: 'blue' },
+      ];
 
   return (
     <div className="dashboard-container">
@@ -580,47 +588,35 @@ const SuperAdminDashboard = () => {
             <h3 className="dashboard-panel-title">Pending Migrations</h3>
           </div>
           <div className="migration-list">
-            <div className="migration-item">
-              <div className="migration-info">
-                <div className="migration-icon"><FiLayers /></div>
-                <div>
-                  <div className="migration-org">Acme Corporation</div>
-                  <div className="migration-task">Add new KPI tables</div>
-                </div>
+            {Array.isArray(migrations?.recent_items) && migrations.recent_items.length > 0 ? (
+              migrations.recent_items.map((mig) => {
+                const statusTag = (mig.status || 'pending').toLowerCase();
+                const createdTime = mig.created_at
+                  ? new Date(mig.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : 'Recent';
+                return (
+                  <div key={mig.id} className="migration-item">
+                    <div className="migration-info">
+                      <div className="migration-icon"><FiLayers /></div>
+                      <div>
+                        <div className="migration-org">{mig.organization_name || 'Platform'}</div>
+                        <div className="migration-task">{mig.name || mig.app_name || 'Database Schema Migration'}</div>
+                      </div>
+                    </div>
+                    <div className="migration-meta">
+                      <span className={`migration-tag ${statusTag}`}>{mig.status || 'Pending'}</span>
+                      <span className="migration-time">{createdTime}</span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                {migrations?.pending > 0
+                  ? `${migrations.pending} pending migration(s) queued`
+                  : 'No active or pending migrations.'}
               </div>
-              <div className="migration-meta">
-                <span className="migration-tag pending">Pending</span>
-                <span className="migration-time">2h ago</span>
-              </div>
-            </div>
-
-            <div className="migration-item">
-              <div className="migration-info">
-                <div className="migration-icon"><FiLayers /></div>
-                <div>
-                  <div className="migration-org">Global Solutions</div>
-                  <div className="migration-task">Update user permissions</div>
-                </div>
-              </div>
-              <div className="migration-meta">
-                <span className="migration-tag running">Running</span>
-                <span className="migration-time">1h ago</span>
-              </div>
-            </div>
-
-            <div className="migration-item">
-              <div className="migration-info">
-                <div className="migration-icon"><FiLayers /></div>
-                <div>
-                  <div className="migration-org">Tech Innovators</div>
-                  <div className="migration-task">Schema optimization</div>
-                </div>
-              </div>
-              <div className="migration-meta">
-                <span className="migration-tag failed">Failed</span>
-                <span className="migration-time">30m ago</span>
-              </div>
-            </div>
+            )}
           </div>
           <div style={{ marginTop: 12, textAlign: 'right' }}>
             <span className="dashboard-panel-link">View All Migrations →</span>

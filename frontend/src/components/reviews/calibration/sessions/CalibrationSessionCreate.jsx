@@ -22,15 +22,24 @@ const CalibrationSessionCreate = () => {
     notes: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError('');
     try {
-      await createSession(formData);
+      const payload = {
+        ...formData,
+        facilitator: formData.facilitator || null,
+        departments_included: (formData.departments_included || []).filter(Boolean),
+        participants: (formData.participants || []).filter(Boolean),
+      };
+      await createSession(payload).unwrap?.() || await createSession(payload);
       navigate('/reviews/calibration/sessions');
     } catch (error) {
       console.error('Failed to create calibration session:', error);
+      setSubmitError(error?.message || error?.detail || 'Failed to create calibration session. Please check form values.');
     } finally {
       setIsSubmitting(false);
     }
@@ -40,7 +49,7 @@ const CalibrationSessionCreate = () => {
     setFormData((prev) => ({ ...prev, ...data }));
   };
 
-  if (sessionLoading) return <ReviewLoading size="lg" text="Creating calibration session..." />;
+  if (sessionLoading && isSubmitting) return <ReviewLoading size="lg" text="Creating calibration session..." />;
 
   return (
     <div className="calibration-session-create">
@@ -53,6 +62,11 @@ const CalibrationSessionCreate = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="calibration-session-create-form">
+        {submitError && (
+          <div style={{ padding: '0.75rem 1rem', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '6px', color: '#b91c1c', marginBottom: '1rem' }}>
+            {submitError}
+          </div>
+        )}
         <CalibrationSessionForm
           data={formData}
           onChange={handleChange}

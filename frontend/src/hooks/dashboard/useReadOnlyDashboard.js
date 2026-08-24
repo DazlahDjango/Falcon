@@ -1,12 +1,11 @@
-// frontend/src/hooks/dashboard/useReadOnlyDashboard.js
-
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { readOnlyService } from '../../services/dashboard/readOnly.service';
 import { showToast } from '../../store/ui/slices/uiSlice';
+import { useDashboard } from './useDashboard';
 
 export const useReadOnlyDashboard = (options = {}) => {
-  const { autoFetch = true, period: initialPeriod = 'current', viewType: initialViewType = 'executive' } = options;
+  const { autoFetch = true, period: initialPeriod = 'current', viewType: initialViewType = 'executive', refreshInterval = 10000 } = options;
   const dispatch = useDispatch();
   
   const [dashboardData, setDashboardData] = useState(null);
@@ -14,6 +13,23 @@ export const useReadOnlyDashboard = (options = {}) => {
   const [viewType, setViewType] = useState(initialViewType);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  const refreshRef = useRef(null);
+
+  const onWebsocketMessage = useCallback((message) => {
+    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update' || message.type?.endsWith('_update')) {
+      if (refreshRef.current) {
+        refreshRef.current().catch(console.error);
+      }
+    }
+  }, []);
+
+  const {
+    data: wsDashboardData,
+    loading: wsLoading,
+    error: wsError,
+    refresh: refreshWsDashboard
+  } = useDashboard('read_only', { ...options, onWebsocketMessage });
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -72,14 +88,25 @@ export const useReadOnlyDashboard = (options = {}) => {
   }, [period, viewType, dispatch]);
 
   const refreshDashboard = useCallback(async () => {
+    await refreshWsDashboard();
     return fetchDashboardData();
-  }, [fetchDashboardData]);
+  }, [refreshWsDashboard, fetchDashboardData]);
 
   useEffect(() => {
+    refreshRef.current = refreshDashboard;
     if (autoFetch) {
-      fetchDashboardData();
+      refreshDashboard().catch(() => {});
+
+      if (refreshInterval > 0) {
+        const timer = setInterval(() => {
+          if (refreshRef.current) {
+            refreshRef.current().catch(() => {});
+          }
+        }, refreshInterval);
+        return () => clearInterval(timer);
+      }
     }
-  }, [autoFetch, fetchDashboardData]);
+  }, [autoFetch, refreshDashboard, refreshInterval]);
 
   // Re-fetch when period or viewType changes
   useEffect(() => {
@@ -89,10 +116,11 @@ export const useReadOnlyDashboard = (options = {}) => {
   }, [period, viewType, autoFetch, fetchDashboardData]);
 
   return {
-    dashboardData,
+    dashboardData: wsDashboardData || dashboardData,
     period,
     viewType,
-    loading,
+    loading: loading || wsLoading,
+    error: wsError,
     exporting,
     setPeriod,
     setViewType,
@@ -102,6 +130,7 @@ export const useReadOnlyDashboard = (options = {}) => {
     fetchStaffView,
     exportDashboard,
     refreshDashboard,
+    refreshAll: refreshDashboard,
     // Read-only flags
     isReadOnly: true,
     canEdit: false,

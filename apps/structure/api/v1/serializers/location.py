@@ -71,6 +71,7 @@ class LocationDetailSerializer(BaseStructureDetailSerializer):
         return None
 
 class LocationCreateUpdateSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(required=False, allow_blank=True, max_length=50)
     cost_center_id = serializers.UUIDField(required=False, allow_null=True)
     manager_id = serializers.UUIDField(required=False, allow_null=True)
     parent_id = serializers.UUIDField(required=False, allow_null=True)
@@ -87,6 +88,8 @@ class LocationCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_code(self, value):
+        if not value:
+            return value
         request = self.context.get('request')
         tenant_id = getattr(request.user, 'tenant_id', None) if request else None
         if tenant_id and Location.objects.filter(code=value, tenant_id=tenant_id, is_deleted=False).exists():
@@ -94,6 +97,16 @@ class LocationCreateUpdateSerializer(serializers.ModelSerializer):
                 return value
             raise serializers.ValidationError(_("Location with this code already exists."))
         return value
+
+    def validate(self, attrs):
+        if not attrs.get('code'):
+            name = attrs.get('name') or (self.instance.name if self.instance else '')
+            if name:
+                import re
+                clean_name = re.sub(r'[^A-Z0-9]', '-', name.upper())
+                clean_name = re.sub(r'-+', '-', clean_name).strip('-')
+                attrs['code'] = f"LOC-{clean_name}"[:50]
+        return super().validate(attrs)
     
     def validate_phone_number(self, value):
         from apps.structure.validators import validate_phone_number

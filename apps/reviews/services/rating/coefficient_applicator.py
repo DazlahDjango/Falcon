@@ -8,17 +8,38 @@ class CoefficientApplicator(BaseReviewService):
     def get_applicable_coefficient(employee, target_date=None):
         if target_date is None:
             target_date = timezone.now().date()
-        coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='individual', user=employee, valid_from__lte=target_date, is_active=True).first()
-        if coefficient:
-            return coefficient
-        if hasattr(employee, 'position') and employee.position:
-            coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='position', position=employee.position, valid_from__lte=target_date, is_active=True).first()
+        try:
+            coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='individual', user=employee, valid_from__lte=target_date, is_active=True).first()
             if coefficient:
                 return coefficient
-        if hasattr(employee, 'department') and employee.department:
-            coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='department', department=employee.department, valid_from__lte=target_date, is_active=True).first()
-            if coefficient:
-                return coefficient
+            if hasattr(employee, 'position') and employee.position:
+                pos = employee.position
+                if isinstance(pos, str):
+                    from apps.structure.models import Position
+                    pos_obj = Position.objects.filter(title=pos).first()
+                    if pos_obj:
+                        coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='position', position=pos_obj, valid_from__lte=target_date, is_active=True).first()
+                        if coefficient:
+                            return coefficient
+                else:
+                    coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='position', position=pos, valid_from__lte=target_date, is_active=True).first()
+                    if coefficient:
+                        return coefficient
+            if hasattr(employee, 'department') and employee.department:
+                dept = employee.department
+                if isinstance(dept, str):
+                    from apps.structure.models import Department
+                    dept_obj = Department.objects.filter(name=dept).first()
+                    if dept_obj:
+                        coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='department', department=dept_obj, valid_from__lte=target_date, is_active=True).first()
+                        if coefficient:
+                            return coefficient
+                else:
+                    coefficient = Coefficient.objects.filter(tenant_id=employee.tenant_id, coefficient_type='department', department=dept, valid_from__lte=target_date, is_active=True).first()
+                    if coefficient:
+                        return coefficient
+        except Exception:
+            return None
         return None
     @staticmethod
     def apply_coefficient(score, coefficient_value):

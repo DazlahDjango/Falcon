@@ -14,10 +14,8 @@ const PendingApprovals = () => {
   const [showActions, setShowActions] = useState(false);
 
   useEffect(() => {
-    if (canManage) {
-      fetchPendingApprovals();
-    }
-  }, [canManage, fetchPendingApprovals]);
+    fetchPendingApprovals();
+  }, [fetchPendingApprovals]);
 
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
@@ -41,26 +39,24 @@ const PendingApprovals = () => {
     setSelectedReview(null);
   };
 
+  const handleRequestChanges = async (id, feedback) => {
+    await requestChanges(id, feedback);
+    fetchPendingApprovals();
+    setShowActions(false);
+    setSelectedReview(null);
+  };
+
   const handleActionClick = (review) => {
     setSelectedReview(review);
     setShowActions(true);
   };
 
-  if (!canManage) {
-    return (
-      <div className="pending-approvals">
-        <div className="pending-approvals-unauthorized">
-          <h2>Access Denied</h2>
-          <p>You do not have permission to view pending approvals.</p>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) return <ReviewLoading size="lg" text="Loading pending approvals..." />;
   if (error) return <ReviewError error={error} onRetry={fetchPendingApprovals} />;
 
-  const filteredApprovals = pendingApprovals.filter((review) => {
+  const approvalsList = Array.isArray(pendingApprovals) ? pendingApprovals : (pendingApprovals?.results || []);
+
+  const filteredApprovals = approvalsList.filter((review) => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
     return (
@@ -148,6 +144,7 @@ const PendingApprovals = () => {
           review={selectedReview}
           onApprove={handleApprove}
           onReject={handleReject}
+          onRequestChanges={handleRequestChanges}
           onClose={() => {
             setShowActions(false);
             setSelectedReview(null);

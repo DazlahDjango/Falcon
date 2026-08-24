@@ -6,10 +6,11 @@ from ..base_service import BaseReviewService
 class OutlierDetector(BaseReviewService):
     @staticmethod
     def get_department_statistics(review_cycle):
-        ratings = FinalRating.objects.filter(review_cycle=review_cycle, final_score__isnull=False, status__in=['calibrated', 'approved', 'locked']).select_related('employee__department')
+        ratings = FinalRating.objects.filter(review_cycle=review_cycle, final_score__isnull=False, status__in=['calibrated', 'approved', 'locked']).select_related('employee')
         dept_stats = {}
         for rating in ratings:
-            dept_name = rating.employee.department.name if rating.employee.department and hasattr(rating.employee.department, 'name') else 'No Department'
+            dept_obj = getattr(rating.employee, 'department', None)
+            dept_name = str(getattr(dept_obj, 'name', dept_obj)) if dept_obj else 'No Department'
             if dept_name not in dept_stats:
                 dept_stats[dept_name] = {'scores': [], 'count': 0, 'avg': 0, 'std_dev': 0, 'min': None, 'max': None}
             dept_stats[dept_name]['scores'].append(float(rating.final_score))
@@ -52,9 +53,10 @@ class OutlierDetector(BaseReviewService):
 
         dept_stats = OutlierDetector.get_department_statistics(review_cycle)
         outliers = []
-        ratings = FinalRating.objects.filter(review_cycle=review_cycle, final_score__isnull=False, status__in=['pending', 'calibrated']).select_related('employee__department', 'supervisor_review__supervisor')
+        ratings = FinalRating.objects.filter(review_cycle=review_cycle, final_score__isnull=False).select_related('employee', 'supervisor_review__supervisor')
         for rating in ratings:
-            dept_name = rating.employee.department.name if rating.employee.department and hasattr(rating.employee.department, 'name') else 'No Department'
+            dept_obj = getattr(rating.employee, 'department', None)
+            dept_name = str(getattr(dept_obj, 'name', dept_obj)) if dept_obj else 'No Department'
             dept_stat = dept_stats.get(dept_name, {})
             is_outlier = False
             reason = []

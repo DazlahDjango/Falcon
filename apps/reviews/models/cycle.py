@@ -5,15 +5,17 @@ from .base import ReviewBaseModel, ReviewStatusMixin
 
 class ReviewCycle(ReviewBaseModel, ReviewStatusMixin):
     class CycleType(models.TextChoices):
+        ANNUAL = 'annual', 'Annual Review'
         MID_YEAR = 'mid_year', 'Mid-Year Review'
         END_YEAR = 'end_year', 'End-Year Review'
         QUARTERLY = 'quarterly', 'Quarterly Review'
+        MONTHLY = 'monthly', 'Monthly Review'
         PROBATION = 'probation', 'Probation Review'
         SPECIAL = 'special', 'Special Review'
         PIP = 'pip', 'PIP Review'
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    cycle_type = models.CharField(max_length=20, choices=CycleType.choices, default=CycleType.END_YEAR)
+    cycle_type = models.CharField(max_length=20, choices=CycleType.choices, default=CycleType.ANNUAL)
     start_date = models.DateField()
     self_assessment_deadline = models.DateField()
     supervisor_review_deadline = models.DateField()
@@ -69,8 +71,8 @@ class ReviewCycle(ReviewBaseModel, ReviewStatusMixin):
         return employees
 
 class CycleCompetency(models.Model):
-    review_cycle = models.ForeignKey(ReviewCycle, on_delete=models.CASCADE)
-    competency = models.ForeignKey('reviews.Competency', on_delete=models.CASCADE)
+    review_cycle = models.ForeignKey(ReviewCycle, on_delete=models.CASCADE, related_name='cycle_competencies')
+    competency = models.ForeignKey('reviews.Competency', on_delete=models.CASCADE, related_name='cycle_assignments')
     weight = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
     display_order = models.IntegerField(default=0)
     class Meta:

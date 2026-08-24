@@ -1,12 +1,11 @@
-// frontend/src/hooks/dashboard/useManagerDashboard.js
-
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { managerService } from '../../services/dashboard/manager.service';
 import { showToast } from '../../store/ui/slices/uiSlice';
+import { useDashboard } from './useDashboard';
 
 export const useManagerDashboard = (options = {}) => {
-  const { autoFetch = true, period: initialPeriod = 'current', includeTeam: initialIncludeTeam = true } = options;
+  const { autoFetch = true, period: initialPeriod = 'current', includeTeam: initialIncludeTeam = true, refreshInterval = 10000 } = options;
   const dispatch = useDispatch();
   
   const [dashboardData, setDashboardData] = useState(null);
@@ -20,6 +19,23 @@ export const useManagerDashboard = (options = {}) => {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  const refreshAllRef = useRef(null);
+
+  const onWebsocketMessage = useCallback((message) => {
+    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update' || message.type?.endsWith('_update')) {
+      if (refreshAllRef.current) {
+        refreshAllRef.current().catch(console.error);
+      }
+    }
+  }, []);
+
+  const {
+    data: wsDashboardData,
+    loading: wsLoading,
+    error: wsError,
+    refresh: refreshWsDashboard
+  } = useDashboard('manager', { ...options, onWebsocketMessage });
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -176,19 +192,30 @@ export const useManagerDashboard = (options = {}) => {
   }, [period, includeTeam, dispatch]);
 
   const refreshAll = useCallback(async () => {
+    await refreshWsDashboard();
     await Promise.all([
       fetchDashboardData(),
       fetchTeamMembers(),
       fetchTeamSummary(),
       fetchPendingApprovals(),
     ]);
-  }, [fetchDashboardData, fetchTeamMembers, fetchTeamSummary, fetchPendingApprovals]);
+  }, [refreshWsDashboard, fetchDashboardData, fetchTeamMembers, fetchTeamSummary, fetchPendingApprovals]);
 
   useEffect(() => {
+    refreshAllRef.current = refreshAll;
     if (autoFetch) {
-      refreshAll();
+      refreshAll().catch(() => {});
+
+      if (refreshInterval > 0) {
+        const timer = setInterval(() => {
+          if (refreshAllRef.current) {
+            refreshAllRef.current().catch(() => {});
+          }
+        }, refreshInterval);
+        return () => clearInterval(timer);
+      }
     }
-  }, [autoFetch, refreshAll]);
+  }, [autoFetch, refreshAll, refreshInterval]);
 
   // Re-fetch when period or includeTeam changes
   useEffect(() => {
@@ -199,14 +226,15 @@ export const useManagerDashboard = (options = {}) => {
   }, [period, includeTeam, autoFetch, fetchDashboardData, fetchTeamMembers]);
 
   return {
-    dashboardData,
+    dashboardData: wsDashboardData || dashboardData,
     teamMembers,
     teamSummary,
     pendingApprovals,
     period,
     includeTeam,
     drillDownUserId,
-    loading,
+    loading: loading || wsLoading,
+    error: wsError,
     approving,
     rejecting,
     exporting,

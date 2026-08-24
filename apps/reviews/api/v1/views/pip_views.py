@@ -199,12 +199,16 @@ class PIPViewSet(BaseReviewViewSet):
         trends = PIPReportService.get_pip_trends(tenant, months)
         return Response(trends)
 
+from ..permissions import IsAdminOrManager, IsAdminOnly, IsSupervisorOrAdmin, IsAuthenticated
+
 class PIPActionViewSet(BaseReviewViewSet):
     queryset = PIPAction.objects.all()
     serializer_class = PIPActionSerializer
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'complete', 'verify']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsSupervisorOrAdmin]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
@@ -255,7 +259,9 @@ class PIPReviewViewSet(BaseReviewViewSet):
     serializer_class = PIPReviewSerializer
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsSupervisorOrAdmin]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(reviewer=self.request.user)

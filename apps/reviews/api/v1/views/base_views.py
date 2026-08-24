@@ -11,12 +11,20 @@ class BaseReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if hasattr(queryset.model, 'is_deleted'):
+            queryset = queryset.filter(is_deleted=False)
         tenant_id = getattr(self.request.user, 'tenant_id', None)
         if tenant_id and hasattr(queryset.model, 'tenant_id'):
             queryset = queryset.filter(tenant_id=tenant_id)
         elif tenant_id and hasattr(queryset.model, 'employee') and hasattr(queryset.model.employee, 'tenant_id'):
             queryset = queryset.filter(employee__tenant_id=tenant_id)
         return queryset
+
+    def perform_destroy(self, instance):
+        if hasattr(instance, 'soft_delete'):
+            instance.soft_delete()
+        else:
+            instance.delete()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -38,6 +46,8 @@ class BaseReadOnlyReviewViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if hasattr(queryset.model, 'is_deleted'):
+            queryset = queryset.filter(is_deleted=False)
         tenant_id = getattr(self.request.user, 'tenant_id', None)
         if tenant_id and hasattr(queryset.model, 'tenant_id'):
             queryset = queryset.filter(tenant_id=tenant_id)
@@ -49,6 +59,8 @@ class BaseActionViewSet(viewsets.GenericViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if queryset is not None and hasattr(queryset.model, 'is_deleted'):
+            queryset = queryset.filter(is_deleted=False)
         tenant_id = getattr(self.request.user, 'tenant_id', None)
         if tenant_id and queryset and hasattr(queryset.model, 'tenant_id'):
             queryset = queryset.filter(tenant_id=tenant_id)

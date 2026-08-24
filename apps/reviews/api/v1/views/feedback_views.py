@@ -9,6 +9,7 @@ from apps.reviews.services.feedback.summary_service import SummaryService
 from apps.reviews.api.v1.serializers import FeedbackRequestSerializer, FeedbackRequestCreateSerializer, FeedbackResponseSerializer, FeedbackResponseSubmitSerializer, FeedbackSummarySerializer, FeedbackSummaryShareSerializer
 from .base_views import BaseReviewViewSet, BaseReadOnlyReviewViewSet
 from apps.accounts.constants import UserRoles
+from apps.reviews.api.v1.permissions.base_permissions import IsAuthenticated, IsAdminOnly, IsSupervisorOrAdmin
 
 class FeedbackRequestViewSet(BaseReviewViewSet):
     queryset = FeedbackRequest.objects.all()
@@ -16,9 +17,11 @@ class FeedbackRequestViewSet(BaseReviewViewSet):
         return FeedbackRequestCreateSerializer if self.action == 'create' else FeedbackRequestSerializer
     def get_permissions(self):
         if self.action == 'create':
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsSupervisorOrAdmin]
         elif self.action in ['update', 'partial_update', 'destroy', 'remind', 'cancel']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsAdminOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(requested_by=self.request.user, tenant_id=self.request.user.tenant_id)
@@ -94,8 +97,7 @@ class FeedbackResponseViewSet(BaseReviewViewSet):
     queryset = FeedbackResponse.objects.all()
     serializer_class = FeedbackResponseSerializer
     def get_permissions(self):
-        if self.action == 'submit':
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.STAFF, UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+        self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     @action(detail=False, methods=['post'], url_path='submit/(?P<request_id>[^/.]+)')
     def submit(self, request, request_id=None):
@@ -149,7 +151,9 @@ class FeedbackSummaryViewSet(BaseReadOnlyReviewViewSet):
     serializer_class = FeedbackSummarySerializer
     def get_permissions(self):
         if self.action == 'share':
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]]
+            self.permission_classes = [IsAdminOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     @action(detail=False, methods=['get'])
     def my(self, request):

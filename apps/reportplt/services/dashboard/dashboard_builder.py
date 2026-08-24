@@ -16,7 +16,7 @@ class DashboardBuilder:
 
     def create_dashboard(self, name: str, dashboard_type: str = DashboardType.PERSONAL, config: Optional[Dict] = None) -> ReportDashboard:
         if self.rbac and self.user:
-            if dashboard_type != DashboardType.PERSONAL and self.user.role not in ['client_admin', 'dashboard_champion', 'executive']:
+            if dashboard_type != DashboardType.PERSONAL and self.user.role not in ['client_admin', 'hr_admin', 'executive']:
                 raise ReportPermissionError("You do not have permission to create this dashboard type")
         dashboard = ReportDashboard(
             tenant_id=self.user.tenant_id if self.user else None,
@@ -51,7 +51,7 @@ class DashboardBuilder:
 
     def get_dashboards(self, filters: Optional[Dict] = None) -> List[ReportDashboard]:
         qs = ReportDashboard.objects.filter(tenant_id=self.user.tenant_id if self.user else None)
-        if self.user and self.user.role not in ['client_admin', 'dashboard_champion', 'executive']:
+        if self.user and self.user.role not in ['client_admin', 'hr_admin', 'executive']:
             qs = qs.filter(
                 models.Q(owner=self.user) |
                 models.Q(is_shared=True, allowed_roles__contains=[self.user.role]) |

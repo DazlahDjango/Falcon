@@ -41,7 +41,7 @@ class SelfAssessmentSubmitSerializer(serializers.Serializer):
         return value
 
 class SelfAssessmentDetailSerializer(SelfAssessmentSerializer):
-    competency_ratings = CompetencyRatingSerializer(source='competency_ratings', many=True, read_only=True)
+    competency_ratings = CompetencyRatingSerializer(many=True, read_only=True)
     class Meta(SelfAssessmentSerializer.Meta):
         fields = SelfAssessmentSerializer.Meta.fields + ['competency_ratings']
 
@@ -64,10 +64,10 @@ class SupervisorReviewSerializer(BaseTenantSerializer, BaseStatusSerializer):
             'training_recommendations', 'goals_for_next_period', 'recommendation',
             'recommendation_display', 'promotion_readiness', 'promotion_target_role',
             'promotion_timeline', 'bonus_recommendation', 'bonus_recommendation_display',
-            'bonus_percentage', 'override_kpi_score', 'override_reason', 'integrity_checksum',
+            'bonus_percentage', 'override_kpi_score', 'override_reason',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'reviewed_at', 'integrity_checksum']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'reviewed_at']
 
 class SupervisorReviewSubmitSerializer(serializers.Serializer):
     confirm_submit = serializers.BooleanField(required=True)
@@ -85,7 +85,7 @@ class SupervisorReviewApproveSerializer(serializers.Serializer):
         return data
 
 class SupervisorReviewDetailSerializer(SupervisorReviewSerializer):
-    competency_ratings = CompetencyRatingSerializer(source='competency_ratings', many=True, read_only=True)
+    competency_ratings = CompetencyRatingSerializer(many=True, read_only=True)
     self_assessment_data = SelfAssessmentSerializer(source='self_assessment', read_only=True)
     class Meta(SupervisorReviewSerializer.Meta):
         fields = SupervisorReviewSerializer.Meta.fields + ['competency_ratings', 'self_assessment_data']

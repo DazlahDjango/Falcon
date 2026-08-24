@@ -49,7 +49,7 @@ import {
 // ============================================================
 
 export const useSuperAdminDashboard = (options = {}) => {
-  const { autoFetch = true, refreshInterval = 0 } = options;
+  const { autoFetch = true, refreshInterval = 10000 } = options;
   const dispatch = useDispatch();
   const fetchCalled = useRef(false);
   const intervalRef = useRef(null);
@@ -175,7 +175,7 @@ export const useSuperAdminDashboard = (options = {}) => {
 // ============================================================
 
 export const useClientAdminDashboard = (options = {}) => {
-  const { autoFetch = true, refreshInterval = 0 } = options;
+  const { autoFetch = true, refreshInterval = 10000 } = options;
   const dispatch = useDispatch();
   const fetchCalled = useRef(false);
   const intervalRef = useRef(null);

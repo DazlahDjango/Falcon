@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { X, CheckCircle, XCircle, Send, AlertCircle } from 'lucide-react';
 import { ReviewConfirmDialog } from '../../common';
 
-const ApprovalActions = ({ review, onApprove, onReject, onClose }) => {
+const ApprovalActions = ({ review, onApprove, onReject, onRequestChanges, onClose }) => {
   const [action, setAction] = useState(null);
   const [comments, setComments] = useState('');
   const [reason, setReason] = useState('');
+  const [feedback, setFeedback] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,6 +29,17 @@ const ApprovalActions = ({ review, onApprove, onReject, onClose }) => {
     }
   };
 
+  const handleRequestChanges = async () => {
+    setIsLoading(true);
+    try {
+      if (onRequestChanges) {
+        await onRequestChanges(review.id, feedback);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = () => {
     if (action === 'approve') {
       setShowConfirm(true);
@@ -37,7 +49,31 @@ const ApprovalActions = ({ review, onApprove, onReject, onClose }) => {
         return;
       }
       setShowConfirm(true);
+    } else if (action === 'request_changes') {
+      if (!feedback.trim()) {
+        alert('Please provide change feedback for the supervisor');
+        return;
+      }
+      setShowConfirm(true);
     }
+  };
+
+  const getConfirmHandler = () => {
+    if (action === 'approve') return handleApprove;
+    if (action === 'reject') return handleReject;
+    return handleRequestChanges;
+  };
+
+  const getConfirmTitle = () => {
+    if (action === 'approve') return 'Approve Review';
+    if (action === 'reject') return 'Reject Review';
+    return 'Request Changes';
+  };
+
+  const getConfirmMessage = () => {
+    if (action === 'approve') return `Are you sure you want to approve this review for ${review.employee_name}?`;
+    if (action === 'reject') return `Are you sure you want to reject this review for ${review.employee_name}? This will require the supervisor to revise and resubmit.`;
+    return `Are you sure you want to request changes for ${review.employee_name}'s review? The review will return to draft for the supervisor to edit.`;
   };
 
   return (
@@ -66,19 +102,26 @@ const ApprovalActions = ({ review, onApprove, onReject, onClose }) => {
             </div>
           </div>
 
-          <div className="approval-actions-options">
+          <div className="approval-actions-options" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
             <button
               className={`approval-actions-option ${action === 'approve' ? 'active approve' : ''}`}
               onClick={() => setAction('approve')}
             >
-              <CheckCircle size={24} />
+              <CheckCircle size={22} />
               <span>Approve</span>
+            </button>
+            <button
+              className={`approval-actions-option ${action === 'request_changes' ? 'active warning' : ''}`}
+              onClick={() => setAction('request_changes')}
+            >
+              <AlertCircle size={22} />
+              <span>Request Changes</span>
             </button>
             <button
               className={`approval-actions-option ${action === 'reject' ? 'active reject' : ''}`}
               onClick={() => setAction('reject')}
             >
-              <XCircle size={24} />
+              <XCircle size={22} />
               <span>Reject</span>
             </button>
           </div>
@@ -92,6 +135,20 @@ const ApprovalActions = ({ review, onApprove, onReject, onClose }) => {
                 onChange={(e) => setComments(e.target.value)}
                 placeholder="Add any comments about this approval..."
                 rows={3}
+              />
+            </div>
+          )}
+
+          {action === 'request_changes' && (
+            <div className="approval-actions-reason">
+              <label className="approval-actions-label">Change Feedback *</label>
+              <textarea
+                className="approval-actions-textarea"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Specify the changes the supervisor needs to make..."
+                rows={4}
+                required
               />
             </div>
           )}
@@ -116,14 +173,19 @@ const ApprovalActions = ({ review, onApprove, onReject, onClose }) => {
             Cancel
           </button>
           <button
-            className={`btn ${action === 'approve' ? 'btn-success' : 'btn-danger'}`}
+            className={`btn ${action === 'approve' ? 'btn-success' : action === 'request_changes' ? 'btn-warning' : 'btn-danger'}`}
             onClick={handleSubmit}
-            disabled={!action || (action === 'reject' && !reason.trim())}
+            disabled={!action || (action === 'reject' && !reason.trim()) || (action === 'request_changes' && !feedback.trim())}
           >
             {action === 'approve' ? (
               <>
                 <CheckCircle size={16} />
                 Approve Review
+              </>
+            ) : action === 'request_changes' ? (
+              <>
+                <AlertCircle size={16} />
+                Request Changes
               </>
             ) : action === 'reject' ? (
               <>
@@ -140,15 +202,11 @@ const ApprovalActions = ({ review, onApprove, onReject, onClose }) => {
           <ReviewConfirmDialog
             isOpen={true}
             onClose={() => setShowConfirm(false)}
-            onConfirm={action === 'approve' ? handleApprove : handleReject}
-            title={action === 'approve' ? 'Approve Review' : 'Reject Review'}
-            message={
-              action === 'approve'
-                ? `Are you sure you want to approve this review for ${review.employee_name}?`
-                : `Are you sure you want to reject this review for ${review.employee_name}? This will require the supervisor to revise and resubmit.`
-            }
-            variant={action === 'approve' ? 'success' : 'danger'}
-            confirmText={action === 'approve' ? 'Approve' : 'Reject'}
+            onConfirm={getConfirmHandler()}
+            title={getConfirmTitle()}
+            message={getConfirmMessage()}
+            variant={action === 'approve' ? 'success' : action === 'request_changes' ? 'warning' : 'danger'}
+            confirmText={action === 'approve' ? 'Approve' : action === 'request_changes' ? 'Request Changes' : 'Reject'}
             isLoading={isLoading}
           />
         )}

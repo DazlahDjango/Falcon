@@ -20,7 +20,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     # Roles and permissions
     ROLE_SUPER_ADMIN = 'super_admin'
     ROLE_CLIENT_ADMIN = 'client_admin'
-    ROLE_DASHBOARD_CHAMPION = 'dashboard_champion'
+    ROLE_HR_ADMIN = 'hr_admin'
     ROLE_EXECUTIVE = 'executive'
     ROLE_SUPERVISOR = 'supervisor'
     ROLE_STAFF = 'staff'
@@ -29,7 +29,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     ROLE_CHOICES = [
         (ROLE_SUPER_ADMIN, 'Super Admin'),
         (ROLE_CLIENT_ADMIN, 'Client Admin'),
-        (ROLE_DASHBOARD_CHAMPION, 'Dashboard Champion'),
+        (ROLE_HR_ADMIN, 'HR Admin'),
         (ROLE_EXECUTIVE, 'Executive'),
         (ROLE_SUPERVISOR, 'Supervisor'),
         (ROLE_STAFF, 'Staff'),
@@ -120,9 +120,9 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         return self.role in [self.ROLE_SUPER_ADMIN, self.ROLE_CLIENT_ADMIN]
 
     @property
-    def is_dashboard_champion(self):
-        """Check if user is dashboard champion"""
-        return self.role == self.ROLE_DASHBOARD_CHAMPION
+    def is_hr_admin(self):
+        """Check if user is HR admin"""
+        return self.role == self.ROLE_HR_ADMIN
 
     def get_direct_reports(self):
         """Get all direct reports (active users only)"""

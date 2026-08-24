@@ -290,6 +290,7 @@ const useFeedback = () => {
     updateRequest,
     deleteRequest,
     remind,
+    cancel: cancelRequest,
     cancelRequest,
     bulkCreate,
     fetchPending,

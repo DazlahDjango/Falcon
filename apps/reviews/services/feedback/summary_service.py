@@ -27,16 +27,17 @@ class SummaryService(BaseReviewService):
         Returns:
             FeedbackSummary object
         """
+        from apps.accounts.models import User
         from ...models import ReviewCycle
         
         review_cycle = ReviewCycle.objects.get(id=review_cycle_id)
-        subject = review_cycle.tenant.users.get(id=subject_id)
+        subject = User.objects.get(id=subject_id)
         
         # Get all completed feedback responses
         responses = FeedbackResponse.objects.filter(
             feedback_request__review_cycle=review_cycle,
             feedback_request__subject=subject,
-            feedback_request__status='completed'
+            feedback_request__status__in=['completed', 'submitted']
         ).select_related('feedback_request')
         
         if not responses.exists():
@@ -84,6 +85,7 @@ class SummaryService(BaseReviewService):
             review_cycle=review_cycle,
             subject=subject,
             defaults={
+                'tenant_id': subject.tenant_id,
                 'total_responses': responses.count(),
                 'avg_manager_rating': avg_manager,
                 'avg_peer_rating': avg_peer,

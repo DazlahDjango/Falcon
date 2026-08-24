@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio, FiInfo, FiCheckCircle, FiAlertTriangle, FiXCircle, FiAlertOctagon } from "react-icons/fi";
+import { FiMenu, FiSearch, FiBell, FiUser, FiLogOut, FiSettings, FiHelpCircle, FiChevronDown, FiGrid, FiRadio, FiInfo, FiCheckCircle, FiAlertTriangle, FiXCircle, FiAlertOctagon, FiEye, FiRotateCcw } from "react-icons/fi";
 import { markAllAsRead, fetchUnreadCount } from '../../../store/accounts/slice/notificationSlice';
 import { formatDate } from '../../../utils/accounts/formatters';
 import { getDefaultRouteByRole } from '../../../config/constants/dashboardRouteConstants';
+import { useDashboardProfileContext } from '../../../contexts/dashboard/DashboardProfileContext';
 
 const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, sidebarCollapsed, wsConnected }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -16,6 +17,8 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
+
+    const { isSuperAdmin, previewRole, setPreviewRole, resetPreview } = useDashboardProfileContext();
 
     // ✅ Use useSelector instead of useSyncExternalStore
     const { unreadCount, notifications } = useSelector((state) => state.notifications || { unreadCount: 0, notifications: [] });
@@ -261,6 +264,45 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
             </div>
             
             <div className="ent-header-right">
+                {isSuperAdmin && (
+                    <div className="ent-role-preview-switcher flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-300">
+                        <FiEye className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span className="hidden sm:inline text-[11px] text-amber-800 dark:text-amber-200 font-bold">Preview As:</span>
+                        <select
+                            value={previewRole || ''}
+                            onChange={(e) => {
+                                const targetRole = e.target.value || null;
+                                setPreviewRole(targetRole);
+                                if (targetRole) {
+                                    navigate(getDefaultRouteByRole(targetRole));
+                                } else {
+                                    navigate('/dashboard/super-admin/overview');
+                                }
+                            }}
+                            className="bg-transparent border-0 text-xs font-bold text-amber-900 dark:text-amber-100 focus:ring-0 cursor-pointer p-0 pr-1"
+                        >
+                            <option value="" className="text-slate-800">Super Admin (Live)</option>
+                            <option value="client_admin" className="text-slate-800">Client Admin</option>
+                            <option value="executive" className="text-slate-800">Executive</option>
+                            <option value="supervisor" className="text-slate-800">Supervisor / Manager</option>
+                            <option value="staff" className="text-slate-800">Staff</option>
+                            <option value="read_only" className="text-slate-800">Read Only</option>
+                            <option value="dashboard_champion" className="text-slate-800">Dashboard Champion</option>
+                        </select>
+                        {previewRole && (
+                            <button
+                                onClick={() => {
+                                    resetPreview();
+                                    navigate('/dashboard/super-admin/overview');
+                                }}
+                                className="p-1 hover:bg-amber-500/20 rounded text-amber-800 dark:text-amber-200 transition"
+                                title="Reset to Super Admin view"
+                            >
+                                <FiRotateCcw className="w-3 h-3" />
+                            </button>
+                        )}
+                    </div>
+                )}
                 <span
                   className={statusClassNames}
                   title={statusTitle}

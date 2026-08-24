@@ -42,10 +42,27 @@ const useSelfAssessment = () => {
   const stats = useSelector(selectSelfAssessmentStats);
   const pendingAssessments = useSelector(selectPendingSelfAssessments);
   const submittedAssessments = useSelector(selectSubmittedSelfAssessments);
+  const pagination = useSelector((state) => state.reviews?.selfAssessments?.pagination) || { currentPage: 1, pageSize: 10, totalPages: 1, totalItems: data.length };
+  const filters = useSelector((state) => state.reviews?.selfAssessments?.filters) || {};
 
   // Actions
   const fetchAll = useCallback(
     (params) => dispatch(fetchSelfAssessments(params)),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(selfAssessmentActions.setPagination(payload)),
+    [dispatch]
+  );
+
+  const setFilters = useCallback(
+    (payload) => dispatch(selfAssessmentActions.setFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(selfAssessmentActions.clearFilters()),
     [dispatch]
   );
 
@@ -177,6 +194,7 @@ const useSelfAssessment = () => {
     error,
     selected,
     mySelfAssessment,
+    myAssessment: mySelfAssessment,
     stats,
     pendingAssessments,
     submittedAssessments,
@@ -191,11 +209,14 @@ const useSelfAssessment = () => {
 
     // Actions
     submit,
+    submitAssessment: submit,
     saveDraft,
+    saveAssessment: saveDraft,
     resetToDraft,
     softDelete,
     restore,
     fetchMy,
+    fetchMyAssessment: fetchMy,
     getStats,
     reset,
 
@@ -204,6 +225,11 @@ const useSelfAssessment = () => {
     canSubmit,
 
     // Utilities
+    pagination,
+    filters,
+    setPagination,
+    setFilters,
+    clearFilters,
     isEmpty: data.length === 0,
     totalCount: data.length,
     getById: (id) => data.find((item) => item.id === id),

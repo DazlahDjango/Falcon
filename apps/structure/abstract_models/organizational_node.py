@@ -40,6 +40,19 @@ class OrganizationalNode(BaseStructureModel, HierarchicalMixin):
             raise ValidationError({'level': _("Invalid organization level.")})
 
     def save(self, *args, **kwargs):
+        if not self.code and self.name:
+            import re
+            level_prefixes = {
+                OrgLevel.DIVISION: 'DIV',
+                OrgLevel.DEPARTMENT: 'DEP',
+                OrgLevel.SECTION: 'SEC',
+                OrgLevel.UNIT: 'UNT',
+            }
+            prefix = level_prefixes.get(self.level, 'ORG')
+            clean_name = re.sub(r'[^A-Z0-9]', '-', self.name.upper())
+            clean_name = re.sub(r'-+', '-', clean_name).strip('-')
+            self.code = f"{prefix}-{clean_name}"[:50]
+
         self.full_clean()
         if not self.path:
             if self.parent:

@@ -1,12 +1,11 @@
-// frontend/src/hooks/dashboard/useStaffDashboard.js
-
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { staffService } from '../../services/dashboard/staff.service';
 import { showToast } from '../../store/ui/slices/uiSlice';
+import { useDashboard } from './useDashboard';
 
 export const useStaffDashboard = (options = {}) => {
-  const { autoFetch = true, period: initialPeriod = 'current' } = options;
+  const { autoFetch = true, period: initialPeriod = 'current', refreshInterval = 10000 } = options;
   const dispatch = useDispatch();
   
   const [dashboardData, setDashboardData] = useState(null);
@@ -19,6 +18,23 @@ export const useStaffDashboard = (options = {}) => {
   const [submitting, setSubmitting] = useState(false);
   const [updatingMission, setUpdatingMission] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  const refreshAllRef = useRef(null);
+
+  const onWebsocketMessage = useCallback((message) => {
+    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update' || message.type?.endsWith('_update')) {
+      if (refreshAllRef.current) {
+        refreshAllRef.current().catch(console.error);
+      }
+    }
+  }, []);
+
+  const {
+    data: wsDashboardData,
+    loading: wsLoading,
+    error: wsError,
+    refresh: refreshWsDashboard
+  } = useDashboard('staff', { ...options, onWebsocketMessage });
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -162,6 +178,7 @@ export const useStaffDashboard = (options = {}) => {
   }, [period, dispatch]);
 
   const refreshAll = useCallback(async () => {
+    await refreshWsDashboard();
     await Promise.all([
       fetchDashboardData(),
       fetchMyKPIs(),
@@ -169,13 +186,23 @@ export const useStaffDashboard = (options = {}) => {
       fetchMissionStatus(),
       fetchPendingTasks(),
     ]);
-  }, [fetchDashboardData, fetchMyKPIs, fetchPendingSubmissions, fetchMissionStatus, fetchPendingTasks]);
+  }, [refreshWsDashboard, fetchDashboardData, fetchMyKPIs, fetchPendingSubmissions, fetchMissionStatus, fetchPendingTasks]);
 
   useEffect(() => {
+    refreshAllRef.current = refreshAll;
     if (autoFetch) {
-      refreshAll();
+      refreshAll().catch(() => {});
+
+      if (refreshInterval > 0) {
+        const timer = setInterval(() => {
+          if (refreshAllRef.current) {
+            refreshAllRef.current().catch(() => {});
+          }
+        }, refreshInterval);
+        return () => clearInterval(timer);
+      }
     }
-  }, [autoFetch, refreshAll]);
+  }, [autoFetch, refreshAll, refreshInterval]);
 
   // Re-fetch when period changes
   useEffect(() => {
@@ -187,13 +214,14 @@ export const useStaffDashboard = (options = {}) => {
   }, [period, autoFetch, fetchDashboardData, fetchMyKPIs, fetchMissionStatus]);
 
   return {
-    dashboardData,
+    dashboardData: wsDashboardData || dashboardData,
     myKPIs,
     pendingSubmissions,
     missionStatus,
     pendingTasks,
     period,
-    loading,
+    loading: loading || wsLoading,
+    error: wsError,
     submitting,
     updatingMission,
     exporting,

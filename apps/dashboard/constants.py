@@ -36,12 +36,12 @@ class DashboardType:
     
     # Role to allowed dashboard types mapping (SECURITY)
     ROLE_DASHBOARD_MAP = {
-        'super_admin': [SUPER_ADMIN, EXECUTIVE, CLIENT_ADMIN, MANAGER, STAFF, CHAMPION],
-        'client_admin': [CLIENT_ADMIN, EXECUTIVE, MANAGER, STAFF, CHAMPION],
-        'executive': [EXECUTIVE],
-        'dashboard_champion': [CHAMPION, EXECUTIVE],
-        'supervisor': [MANAGER, STAFF],
-        'staff': [STAFF],
+        'super_admin': [SUPER_ADMIN, EXECUTIVE, CLIENT_ADMIN, MANAGER, STAFF, CHAMPION, READ_ONLY],
+        'client_admin': [CLIENT_ADMIN, EXECUTIVE, MANAGER, STAFF, CHAMPION, READ_ONLY],
+        'executive': [EXECUTIVE, READ_ONLY],
+        'dashboard_champion': [CHAMPION, EXECUTIVE, READ_ONLY],
+        'supervisor': [MANAGER, STAFF, READ_ONLY],
+        'staff': [STAFF, READ_ONLY],
         'read_only': [READ_ONLY],
     }
     

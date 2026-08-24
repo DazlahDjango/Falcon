@@ -14,7 +14,7 @@ class CanViewCompanyAnalytics(BasePermission):
     - Client Admin
     - Executive
     - HR
-    - Dashboard Champion
+    - HR Admin
     """
     
     def has_permission(self, request, view):
@@ -25,8 +25,8 @@ class CanViewCompanyAnalytics(BasePermission):
             UserRoles.SUPER_ADMIN,
             UserRoles.CLIENT_ADMIN,
             UserRoles.EXECUTIVE,
-            UserRoles.DASHBOARD_CHAMPION,
-            'admin', 'hr'
+            UserRoles.HR_ADMIN,
+            'admin', 'hr', 'hr_admin'
         ]
         return request.user.role in allowed_roles
 
@@ -37,7 +37,7 @@ class CanViewDepartmentAnalytics(BasePermission):
     - Super Admin
     - Client Admin
     - Executive
-    - HR
+    - HR / HR Admin
     - Managers (their own department only)
     """
     
@@ -49,8 +49,8 @@ class CanViewDepartmentAnalytics(BasePermission):
             UserRoles.SUPER_ADMIN,
             UserRoles.CLIENT_ADMIN,
             UserRoles.EXECUTIVE,
-            UserRoles.DASHBOARD_CHAMPION,
-            'admin', 'hr', 'manager'
+            UserRoles.HR_ADMIN,
+            'admin', 'hr', 'hr_admin', 'manager'
         ]
         return request.user.role in allowed_roles
     
@@ -70,7 +70,7 @@ class CanViewManagerAnalytics(BasePermission):
     - Super Admin
     - Client Admin
     - Executive
-    - HR
+    - HR / HR Admin
     """
     
     def has_permission(self, request, view):
@@ -81,8 +81,8 @@ class CanViewManagerAnalytics(BasePermission):
             UserRoles.SUPER_ADMIN,
             UserRoles.CLIENT_ADMIN,
             UserRoles.EXECUTIVE,
-            UserRoles.DASHBOARD_CHAMPION,
-            'admin', 'hr'
+            UserRoles.HR_ADMIN,
+            'admin', 'hr', 'hr_admin'
         ]
         return request.user.role in allowed_roles
 
@@ -93,7 +93,7 @@ class CanViewInsights(BasePermission):
     - Super Admin
     - Client Admin
     - Executive
-    - HR
+    - HR / HR Admin
     - Managers
     """
     
@@ -105,8 +105,8 @@ class CanViewInsights(BasePermission):
             UserRoles.SUPER_ADMIN,
             UserRoles.CLIENT_ADMIN,
             UserRoles.EXECUTIVE,
-            UserRoles.DASHBOARD_CHAMPION,
-            'admin', 'hr', 'manager'
+            UserRoles.HR_ADMIN,
+            'admin', 'hr', 'hr_admin', 'manager'
         ]
         return request.user.role in allowed_roles
 
@@ -116,7 +116,7 @@ class CanViewPredictions(BasePermission):
     Allow access to predictions (flight risk) for:
     - Super Admin
     - Client Admin
-    - HR only (sensitive data)
+    - HR / HR Admin only (sensitive data)
     """
     
     def has_permission(self, request, view):
@@ -126,7 +126,7 @@ class CanViewPredictions(BasePermission):
         allowed_roles = [
             UserRoles.SUPER_ADMIN,
             UserRoles.CLIENT_ADMIN,
-            UserRoles.DASHBOARD_CHAMPION,
-            'admin', 'hr'
+            UserRoles.HR_ADMIN,
+            'admin', 'hr', 'hr_admin'
         ]
         return request.user.role in allowed_roles

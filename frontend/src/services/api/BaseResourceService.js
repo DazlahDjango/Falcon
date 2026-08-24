@@ -21,7 +21,7 @@ export class BaseResourceService {
    * Use this when your components expect the raw payload
    */
   unwrap(response) {
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+    if (response && typeof response === 'object' && 'data' in response && ('status' in response || 'headers' in response || 'success' in response)) {
       return response.data;
     }
     return response;
@@ -29,12 +29,12 @@ export class BaseResourceService {
 
   async list(params = {}) {
     const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(), { params }));
-    return response; // full envelope
+    return this.unwrap(response);
   }
 
   async listRaw(params = {}) {
     const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(), { params }));
-    return this.unwrap(response); // just the data
+    return this.unwrap(response);
   }
 
   async get(id, params = {}) {
@@ -44,7 +44,7 @@ export class BaseResourceService {
   async getById(id, params = {}) {
     if (!id) throw new Error('ID is required');
     const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(`${id}/`), { params }));
-    return response;
+    return this.unwrap(response);
   }
 
   async getByIdRaw(id, params = {}) {
@@ -55,19 +55,22 @@ export class BaseResourceService {
 
   async create(data) {
     if (!data) throw new Error('Data is required');
-    return this.withRetry(() => this.apiClient.post(this.getEndpoint(), data));
+    const response = await this.withRetry(() => this.apiClient.post(this.getEndpoint(), data));
+    return this.unwrap(response);
   }
 
   async update(id, data, partial = true) {
     if (!id) throw new Error('ID is required');
     if (!data) throw new Error('Data is required');
     const method = partial ? 'patch' : 'put';
-    return this.withRetry(() => this.apiClient[method](this.getEndpoint(`${id}/`), data));
+    const response = await this.withRetry(() => this.apiClient[method](this.getEndpoint(`${id}/`), data));
+    return this.unwrap(response);
   }
 
   async delete(id) {
     if (!id) throw new Error('ID is required');
-    return this.withRetry(() => this.apiClient.delete(this.getEndpoint(`${id}/`)));
+    const response = await this.withRetry(() => this.apiClient.delete(this.getEndpoint(`${id}/`)));
+    return this.unwrap(response);
   }
 
   async getStats(params = {}) {

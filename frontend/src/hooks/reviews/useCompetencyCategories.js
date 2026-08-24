@@ -148,8 +148,11 @@ const useCompetencyCategories = () => {
     fetchAll,
     fetchOne,
     create,
+    createCategory: create,
     update,
+    updateCategory: update,
     remove,
+    deleteCategory: remove,
 
     // Actions
     activate,

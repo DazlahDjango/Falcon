@@ -4,7 +4,7 @@ from apps.accounts.constants import UserRoles
 class CanViewCalibrationSession(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.DASHBOARD_CHAMPION]:
+        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             return True
         if hasattr(obj, 'facilitator') and obj.facilitator_id == user.id:
             return True
@@ -19,19 +19,21 @@ class CanParticipateInCalibration(BasePermission):
             return True
         if hasattr(obj, 'facilitator') and obj.facilitator_id == user.id:
             return True
-        return user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+        return user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]
 
 class CanFacilitateCalibration(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             return True
         return hasattr(obj, 'facilitator') and obj.facilitator_id == user.id
 
 class CanAdjustRating(BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             return True
         session_id = view.kwargs.get('session_id') or view.kwargs.get('pk')
         if session_id:

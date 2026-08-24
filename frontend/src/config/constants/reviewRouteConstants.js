@@ -28,6 +28,7 @@ export const REVIEW_ROUTES = {
   COMPETENCY_CATEGORIES: '/reviews/competency-categories',
   COMPETENCY_CATEGORIES_CREATE: '/reviews/competency-categories/create',
   COMPETENCY_CATEGORIES_EDIT: (id) => `/reviews/competency-categories/${id}/edit`,
+  COMPETENCY_CATEGORIES_DETAIL: (id) => `/reviews/competency-categories/${id}`,
   
   // Review Cycles
   REVIEW_CYCLES: '/reviews/cycles',
@@ -41,6 +42,8 @@ export const REVIEW_ROUTES = {
   
   // Self Assessments
   SELF_ASSESSMENT: '/reviews/self-assessment',
+  SELF_ASSESSMENTS: '/reviews/self-assessments',
+  SELF_ASSESSMENT_LIST: '/reviews/self-assessments',
   SELF_ASSESSMENT_FORM: '/reviews/self-assessment/form',
   SELF_ASSESSMENT_VIEW: (id) => `/reviews/self-assessment/${id}`,
   SELF_ASSESSMENT_TEAM: '/reviews/self-assessment/team',
@@ -84,6 +87,7 @@ export const REVIEW_ROUTES = {
   // 360 Feedback
   FEEDBACK: '/reviews/feedback',
   FEEDBACK_REQUESTS: '/reviews/feedback/requests',
+  FEEDBACK_REQUEST_DETAIL: (id) => `/reviews/feedback/requests/${id}`,
   FEEDBACK_REQUEST_CREATE: '/reviews/feedback/requests/create',
   FEEDBACK_RESPOND: (requestId) => `/reviews/feedback/respond/${requestId}`,
   FEEDBACK_SUMMARY: '/reviews/feedback/summary',

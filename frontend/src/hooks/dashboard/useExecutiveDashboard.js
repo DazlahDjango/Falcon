@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { executiveDashboardService } from '../../services/dashboard/executive.service';
 import { showToast } from '../../store/ui/slices/uiSlice';
 import { useDashboard } from './useDashboard';
 
 export const useExecutiveDashboard = (options = {}) => {
+  const { refreshInterval = 10000, autoFetch = true } = options;
   const dispatch = useDispatch();
   const [departments, setDepartments] = useState([]);
   const [trends, setTrends] = useState([]);
@@ -12,12 +13,22 @@ export const useExecutiveDashboard = (options = {}) => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [departmentLoading, setDepartmentLoading] = useState(false);
 
+  const refreshAllRef = useRef(null);
+
+  const onWebsocketMessage = useCallback((message) => {
+    if (message.type === 'kpi_update' || message.type === 'dashboard_update' || message.type === 'update' || message.type?.endsWith('_update')) {
+      if (refreshAllRef.current) {
+        refreshAllRef.current().catch(console.error);
+      }
+    }
+  }, []);
+
   const {
     data: dashboardData,
     loading,
     error,
     refresh: refreshDashboard
-  } = useDashboard('executive', options);
+  } = useDashboard('executive', { ...options, onWebsocketMessage });
 
   const fetchDepartments = useCallback(async () => {
     setDepartmentLoading(true);
@@ -99,6 +110,22 @@ export const useExecutiveDashboard = (options = {}) => {
       fetchIssues()
     ]);
   }, [refreshDashboard, fetchDepartments, fetchTrends, fetchIssues]);
+
+  useEffect(() => {
+    refreshAllRef.current = refreshAll;
+    if (autoFetch) {
+      refreshAll().catch(() => {});
+
+      if (refreshInterval > 0) {
+        const timer = setInterval(() => {
+          if (refreshAllRef.current) {
+            refreshAllRef.current().catch(() => {});
+          }
+        }, refreshInterval);
+        return () => clearInterval(timer);
+      }
+    }
+  }, [autoFetch, refreshAll, refreshInterval]);
 
   return {
     dashboardData,

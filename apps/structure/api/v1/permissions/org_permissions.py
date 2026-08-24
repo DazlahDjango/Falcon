@@ -217,7 +217,7 @@ class CanViewEmployment(BaseStructurePermission):
     def has_object_permission(self, request, view, obj):
         if not super().has_object_permission(request, view, obj):
             return False
-        if request.user.role in ['super_admin', 'client_admin', 'executive', 'dashboard_champion']:
+        if request.user.role in ['super_admin', 'client_admin', 'executive', 'hr_admin']:
             return True
         if request.user.id == obj.user_id:
             return True
@@ -322,7 +322,7 @@ class CanExportOrgChart(BaseStructurePermission):
     def has_permission(self, request, view):
         if not super().has_permission(request, view):
             return False
-        return request.user.role in ['super_admin', 'client_admin', 'executive', 'dashboard_champion']
+        return request.user.role in ['super_admin', 'client_admin', 'executive', 'hr_admin']
 
 
 class CanPerformBulkOperations(BaseStructurePermission):

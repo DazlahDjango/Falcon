@@ -20,7 +20,7 @@ import {
   FiLock,
 } from 'react-icons/fi';
 import { Building2 } from 'lucide-react';
-import { useClientAdminDashboard } from '../../../hooks/tenant';
+import { useClientAdminDashboard } from '../../../hooks/tenant/useDashboard';
 
 const ClientAdminDashboard = () => {
   const {
@@ -31,11 +31,12 @@ const ClientAdminDashboard = () => {
     users,
     domains,
     resources,
+    migrations,
     health,
     fetchDashboard,
     refresh,
     clearAllErrors,
-  } = useClientAdminDashboard({ autoFetch: true, refreshInterval: 60000 });
+  } = useClientAdminDashboard({ autoFetch: true, refreshInterval: 10000 });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -77,46 +78,35 @@ const ClientAdminDashboard = () => {
     );
   }
 
-  // Real data extractions & fallbacks matching backend payload
-  const orgName = organization?.name || 'Falcon Technologies Ltd';
-  const orgSlug = organization?.slug || 'falcon-technologies';
-  const orgSector = organization?.sector || 'Technology';
-  const orgTier = organization?.subscription_tier || 'Premium';
+  // Real data extractions directly from backend payload without hardcoded fallbacks
+  const orgName = organization?.name || 'Organization';
+  const orgSlug = organization?.slug || '—';
+  const orgSector = organization?.sector || '—';
+  const orgTier = organization?.subscription_tier || 'Standard';
   const orgStatus = organization?.status || 'Active';
 
-  const totalUsers = users?.total || 124;
-  const activeUsers = users?.active || 118;
-  const inactiveUsers = users?.inactive || 6;
+  const totalUsers = users?.total ?? 0;
+  const activeUsers = users?.active ?? 0;
+  const inactiveUsers = users?.inactive ?? 0;
 
-  const totalDomains = domains?.total || 3;
-  const activeDomains = domains?.active || 2;
-  const verifyingDomains = domains?.verifying || 1;
-  const domainItems = domains?.items || [
-    { id: '1', domain: `${orgSlug}.com`, is_primary: true, status: 'ACTIVE', ssl_expires_at: 'Oct 20, 2025' },
-    { id: '2', domain: `app.${orgSlug}.com`, is_primary: false, status: 'ACTIVE', ssl_expires_at: 'Oct 20, 2025' },
-    { id: '3', domain: `api.${orgSlug}.com`, is_primary: false, status: 'VERIFYING', ssl_expires_at: null },
-  ];
+  const totalDomains = domains?.total ?? 0;
+  const activeDomains = domains?.active ?? 0;
+  const verifyingDomains = domains?.verifying ?? 0;
+  const domainItems = Array.isArray(domains?.items) ? domains.items : [];
 
-  const totalResources = resources?.total || 8;
-  const warningResources = resources?.warning || 1;
-  const exceededResources = resources?.exceeded || 0;
-  const resourceUsageList = resources?.resources || [
-    { type_display: 'Users', current: activeUsers, limit: 150, percentage: 84 },
-    { type_display: 'Storage', current: 128, limit: 200, percentage: 64, unit: 'GB' },
-    { type_display: 'API Calls', current: 73, limit: 100, percentage: 73, unit: 'K' },
-    { type_display: 'Data Connections', current: 5, limit: 10, percentage: 50 },
-  ];
+  const totalResources = resources?.total ?? 0;
+  const warningResources = resources?.warning ?? 0;
+  const exceededResources = resources?.exceeded ?? 0;
+  const resourceUsageList = Array.isArray(resources?.resources) ? resources.resources : [];
 
   const overallHealthStatus = health?.status || 'Healthy';
   const healthChecks = health?.checks || {
-    database: { healthy: true, status: 'Healthy' },
-    tenant: { healthy: true, status: 'Healthy' },
-    services: { healthy: true, status: 'Healthy' },
-    domain_ssl: { healthy: true, status: 'Healthy' },
-    isolation: { healthy: true, status: 'Healthy' },
+    organization: { healthy: true, status: 'Active' },
+    connection: { healthy: true, status: 'Connected' },
+    schema: { healthy: true, status: 'Ready' },
   };
 
-  const primaryDomain = domainItems.find((d) => d.is_primary)?.domain || `${orgSlug}.com`;
+  const primaryDomain = domainItems.find((d) => d.is_primary)?.domain || (orgSlug !== '—' ? `${orgSlug}.com` : '—');
 
   return (
     <div className="dashboard-container">
@@ -340,40 +330,21 @@ const ClientAdminDashboard = () => {
             <h3 className="dashboard-panel-title">Organization Health</h3>
           </div>
           <div className="health-checklist">
-            <div className="health-check-item">
-              <div className="health-check-title">
-                <FiDatabase size={14} color="#3b82f6" /> Database Connection
-              </div>
-              <span className="health-status-badge healthy">● Healthy</span>
-            </div>
-
-            <div className="health-check-item">
-              <div className="health-check-title">
-                <Building2 size={14} color="#3b82f6" /> Tenant Connection
-              </div>
-              <span className="health-status-badge healthy">● Healthy</span>
-            </div>
-
-            <div className="health-check-item">
-              <div className="health-check-title">
-                <FiSliders size={14} color="#3b82f6" /> Background Services
-              </div>
-              <span className="health-status-badge healthy">● Healthy</span>
-            </div>
-
-            <div className="health-check-item">
-              <div className="health-check-title">
-                <FiGlobe size={14} color="#3b82f6" /> Domain & SSL
-              </div>
-              <span className="health-status-badge healthy">● Healthy</span>
-            </div>
-
-            <div className="health-check-item">
-              <div className="health-check-title">
-                <FiShield size={14} color="#3b82f6" /> Data Isolation (Schema & RLS)
-              </div>
-              <span className="health-status-badge healthy">● Healthy</span>
-            </div>
+            {Object.entries(healthChecks).map(([key, check]) => {
+              const isHealthy = check?.healthy !== false;
+              const statusLabel = check?.status || (isHealthy ? 'Healthy' : 'Degraded');
+              const displayKey = key.replace('_', ' ').toUpperCase();
+              return (
+                <div key={key} className="health-check-item">
+                  <div className="health-check-title">
+                    <FiDatabase size={14} color="#3b82f6" /> {displayKey} Check
+                  </div>
+                  <span className={`health-status-badge ${isHealthy ? 'healthy' : 'unhealthy'}`}>
+                    ● {statusLabel}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <span className="dashboard-panel-link" style={{ justifyContent: 'center' }}>
@@ -419,6 +390,14 @@ const ClientAdminDashboard = () => {
                     <td style={{ color: '#64748b' }}>{dom.ssl_expires_at || '—'}</td>
                   </tr>
                 ))}
+
+                {domainItems.length === 0 && (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                      No domains registered for this organization.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -479,41 +458,24 @@ const ClientAdminDashboard = () => {
             <h3 className="dashboard-panel-title">Recent Activity</h3>
           </div>
           <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon-badge green"><FiGlobe /></div>
-              <div className="activity-content">
-                <div className="activity-title-row"><span className="activity-org-name">Domain verified</span></div>
-                <div className="activity-desc">app.falcontech.com was verified successfully</div>
+            {Array.isArray(migrations?.recent_items) && migrations.recent_items.length > 0 ? (
+              migrations.recent_items.map((act) => (
+                <div key={act.id} className="activity-item">
+                  <div className="activity-icon-badge blue"><FiSliders /></div>
+                  <div className="activity-content">
+                    <div className="activity-title-row"><span className="activity-org-name">{act.name || act.app_name}</span></div>
+                    <div className="activity-desc">Status: {act.status}</div>
+                  </div>
+                  <span className="activity-time">
+                    {act.created_at ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                No recent organization events or migrations logged.
               </div>
-              <span className="activity-time">10 min ago</span>
-            </div>
-
-            <div className="activity-item">
-              <div className="activity-icon-badge blue"><FiUsers /></div>
-              <div className="activity-content">
-                <div className="activity-title-row"><span className="activity-org-name">User added</span></div>
-                <div className="activity-desc">John Kamau was added to the organization</div>
-              </div>
-              <span className="activity-time">35 min ago</span>
-            </div>
-
-            <div className="activity-item">
-              <div className="activity-icon-badge blue"><FiSliders /></div>
-              <div className="activity-content">
-                <div className="activity-title-row"><span className="activity-org-name">Organization settings updated</span></div>
-                <div className="activity-desc">Notification preferences updated</div>
-              </div>
-              <span className="activity-time">1 hour ago</span>
-            </div>
-
-            <div className="activity-item">
-              <div className="activity-icon-badge blue"><FiLock /></div>
-              <div className="activity-content">
-                <div className="activity-title-row"><span className="activity-org-name">SSL certificate renewed</span></div>
-                <div className="activity-desc">falcontech.com SSL certificate renewed</div>
-              </div>
-              <span className="activity-time">3 hours ago</span>
-            </div>
+            )}
           </div>
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <span className="dashboard-panel-link" style={{ justifyContent: 'center' }}>

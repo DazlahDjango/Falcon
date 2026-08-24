@@ -7,17 +7,20 @@ class StructureDashboardService extends BaseStructureService {
   }
 
   async getOverview() {
-    return withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.OVERVIEW));
+    const res = await withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.OVERVIEW));
+    return this.unwrap(res);
   }
 
   async getHierarchyHealth() {
-    return withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.HIERARCHY_HEALTH));
+    const res = await withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.HIERARCHY_HEALTH));
+    return this.unwrap(res);
   }
 
   async getTrends(months = 6) {
-    return withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.TRENDS, { 
+    const res = await withRetry(() => this.apiClient.get(DASHBOARD_ENDPOINTS.TRENDS, { 
       params: { [DASHBOARD_ENDPOINTS.QUERY_PARAMS.MONTHS]: months } 
     }));
+    return this.unwrap(res);
   }
 
   async getAllDashboardData(months = 6) {
@@ -26,7 +29,11 @@ class StructureDashboardService extends BaseStructureService {
       this.getHierarchyHealth(),
       this.getTrends(months)
     ]);
-    return { overview: overview.data, health: health.data, trends: trends.data };
+    return { 
+      overview: this.unwrap(overview), 
+      health: this.unwrap(health), 
+      trends: this.unwrap(trends) 
+    };
   }
 }
 

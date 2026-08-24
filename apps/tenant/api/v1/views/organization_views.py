@@ -12,15 +12,16 @@ from apps.tenant.api.v1.serializers import (
     OrganizationListSerializer,
     OrganizationOnboardSerializer,
 )
+from apps.accounts.constants import UserRoles
 from apps.tenant.api.v1.permissions import (
     IsSuperAdmin,
     CanManageOrganization,
+    CanViewOrganization,
 )
 from apps.tenant.api.v1.throttles import OrganizationApiThrottle
 from apps.tenant.api.v1.filters import OrganizationFilter
 from apps.tenant.services import OrganizationService, ResourceService
 from apps.tenant.exceptions import OrganizationInvalidError, OrganizationError
-
 
 class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.filter(is_deleted=False).select_related('sector').prefetch_related('domains', 'resources')
@@ -43,18 +44,31 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         return action_serializers.get(self.action, OrganizationSerializer)
 
     def get_permissions(self):
-        if self.action in ['create', 'destroy', 'list']:
+        if self.action in ['create', 'destroy', 'onboard', 'activate', 'suspend']:
             self.permission_classes = [IsAuthenticated, IsSuperAdmin]
-        elif self.action in ['update', 'partial_update', 'retrieve']:
+        elif self.action in ['update', 'partial_update']:
             self.permission_classes = [IsAuthenticated, CanManageOrganization]
-        elif self.action in ['onboard', 'activate', 'suspend']:
-            self.permission_classes = [IsAuthenticated, IsSuperAdmin]
+        elif self.action in ['list', 'retrieve']:
+            self.permission_classes = [IsAuthenticated, CanViewOrganization]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Enforce strict multi-tenant isolation for non-SuperAdmins
+        if user.is_authenticated and getattr(user, 'role', None) != UserRoles.SUPER_ADMIN and not getattr(user, 'is_staff', False):
+            user_org_id = getattr(user, 'tenant_id', None) or getattr(user, 'organization_id', None)
+            if not user_org_id and hasattr(user, 'organization') and user.organization:
+                user_org_id = user.organization.id
+            
+            if user_org_id:
+                queryset = queryset.filter(Q(id=user_org_id) | Q(slug=str(user_org_id)))
+            else:
+                queryset = queryset.none()
+
         filters = {}
         if self.request.query_params.get('status'):
             filters['status'] = self.request.query_params.get('status')

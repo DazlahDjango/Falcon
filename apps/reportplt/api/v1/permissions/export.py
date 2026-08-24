@@ -44,7 +44,7 @@ class ExportCreatePermission(BasePermission):
             return False
         if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
             return True
-        if request.user.role in [UserRoles.DASHBOARD_CHAMPION, UserRoles.SUPERVISOR]:
+        if request.user.role in [UserRoles.HR_ADMIN, UserRoles.SUPERVISOR]:
             return True
         return False
 
