@@ -5,32 +5,13 @@
  * Supporting Super Admin, Client Admin, KPI Champion, Executive, Manager/Supervisor, Staff, and Read-Only.
  */
 import {
-  FiHome,
-  FiPieChart,
-  FiTarget,
-  FiActivity,
-  FiFileText,
-  FiCheckCircle,
-  FiAlertCircle,
-  FiUpload,
-  FiSettings,
-  FiLayers,
-  FiBarChart2,
-  FiGrid,
-  FiUsers,
-  FiUser,
-  FiPlus,
-  FiClock,
-  FiShield,
-  FiEye,
-  FiTrendingUp,
-  FiAward,
-  FiRotateCcw,
-  FiShare2,
-  FiSliders,
+  FiHome, FiDownload, FiCalendar, FiPieChart, FiTarget, FiActivity,
+  FiFileText, FiCheckCircle, FiAlertCircle, FiUpload, FiSettings,
+  FiLayers, FiBarChart2, FiGrid, FiUsers, FiUser, FiPlus,
+  FiClock, FiShield, FiEye, FiTrendingUp,
+  FiRotateCcw, FiShare2, FiSliders,
 } from 'react-icons/fi';
 
-import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { KPI_ROUTES } from '../constants/kpiRouteConstants';
 
 // ============================================
@@ -38,7 +19,6 @@ import { KPI_ROUTES } from '../constants/kpiRouteConstants';
 // ============================================
 export const KPI_SUPER_ADMIN_NAV_GROUPS = {
   kpi_main: [
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW, name: 'Platform Overview', icon: FiHome, end: true },
     { path: KPI_ROUTES.ADMIN_OVERVIEW, name: 'KPI Platform Admin', icon: FiPieChart },
   ],
   kpi_admin: [
@@ -46,10 +26,26 @@ export const KPI_SUPER_ADMIN_NAV_GROUPS = {
     { path: KPI_ROUTES.SYSTEM_SETTINGS, name: 'Platform KPI Policy', icon: FiSliders },
     { path: KPI_ROUTES.REFERENCE_DATA, name: 'Reference Data', icon: FiUsers },
     { path: KPI_ROUTES.AUDIT_LOGS, name: 'KPI Audit Logs', icon: FiFileText },
+    { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'All KPIs', icon: FiTarget },
+    { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiUsers },
+    { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiCalendar },
+    { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiActivity },
+    { path: KPI_ROUTES.KPI_VALIDATION, name: 'Validations', icon: FiCheckCircle },
+    { path: KPI_ROUTES.ESCALATIONS, name: 'Escalations', icon: FiAlertCircle },
+    { path: KPI_ROUTES.ACTUAL_ADJUSTMENTS, name: 'Adjustments', icon: FiRotateCcw },
   ],
   kpi_operations: [
     { path: KPI_ROUTES.CALCULATIONS, name: 'Calculation Console', icon: FiActivity },
     { path: KPI_ROUTES.BULK_UPLOAD, name: 'Bulk Imports', icon: FiUpload },
+    { path: KPI_ROUTES.ANALYTICS_INSIGHTS, name: 'Analytics Insights', icon: FiTrendingUp },
+    { path: KPI_ROUTES.SCORES, name: 'Score Dashboard', icon: FiBarChart2 },
+    { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'My Scores', icon: FiEye },
+    { path: KPI_ROUTES.SCORE_TEAM_SCORES, name: 'Team Scores', icon: FiUsers },
+    { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alerts', icon: FiAlertCircle },
+    { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiPieChart },
+    { path: KPI_ROUTES.ORGANIZATION_HEALTH, name: 'Organization Health', icon: FiActivity },
+    { path: KPI_ROUTES.KPI_REPORTS, name: 'Reports', icon: FiDownload },
+    { path: KPI_ROUTES.KPI_HEATMAP, name: 'Heatmap', icon: FiGrid },
   ],
 };
 
