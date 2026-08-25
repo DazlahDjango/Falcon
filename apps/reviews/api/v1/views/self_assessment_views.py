@@ -13,6 +13,27 @@ from apps.accounts.constants import UserRoles
 
 class SelfAssessmentViewSet(BaseReviewViewSet):
     queryset = SelfAssessment.objects.all()
+    def get_queryset(self):
+        qs = super().get_queryset().select_related('employee', 'review_cycle')
+        user = self.request.user
+
+        status_param = self.request.query_params.get('status')
+        if status_param and status_param != 'all':
+            qs = qs.filter(status=status_param)
+        elif self.action == 'list':
+            # Public/Team lists must only show submitted assessments, never private drafts
+            qs = qs.exclude(status='draft')
+
+        is_team = self.request.query_params.get('is_team')
+        if is_team in ['true', '1', True]:
+            direct_reports = user.direct_reports.all()
+            if direct_reports.exists():
+                qs = qs.filter(employee__in=direct_reports)
+            elif user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
+                pass  # Admins see all tenant records
+
+        return qs
+
     def get_serializer_class(self):
         return SelfAssessmentDetailSerializer if self.action == 'retrieve' else SelfAssessmentSerializer
     def get_permissions(self):
@@ -90,7 +111,10 @@ class SelfAssessmentViewSet(BaseReviewViewSet):
         if request.user.role not in [UserRoles.SUPERVISOR, UserRoles.EXECUTIVE, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         direct_reports = request.user.direct_reports.all()
-        assessments = self.get_queryset().filter(employee__in=direct_reports).select_related('employee', 'review_cycle')
+        if not direct_reports.exists() and request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
+            assessments = self.get_queryset().select_related('employee', 'review_cycle')
+        else:
+            assessments = self.get_queryset().filter(employee__in=direct_reports).select_related('employee', 'review_cycle')
         return Response(self.get_serializer(assessments, many=True).data)
     @action(detail=False, methods=['get'])
     def pending(self, request):

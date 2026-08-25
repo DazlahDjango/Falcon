@@ -110,7 +110,13 @@ class ReviewCycleViewSet(BaseReviewViewSet):
         return Response(progress)
     @action(detail=False, methods=['get'])
     def active(self, request):
-        cycle = self.get_queryset().filter(start_date__lte=timezone.now().date(), end_date__gte=timezone.now().date(), status='submitted').first()
+        today = timezone.now().date()
+        cycle = self.get_queryset().filter(
+            start_date__lte=today,
+            end_date__gte=today
+        ).exclude(status__in=['completed', 'cancelled', 'archived']).first()
+        if not cycle:
+            cycle = self.get_queryset().exclude(status__in=['completed', 'cancelled', 'archived']).order_by('-start_date').first()
         if not cycle:
             return Response({'message': 'No active review cycle found'}, status=status.HTTP_200_OK)
         return Response(self.get_serializer(cycle).data)

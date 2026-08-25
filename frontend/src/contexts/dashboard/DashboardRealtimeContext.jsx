@@ -136,7 +136,13 @@ export const DashboardRealtimeProvider = ({ children }) => {
 export const useDashboardRealtime = () => {
   const ctx = useContext(DashboardRealtimeContext);
   if (!ctx) {
-    throw new Error('useDashboardRealtime must be used within DashboardRealtimeProvider');
+    return {
+      connected: false,
+      lastEvent: null,
+      dashboardType: null,
+      refresh: () => {},
+      registerHandler: () => () => {},
+    };
   }
   return ctx;
 };

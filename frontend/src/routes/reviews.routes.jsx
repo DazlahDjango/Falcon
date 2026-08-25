@@ -121,6 +121,7 @@ const NotificationsPage = React.lazy(() => import('../pages/reviews/notification
 
 const reviewsRoutes = [
     // ============ Dashboard Routes ============
+    { path: '/reviews', element: <ReviewsDashboardRedirect /> },
     { path: REVIEW_ROUTES.REVIEW_DASHBOARD, element: <ReviewsDashboardRedirect /> },
     { path: REVIEW_ROUTES.REVIEW_DASHBOARD_STAFF, element: <StaffDashboardPage /> },
     { path: REVIEW_ROUTES.REVIEW_DASHBOARD_SUPERVISOR, element: <SupervisorDashboardPage /> },
@@ -153,8 +154,13 @@ const reviewsRoutes = [
 
     // ============ Self Assessment Routes ============
     { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, element: <SelfAssessmentPage /> },
-    { path: REVIEW_ROUTES.SELF_ASSESSMENT_VIEW(':id'), element: <SelfAssessmentViewPage /> },
+    { path: '/reviews/self-assessments/form', element: <SelfAssessmentPage /> },
     { path: REVIEW_ROUTES.SELF_ASSESSMENT_LIST, element: <SelfAssessmentListPage /> },
+    { path: '/reviews/self-assessment', element: <SelfAssessmentListPage /> },
+    { path: REVIEW_ROUTES.SELF_ASSESSMENT_TEAM, element: <SelfAssessmentListPage /> },
+    { path: '/reviews/self-assessments/team', element: <SelfAssessmentListPage /> },
+    { path: REVIEW_ROUTES.SELF_ASSESSMENT_VIEW(':id'), element: <SelfAssessmentViewPage /> },
+    { path: '/reviews/self-assessments/:id', element: <SelfAssessmentViewPage /> },
 
     // ============ Supervisor Review Routes ============
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_QUEUE, element: <ReviewQueuePage /> },

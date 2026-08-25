@@ -1,7 +1,7 @@
 // src/components/reviews/self-assessments/form/SelfAssessmentForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, Send, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Save, Send, Clock, AlertCircle, CheckCircle, Eye, Edit3 } from 'lucide-react';
 import { useSelfAssessment, useCycles } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewStatusBadge } from '../../common';
 import SelfAssessmentCompetencyRating from './SelfAssessmentCompetencyRating';
@@ -13,7 +13,7 @@ import SelfAssessmentHelpGuide from './SelfAssessmentHelpGuide';
 const SelfAssessmentForm = () => {
   const navigate = useNavigate();
   const { mySelfAssessment, loading, error, fetchMy, submit, saveDraft, resetToDraft } = useSelfAssessment();
-  const { activeCycle, fetchActiveCycle } = useCycles();
+  const { data: allCycles = [], activeCycle, fetchActiveCycle, fetchAll: fetchAllCycles } = useCycles();
   const [formData, setFormData] = useState({
     overall_comment: '',
     strengths: '',
@@ -29,6 +29,8 @@ const SelfAssessmentForm = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isViewingDetails, setIsViewingDetails] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState('');
   const [showGuide, setShowGuide] = useState(true);
 
@@ -37,18 +39,21 @@ const SelfAssessmentForm = () => {
     name: mySelfAssessment.review_cycle_name,
     self_assessment_deadline: mySelfAssessment.self_assessment_deadline || mySelfAssessment.review_cycle_deadline,
     allow_self_assessment_edit: true,
-  } : null);
+  } : (allCycles || []).find(c => c.status === 'submitted' || c.status === 'active') || null);
 
   const isSubmitted = mySelfAssessment?.status === 'submitted';
   const isDraft = mySelfAssessment?.status === 'draft' || !mySelfAssessment;
-  const canEdit = isDraft || (effectiveCycle ? effectiveCycle.allow_self_assessment_edit : false);
+  const canEdit = isDraft || isEditing || (effectiveCycle ? effectiveCycle.allow_self_assessment_edit : false);
 
   useEffect(() => {
     fetchMy();
     if (fetchActiveCycle) {
       fetchActiveCycle();
     }
-  }, [fetchMy, fetchActiveCycle]);
+    if (fetchAllCycles) {
+      fetchAllCycles();
+    }
+  }, [fetchMy, fetchActiveCycle, fetchAllCycles]);
 
   useEffect(() => {
     if (mySelfAssessment) {
@@ -115,13 +120,8 @@ const SelfAssessmentForm = () => {
   const handleSaveDraft = async () => {
     setIsSaving(true);
     try {
-      let targetId = mySelfAssessment?.id;
-      if (!targetId) {
-        const fresh = await fetchMy();
-        targetId = fresh?.id || fresh?.payload?.id;
-      }
-      if (targetId) {
-        await saveDraft(targetId, formData);
+      if (mySelfAssessment?.id) {
+        await saveDraft(mySelfAssessment.id, formData);
         const now = new Date();
         const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         setAutosaveStatus(`Draft saved at ${timeString}`);
@@ -145,7 +145,9 @@ const SelfAssessmentForm = () => {
         await saveDraft(targetId, formData);
         await submit(targetId);
         await fetchMy();
-        navigate('/reviews');
+        setIsEditing(false);
+        setIsViewingDetails(false);
+        alert('🎉 Your self-assessment has been successfully submitted!');
       }
     } catch (error) {
       console.error('Failed to submit:', error);
@@ -158,11 +160,13 @@ const SelfAssessmentForm = () => {
   const handleReset = async () => {
     if (window.confirm('Are you sure you want to reset this assessment to draft?')) {
       await resetToDraft(mySelfAssessment.id);
+      setIsEditing(true);
+      setIsViewingDetails(false);
       fetchMy();
     }
   };
 
-  if (loading) return <ReviewLoading size="lg" text="Loading self assessment..." />;
+  if (loading && !mySelfAssessment) return <ReviewLoading size="lg" text="Loading self assessment..." />;
   if (error) return <ReviewError error={error} onRetry={fetchMy} />;
   if (!effectiveCycle && !mySelfAssessment) {
     return (
@@ -174,8 +178,83 @@ const SelfAssessmentForm = () => {
     );
   }
 
-  if (isSubmitted && effectiveCycle && !effectiveCycle.allow_self_assessment_edit) {
-    return <SelfAssessmentView assessment={mySelfAssessment} onReset={handleReset} />;
+  // Once submitted: Show the clean Overview Card first. User can click "View Full Submission" or "Edit"
+  if (isSubmitted && !isEditing) {
+    if (isViewingDetails) {
+      return (
+        <SelfAssessmentView 
+          assessment={mySelfAssessment} 
+          onEdit={() => { setIsViewingDetails(false); setIsEditing(true); }} 
+          onBack={() => setIsViewingDetails(false)}
+          onReset={handleReset} 
+        />
+      );
+    }
+
+    return (
+      <div className="self-assessment-overview-wrapper" style={{ padding: '24px 16px', maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '32px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CheckCircle size={26} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0f172a' }}>Self-Assessment Submitted</h2>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
+                Your self-evaluation for <strong>{mySelfAssessment.review_cycle_name || effectiveCycle?.name || 'Active Review Cycle'}</strong> is confirmed and submitted.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', background: '#f8fafc', padding: '20px', borderRadius: '10px', marginBottom: '28px', border: '1px solid #f1f5f9' }}>
+            <div>
+              <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Status</span>
+              <div style={{ marginTop: '4px' }}><ReviewStatusBadge status={mySelfAssessment.status} /></div>
+            </div>
+            <div>
+              <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Submitted Date</span>
+              <div style={{ marginTop: '6px', fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>
+                {mySelfAssessment.submitted_at ? new Date(mySelfAssessment.submitted_at).toLocaleDateString() : 'Submitted'}
+              </div>
+            </div>
+            <div>
+              <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Competencies Rated</span>
+              <div style={{ marginTop: '6px', fontSize: '14px', fontWeight: 600, color: '#2563eb' }}>
+                {mySelfAssessment.competency_ratings?.length || 0} Competencies
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setIsViewingDetails(true)}
+              style={{ flex: 1, minWidth: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#2563eb', color: '#ffffff', border: 'none', padding: '12px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}
+            >
+              <Eye size={18} />
+              View Full Assessment
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '12px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}
+            >
+              <Edit3 size={18} />
+              Edit Assessment
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#ffffff', color: '#64748b', border: '1px solid #e2e8f0', padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
+              title="Reset to draft to modify"
+            >
+              <Clock size={16} />
+              Reset to Draft
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -194,7 +273,17 @@ const SelfAssessmentForm = () => {
           </div>
         </div>
         <div className="self-assessment-form-actions">
-          {canEdit && (
+          {isEditing && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => setIsEditing(false)}
+              style={{ marginRight: '8px' }}
+            >
+              Cancel Editing
+            </button>
+          )}
+          {canEdit && !isEditing && (
             <button
               type="button"
               className="btn btn-outline"
@@ -209,7 +298,7 @@ const SelfAssessmentForm = () => {
               {autosaveStatus}
             </span>
           )}
-          {isDraft && (
+          {(isDraft || isEditing) && (
             <>
               <button
                 type="button"
@@ -218,7 +307,7 @@ const SelfAssessmentForm = () => {
                 disabled={isSaving || isSubmitting}
               >
                 <Save size={18} />
-                {isSaving ? 'Saving...' : 'Save Draft'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
               <button
                 type="button"
@@ -227,28 +316,7 @@ const SelfAssessmentForm = () => {
                 disabled={isSubmitting || isSaving}
               >
                 <Send size={18} />
-                {isSubmitting ? 'Submitting...' : 'Submit'}
-              </button>
-            </>
-          )}
-          {isSubmitted && canEdit && (
-            <>
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={handleReset}
-              >
-                <Clock size={18} />
-                Reset to Draft
-              </button>
-              <button
-                type="button"
-                className="btn btn-success"
-                onClick={handleSubmit}
-                disabled={isSubmitting || isSaving}
-              >
-                <Send size={18} />
-                {isSubmitting ? 'Submitting...' : 'Resubmit'}
+                {isSubmitting ? 'Submitting...' : (isEditing ? 'Save & Submit' : 'Submit')}
               </button>
             </>
           )}

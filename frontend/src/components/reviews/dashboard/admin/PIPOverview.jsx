@@ -5,6 +5,20 @@ import { AlertTriangle, Users, TrendingUp, Clock } from 'lucide-react';
 const PIPOverview = ({ overview }) => {
   if (!overview) return null;
 
+  // Normalize by_severity into [ [key, count], ... ]
+  let severitiesList = [];
+  if (Array.isArray(overview.by_severity)) {
+    severitiesList = overview.by_severity.map(item => [
+      item.severity || 'unknown',
+      typeof item.count === 'number' ? item.count : (typeof item === 'object' ? item.count || 0 : Number(item || 0))
+    ]);
+  } else if (overview.by_severity && typeof overview.by_severity === 'object') {
+    severitiesList = Object.entries(overview.by_severity).map(([key, val]) => [
+      key,
+      typeof val === 'object' ? val?.count || 0 : Number(val || 0)
+    ]);
+  }
+
   return (
     <div className="pip-overview">
       <h3 className="pip-overview-title">
@@ -31,10 +45,10 @@ const PIPOverview = ({ overview }) => {
           <span className="pip-overview-label">Total</span>
         </div>
       </div>
-      {overview.by_severity && Object.keys(overview.by_severity).length > 0 && (
+      {severitiesList.length > 0 && (
         <div className="pip-overview-severities">
           <span className="pip-overview-severities-label">By Severity</span>
-          {Object.entries(overview.by_severity).map(([severity, count]) => (
+          {severitiesList.map(([severity, count]) => (
             <div key={severity} className="pip-overview-severity">
               <span className="pip-overview-severity-label">{severity}</span>
               <span className="pip-overview-severity-count">{count}</span>

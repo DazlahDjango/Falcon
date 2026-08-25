@@ -11,7 +11,13 @@ export const selectCyclesLoading = (state) => selectCyclesState(state).loading;
 export const selectCyclesError = (state) => selectCyclesState(state).error;
 export const selectCyclesPagination = (state) => selectCyclesState(state).pagination;
 export const selectCyclesFilters = (state) => selectCyclesState(state).filters;
-export const selectActiveCycle = (state) => selectCyclesState(state).activeCycle;
+export const selectActiveCycle = createSelector(
+  [selectCyclesState, selectAllCycles],
+  (cycleState, cycles) => {
+    if (cycleState?.activeCycle && cycleState.activeCycle.id) return cycleState.activeCycle;
+    return (cycles || []).find((item) => item.status === 'submitted' || item.status === 'active') || null;
+  }
+);
 export const selectCycleProgress = (state) => selectCyclesState(state).progress;
 export const selectCycleParticipants = (state) => selectCyclesState(state).participants;
 export const selectCycleSummary = (state) => selectCyclesState(state).summary;

@@ -93,7 +93,19 @@ export const DashboardProfileProvider = ({ children }) => {
 export const useDashboardProfileContext = () => {
   const ctx = useContext(DashboardProfileContext);
   if (!ctx) {
-    throw new Error('useDashboardProfileContext must be used within DashboardProfileProvider');
+    return {
+      profile: null,
+      loading: false,
+      error: null,
+      dashboardRole: 'staff',
+      isSuperAdmin: false,
+      previewRole: null,
+      previewTenant: null,
+      setPreviewRole: () => {},
+      setPreviewTenant: () => {},
+      resetPreview: () => {},
+      refetch: () => {},
+    };
   }
   return ctx;
 };

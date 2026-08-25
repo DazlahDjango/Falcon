@@ -51,6 +51,7 @@ import {
   FiLink,
   FiShare2,
   FiCopy,
+  FiAward,
 } from 'react-icons/fi';
 import { MdBusiness } from 'react-icons/md';
 import { HiOutlineBuildingOffice } from 'react-icons/hi2';
@@ -107,6 +108,13 @@ const GROUP_ICONS = {
   my_structure: FiUser,
   reviews: FiStar,
   reviews_main: FiStar,
+  reviews_phase1_foundation: FiSliders,
+  reviews_phase2_cycles: FiRotateCcw,
+  reviews_phase3_self: FiUser,
+  reviews_phase4_supervisor: FiCheckCircle,
+  reviews_phase5_calibration: FiUsers,
+  reviews_phase6_outcomes: FiAward,
+  reviews_reports_admin: FiBarChart2,
   reviews_cycles: FiRotateCcw,
   reviews_templates: FiFileText,
   reviews_evaluations: FiStar,

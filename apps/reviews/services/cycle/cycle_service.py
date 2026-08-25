@@ -90,7 +90,20 @@ class CycleService(BaseReviewService):
     @staticmethod
     def get_active_cycle_for_employee(employee):
         today = timezone.now().date()
-        return ReviewCycle.objects.filter(tenant_id=employee.tenant_id, start_date__lte=today, end_date__gte=today, status='submitted').first()
+        # 1. Try finding cycle covering today that is not completed/archived/cancelled
+        cycle = ReviewCycle.objects.filter(
+            tenant_id=employee.tenant_id,
+            start_date__lte=today,
+            end_date__gte=today
+        ).exclude(status__in=['completed', 'cancelled', 'archived']).first()
+        
+        # 2. If no strict date match, fallback to the latest open cycle
+        if not cycle:
+            cycle = ReviewCycle.objects.filter(
+                tenant_id=employee.tenant_id
+            ).exclude(status__in=['completed', 'cancelled', 'archived']).order_by('-start_date').first()
+            
+        return cycle
     @staticmethod
     def can_employee_submit_self_assessment(employee, cycle=None):
         if cycle is None:

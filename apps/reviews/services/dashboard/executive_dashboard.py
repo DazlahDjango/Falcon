@@ -70,13 +70,23 @@ class ExecutiveDashboardService(BaseDashboardService):
         promotions = PromotionRecommendation.objects.filter(tenant_id=tenant_id, status='pending')
         if department_id:
             promotions = promotions.filter(employee__department_id=department_id)
-        return {'pending_promotions': promotions.count(), 'by_priority': promotions.values('priority').annotate(count=Count('id')), 'recent_approved': PromotionRecommendation.objects.filter(tenant_id=tenant_id, status='approved', approved_at__gte=timezone.now() - timezone.timedelta(days=30)).count()}
+        priority_counts = {r['priority']: r['count'] for r in promotions.values('priority').annotate(count=Count('id')) if r['priority']}
+        return {
+            'pending_promotions': promotions.count(),
+            'by_priority': priority_counts,
+            'recent_approved': PromotionRecommendation.objects.filter(tenant_id=tenant_id, status='approved', approved_at__gte=timezone.now() - timezone.timedelta(days=30)).count()
+        }
     @classmethod
     def _get_pip_summary(cls, tenant_id, department_id=None):
         pips = PIP.objects.filter(tenant_id=tenant_id)
         if department_id:
             pips = pips.filter(employee__department_id=department_id)
-        return {'active_pips': pips.filter(status__in=['draft', 'submitted']).count(), 'successful_rate': round((pips.filter(outcome='successful').count() / pips.filter(status='completed').count()) * 100, 1) if pips.filter(status='completed').count() > 0 else 0, 'by_severity': pips.values('severity').annotate(count=Count('id'))}
+        severity_counts = {r['severity']: r['count'] for r in pips.values('severity').annotate(count=Count('id')) if r['severity']}
+        return {
+            'active_pips': pips.filter(status__in=['draft', 'submitted']).count(),
+            'successful_rate': round((pips.filter(outcome='successful').count() / pips.filter(status='completed').count()) * 100, 1) if pips.filter(status='completed').count() > 0 else 0,
+            'by_severity': severity_counts
+        }
     @classmethod
     def _get_calibration_needs(cls, tenant_id, department_id=None):
         from ..calibration.outlier_detector import OutlierDetector

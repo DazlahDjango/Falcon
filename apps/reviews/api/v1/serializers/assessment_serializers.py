@@ -33,6 +33,20 @@ class SelfAssessmentSerializer(BaseTenantSerializer, BaseStatusSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'integrity_checksum']
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        text_fields = [
+            'overall_comment', 'strengths', 'areas_for_improvement',
+            'career_aspirations', 'challenges_faced', 'achievements',
+            'training_completed', 'training_requested', 'goals_achieved',
+            'goals_for_next_period'
+        ]
+        from apps.reviews.services.security.field_encryption import ReviewFieldEncryptionService
+        for f in text_fields:
+            if ret.get(f):
+                ret[f] = ReviewFieldEncryptionService.decrypt(ret[f])
+        return ret
+
 class SelfAssessmentSubmitSerializer(serializers.Serializer):
     confirm_submit = serializers.BooleanField(required=True)
     def validate_confirm_submit(self, value):
@@ -68,6 +82,19 @@ class SupervisorReviewSerializer(BaseTenantSerializer, BaseStatusSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'reviewed_at']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        text_fields = [
+            'overall_comment', 'performance_summary', 'strengths_observed',
+            'development_areas', 'achievements_recognized', 'career_progression_notes',
+            'training_recommendations', 'goals_for_next_period'
+        ]
+        from apps.reviews.services.security.field_encryption import ReviewFieldEncryptionService
+        for f in text_fields:
+            if ret.get(f):
+                ret[f] = ReviewFieldEncryptionService.decrypt(ret[f])
+        return ret
 
 class SupervisorReviewSubmitSerializer(serializers.Serializer):
     confirm_submit = serializers.BooleanField(required=True)

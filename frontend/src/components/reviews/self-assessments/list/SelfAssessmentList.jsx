@@ -6,7 +6,7 @@ import { useSelfAssessment } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewEmptyState, ReviewPagination, ReviewSearchBar, ReviewStatusBadge } from '../../common';
 import SelfAssessmentFilters from './SelfAssessmentFilters';
 
-const SelfAssessmentList = () => {
+const SelfAssessmentList = ({ isTeamView = false }) => {
   const navigate = useNavigate();
   const { data, loading, error, fetchAll, pagination, setPagination, filters, setFilters, clearFilters } = useSelfAssessment();
 
@@ -14,9 +14,10 @@ const SelfAssessmentList = () => {
     fetchAll({
       page: pagination.currentPage,
       page_size: pagination.pageSize,
+      ...(isTeamView ? { is_team: true } : {}),
       ...filters,
     });
-  }, [pagination.currentPage, pagination.pageSize, filters]);
+  }, [pagination.currentPage, pagination.pageSize, filters, isTeamView]);
 
   const handleSearch = useCallback((searchTerm) => {
     setFilters({ search: searchTerm });
@@ -34,21 +35,31 @@ const SelfAssessmentList = () => {
     navigate(`/reviews/self-assessments/${id}`);
   };
 
+  const handleStartSupervisorReview = (assessment) => {
+    const empId = assessment.employee_id || (typeof assessment.employee === 'object' ? assessment.employee?.id : assessment.employee);
+    if (empId) {
+      navigate(`/reviews/supervisor-reviews/${empId}/form`);
+    } else {
+      navigate('/reviews/supervisor-reviews/queue');
+    }
+  };
+
   if (loading && !data.length) return <ReviewLoading size="lg" text="Loading self assessments..." />;
   if (error) return <ReviewError error={error} onRetry={() => fetchAll()} />;
 
   return (
     <div className="self-assessment-list">
-      <div className="self-assessment-list-header">
+      <div className="self-assessment-list-header" style={{ marginBottom: '16px' }}>
         <div className="self-assessment-list-title-section">
-          <h1 className="self-assessment-list-title">Self Assessments</h1>
-          <span className="self-assessment-list-count">{pagination.totalItems} assessments</span>
+          <span className="self-assessment-list-count" style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>
+            {pagination.totalItems || data.length} {isTeamView ? 'Team Submissions' : 'Total Records'}
+          </span>
         </div>
       </div>
 
-      <div className="self-assessment-list-toolbar">
+      <div className="self-assessment-list-toolbar" style={{ marginBottom: '20px' }}>
         <ReviewSearchBar
-          placeholder="Search assessments..."
+          placeholder={isTeamView ? "Search team members by name or email..." : "Search all records by employee, department, cycle..."}
           onSearch={handleSearch}
           className="self-assessment-search"
         />
@@ -56,8 +67,8 @@ const SelfAssessmentList = () => {
 
       {data.length === 0 ? (
         <ReviewEmptyState
-          title="No Self Assessments Found"
-          description="No self assessments are available."
+          title={isTeamView ? "No Team Assessments Found" : "No Self Assessments Found"}
+          description={isTeamView ? "Your team members have not created any self assessments yet." : "No self assessment records match the current criteria."}
           icon="📝"
         />
       ) : (
@@ -83,7 +94,7 @@ const SelfAssessmentList = () => {
                   <span className="self-assessment-list-card-date">
                     {assessment.submitted_at
                       ? `Submitted: ${new Date(assessment.submitted_at).toLocaleDateString()}`
-                      : 'Not submitted'}
+                      : 'Draft / In Progress'}
                   </span>
                 </div>
 
@@ -94,14 +105,37 @@ const SelfAssessmentList = () => {
                   </div>
                 )}
 
-                <div className="self-assessment-list-card-footer">
+                <div className="self-assessment-list-card-footer" style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
                   <button
+                    type="button"
                     className="self-assessment-list-card-btn"
                     onClick={(e) => { e.stopPropagation(); handleView(assessment.id); }}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
                   >
-                    <Eye size={16} />
+                    <Eye size={15} />
                     View
                   </button>
+                  <button
+                    type="button"
+                    className="self-assessment-list-card-btn"
+                    onClick={(e) => { e.stopPropagation(); handleStartSupervisorReview(assessment); }}
+                    style={{ flex: 1.2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#2563eb', color: '#ffffff', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                    title="Start Manager Appraisal for this employee"
+                  >
+                    <CheckCircle size={15} />
+                    Start Review
+                  </button>
+                  {assessment.status !== 'submitted' && (
+                    <button
+                      type="button"
+                      className="self-assessment-list-card-btn"
+                      onClick={(e) => { e.stopPropagation(); alert(`Reminder notification sent to ${assessment.employee_name || 'employee'}!`); }}
+                      style={{ background: '#f8fafc', color: '#d97706', border: '1px solid #fde68a', padding: '8px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Nudge staff to complete submission"
+                    >
+                      <Clock size={15} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

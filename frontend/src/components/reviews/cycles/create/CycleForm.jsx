@@ -155,7 +155,78 @@ const CycleForm = ({ data, onChange }) => {
         </div>
       </div>
 
-      <h3 className="cycle-form-title" style={{ marginTop: '24px' }}>Score Weights</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '24px', marginBottom: '8px' }}>
+        <h3 className="cycle-form-title" style={{ margin: 0 }}>Score Weights</h3>
+        <span style={{ fontSize: '12px', color: '#64748b' }}>Customizable per organization / department</span>
+      </div>
+
+      {/* Quick Preset Buttons */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+        <button
+          type="button"
+          onClick={() => onChange({ kpi_weight: 70, competency_weight: 30, mission_weight: 0, task_weight: 0 })}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            background: data.kpi_weight === 70 && data.competency_weight === 30 && (data.mission_weight || 0) === 0 ? '#eff6ff' : 'white',
+            color: data.kpi_weight === 70 && data.competency_weight === 30 && (data.mission_weight || 0) === 0 ? '#1d4ed8' : '#475569',
+            fontWeight: 500,
+            cursor: 'pointer'
+          }}
+        >
+          📊 Standard (70% KPI / 30% Comp)
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange({ kpi_weight: 80, competency_weight: 20, mission_weight: 0, task_weight: 0 })}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            background: data.kpi_weight === 80 && data.competency_weight === 20 ? '#eff6ff' : 'white',
+            color: data.kpi_weight === 80 && data.competency_weight === 20 ? '#1d4ed8' : '#475569',
+            fontWeight: 500,
+            cursor: 'pointer'
+          }}
+        >
+          💼 Sales / Target Focus (80% KPI / 20% Comp)
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange({ kpi_weight: 60, competency_weight: 40, mission_weight: 0, task_weight: 0 })}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            background: data.kpi_weight === 60 && data.competency_weight === 40 ? '#eff6ff' : 'white',
+            color: data.kpi_weight === 60 && data.competency_weight === 40 ? '#1d4ed8' : '#475569',
+            fontWeight: 500,
+            cursor: 'pointer'
+          }}
+        >
+          🛠️ Engineering / R&D (60% KPI / 40% Comp)
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange({ kpi_weight: 50, competency_weight: 30, mission_weight: 20, task_weight: 0 })}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            background: data.kpi_weight === 50 && data.competency_weight === 30 && data.mission_weight === 20 ? '#eff6ff' : 'white',
+            color: data.kpi_weight === 50 && data.competency_weight === 30 && data.mission_weight === 20 ? '#1d4ed8' : '#475569',
+            fontWeight: 500,
+            cursor: 'pointer'
+          }}
+        >
+          👥 Leadership (50% KPI / 30% Comp / 20% Mission)
+        </button>
+      </div>
 
       <div className="cycle-form-row">
         <div className="cycle-form-group">

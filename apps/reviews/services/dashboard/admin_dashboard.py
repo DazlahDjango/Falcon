@@ -58,7 +58,13 @@ class AdminDashboardService(BaseDashboardService):
     @classmethod
     def _get_pip_oversight(cls, tenant_id):
         pips = PIP.objects.filter(tenant_id=tenant_id)
-        return {'total_pips': pips.count(), 'active_pips': pips.filter(status__in=['draft', 'submitted']).count(), 'success_rate': round((pips.filter(outcome='successful').count() / pips.filter(status='completed').count()) * 100, 1) if pips.filter(status='completed').count() > 0 else 0, 'by_severity': pips.values('severity').annotate(count=Count('id'))}
+        severity_counts = {r['severity']: r['count'] for r in pips.values('severity').annotate(count=Count('id')) if r['severity']}
+        return {
+            'total_pips': pips.count(),
+            'active_pips': pips.filter(status__in=['draft', 'submitted']).count(),
+            'success_rate': round((pips.filter(outcome='successful').count() / pips.filter(status='completed').count()) * 100, 1) if pips.filter(status='completed').count() > 0 else 0,
+            'by_severity': severity_counts
+        }
     @classmethod
     def _get_promotion_oversight(cls, tenant_id):
         promotions = PromotionRecommendation.objects.filter(tenant_id=tenant_id)
