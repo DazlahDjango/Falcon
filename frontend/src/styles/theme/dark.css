@@ -1,72 +1,285 @@
+/* ============================================================================
+ * Dark Mode Theme CSS Overrides
+ * Applies to <html class="dark">, <html class="dark-mode">, .dark, and .dark-mode
+ * ============================================================================ */
+
+html.dark,
+html.dark-mode,
+.dark,
 .dark-mode {
-    /* Background Colors */
-    --bg-primary: #1f2937;
-    --bg-secondary: #111827;
-    --bg-tertiary: #0f172a;
-    --bg-inverse: #ffffff;
-    
-    /* Text Colors */
-    --text-primary: #f9fafb;
-    --text-secondary: #d1d5db;
-    --text-tertiary: #9ca3af;
-    --text-inverse: #111827;
-    
-    /* Border Colors */
-    --border-light: #374151;
-    --border-medium: #4b5563;
-    --border-dark: #6b7280;
-    
-    /* Shadow Colors */
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    
-    /* Card Background */
-    --card-bg: #1f2937;
-    
-    /* Input Background */
-    --input-bg: #374151;
-    
-    /* Hover States */
-    --hover-bg: #374151;
-    
-    /* Active States */
-    --active-bg: #4b5563;
-    
-    /* Disabled States */
-    --disabled-bg: #374151;
-    --disabled-text: #6b7280;
+  /* Background Colors */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-inverse: #ffffff;
+
+  /* Text Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+
+  /* Border Colors */
+  --border-light: #334155;
+  --border-medium: #475569;
+  --border-dark: #64748b;
+  --border-color: #334155;
+
+  /* Shadow Colors */
+  --shadow-color: rgba(0, 0, 0, 0.4);
+
+  /* Card & Element Backgrounds */
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --input-bg: #0f172a;
+  --hover-bg: #334155;
+  --active-bg: #475569;
+  --disabled-bg: #1e293b;
+  --disabled-text: #64748b;
+
+  /* Grays */
+  --gray-50: #0f172a;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748b;
+  --gray-500: #94a3b8;
+  --gray-600: #cbd5e1;
+  --gray-700: #e2e8f0;
+  --gray-800: #f1f5f9;
+  --gray-900: #ffffff;
+
+  color-scheme: dark;
 }
 
-/* Apply dark mode variables to root when dark mode is active */
-.dark-mode {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
+/* ============================================================================
+ * Base Body & Layout Overrides
+ * ============================================================================ */
+html.dark body,
+html.dark-mode body,
+.dark body,
+.dark-mode body,
+.dark .ent-main-layout,
+.dark .ent-main-content,
+.dark .ent-content-wrapper,
+.dark .accounts-page,
+.dark .dashboard-page,
+.dark-mode .ent-main-layout,
+.dark-mode .ent-main-content,
+.dark-mode .ent-content-wrapper,
+.dark-mode .accounts-page,
+.dark-mode .dashboard-page {
+  background-color: var(--bg-primary, #0f172a) !important;
+  color: var(--text-primary, #f8fafc);
 }
 
-/* Dark mode specific overrides */
+/* ============================================================================
+ * Headings, Labels & Text
+ * ============================================================================ */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6,
+.dark .profile-name, .dark .user-preferences-title h1 {
+  color: #f8fafc !important;
+}
+
+.dark p, .dark label, .dark span,
+.dark-mode p, .dark-mode label, .dark-mode span {
+  color: var(--text-secondary, #cbd5e1);
+}
+
+.dark .text-muted, .dark-mode .text-muted {
+  color: var(--text-muted, #64748b) !important;
+}
+
+/* ============================================================================
+ * User Preferences & Settings Page Dark Overrides
+ * ============================================================================ */
+.dark .user-preferences-container,
+.dark-mode .user-preferences-container,
+.dark .user-preferences-form,
+.dark-mode .user-preferences-form {
+  background-color: transparent !important;
+  color: #f8fafc !important;
+}
+
+.dark .preferences-section,
+.dark-mode .preferences-section {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .preferences-section h3,
+.dark-mode .preferences-section h3 {
+  color: #f8fafc !important;
+  border-bottom-color: #334155 !important;
+}
+
+.dark .preference-label,
+.dark-mode .preference-label {
+  color: #cbd5e1 !important;
+}
+
+.dark .preference-select,
+.dark-mode .preference-select,
+.dark select,
+.dark-mode select {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark .preference-select option,
+.dark-mode .preference-select option,
+.dark select option,
+.dark-mode select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+.dark .theme-btn,
+.dark-mode .theme-btn,
+.dark .toggle-btn,
+.dark-mode .toggle-btn {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark .theme-btn.active,
+.dark-mode .theme-btn.active,
+.dark .toggle-btn.active,
+.dark-mode .toggle-btn.active {
+  background-color: #2563eb !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* ============================================================================
+ * Profile & Cards Dark Overrides
+ * ============================================================================ */
+.dark .profile-container,
+.dark-mode .profile-container,
+.dark .profile-edit-container,
+.dark-mode .profile-edit-container {
+  background-color: transparent !important;
+}
+
+.dark .profile-card,
+.dark-mode .profile-card,
+.dark .profile-edit-form,
+.dark-mode .profile-edit-form,
+.dark .profile-section,
+.dark-mode .profile-section,
+.dark .card,
 .dark-mode .card,
-.dark-mode .modal-content,
-.dark-mode .dropdown-menu {
-    background-color: var(--card-bg);
-    border-color: var(--border-light);
+.dark .stat-card,
+.dark-mode .stat-card,
+.dark .accounts-card,
+.dark-mode .accounts-card,
+.dark .info-card,
+.dark-mode .info-card {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
 }
 
-.dark-mode input,
-.dark-mode select,
-.dark-mode textarea {
-    background-color: var(--input-bg);
-    border-color: var(--border-light);
-    color: var(--text-primary);
+.dark .profile-cover,
+.dark-mode .profile-cover {
+  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%) !important;
 }
 
+/* ============================================================================
+ * Forms & Inputs Dark Overrides
+ * ============================================================================ */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="time"],
+.dark textarea,
+.dark-mode input[type="text"],
+.dark-mode input[type="email"],
+.dark-mode input[type="password"],
+.dark-mode input[type="number"],
+.dark-mode input[type="date"],
+.dark-mode input[type="time"],
+.dark-mode textarea,
+.dark .form-input,
+.dark-mode .form-input,
+.dark .form-control,
+.dark-mode .form-control {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder,
 .dark-mode input::placeholder,
 .dark-mode textarea::placeholder {
-    color: var(--text-tertiary);
+  color: #64748b !important;
 }
 
-.dark-mode table {
-    background-color: var(--card-bg);
+/* ============================================================================
+ * Tables Dark Overrides
+ * ============================================================================ */
+.dark table,
+.dark-mode table,
+.dark .data-table,
+.dark-mode .data-table,
+.dark .table-container,
+.dark-mode .table-container {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
 }
 
+.dark th,
+.dark-mode th {
+  background-color: #0f172a !important;
+  color: #cbd5e1 !important;
+  border-bottom-color: #334155 !important;
+}
+
+.dark td,
+.dark-mode td {
+  border-bottom-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark tr:hover,
+.dark-mode tr:hover,
+.dark .table-row:hover,
 .dark-mode .table-row:hover {
-    background-color: var(--hover-bg);
+  background-color: #334155 !important;
+}
+
+/* ============================================================================
+ * Modals & Dropdowns Dark Overrides
+ * ============================================================================ */
+.dark .modal-content,
+.dark-mode .modal-content,
+.dark .modal-card,
+.dark-mode .modal-card,
+.dark .dropdown-menu,
+.dark-mode .dropdown-menu,
+.dark .ent-user-dropdown,
+.dark-mode .ent-user-dropdown,
+.dark .ent-notification-dropdown,
+.dark-mode .ent-notification-dropdown {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .ent-user-dropdown-header,
+.dark-mode .ent-user-dropdown-header,
+.dark .ent-notification-header,
+.dark-mode .ent-notification-header {
+  background-color: #0f172a !important;
+  border-bottom-color: #334155 !important;
 }

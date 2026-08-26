@@ -8,10 +8,29 @@ import { actualService } from '../../../services/kpi';
 
 export const fetchActuals = createAsyncThunk(
   'actual/fetchActuals',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await actualService.getActuals(params);
-      return response.data;
+      const state = getState();
+      const currentPagination = state.actual?.pagination || { page: 1, pageSize: 20 };
+      const page = params.page || currentPagination.page || 1;
+      const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+      const limit = pageSize;
+      const offset = (page - 1) * pageSize;
+
+      const queryParams = {
+        limit,
+        offset,
+        page,
+        page_size: pageSize,
+        ...params,
+      };
+
+      const response = await actualService.getActuals(queryParams);
+      return {
+        data: response.data,
+        page,
+        pageSize,
+      };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -199,8 +218,21 @@ const actualSlice = createSlice({
       })
       .addCase(fetchActuals.fulfilled, (state, action) => {
         state.loading = false;
-        state.actuals = action.payload.results || action.payload;
-        if (action.payload.count) state.pagination.total = action.payload.count;
+        const { data, page, pageSize } = action.payload || {};
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        const total = data?.count != null ? data.count : (Array.isArray(data) ? data.length : results.length);
+
+        state.actuals = results;
+        const activePageSize = pageSize || state.pagination.pageSize || 20;
+        const activePage = page || state.pagination.page || 1;
+        const totalPages = Math.max(1, Math.ceil(total / activePageSize));
+
+        state.pagination = {
+          page: activePage,
+          pageSize: activePageSize,
+          total,
+          totalPages,
+        };
       })
       .addCase(fetchActuals.rejected, (state, action) => {
         state.loading = false;

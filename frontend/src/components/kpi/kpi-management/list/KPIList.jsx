@@ -78,6 +78,10 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
     const handlePageChange = (page) => {
         dispatch(setKpiPagination({ page }));
     };
+
+    const handlePageSizeChange = (pageSize) => {
+        dispatch(setKpiPagination({ page: 1, pageSize }));
+    };
     
     if (loading && kpis.length === 0) {
         return <KPILoading text="Loading KPIs..." />;
@@ -159,11 +163,16 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
                 />
             )}
             
-            {pagination.totalPages > 1 && (
+            {kpis.length > 0 && (
                 <KPIPagination 
                     currentPage={pagination.page}
+                    pageSize={pagination.pageSize}
+                    total={pagination.total}
                     totalPages={pagination.totalPages}
+                    itemCount={kpis.length}
+                    isLoading={loading}
                     onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                 />
             )}
         </div>

@@ -9,7 +9,7 @@ import {
   FiFileText, FiCheckCircle, FiAlertCircle, FiUpload, FiSettings,
   FiLayers, FiBarChart2, FiGrid, FiUsers, FiUser, FiPlus,
   FiClock, FiShield, FiEye, FiTrendingUp,
-  FiRotateCcw, FiShare2, FiSliders,
+  FiRotateCcw, FiShare2, FiSliders, FiAward
 } from 'react-icons/fi';
 
 import { KPI_ROUTES } from '../constants/kpiRouteConstants';
@@ -66,7 +66,6 @@ export const KPI_SUPER_ADMIN_DEFAULT_EXPANDED = {
 // ============================================
 export const KPI_CLIENT_ADMIN_NAV_GROUPS = {
   kpi_main: [
-    { path: DASHBOARD_ROUTES.CLIENT_ADMIN.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
     { path: KPI_ROUTES.DASHBOARD, name: 'KPI Summary', icon: FiPieChart },
   ],
   kpi_management: [

@@ -76,8 +76,12 @@ class PositionViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-code/(?P<job_code>[^/.]+)')
     def get_by_code(self, request, job_code=None):
-        tenant_id = request.user.tenant_id
-        position = Position.objects.filter(job_code=job_code, tenant_id=tenant_id, is_deleted=False).first()
+        from .base import get_request_tenant_id
+        tenant_id = get_request_tenant_id(request)
+        queryset = Position.objects.filter(job_code=job_code, is_deleted=False)
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        position = queryset.first()
         if not position:
             return Response({'error': 'Position not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = PositionDetailSerializer(position, context={'request': request})
@@ -85,13 +89,15 @@ class PositionViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='vacant')
     def get_vacant_positions(self, request):
-        tenant_id = request.user.tenant_id
+        from .base import get_request_tenant_id
+        tenant_id = get_request_tenant_id(request)
         positions = Position.objects.filter(
-            tenant_id=tenant_id,
             is_deleted=False,
             current_incumbents_count=0,
             is_active=True
         )
+        if tenant_id:
+            positions = positions.filter(tenant_id=tenant_id)
         serializer = PositionSerializer(positions, many=True, context={'request': request})
         return Response({
             'vacant_positions': serializer.data,
@@ -101,7 +107,6 @@ class PositionViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='reporting-chain/(?P<position_id>[0-9a-f-]+)')
     def get_reporting_chain(self, request, position_id=None):
         from apps.structure.managers.position import PositionManager
-        tenant_id = request.user.tenant_id
         manager = PositionManager()
         chain_up = manager.get_reporting_chain(position_id)
         chain_up_serializer = PositionSerializer(chain_up, many=True, context={'request': request})
@@ -113,20 +118,20 @@ class PositionViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
-        tenant_id = request.user.tenant_id
-        total = Position.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
-        vacant = Position.objects.filter(tenant_id=tenant_id, is_deleted=False, current_incumbents_count=0).count()
+        from .base import get_request_tenant_id
+        tenant_id = get_request_tenant_id(request)
+        queryset = Position.objects.filter(is_deleted=False)
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        total = queryset.count()
+        vacant = queryset.filter(current_incumbents_count=0).count()
         occupied = total - vacant
-        single_incumbent = Position.objects.filter(tenant_id=tenant_id, is_deleted=False, is_single_incumbent=True).count()
-        level_distribution = {}
-        levels = Position.objects.filter(tenant_id=tenant_id, is_deleted=False).values('level').annotate(count=models.Count('id'))
-        for level in levels:
-            level_distribution[level['level']] = level['count']
+        single_incumbent = queryset.filter(is_single_incumbent=True).count()
+        multi_incumbent = queryset.filter(is_single_incumbent=False).count()
         return Response({
             'total_positions': total,
             'vacant_positions': vacant,
             'occupied_positions': occupied,
             'single_incumbent_positions': single_incumbent,
-            'occupancy_rate': round((occupied / total * 100), 2) if total > 0 else 0,
-            'level_distribution': level_distribution
+            'multi_incumbent_positions': multi_incumbent
         })

@@ -116,7 +116,7 @@ export const UserDetail = () => {
   if (error) {
     return (
       <div className="user-detail-error">
-        <p>{error}</p>
+        <p>{typeof error === 'string' ? error : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error))}</p>
         <button className="btn-primary" onClick={() => navigate(ACCOUNTS_ROUTES.USERS)}>
           <FiArrowLeft /> Back to Users
         </button>

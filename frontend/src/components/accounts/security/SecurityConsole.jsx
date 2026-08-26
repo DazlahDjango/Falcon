@@ -453,7 +453,7 @@ const SecurityConsole = () => {
             return (
                 <div className="security-panel error">
                     <FiAlertTriangle size={24} />
-                    <p>{error}</p>
+                    <p>{typeof error === 'string' ? error : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error))}</p>
                     <button className="btn btn-secondary" onClick={refreshAll}>
                         Retry
                     </button>

@@ -60,8 +60,12 @@ class UnitViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-code/(?P<code>[^/.]+)')
     def get_by_code(self, request, code=None):
-        tenant_id = request.user.tenant_id
-        unit = Unit.objects.filter(code=code, tenant_id=tenant_id, is_deleted=False).first()
+        from .base import get_request_tenant_id
+        tenant_id = get_request_tenant_id(request)
+        queryset = Unit.objects.filter(code=code, is_deleted=False)
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        unit = queryset.first()
         if not unit:
             return Response({'error': 'Unit not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = UnitDetailSerializer(unit, context={'request': request})
@@ -69,25 +73,28 @@ class UnitViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
-        tenant_id = request.user.tenant_id
+        from .base import get_request_tenant_id
+        tenant_id = get_request_tenant_id(request)
         from apps.structure.models.employment import Employment
-        total = Unit.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count()
-        with_employments = Unit.objects.filter(
-            tenant_id=tenant_id,
+        queryset = Unit.objects.filter(is_deleted=False, is_active=True)
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        total = queryset.count()
+        with_employments = queryset.filter(
             positions__employments__is_current=True,
             positions__employments__is_deleted=False,
-            positions__employments__is_active=True,
-            is_deleted=False,
-            is_active=True
+            positions__employments__is_active=True
         ).distinct().count()
-        total_headcount = Employment.objects.filter(
-            position__unit__tenant_id=tenant_id,
+        emp_qs = Employment.objects.filter(
             position__unit__is_deleted=False,
             position__unit__is_active=True,
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).count()
+        )
+        if tenant_id:
+            emp_qs = emp_qs.filter(position__unit__tenant_id=tenant_id)
+        total_headcount = emp_qs.count()
         return Response({
             'total_units': total,
             'units_with_employments': with_employments,

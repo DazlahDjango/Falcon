@@ -7,7 +7,7 @@ import { PermissionProvider } from '../contexts/accounts/PermissionContext';
 import { BillingProviders } from '../contexts/billing';
 import { ConfigProvider, BackupProvider, MaintenanceProvider, DRProvider, ConfigAlertProvider } from '../contexts/config';
 import { WebSocketProvider } from '../contexts/websocket';
-import ThemeProvider from './ThemeProvider';
+import { ThemeProvider } from '../contexts/global/ThemeContext';
 import ToastProvider from './ToastProvider';
 import QueryProvider from './QueryProvider';
 import StoreProvider from './StoreProvider';

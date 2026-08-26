@@ -53,16 +53,21 @@ class DivisionViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
-        tenant_id = request.user.tenant_id
-        total = Division.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count()
-        with_departments = Division.objects.filter(
-            tenant_id=tenant_id,
-            children__isnull=False,
-            is_deleted=False,
-            is_active=True
-        ).distinct().count()
+        from .base import get_request_tenant_id
+        tenant_id = get_request_tenant_id(request)
+        queryset = Division.objects.filter(is_deleted=False)
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        total = queryset.count()
+        active = queryset.filter(is_active=True).count()
+        inactive = queryset.filter(is_active=False).count()
+        with_departments = queryset.filter(children__isnull=False, is_active=True).distinct().count()
+        with_headcount = queryset.filter(headcount_limit__gt=0).count()
         return Response({
             'total_divisions': total,
+            'active_divisions': active,
+            'inactive_divisions': inactive,
             'with_departments': with_departments,
+            'with_headcount': with_headcount,
             'empty_divisions': total - with_departments
         })

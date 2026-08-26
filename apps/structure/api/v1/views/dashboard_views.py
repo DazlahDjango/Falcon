@@ -14,14 +14,20 @@ class StructureDashboardViewSet(BaseStructureReadOnlyViewSet):
     
     @action(detail=False, methods=['get'], url_path='overview')
     def get_overview(self, request):
-        tenant_id = request.user.tenant_id
+        from .base import get_request_tenant_id
+        tenant_id = get_request_tenant_id(request)
         from apps.structure.models import Division, Department, Section, Unit, Employment, Position, Location, CostCenter
         
         # Query individual organizational level tables
-        divisions = Division.objects.filter(tenant_id=tenant_id, is_deleted=False)
-        departments = Department.objects.filter(tenant_id=tenant_id, is_deleted=False)
-        sections = Section.objects.filter(tenant_id=tenant_id, is_deleted=False)
-        units_model = Unit.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        divisions = Division.objects.filter(is_deleted=False)
+        departments = Department.objects.filter(is_deleted=False)
+        sections = Section.objects.filter(is_deleted=False)
+        units_model = Unit.objects.filter(is_deleted=False)
+        if tenant_id:
+            divisions = divisions.filter(tenant_id=tenant_id)
+            departments = departments.filter(tenant_id=tenant_id)
+            sections = sections.filter(tenant_id=tenant_id)
+            units_model = units_model.filter(tenant_id=tenant_id)
         
         div_count = divisions.count()
         dept_count = departments.count()

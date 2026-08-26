@@ -51,7 +51,12 @@ const ConnectionList = ({ organizationId }) => {
 
   const handlePageChange = useCallback((page) => {
     updatePagination({ page });
-    fetchList({ page });
+    fetchList({ page, page_size: pagination.pageSize || 20 });
+  }, [fetchList, updatePagination, pagination.pageSize]);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    updatePagination({ pageSize, page: 1 });
+    fetchList({ page: 1, pageSize, page_size: pageSize });
   }, [fetchList, updatePagination]);
 
   const handleView = useCallback((id) => {
@@ -285,41 +290,57 @@ const ConnectionList = ({ organizationId }) => {
       )}
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="connection-pagination connection-flex-center">
-          <button
-            className={`connection-pagination-btn ${pagination.page <= 1 ? 'connection-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page <= 1 || loading}
-          >
-            Previous
-          </button>
-          {[...Array(Math.min(pagination.totalPages, 5))].map((_, i) => {
-            const pageNum = i + 1;
-            return (
-              <button
-                key={pageNum}
-                className={`connection-pagination-btn ${pageNum === pagination.page ? 'connection-pagination-btn-active' : ''}`}
-                onClick={() => handlePageChange(pageNum)}
-                disabled={loading}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-          {pagination.totalPages > 5 && (
-            <span className="connection-pagination-info">...</span>
-          )}
-          <button
-            className={`connection-pagination-btn ${pagination.page >= pagination.totalPages ? 'connection-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page >= pagination.totalPages || loading}
-          >
-            Next
-          </button>
-          <span className="connection-pagination-info">
-            Page {pagination.page} of {pagination.totalPages}
-          </span>
+      {connections.length > 0 && (
+        <div className="connection-pagination">
+          <div className="connection-pagination-info">
+            Showing {connections.length} of {pagination.total || count || connections.length} connections
+          </div>
+          <div className="connection-pagination-controls">
+            <select
+              value={pagination.pageSize || 20}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="connection-pagination-select"
+              disabled={loading}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <button
+              className={`connection-pagination-btn ${pagination.page <= 1 ? 'connection-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1 || loading}
+            >
+              Previous
+            </button>
+            {[...Array(Math.min(pagination.totalPages || 1, 5))].map((_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  className={`connection-pagination-btn ${pageNum === pagination.page ? 'connection-pagination-btn-active' : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                  disabled={loading}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            {(pagination.totalPages || 1) > 5 && (
+              <span className="connection-pagination-info">...</span>
+            )}
+            <button
+              className={`connection-pagination-btn ${pagination.page >= (pagination.totalPages || 1) ? 'connection-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page >= (pagination.totalPages || 1) || loading}
+            >
+              Next
+            </button>
+            <span className="connection-pagination-info">
+              Page {pagination.page || 1} of {pagination.totalPages || 1}
+            </span>
+          </div>
         </div>
       )}
 

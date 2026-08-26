@@ -257,7 +257,7 @@ const PasswordChangeForm = ({ onClose }) => {
                 {errors.submit && (
                     <div className="alert alert-error">
                         <FiAlertCircle size={16} />
-                        {errors.submit}
+                        {typeof errors.submit === 'string' ? errors.submit : (errors.submit?.displayMessage || errors.submit?.message || errors.submit?.detail || JSON.stringify(errors.submit))}
                     </div>
                 )}
 

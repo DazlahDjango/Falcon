@@ -4,8 +4,8 @@ import {
   fetchUserPreferences,
   fetchUserPreference,
   updateUserPreference,
-  fetchMyPreferences,
-  updateMyPreferences,
+  fetchMyPreferences as fetchMyPreferencesThunk,
+  updateMyPreferences as updateMyPreferencesThunk,
   updateNotificationSettings,
   fetchTenantPreferences,
   fetchTenantPreference,
@@ -85,14 +85,22 @@ export const usePreferences = () => {
   );
 
   const getMyPreferences = useCallback(async () => {
-    const result = await dispatch(fetchMyPreferences()).unwrap();
-    return result;
+    try {
+      const result = await dispatch(fetchMyPreferencesThunk()).unwrap();
+      return { success: true, data: result };
+    } catch (err) {
+      return { success: false, error: err };
+    }
   }, [dispatch]);
 
   const updateMyPreferences = useCallback(
     async (data) => {
-      const result = await dispatch(updateMyPreferences(data)).unwrap();
-      return result;
+      try {
+        const result = await dispatch(updateMyPreferencesThunk(data)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, error: err };
+      }
     },
     [dispatch]
   );

@@ -25,29 +25,30 @@ const initialState = {
 
 export const fetchSectors = createAsyncThunk(
     'sector/fetchSectors',
-    async (params = {}, { rejectWithValue }) => {
+    async (params = {}, { rejectWithValue, getState }) => {
         try {
-            console.log('🟢 fetchSectors called with params:', params);
-            const response = await sectorService.getSectors(params);
-            console.log('🟢 fetchSectors response:', response);
-            
-            // Ensure we always return a consistent format
+            const state = getState();
+            const currentPagination = state.sector?.pagination || { page: 1, pageSize: 20 };
+            const page = params.page || currentPagination.page || 1;
+            const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+            const limit = pageSize;
+            const offset = (page - 1) * pageSize;
+
+            const queryParams = { limit, offset, page, page_size: pageSize, ...params };
+            const response = await sectorService.getSectors(queryParams);
+            const data = response?.data || response;
+
             let result;
-            if (Array.isArray(response)) {
-                console.log('🟢 Response is array, wrapping');
-                result = { results: response, count: response.length };
-            } else if (response?.results) {
-                console.log('🟢 Response has results');
-                result = response;
+            if (Array.isArray(data)) {
+                result = { results: data, count: data.length };
+            } else if (data?.results) {
+                result = data;
             } else {
-                console.log('🟢 Response is something else, wrapping');
-                result = { results: [response], count: 1 };
+                result = { results: [data], count: 1 };
             }
-            
-            console.log('🟢 Returning result:', result);
-            return result;
+
+            return { data: result, page, pageSize };
         } catch (error) {
-            console.error('🔴 fetchSectors error:', error);
             return rejectWithValue(error.response?.data || error.message);
         }
     }
@@ -147,24 +148,24 @@ const sectorSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchSectors.fulfilled, (state, action) => {
-                console.log('🟣 fetchSectors fulfilled with payload:', action.payload);
                 state.loading = false;
-                const payload = action.payload || {};
-                
-                // Ensure sectors is always an array
+                const { data, page, pageSize } = action.payload || {};
+                const payload = data || {};
                 const sectorsData = payload.results || payload || [];
-                state.sectors = Array.isArray(sectorsData) ? sectorsData : [];
-                
-                console.log('🟣 state.sectors set to:', state.sectors);
-                console.log('🟣 state.sectors length:', state.sectors.length);
-                
-                if (payload.count !== undefined) {
-                    state.pagination.total = payload.count;
-                } else {
-                    state.pagination.total = state.sectors.length;
-                }
-                state.pagination.totalPages = Math.ceil(state.pagination.total / state.pagination.pageSize);
-                console.log('🟣 pagination set:', state.pagination);
+                const results = Array.isArray(sectorsData) ? sectorsData : [];
+                const total = payload.count !== undefined ? payload.count : results.length;
+
+                state.sectors = results;
+                const activePageSize = pageSize || state.pagination.pageSize || 20;
+                const activePage = page || state.pagination.page || 1;
+                const totalPages = Math.max(1, Math.ceil(total / activePageSize));
+
+                state.pagination = {
+                    page: activePage,
+                    pageSize: activePageSize,
+                    total,
+                    totalPages,
+                };
             })
             .addCase(fetchSectors.rejected, (state, action) => {
                 state.loading = false;

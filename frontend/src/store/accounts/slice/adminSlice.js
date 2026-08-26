@@ -59,7 +59,15 @@ export const fetchAdminUsers = createAsyncThunk(
       }
 
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch admin users');
+      const message =
+        (typeof error.response?.data?.error === 'string' && error.response.data.error) ||
+        error.response?.data?.displayMessage ||
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        error.displayMessage ||
+        error.message ||
+        'Failed to fetch admin users';
+      return rejectWithValue(typeof message === 'object' ? JSON.stringify(message) : String(message));
     }
   }
 );

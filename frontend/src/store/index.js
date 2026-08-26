@@ -89,7 +89,10 @@ export const store = configureStore({
                     'persist/PAUSE',
                     'websocket/message',
                     'websocket/connect',
-                    'websocket/disconnect'
+                    'websocket/disconnect',
+                    'profiles/uploadAvatar/pending',
+                    'profiles/uploadAvatar/fulfilled',
+                    'profiles/uploadAvatar/rejected'
                 ],
                 ignoredActionPaths: [
                     'payload.action',
@@ -98,7 +101,8 @@ export const store = configureStore({
                     'payload.headers',
                     'payload.originalArgs',
                     'payload.data.raw_payload',
-                    'payload.raw_payload'
+                    'payload.raw_payload',
+                    'meta.arg.file'
                 ],
                 ignoredPaths: [
                     'notifications.socket',

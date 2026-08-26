@@ -197,6 +197,16 @@ export const useConnections = (options = {}) => {
     dispatch(setPagination(newPagination));
   }, [dispatch]);
 
+  const setPage = useCallback((page) => {
+    dispatch(setPagination({ page }));
+    dispatch(fetchConnections({ page }));
+  }, [dispatch]);
+
+  const setPageSize = useCallback((pageSize) => {
+    dispatch(setPagination({ pageSize, page: 1 }));
+    dispatch(fetchConnections({ pageSize, page: 1 }));
+  }, [dispatch]);
+
   const clearCurrent = useCallback(() => {
     dispatch(clearCurrentConnection());
   }, [dispatch]);
@@ -296,6 +306,8 @@ export const useConnections = (options = {}) => {
     updateFilters,
     resetAllFilters,
     updatePagination,
+    setPage,
+    setPageSize,
     clearCurrent,
     clearAllErrors,
     clearAllMetrics,

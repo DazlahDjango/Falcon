@@ -9,11 +9,12 @@ import KPIPagination from '../../common/KPIPagination';
 const TargetList = ({ 
     targets, 
     loading, 
-    pagination,
+    pagination = {},
     filters = {},
     onFilterChange,
     onClearFilters,
     onPageChange,
+    onPageSizeChange,
     onRowClick,
     onEdit,
     onDelete,
@@ -22,7 +23,7 @@ const TargetList = ({
     canDelete,
     canCascade
 }) => {
-    if (loading) {
+    if (loading && (!targets || targets.length === 0)) {
         return <KPILoading text="Loading targets..." />;
     }
 
@@ -57,11 +58,16 @@ const TargetList = ({
                 canCascade={canCascade}
             />
             
-            {pagination && pagination.totalPages > 1 && (
+            {targets && targets.length > 0 && (
                 <KPIPagination 
-                    currentPage={pagination.currentPage}
-                    totalPages={pagination.totalPages}
+                    currentPage={pagination.page || pagination.currentPage || 1}
+                    pageSize={pagination.pageSize || 20}
+                    total={pagination.total || targets.length}
+                    totalPages={pagination.totalPages || 1}
+                    itemCount={targets.length}
+                    isLoading={loading}
                     onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
                 />
             )}
         </div>

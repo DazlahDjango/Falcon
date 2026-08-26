@@ -3,8 +3,15 @@ import { FiArrowUp, FiArrowDown, FiMinus } from 'react-icons/fi';
 import TrafficLightIcon from './TrafficLightIcon';
 import KPIPagination from '../common/KPIPagination';
 
-const ScoreTable = ({ scores, loading, pagination, onPageChange, onRowClick }) => {
-    if (loading) {
+const ScoreTable = ({ 
+    scores, 
+    loading, 
+    pagination = {}, 
+    onPageChange, 
+    onPageSizeChange,
+    onRowClick 
+}) => {
+    if (loading && (!scores || scores.length === 0)) {
         return <div className="kpi-loading-container">Loading scores...</div>;
     }
 
@@ -24,7 +31,7 @@ const ScoreTable = ({ scores, loading, pagination, onPageChange, onRowClick }) =
                     </tr>
                 </thead>
                 <tbody>
-                    {scores.map(score => (
+                    {scores?.map(score => (
                         <tr 
                             key={score.id} 
                             className="kpi-score-table-row"
@@ -61,11 +68,16 @@ const ScoreTable = ({ scores, loading, pagination, onPageChange, onRowClick }) =
                 </tbody>
             </table>
             
-            {pagination && pagination.totalPages > 1 && (
+            {scores && scores.length > 0 && (
                 <KPIPagination 
-                    currentPage={pagination.currentPage}
-                    totalPages={pagination.totalPages}
+                    currentPage={pagination.page || pagination.currentPage || 1}
+                    pageSize={pagination.pageSize || 20}
+                    total={pagination.total || scores.length}
+                    totalPages={pagination.totalPages || 1}
+                    itemCount={scores.length}
+                    isLoading={loading}
                     onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
                 />
             )}
         </div>

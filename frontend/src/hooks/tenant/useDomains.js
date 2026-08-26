@@ -162,6 +162,16 @@ export const useDomains = (options = {}) => {
     dispatch(setPagination(newPagination));
   }, [dispatch]);
 
+  const setPage = useCallback((page) => {
+    dispatch(setPagination({ page }));
+    dispatch(fetchDomains({ page }));
+  }, [dispatch]);
+
+  const setPageSize = useCallback((pageSize) => {
+    dispatch(setPagination({ pageSize, page: 1 }));
+    dispatch(fetchDomains({ pageSize, page: 1 }));
+  }, [dispatch]);
+
   const clearCurrent = useCallback(() => {
     dispatch(clearCurrentDomain());
   }, [dispatch]);
@@ -253,6 +263,8 @@ export const useDomains = (options = {}) => {
     updateFilters,
     resetAllFilters,
     updatePagination,
+    setPage,
+    setPageSize,
     clearCurrent,
     clearAllErrors,
     clearAll,

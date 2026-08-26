@@ -169,9 +169,12 @@ export const UnitList = () => {
   }, [fetchAll, page, pageSize, searchTerm, filters]);
 
   if (error) {
+    const errorMessage = typeof error === 'string'
+      ? error
+      : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error));
     return (
       <div className="unit-list-error">
-        <p>{error}</p>
+        <p>{errorMessage}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>

@@ -52,7 +52,7 @@ class ProfileViewSet(BaseModelViewset):
     def get_permissions(self):
         """Set permissions based on action"""
         write_actions = ['update', 'partial_update', 'destroy',
-                         'upload_avatar', 'delete_avatar',
+                         'avatar', 'upload_avatar', 'delete_avatar',
                          'add_skill', 'update_skill', 'remove_skill',
                          'add_certification', 'remove_certification']
         
@@ -70,8 +70,9 @@ class ProfileViewSet(BaseModelViewset):
         qs = super().get_queryset()
         qs = qs.select_related('user')
         
-        if not self.request.user.is_superuser:
-            qs = qs.filter(tenant_id=self.request.user.tenant_id)
+        if not self.request.user.is_superuser and getattr(self.request.user, 'role', None) != 'super_admin':
+            if self.request.user.tenant_id:
+                qs = qs.filter(tenant_id=self.request.user.tenant_id)
         
         return qs
     
@@ -81,19 +82,32 @@ class ProfileViewSet(BaseModelViewset):
             return super().get_object()
         except Http404:
             # If trying to access current user's profile, create it
-            if self.kwargs.get('pk') == str(self.request.user.id):
+            if self.kwargs.get('pk') == str(self.request.user.id) or self.kwargs.get('id') == str(self.request.user.id):
                 profile_service = ProfileService()
                 return profile_service.get_profile(self.request.user)
             raise
     
     # ========== Avatar Management ==========
     
-    @action(detail=True, methods=['post'], url_path='avatar')
-    def upload_avatar(self, request, pk=None):
-        """Upload avatar for user profile"""
+    @action(detail=True, methods=['post', 'delete'], url_path='avatar')
+    def avatar(self, request, pk=None, id=None):
+        """Upload or delete avatar for user profile"""
         profile = self.get_object()
-        avatar_file = request.FILES.get('avatar')
         
+        if request.method.upper() == 'DELETE':
+            avatar_service = AvatarService()
+            success, message = avatar_service.delete_avatar(
+                user=profile.user,
+                request=request
+            )
+            if not success:
+                return Response(
+                    {'error': message},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            return Response({'message': message}, status=status.HTTP_200_OK)
+        
+        avatar_file = request.FILES.get('avatar')
         if not avatar_file:
             return Response(
                 {'error': 'Avatar file is required'},
@@ -117,16 +131,6 @@ class ProfileViewSet(BaseModelViewset):
             'message': message,
             'avatar_url': url
         }, status=status.HTTP_200_OK)
-    
-    @action(detail=True, methods=['delete'], url_path='avatar')
-    def delete_avatar(self, request, pk=None):
-        """Delete user avatar"""
-        profile = self.get_object()
-        avatar_service = AvatarService()
-        success, message = avatar_service.delete_avatar(
-            user=profile.user,
-            request=request
-        )
         
         if not success:
             return Response(
@@ -142,7 +146,7 @@ class ProfileViewSet(BaseModelViewset):
     # ========== Skill Management ==========
     
     @action(detail=True, methods=['post'], url_path='skills')
-    def add_skill(self, request, pk=None):
+    def add_skill(self, request, pk=None, id=None):
         """Add a skill to user profile"""
         profile = self.get_object()
         serializer = SkillUpdateSerializer(data=request.data)
@@ -163,13 +167,14 @@ class ProfileViewSet(BaseModelViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        profile.refresh_from_db()
         return Response(
-            {'message': message},
+            {'message': message, 'skills': profile.skills},
             status=status.HTTP_200_OK
         )
     
     @action(detail=True, methods=['put'], url_path='skills/(?P<skill_name>[^/.]+)')
-    def update_skill(self, request, pk=None, skill_name=None):
+    def update_skill(self, request, pk=None, id=None, skill_name=None):
         """Update an existing skill"""
         profile = self.get_object()
         serializer = SkillUpdateSerializer(data=request.data, partial=True)
@@ -190,13 +195,14 @@ class ProfileViewSet(BaseModelViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        profile.refresh_from_db()
         return Response(
-            {'message': message},
+            {'message': message, 'skills': profile.skills},
             status=status.HTTP_200_OK
         )
     
     @action(detail=True, methods=['delete'], url_path='skills/(?P<skill_name>[^/.]+)')
-    def remove_skill(self, request, pk=None, skill_name=None):
+    def remove_skill(self, request, pk=None, id=None, skill_name=None):
         """Remove a skill from user profile"""
         profile = self.get_object()
         profile_service = ProfileService()
@@ -212,13 +218,14 @@ class ProfileViewSet(BaseModelViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        profile.refresh_from_db()
         return Response(
-            {'message': message},
+            {'message': message, 'skills': profile.skills},
             status=status.HTTP_200_OK
         )
     
     @action(detail=True, methods=['get'], url_path='skills-summary')
-    def skills_summary(self, request, pk=None):
+    def skills_summary(self, request, pk=None, id=None):
         """Get summary of user's skills"""
         profile = self.get_object()
         profile_service = ProfileService()
@@ -232,7 +239,7 @@ class ProfileViewSet(BaseModelViewset):
     # ========== Certification Management ==========
     
     @action(detail=True, methods=['post'], url_path='certifications')
-    def add_certification(self, request, pk=None):
+    def add_certification(self, request, pk=None, id=None):
         """Add a certification to user profile"""
         profile = self.get_object()
         serializer = CertificationUpdateSerializer(data=request.data)
@@ -245,7 +252,8 @@ class ProfileViewSet(BaseModelViewset):
             issuer=serializer.validated_data['issuer'],
             issued_date=serializer.validated_data['issued_date'],
             expiry_date=serializer.validated_data.get('expiry_date'),
-            credential_id=serializer.validated_data.get('credential_id', ''),
+            credential_id=serializer.validated_data.get('credential_id'),
+            credential_url=serializer.validated_data.get('credential_url'),
             request=request
         )
         
@@ -255,19 +263,20 @@ class ProfileViewSet(BaseModelViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        profile.refresh_from_db()
         return Response(
-            {'message': message},
+            {'message': message, 'certifications': profile.certifications},
             status=status.HTTP_200_OK
         )
     
-    @action(detail=True, methods=['delete'], url_path='certifications/(?P<cert_name>[^/.]+)')
-    def remove_certification(self, request, pk=None, cert_name=None):
+    @action(detail=True, methods=['delete'], url_path='certifications/(?P<name>[^/.]+)')
+    def remove_certification(self, request, pk=None, id=None, name=None):
         """Remove a certification from user profile"""
         profile = self.get_object()
         profile_service = ProfileService()
         success, message = profile_service.remove_certification(
             user=profile.user,
-            cert_name=cert_name,
+            name=name,
             request=request
         )
         
@@ -277,13 +286,14 @@ class ProfileViewSet(BaseModelViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        profile.refresh_from_db()
         return Response(
-            {'message': message},
+            {'message': message, 'certifications': profile.certifications},
             status=status.HTTP_200_OK
         )
     
     @action(detail=True, methods=['get'], url_path='certifications-summary')
-    def certifications_summary(self, request, pk=None):
+    def certifications_summary(self, request, pk=None, id=None):
         """Get summary of user's certifications"""
         profile = self.get_object()
         profile_service = ProfileService()

@@ -13,7 +13,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background-color: #f1f5f9;
+  background-color: var(--bg-primary, #f1f5f9);
   transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -139,6 +139,37 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
+}
+
+.ent-header-user-status {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  cursor: default;
+}
+
+.ent-header-user-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.ent-header-user-status .status-dot.dot-active {
+  background-color: #10B981;
+  box-shadow: 0 0 6px #10B981;
+}
+
+.ent-header-user-status .status-dot.dot-inactive {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
 }
 
 .ent-header-live {

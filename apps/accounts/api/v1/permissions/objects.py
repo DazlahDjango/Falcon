@@ -33,9 +33,9 @@ class CanAccessUser(BasePermission):
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
             return False
+        if request.user.role == UserRoles.SUPER_ADMIN or getattr(request.user, 'is_superuser', False):
+            return True
         target_user = obj if hasattr(obj, 'email') else getattr(obj, 'user', obj)
-        if request.user.role == UserRoles.CLIENT_ADMIN:
-            return str(request.user.tenant_id) == str(target_user.tenant_id)
         if request.user.role == UserRoles.CLIENT_ADMIN:
             return str(request.user.tenant_id) == str(target_user.tenant_id)
         if request.user.role == UserRoles.EXECUTIVE:
@@ -53,6 +53,8 @@ class CanAccessProfile(BasePermission):
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
             return False
+        if request.user.role == UserRoles.SUPER_ADMIN or getattr(request.user, 'is_superuser', False):
+            return True
         return CanAccessUser().has_object_permission(request, view, obj.user)
     
 class CanManageUser(BasePermission):

@@ -40,7 +40,12 @@ const SchemaList = ({ organizationId, onViewSchema }) => {
 
   const handlePageChange = useCallback((page) => {
     updatePagination({ page });
-    fetchList({ page });
+    fetchList({ page, page_size: pagination.pageSize || 20 });
+  }, [fetchList, updatePagination, pagination.pageSize]);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    updatePagination({ pageSize, page: 1 });
+    fetchList({ page: 1, pageSize, page_size: pageSize });
   }, [fetchList, updatePagination]);
 
   const handleView = useCallback((id) => {
@@ -249,41 +254,57 @@ const SchemaList = ({ organizationId, onViewSchema }) => {
         />
       )}
 
-      {pagination.totalPages > 1 && (
-        <div className="schema-pagination schema-flex-center">
-          <button
-            className={`schema-pagination-btn ${pagination.page <= 1 ? 'schema-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page <= 1 || loading}
-          >
-            Previous
-          </button>
-          {[...Array(Math.min(pagination.totalPages, 5))].map((_, i) => {
-            const pageNum = i + 1;
-            return (
-              <button
-                key={pageNum}
-                className={`schema-pagination-btn ${pageNum === pagination.page ? 'schema-pagination-btn-active' : ''}`}
-                onClick={() => handlePageChange(pageNum)}
-                disabled={loading}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-          {pagination.totalPages > 5 && (
-            <span className="schema-pagination-info">...</span>
-          )}
-          <button
-            className={`schema-pagination-btn ${pagination.page >= pagination.totalPages ? 'schema-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page >= pagination.totalPages || loading}
-          >
-            Next
-          </button>
-          <span className="schema-pagination-info">
-            Page {pagination.page} of {pagination.totalPages}
-          </span>
+      {schemas.length > 0 && (
+        <div className="schema-pagination">
+          <div className="schema-pagination-info">
+            Showing {schemas.length} of {pagination.total || count || schemas.length} schemas
+          </div>
+          <div className="schema-pagination-controls">
+            <select
+              value={pagination.pageSize || 20}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="schema-pagination-select"
+              disabled={loading}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <button
+              className={`schema-pagination-btn ${pagination.page <= 1 ? 'schema-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1 || loading}
+            >
+              Previous
+            </button>
+            {[...Array(Math.min(pagination.totalPages || 1, 5))].map((_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  className={`schema-pagination-btn ${pageNum === pagination.page ? 'schema-pagination-btn-active' : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                  disabled={loading}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            {(pagination.totalPages || 1) > 5 && (
+              <span className="schema-pagination-info">...</span>
+            )}
+            <button
+              className={`schema-pagination-btn ${pagination.page >= (pagination.totalPages || 1) ? 'schema-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page >= (pagination.totalPages || 1) || loading}
+            >
+              Next
+            </button>
+            <span className="schema-pagination-info">
+              Page {pagination.page || 1} of {pagination.totalPages || 1}
+            </span>
+          </div>
         </div>
       )}
 

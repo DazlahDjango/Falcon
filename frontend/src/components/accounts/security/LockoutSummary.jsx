@@ -47,7 +47,7 @@ export const LockoutSummary = () => {
   if (error) {
     return (
       <div className="lockout-summary-error">
-        <span>{error}</span>
+        <span>{typeof error === 'string' ? error : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error))}</span>
         <button onClick={clearError}>×</button>
       </div>
     );

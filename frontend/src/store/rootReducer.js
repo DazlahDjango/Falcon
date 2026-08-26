@@ -66,7 +66,12 @@ import { billingReducer } from './billing';
 import { configReducer } from './config';
 import { reportReducers } from './reports';
 
+import globalReducer from './global/globalSlice';
+
 const rootReducer = combineReducers({
+    // Global App State
+    global: globalReducer,
+
     // Accounts
     auth: authReducer,
     users: userReducer,

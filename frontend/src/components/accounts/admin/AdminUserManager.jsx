@@ -57,6 +57,16 @@ export const AdminUserManager = () => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  // Helper to safely format error objects into strings
+  const formatErrorMessage = useCallback((err) => {
+    if (!err) return '';
+    if (typeof err === 'string') return err;
+    if (typeof err === 'object') {
+      return err.displayMessage || err.message || err.error || err.detail || JSON.stringify(err);
+    }
+    return String(err);
+  }, []);
+
   // Load tenants on mount
   useEffect(() => {
     getTenants({ limit: 100 });
@@ -294,7 +304,7 @@ export const AdminUserManager = () => {
 
         {error && (
           <div className="admin-user-error">
-            <span>{error}</span>
+            <span>{formatErrorMessage(error)}</span>
             <button onClick={clearError}>×</button>
           </div>
         )}
@@ -405,7 +415,7 @@ export const AdminUserManager = () => {
       {/* Error display */}
       {error && (
         <div className="admin-user-error">
-          <span>{error}</span>
+          <span>{formatErrorMessage(error)}</span>
           <button onClick={clearError}>×</button>
         </div>
       )}

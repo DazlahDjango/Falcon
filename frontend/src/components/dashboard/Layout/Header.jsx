@@ -20,8 +20,18 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
 
     const { isSuperAdmin, previewRole, setPreviewRole, resetPreview } = useDashboardProfileContext();
 
-    // ✅ Use useSelector instead of useSyncExternalStore
+    // ✅ Use useSelector for notifications, auth user, and profiles
     const { unreadCount, notifications } = useSelector((state) => state.notifications || { unreadCount: 0, notifications: [] });
+    const authUser = useSelector((state) => state.auth?.user);
+    const currentProfile = useSelector((state) => state.profiles?.currentProfile);
+
+    const avatarUrl = 
+        user?.avatarUrl || 
+        user?.avatar_url || 
+        user?.avatar || 
+        currentProfile?.avatar || 
+        authUser?.avatar || 
+        authUser?.avatar_url;
 
     // ✅ Fetch unread count only once on mount
     useEffect(() => {
@@ -171,19 +181,8 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
         });
     }, [generateBreadcrumbs]);
 
-    // ✅ Memoize status text
-    const statusText = useMemo(() => {
-        return user?.is_active != null ? (user.is_active ? 'Active' : 'Inactive') : (wsConnected ? 'Live' : 'Offline');
-    }, [user?.is_active, wsConnected]);
-
-    const statusTitle = useMemo(() => {
-        return user?.is_active != null ? (user.is_active ? 'User active' : 'User inactive') : (wsConnected ? 'Dashboard live' : 'Dashboard offline');
-    }, [user?.is_active, wsConnected]);
-
-    const statusClassNames = useMemo(() => {
-        const isOn = user?.is_active != null ? user.is_active : wsConnected;
-        return `ent-header-live ${isOn ? 'ent-live-on' : ''}`.trim();
-    }, [user?.is_active, wsConnected]);
+    // ✅ User Active status & WebSocket status
+    const isUserActive = user?.is_active ?? authUser?.is_active ?? true;
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -303,12 +302,19 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                         )}
                     </div>
                 )}
+                <span 
+                  className={`ent-header-user-status ${isUserActive ? 'status-active' : 'status-inactive'}`}
+                  title={isUserActive ? 'User account active' : 'User account inactive'}
+                >
+                  <span className={`status-dot ${isUserActive ? 'dot-active' : 'dot-inactive'}`} />
+                  {isUserActive ? 'Active' : 'Inactive'}
+                </span>
                 <span
-                  className={statusClassNames}
-                  title={statusTitle}
+                  className={`ent-header-live ${wsConnected ? 'ent-live-on' : ''}`}
+                  title={wsConnected ? 'WebSocket connected' : 'WebSocket disconnected'}
                 >
                   <FiRadio size={14} />
-                  {statusText}
+                  {wsConnected ? 'Connected' : 'Disconnected'}
                 </span>
                 <button 
                     className="ent-quick-btn"
@@ -378,19 +384,19 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                         aria-label="User menu"
                     >
                         <div className="ent-user-avatar-small">
-                            {user?.avatar_url ? (
+                            {avatarUrl ? (
                                 <img 
-                                    src={user.avatar_url} 
-                                    alt={user.username}
+                                    src={avatarUrl} 
+                                    alt={user?.firstName || user?.first_name || user?.username || 'User'}
                                 />
                             ) : (
                                 <div className="ent-avatar-placeholder">
-                                    {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                    {(user?.firstName || user?.first_name || user?.username || 'U').charAt(0).toUpperCase()}
                                 </div>
                             )}
                         </div>
                         <div className="ent-user-info">
-                            <span className="ent-user-name">{user?.first_name || user?.username}</span>
+                            <span className="ent-user-name">{user?.firstName || user?.first_name || user?.username}</span>
                         </div>
                         <FiChevronDown size={16} className="ent-user-menu-arrow" />
                     </button>
@@ -399,14 +405,14 @@ const Header = ({ user, dashboardRole, onToggleSidebar, onLogout, sidebarOpen, s
                         <div className="ent-user-dropdown">
                             <div className="ent-user-dropdown-header">
                                 <div className="ent-user-avatar">
-                                    {user?.avatar_url ? (
+                                    {avatarUrl ? (
                                         <img 
-                                            src={user.avatar_url} 
-                                            alt={user.username}
+                                            src={avatarUrl} 
+                                            alt={user?.firstName || user?.first_name || user?.username || 'User'}
                                         />
                                     ) : (
                                         <div className="ent-avatar-placeholder ent-large">
-                                            {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                            {(user?.firstName || user?.first_name || user?.username || 'U').charAt(0).toUpperCase()}
                                         </div>
                                     )}
                                 </div>

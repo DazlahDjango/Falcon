@@ -180,7 +180,7 @@ export const ProfileEdit = () => {
       {formError && (
         <div className="profile-edit-error">
           <FiAlertCircle className="error-icon" />
-          <span>{formError}</span>
+          <span>{typeof formError === 'string' ? formError : (formError?.displayMessage || formError?.message || formError?.detail || formError?.error || JSON.stringify(formError))}</span>
         </div>
       )}
 

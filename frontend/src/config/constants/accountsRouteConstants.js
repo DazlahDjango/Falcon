@@ -53,6 +53,7 @@ export const ACCOUNTS_ROUTES = {
 
     // Current User
     MY_PROFILE: '/profile',
+    MY_PROFILE_EDIT: '/profile/edit',
     MY_TEAM: '/team',
     MY_REPORTING_CHAIN: '/reporting-chain',
     MY_SETTINGS: '/settings',

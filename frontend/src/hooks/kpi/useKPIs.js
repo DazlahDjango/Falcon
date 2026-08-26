@@ -51,6 +51,14 @@ const useKPIs = (initialParams = {}) => {
     const updatePagination = useCallback((newPagination) => {
         dispatch(setKpiPagination(newPagination));
     }, [dispatch]);
+
+    const setPage = useCallback((page) => {
+        dispatch(setKpiPagination({ page }));
+    }, [dispatch]);
+
+    const setPageSize = useCallback((pageSize) => {
+        dispatch(setKpiPagination({ page: 1, pageSize }));
+    }, [dispatch]);
     
     const refresh = useCallback(() => {
         loadKPIs();
@@ -71,6 +79,8 @@ const useKPIs = (initialParams = {}) => {
         deactivate,
         updateFilters,
         updatePagination,
+        setPage,
+        setPageSize,
         refresh,
     };
 };

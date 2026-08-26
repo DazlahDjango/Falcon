@@ -666,6 +666,11 @@ export const selectHistoryError = createSelector(
   (history) => history?.error || null
 );
 
+export const selectHistoryPagination = createSelector(
+  [selectHistoryState],
+  (history) => history?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 0 }
+);
+
 // ============ Combined Selectors ============
 export const selectKPIStats = createSelector(
   [selectKPIs, selectKPILoading],

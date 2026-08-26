@@ -161,6 +161,16 @@ export const useSchemas = (options = {}) => {
     dispatch(setPagination(newPagination));
   }, [dispatch]);
 
+  const setPage = useCallback((page) => {
+    dispatch(setPagination({ page }));
+    dispatch(fetchSchemas({ page }));
+  }, [dispatch]);
+
+  const setPageSize = useCallback((pageSize) => {
+    dispatch(setPagination({ pageSize, page: 1 }));
+    dispatch(fetchSchemas({ pageSize, page: 1 }));
+  }, [dispatch]);
+
   const clearCurrent = useCallback(() => {
     dispatch(clearCurrentSchema());
   }, [dispatch]);
@@ -246,6 +256,8 @@ export const useSchemas = (options = {}) => {
     updateFilters,
     resetAllFilters,
     updatePagination,
+    setPage,
+    setPageSize,
     clearCurrent,
     clearAllErrors,
     clearAll,

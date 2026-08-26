@@ -149,15 +149,7 @@ class AuthenticationService:
             tokens['password_change_required'] = user.password_change_required
             logger.debug("JWT tokens generated")
 
-            # 4. Record successful login attempt
-            LoginAttempt.record_attempt(
-                identifier=user.email,
-                user=user,
-                result='success',
-                request=request,
-                ip_address=ip_address,
-                user_agent=user_agent
-            )
+            # 4. Login attempt already recorded prior to _complete_authentication
             logger.debug("Login attempt recorded")
 
             # 5. Audit log

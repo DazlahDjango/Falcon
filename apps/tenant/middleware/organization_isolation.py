@@ -23,7 +23,15 @@ class OrganizationIsolationMiddleware(MiddlewareMixin):
         
         user = getattr(request, 'user', None)
         if not user or isinstance(user, AnonymousUser):
-            logger.debug(f"Anonymous access for organization {requested_org_id}")
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if auth_header.startswith('Bearer '):
+                try:
+                    from apps.accounts.services.auth.jwt import JWTServices
+                    payload = JWTServices().verify_token(auth_header.split(' ')[1])
+                    if payload and payload.get('role') == 'super_admin':
+                        return None
+                except Exception:
+                    pass
             return None
         
         user_org_id = self._get_user_org_id(user)

@@ -358,6 +358,21 @@ const authSlice = createSlice({
           setTenantId(state.user.tenant_id);
         }
       })
+      .addCase('profiles/uploadAvatar/fulfilled', (state, action) => {
+        const avatarUrl = action.payload?.avatar_url || action.payload?.url;
+        if (state.user && avatarUrl) {
+          state.user.avatar = avatarUrl;
+        }
+      })
+      .addCase('profiles/updateMyProfile/fulfilled', (state, action) => {
+        if (state.user && action.payload) {
+          state.user = {
+            ...state.user,
+            ...action.payload,
+            ...(action.payload.user || {}),
+          };
+        }
+      })
       .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isInitialized = true;

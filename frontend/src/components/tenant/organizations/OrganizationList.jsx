@@ -49,6 +49,11 @@ const OrganizationList = () => {
     fetchList({ page });
   }, [fetchList, updatePagination]);
 
+  const handlePageSizeChange = useCallback((pageSize) => {
+    updatePagination({ page: 1, pageSize });
+    fetchList({ page: 1, pageSize });
+  }, [fetchList, updatePagination]);
+
   const handleView = useCallback((id) => {
     navigate(`/tenant/organizations/${id}`);
   }, [navigate]);
@@ -190,41 +195,57 @@ const OrganizationList = () => {
         />
       )}
 
-      {pagination.totalPages > 1 && (
-        <div className="org-pagination org-flex-center">
-          <button
-            className={`org-pagination-btn ${pagination.page <= 1 ? 'org-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page <= 1 || loading}
-          >
-            Previous
-          </button>
-          {[...Array(Math.min(pagination.totalPages, 5))].map((_, i) => {
-            const pageNum = i + 1;
-            return (
-              <button
-                key={pageNum}
-                className={`org-pagination-btn ${pageNum === pagination.page ? 'org-pagination-btn-active' : ''}`}
-                onClick={() => handlePageChange(pageNum)}
-                disabled={loading}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-          {pagination.totalPages > 5 && (
-            <span className="org-pagination-info">...</span>
-          )}
-          <button
-            className={`org-pagination-btn ${pagination.page >= pagination.totalPages ? 'org-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page >= pagination.totalPages || loading}
-          >
-            Next
-          </button>
-          <span className="org-pagination-info">
-            Page {pagination.page} of {pagination.totalPages}
-          </span>
+      {organizations.length > 0 && (
+        <div className="org-pagination">
+          <div className="org-pagination-info">
+            Showing {organizations.length} of {pagination.total || count || organizations.length} organizations
+          </div>
+          <div className="org-pagination-controls">
+            <select
+              value={pagination.pageSize || 20}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="org-pagination-select"
+              disabled={loading}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <button
+              className={`org-pagination-btn ${pagination.page <= 1 ? 'org-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1 || loading}
+            >
+              Previous
+            </button>
+            {[...Array(Math.min(pagination.totalPages || 1, 5))].map((_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  className={`org-pagination-btn ${pageNum === pagination.page ? 'org-pagination-btn-active' : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                  disabled={loading}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            {(pagination.totalPages || 1) > 5 && (
+              <span className="org-pagination-info">...</span>
+            )}
+            <button
+              className={`org-pagination-btn ${pagination.page >= (pagination.totalPages || 1) ? 'org-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page >= (pagination.totalPages || 1) || loading}
+            >
+              Next
+            </button>
+            <span className="org-pagination-info">
+              Page {pagination.page || 1} of {pagination.totalPages || 1}
+            </span>
+          </div>
         </div>
       )}
 

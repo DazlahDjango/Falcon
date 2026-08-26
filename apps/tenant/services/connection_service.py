@@ -67,7 +67,7 @@ class ConnectionService:
             return True, 0
 
     @classmethod
-    def record_circuit_failure(cls, organization_id, threshold=3, cooldown_seconds=30):
+    def record_circuit_failure(cls, organization_id, threshold=10, cooldown_seconds=5):
         """Record a connection failure and trip circuit breaker if threshold reached."""
         org_str = str(organization_id)
         with cls._circuit_lock:
@@ -402,6 +402,9 @@ class ConnectionService:
         except Exception as e:
             self.logger.warning(f"Failed to record stack trace for connection: {e}")
 
+        if getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            return None
+
         try:
             return OrganizationConnection.objects.create(
                 organization_id=organization_id,
@@ -432,6 +435,9 @@ class ConnectionService:
         if max_size <= 0:
             return False
 
+        if getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            return len(self._connections) >= max_size
+
         try:
             stale_threshold = timezone.now() - timedelta(minutes=2)
             OrganizationConnection.objects.filter(
@@ -455,8 +461,9 @@ class ConnectionService:
         return False
 
     def _cleanup_stale_connections(self):
-        self.close_idle_connections()
-        self.close_expired_connections()
+        if not getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            self.close_idle_connections()
+            self.close_expired_connections()
 
     def release_connection(self, organization_id, read_only=False, record_id=None):
         """Release connection back to the pool, resetting search path to public."""
@@ -472,6 +479,9 @@ class ConnectionService:
                     cursor.execute('SET search_path TO "public"')
             except Exception as e:
                 self.logger.warning(f"Failed to reset search path to public on release: {e}")
+
+        if getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            return
 
         try:
             qs = OrganizationConnection.objects.filter(organization_id=organization_id)

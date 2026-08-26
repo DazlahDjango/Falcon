@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiUser } from 'react-icons/fi';
 
-export const UserAvatar = ({ user, size = 'md', onClick, className = '', showStatus = false }) => {
+export const UserAvatar = ({ user, avatar, size = 'md', onClick, className = '', showStatus = false }) => {
   const sizeMap = {
     xs: 24,
     sm: 32,
@@ -67,6 +67,7 @@ export const UserAvatar = ({ user, size = 'md', onClick, className = '', showSta
 
   const initials = getInitials();
   const color = user?.email ? getColor(user.email) : '#64748b';
+  const avatarUrl = avatar || user?.avatar || user?.profile?.avatar;
 
   const handleClick = () => {
     if (onClick) onClick();
@@ -78,9 +79,9 @@ export const UserAvatar = ({ user, size = 'md', onClick, className = '', showSta
       style={{ width: sizePx, height: sizePx, backgroundColor: color }}
       onClick={handleClick}
     >
-      {user?.avatar ? (
+      {avatarUrl ? (
         <img
-          src={user.avatar}
+          src={avatarUrl}
           alt={user?.full_name || user?.email || 'User'}
           className="user-avatar-img"
         />

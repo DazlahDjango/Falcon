@@ -26,6 +26,9 @@ const MIN_REDIRECT_INTERVAL = 30000; // 30 seconds minimum between redirects
 
 async function resolveTenantId() {
   let tenantId = await getTenantId();
+  if (!tenantId && typeof localStorage !== 'undefined') {
+    tenantId = localStorage.getItem('current_tenant_id') || localStorage.getItem('organization_id') || localStorage.getItem('tenant_id');
+  }
   if (!tenantId) {
     try {
       const { store } = await import('../../store');
@@ -34,7 +37,8 @@ async function resolveTenantId() {
         state?.auth?.user?.tenant_id ||
         state?.tenant?.organization?.currentOrganization?.id ||
         state?.tenant?.currentTenant?.id ||
-        state?.appTenant?.currentTenant?.id;
+        state?.appTenant?.currentTenant?.id ||
+        state?.tenant?.organizations?.[0]?.id;
     } catch (err) {
       console.error('Failed to load store dynamically in request interceptor:', err);
     }

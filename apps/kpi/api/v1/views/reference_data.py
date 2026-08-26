@@ -34,7 +34,7 @@ class KpiReferenceDataView(APIView):
         if 'departments' in include:
             departments = Department.objects.filter(
                 tenant_id=tenant_id, is_active=True
-            ).exclude(is_deleted=True).order_by('name')[:500]
+            ).exclude(is_deleted=True).only('id', 'name', 'code', 'parent').order_by('name')[:500]
 
             payload['departments'] = [
                 {

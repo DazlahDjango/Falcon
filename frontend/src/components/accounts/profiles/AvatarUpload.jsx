@@ -129,7 +129,12 @@ export const AvatarUpload = ({ profileId, currentAvatar, onClose, onSuccess }) =
         )}
 
         <div className="avatar-upload-container">
-          <div className="avatar-preview">
+          <div 
+            className="avatar-preview" 
+            onClick={() => fileInputRef.current?.click()}
+            style={{ cursor: 'pointer' }}
+            title="Click to choose image"
+          >
             {preview ? (
               <img src={preview} alt="Avatar preview" className="avatar-preview-img" />
             ) : (
@@ -142,17 +147,23 @@ export const AvatarUpload = ({ profileId, currentAvatar, onClose, onSuccess }) =
 
           <div className="avatar-upload-actions">
             <div className="avatar-file-input">
-              <label className="file-input-label">
+              <button
+                type="button"
+                className="file-input-label btn-secondary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isDeleting}
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
                 <FiUpload /> Choose Image
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  disabled={isLoading || isDeleting}
-                  className="file-input-hidden"
-                />
-              </label>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                disabled={isLoading || isDeleting}
+                style={{ display: 'none' }}
+              />
               {selectedFile && (
                 <span className="file-name">{selectedFile.name}</span>
               )}
