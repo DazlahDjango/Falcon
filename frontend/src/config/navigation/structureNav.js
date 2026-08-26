@@ -26,7 +26,10 @@ import {
   FiPlus,
   FiFolder,
   FiClock,
+  FiDatabase,
 } from 'react-icons/fi';
+import { HiOutlineBuildingOffice } from 'react-icons/hi2';
+import { BsBriefcase, BsPersonBadge } from 'react-icons/bs';
 
 import { STRUCTURE_ROUTES } from '../constants/structureRouteConstants';
 
@@ -36,11 +39,31 @@ import { STRUCTURE_ROUTES } from '../constants/structureRouteConstants';
 export const STRUCTURE_SUPER_ADMIN_NAV_GROUPS = {
   structure_main: [
     { path: STRUCTURE_ROUTES.DASHBOARD, name: 'Platform Structure Overview', icon: FiHome },
+    { path: STRUCTURE_ROUTES.DIVISIONS, name: 'Divisions', icon: FiGitBranch },
+    { path: STRUCTURE_ROUTES.DEPARTMENTS, name: 'Departments', icon: HiOutlineBuildingOffice },
+    { path: STRUCTURE_ROUTES.SECTIONS, name: 'Sections', icon: FiFolder },
+    { path: STRUCTURE_ROUTES.UNITS, name: 'Units', icon: FiGrid },
+    { path: STRUCTURE_ROUTES.POSITIONS, name: 'Positions', icon: BsBriefcase },
+    { path: STRUCTURE_ROUTES.EMPLOYMENTS, name: 'Employments', icon: BsPersonBadge },
+    { path: STRUCTURE_ROUTES.MY_EMPLOYMENT, name: 'My Employment', icon: FiUser },
+    { path: STRUCTURE_ROUTES.MY_CHAIN, name: 'My Reporting Chain', icon: FiGitBranch },
+    { path: STRUCTURE_ROUTES.ORGANIZATION_SPAN, name: 'Span of Control', icon: FiUsers },
+    { path: STRUCTURE_ROUTES.INTERIM_ASSIGNMENTS, name: 'Interim Assignments', icon: FiClock },
+    { path: STRUCTURE_ROUTES.COST_CENTERS, name: 'Cost Centers', icon: FiDollarSign },
+    { path: STRUCTURE_ROUTES.LOCATIONS, name: 'Locations', icon: FiMapPin },
+    { path: STRUCTURE_ROUTES.ORG_CHARTS, name: 'Org Chart', icon: FiGitBranch },
+    { path: STRUCTURE_ROUTES.ORG_CHART_TREE, name: 'Org Tree', icon: FiLayers },
   ],
   structure_admin: [
     { path: STRUCTURE_ROUTES.SYSTEM_SETTINGS, name: 'Structure Policy & Operations', icon: FiSliders },
     { path: STRUCTURE_ROUTES.REFERENCE_DATA, name: 'Reference Standards', icon: FiLayers },
     { path: STRUCTURE_ROUTES.HEALTH, name: 'System Health Grid', icon: FiActivity },
+    { path: STRUCTURE_ROUTES.HIERARCHY_CURRENT, name: 'Current Hierarchy', icon: FiDatabase },
+    { path: STRUCTURE_ROUTES.HIERARCHY_HISTORY, name: 'Version History', icon: FiClock },
+    { path: STRUCTURE_ROUTES.HIERARCHY_VALIDATE, name: 'Validate Hierarchy', icon: FiCheckCircle },
+    { path: STRUCTURE_ROUTES.BULK_DEPARTMENTS, name: 'Bulk Departments', icon: FiDatabase },
+    { path: STRUCTURE_ROUTES.BULK_EMPLOYMENTS, name: 'Bulk Employments', icon: FiDatabase },
+    { path: STRUCTURE_ROUTES.BULK_REPORTING, name: 'Bulk Reporting', icon: FiDatabase },
   ],
 };
 
