@@ -45,7 +45,7 @@ export const StructureHealth = () => {
   if (error) {
     return (
       <div className="health-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>

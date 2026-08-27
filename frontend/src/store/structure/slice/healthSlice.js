@@ -123,7 +123,7 @@ const healthSlice = createSlice({
       })
       .addCase(fetchAllHealthChecks.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       });
   },
 });

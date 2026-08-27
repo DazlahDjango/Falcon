@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, RefreshCw } from 'lucide-react';
 import DepartmentSelector from '../department/DepartmentSelector';
-import TeamSelector from '../team/TeamSelector';
 
 const EmploymentTransferForm = ({ isOpen, onClose, employee, departments, teams, onTransfer, isTransferring = false }) => {
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
@@ -9,7 +8,7 @@ const EmploymentTransferForm = ({ isOpen, onClose, employee, departments, teams,
   const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split('T')[0]);
   const [reason, setReason] = useState('');
   if (!isOpen) return null;
-  const availableTeams = teams?.filter(team => team.department_id === selectedDepartmentId);
+  const availableTeams = teams?.filter(team => team.department_id === selectedDepartmentId) || [];
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedDepartmentId) return;
@@ -53,15 +52,19 @@ const EmploymentTransferForm = ({ isOpen, onClose, employee, departments, teams,
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Team (Optional)
+              New Team / Unit (Optional)
             </label>
-            <TeamSelector
+            <select
               value={selectedTeamId}
-              onChange={setSelectedTeamId}
-              teams={availableTeams}
-              placeholder="Select team"
+              onChange={(e) => setSelectedTeamId(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
               disabled={!selectedDepartmentId}
-            />
+            >
+              <option value="">Select team / unit</option>
+              {availableTeams.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">

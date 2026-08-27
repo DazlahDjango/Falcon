@@ -72,13 +72,22 @@ class ChainService:
                     break
                 seen_user_ids.add(manager_user_id_str)
                 
+                from apps.accounts.models import User
+                mgr_user = User.objects.filter(id=manager.user_id).first()
+                mgr_name = f"{mgr_user.first_name} {mgr_user.last_name}".strip() or mgr_user.email if mgr_user else f"Manager ({manager.position.title if manager.position else 'Staff'})"
+                
                 chain.append({
                     'user_id': manager_user_id_str,
+                    'user_name': mgr_name,
+                    'user_email': mgr_user.email if mgr_user else '',
                     'employment_id': str(manager.id),
                     'is_interim': False,
                     'interim_id': None,
                     'effective_to': None,
                     'position': manager.position.title if manager.position else None,
+                    'position_title': manager.position.title if manager.position else None,
+                    'department_name': manager.position.department.name if manager.position and manager.position.department else None,
+                    'division_name': manager.position.division.name if manager.position and manager.position.division else None,
                     'is_manager': manager.is_manager,
                     'is_executive': manager.is_executive
                 })

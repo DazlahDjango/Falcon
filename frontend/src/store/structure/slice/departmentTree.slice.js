@@ -104,7 +104,7 @@ const departmentTreeSlice = createSlice({
       })
       .addCase(fetchDepartmentTree.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchDepartmentBranch.pending, (state) => {
         state.isLoading = true;
@@ -116,7 +116,7 @@ const departmentTreeSlice = createSlice({
       })
       .addCase(fetchDepartmentBranch.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchDepartmentPath.pending, (state) => {
         state.isLoading = true;
@@ -128,7 +128,7 @@ const departmentTreeSlice = createSlice({
       })
       .addCase(fetchDepartmentPath.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchDepartmentSubtree.pending, (state) => {
         state.isLoading = true;
@@ -140,7 +140,7 @@ const departmentTreeSlice = createSlice({
       })
       .addCase(fetchDepartmentSubtree.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchDepartmentLCA.pending, (state) => {
         state.isLoading = true;
@@ -152,7 +152,7 @@ const departmentTreeSlice = createSlice({
       })
       .addCase(fetchDepartmentLCA.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       });
   },
 });

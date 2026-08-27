@@ -140,7 +140,7 @@ const costCenterSlice = createSlice({
       })
       .addCase(fetchCostCenters.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchCostCenterById.pending, (state) => {
         state.isLoading = true;
@@ -152,7 +152,7 @@ const costCenterSlice = createSlice({
       })
       .addCase(fetchCostCenterById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchCostCenterStats.fulfilled, (state, action) => {
         state.stats = action.payload;

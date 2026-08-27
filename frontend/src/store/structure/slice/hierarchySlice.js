@@ -146,7 +146,7 @@ const hierarchySlice = createSlice({
       })
       .addCase(fetchHierarchyVersions.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchHierarchyVersionById.pending, (state) => {
         state.isLoading = true;
@@ -158,7 +158,7 @@ const hierarchySlice = createSlice({
       })
       .addCase(fetchHierarchyVersionById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchCurrentHierarchyVersion.pending, (state) => {
         state.isLoading = true;
@@ -170,7 +170,7 @@ const hierarchySlice = createSlice({
       })
       .addCase(fetchCurrentHierarchyVersion.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchHierarchyHistory.pending, (state) => {
         state.isLoading = true;
@@ -182,7 +182,7 @@ const hierarchySlice = createSlice({
       })
       .addCase(fetchHierarchyHistory.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(validateHierarchy.pending, (state) => {
         state.isLoading = true;
@@ -194,7 +194,7 @@ const hierarchySlice = createSlice({
       })
       .addCase(validateHierarchy.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(captureHierarchySnapshot.fulfilled, (state, action) => {
         if (action.payload.version) {

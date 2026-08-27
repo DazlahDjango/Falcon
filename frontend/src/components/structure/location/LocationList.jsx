@@ -195,7 +195,7 @@ export const LocationList = () => {
   if (error) {
     return (
       <div className="location-list-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>

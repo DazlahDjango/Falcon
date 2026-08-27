@@ -19,7 +19,7 @@ export const StructureTable = ({
   className = '',
 }) => {
   if (loading) return <StructureLoading />;
-  if (error) return <div className="structure-table-error">{error}</div>;
+  if (error) return <div className="structure-table-error">{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</div>;
   if (!data || data.length === 0) {
     if (hideEmptyState) return null;
     return <StructureEmptyState {...emptyStateProps} />;
@@ -70,11 +70,26 @@ export const StructureTable = ({
                 onClick={() => handleRowClick(item)}
                 className={onRowClick ? 'clickable' : ''}
               >
-                {columns.map((col, colIndex) => (
-                  <td key={col.key || colIndex}>
-                    {col.render ? col.render(item) : item[col.key] || '-'}
-                  </td>
-                ))}
+                {columns.map((col, colIndex) => {
+                  let cellContent;
+                  if (col.render) {
+                    cellContent = col.render(item);
+                  } else {
+                    const rawVal = item[col.key];
+                    if (rawVal === null || rawVal === undefined) {
+                      cellContent = '-';
+                    } else if (typeof rawVal === 'object') {
+                      cellContent = rawVal.name || rawVal.title || rawVal.code || '-';
+                    } else {
+                      cellContent = String(rawVal);
+                    }
+                  }
+                  return (
+                    <td key={col.key || colIndex}>
+                      {cellContent}
+                    </td>
+                  );
+                })}
                 {actions && (
                   <td className="actions-cell" onClick={(e) => e.stopPropagation()}>
                     {renderActions(item)}

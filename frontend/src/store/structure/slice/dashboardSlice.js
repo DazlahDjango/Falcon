@@ -78,7 +78,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardOverview.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchDashboardHealth.pending, (state) => {
         state.isLoading = true;
@@ -90,7 +90,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardHealth.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchDashboardTrends.pending, (state) => {
         state.isLoading = true;
@@ -102,7 +102,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardTrends.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchAllDashboardData.pending, (state) => {
         state.isLoading = true;
@@ -116,7 +116,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchAllDashboardData.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       });
   },
 });

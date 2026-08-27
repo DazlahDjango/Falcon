@@ -90,7 +90,7 @@ export const InterimAssignmentDetail = () => {
   if (error) {
     return (
       <div className="interim-detail-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>
@@ -189,17 +189,96 @@ export const InterimAssignmentDetail = () => {
       </div>
 
       <div className="interim-detail-body">
+        {/* Profile Banners for Covered Employee and Interim Manager */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          {/* Covered Employee Card */}
+          <div style={{
+            padding: '20px',
+            borderRadius: '12px',
+            backgroundColor: 'var(--bg-surface, #ffffff)',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              fontSize: '18px'
+            }}>
+              {currentItem.employee_name ? currentItem.employee_name.charAt(0).toUpperCase() : 'E'}
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
+                Covered Employee
+              </div>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
+                {currentItem.employee_name || currentItem.employee_user_id}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary, #475569)' }}>
+                {currentItem.employee_position || 'Staff'}
+              </div>
+            </div>
+          </div>
+
+          {/* Acting Manager Card */}
+          <div style={{
+            padding: '20px',
+            borderRadius: '12px',
+            backgroundColor: 'var(--bg-surface, #ffffff)',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              fontSize: '18px'
+            }}>
+              {currentItem.interim_manager_name ? currentItem.interim_manager_name.charAt(0).toUpperCase() : 'M'}
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
+                Acting / Interim Manager
+              </div>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
+                {currentItem.interim_manager_name || currentItem.interim_manager_user_id}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary, #475569)' }}>
+                {currentItem.interim_manager_position || 'Manager'}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="stats-grid">
           <StatCard
             icon={FiUser}
-            label="Employee"
-            value={currentItem.employee_user_id || currentItem.employee_id}
+            label="Covered Employee"
+            value={currentItem.employee_name || 'Assigned'}
             color="primary"
           />
           <StatCard
             icon={FiUser}
             label="Interim Manager"
-            value={currentItem.interim_manager_user_id || currentItem.interim_manager_id}
+            value={currentItem.interim_manager_name || 'Assigned'}
             color="success"
           />
           <StatCard
@@ -219,12 +298,12 @@ export const InterimAssignmentDetail = () => {
         <div className="detail-section">
           <h3>Assignment Information</h3>
           <div className="detail-grid">
-            <DetailRow label="Employee ID" value={currentItem.employee_id} />
-            <DetailRow label="Employee User ID" value={currentItem.employee_user_id} />
-            <DetailRow label="Interim Manager ID" value={currentItem.interim_manager_id} />
-            <DetailRow label="Interim Manager User ID" value={currentItem.interim_manager_user_id} />
-            <DetailRow label="Reporting Type" value={currentItem.reporting_type} />
-            <DetailRow label="Reason" value={currentItem.reason} />
+            <DetailRow label="Employee Name" value={currentItem.employee_name || '-'} />
+            <DetailRow label="Employee Position" value={currentItem.employee_position || '-'} />
+            <DetailRow label="Interim Manager" value={currentItem.interim_manager_name || '-'} />
+            <DetailRow label="Manager Position" value={currentItem.interim_manager_position || '-'} />
+            <DetailRow label="Reporting Type" value={currentItem.reporting_type_display || currentItem.reporting_type || 'Interim'} />
+            <DetailRow label="Reason" value={currentItem.reason || 'Not specified'} />
           </div>
         </div>
 

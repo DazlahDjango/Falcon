@@ -90,7 +90,7 @@ const orgChartSlice = createSlice({
       })
       .addCase(fetchOrgChartTree.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchOrgChartPreview.pending, (state) => {
         state.isLoading = true;
@@ -102,7 +102,7 @@ const orgChartSlice = createSlice({
       })
       .addCase(fetchOrgChartPreview.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(exportOrgChartJson.fulfilled, (state, action) => {
         state.jsonData = action.payload;

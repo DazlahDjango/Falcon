@@ -66,7 +66,7 @@ const settingsSlice = createSlice({
       })
       .addCase(fetchSettings.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(updateSettings.pending, (state) => {
         state.isLoading = true;
@@ -79,7 +79,7 @@ const settingsSlice = createSlice({
       })
       .addCase(updateSettings.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(resetSettings.pending, (state) => {
         state.isLoading = true;
@@ -92,7 +92,7 @@ const settingsSlice = createSlice({
       })
       .addCase(resetSettings.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       });
   },
 });

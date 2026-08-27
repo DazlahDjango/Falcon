@@ -339,7 +339,7 @@ export const BulkReportingUpload = () => {
             {error && (
               <div className="bulk-error">
                 <FiAlertCircle size={16} />
-                <span>{error}</span>
+                <span>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</span>
                 <button onClick={() => setError(null)} className="btn btn-secondary">
                   Dismiss
                 </button>

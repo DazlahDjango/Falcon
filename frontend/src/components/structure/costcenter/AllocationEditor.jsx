@@ -79,7 +79,7 @@ const AllocationEditor = ({ allocations, totalBudget, onSave, onCancel, classNam
           {error && (
             <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded flex items-center gap-2 text-red-600 text-xs">
               <AlertCircle size={14} />
-              <span>{error}</span>
+              <span>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</span>
             </div>
           )}
         </div>

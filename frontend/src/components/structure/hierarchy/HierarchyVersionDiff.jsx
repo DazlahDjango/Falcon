@@ -117,7 +117,7 @@ export const HierarchyVersionDiff = () => {
   if (error && versions.length === 0) {
     return (
       <div className="hierarchy-diff-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>
@@ -232,7 +232,7 @@ export const HierarchyVersionDiff = () => {
 
       {error && (
         <div className="hierarchy-diff-error-banner">
-          <p>{error}</p>
+          <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
           <button onClick={() => { clearError(); loadDiff(); }} className="btn btn-secondary">
             Dismiss
           </button>

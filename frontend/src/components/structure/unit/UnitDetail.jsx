@@ -119,7 +119,7 @@ export const UnitDetail = () => {
   if (error) {
     return (
       <div className="unit-detail-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>
@@ -138,12 +138,24 @@ export const UnitDetail = () => {
     );
   }
 
-  const DetailRow = ({ label, value, children }) => (
-    <div className="detail-row">
-      <div className="detail-label">{label}</div>
-      <div className="detail-value">{children || value || '-'}</div>
-    </div>
-  );
+  const DetailRow = ({ label, value, children }) => {
+    let displayValue = '-';
+    if (children) {
+      displayValue = children;
+    } else if (value !== null && value !== undefined) {
+      if (typeof value === 'object') {
+        displayValue = value.name || value.title || value.code || JSON.stringify(value);
+      } else {
+        displayValue = String(value);
+      }
+    }
+    return (
+      <div className="detail-row">
+        <div className="detail-label">{label}</div>
+        <div className="detail-value">{displayValue}</div>
+      </div>
+    );
+  };
 
   const StatCard = ({ icon: Icon, label, value }) => (
     <div className="stat-card">
@@ -205,8 +217,160 @@ export const UnitDetail = () => {
       </div>
 
       <div className="unit-detail-body">
-        <div className="stats-grid">
-          <StatCard icon={FiUsers} label="Employees" value={currentItem.employee_count || 0} />
+        {/* Parent Breadcrumbs Banner */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 16px',
+          backgroundColor: 'rgba(79, 70, 229, 0.04)',
+          border: '1px solid rgba(79, 70, 229, 0.1)',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          fontSize: '13px',
+          color: 'var(--text-secondary, #64748b)',
+          flexWrap: 'wrap'
+        }}>
+          <span 
+            onClick={() => navigate(STRUCTURE_ROUTES.DIVISIONS)}
+            style={{ cursor: 'pointer', color: 'var(--primary-color, #4f46e5)', fontWeight: 500 }}
+          >
+            Divisions
+          </span>
+          <FiChevronRight size={14} />
+          {currentItem.division_id && (
+            <>
+              <span 
+                onClick={() => navigate(STRUCTURE_ROUTES.DIVISION_DETAIL(currentItem.division_id))}
+                style={{ cursor: 'pointer', color: 'var(--primary-color, #4f46e5)', fontWeight: 500 }}
+              >
+                {currentItem.division_name || 'Division'}
+              </span>
+              <FiChevronRight size={14} />
+            </>
+          )}
+          {currentItem.department_id && (
+            <>
+              <span 
+                onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENT_DETAIL(currentItem.department_id))}
+                style={{ cursor: 'pointer', color: 'var(--primary-color, #4f46e5)', fontWeight: 500 }}
+              >
+                {currentItem.department_name || 'Department'}
+              </span>
+              <FiChevronRight size={14} />
+            </>
+          )}
+          {currentItem.section_id ? (
+            <span 
+              onClick={() => navigate(STRUCTURE_ROUTES.SECTION_DETAIL(currentItem.section_id))}
+              style={{ cursor: 'pointer', color: 'var(--primary-color, #4f46e5)', fontWeight: 500 }}
+            >
+              {currentItem.parent_name || 'Parent Section'}
+            </span>
+          ) : (
+            <span>{currentItem.parent_name || 'Section'}</span>
+          )}
+          <FiChevronRight size={14} />
+          <span style={{ fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
+            {currentItem.name}
+          </span>
+        </div>
+
+        {/* Leader Profile & High-level Statistics Banner */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          {/* Leader Card */}
+          <div style={{
+            padding: '20px',
+            borderRadius: '12px',
+            backgroundColor: 'var(--bg-surface, #ffffff)',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '18px',
+                boxShadow: '0 4px 6px -1px rgba(99, 102, 241, 0.2)'
+              }}>
+                {currentItem.leader?.name ? currentItem.leader.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', tracking: '0.05em', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
+                  Unit Lead / Coordinator
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
+                  {currentItem.leader?.name || (currentItem.unit_lead_id ? 'Assigned Lead' : 'No Lead Assigned')}
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary, #475569)' }}>
+                  {currentItem.leader?.title || 'Unit Lead'} {currentItem.leader?.email ? `• ${currentItem.leader.email}` : ''}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => { setSelectedLeadId(currentItem.unit_lead_id || ''); setShowLeadModal(true); }}
+              className="btn btn-secondary btn-sm"
+              title="Assign / Change Lead"
+              style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
+            >
+              <FiUserPlus size={14} /> Change
+            </button>
+          </div>
+
+          {/* Quick Metrics */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '12px'
+          }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary, #64748b)', fontWeight: 500 }}>Active Staff</span>
+              <span style={{ fontSize: '22px', fontWeight: 700, color: '#059669', marginTop: '4px' }}>
+                {currentItem.employee_count || 0}
+              </span>
+            </div>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary, #64748b)', fontWeight: 500 }}>Headcount Limit</span>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary, #1e293b)', marginTop: '4px' }}>
+                {currentItem.headcount_limit || '∞'}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="detail-section">
@@ -214,6 +378,18 @@ export const UnitDetail = () => {
           <div className="detail-grid">
             <DetailRow label="Code" value={currentItem.code} />
             <DetailRow label="Name" value={currentItem.name} />
+            <DetailRow label="Section">
+              {currentItem.section_id ? (
+                <span 
+                  onClick={() => navigate(STRUCTURE_ROUTES.SECTION_DETAIL(currentItem.section_id))}
+                  style={{ cursor: 'pointer', color: 'var(--primary-color, #4f46e5)', fontWeight: 600 }}
+                >
+                  {currentItem.parent_name} ({currentItem.parent_code}) →
+                </span>
+              ) : (
+                currentItem.parent_name || '-'
+              )}
+            </DetailRow>
             <DetailRow label="Description" value={currentItem.description} />
             <DetailRow label="Depth" value={currentItem.depth || 0} />
             <DetailRow label="Path" value={currentItem.path} />
@@ -224,10 +400,9 @@ export const UnitDetail = () => {
         <div className="detail-section">
           <h3>Configuration</h3>
           <div className="detail-grid">
-            <DetailRow label="Parent Unit" value={currentItem.parent_name || 'Root'} />
-            <DetailRow label="Unit Lead (ID)" value={currentItem.unit_lead_id || 'None'} />
+            <DetailRow label="Cost Center ID" value={currentItem.cost_center_id} />
+            <DetailRow label="Budget Code" value={currentItem.budget_code} />
             <DetailRow label="Headcount Limit" value={currentItem.headcount_limit || 'Unlimited'} />
-            <DetailRow label="Employee Count" value={currentItem.employee_count || 0} />
             <DetailRow label="Created At" value={new Date(currentItem.created_at).toLocaleDateString()} />
             <DetailRow label="Updated At" value={currentItem.updated_at ? new Date(currentItem.updated_at).toLocaleDateString() : '-'} />
             <DetailRow label="Status">

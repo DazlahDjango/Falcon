@@ -165,7 +165,7 @@ const interimAssignmentSlice = createSlice({
       })
       .addCase(fetchInterimAssignments.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchInterimAssignmentById.pending, (state) => {
         state.isLoading = true;
@@ -177,7 +177,7 @@ const interimAssignmentSlice = createSlice({
       })
       .addCase(fetchInterimAssignmentById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchActiveInterimAssignments.fulfilled, (state, action) => {
         state.activeItems = action.payload.active_assignments || action.payload;

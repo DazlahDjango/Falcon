@@ -38,7 +38,7 @@ const structNotificationSlice = createSlice({
             state.isLoading = action.payload;
         },
         setStructNotificationError: (state, action) => {
-            state.error = action.payload;
+            state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
         },
         removeStructNotification: (state, action) => {
             const index = state.items.findIndex((n) => n.id === action.payload);

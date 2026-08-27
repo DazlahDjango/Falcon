@@ -101,7 +101,7 @@ export const DivisionDetail = () => {
   if (error) {
     return (
       <div className="division-detail-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>
@@ -120,12 +120,24 @@ export const DivisionDetail = () => {
     );
   }
 
-  const DetailRow = ({ label, value, children }) => (
-    <div className="detail-row">
-      <div className="detail-label">{label}</div>
-      <div className="detail-value">{children || value || '-'}</div>
-    </div>
-  );
+  const DetailRow = ({ label, value, children }) => {
+    let displayValue = '-';
+    if (children) {
+      displayValue = children;
+    } else if (value !== null && value !== undefined) {
+      if (typeof value === 'object') {
+        displayValue = value.name || value.title || value.code || JSON.stringify(value);
+      } else {
+        displayValue = String(value);
+      }
+    }
+    return (
+      <div className="detail-row">
+        <div className="detail-label">{label}</div>
+        <div className="detail-value">{displayValue}</div>
+      </div>
+    );
+  };
 
   return (
     <div className="division-detail-container">
@@ -167,8 +179,121 @@ export const DivisionDetail = () => {
           </button>
         </div>
       </div>
-
+      
       <div className="division-detail-body">
+        {/* Leader Profile & High-level Statistics Banner */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          {/* Leader Card */}
+          <div style={{
+            padding: '20px',
+            borderRadius: '12px',
+            backgroundColor: 'var(--bg-surface, #ffffff)',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '18px',
+                boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
+              }}>
+                {currentItem.leader?.name ? currentItem.leader.name.charAt(0).toUpperCase() : 'D'}
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', tracking: '0.05em', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
+                  Division Director / Leader
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
+                  {currentItem.leader?.name || (currentItem.director_id ? 'Assigned Director' : 'No Director Assigned')}
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary, #475569)' }}>
+                  {currentItem.leader?.title || 'Division Head'} {currentItem.leader?.email ? `• ${currentItem.leader.email}` : ''}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => { setSelectedDirectorId(currentItem.director_id || ''); setShowDirectorModal(true); }}
+              className="btn btn-secondary btn-sm"
+              title="Assign / Change Director"
+              style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
+            >
+              <FiUserPlus size={14} /> Change
+            </button>
+          </div>
+
+          {/* Quick Metrics */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '12px'
+          }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary, #64748b)', fontWeight: 500 }}>Departments</span>
+              <span style={{ fontSize: '22px', fontWeight: 700, color: 'var(--primary-color, #4f46e5)', marginTop: '4px' }}>
+                {currentItem.department_count || currentItem.departments?.length || 0}
+              </span>
+            </div>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary, #64748b)', fontWeight: 500 }}>Total Staff</span>
+              <span style={{ fontSize: '22px', fontWeight: 700, color: '#059669', marginTop: '4px' }}>
+                {currentItem.employee_count || 0}
+              </span>
+            </div>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary, #64748b)', fontWeight: 500 }}>Headcount Limit</span>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary, #1e293b)', marginTop: '4px' }}>
+                {currentItem.headcount_limit || '∞'}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="detail-section">
           <h3>Basic Information</h3>
           <div className="detail-grid">
@@ -193,22 +318,129 @@ export const DivisionDetail = () => {
           </div>
         </div>
 
-        <div className="detail-section">
-          <h3>Statistics</h3>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <span className="stat-label">Departments</span>
-              <span className="stat-value">{currentItem.department_count || 0}</span>
+        <div className="detail-section" style={{ marginTop: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '18px' }}>Departments under this Division</h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary, #64748b)' }}>
+                Overview of all business departments, their designated leaders, and active headcount.
+              </p>
             </div>
-            <div className="stat-card">
-              <span className="stat-label">Employees</span>
-              <span className="stat-value">{currentItem.employee_count || 0}</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">Children</span>
-              <span className="stat-value">{currentItem.children_count || 0}</span>
-            </div>
+            <button onClick={handleAddDepartment} className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <FiPlus size={14} /> Add Department
+            </button>
           </div>
+
+          {currentItem.departments && currentItem.departments.length > 0 ? (
+            <div className="departments-list-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+              {currentItem.departments.map((dept) => (
+                <div 
+                  key={dept.id} 
+                  onClick={() => navigate(STRUCTURE_ROUTES.DEPARTMENT_DETAIL(dept.id))}
+                  style={{
+                    padding: '18px',
+                    border: '1px solid var(--border-color, #e2e8f0)',
+                    borderRadius: '10px',
+                    backgroundColor: 'var(--bg-surface, #ffffff)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--primary-color, #4f46e5)';
+                    e.currentTarget.style.boxShadow = '0 6px 12px -2px rgba(79, 70, 229, 0.1)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-color, #e2e8f0)';
+                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                    e.currentTarget.style.transform = 'none';
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--primary-color, #4f46e5)', background: 'rgba(79, 70, 229, 0.08)', padding: '2px 8px', borderRadius: '4px' }}>
+                        {dept.code}
+                      </span>
+                      <StructureStatusBadge status={dept.is_active ? 'active' : 'inactive'} size="sm" />
+                    </div>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: 'var(--text-primary, #1e293b)' }}>
+                      {dept.name}
+                    </h4>
+                    <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-secondary, #64748b)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {dept.description || 'No description provided.'}
+                    </p>
+                  </div>
+
+                  <div>
+                    {/* Department Leader Pill */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 10px',
+                      backgroundColor: 'rgba(241, 245, 249, 0.6)',
+                      borderRadius: '6px',
+                      marginBottom: '12px',
+                      fontSize: '12px'
+                    }}>
+                      <div style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: dept.leader?.name ? '#4f46e5' : '#94a3b8',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 600,
+                        fontSize: '11px'
+                      }}>
+                        {dept.leader?.name ? dept.leader.name.charAt(0).toUpperCase() : '?'}
+                      </div>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary, #1e293b)' }}>
+                          {dept.leader?.name || 'Leader Unassigned'}
+                        </span>
+                        {dept.leader?.title && (
+                          <span style={{ color: 'var(--text-muted, #64748b)', marginLeft: '4px' }}>
+                            • {dept.leader.title}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stats & Direct Action */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: 'var(--text-muted, #94a3b8)', borderTop: '1px solid var(--border-color, #f1f5f9)', paddingTop: '10px' }}>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <span>📂 <strong>{dept.section_count || 0}</strong> Sections</span>
+                        <span>👥 <strong>{dept.employee_count || 0}</strong> Staff</span>
+                      </div>
+                      <span style={{ color: 'var(--primary-color, #4f46e5)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        View <FiChevronRight size={14} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{
+              padding: '32px',
+              textAlign: 'center',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              borderRadius: '8px',
+              border: '1px dashed var(--border-color, #cbd5e1)'
+            }}>
+              <p style={{ color: 'var(--text-secondary, #64748b)', margin: '0 0 12px 0' }}>No departments linked to this division yet.</p>
+              <button onClick={handleAddDepartment} className="btn btn-secondary btn-sm">
+                <FiPlus size={14} /> Create First Department
+              </button>
+            </div>
+          )}
         </div>
 
         {currentItem.parent && (

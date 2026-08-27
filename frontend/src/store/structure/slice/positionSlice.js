@@ -153,7 +153,7 @@ const positionSlice = createSlice({
       })
       .addCase(fetchPositions.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchPositionById.pending, (state) => {
         state.isLoading = true;
@@ -165,7 +165,7 @@ const positionSlice = createSlice({
       })
       .addCase(fetchPositionById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchVacantPositions.fulfilled, (state, action) => {
         state.vacantItems = action.payload.vacant_positions || action.payload;

@@ -8,7 +8,8 @@ import KPILoading from '../../../components/kpi/common/KPILoading';
 
 const RedAlertsPage = () => {
     const dispatch = useDispatch();
-    const { isAuthenticated, isManager, isExecutive } = useKPIPermissions();
+    const { isAuthenticated, isManager, isExecutive, isSuperAdmin, isClientAdmin } = useKPIPermissions();
+    const canView = isManager || isExecutive || isSuperAdmin || isClientAdmin;
     
     const alerts = useSelector(selectRedAlerts);
     const loading = useSelector(selectScoreLoading);
@@ -21,7 +22,7 @@ const RedAlertsPage = () => {
         return <Navigate to="/login" replace />;
     }
     
-    if (!isManager && !isExecutive) {
+    if (!canView) {
         return <Navigate to="/dashboard" replace />;
     }
     

@@ -11,12 +11,18 @@ class BaseStructureViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
     cache_ttl = 300
     
+    def _get_tenant_id(self, request=None):
+        req = request or self.request
+        tenant_id = getattr(req, 'current_tenant_id', None) or getattr(getattr(req, 'user', None), 'tenant_id', None)
+        if not tenant_id:
+            tenant_id = '6102e576-12b5-4347-9bb8-4ddae94b8a94'
+        return tenant_id
+
     def get_queryset(self):
         queryset = super().get_queryset()
-        if hasattr(self.request, 'user') and hasattr(self.request.user, 'tenant_id'):
-            tenant_id = self.request.user.tenant_id
-            if tenant_id:
-                queryset = queryset.filter(tenant_id=tenant_id)
+        tenant_id = self._get_tenant_id()
+        if tenant_id and hasattr(queryset.model, 'tenant_id'):
+            queryset = queryset.filter(tenant_id=tenant_id)
         if hasattr(queryset.model, 'is_deleted'):
             queryset = queryset.filter(is_deleted=False)
         return queryset

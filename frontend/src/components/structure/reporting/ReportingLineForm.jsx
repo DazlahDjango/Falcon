@@ -92,7 +92,7 @@ export const ReportingLineForm = () => {
   if (error) {
     return (
       <div className="reporting-form-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>

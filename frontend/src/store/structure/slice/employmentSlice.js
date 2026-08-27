@@ -177,7 +177,7 @@ const employmentSlice = createSlice({
       })
       .addCase(fetchEmployments.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchEmploymentById.pending, (state) => {
         state.isLoading = true;
@@ -189,7 +189,7 @@ const employmentSlice = createSlice({
       })
       .addCase(fetchEmploymentById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchCurrentEmployments.fulfilled, (state, action) => {
         state.currentEmployments = action.payload.employments || action.payload;

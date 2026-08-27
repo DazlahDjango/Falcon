@@ -67,7 +67,7 @@ export const CostCenterUtilization = () => {
   if (error) {
     return (
       <div className="costcenter-utilization-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={() => { clearError(); loadData(); }} className="btn btn-primary">
           Try Again
         </button>

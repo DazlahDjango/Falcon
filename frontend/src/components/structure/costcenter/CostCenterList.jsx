@@ -188,7 +188,7 @@ export const CostCenterList = () => {
   if (error) {
     return (
       <div className="costcenter-list-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>

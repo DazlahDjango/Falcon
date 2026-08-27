@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FiSave, FiRefreshCw, FiShield, FiRadio, FiGitBranch } from 'react-icons/fi';
-import { useStructureSystemSettings } from '../../../hooks/structure/useStructureSystemSettings';
+import { useStructureSettings } from '../../../hooks/structure/useStructureSettings';
 import { usePermissionContext } from '../../../contexts/accounts/PermissionContext';
 import { showAlert } from '../../../store/accounts/slice/uiSlice';
 import { SkeletonLoader } from '../../common/Feedback/LoadingScreen';

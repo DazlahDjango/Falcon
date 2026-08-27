@@ -1,91 +1,99 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
+// Fail-safe lazy load helper that handles both default and named exports
+const lazyLoad = (importFn, namedExport) =>
+  React.lazy(async () => {
+    const mod = await importFn();
+    const Component = mod.default || (namedExport ? mod[namedExport] : undefined) || Object.values(mod)[0];
+    return { default: Component };
+  });
+
 // Lazy load pages
-const StructureApp = React.lazy(() => import('../pages/structure/StructureApp').then(module => ({ default: module.StructureApp })));
+const StructureApp = lazyLoad(() => import('../pages/structure/StructureApp'), 'StructureApp');
 
 // Division Pages
-const DivisionList = React.lazy(() => import('../components/structure/division/DivisionList').then(module => ({ default: module.DivisionList })));
-const DivisionForm = React.lazy(() => import('../components/structure/division/DivisionForm').then(module => ({ default: module.DivisionForm })));
-const DivisionDetail = React.lazy(() => import('../components/structure/division/DivisionDetail').then(module => ({ default: module.DivisionDetail })));
+const DivisionList = lazyLoad(() => import('../components/structure/division/DivisionList'), 'DivisionList');
+const DivisionForm = lazyLoad(() => import('../components/structure/division/DivisionForm'), 'DivisionForm');
+const DivisionDetail = lazyLoad(() => import('../components/structure/division/DivisionDetail'), 'DivisionDetail');
 
 // Department Pages
-const DepartmentList = React.lazy(() => import('../components/structure/department/DepartmentList').then(module => ({ default: module.DepartmentList })));
-const DepartmentForm = React.lazy(() => import('../components/structure/department/DepartmentForm').then(module => ({ default: module.DepartmentForm })));
-const DepartmentDetail = React.lazy(() => import('../components/structure/department/DepartmentDetail').then(module => ({ default: module.DepartmentDetail })));
-const DepartmentTree = React.lazy(() => import('../components/structure/department/DepartmentTree').then(module => ({ default: module.DepartmentTree })));
+const DepartmentList = lazyLoad(() => import('../components/structure/department/DepartmentList'), 'DepartmentList');
+const DepartmentForm = lazyLoad(() => import('../components/structure/department/DepartmentForm'), 'DepartmentForm');
+const DepartmentDetail = lazyLoad(() => import('../components/structure/department/DepartmentDetail'), 'DepartmentDetail');
+const DepartmentTree = lazyLoad(() => import('../components/structure/department/DepartmentTree'), 'DepartmentTree');
 
 // Section Pages
-const SectionList = React.lazy(() => import('../components/structure/section/SectionList').then(module => ({ default: module.SectionList })));
-const SectionForm = React.lazy(() => import('../components/structure/section/SectionForm').then(module => ({ default: module.SectionForm })));
-const SectionDetail = React.lazy(() => import('../components/structure/section/SectionDetail').then(module => ({ default: module.SectionDetail })));
+const SectionList = lazyLoad(() => import('../components/structure/section/SectionList'), 'SectionList');
+const SectionForm = lazyLoad(() => import('../components/structure/section/SectionForm'), 'SectionForm');
+const SectionDetail = lazyLoad(() => import('../components/structure/section/SectionDetail'), 'SectionDetail');
 
 // Unit Pages
-const UnitList = React.lazy(() => import('../components/structure/unit/UnitList').then(module => ({ default: module.UnitList })));
-const UnitForm = React.lazy(() => import('../components/structure/unit/UnitForm').then(module => ({ default: module.UnitForm })));
-const UnitDetail = React.lazy(() => import('../components/structure/unit/UnitDetail').then(module => ({ default: module.UnitDetail })));
+const UnitList = lazyLoad(() => import('../components/structure/unit/UnitList'), 'UnitList');
+const UnitForm = lazyLoad(() => import('../components/structure/unit/UnitForm'), 'UnitForm');
+const UnitDetail = lazyLoad(() => import('../components/structure/unit/UnitDetail'), 'UnitDetail');
 
 // Org Unit Pages
-const OrgUnitList = React.lazy(() => import('../components/structure/orgunit/OrgUnitList').then(module => ({ default: module.OrgUnitList })));
+const OrgUnitList = lazyLoad(() => import('../components/structure/orgunit/OrgUnitList'), 'OrgUnitList');
 
 // Position Pages
-const PositionList = React.lazy(() => import('../components/structure/position/PositionList').then(module => ({ default: module.PositionList })));
-const PositionForm = React.lazy(() => import('../components/structure/position/PositionForm').then(module => ({ default: module.PositionForm })));
-const PositionDetail = React.lazy(() => import('../components/structure/position/PositionDetail').then(module => ({ default: module.PositionDetail })));
+const PositionList = lazyLoad(() => import('../components/structure/position/PositionList'), 'PositionList');
+const PositionForm = lazyLoad(() => import('../components/structure/position/PositionForm'), 'PositionForm');
+const PositionDetail = lazyLoad(() => import('../components/structure/position/PositionDetail'), 'PositionDetail');
 
 // Employment Pages
-const EmploymentList = React.lazy(() => import('../components/structure/employment/EmploymentList').then(module => ({ default: module.EmploymentList })));
-const EmploymentForm = React.lazy(() => import('../components/structure/employment/EmploymentForm').then(module => ({ default: module.EmploymentForm })));
-const EmploymentDetail = React.lazy(() => import('../components/structure/employment/EmploymentDetail').then(module => ({ default: module.EmploymentDetail })));
-const EmploymentTransfer = React.lazy(() => import('../components/structure/employment/EmploymentTransfer').then(module => ({ default: module.EmploymentTransfer })));
+const EmploymentList = lazyLoad(() => import('../components/structure/employment/EmploymentList'), 'EmploymentList');
+const EmploymentForm = lazyLoad(() => import('../components/structure/employment/EmploymentForm'), 'EmploymentForm');
+const EmploymentDetail = lazyLoad(() => import('../components/structure/employment/EmploymentDetail'), 'EmploymentDetail');
+const EmploymentTransfer = lazyLoad(() => import('../components/structure/employment/EmploymentTransfer'), 'EmploymentTransfer');
 
 // Reporting Pages
-const ReportingLineList = React.lazy(() => import('../components/structure/reporting/ReportingLineList').then(module => ({ default: module.ReportingLineList })));
-const ReportingLineForm = React.lazy(() => import('../components/structure/reporting/ReportingLineForm').then(module => ({ default: module.ReportingLineForm })));
-const ReportingChain = React.lazy(() => import('../components/structure/reporting/ReportingChain').then(module => ({ default: module.ReportingChain })));
-const SpanOfControl = React.lazy(() => import('../components/structure/reporting/SpanOfControl').then(module => ({ default: module.SpanOfControl })));
+const ReportingLineList = lazyLoad(() => import('../components/structure/reporting/ReportingLineList'), 'ReportingLineList');
+const ReportingLineForm = lazyLoad(() => import('../components/structure/reporting/ReportingLineForm'), 'ReportingLineForm');
+const ReportingChain = lazyLoad(() => import('../components/structure/reporting/ReportingChain'), 'ReportingChain');
+const SpanOfControl = lazyLoad(() => import('../components/structure/reporting/SpanOfControl'), 'SpanOfControl');
 
 // Interim Pages
-const InterimAssignmentList = React.lazy(() => import('../components/structure/interim/InterimAssignmentList').then(module => ({ default: module.InterimAssignmentList })));
-const InterimAssignmentForm = React.lazy(() => import('../components/structure/interim/InterimAssignmentForm').then(module => ({ default: module.InterimAssignmentForm })));
-const InterimAssignmentDetail = React.lazy(() => import('../components/structure/interim/InterimAssignmentDetail').then(module => ({ default: module.InterimAssignmentDetail })));
+const InterimAssignmentList = lazyLoad(() => import('../components/structure/interim/InterimAssignmentList'), 'InterimAssignmentList');
+const InterimAssignmentForm = lazyLoad(() => import('../components/structure/interim/InterimAssignmentForm'), 'InterimAssignmentForm');
+const InterimAssignmentDetail = lazyLoad(() => import('../components/structure/interim/InterimAssignmentDetail'), 'InterimAssignmentDetail');
 
 // Cost Center Pages
-const CostCenterList = React.lazy(() => import('../components/structure/costcenter/CostCenterList').then(module => ({ default: module.CostCenterList })));
-const CostCenterForm = React.lazy(() => import('../components/structure/costcenter/CostCenterForm').then(module => ({ default: module.CostCenterForm })));
-const CostCenterDetail = React.lazy(() => import('../components/structure/costcenter/CostCenterDetail').then(module => ({ default: module.CostCenterDetail })));
-const CostCenterUtilization = React.lazy(() => import('../components/structure/costcenter/CostCenterUtilization').then(module => ({ default: module.CostCenterUtilization })));
+const CostCenterList = lazyLoad(() => import('../components/structure/costcenter/CostCenterList'), 'CostCenterList');
+const CostCenterForm = lazyLoad(() => import('../components/structure/costcenter/CostCenterForm'), 'CostCenterForm');
+const CostCenterDetail = lazyLoad(() => import('../components/structure/costcenter/CostCenterDetail'), 'CostCenterDetail');
+const CostCenterUtilization = lazyLoad(() => import('../components/structure/costcenter/CostCenterUtilization'), 'CostCenterUtilization');
 
 // Location Pages
-const LocationList = React.lazy(() => import('../components/structure/location/LocationList').then(module => ({ default: module.LocationList })));
-const LocationForm = React.lazy(() => import('../components/structure/location/LocationForm').then(module => ({ default: module.LocationForm })));
-const LocationDetail = React.lazy(() => import('../components/structure/location/LocationDetail').then(module => ({ default: module.LocationDetail })));
+const LocationList = lazyLoad(() => import('../components/structure/location/LocationList'), 'LocationList');
+const LocationForm = lazyLoad(() => import('../components/structure/location/LocationForm'), 'LocationForm');
+const LocationDetail = lazyLoad(() => import('../components/structure/location/LocationDetail'), 'LocationDetail');
 
 // Hierarchy Pages
-const HierarchyVersionList = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyVersionList })));
-const HierarchyCurrent = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyCurrent })));
-const HierarchyValidate = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyValidate })));
-const HierarchyVersionDetail = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyVersionDetail })));
-const HierarchySnapshotCapture = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchySnapshotCapture })));
-const HierarchyVersionDiff = React.lazy(() => import('../components/structure/hierarchy').then(module => ({ default: module.HierarchyVersionDiff })));
+const HierarchyVersionList = lazyLoad(() => import('../components/structure/hierarchy'), 'HierarchyVersionList');
+const HierarchyCurrent = lazyLoad(() => import('../components/structure/hierarchy'), 'HierarchyCurrent');
+const HierarchyValidate = lazyLoad(() => import('../components/structure/hierarchy'), 'HierarchyValidate');
+const HierarchyVersionDetail = lazyLoad(() => import('../components/structure/hierarchy'), 'HierarchyVersionDetail');
+const HierarchySnapshotCapture = lazyLoad(() => import('../components/structure/hierarchy'), 'HierarchySnapshotCapture');
+const HierarchyVersionDiff = lazyLoad(() => import('../components/structure/hierarchy'), 'HierarchyVersionDiff');
 
 // Org Chart Pages
-const OrgChartView = React.lazy(() => import('../components/structure/orgchart/OrgChartView').then(module => ({ default: module.OrgChartView })));
-const OrgChartTree = React.lazy(() => import('../components/structure/orgchart/OrgChartTree').then(module => ({ default: module.OrgChartTree })));
-const OrgChartExport = React.lazy(() => import('../components/structure/orgchart/OrgChartExport').then(module => ({ default: module.OrgChartExport })));
+const OrgChartView = lazyLoad(() => import('../components/structure/orgchart/OrgChartView'), 'OrgChartView');
+const OrgChartTree = lazyLoad(() => import('../components/structure/orgchart/OrgChartTree'), 'OrgChartTree');
+const OrgChartExport = lazyLoad(() => import('../components/structure/orgchart/OrgChartExport'), 'OrgChartExport');
 
 // Dashboard Pages
-const StructurePage = React.lazy(() => import('../pages/structure/StructurePage').then(module => ({ default: module.StructurePage })));
-const StructureHealth = React.lazy(() => import('../components/structure/dashboard/StructureHealth').then(module => ({ default: module.StructureHealth })));
+const StructurePage = lazyLoad(() => import('../pages/structure/StructurePage'), 'StructurePage');
+const StructureHealth = lazyLoad(() => import('../components/structure/dashboard/StructureHealth'), 'StructureHealth');
 
 // Settings Pages
-const StructureSettings = React.lazy(() => import('../components/structure/settings/StructureSettings').then(module => ({ default: module.StructureSettings })));
-const ReferenceData = React.lazy(() => import('../components/structure/settings/ReferenceData').then(module => ({ default: module.ReferenceData })));
+const StructureSettings = lazyLoad(() => import('../components/structure/settings/StructureSettings'), 'StructureSettings');
+const ReferenceData = lazyLoad(() => import('../components/structure/settings/ReferenceData'), 'ReferenceData');
 
 // Bulk Pages
-const BulkDepartmentUpload = React.lazy(() => import('../components/structure/bulk/BulkDepartmentUpload').then(module => ({ default: module.BulkDepartmentUpload })));
-const BulkEmploymentUpload = React.lazy(() => import('../components/structure/bulk/BulkEmploymentUpload').then(module => ({ default: module.BulkEmploymentUpload })));
-const BulkReportingUpload = React.lazy(() => import('../components/structure/bulk/BulkReportingUpload').then(module => ({ default: module.BulkReportingUpload })));
+const BulkDepartmentUpload = lazyLoad(() => import('../components/structure/bulk/BulkDepartmentUpload'), 'BulkDepartmentUpload');
+const BulkEmploymentUpload = lazyLoad(() => import('../components/structure/bulk/BulkEmploymentUpload'), 'BulkEmploymentUpload');
+const BulkReportingUpload = lazyLoad(() => import('../components/structure/bulk/BulkReportingUpload'), 'BulkReportingUpload');
 
 // Loading component
 const LoadingFallback = () => (

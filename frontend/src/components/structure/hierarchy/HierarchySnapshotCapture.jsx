@@ -172,7 +172,7 @@ export const HierarchySnapshotCapture = () => {
           {error && (
             <div className="capture-error">
               <FiAlertCircle size={16} />
-              <span>{error}</span>
+              <span>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</span>
               <button onClick={clearError} className="btn btn-secondary">
                 Dismiss
               </button>

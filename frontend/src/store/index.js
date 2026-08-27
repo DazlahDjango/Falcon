@@ -1,7 +1,46 @@
 // frontend/src/store/index.js
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+const createAsyncLocalStorage = () => {
+    return {
+        getItem: (key) => {
+            return new Promise((resolve) => {
+                try {
+                    const item = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
+                    resolve(item);
+                } catch (e) {
+                    resolve(null);
+                }
+            });
+        },
+        setItem: (key, item) => {
+            return new Promise((resolve) => {
+                try {
+                    if (typeof window !== 'undefined') {
+                        window.localStorage.setItem(key, item);
+                    }
+                    resolve(item);
+                } catch (e) {
+                    resolve();
+                }
+            });
+        },
+        removeItem: (key) => {
+            return new Promise((resolve) => {
+                try {
+                    if (typeof window !== 'undefined') {
+                        window.localStorage.removeItem(key);
+                    }
+                    resolve();
+                } catch (e) {
+                    resolve();
+                }
+            });
+        },
+    };
+};
+
+const storage = createAsyncLocalStorage();
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import rootReducer from './rootReducer';
 

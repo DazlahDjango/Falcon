@@ -7,7 +7,10 @@ class BaseStructurePermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        tenant_id = getattr(request.user, 'tenant_id', None)
+        role = str(getattr(request.user, 'role', '')).lower()
+        if request.user.is_superuser or role in ['super_admin', 'superadmin', 'platform_admin']:
+            return True
+        tenant_id = getattr(request.user, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
         if not tenant_id:
             return False
         return True
@@ -15,7 +18,10 @@ class BaseStructurePermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
             return False
-        tenant_id = getattr(request.user, 'tenant_id', None)
+        role = str(getattr(request.user, 'role', '')).lower()
+        if request.user.is_superuser or role in ['super_admin', 'superadmin', 'platform_admin']:
+            return True
+        tenant_id = getattr(request.user, 'tenant_id', None) or getattr(request, 'current_tenant_id', None)
         if tenant_id and hasattr(obj, 'tenant_id') and str(obj.tenant_id) != str(tenant_id):
             return False
         return True

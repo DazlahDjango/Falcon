@@ -2,7 +2,7 @@
 // Structure API Constants - Following KPI App Pattern
 // ============================================
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 const WS_BASE = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
 
 export const STRUCTURE_API_BASE = `${API_BASE}/structure/`;

@@ -82,7 +82,7 @@ const referenceDataSlice = createSlice({
       })
       .addCase(fetchReferenceData.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchReferenceCounts.fulfilled, (state, action) => {
         state.counts = action.payload.counts || action.payload;

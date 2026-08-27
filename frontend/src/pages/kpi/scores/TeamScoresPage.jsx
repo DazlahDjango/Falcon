@@ -8,26 +8,27 @@ import KPILoading from '../../../components/kpi/common/KPILoading';
 
 const TeamScoresPage = () => {
     const dispatch = useDispatch();
-    const { isAuthenticated, isManager } = useKPIPermissions();
+    const { isAuthenticated, isManager, isSuperAdmin, isClientAdmin, isExecutive } = useKPIPermissions();
+    const canView = isManager || isSuperAdmin || isClientAdmin || isExecutive;
     const [filters, setFilters] = useState({
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1
+        year: 2026,
+        month: 6
     });
     
     const scores = useSelector(selectTeamScores);
     const loading = useSelector(selectScoreLoading);
     
     useEffect(() => {
-        if (isManager) {
+        if (canView) {
             dispatch(fetchTeamScores(filters));
         }
-    }, [dispatch, isManager, filters]);
+    }, [dispatch, canView, filters]);
     
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
     
-    if (!isManager) {
+    if (!canView) {
         return <Navigate to="/dashboard" replace />;
     }
     

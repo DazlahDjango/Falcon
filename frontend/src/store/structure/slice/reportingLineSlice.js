@@ -214,7 +214,7 @@ const reportingLineSlice = createSlice({
       })
       .addCase(fetchReportingLines.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchReportingLineById.pending, (state) => {
         state.isLoading = true;
@@ -226,16 +226,28 @@ const reportingLineSlice = createSlice({
       })
       .addCase(fetchReportingLineById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchMyChain.fulfilled, (state, action) => {
-        state.myChain = action.payload;
+        state.myChain = action.payload.data || action.payload;
       })
       .addCase(fetchMyTeam.fulfilled, (state, action) => {
         state.myTeam = action.payload.results || action.payload || [];
       })
+      .addCase(fetchSpanOfControl.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSpanOfControl.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentItem = action.payload.data || action.payload;
+      })
+      .addCase(fetchSpanOfControl.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
+      })
       .addCase(fetchOrganizationSpan.fulfilled, (state, action) => {
-        state.organizationSpan = action.payload;
+        state.organizationSpan = action.payload.data || action.payload;
       })
       .addCase(createReportingLine.fulfilled, (state, action) => {
         const newLine = action.payload.data || action.payload;

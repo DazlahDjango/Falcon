@@ -18,24 +18,68 @@ import './interim.css';
 
 const COLUMNS = [
   {
-    key: 'employee_user_id',
-    header: 'Employee',
-    width: '160px',
+    key: 'employee_name',
+    header: 'Covered Employee',
+    width: '180px',
     render: (item) => (
-      <div className="interim-person-cell">
-        <FiUser size={14} className="person-icon" />
-        <span>{item.employee_user_id || item.employee_id}</span>
+      <div className="interim-person-cell" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{
+          width: '24px',
+          height: '24px',
+          borderRadius: '50%',
+          backgroundColor: '#4f46e5',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '11px',
+          fontWeight: 600
+        }}>
+          {item.employee_name ? item.employee_name.charAt(0).toUpperCase() : 'E'}
+        </div>
+        <div>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary, #0f172a)', fontSize: '13px' }}>
+            {item.employee_name || item.employee_user_id}
+          </div>
+          {item.employee_position && (
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)' }}>
+              {item.employee_position}
+            </div>
+          )}
+        </div>
       </div>
     ),
   },
   {
-    key: 'interim_manager_user_id',
-    header: 'Interim Manager',
-    width: '160px',
+    key: 'interim_manager_name',
+    header: 'Acting / Interim Manager',
+    width: '180px',
     render: (item) => (
-      <div className="interim-person-cell">
-        <FiUser size={14} className="person-icon manager-icon" />
-        <span>{item.interim_manager_user_id || item.interim_manager_id}</span>
+      <div className="interim-person-cell" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{
+          width: '24px',
+          height: '24px',
+          borderRadius: '50%',
+          backgroundColor: '#0284c7',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '11px',
+          fontWeight: 600
+        }}>
+          {item.interim_manager_name ? item.interim_manager_name.charAt(0).toUpperCase() : 'M'}
+        </div>
+        <div>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary, #0f172a)', fontSize: '13px' }}>
+            {item.interim_manager_name || item.interim_manager_user_id}
+          </div>
+          {item.interim_manager_position && (
+            <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)' }}>
+              {item.interim_manager_position}
+            </div>
+          )}
+        </div>
       </div>
     ),
   },
@@ -187,7 +231,7 @@ export const InterimAssignmentList = () => {
   if (error) {
     return (
       <div className="interim-list-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>

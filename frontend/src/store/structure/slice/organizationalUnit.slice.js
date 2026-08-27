@@ -141,7 +141,7 @@ const organizationalUnitSlice = createSlice({
       })
       .addCase(fetchOrganizationalUnits.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchOrganizationalUnitById.pending, (state) => {
         state.isLoading = true;
@@ -153,7 +153,7 @@ const organizationalUnitSlice = createSlice({
       })
       .addCase(fetchOrganizationalUnitById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchRootOrganizationalUnits.pending, (state) => {
         state.isLoading = true;
@@ -165,7 +165,7 @@ const organizationalUnitSlice = createSlice({
       })
       .addCase(fetchRootOrganizationalUnits.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchOrganizationalUnitStats.fulfilled, (state, action) => {
         state.stats = action.payload;

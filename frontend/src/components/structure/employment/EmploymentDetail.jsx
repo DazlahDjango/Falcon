@@ -95,7 +95,7 @@ export const EmploymentDetail = () => {
   if (error) {
     return (
       <div className="employment-detail-error">
-        <p>{error}</p>
+        <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
         <button onClick={clearError} className="btn btn-primary">
           Try Again
         </button>
@@ -114,12 +114,24 @@ export const EmploymentDetail = () => {
     );
   }
 
-  const DetailRow = ({ label, value, children }) => (
-    <div className="detail-row">
-      <div className="detail-label">{label}</div>
-      <div className="detail-value">{children || value || '-'}</div>
-    </div>
-  );
+  const DetailRow = ({ label, value, children }) => {
+    let displayValue = '-';
+    if (children) {
+      displayValue = children;
+    } else if (value !== null && value !== undefined) {
+      if (typeof value === 'object') {
+        displayValue = value.name || value.title || value.code || JSON.stringify(value);
+      } else {
+        displayValue = String(value);
+      }
+    }
+    return (
+      <div className="detail-row">
+        <div className="detail-label">{label}</div>
+        <div className="detail-value">{displayValue}</div>
+      </div>
+    );
+  };
 
   const StatCard = ({ icon: Icon, label, value, color = 'primary' }) => (
     <div className={`stat-card stat-card-${color}`}>

@@ -9,10 +9,11 @@ import {
   FiFileText, FiCheckCircle, FiAlertCircle, FiUpload, FiSettings,
   FiLayers, FiBarChart2, FiGrid, FiUsers, FiUser, FiPlus,
   FiClock, FiShield, FiEye, FiTrendingUp,
-  FiRotateCcw, FiShare2, FiSliders,
+  FiRotateCcw, FiShare2, FiSliders, FiAward,
 } from 'react-icons/fi';
 
 import { KPI_ROUTES } from '../constants/kpiRouteConstants';
+import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 
 // ============================================
 // 1. SUPER ADMIN KPI NAV GROUPS (Platform Scope)

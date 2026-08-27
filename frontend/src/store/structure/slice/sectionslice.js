@@ -115,7 +115,7 @@ const sectionSlice = createSlice({
       })
       .addCase(fetchSections.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchSectionById.pending, (state) => {
         state.isLoading = true;
@@ -127,7 +127,7 @@ const sectionSlice = createSlice({
       })
       .addCase(fetchSectionById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(createSection.fulfilled, (state, action) => {
         const newSection = action.payload.data || action.payload;

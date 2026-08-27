@@ -39,11 +39,12 @@ export const SpanOfControl = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetchSpan(value);
-      setSpanData(response.data || response);
+      const resultAction = await fetchSpan(value);
+      const data = resultAction?.payload?.data || resultAction?.payload || resultAction?.data || resultAction;
+      setSpanData(data);
       setManagerId(value);
     } catch (err) {
-      setError(err.message || 'Failed to fetch span of control');
+      setError(err?.displayMessage || err?.message || 'Failed to fetch span of control');
       setSpanData(null);
     } finally {
       setIsLoading(false);
@@ -54,16 +55,21 @@ export const SpanOfControl = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetchOrganizationSpan();
-      setSpanData(response.data || response);
+      const resultAction = await fetchOrganizationSpan();
+      const data = resultAction?.payload?.data || resultAction?.payload || resultAction?.data || resultAction;
+      setSpanData(data);
       setManagerId('organization');
     } catch (err) {
-      setError(err.message || 'Failed to fetch organization span');
+      setError(err?.displayMessage || err?.message || 'Failed to fetch organization span');
       setSpanData(null);
     } finally {
       setIsLoading(false);
     }
   }, [fetchOrganizationSpan]);
+
+  useEffect(() => {
+    handleLoadOrganizationSpan();
+  }, [handleLoadOrganizationSpan]);
 
   const handleRefresh = useCallback(() => {
     if (managerId === 'organization') {
@@ -78,9 +84,9 @@ export const SpanOfControl = () => {
   }, [navigate]);
 
   const getHealthStatus = (directReports) => {
-    if (directReports <= 10) return { status: 'healthy', color: '#10b981', icon: FiCheckCircle };
-    if (directReports <= 15) return { status: 'warning', color: '#f59e0b', icon: FiAlertCircle };
-    return { status: 'critical', color: '#ef4444', icon: FiAlertCircle };
+    if (directReports <= 7) return { status: 'healthy', color: '#10b981', icon: FiCheckCircle };
+    if (directReports <= 10) return { status: 'elevated (warning)', color: '#f59e0b', icon: FiAlertCircle };
+    return { status: 'critical overload', color: '#ef4444', icon: FiAlertCircle };
   };
 
   if (isLoading) {
@@ -130,7 +136,7 @@ export const SpanOfControl = () => {
 
       {error && (
         <div className="span-of-control-error">
-          <p>{error}</p>
+          <p>{typeof error === 'object' ? (error?.message || error?.detail || JSON.stringify(error)) : String(error || '')}</p>
           <button onClick={clearError} className="btn btn-secondary">
             Dismiss
           </button>
@@ -160,19 +166,31 @@ export const SpanOfControl = () => {
                 </div>
               </div>
 
-              {spanData.managers_with_warning && spanData.managers_with_warning.length > 0 && (
-                <div className="warning-managers-section">
-                  <h3>Managers with Span of Control Warnings</h3>
-                  <div className="warning-managers-list">
-                    {spanData.managers_with_warning.map((manager, index) => {
-                      const health = getHealthStatus(manager.direct_reports);
-                      return (
-                        <div key={index} className="warning-manager-item">
-                          <div className="manager-info">
-                            <span className="manager-id">{manager.manager_user_id}</span>
-                            <span className="manager-stats">
-                              Direct: {manager.direct_reports} | Indirect: {manager.indirect_reports} | Total: {manager.total_reports}
-                            </span>
+              <div className="warning-managers-section" style={{ marginTop: '24px' }}>
+                <h3 style={{ marginBottom: '16px' }}>All Operational Leaders & Managers ({spanData.managers?.length || 0})</h3>
+                <div className="warning-managers-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+                  {(spanData.managers || []).map((manager, index) => {
+                    const health = getHealthStatus(manager.direct_reports);
+                    return (
+                      <div 
+                        key={index} 
+                        onClick={() => handleSearch(manager.manager_user_id)}
+                        style={{
+                          padding: '16px',
+                          border: '1px solid var(--border-color, #e2e8f0)',
+                          borderRadius: '8px',
+                          backgroundColor: 'var(--bg-surface, #ffffff)',
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary-color, #4f46e5)'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color, #e2e8f0)'}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <div>
+                            <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{manager.manager_name || 'Leader'}</h4>
+                            <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#64748b' }}>{manager.manager_position || 'Manager'}</p>
                           </div>
                           <StructureStatusBadge
                             status={health.status === 'healthy' ? 'active' : health.status === 'warning' ? 'pending' : 'inactive'}
@@ -180,20 +198,24 @@ export const SpanOfControl = () => {
                             size="sm"
                           />
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '8px', marginTop: '10px' }}>
+                          <span>👥 Direct: <strong>{manager.direct_reports}</strong></span>
+                          <span>🌐 Total Subordinates: <strong>{manager.total_reports}</strong></span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
 
               {spanData.distribution && (
-                <div className="distribution-section">
-                  <h3>Distribution</h3>
+                <div className="distribution-section" style={{ marginTop: '24px' }}>
+                  <h3>Span Distribution</h3>
                   <div className="distribution-grid">
                     {Object.entries(spanData.distribution).map(([key, value]) => (
                       <div key={key} className="distribution-item">
-                        <span className="distribution-label">{key}</span>
-                        <span className="distribution-value">{value}</span>
+                        <span className="distribution-label">{key} Direct Reports</span>
+                        <span className="distribution-value">{value} Managers</span>
                       </div>
                     ))}
                   </div>
@@ -202,35 +224,23 @@ export const SpanOfControl = () => {
             </div>
           ) : (
             <div className="manager-span-view">
-              <div className="span-summary">
-                <div className="span-summary-item">
-                  <span className="span-summary-label">Manager ID</span>
-                  <span className="span-summary-value">{managerId}</span>
+              <div className="span-summary" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+                <div className="span-summary-item" style={{ padding: '12px 20px', background: 'var(--bg-surface, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span className="span-summary-label" style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>Leader</span>
+                  <span className="span-summary-value" style={{ fontSize: '16px', fontWeight: 'bold' }}>{spanData.manager_name || 'Selected Manager'}</span>
+                  <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>{spanData.manager_position || ''}</span>
                 </div>
-                <div className="span-summary-item">
-                  <span className="span-summary-label">Direct Reports</span>
-                  <span className="span-summary-value">{spanData.direct_reports || 0}</span>
+                <div className="span-summary-item" style={{ padding: '12px 20px', background: 'var(--bg-surface, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span className="span-summary-label" style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>Direct Reports</span>
+                  <span className="span-summary-value" style={{ fontSize: '18px', fontWeight: 'bold', color: '#4f46e5' }}>{spanData.direct_reports || 0}</span>
                 </div>
-                <div className="span-summary-item">
-                  <span className="span-summary-label">Indirect Reports</span>
-                  <span className="span-summary-value">{spanData.indirect_reports || 0}</span>
+                <div className="span-summary-item" style={{ padding: '12px 20px', background: 'var(--bg-surface, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span className="span-summary-label" style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>Indirect Reports</span>
+                  <span className="span-summary-value" style={{ fontSize: '18px', fontWeight: 'bold', color: '#0ea5e9' }}>{spanData.indirect_reports || 0}</span>
                 </div>
-                <div className="span-summary-item">
-                  <span className="span-summary-label">Total Reports</span>
-                  <span className="span-summary-value">{spanData.total_reports || 0}</span>
-                </div>
-                <div className="span-summary-item">
-                  <span className="span-summary-label">Health</span>
-                  {(() => {
-                    const health = getHealthStatus(spanData.direct_reports || 0);
-                    const Icon = health.icon;
-                    return (
-                      <span className={`span-health ${health.status}`}>
-                        <Icon size={16} />
-                        {health.status}
-                      </span>
-                    );
-                  })()}
+                <div className="span-summary-item" style={{ padding: '12px 20px', background: 'var(--bg-surface, #fff)', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span className="span-summary-label" style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>Total Subordinates</span>
+                  <span className="span-summary-value" style={{ fontSize: '18px', fontWeight: 'bold', color: '#10b981' }}>{spanData.total_reports || 0}</span>
                 </div>
               </div>
 
@@ -253,7 +263,7 @@ export const SpanOfControl = () => {
                       {spanData.direct_reports > 15 ? '⚠️' : '✅'}
                     </div>
                     <div className="metric-label">
-                      {spanData.direct_reports > 15 ? 'Overloaded' : 'Healthy'}
+                      {spanData.direct_reports > 15 ? 'Overloaded' : 'Optimal Capacity'}
                     </div>
                   </div>
                 </div>

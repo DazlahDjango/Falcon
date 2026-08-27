@@ -128,7 +128,7 @@ const unitSlice = createSlice({
       })
       .addCase(fetchUnits.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchUnitById.pending, (state) => {
         state.isLoading = true;
@@ -140,7 +140,7 @@ const unitSlice = createSlice({
       })
       .addCase(fetchUnitById.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
       })
       .addCase(fetchUnitStats.fulfilled, (state, action) => {
         state.stats = action.payload;
