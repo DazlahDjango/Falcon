@@ -24,36 +24,43 @@ class ProfileService:
         try:
             profile = self.get_profile(user)
             profile_fields = [
-                'bio', 'date_of_birth', 'alternative_email', 'work_phone',
+                'avatar', 'bio', 'date_of_birth', 'alternative_email', 'work_phone',
                 'mobile_phone', 'address', 'city', 'country', 'employee_type',
-                'cost_center', 'theme', 'dashboard_layout', 'email_frequency',
+                'cost_center', 'title', 'theme', 'dashboard_layout', 'email_frequency',
                 'timezone', 'date_format', 'number_format'
             ]
-            user_fields = ['first_name', 'last_name', 'phone_number', 'title', 'department']
-            updated_fields = []
+            user_fields = ['first_name', 'last_name', 'phone_number', 'title']
+            
+            profile_updated_fields = []
+            user_updated_fields = []
+
             for field in profile_fields:
                 if field in data:
                     setattr(profile, field, data[field])
-                    updated_fields.append(field)
+                    profile_updated_fields.append(field)
             for field in user_fields:
                 if field in data:
                     setattr(user, field, data[field])
-                    updated_fields.append(field)
+                    user_updated_fields.append(field)
             if 'reports_to' in data:
                 reports_to_id = data['reports_to']
                 if reports_to_id:
                     try:
                         reports_to = User.objects.get(id=reports_to_id, tenant_id=user.tenant_id)
                         profile.reports_to = reports_to
-                        updated_fields.append('reports_to')
+                        profile_updated_fields.append('reports_to')
                     except User.DoesNotExist:
                         pass
                 else:
                     profile.reports_to = None
-                    updated_fields.append('reports_to')
-            if updated_fields:
-                profile.save(update_fields=profile_fields + ['reports_to'])
-                user.save(update_fields=user_fields)
+                    profile_updated_fields.append('reports_to')
+
+            if profile_updated_fields:
+                profile.save(update_fields=list(set(profile_updated_fields)))
+            if user_updated_fields:
+                user.save(update_fields=list(set(user_updated_fields)))
+
+            updated_fields = profile_updated_fields + user_updated_fields
             self.audit_service.log(
                 user=user, action='profile.updated', action_type='update',
                 request=request, severity='info',
@@ -144,16 +151,27 @@ class ProfileService:
             return False, f'Unable to remove skill: {str(e)}'
 
     @transaction.atomic
-    def add_certification(self, user: User, name: str, issuer: str,issued_date: str, expiry_date: str = None, credential_id: str = '', request=None) -> Tuple[bool, str]:
+    def add_certification(
+        self,
+        user: User,
+        name: str,
+        issuer: str,
+        issued_date: str,
+        expiry_date: str = None,
+        credential_id: str = '',
+        credential_url: str = '',
+        request=None
+    ) -> Tuple[bool, str]:
         try:
             profile = self.get_profile(user)
             certifications = profile.certifications or []
             certifications.append({
                 'name': name,
                 'issuer': issuer,
-                'issued_date': issued_date,
-                'expiry_date': expiry_date,
+                'issued_date': str(issued_date) if issued_date else None,
+                'expiry_date': str(expiry_date) if expiry_date else None,
                 'credential_id': credential_id,
+                'credential_url': credential_url,
                 'added_at': timezone.now().isoformat()
             })
             profile.certifications = certifications
@@ -170,11 +188,12 @@ class ProfileService:
             return False, f'Unable to add certification: {str(e)}'
 
     @transaction.atomic
-    def remove_certification(self, user: User, cert_name: str, request=None) -> Tuple[bool, str]:
+    def remove_certification(self, user: User, name: str = None, cert_name: str = None, request=None) -> Tuple[bool, str]:
+        target_name = name or cert_name
         try:
             profile = self.get_profile(user)
             certifications = profile.certifications or []
-            new_certs = [c for c in certifications if c.get('name') != cert_name]
+            new_certs = [c for c in certifications if c.get('name') != target_name]
             if len(new_certs) == len(certifications):
                 return False, 'Certification not found'
             profile.certifications = new_certs
@@ -182,9 +201,9 @@ class ProfileService:
             self.audit_service.log(
                 user=user, action='profile.certification_removed', action_type='update',
                 request=request, severity='info',
-                metadata={'certification': cert_name}
+                metadata={'certification': target_name}
             )
-            logger.info(f"Certification '{cert_name}' removed from user {user.email}")
+            logger.info(f"Certification '{target_name}' removed from user {user.email}")
             return True, 'Certification removed successfully'
         except Exception as e:
             logger.error(f"Remove certification error for {user.email}: {str(e)}", exc_info=True)
@@ -228,11 +247,10 @@ class ProfileService:
     def get_profile_completion_percentage(self, user: User) -> int:
         profile = self.get_profile(user)
         fields_to_check = [
-            ('avatar', profile.avatar is not None),
+            ('avatar', profile.avatar is not None and bool(str(profile.avatar))),
             ('bio', bool(profile.bio)),
             ('date_of_birth', profile.date_of_birth is not None),
-            ('work_phone', bool(profile.work_phone)),
-            ('mobile_phone', bool(profile.mobile_phone)),
+            ('work_phone', bool(profile.work_phone) or bool(profile.mobile_phone) or bool(user.phone_number)),
             ('address', bool(profile.address)),
             ('city', bool(profile.city)),
             ('country', bool(profile.country)),
@@ -241,8 +259,7 @@ class ProfileService:
             ('certifications', len(profile.certifications or []) > 0),
             ('first_name', bool(user.first_name)),
             ('last_name', bool(user.last_name)),
-            ('phone_number', bool(user.phone_number)),
-            ('title', bool(user.title)),
+            ('title', bool(profile.title) or bool(user.title)),
         ]
         completed = sum(1 for _, completed in fields_to_check if completed)
         total = len(fields_to_check)

@@ -111,13 +111,16 @@ export const ProfileView = () => {
   };
 
   const getCompletionPercentage = () => {
+    if (displayProfile?.completion_percentage !== undefined) {
+      return displayProfile.completion_percentage;
+    }
     const fields = [
       user?.first_name,
       user?.last_name,
+      profileData?.title || user?.title,
       profileData?.bio,
       profileData?.date_of_birth,
-      profileData?.work_phone,
-      profileData?.mobile_phone,
+      profileData?.work_phone || profileData?.mobile_phone,
       profileData?.address,
       profileData?.city,
       profileData?.country,

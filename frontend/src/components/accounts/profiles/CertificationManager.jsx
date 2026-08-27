@@ -12,7 +12,7 @@ import {
 import { useProfile } from '../../../hooks/accounts/useProfile';
 
 export const CertificationManager = ({ profileId, certifications = [], isOwner = true }) => {
-  const { addCertification, removeCertification, isLoading } = useProfile();
+  const { addCertification, removeCertification, fetchMyProfile, isLoading } = useProfile();
 
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -87,6 +87,11 @@ export const CertificationManager = ({ profileId, certifications = [], isOwner =
       setSuccess(true);
       setShowForm(false);
       setTimeout(() => setSuccess(false), 3000);
+      try {
+        await fetchMyProfile();
+      } catch (err) {
+        // ignore
+      }
     } else {
       setFormError(result.error || 'Failed to add certification');
     }
@@ -98,6 +103,11 @@ export const CertificationManager = ({ profileId, certifications = [], isOwner =
     if (result.success !== false) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
+      try {
+        await fetchMyProfile();
+      } catch (err) {
+        // ignore
+      }
     }
   };
 

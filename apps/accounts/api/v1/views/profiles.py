@@ -1,5 +1,5 @@
 import logging
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -250,8 +250,8 @@ class ProfileViewSet(BaseModelViewset):
             user=profile.user,
             name=serializer.validated_data['name'],
             issuer=serializer.validated_data['issuer'],
-            issued_date=serializer.validated_data['issued_date'],
-            expiry_date=serializer.validated_data.get('expiry_date'),
+            issued_date=str(serializer.validated_data['issued_date']),
+            expiry_date=str(serializer.validated_data['expiry_date']) if serializer.validated_data.get('expiry_date') else None,
             credential_id=serializer.validated_data.get('credential_id'),
             credential_url=serializer.validated_data.get('credential_url'),
             request=request
@@ -306,8 +306,9 @@ class ProfileViewSet(BaseModelViewset):
     
     # ========== Current User Profile Actions ==========
     
-    @action(detail=False, methods=['get'], url_path='my')
+    @action(detail=False, methods=['get', 'patch', 'put'], url_path='my')
     def my_profile(self, request):
+        """Get or update current user's profile"""
         try:
             profile_service = ProfileService()
             profile = profile_service.get_profile(request.user)
@@ -321,51 +322,47 @@ class ProfileViewSet(BaseModelViewset):
                     timezone='Africa/Nairobi'
                 )
             
+            if request.method.upper() in ['PATCH', 'PUT']:
+                serializer = ProfileUpdateSerializer(
+                    profile,
+                    data=request.data,
+                    partial=True,
+                    context={'request': request}
+                )
+                serializer.is_valid(raise_exception=True)
+                
+                success, message = profile_service.update_profile(
+                    user=request.user,
+                    data=serializer.validated_data,
+                    request=request
+                )
+                
+                if not success:
+                    return Response(
+                        {'error': message},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                updated_profile = profile_service.get_profile(request.user)
+                response_serializer = ProfilDetailSerializer(
+                    updated_profile,
+                    context={'request': request}
+                )
+                return Response(
+                    response_serializer.data,
+                    status=status.HTTP_200_OK
+                )
+            
             serializer = ProfilDetailSerializer(profile, context={'request': request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
+            if isinstance(e, exceptions.APIException):
+                raise e
             logger.error(f"Error in my_profile: {str(e)}", exc_info=True)
             return Response(
-                {'error': 'Failed to load profile'},
+                {'error': 'Failed to process profile request'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
-    @action(detail=False, methods=['patch'], url_path='my')
-    def update_my_profile(self, request):
-        """Update current user's profile"""
-        profile_service = ProfileService()
-        profile = profile_service.get_profile(request.user)
-        
-        serializer = ProfileUpdateSerializer(
-            profile,
-            data=request.data,
-            partial=True,
-            context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        
-        success, message = profile_service.update_profile(
-            user=request.user,
-            data=serializer.validated_data,
-            request=request
-        )
-        
-        if not success:
-            return Response(
-                {'error': message},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        updated_profile = profile_service.get_profile(request.user)
-        response_serializer = ProfilDetailSerializer(
-            updated_profile,
-            context={'request': request}
-        )
-        
-        return Response(
-            response_serializer.data,
-            status=status.HTTP_200_OK
-        )
     
     @action(detail=False, methods=['get'], url_path='my/skills-summary')
     def my_skills_summary(self, request):
