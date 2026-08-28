@@ -1,8 +1,9 @@
 import React from 'react';
 import { FiEdit, FiTrash2, FiTrendingUp, FiTrendingDown, FiMinus, FiShare2 } from 'react-icons/fi';
+import { FolderTree } from 'lucide-react';
 import KPIStatusBadge from '../../common/KPIStatusBadge';
 
-const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit, canDelete, canCascade }) => {
+const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, onViewTree, canEdit, canDelete, canCascade }) => {
     const getProgressIcon = (target) => {
         if (!target.current_value) return <FiMinus size={14} color="var(--kpi-gray-400)" />;
         const progress = (target.current_value / target.target_value) * 100;
@@ -37,8 +38,8 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit
                     {targets.map(target => {
                         const progress = target.current_value ? (target.current_value / target.target_value) * 100 : 0;
                         return (
-                            <tr 
-                                key={target.id} 
+                            <tr
+                                key={target.id}
                                 className="kpi-target-table-row"
                                 onClick={() => onRowClick?.(target)}
                             >
@@ -47,13 +48,13 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit
                                 </td>
                                 <td>{target.user_email?.split('@')[0] || target.user?.email?.split('@')[0]}</td>
                                 <td>{target.year}</td>
-                                <td className="kpi-target-table-value">{target.target_value}</td>
+                                <td className="kpi-target-table-value">${Number(target.target_value).toLocaleString()}</td>
                                 <td>
                                     <div className="kpi-target-table-progress">
                                         <div className="kpi-target-table-progress-bar">
-                                            <div 
+                                            <div
                                                 className="kpi-target-table-progress-fill"
-                                                style={{ 
+                                                style={{
                                                     width: `${Math.min(100, progress)}%`,
                                                     background: getProgressColor(target)
                                                 }}
@@ -73,8 +74,19 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit
                                     )}
                                 </td>
                                 <td className="kpi-target-table-actions">
+                                    <button
+                                        className="kpi-target-edit-btn"
+                                        title="View Target Cascade Tree"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onViewTree?.(target);
+                                        }}
+                                        style={{ color: '#0284c7', background: '#e0f2fe' }}
+                                    >
+                                        <FolderTree size={14} />
+                                    </button>
                                     {canCascade && (
-                                        <button 
+                                        <button
                                             className="kpi-target-edit-btn"
                                             title="Cascade Target"
                                             onClick={(e) => {
@@ -86,7 +98,7 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit
                                         </button>
                                     )}
                                     {canEdit && (
-                                        <button 
+                                        <button
                                             className="kpi-target-edit-btn"
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -97,7 +109,7 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, canEdit
                                         </button>
                                     )}
                                     {canDelete && (
-                                        <button 
+                                        <button
                                             className="kpi-target-delete-btn"
                                             onClick={(e) => {
                                                 e.stopPropagation();

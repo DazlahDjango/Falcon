@@ -42,20 +42,28 @@ class CascadeEngine:
                         org_target.target_value, rule, entity_id, entity_type, self.tenant_id
                     )
                 
-                target_user_id = target_data.get('user_id') or (entity_id if entity_type == 'INDIVIDUAL' else None)
-                target_obj = AnnualTarget.objects.create(
+                target_user_id = target_data.get('user_id') or (entity_id if entity_type == 'INDIVIDUAL' else None) or org_target.user_id
+                target_obj, _ = AnnualTarget.objects.update_or_create(
                     tenant_id=self.tenant_id,
                     kpi=org_target.kpi,
                     user_id=target_user_id,
                     year=org_target.year,
-                    target_value=target_value,
-                    notes=f"Cascaded from organization target {org_target.id}"
+                    defaults={
+                        'target_value': target_value,
+                        'notes': f"Cascaded from organization target {org_target.id}"
+                    }
                 )
                 
+                parent_target_id = target_data.get('parent_target_id') or target_data.get('parent_target')
+                if parent_target_id:
+                    parent_target_obj = AnnualTarget.objects.filter(id=parent_target_id, tenant_id=self.tenant_id).first() or org_target
+                else:
+                    parent_target_obj = org_target
+
                 map_kwargs = {
                     'tenant_id': self.tenant_id,
                     'organization_target': org_target,
-                    'parent_target': org_target,
+                    'parent_target': parent_target_obj,
                     'child_target': target_obj,
                     'cascade_rule': rule,
                     'contribution_percentage': contribution or 0
@@ -72,7 +80,12 @@ class CascadeEngine:
                 elif entity_type == 'INDIVIDUAL':
                     map_kwargs['individual_target'] = target_obj
                 
-                cascade_map = CascadeMap.objects.create(**map_kwargs)
+                cascade_map, _ = CascadeMap.objects.update_or_create(
+                    tenant_id=self.tenant_id,
+                    organization_target=org_target,
+                    child_target=target_obj,
+                    defaults=map_kwargs
+                )
                 cascade_maps.append(cascade_map)
             
             if cascade_maps:
@@ -106,23 +119,27 @@ class CascadeEngine:
                         dept_target.target_value, rule, user_id, 'INDIVIDUAL', self.tenant_id
                     )
                 
-                individual_target = AnnualTarget.objects.create(
+                individual_target, _ = AnnualTarget.objects.update_or_create(
                     tenant_id=self.tenant_id,
                     kpi=dept_target.kpi,
                     user_id=user_id,
                     year=dept_target.year,
-                    target_value=target_value,
-                    notes=f"Cascaded from parent target {dept_target.id}"
+                    defaults={
+                        'target_value': target_value,
+                        'notes': f"Cascaded from parent target {dept_target.id}"
+                    }
                 )
                 
-                cascade_map = CascadeMap.objects.create(
+                cascade_map, _ = CascadeMap.objects.update_or_create(
                     tenant_id=self.tenant_id,
                     department_target=dept_target,
                     individual_target=individual_target,
-                    parent_target=dept_target,
-                    child_target=individual_target,
-                    cascade_rule=rule,
-                    contribution_percentage=weights.get(user_id, 0) if weights else 0
+                    defaults={
+                        'parent_target': dept_target,
+                        'child_target': individual_target,
+                        'cascade_rule': rule,
+                        'contribution_percentage': weights.get(user_id, 0) if weights else 0
+                    }
                 )
                 cascade_maps.append(cascade_map)
         

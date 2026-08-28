@@ -13,7 +13,6 @@ class KPICategory(BaseKPIModel):
         ('COMPLIANCE', 'Compliance & Risk'),
     ]
     name = models.CharField(max_length=100)
-    code = models.CharField(max_length=50, db_index=True)
     category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     description = models.TextField(blank=True)
@@ -26,7 +25,7 @@ class KPICategory(BaseKPIModel):
     class Meta:
         db_table = 'kpi_categories'
         ordering = ['display_order', 'name']
-        unique_together = [['tenant_id', 'code']]
+        unique_together = [['tenant_id', 'name']]
 
     def __str__(self):
         return self.name

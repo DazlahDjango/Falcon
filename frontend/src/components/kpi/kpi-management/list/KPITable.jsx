@@ -25,7 +25,7 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
             <table className="kpi-table">
                 <thead>
                     <tr>
-                        <th>Name / Code</th>
+                        <th>Name</th>
                         <th>Type</th>
                         <th>Target Range</th>
                         <th>Owner</th>
@@ -39,7 +39,6 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
                         <tr key={kpi.id} className="kpi-table-row" onClick={() => onView(kpi.id)}>
                             <td className="kpi-name-cell">
                                 <div className="kpi-name">{kpi.name}</div>
-                                <div className="kpi-code">{kpi.code}</div>
                             </td>
                             <td>{kpi.kpi_type_display || kpi.kpi_type}</td>
                             <td>{kpi.target_min} - {kpi.target_max}</td>

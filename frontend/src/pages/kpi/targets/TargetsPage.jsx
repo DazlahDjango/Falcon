@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { TargetList, TargetCreate, CascadeRules, CascadeMapping } from '../../../components/kpi';
+import { TargetList, TargetCreate, CascadeRules, CascadeMapping, CascadeTreeModal } from '../../../components/kpi';
 import { useKPIPermissions, useTargets, useCascadeRules } from '../../../hooks/kpi';
 import { fetchTarget, createCascadeMap } from '../../../store/kpi';
 
@@ -13,6 +13,7 @@ const TargetsPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [cascadeTarget, setCascadeTarget] = useState(null);
     const [loadingCascadeTarget, setLoadingCascadeTarget] = useState(false);
+    const [viewTreeTarget, setViewTreeTarget] = useState(null);
 
     const { targets, loading, remove, refresh } = useTargets();
     const cascadeRules = useCascadeRules();
@@ -83,10 +84,10 @@ const TargetsPage = () => {
         return true;
     });
 
-    const currentTab = location.pathname === '/kpi/targets/cascade/rules' 
-        ? 'rules' 
-        : location.pathname === '/kpi/targets/cascade' 
-            ? 'cascade' 
+    const currentTab = location.pathname === '/kpi/targets/cascade/rules'
+        ? 'rules'
+        : location.pathname === '/kpi/targets/cascade'
+            ? 'cascade'
             : 'list';
 
     return (
@@ -153,8 +154,8 @@ const TargetsPage = () => {
                             <div style={{ padding: '40px', background: 'white', borderRadius: '8px', textAlign: 'center' }}>
                                 <h3>Select a target to cascade</h3>
                                 <p style={{ color: 'var(--kpi-gray-500)', marginBottom: '20px' }}>Please go to the Annual Targets tab and click the Cascade icon on any target to begin the wizard.</p>
-                                <button 
-                                    className="kpi-cascade-add-btn" 
+                                <button
+                                    className="kpi-cascade-add-btn"
                                     style={{ margin: '0 auto' }}
                                     onClick={() => navigate('/kpi/targets')}
                                 >
@@ -184,6 +185,7 @@ const TargetsPage = () => {
                             onEdit={handleEditTarget}
                             onDelete={remove}
                             onCascade={handleCascadeTrigger}
+                            onViewTree={(t) => setViewTreeTarget(t)}
                             canEdit={canManageKPIs}
                             canDelete={canManageKPIs}
                             canCascade={canCascadeTargets}
@@ -199,6 +201,15 @@ const TargetsPage = () => {
                         refresh();
                     }}
                     onCancel={() => setShowCreateModal(false)}
+                />
+            )}
+
+            {/* Cascade Tree Modal */}
+            {viewTreeTarget && (
+                <CascadeTreeModal
+                    targetId={viewTreeTarget.id}
+                    targetName={`${viewTreeTarget.kpi_name || viewTreeTarget.kpi?.name || 'KPI Target'} (${viewTreeTarget.year})`}
+                    onClose={() => setViewTreeTarget(null)}
                 />
             )}
         </div>

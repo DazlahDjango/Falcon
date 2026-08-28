@@ -22,8 +22,7 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     def export_json(self, request):
         from apps.structure.services.export.org_chart_generator import OrgChartGeneratorService
         from apps.structure.services.export.json_exporter import JSONExporterService
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         format_type = request.query_params.get('format', 'full')
         root_unit_id = request.query_params.get('root_unit_id')
         if format_type == 'flat':
@@ -48,8 +47,7 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
         from apps.structure.services.export.csv_exporter import CSVExporterService
         entity = request.query_params.get('entity', 'org_units')
         include_inactive = request.query_params.get('include_inactive', 'false').lower() == 'true'
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         if entity == 'org_units':
             csv_data = CSVExporterService.export_org_units(tenant_id, include_inactive)
             filename = f"org_units_{tenant_id}_{timezone.now().date()}.csv"
@@ -85,8 +83,7 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     @action(detail=False, methods=['get'], url_path='text')
     def export_text(self, request):
         from apps.structure.services.export.org_chart_generator import OrgChartGeneratorService
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         root_unit_id = request.query_params.get('root_unit_id')
         max_depth = int(request.query_params.get('max_depth', 4))
         from uuid import UUID
@@ -99,8 +96,7 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
     @action(detail=False, methods=['get'], url_path='visio')
     def export_visio(self, request):
         from apps.structure.services.export.visio_exporter import VisioExporterService
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         root_unit_id = request.query_params.get('root_unit_id')
         from uuid import UUID
         root_id = UUID(root_unit_id) if root_unit_id else None

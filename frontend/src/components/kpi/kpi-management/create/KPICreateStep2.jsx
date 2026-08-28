@@ -19,25 +19,7 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
     };
     
     const validate = () => {
-        const newErrors = {};
-        
-        if (formData.target_min && formData.target_max && 
-            parseFloat(formData.target_min) > parseFloat(formData.target_max)) {
-            newErrors.target_min = 'Minimum cannot be greater than maximum';
-            newErrors.target_max = 'Maximum cannot be less than minimum';
-        }
-        
-        if (data.kpi_type === 'PERCENTAGE') {
-            if (formData.target_min && parseFloat(formData.target_min) > 100) {
-                newErrors.target_min = 'Percentage minimum cannot exceed 100%';
-            }
-            if (formData.target_max && parseFloat(formData.target_max) > 100) {
-                newErrors.target_max = 'Percentage maximum cannot exceed 100%';
-            }
-        }
-        
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return true;
     };
     
     const handleSubmit = () => {
@@ -49,39 +31,11 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
     return (
         <div className="kpi-create-step">
             <div className="step-header">
-                <h3>Target & Configuration</h3>
-                <p>Set performance targets and display preferences</p>
+                <h3>Configuration & Objective</h3>
+                <p>Set display preferences and strategic objectives for this KPI</p>
             </div>
             
             <div className="step-form">
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Minimum Target</label>
-                        <input
-                            type="number"
-                            value={formData.target_min}
-                            onChange={(e) => handleChange('target_min', e.target.value ? parseFloat(e.target.value) : '')}
-                            placeholder="Min value"
-                            step="any"
-                            className={errors.target_min ? 'error' : ''}
-                        />
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>Maximum Target</label>
-                        <input
-                            type="number"
-                            value={formData.target_max}
-                            onChange={(e) => handleChange('target_max', e.target.value ? parseFloat(e.target.value) : '')}
-                            placeholder="Max value"
-                            step="any"
-                            className={errors.target_max ? 'error' : ''}
-                        />
-                    </div>
-                </div>
-                {(errors.target_min || errors.target_max) && (
-                    <div className="error-message">{errors.target_min || errors.target_max}</div>
-                )}
                 
                 <div className="form-row">
                     <div className="form-group">

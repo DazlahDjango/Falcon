@@ -24,4 +24,6 @@ export { default as CascadeRuleList } from './cascade/CascadeRuleList';
 export { default as CascadeMapping } from './cascade/CascadeMapping';
 export { default as CascadeDepartment } from './cascade/CascadeDepartment';
 export { default as CascadeTree } from './cascade/CascadeTree';
+export { default as CascadeTreeModal } from './cascade/CascadeTreeModal';
+export { default as CascadeHierarchyTree } from './cascade/CascadeHierarchyTree';
 export { default as CascadeRollback } from './cascade/CascadeRollback';

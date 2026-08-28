@@ -123,17 +123,6 @@ const useKPIPermissions = () => {
         };
     }, [user, isAuthenticated]);
 
-    // Debug only in development
-    if (import.meta.env.DEV && user) {
-        console.log('[KPI Permissions]', {
-            role: permissionsData.role,
-            isSuperAdmin: permissionsData.isSuperAdmin,
-            isClientAdmin: permissionsData.isClientAdmin,
-            canViewAdminOverview: permissionsData.permissions.canViewAdminOverview,
-            canViewAnalytics: permissionsData.permissions.canViewAnalytics,
-        });
-    }
-
     return permissionsData;
 };
 

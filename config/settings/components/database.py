@@ -8,7 +8,8 @@ and PgBouncer options.
 from config.settings.base import env
 
 # Connection Management Settings
-ENABLE_CONNECTION_MIDDLEWARE = True
+# Set to False so Django relies on high-performance TenantDatabaseRouterMiddleware
+ENABLE_CONNECTION_MIDDLEWARE = False
 CONNECTION_IDLE_TIMEOUT_MINUTES = 5
 CONNECTION_MAX_LIFETIME_MINUTES = 120
 CONNECTION_POOL_MAX_SIZE = 20
@@ -54,4 +55,4 @@ DATABASE_ROUTERS = [
 # Tenant Connection & Multi-Tenant Schema Caching Configuration
 TENANT_SCHEMA_CACHE_TTL = env.int('TENANT_SCHEMA_CACHE_TTL', default=300)
 ENABLE_PGBOUNCER_MODE = env.bool('ENABLE_PGBOUNCER_MODE', default=True)
-CONNECTION_METRICS_ASYNC = env.bool('CONNECTION_METRICS_ASYNC', default=True)
+CONNECTION_METRICS_ASYNC = env.bool('CONNECTION_METRICS_ASYNC', default=False)

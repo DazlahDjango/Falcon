@@ -23,7 +23,7 @@ class KPICategoryViewSet(BaseKpiViewset):
     permission_classes = [IsAuthenticatedAndActive, IsTenantMember]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category_type', 'is_active', 'parent']
-    search_fields = ['name', 'code', 'description']
+    search_fields = ['name', 'description']
     ordering_fields = ['display_order', 'name']
     ordering = ['display_order', 'name']
 

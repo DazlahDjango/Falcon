@@ -3,15 +3,22 @@ from django.utils.translation import gettext_lazy as _
 
 class ReportingChainNodeSerializer(serializers.Serializer):
     user_id = serializers.UUIDField()
-    role_in_chain = serializers.CharField()
-    position_title = serializers.CharField(allow_null=True)
-    position_code = serializers.CharField(allow_null=True)
-    department_name = serializers.CharField(allow_null=True)
-    is_manager = serializers.BooleanField()
-    is_executive = serializers.BooleanField()
-    relation_type = serializers.CharField(required=False)
-    reporting_weight = serializers.FloatField(required=False)
-    depth = serializers.IntegerField(required=False)
+    user_name = serializers.CharField(required=False, allow_null=True)
+    user_email = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    role_in_chain = serializers.CharField(required=False, allow_null=True)
+    position = serializers.CharField(required=False, allow_null=True)
+    position_title = serializers.CharField(required=False, allow_null=True)
+    position_code = serializers.CharField(required=False, allow_null=True)
+    department_name = serializers.CharField(required=False, allow_null=True)
+    division_name = serializers.CharField(required=False, allow_null=True)
+    is_manager = serializers.BooleanField(default=False)
+    is_executive = serializers.BooleanField(default=False)
+    is_interim = serializers.BooleanField(default=False)
+    interim_id = serializers.CharField(required=False, allow_null=True)
+    effective_to = serializers.CharField(required=False, allow_null=True)
+    relation_type = serializers.CharField(required=False, allow_null=True)
+    reporting_weight = serializers.FloatField(required=False, default=1.0)
+    depth = serializers.IntegerField(required=False, default=0)
 
 class ReportingChainSerializer(serializers.Serializer):
     user_id = serializers.UUIDField()
@@ -22,6 +29,9 @@ class ReportingChainSerializer(serializers.Serializer):
 
 class SpanOfControlSerializer(serializers.Serializer):
     manager_user_id = serializers.UUIDField()
+    manager_name = serializers.CharField(required=False, allow_null=True)
+    manager_email = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    manager_position = serializers.CharField(required=False, allow_null=True)
     direct_reports = serializers.IntegerField()
     indirect_reports = serializers.IntegerField()
     total_reports = serializers.IntegerField()

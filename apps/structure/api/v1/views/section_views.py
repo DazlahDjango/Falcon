@@ -72,12 +72,8 @@ class SectionViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-code/(?P<code>[^/.]+)')
     def get_by_code(self, request, code=None):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
-        queryset = Section.objects.filter(code=code, is_deleted=False)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        section = queryset.first()
+        tenant_id = request.user.tenant_id
+        section = Section.objects.filter(code=code, tenant_id=tenant_id, is_deleted=False).first()
         if not section:
             return Response({'error': 'Section not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = SectionDetailSerializer(section, context={'request': request})

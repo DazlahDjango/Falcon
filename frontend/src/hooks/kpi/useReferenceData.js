@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchReferenceData, selectReferenceData, selectSettingsLoading } from '../../store/kpi';
 
@@ -11,11 +11,17 @@ const useReferenceData = (include = ['users', 'departments'], autoFetch = true) 
     const cachedData = useSelector(selectReferenceData);
     const globalLoading = useSelector(selectSettingsLoading);
     
-    const fetchData = useCallback(async (includeParams = include) => {
+    // Memoize string key for include array to prevent infinite useEffect loops when inline arrays are passed
+    const includeKey = useMemo(() => {
+        return Array.isArray(include) ? include.slice().sort().join(',') : String(include || '');
+    }, [JSON.stringify(include)]);
+
+    const fetchData = useCallback(async (includeParams) => {
+        const params = includeParams || (includeKey ? includeKey.split(',') : ['users', 'departments']);
         setLoading(true);
         setError(null);
         try {
-            const result = await dispatch(fetchReferenceData(includeParams)).unwrap();
+            const result = await dispatch(fetchReferenceData(params)).unwrap();
             setData(result);
             return result;
         } catch (err) {
@@ -24,7 +30,7 @@ const useReferenceData = (include = ['users', 'departments'], autoFetch = true) 
         } finally {
             setLoading(false);
         }
-    }, [dispatch, include]);
+    }, [dispatch, includeKey]);
     
     useEffect(() => {
         if (autoFetch && cachedData && (cachedData.users?.length > 0 || cachedData.departments?.length > 0)) {

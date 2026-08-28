@@ -94,12 +94,11 @@ class Command(BaseCommand):
         ]
 
         categories = {}
-        for code, name, ctype, desc, color, icon, order in categories_def:
+        for ref_code, name, ctype, desc, color, icon, order in categories_def:
             cat, created = KPICategory.objects.update_or_create(
                 tenant_id=tenant_id,
-                code=code,
+                name=name,
                 defaults={
-                    'name': name,
                     'category_type': ctype,
                     'description': desc,
                     'color': color,
@@ -110,9 +109,9 @@ class Command(BaseCommand):
                     'updated_by': champion
                 }
             )
-            categories[code] = cat
+            categories[ref_code] = cat
             status_str = "Created" if created else "Updated"
-            self.stdout.write(f"  + Category [{status_str}]: {cat.name} ({cat.code})")
+            self.stdout.write(f"  + Category [{status_str}]: {cat.name}")
 
         # -------------------------------------------------------------------------
         # STEP 2: CREATE MASTER CORPORATE KPI DEFINITION (Role: CEO & Champion)
@@ -122,7 +121,6 @@ class Command(BaseCommand):
         
         kpi_data = {
             'name': 'Master Corporate Annual Net Sales Revenue',
-            'code': 'KPI_2026_CORP_REV',
             'description': 'Master strategic corporate revenue goal of KES 100,000,000.00 for FY2026.',
             'category_id': categories['CAT_FIN'].id,
             'kpi_type': 'FINANCIAL',
@@ -138,13 +136,13 @@ class Command(BaseCommand):
             'is_active': True,
         }
 
-        master_kpi = KPI.objects.filter(tenant_id=tenant_id, code=kpi_data['code']).first()
+        master_kpi = KPI.objects.filter(tenant_id=tenant_id, name=kpi_data['name']).first()
         if not master_kpi:
             creator = KPICreator()
             master_kpi = creator.create(kpi_data, user=champion)
-            self.stdout.write(self.style.SUCCESS(f"  [OK] Created Master KPI: {master_kpi.name} (Code: {master_kpi.code})"))
+            self.stdout.write(self.style.SUCCESS(f"  [OK] Created Master KPI: {master_kpi.name}"))
         else:
-            self.stdout.write(self.style.SUCCESS(f"  [OK] Master KPI Exists: {master_kpi.name} (Code: {master_kpi.code})"))
+            self.stdout.write(self.style.SUCCESS(f"  [OK] Master KPI Exists: {master_kpi.name}"))
 
         # -------------------------------------------------------------------------
         # STEP 3: SET MASTER CORPORATE ANNUAL TARGET OF 100,000,000.00 (Role: CEO)

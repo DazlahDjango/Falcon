@@ -8,13 +8,13 @@ from apps.kpi.models import AnnualTarget, CascadeRule, CascadeMap
 class CascadeValidator:
     def validate_cascade(self, org_target: AnnualTarget, targets: List[Dict], rule: CascadeRule) -> None:
         # Validate target sum
-        total_contribution = sum(t.get('contribution_percentage', 0) for t in targets)
-        if total_contribution > 100:
+        total_contribution = sum(Decimal(str(round(t.get('contribution_percentage', 0), 4))) for t in targets)
+        if total_contribution > Decimal('100.00'):
             raise ValidationError(
                 f"Total contribution {total_contribution}% exceeds 100%"
             )
         # Validate unique entities
-        entity_ids = [t['entity_id'] for t in targets]
+        entity_ids = [t.get('entity_id') or t.get('user_id') for t in targets if t.get('entity_id') or t.get('user_id')]
         if len(entity_ids) != len(set(entity_ids)):
             raise ValidationError("Duplicate entity IDs in cascade targets")
         # Validate target values

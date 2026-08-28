@@ -24,7 +24,6 @@ class KPI(BaseKPIModel):
         ('NON_CUMULATIVE', 'Non-Cumulative (Period Only)'),
     ]
     name = models.CharField(max_length=255)
-    code = models.CharField(max_length=100, db_index=True)
     description = models.TextField(blank=True)
     category = models.ForeignKey(KPICategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='kpis')
     kpi_type = models.CharField(max_length=20, choices=KPI_TYPES)
@@ -46,7 +45,7 @@ class KPI(BaseKPIModel):
     class Meta:
         db_table = 'kpi_definitions'
         ordering = ['name']
-        unique_together = [['tenant_id', 'code']]
+        unique_together = [['tenant_id', 'name']]
         indexes = [
             models.Index(fields=['tenant_id', 'owner', 'is_active']),
         ]

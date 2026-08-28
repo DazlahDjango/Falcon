@@ -52,12 +52,12 @@ class TenantAwareAdmin(ModelAdmin):
 
 @admin.register(KPICategory)
 class KPICategoryAdmin(TenantAwareAdmin):
-    list_display = ['name', 'code', 'category_type', 'parent', 'is_active', 'display_order']
+    list_display = ['name', 'category_type', 'parent', 'is_active', 'display_order']
     list_filter = ['category_type', 'is_active']
-    search_fields = ['name', 'code', 'description']
+    search_fields = ['name', 'description']
     readonly_fields = ['id', 'created_at', 'updated_at']
     fieldsets = (
-        ('Basic Information', {'fields': ('name', 'code', 'category_type', 'parent')}),
+        ('Basic Information', {'fields': ('name', 'category_type', 'parent')}),
         ('Display', {'fields': ('description', 'color', 'icon', 'display_order')}),
         ('Status', {'fields': ('is_active',)}),
         ('System', {'fields': ('id', 'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by')}),
@@ -66,9 +66,9 @@ class KPICategoryAdmin(TenantAwareAdmin):
 
 @admin.register(KPI)
 class KPIAdmin(TenantAwareAdmin):
-    list_display = ['name', 'code', 'kpi_type', 'owner', 'is_active', 'display_status']
+    list_display = ['name', 'kpi_type', 'owner', 'is_active', 'display_status']
     list_filter = ['kpi_type', 'calculation_logic', 'measure_type', 'is_active']
-    search_fields = ['name', 'code', 'description', 'strategic_objective']
+    search_fields = ['name', 'description', 'strategic_objective']
     readonly_fields = ['id', 'created_at', 'updated_at']
     raw_id_fields = ['owner', 'category', 'department']
     def display_status(self, obj):
@@ -77,7 +77,7 @@ class KPIAdmin(TenantAwareAdmin):
         return format_html('<span style="color: red;">Inactive</span>')
     display_status.short_description = 'Status'
     fieldsets = (
-        ('Basic Information', {'fields': ('name', 'code', 'description', 'category')}),
+        ('Basic Information', {'fields': ('name', 'description', 'category')}),
         ('KPI Configuration', {'fields': ('kpi_type', 'calculation_logic', 'measure_type')}),
         ('Target Settings', {'fields': ('unit', 'decimal_places', 'target_min', 'target_max')}),
         ('Formula', {'fields': ('formula',)}),

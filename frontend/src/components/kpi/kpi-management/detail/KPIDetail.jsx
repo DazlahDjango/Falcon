@@ -10,6 +10,7 @@ import KPIDependencies from './KPIDependencies';
 import KPIStrategicLinkages from './KPIStrategicLinkages';
 import KPIValidation from './KPIValidation';
 import KPIHistory from './KPIHistory';
+import KPICascadeHierarchy from './KPICascadeHierarchy';
 import KPILoading from '../../common/KPILoading';
 import KPIError from '../../common/KPIError';
 import KPIConfirmDialog from '../../common/KPIConfirmDialog';
@@ -66,7 +67,8 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
         { id: 'dependencies', label: 'Dependencies' },
         { id: 'linkages', label: 'Strategic Linkages' },
         { id: 'validation', label: 'Validation' },
-        { id: 'history', label: 'History' }
+        { id: 'history', label: 'History' },
+        { id: 'hierarchy', label: 'Cascade Hierarchy' }
     ];
     
     if (loading) {
@@ -74,7 +76,10 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
     }
     
     if (error || !kpi) {
-        return <KPIError message={error || "KPI not found"} onRetry={() => dispatch(fetchKPI(kpiId))} />;
+        const errorMessage = typeof error === 'string' 
+            ? error 
+            : (error?.message || error?.detail || (!kpi ? "KPI not found or does not exist." : "An error occurred while loading KPI details."));
+        return <KPIError message={errorMessage} onRetry={() => dispatch(fetchKPI(kpiId))} />;
     }
     
     return (
@@ -139,6 +144,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                 {activeTab === 'linkages' && <KPIStrategicLinkages kpiId={kpiId} />}
                 {activeTab === 'validation' && <KPIValidation kpiId={kpiId} />}
                 {activeTab === 'history' && <KPIHistory kpiId={kpiId} />}
+                {activeTab === 'hierarchy' && <KPICascadeHierarchy kpiId={kpiId} kpi={kpi} />}
             </div>
             
             <KPIConfirmDialog

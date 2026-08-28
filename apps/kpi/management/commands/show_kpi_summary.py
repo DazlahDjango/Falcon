@@ -37,11 +37,13 @@ class Command(BaseCommand):
             help='Specific KPI inspection action to run (overall, list, cascading, weights, phasings)'
         )
         parser.add_argument(
+            '--kpi-name',
             '--kpi-code',
             '-k',
             type=str,
             default=None,
-            help='Optional filter by specific KPI Code'
+            dest='kpi_name',
+            help='Optional filter by specific KPI Name'
         )
         parser.add_argument(
             '--year',
@@ -54,7 +56,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         tenant_id = options['tenant_id']
         action = options['action']
-        kpi_code = options['kpi_code']
+        kpi_name = options['kpi_name']
         year = options['year']
 
         from apps.tenant.models import Organization, OrganizationSchema
@@ -74,8 +76,8 @@ class Command(BaseCommand):
         all_users = {u.id: u for u in User.objects.filter(tenant_id=tenant_id, is_deleted=False)}
 
         kpis_qs = KPI.objects.filter(tenant_id=tenant_id)
-        if kpi_code:
-            kpis_qs = kpis_qs.filter(code=kpi_code)
+        if kpi_name:
+            kpis_qs = kpis_qs.filter(name__icontains=kpi_name)
 
         kpis = list(kpis_qs.select_related('owner', 'department'))
 
@@ -140,8 +142,7 @@ class Command(BaseCommand):
             target_sum = t_qs.aggregate(total=models.Sum('target_value'))['total'] or 0
             owner_str = f"{k.owner.first_name} {k.owner.last_name} ({k.owner.email})" if k.owner else "N/A"
 
-            self.stdout.write(self.style.WARNING(f"KPI CODE: {k.code}"))
-            self.stdout.write(f"  - Name: {k.name}")
+            self.stdout.write(self.style.WARNING(f"KPI NAME: {k.name}"))
             self.stdout.write(f"  - Description: {k.description}")
             self.stdout.write(f"  - Type: {k.get_kpi_type_display()} ({k.kpi_type})")
             self.stdout.write(f"  - Calculation Logic: {k.get_calculation_logic_display()}")
@@ -158,7 +159,7 @@ class Command(BaseCommand):
         self.stdout.write("=" * 85 + "\n")
 
         for k in kpis:
-            self.stdout.write(self.style.WARNING(f"MASTER KPI: [{k.code}] {k.name}\n"))
+            self.stdout.write(self.style.WARNING(f"MASTER KPI: {k.name}\n"))
             cascades = CascadeMap.objects.filter(
                 tenant_id=tenant_id,
                 parent_target__kpi=k
@@ -173,8 +174,11 @@ class Command(BaseCommand):
                 p_user = all_users.get(c.parent_target.user_id) if c.parent_target else None
                 c_user = all_users.get(c.child_target.user_id) if c.child_target else None
 
-                p_str = f"{p_user.first_name} {p_user.last_name}" if p_user else "Org Target"
-                c_str = f"{c_user.first_name} {c_user.last_name} ({c_user.email})" if c_user else "Child Target"
+                p_role = (getattr(p_user, 'role', 'ORG') or 'ORG').upper()
+                c_role = (getattr(c_user, 'role', 'CHILD') or 'CHILD').upper()
+
+                p_str = f"[{p_role}] {p_user.first_name} {p_user.last_name}" if p_user else "[ORG] Organization Target"
+                c_str = f"[{c_role}] {c_user.first_name} {c_user.last_name} ({c_user.email})" if c_user else "[CHILD] Child Target"
 
                 c_val = c.child_target.target_value if c.child_target else 0
 
@@ -200,7 +204,7 @@ class Command(BaseCommand):
             user = all_users.get(w.user_id)
             user_str = f"{user.first_name} {user.last_name} ({user.email})" if user else str(w.user_id)
             self.stdout.write(f"- User: {user_str}")
-            self.stdout.write(f"  KPI: [{w.kpi.code}] {w.kpi.name}")
+            self.stdout.write(f"  KPI: {w.kpi.name}")
             self.stdout.write(f"  Weight: {w.weight}% | Active: {'Yes' if w.is_active else 'No'}")
             self.stdout.write(f"  Effective: {w.effective_from} to {w.effective_to or 'Ongoing'}\n")
 

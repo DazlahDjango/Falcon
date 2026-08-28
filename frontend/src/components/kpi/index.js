@@ -95,6 +95,8 @@ export {
     CascadeMapping,
     CascadeDepartment,
     CascadeTree,
+    CascadeTreeModal,
+    CascadeHierarchyTree,
     CascadeRollback,
 } from './targets';
 

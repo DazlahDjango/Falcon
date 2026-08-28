@@ -19,6 +19,7 @@ const TargetList = ({
     onEdit,
     onDelete,
     onCascade,
+    onViewTree,
     canEdit,
     canDelete,
     canCascade
@@ -53,6 +54,7 @@ const TargetList = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onCascade={onCascade}
+                onViewTree={onViewTree}
                 canEdit={canEdit}
                 canDelete={canDelete}
                 canCascade={canCascade}

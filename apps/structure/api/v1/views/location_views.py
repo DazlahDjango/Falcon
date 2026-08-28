@@ -12,7 +12,7 @@ from .base import BaseStructureViewSet
 
 
 class LocationViewSet(BaseStructureViewSet):
-    queryset = Location.objects.select_related('organizational_unit', 'parent').all()
+    queryset = Location.objects.select_related('parent').all()
     filterset_class = LocationFilter
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['code', 'name', 'city', 'country']
@@ -42,12 +42,8 @@ class LocationViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-code/(?P<code>[^/.]+)')
     def get_by_code(self, request, code=None):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
-        queryset = Location.objects.filter(code=code, is_deleted=False)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        location = queryset.first()
+        tenant_id = request.user.tenant_id
+        location = Location.objects.filter(code=code, tenant_id=tenant_id, is_deleted=False).first()
         if not location:
             return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = LocationDetailSerializer(location, context={'request': request})
@@ -55,16 +51,13 @@ class LocationViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-country/(?P<country>[^/.]+)')
     def get_by_country(self, request, country=None):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         locations = Location.objects.filter(
             country__iexact=country,
+            tenant_id=tenant_id,
             is_deleted=False,
             is_active=True
-        )
-        if tenant_id:
-            locations = locations.filter(tenant_id=tenant_id)
-        locations = locations.select_related('organizational_unit', 'parent')
+        ).select_related('parent')
         serializer = LocationSerializer(locations, many=True, context={'request': request})
         return Response({
             'country': country,
@@ -75,20 +68,17 @@ class LocationViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='by-org-unit/(?P<org_unit_id>[0-9a-f-]+)')
     def get_by_org_unit(self, request, org_unit_id=None):
         from uuid import UUID
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         try:
             org_unit_id = UUID(org_unit_id)
         except ValueError:
             return Response({'error': 'Invalid organization unit ID'}, status=status.HTTP_400_BAD_REQUEST)
         locations = Location.objects.filter(
             organizational_unit_id=org_unit_id,
+            tenant_id=tenant_id,
             is_deleted=False,
             is_active=True
-        )
-        if tenant_id:
-            locations = locations.filter(tenant_id=tenant_id)
-        locations = locations.select_related('organizational_unit', 'parent')
+        ).select_related('parent')
         serializer = LocationSerializer(locations, many=True, context={'request': request})
         return Response({
             'organizational_unit_id': str(org_unit_id),
@@ -98,16 +88,13 @@ class LocationViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='headquarters')
     def get_headquarters(self, request):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
-        queryset = Location.objects.filter(
+        tenant_id = request.user.tenant_id
+        headquarters = Location.objects.filter(
             is_headquarters=True,
+            tenant_id=tenant_id,
             is_deleted=False,
             is_active=True
-        )
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        headquarters = queryset.first()
+        ).first()
         if not headquarters:
             return Response({'message': 'No headquarters location found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = LocationDetailSerializer(headquarters, context={'request': request})
@@ -115,25 +102,21 @@ class LocationViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
-        queryset = Location.objects.filter(is_deleted=False)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        total = queryset.count()
-        active = queryset.filter(is_active=True).count()
-        headquarters = queryset.filter(is_headquarters=True).count()
+        tenant_id = request.user.tenant_id
+        total = Location.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
+        active = Location.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count()
+        headquarters = Location.objects.filter(tenant_id=tenant_id, is_deleted=False, is_headquarters=True).count()
         type_distribution = {}
-        types = queryset.values('type').annotate(count=models.Count('id'))
+        types = Location.objects.filter(tenant_id=tenant_id, is_deleted=False).values('type').annotate(count=models.Count('id'))
         for loc_type in types:
             type_distribution[loc_type['type']] = loc_type['count']
         country_distribution = {}
-        countries = queryset.filter(is_active=True).values('country').annotate(count=models.Count('id'))
+        countries = Location.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).values('country').annotate(count=models.Count('id'))
         for country in countries:
             if country['country']:
                 country_distribution[country['country']] = country['count']
-        total_capacity = queryset.filter(is_active=True).aggregate(total=models.Sum('seating_capacity'))['total'] or 0
-        total_occupancy = queryset.filter(is_active=True).aggregate(total=models.Sum('current_occupancy'))['total'] or 0
+        total_capacity = Location.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).aggregate(total=models.Sum('seating_capacity'))['total'] or 0
+        total_occupancy = Location.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).aggregate(total=models.Sum('current_occupancy'))['total'] or 0
         return Response({
             'total_locations': total,
             'active_locations': active,

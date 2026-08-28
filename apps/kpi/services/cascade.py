@@ -91,7 +91,8 @@ class TargetCascader:
             return cached
 
         cascade_maps = CascadeMap.objects.filter(
-            tenant_id=tenant_id
+            tenant_id=tenant_id,
+            organization_target_id=org_target_id
         ).select_related(
             'department_target',
             'individual_target',
@@ -106,33 +107,70 @@ class TargetCascader:
 
         children_map = {}
         for cm in cascade_maps:
-            p_id = str(cm.parent_target_id or cm.organization_target_id or cm.department_target_id)
+            p_id = str(cm.parent_target_id) if cm.parent_target_id else str(cm.organization_target_id)
             children_map.setdefault(p_id, []).append(cm)
 
         org_target = AnnualTarget.objects.filter(
             id=org_target_id,
             tenant_id=tenant_id
-        ).first()
+        ).select_related('user', 'kpi').first()
 
-        def build_node(target):
+        def build_node(target, depth=0, visited=None):
             if not target:
                 return {}
+            if visited is None:
+                visited = set()
             target_id = str(target.id)
+            if target_id in visited:
+                return {}
+            visited.add(target_id)
+
+            # Determine level for node based on FKs, user role, and depth
+            user_role = str(getattr(target.user, 'role', '')).lower() if target.user else ''
+            if depth == 0:
+                level = 'ORGANIZATION'
+            elif 'division' in user_role or ('executive' in user_role and depth <= 1):
+                level = 'DIVISION'
+            elif 'department' in user_role or ('manager' in user_role and depth <= 2):
+                level = 'DEPARTMENT'
+            elif 'section' in user_role:
+                level = 'SECTION'
+            elif 'unit' in user_role:
+                level = 'UNIT'
+            elif 'supervisor' in user_role:
+                depth_levels = {1: 'DIVISION', 2: 'DEPARTMENT', 3: 'SECTION', 4: 'UNIT'}
+                level = depth_levels.get(depth, 'SECTION')
+            else:
+                depth_levels = {1: 'DIVISION', 2: 'DEPARTMENT', 3: 'SECTION', 4: 'UNIT'}
+                level = depth_levels.get(depth, 'INDIVIDUAL')
+
             node = {
                 'id': target_id,
                 'target_value': float(target.target_value),
                 'user_id': str(target.user_id) if target.user_id else None,
-                'user_name': target.user.get_full_name() if target.user else None,
+                'user_name': target.user.get_full_name() if (target.user and target.user.get_full_name()) else (target.user.email if target.user else 'Executive Owner'),
                 'user_email': target.user.email if target.user else None,
+                'level': level,
                 'children': []
             }
             for cm in children_map.get(target_id, []):
                 child = cm.child_target or cm.individual_target or cm.department_target or cm.division_target or cm.section_target or cm.unit_target
-                if child:
-                    child_node = build_node(child)
-                    child_node['contribution'] = float(cm.contribution_percentage)
-                    child_node['rule'] = cm.cascade_rule.name
-                    node['children'].append(child_node)
+                if child and str(child.id) not in visited:
+                    child_node = build_node(child, depth + 1, visited.copy())
+                    if child_node:
+                        child_node['contribution'] = float(cm.contribution_percentage)
+                        child_node['rule'] = cm.cascade_rule.name if cm.cascade_rule else 'Default'
+                        
+                        if cm.division_target_id:
+                            child_node['level'] = 'DIVISION'
+                        elif cm.department_target_id:
+                            child_node['level'] = 'DEPARTMENT'
+                        elif cm.section_target_id:
+                            child_node['level'] = 'SECTION'
+                        elif cm.unit_target_id:
+                            child_node['level'] = 'UNIT'
+
+                        node['children'].append(child_node)
             return node
 
         tree = build_node(org_target)
@@ -142,6 +180,7 @@ class TargetCascader:
     def _invalidate_caches(self, target_id: str) -> None:
         from apps.kpi.utils.cache_keys import safe_delete_pattern
         cache.delete(f"{CACHE_PREFIX}:tree:{target_id}")
+        safe_delete_pattern(f"{CACHE_PREFIX}:tree:*")
         safe_delete_pattern(f"{CACHE_PREFIX}:contributors:*")
 
 

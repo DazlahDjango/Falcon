@@ -29,17 +29,7 @@ class KPICreator:
         if role in ['super_admin', 'superadmin', 'platform_admin']:
             is_super_admin = True
 
-        kpi_exists_query = KPI.objects.filter(
-            code=data['code']
-        )
-        if not is_super_admin:
-            kpi_exists_query = kpi_exists_query.filter(tenant_id=user.tenant_id)
-            
-        if kpi_exists_query.exists():
-            raise DuplicateKPICodeError("KPI code must be unique within the tenant.")
-
         validate_kpi_name(data['name'])
-        validate_kpi_code(data['code'])
         validate_target_range(data.get('target_min'), data.get('target_max'))
 
         if data.get('target_min'):
@@ -51,7 +41,6 @@ class KPICreator:
             kpi = KPI.objects.create(
                 tenant_id=user.tenant_id if not is_super_admin else data.get('tenant_id', user.tenant_id),
                 name=data['name'],
-                code=data['code'],
                 description=data.get('description', ''),
                 category_id=data.get('category_id'),
                 kpi_type=data['kpi_type'],
@@ -88,7 +77,6 @@ class KPICreator:
         return {
             'id': str(kpi.id),
             'name': kpi.name,
-            'code': kpi.code,
             'description': kpi.description,
             'kpi_type': kpi.kpi_type,
             'calculation_logic': kpi.calculation_logic,
@@ -146,7 +134,6 @@ class KPIUpdater:
         return {
             'id': str(kpi.id),
             'name': kpi.name,
-            'code': kpi.code,
             'description': kpi.description,
             'is_active': kpi.is_active,
             'updated_at': kpi.updated_at.isoformat() if kpi.updated_at else None,
@@ -224,8 +211,6 @@ class KPIValidator:
         errors = []
         if not kpi.name:
             errors.append("KPI name is required.")
-        if not kpi.code:
-            errors.append("KPI code is required.")
         if not kpi.owner:
             errors.append("KPI owner is required.")
         return errors

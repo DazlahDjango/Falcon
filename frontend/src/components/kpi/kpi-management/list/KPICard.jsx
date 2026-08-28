@@ -46,8 +46,6 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                 </div>
             </div>
             
-            <div className="kpi-card-code">{kpi.code}</div>
-            
             <div className="kpi-card-description">
                 {kpi.description || 'No description provided'}
             </div>

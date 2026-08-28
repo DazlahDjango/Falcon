@@ -21,8 +21,8 @@ class KPIViewSet(BaseKpiViewset):
     queryset = KPI.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = KPIListFilter
-    search_fields = ['name', 'code', 'description', 'strategic_objective']
-    ordering_fields = ['name', 'code', 'created_at', 'updated_at']
+    search_fields = ['name', 'description', 'strategic_objective']
+    ordering_fields = ['name', 'created_at', 'updated_at']
     ordering = ['name']
 
     def get_serializer_class(self):

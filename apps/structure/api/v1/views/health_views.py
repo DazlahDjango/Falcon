@@ -124,7 +124,7 @@ class StructureHealthViewSet(BaseStructureReadOnlyViewSet):
         orphaned_reporting = Employment.objects.filter(
             tenant_id=tenant_id, is_deleted=False, is_active=True
         ).filter(
-            models.Q(employee__isnull=True) | models.Q(manager__isnull=True)
+            models.Q(position__isnull=True) | models.Q(user_id__isnull=True)
         ).count()
         if orphaned_reporting > 0:
             anomalies.append(f"{orphaned_reporting} orphaned reporting lines")

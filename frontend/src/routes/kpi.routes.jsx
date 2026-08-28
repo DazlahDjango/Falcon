@@ -68,13 +68,18 @@ const kpiRoutes = [
 
     // Admin KPI Modules (Framework Management)
     { path: KPI_ROUTES.ADMIN_CATEGORIES, element: <CategoriesPage /> },
+    { path: '/kpi/categories', element: <CategoriesPage /> },
     { path: KPI_ROUTES.ADMIN_CATEGORY_CREATE, element: <CategoriesPage /> },
     { path: KPI_ROUTES.ADMIN_CATEGORY_EDIT(':id'), element: <CategoriesPage /> },
     // KPI Management
     { path: KPI_ROUTES.KPI_MANAGEMENT, element: <KPIsPage /> },
+    { path: '/kpi/kpis', element: <KPIsPage /> },
     { path: KPI_ROUTES.KPI_CREATE, element: <KPIsPage /> },
+    { path: '/kpi/kpis/create', element: <KPIsPage /> },
     { path: KPI_ROUTES.KPI_DETAIL(':id'), element: <KPIDetailPage /> },
+    { path: '/kpi/kpis/:id', element: <KPIDetailPage /> },
     { path: KPI_ROUTES.KPI_EDIT(':id'), element: <KPIEditPage /> },
+    { path: '/kpi/kpis/:id/edit', element: <KPIEditPage /> },
     { path: KPI_ROUTES.KPI_MY_KPIS, element: <KPIsPage /> },
     // KPI Weights & Dependencies
     { path: KPI_ROUTES.KPI_WEIGHTS(':kpiId'), element: <KPIDetailPage /> },
@@ -165,9 +170,9 @@ export const KpiPaths = {
     AdminCategories: KPI_ROUTES.ADMIN_CATEGORIES,
     // KPI Management
     KPIs: KPI_ROUTES.KPI_MANAGEMENT,
-    KPIDetail: (id) => buildKpiPath(KPI_ROUTES.KPI_DETAIL(':id'), { id }),
-    KPIEdit: (id) => buildKpiPath(KPI_ROUTES.KPI_EDIT(':id'), { id }),
-    KPICreate: KPI_ROUTES.KPI_CREATE,
+    KPIDetail: (id) => buildKpiPath('/kpi/kpis/:id', { id }),
+    KPIEdit: (id) => buildKpiPath('/kpi/kpis/:id/edit', { id }),
+    KPICreate: '/kpi/kpis/create',
     MyKPIs: KPI_ROUTES.KPI_MY_KPIS,
     // Targets
     Targets: KPI_ROUTES.TARGETS,

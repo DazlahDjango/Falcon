@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FiX } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
 import KPICreateStep1 from './KPICreateStep1';
@@ -8,14 +9,16 @@ import KPICreateSuccess from './KPICreateSuccess';
 import { createKPI } from '../../../../store/kpi';
 import KPILoading from '../../common/KPILoading';
 
-const KPICreate = ({ onComplete, onCancel }) => {
+const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
     const dispatch = useDispatch();
+    const location = useLocation();
+    const defaultCategoryId = initialCategoryId || location.state?.categoryId || '';
+
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
-        code: '',
         description: '',
         kpi_type: 'PERCENTAGE',
         calculation_logic: 'HIGHER_IS_BETTER',
@@ -24,7 +27,7 @@ const KPICreate = ({ onComplete, onCancel }) => {
         decimal_places: 2,
         target_min: null,
         target_max: null,
-        category_id: '',
+        category_id: defaultCategoryId,
         owner_id: '',
         department_id: '',
         strategic_objective: '',

@@ -17,7 +17,7 @@ class KPIListSerializer(TenantAwareSerializer):
     class Meta:
         model = KPI
         fields = [
-            'id', 'name', 'code', 'description', 'kpi_type', 'kpi_type_display',
+            'id', 'name', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
             'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
             'category', 'category_name', 'owner', 'owner_email', 'department', 'department_name',
@@ -30,6 +30,10 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
     kpi_type_display = serializers.CharField(source='get_kpi_type_display', read_only=True)
     calculation_logic_display = serializers.CharField(source='get_calculation_logic_display', read_only=True)
     measure_type_display = serializers.CharField(source='get_measure_type_display', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True, default=None)
+    owner_email = serializers.EmailField(source='owner.email', read_only=True, default=None)
+    owner_name = serializers.CharField(source='owner.get_full_name', read_only=True, default=None)
+    department_name = serializers.CharField(source='department.name', read_only=True, default=None)
     category_detail = KPICategorySerializer(source='category', read_only=True)
     weights_count = serializers.SerializerMethodField()
     actuals_count = serializers.SerializerMethodField()
@@ -38,10 +42,10 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
     class Meta:
         model = KPI
         fields = [
-            'id', 'name', 'code', 'description', 'kpi_type', 'kpi_type_display',
+            'id', 'name', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
             'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
-            'formula', 'category', 'category_detail', 'owner', 'department', 'is_active',
+            'formula', 'category', 'category_name', 'category_detail', 'owner', 'owner_email', 'owner_name', 'department', 'department_name', 'is_active',
             'activation_date', 'deactivation_date', 'strategic_objective', 'metadata',
             'weights_count', 'actuals_count', 'scores_count',
             'tenant_id', 'created_at', 'updated_at', 'created_by_email', 'updated_by_email'
@@ -56,10 +60,6 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
 
     def get_scores_count(self, obj):
         return obj.scores.count()
-
-    def validate_code(self, value):
-        validate_kpi_code(value)
-        return value
 
     def validate_name(self, value):
         validate_kpi_name(value)

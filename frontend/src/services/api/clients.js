@@ -23,7 +23,8 @@ export const billingApiClient = createApiClient({
 
 export const structureApiClient = createApiClient({
   module: 'structure', basePath: '/structure', responseStyle: 'envelope',
-  circuitBreaker: true, forbiddenMessage: 'You do not have permission to access this structure resource',
+  circuitBreaker: false, forbiddenMessage: 'You do not have permission to access this structure resource',
+  attachTenantHeader: true,
 });
 
 export const reviewsApiClient = createApiClient({

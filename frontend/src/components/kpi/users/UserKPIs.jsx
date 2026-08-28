@@ -21,8 +21,7 @@ const UserKPIs = ({ userId, onViewKPI }) => {
     }, [dispatch, userId]);
     
     const filteredKPIs = kpis?.filter(kpi =>
-        kpi.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        kpi.code?.toLowerCase().includes(searchTerm.toLowerCase())
+        kpi.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
     const getTrendIcon = (trend) => {
@@ -76,8 +75,6 @@ const UserKPIs = ({ userId, onViewKPI }) => {
                             </div>
                             <KPIStatusBadge status={kpi.is_active ? 'active' : 'inactive'} />
                         </div>
-                        
-                        <div className="user-kpi-code">{kpi.code}</div>
                         
                         {kpi.description && (
                             <div className="user-kpi-description">{kpi.description}</div>

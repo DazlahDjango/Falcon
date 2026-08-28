@@ -42,12 +42,8 @@ class CostCenterViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-code/(?P<code>[^/.]+)')
     def get_by_code(self, request, code=None):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
-        queryset = CostCenter.objects.filter(code=code, is_deleted=False)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        cost_center = queryset.first()
+        tenant_id = request.user.tenant_id
+        cost_center = CostCenter.objects.filter(code=code, tenant_id=tenant_id, is_deleted=False).first()
         if not cost_center:
             return Response({'error': 'Cost center not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = CostCenterDetailSerializer(cost_center, context={'request': request})
@@ -55,15 +51,12 @@ class CostCenterViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-fiscal-year/(?P<year>[0-9]+)')
     def get_by_fiscal_year(self, request, year=None):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         cost_centers = CostCenter.objects.filter(
             fiscal_year=year,
+            tenant_id=tenant_id,
             is_deleted=False
-        )
-        if tenant_id:
-            cost_centers = cost_centers.filter(tenant_id=tenant_id)
-        cost_centers = cost_centers.select_related('manager', 'parent')
+        ).select_related('manager', 'parent')
         serializer = CostCenterSerializer(cost_centers, many=True, context={'request': request})
         return Response({
             'fiscal_year': int(year),
@@ -74,19 +67,16 @@ class CostCenterViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='by-org-unit/(?P<org_unit_id>[0-9a-f-]+)')
     def get_by_org_unit(self, request, org_unit_id=None):
         from uuid import UUID
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         try:
             org_unit_id = UUID(org_unit_id)
         except ValueError:
             return Response({'error': 'Invalid organization unit ID'}, status=status.HTTP_400_BAD_REQUEST)
         cost_centers = CostCenter.objects.filter(
             parent_id=org_unit_id,
+            tenant_id=tenant_id,
             is_deleted=False
-        )
-        if tenant_id:
-            cost_centers = cost_centers.filter(tenant_id=tenant_id)
-        cost_centers = cost_centers.select_related('manager', 'parent')
+        ).select_related('manager', 'parent')
         serializer = CostCenterSerializer(cost_centers, many=True, context={'request': request})
         return Response({
             'organizational_unit_id': str(org_unit_id),
@@ -96,21 +86,18 @@ class CostCenterViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-level/(?P<level>[a-z]+)')
     def get_by_level(self, request, level=None):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         from apps.structure.models.organizational_unit import OrganizationalUnit
-        units_qs = OrganizationalUnit.objects.filter(
+        units = OrganizationalUnit.objects.filter(
+            tenant_id=tenant_id,
             level=level,
             is_deleted=False,
             is_active=True
-        )
-        if tenant_id:
-            units_qs = units_qs.filter(tenant_id=tenant_id)
-        units = units_qs.values_list('id', flat=True)
-        cost_centers = CostCenter.objects.filter(is_deleted=False)
-        if tenant_id:
-            cost_centers = cost_centers.filter(tenant_id=tenant_id)
-        cost_centers = cost_centers.select_related('manager', 'parent')
+        ).values_list('id', flat=True)
+        cost_centers = CostCenter.objects.filter(
+            tenant_id=tenant_id,
+            is_deleted=False
+        ).select_related('manager', 'parent')
         serializer = CostCenterSerializer(cost_centers, many=True, context={'request': request})
         return Response({
             'level': level,
@@ -120,38 +107,24 @@ class CostCenterViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
-        queryset = CostCenter.objects.filter(is_deleted=False)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        total = queryset.count()
-        active = queryset.filter(is_active=True).count()
-        shared = queryset.filter(is_shared=True).count()
+        tenant_id = request.user.tenant_id
+        total = CostCenter.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
+        active = CostCenter.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).count()
+        shared = CostCenter.objects.filter(tenant_id=tenant_id, is_deleted=False, is_shared=True).count()
         category_distribution = {}
-        categories = queryset.values('category').annotate(count=models.Count('id'))
+        categories = CostCenter.objects.filter(tenant_id=tenant_id, is_deleted=False).values('category').annotate(count=models.Count('id'))
         for cat in categories:
             category_distribution[cat['category']] = cat['count']
-        total_budget = queryset.filter(is_active=True).aggregate(total=models.Sum('budget_amount'))['total'] or 0
+        total_budget = CostCenter.objects.filter(tenant_id=tenant_id, is_deleted=False, is_active=True).aggregate(total=models.Sum('budget_amount'))['total'] or 0
         level_distribution = {}
         from apps.structure.models.organizational_unit import OrganizationalUnit
         from apps.structure.enums.org_level import OrgLevel
         for level in [OrgLevel.DIVISION, OrgLevel.DEPARTMENT, OrgLevel.SECTION, OrgLevel.UNIT]:
-            units_qs = OrganizationalUnit.objects.filter(
-                level=level,
-                is_deleted=False,
-                is_active=True
-            )
-            if tenant_id:
-                units_qs = units_qs.filter(tenant_id=tenant_id)
-            units = units_qs.values_list('id', flat=True)
-            cc_qs = CostCenter.objects.filter(
-                organizational_unit_id__in=units,
+            count = CostCenter.objects.filter(
+                tenant_id=tenant_id,
                 is_deleted=False
-            )
-            if tenant_id:
-                cc_qs = cc_qs.filter(tenant_id=tenant_id)
-            level_distribution[level] = cc_qs.count()
+            ).count()
+            level_distribution[level] = count
         return Response({
             'total_cost_centers': total,
             'active_cost_centers': active,

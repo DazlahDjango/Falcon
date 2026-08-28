@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,13 +16,59 @@ class AnnualTargetViewSet(BaseKpiViewset):
     serializer_class = AnnualTargetSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = AnnualTargetListFilter
-    search_fields = ['kpi__name', 'kpi__code', 'user__email']
+    search_fields = ['kpi__name', 'user__email', 'user__first_name', 'user__last_name']
     ordering_fields = ['year', 'target_value', 'created_at']
     ordering = ['-year', 'kpi__name']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.select_related('kpi', 'user')
+        queryset = super().get_queryset().select_related('kpi', 'user', 'approved_by')
+        user = self.request.user
+
+        # Champions / HR Admins / Super Admins / Client Admins see overall targets
+        role = str(getattr(user, 'role', '')).lower()
+        is_admin_or_champion = role in [
+            'super_admin', 'superadmin', 'platform_admin', 
+            'client_admin', 'admin', 'kpi_champion', 'hr_admin'
+        ]
+
+        if is_admin_or_champion or self.request.query_params.get('all') == 'true':
+            return queryset
+
+        # Scoping based on organizational structure role / rank
+        hierarchy_level = self.request.query_params.get('hierarchy_level') or role
+        if hierarchy_level in ['executive', 'ceo']:
+            # Executive sees targets cascaded to division level / division leaders
+            queryset = queryset.filter(
+                Q(child_cascades__division_target__isnull=False) |
+                Q(user__role__icontains='division') |
+                Q(user=user)
+            )
+        elif hierarchy_level in ['division_lead', 'division_admin']:
+            # Division Lead sees department targets
+            queryset = queryset.filter(
+                Q(child_cascades__department_target__isnull=False) |
+                Q(user__role__icontains='department') |
+                Q(user=user)
+            )
+        elif hierarchy_level in ['department_lead', 'manager']:
+            # Department Lead sees section targets
+            queryset = queryset.filter(
+                Q(child_cascades__section_target__isnull=False) |
+                Q(user__role__icontains='section') |
+                Q(user=user)
+            )
+        elif hierarchy_level in ['unit_lead', 'supervisor']:
+            # Unit Lead sees team / individual member targets
+            queryset = queryset.filter(
+                Q(child_cascades__unit_target__isnull=False) |
+                Q(child_cascades__individual_target__isnull=False) |
+                Q(user=user)
+            )
+        elif hierarchy_level in ['staff', 'employee', 'individual']:
+            # Individual views own assigned targets
+            queryset = queryset.filter(user=user)
+
+        return queryset.distinct()
 
     def create(self, request, *args, **kwargs):
         setter = TargetSetter()

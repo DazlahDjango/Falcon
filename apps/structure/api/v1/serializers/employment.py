@@ -17,6 +17,10 @@ class EmploymentSerializer(BaseStructureSerializer):
     unit_name = serializers.CharField(source='position.unit.name', read_only=True, allow_null=True)
     manager_user_id = serializers.UUIDField(read_only=True)
     effective_manager_user_id = serializers.UUIDField(read_only=True)
+    division_id = serializers.SerializerMethodField()
+    department_id = serializers.SerializerMethodField()
+    section_id = serializers.SerializerMethodField()
+    unit_id = serializers.SerializerMethodField()
     user_name = serializers.SerializerMethodField()
     user_email = serializers.SerializerMethodField()
     user_first_name = serializers.SerializerMethodField()
@@ -29,16 +33,28 @@ class EmploymentSerializer(BaseStructureSerializer):
             'user_first_name', 'user_last_name',
             'position_id', 'position_code', 'position_title',
             'fte_allocation', 'is_primary',
-            'division_code', 'division_name',
-            'department_code', 'department_name',
-            'section_code', 'section_name',
-            'unit_code', 'unit_name',
+            'division_id', 'division_code', 'division_name',
+            'department_id', 'department_code', 'department_name',
+            'section_id', 'section_code', 'section_name',
+            'unit_id', 'unit_code', 'unit_name',
             'employment_type', 'effective_from', 'effective_to',
             'is_current', 'is_manager', 'is_executive', 'is_board_member',
             'is_active', 'manager_user_id', 'effective_manager_user_id',
             'created_at'
         ]
         read_only_fields = ['id', 'tenant_id', 'created_at', 'updated_at']
+
+    def get_division_id(self, obj):
+        return str(obj.position.division_id) if hasattr(obj, 'position') and obj.position and obj.position.division_id else None
+
+    def get_department_id(self, obj):
+        return str(obj.position.department_id) if hasattr(obj, 'position') and obj.position and obj.position.department_id else None
+
+    def get_section_id(self, obj):
+        return str(obj.position.section_id) if hasattr(obj, 'position') and obj.position and obj.position.section_id else None
+
+    def get_unit_id(self, obj):
+        return str(obj.position.unit_id) if hasattr(obj, 'position') and obj.position and obj.position.unit_id else None
 
     def _get_user(self, obj):
         if not hasattr(self, '_users_cache'):

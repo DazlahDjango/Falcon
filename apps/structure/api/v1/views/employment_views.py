@@ -46,27 +46,25 @@ class EmploymentViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='current')
     def get_current_employments(self, request):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = self._get_tenant_id(request)
         employments = Employment.objects.filter(
+            tenant_id=tenant_id,
             is_current=True,
             is_deleted=False,
             is_active=True
-        )
-        if tenant_id:
-            employments = employments.filter(tenant_id=tenant_id).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit')
+        ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit')
         division_id = request.query_params.get('division_id')
         if division_id:
-            employments = employments.filter(division_id=division_id)
+            employments = employments.filter(position__division_id=division_id)
         department_id = request.query_params.get('department_id')
         if department_id:
-            employments = employments.filter(department_id=department_id)
+            employments = employments.filter(position__department_id=department_id)
         section_id = request.query_params.get('section_id')
         if section_id:
-            employments = employments.filter(section_id=section_id)
+            employments = employments.filter(position__section_id=section_id)
         unit_id = request.query_params.get('unit_id')
         if unit_id:
-            employments = employments.filter(unit_id=unit_id)
+            employments = employments.filter(position__unit_id=unit_id)
         is_manager = request.query_params.get('is_manager')
         if is_manager is not None:
             employments = employments.filter(is_manager=is_manager.lower() == 'true')
@@ -78,7 +76,7 @@ class EmploymentViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-user/(?P<user_id>[0-9a-f-]+)')
     def get_by_user(self, request, user_id=None):
-        tenant_id = request.user.tenant_id
+        tenant_id = self._get_tenant_id(request)
         employments = Employment.objects.filter(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -104,7 +102,7 @@ class EmploymentViewSet(BaseStructureViewSet):
         reason = request.data.get('reason', '')
         if not user_id:
             return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        tenant_id = request.user.tenant_id
+        tenant_id = self._get_tenant_id(request)
         current_employment = Employment.objects.filter(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -186,23 +184,19 @@ class EmploymentViewSet(BaseStructureViewSet):
     
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
-        queryset = Employment.objects.filter(is_current=True, is_deleted=False, is_active=True)
-        if tenant_id:
-            queryset = queryset.filter(tenant_id=tenant_id)
-        total_current = queryset.count()
-        managers = queryset.filter(is_manager=True).count()
-        executives = queryset.filter(is_executive=True).count()
+        tenant_id = self._get_tenant_id(request)
+        total_current = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True).count()
+        managers = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True, is_manager=True).count()
+        executives = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True, is_executive=True).count()
         employment_type_distribution = {}
-        types = queryset.values('employment_type').annotate(count=models.Count('id'))
+        types = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True).values('employment_type').annotate(count=models.Count('id'))
         for emp_type in types:
             employment_type_distribution[emp_type['employment_type']] = emp_type['count']
         unit_distribution = {}
-        units = queryset.values('unit__code').annotate(count=models.Count('id'))
+        units = Employment.objects.filter(tenant_id=tenant_id, is_current=True, is_deleted=False, is_active=True).values('position__unit__name').annotate(count=models.Count('id'))
         for unit in units:
-            if unit['unit__code']:
-                unit_distribution[unit['unit__code']] = unit['count']
+            unit_name = unit['position__unit__name'] or 'General / Cross-functional'
+            unit_distribution[unit_name] = unit['count']
         return Response({
             'total_current_employments': total_current,
             'manager_count': managers,

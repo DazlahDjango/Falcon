@@ -186,8 +186,7 @@ class DepartmentTreeViewSet(BaseStructureReadOnlyViewSet):
     @action(detail=False, methods=['get'], url_path='full')
     def get_full_tree(self, request):
         from apps.structure.services.hierarchy.tree_builder import TreeBuilder
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         tree_builder = TreeBuilder()
         tree = tree_builder.build_full_tree(tenant_id)
         return Response({
@@ -199,8 +198,7 @@ class DepartmentTreeViewSet(BaseStructureReadOnlyViewSet):
     @action(detail=False, methods=['get'], url_path='branch/(?P<department_id>[0-9a-f-]+)')
     def get_branch(self, request, department_id=None):
         from apps.structure.services.hierarchy.tree_builder import TreeBuilder
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         tree_builder = TreeBuilder()
         branch = tree_builder.get_branch(UUID(department_id), tenant_id, 'department')
         if not branch:
@@ -213,8 +211,7 @@ class DepartmentTreeViewSet(BaseStructureReadOnlyViewSet):
     @action(detail=False, methods=['get'], url_path='path/(?P<department_id>[0-9a-f-]+)')
     def get_path(self, request, department_id=None):
         from apps.structure.models.department import Department
-        from .base import get_request_tenant_id
-        tenant_id = get_request_tenant_id(request)
+        tenant_id = request.user.tenant_id
         department = Department.objects.filter(id=department_id, tenant_id=tenant_id, is_deleted=False).first()
         if not department:
             return Response({'error': 'Department not found'}, status=status.HTTP_404_NOT_FOUND)

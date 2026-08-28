@@ -150,6 +150,9 @@ class IsOwnerOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         
+        if request.user and (request.user.is_superuser or getattr(request.user, 'role', '').lower() in ['super_admin', 'client_admin']):
+            return True
+        
         user_id = getattr(obj, 'user_id', None)
         if user_id:
             return user_id == request.user.id

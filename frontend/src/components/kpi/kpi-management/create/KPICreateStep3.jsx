@@ -84,10 +84,6 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
                         <label>Decimal Places</label>
                         <span>{data.decimal_places}</span>
                     </div>
-                    <div className="review-item">
-                        <label>Target Range</label>
-                        <span>{formatTargetRange()}</span>
-                    </div>
                 </div>
             </div>
             

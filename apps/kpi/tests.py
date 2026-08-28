@@ -34,7 +34,6 @@ class KPICascadeTests(TestCase):
         self.category = KPICategory.objects.create(
             tenant_id=self.tenant_id,
             name="Financials",
-            code="FIN",
             category_type="FINANCIAL"
         )
         
@@ -43,7 +42,6 @@ class KPICascadeTests(TestCase):
         creator = KPICreator()
         kpi_data = {
             'name': 'Gross Revenue Target',
-            'code': 'REV_001',
             'category_id': self.category.id,
             'kpi_type': 'FINANCIAL',
             'owner_id': self.user.id,
@@ -51,7 +49,7 @@ class KPICascadeTests(TestCase):
             'target_max': Decimal('50000.00')
         }
         kpi = creator.create(kpi_data, self.user)
-        self.assertEqual(kpi.code, 'REV_001')
+        self.assertEqual(kpi.name, 'Gross Revenue Target')
         self.assertFalse(hasattr(kpi, 'framework'))
         self.assertFalse(hasattr(kpi, 'sector'))
         
