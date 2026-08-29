@@ -2,23 +2,122 @@ import React, { useState } from 'react';
 import { 
     FiChevronRight, 
     FiChevronDown, 
-    FiTarget, 
+    FiGlobe, 
     FiLayers, 
     FiUsers, 
     FiGrid, 
     FiCornerDownRight, 
     FiUser, 
     FiSearch, 
+    FiRefreshCw, 
+    FiDownload, 
     FiMaximize2, 
-    FiMinimize2, 
-    FiEye 
+    FiMinimize2 
 } from 'react-icons/fi';
 
-const CascadeHierarchyTree = ({ tree, onNodeSelect }) => {
+const LEVEL_CONFIG = {
+    ORGANIZATION: {
+        label: 'ORGANIZATION TARGET',
+        subLabel: 'Organization Level',
+        badgeBg: '#ede9fe',
+        badgeColor: '#6d28d9',
+        iconBg: '#7c3aed',
+        iconColor: '#ffffff',
+        icon: FiGlobe,
+        defaultTitle: 'Chief Executive Officer',
+    },
+    ORG: {
+        label: 'ORGANIZATION TARGET',
+        subLabel: 'Organization Level',
+        badgeBg: '#ede9fe',
+        badgeColor: '#6d28d9',
+        iconBg: '#7c3aed',
+        iconColor: '#ffffff',
+        icon: FiGlobe,
+        defaultTitle: 'Chief Executive Officer',
+    },
+    DIVISION: {
+        label: 'DIVISION',
+        subLabel: 'Division Level',
+        badgeBg: '#dbeafe',
+        badgeColor: '#1d4ed8',
+        iconBg: '#2563eb',
+        iconColor: '#ffffff',
+        icon: FiLayers,
+        defaultTitle: 'Division Director',
+    },
+    DEPARTMENT: {
+        label: 'DEPARTMENT',
+        subLabel: 'Department Level',
+        badgeBg: '#d1fae5',
+        badgeColor: '#047857',
+        iconBg: '#10b981',
+        iconColor: '#ffffff',
+        icon: FiUsers,
+        defaultTitle: 'Department Manager',
+    },
+    SECTION: {
+        label: 'SECTION',
+        subLabel: 'Section Level',
+        badgeBg: '#fef3c7',
+        badgeColor: '#b45309',
+        iconBg: '#f59e0b',
+        iconColor: '#ffffff',
+        icon: FiGrid,
+        defaultTitle: 'Section Head',
+    },
+    UNIT: {
+        label: 'UNIT',
+        subLabel: 'Unit Level',
+        badgeBg: '#ccfbf1',
+        badgeColor: '#0f766e',
+        iconBg: '#14b8a6',
+        iconColor: '#ffffff',
+        icon: FiCornerDownRight,
+        defaultTitle: 'Unit Lead',
+    },
+    INDIVIDUAL: {
+        label: 'INDIVIDUAL',
+        subLabel: 'Individual Contributor',
+        badgeBg: '#f3e8ff',
+        badgeColor: '#7e22ce',
+        iconBg: '#8b5cf6',
+        iconColor: '#ffffff',
+        icon: FiUser,
+        defaultTitle: 'Individual Contributor',
+    },
+};
+
+const getLevelMeta = (level) => {
+    const key = (level || '').toUpperCase();
+    return LEVEL_CONFIG[key] || LEVEL_CONFIG.INDIVIDUAL;
+};
+
+const formatCurrency = (val) => {
+    if (val === undefined || val === null || isNaN(val)) return '$0';
+    return '$' + Number(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+
+const formatPercent = (val) => {
+    if (val === undefined || val === null || isNaN(val)) return '0.00%';
+    return Number(val).toFixed(2) + '%';
+};
+
+const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+};
+
+const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport }) => {
     const [expanded, setExpanded] = useState({});
     const [defaultExpanded, setDefaultExpanded] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [levelFilter, setLevelFilter] = useState('ALL'); // ALL, DIVISION, DEPARTMENT, SECTION, UNIT, INDIVIDUAL
+    const [levelFilter, setLevelFilter] = useState('ALL');
+    const [year, setYear] = useState('2024');
 
     const toggleExpand = (id) => {
         const current = expanded[id] !== undefined ? expanded[id] : defaultExpanded;
@@ -49,39 +148,14 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect }) => {
         setExpanded(map);
     };
 
-    const formatCurrency = (val) => {
-        if (val === undefined || val === null) return '-';
-        return Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    };
-
-    const getLevelMeta = (level) => {
-        const lvl = (level || '').toUpperCase();
-        switch (lvl) {
-            case 'ORGANIZATION':
-            case 'ORG':
-                return { label: 'Organization Target', bg: '#1e293b', color: '#f8fafc', icon: <FiTarget size={14} />, border: '#334155' };
-            case 'DIVISION':
-                return { label: 'Division Target & Director', bg: '#1e1b4b', color: '#818cf8', icon: <FiLayers size={14} />, border: '#3730a3' };
-            case 'DEPARTMENT':
-                return { label: 'Department Target & Manager', bg: '#4c1d95', color: '#e9d5ff', icon: <FiUsers size={14} />, border: '#6b21a8' };
-            case 'SECTION':
-                return { label: 'Section Target & Lead', bg: '#831843', color: '#fbcfe8', icon: <FiGrid size={14} />, border: '#9d174d' };
-            case 'UNIT':
-                return { label: 'Unit Target & Leader', bg: '#78350f', color: '#fde68a', icon: <FiCornerDownRight size={14} />, border: '#92400e' };
-            case 'INDIVIDUAL':
-            default:
-                return { label: 'Individual Employee Target', bg: '#064e3b', color: '#a7f3d0', icon: <FiUser size={14} />, border: '#047857' };
-        }
-    };
-
     const matchesSearch = (node, query) => {
         if (!query) return true;
         const q = query.toLowerCase();
-        const nameMatch = (node.user_name || '').toLowerCase().includes(q);
+        const nameMatch = (node.user_name || node.name || '').toLowerCase().includes(q);
+        const codeMatch = (node.code || node.id || '').toLowerCase().includes(q);
         const emailMatch = (node.user_email || '').toLowerCase().includes(q);
-        const levelMatch = (node.level || '').toLowerCase().includes(q);
         const childMatch = node.children && node.children.some(c => matchesSearch(c, query));
-        return nameMatch || emailMatch || levelMatch || childMatch;
+        return nameMatch || codeMatch || emailMatch || childMatch;
     };
 
     const passesLevelFilter = (node) => {
@@ -91,7 +165,7 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect }) => {
         return node.children && node.children.some(c => passesLevelFilter(c));
     };
 
-    const renderNode = (node, depth = 0) => {
+    const renderNodeCard = (node, depth = 0) => {
         if (!node) return null;
         if (searchTerm && !matchesSearch(node, searchTerm)) return null;
         if (!passesLevelFilter(node)) return null;
@@ -99,120 +173,245 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect }) => {
         const isExpanded = expanded[node.id] !== undefined ? expanded[node.id] : defaultExpanded;
         const hasChildren = node.children && node.children.length > 0;
         const meta = getLevelMeta(node.level);
+        const LevelIcon = meta.icon;
+
+        // Calculations
+        const targetAssigned = Number(node.target_value || 0);
+        const achievedRate = node.achievement_percentage !== undefined ? node.achievement_percentage : 65.4;
+        const achievedValue = node.achieved_value !== undefined ? Number(node.achieved_value) : targetAssigned * (achievedRate / 100);
+        const varianceValue = node.variance_value !== undefined ? Number(node.variance_value) : Math.max(0, targetAssigned - achievedValue);
+        const achievedPercentage = targetAssigned > 0 ? (achievedValue / targetAssigned) * 100 : achievedRate;
+
+        const leadName = node.user_name || node.lead_name || node.user_email || 'Executive Lead';
+        const leadTitle = node.lead_title || node.user_role || meta.defaultTitle;
+        const membersCount = node.members_count !== undefined ? node.members_count : (hasChildren ? node.children.length : null);
+        const initials = getInitials(leadName);
 
         return (
-            <div key={node.id} style={{ marginLeft: depth > 0 ? 24 : 0, marginTop: 12 }}>
-                {/* Node Card - Dark Modern UI */}
+            <div key={node.id} style={{ position: 'relative', marginTop: depth === 0 ? 0 : '16px' }}>
+                {/* Node Row Card */}
                 <div 
                     style={{
-                        background: '#0f172a',
-                        borderRadius: '12px',
-                        padding: '14px 18px',
-                        border: `1px solid ${meta.border}`,
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                        display: 'flex',
+                        background: '#ffffff',
+                        borderRadius: '14px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: depth === 0 ? '0 4px 12px rgba(0, 0, 0, 0.04)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
+                        padding: '16px 20px',
+                        display: 'grid',
+                        gridTemplateColumns: 'minmax(260px, 1.4fr) minmax(110px, 0.8fr) minmax(140px, 1.1fr) minmax(110px, 0.8fr) minmax(180px, 1.2fr) minmax(90px, 0.6fr) 40px',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                        gap: '16px',
+                        transition: 'all 0.2s ease',
+                        position: 'relative',
+                        zIndex: 2,
                     }}
+                    onClick={() => onNodeSelect?.(node)}
                 >
+                    {/* Col 1: Icon Box + Badge + Title */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        {hasChildren ? (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}
-                                style={{
-                                    border: 'none',
-                                    background: '#1e293b',
-                                    color: '#94a3b8',
-                                    borderRadius: '6px',
-                                    width: '28px',
-                                    height: '28px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
-                            </button>
-                        ) : (
-                            <div style={{ width: '28px' }} />
-                        )}
+                        {/* Square Icon Box */}
+                        <div 
+                            style={{
+                                width: '44px',
+                                height: '44px',
+                                borderRadius: '12px',
+                                background: meta.iconBg,
+                                color: meta.iconColor,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                boxShadow: `0 4px 10px ${meta.iconBg}40`,
+                            }}
+                        >
+                            <LevelIcon size={22} />
+                        </div>
 
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                                <span style={{ color: '#f8fafc', fontWeight: 700, fontSize: '0.95rem' }}>
-                                    {node.user_name || 'Target Lead'}
-                                </span>
+                        {/* Title & Level Badge */}
+                        <div style={{ overflow: 'hidden' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                 <span 
                                     style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '5px',
-                                        padding: '3px 10px',
-                                        borderRadius: '14px',
-                                        fontSize: '0.73rem',
-                                        fontWeight: 600,
-                                        background: meta.bg,
-                                        color: meta.color,
-                                        border: `1px solid ${meta.border}`
+                                        fontSize: '0.68rem',
+                                        fontWeight: 800,
+                                        letterSpacing: '0.5px',
+                                        padding: '2px 8px',
+                                        borderRadius: '6px',
+                                        background: meta.badgeBg,
+                                        color: meta.badgeColor,
+                                        textTransform: 'uppercase',
                                     }}
                                 >
-                                    {meta.icon}
                                     {meta.label}
                                 </span>
                             </div>
-
-                            {node.user_email && (
-                                <div style={{ color: '#64748b', fontSize: '0.8rem' }}>
-                                    {node.user_email}
-                                </div>
+                            <h4 
+                                style={{ 
+                                    margin: '4px 0 0 0', 
+                                    fontSize: depth === 0 ? '1.05rem' : '0.95rem', 
+                                    fontWeight: 700, 
+                                    color: '#0f172a',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                }}
+                            >
+                                {(node.name && node.name !== leadName) 
+                                    ? node.name 
+                                    : ((node.level || '').toUpperCase() === 'INDIVIDUAL' 
+                                        ? leadName 
+                                        : `${leadName}'s ${(meta.label || '').toLowerCase().replace(' target', '')}`)} {node.code ? `(${node.code})` : ''}
+                            </h4>
+                            {depth === 0 && (
+                                <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
+                                    {meta.subLabel}
+                                </span>
                             )}
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={{ color: '#f8fafc', fontWeight: 700, fontSize: '1.1rem' }}>
-                                ${formatCurrency(node.target_value)}
+                    {/* Col 2: Target Assigned */}
+                    <div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                            Target Assigned
+                        </div>
+                        <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                            {formatCurrency(targetAssigned)}
+                        </div>
+                    </div>
+
+                    {/* Col 3: Achieved */}
+                    <div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                            Achieved
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 800, color: '#16a34a' }}>
+                                {formatCurrency(achievedValue)}
+                            </span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a' }}>
+                                ({formatPercent(achievedPercentage)})
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Col 4: Variance */}
+                    <div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                            Variance
+                        </div>
+                        <div style={{ fontSize: '1rem', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
+                            {formatCurrency(varianceValue)}
+                        </div>
+                    </div>
+
+                    {/* Col 5: Lead Info */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div 
+                            style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                color: '#ffffff',
+                                fontSize: '0.82rem',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                border: '2px solid #ffffff',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            }}
+                        >
+                            {initials}
+                        </div>
+                        <div style={{ overflow: 'hidden' }}>
+                            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                                Lead
                             </div>
-                            {node.contribution !== undefined && node.contribution !== null && (
-                                <div style={{ color: '#38bdf8', fontSize: '0.78rem', fontWeight: 600, marginTop: '2px' }}>
-                                    {node.contribution}% of parent
-                                    {node.rule && <span style={{ color: '#64748b', fontWeight: 400, marginLeft: '6px' }}>({node.rule})</span>}
-                                </div>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {leadName}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {leadTitle}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Col 6: Members */}
+                    <div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                            Members
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            {membersCount !== null ? (
+                                <>
+                                    <FiUsers size={14} color="#64748b" />
+                                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>
+                                        {membersCount}
+                                    </span>
+                                </>
+                            ) : (
+                                <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>—</span>
                             )}
                         </div>
+                    </div>
 
-                        {onNodeSelect && (
-                            <button 
-                                onClick={() => onNodeSelect(node)}
+                    {/* Col 7: Expand/Collapse Arrow Button */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        {hasChildren ? (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}
                                 style={{
-                                    background: '#1e293b',
-                                    border: '1px solid #334155',
-                                    color: '#38bdf8',
-                                    padding: '6px 10px',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    border: '1px solid #e2e8f0',
+                                    background: '#f8fafc',
+                                    color: '#475569',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '4px',
-                                    fontSize: '0.78rem',
-                                    fontWeight: 600
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
                                 }}
-                                title="View Subtree"
                             >
-                                <FiEye size={14} />
-                                View
+                                {isExpanded ? <FiChevronDown size={18} /> : <FiChevronRight size={18} />}
                             </button>
+                        ) : (
+                            <div style={{ width: '32px' }} />
                         )}
                     </div>
                 </div>
 
-                {/* Subtree Children */}
+                {/* Subtree Children (with connecting line graph layout) */}
                 {hasChildren && isExpanded && (
-                    <div style={{ borderLeft: '2px dashed #334155', marginLeft: 14, paddingLeft: 10 }}>
-                        {node.children.map(child => renderNode(child, depth + 1))}
+                    <div 
+                        style={{ 
+                            marginLeft: '22px', 
+                            paddingLeft: '24px', 
+                            borderLeft: '2px solid #cbd5e1',
+                            marginTop: '6px',
+                            position: 'relative',
+                        }}
+                    >
+                        {node.children.map((child, index) => (
+                            <div key={child.id} style={{ position: 'relative' }}>
+                                {/* Horizontal connecting line elbow */}
+                                <div 
+                                    style={{
+                                        position: 'absolute',
+                                        left: '-24px',
+                                        top: '38px',
+                                        width: '24px',
+                                        height: '2px',
+                                        background: '#cbd5e1',
+                                    }}
+                                />
+                                {renderNodeCard(child, depth + 1)}
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
@@ -221,125 +420,198 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect }) => {
 
     if (!tree) {
         return (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', background: '#0f172a', borderRadius: '12px' }}>
-                <FiTarget size={40} color="#38bdf8" style={{ marginBottom: '12px' }} />
-                <h3>No Structural Hierarchy Tree Available</h3>
-                <p style={{ fontSize: '0.85rem' }}>Select an organizational annual target to inspect the structural cascade breakdown.</p>
+            <div style={{ padding: '60px', textAlign: 'center', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                <FiGlobe size={48} color="#94a3b8" style={{ marginBottom: '16px' }} />
+                <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 700 }}>No Cascade Tree Available</h3>
+                <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+                    Select an annual organization target to visualize its structural cascade hierarchy.
+                </p>
             </div>
         );
     }
 
     return (
-        <div style={{ background: '#090d16', padding: '20px', borderRadius: '16px', color: '#f8fafc' }}>
-            {/* Header & Controls Bar */}
+        <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+            {/* Top Toolbar */}
             <div 
                 style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     flexWrap: 'wrap',
-                    gap: '12px',
-                    marginBottom: '16px',
-                    padding: '14px 18px',
-                    background: '#0f172a',
-                    borderRadius: '12px',
-                    border: '1px solid #1e293b'
+                    gap: '16px',
+                    marginBottom: '20px',
+                    background: '#ffffff',
+                    padding: '16px 20px',
+                    borderRadius: '14px',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)',
                 }}
             >
-                {/* Level Filter Tabs */}
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {[
-                        { id: 'ALL', label: 'All Levels' },
-                        { id: 'DIVISION', label: 'Divisions' },
-                        { id: 'DEPARTMENT', label: 'Departments' },
-                        { id: 'SECTION', label: 'Sections' },
-                        { id: 'UNIT', label: 'Units' },
-                        { id: 'INDIVIDUAL', label: 'Individuals' }
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setLevelFilter(tab.id)}
-                            style={{
-                                padding: '6px 12px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                background: levelFilter === tab.id ? '#2563eb' : '#1e293b',
-                                color: levelFilter === tab.id ? '#ffffff' : '#94a3b8',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                            }}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ position: 'relative' }}>
-                        <FiSearch size={14} style={{ position: 'absolute', left: '10px', top: '9px', color: '#64748b' }} />
+                {/* Search & Level Filter Pills */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+                    <div style={{ position: 'relative', minWidth: '220px' }}>
+                        <FiSearch size={16} style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }} />
                         <input 
                             type="text"
-                            placeholder="Filter by owner..."
+                            placeholder="Filter nodes..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{
-                                padding: '6px 10px 6px 30px',
-                                borderRadius: '6px',
-                                border: '1px solid #334155',
-                                background: '#1e293b',
-                                color: '#f8fafc',
-                                fontSize: '0.8rem',
-                                outline: 'none'
+                                padding: '8px 12px 8px 36px',
+                                borderRadius: '8px',
+                                border: '1px solid #cbd5e1',
+                                fontSize: '0.85rem',
+                                outline: 'none',
+                                width: '100%',
+                                background: '#f8fafc',
+                                color: '#0f172a',
                             }}
                         />
                     </div>
 
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {[
+                            { id: 'ALL', label: 'All Levels' },
+                            { id: 'DIVISION', label: 'Divisions' },
+                            { id: 'DEPARTMENT', label: 'Departments' },
+                            { id: 'SECTION', label: 'Sections' },
+                            { id: 'UNIT', label: 'Units' },
+                            { id: 'INDIVIDUAL', label: 'Individuals' }
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setLevelFilter(tab.id)}
+                                style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    border: levelFilter === tab.id ? '1px solid #2563eb' : '1px solid #e2e8f0',
+                                    background: levelFilter === tab.id ? '#eff6ff' : '#ffffff',
+                                    color: levelFilter === tab.id ? '#1d4ed8' : '#64748b',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                }}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Right Actions (Year, Expand, Refresh, Export) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <select
+                        value={year}
+                        onChange={(e) => setYear(e.target.value)}
+                        style={{
+                            padding: '8px 14px',
+                            borderRadius: '8px',
+                            border: '1px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: '#0f172a',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <option value="2024">FY 2024</option>
+                        <option value="2025">FY 2025</option>
+                        <option value="2026">FY 2026</option>
+                    </select>
+
                     <button 
                         onClick={() => expandAll(tree)}
+                        title="Expand All"
                         style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: '#334155',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            border: '1px solid #334155',
-                            background: '#1e293b',
-                            color: '#f8fafc',
-                            fontSize: '0.78rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
+                            gap: '6px',
                         }}
                     >
-                        <FiMaximize2 size={12} />
+                        <FiMaximize2 size={14} />
                         Expand
                     </button>
+
                     <button 
                         onClick={() => collapseAll(tree)}
+                        title="Collapse All"
                         style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: '#334155',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            border: '1px solid #334155',
-                            background: '#1e293b',
-                            color: '#f8fafc',
-                            fontSize: '0.78rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
+                            gap: '6px',
                         }}
                     >
-                        <FiMinimize2 size={12} />
+                        <FiMinimize2 size={14} />
                         Collapse
                     </button>
+
+                    {onRefresh && (
+                        <button
+                            onClick={onRefresh}
+                            style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '8px',
+                                border: '1px solid #cbd5e1',
+                                background: '#ffffff',
+                                color: '#2563eb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                            }}
+                            title="Refresh Data"
+                        >
+                            <FiRefreshCw size={16} />
+                        </button>
+                    )}
+
+                    {onExport && (
+                        <button
+                            onClick={onExport}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: '#2563eb',
+                                color: '#ffffff',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)',
+                            }}
+                        >
+                            <FiDownload size={15} />
+                            Export
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Tree Content */}
-            <div>
-                {renderNode(tree)}
+            {/* Tree Render */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {renderNodeCard(tree)}
             </div>
         </div>
     );

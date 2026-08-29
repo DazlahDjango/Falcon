@@ -7,6 +7,7 @@ from apps.kpi.models import AnnualTarget, CascadeMap, CascadeRule, CascadeHistor
 from .split_rule import SplitRules
 from .validators import CascadeValidator
 
+# Cascade Engine for Target Allocation & Tree Building
 class CascadeEngine:
     def __init__(self, tenant_id: str = None, user_id: str = None):
         self.tenant_id = tenant_id
@@ -33,16 +34,63 @@ class CascadeEngine:
             for target_data in targets:
                 entity_type = target_data['entity_type']
                 entity_id = target_data['entity_id']
+                parent_target_id = target_data.get('parent_target_id') or target_data.get('parent_target')
+                if parent_target_id:
+                    parent_target_obj = AnnualTarget.objects.filter(id=parent_target_id, tenant_id=self.tenant_id).first() or org_target
+                else:
+                    parent_target_obj = org_target
+
                 contribution = target_data.get('contribution_percentage')
-                
                 if contribution:
-                    target_value = org_target.target_value * (Decimal(str(contribution)) / 100)
+                    target_value = parent_target_obj.target_value * (Decimal(str(contribution)) / 100)
                 else:
                     target_value = self.split_rules.calculate_target(
-                        org_target.target_value, rule, entity_id, entity_type, self.tenant_id
+                        parent_target_obj.target_value, rule, entity_id, entity_type, self.tenant_id
                     )
                 
-                target_user_id = target_data.get('user_id') or (entity_id if entity_type == 'INDIVIDUAL' else None) or org_target.user_id
+                target_user_id = target_data.get('user_id')
+                if not target_user_id:
+                    if entity_type == 'INDIVIDUAL':
+                        target_user_id = entity_id
+                    elif entity_type == 'DIVISION':
+                        from apps.structure.models import Division
+                        div = Division.objects.filter(id=entity_id, tenant_id=self.tenant_id).first()
+                        if div:
+                            target_user_id = str(div.director_id or div.manager_id or '') or None
+                    elif entity_type == 'DEPARTMENT':
+                        from apps.structure.models import Department
+                        dept = Department.objects.filter(id=entity_id, tenant_id=self.tenant_id).first()
+                        if dept:
+                            target_user_id = str(dept.manager_id or getattr(dept, 'department_head_id', None) or '') or None
+                    elif entity_type == 'SECTION':
+                        from apps.structure.models import Section
+                        sec = Section.objects.filter(id=entity_id, tenant_id=self.tenant_id).first()
+                        if sec:
+                            target_user_id = str(getattr(sec, 'section_lead_id', None) or getattr(sec, 'manager_id', None) or '') or None
+                    elif entity_type == 'UNIT':
+                        from apps.structure.models import Unit
+                        unit = Unit.objects.filter(id=entity_id, tenant_id=self.tenant_id).first()
+                        if unit:
+                            target_user_id = str(getattr(unit, 'unit_lead_id', None) or getattr(unit, 'manager_id', None) or '') or None
+
+                if not target_user_id and entity_type != 'INDIVIDUAL':
+                    from apps.structure.models import Employment
+                    filter_kwargs = {'tenant_id': self.tenant_id, 'is_current': True}
+                    if entity_type == 'DIVISION':
+                        filter_kwargs['position__division_id'] = entity_id
+                    elif entity_type == 'DEPARTMENT':
+                        filter_kwargs['position__department_id'] = entity_id
+                    elif entity_type == 'SECTION':
+                        filter_kwargs['position__section_id'] = entity_id
+                    elif entity_type == 'UNIT':
+                        filter_kwargs['position__unit_id'] = entity_id
+                    emp = Employment.objects.filter(**filter_kwargs).first()
+                    if emp:
+                        target_user_id = str(emp.user_id)
+
+                if not target_user_id:
+                    target_user_id = org_target.user_id
+
                 target_obj, _ = AnnualTarget.objects.update_or_create(
                     tenant_id=self.tenant_id,
                     kpi=org_target.kpi,
@@ -50,15 +98,9 @@ class CascadeEngine:
                     year=org_target.year,
                     defaults={
                         'target_value': target_value,
-                        'notes': f"Cascaded from organization target {org_target.id}"
+                        'notes': f"Cascaded [{entity_type}:{entity_id}] from target {parent_target_obj.id}"
                     }
                 )
-                
-                parent_target_id = target_data.get('parent_target_id') or target_data.get('parent_target')
-                if parent_target_id:
-                    parent_target_obj = AnnualTarget.objects.filter(id=parent_target_id, tenant_id=self.tenant_id).first() or org_target
-                else:
-                    parent_target_obj = org_target
 
                 map_kwargs = {
                     'tenant_id': self.tenant_id,
@@ -83,6 +125,7 @@ class CascadeEngine:
                 cascade_map, _ = CascadeMap.objects.update_or_create(
                     tenant_id=self.tenant_id,
                     organization_target=org_target,
+                    parent_target=parent_target_obj,
                     child_target=target_obj,
                     defaults=map_kwargs
                 )

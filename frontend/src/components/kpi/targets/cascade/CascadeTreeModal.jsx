@@ -1,33 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { FiX, FiRefreshCw } from 'react-icons/fi';
 import CascadeTree from './CascadeTree';
 import KPILoading from '../../common/KPILoading';
 import KPIError from '../../common/KPIError';
-import { targetService } from '../../../../services/kpi/target.service';
+import { useTargetCascade } from '../../../../hooks/kpi';
 
 const CascadeTreeModal = ({ targetId, targetName, onClose }) => {
-    const [tree, setTree] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { cascadeTree, loading, error, loadCascadeTree } = useTargetCascade();
 
-    const loadTree = async () => {
-        if (!targetId) return;
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await targetService.getCascadeTree(targetId);
-            setTree(data?.data && typeof data.data === 'object' && 'id' in data.data ? data.data : data);
-        } catch (err) {
-            console.error('Failed to load cascade tree:', err);
-            setError(err?.message || err?.error || 'Failed to load target cascade tree.');
-        } finally {
-            setLoading(false);
+    const handleRefresh = () => {
+        if (targetId) {
+            loadCascadeTree(targetId);
         }
     };
 
     useEffect(() => {
-        loadTree();
-    }, [targetId]);
+        if (targetId) {
+            loadCascadeTree(targetId);
+        }
+    }, [targetId, loadCascadeTree]);
 
     return (
         <div
@@ -83,7 +74,7 @@ const CascadeTreeModal = ({ targetId, targetName, onClose }) => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button
-                            onClick={loadTree}
+                            onClick={handleRefresh}
                             disabled={loading}
                             style={{
                                 background: '#334155',
@@ -116,9 +107,9 @@ const CascadeTreeModal = ({ targetId, targetName, onClose }) => {
                     {loading ? (
                         <KPILoading text="Loading cascade tree..." />
                     ) : error ? (
-                        <KPIError message={error} onRetry={loadTree} />
+                        <KPIError message={typeof error === 'string' ? error : (error?.message || 'Failed to load target cascade tree.')} onRetry={handleRefresh} />
                     ) : (
-                        <CascadeTree tree={tree} />
+                        <CascadeTree tree={cascadeTree} />
                     )}
                 </div>
 

@@ -249,17 +249,36 @@ const cascadeSlice = createSlice({
       })
       
       // Create Cascade Map
+      .addCase(createCascadeMap.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
       .addCase(createCascadeMap.fulfilled, (state, action) => {
-        state.cascadeMaps.push(action.payload);
+        state.submitting = false;
+        if (Array.isArray(action.payload)) {
+          state.cascadeMaps.unshift(...action.payload);
+        } else if (action.payload) {
+          state.cascadeMaps.unshift(action.payload);
+        }
+      })
+      .addCase(createCascadeMap.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload;
       })
       
       // Cascade to Department
       .addCase(cascadeToDepartment.pending, (state) => {
         state.submitting = true;
+        state.error = null;
       })
       .addCase(cascadeToDepartment.fulfilled, (state, action) => {
         state.submitting = false;
         state.currentMap = action.payload;
+        if (Array.isArray(action.payload)) {
+          state.cascadeMaps.unshift(...action.payload);
+        } else if (action.payload) {
+          state.cascadeMaps.unshift(action.payload);
+        }
       })
       .addCase(cascadeToDepartment.rejected, (state, action) => {
         state.submitting = false;
@@ -269,6 +288,7 @@ const cascadeSlice = createSlice({
       // Get Cascade Tree
       .addCase(getCascadeTree.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(getCascadeTree.fulfilled, (state, action) => {
         state.loading = false;
@@ -280,9 +300,17 @@ const cascadeSlice = createSlice({
       })
       
       // Rollback Cascade Map
+      .addCase(rollbackCascadeMap.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
       .addCase(rollbackCascadeMap.fulfilled, (state, action) => {
-        // Refresh maps or remove the rolled back map
-        state.cascadeMaps = state.cascadeMaps.filter(m => m.id !== action.meta.arg);
+        state.submitting = false;
+        state.cascadeMaps = state.cascadeMaps.filter(m => String(m.id) !== String(action.meta.arg));
+      })
+      .addCase(rollbackCascadeMap.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload;
       });
   },
 });
@@ -291,7 +319,7 @@ export const {
   clearCurrentRule,
   clearCurrentMap,
   clearCascadeTree,
-  clearErrors,
+  clearErrors: clearCascadeErrors,
   setCascadeRules,
 } = cascadeSlice.actions;
 

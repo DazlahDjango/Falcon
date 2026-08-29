@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiTrash2, FiSave } from 'react-icons/fi';
 import { useCascadeRules, useReferenceData } from '../../../../hooks/kpi';
-import { divisionService, departmentService, sectionService, unitService, employmentService } from '../../../../services/structure';
+import { useDivisions, useDepartments, useSections, useUnits, useEmployments } from '../../../../hooks/structure';
 
 const normalizeList = (data) => {
     if (!data) return [];
@@ -15,6 +15,12 @@ const normalizeList = (data) => {
 const CascadeMapping = ({ orgTarget, onCascade, loading }) => {
     const { rules } = useCascadeRules();
     const { users } = useReferenceData(['users']);
+
+    const { items: divisions } = useDivisions();
+    const { items: departments } = useDepartments();
+    const { items: sections } = useSections();
+    const { items: units } = useUnits();
+    const { items: rawEmployments } = useEmployments();
 
     const [targetType, setTargetType] = useState('DEPARTMENT');
     const [selectedRule, setSelectedRule] = useState('');
@@ -31,40 +37,17 @@ const CascadeMapping = ({ orgTarget, onCascade, loading }) => {
     }, [rules]);
 
     useEffect(() => {
-        const loadEmployments = async () => {
-            try {
-                let data;
-                try {
-                    data = await employmentService.getCurrent();
-                } catch (e) {
-                    data = await employmentService.list({ is_current: true, is_active: true });
-                }
-                setEmployments(normalizeList(data));
-            } catch (err) {
-                console.warn('Could not load detailed employments for filtering', err);
-                setEmployments([]);
-            }
-        };
-        loadEmployments();
-    }, []);
+        setEmployments(normalizeList(rawEmployments));
+    }, [rawEmployments]);
 
     useEffect(() => {
-        const loadEntities = async () => {
-            try {
-                let data;
-                if (targetType === 'DIVISION') data = await divisionService.list({ is_active: true });
-                else if (targetType === 'DEPARTMENT') data = await departmentService.list({ is_active: true });
-                else if (targetType === 'SECTION') data = await sectionService.list({ is_active: true });
-                else if (targetType === 'UNIT') data = await unitService.list({ is_active: true });
-                setEntities(normalizeList(data));
-            } catch (err) {
-                console.error(err);
-                setEntities([]);
-            }
-        };
-        if (targetType !== 'INDIVIDUAL') loadEntities();
+        if (targetType === 'DIVISION') setEntities(normalizeList(divisions));
+        else if (targetType === 'DEPARTMENT') setEntities(normalizeList(departments));
+        else if (targetType === 'SECTION') setEntities(normalizeList(sections));
+        else if (targetType === 'UNIT') setEntities(normalizeList(units));
+        else setEntities([]);
         setAllocations([]);
-    }, [targetType]);
+    }, [targetType, divisions, departments, sections, units]);
 
     const addAllocation = () => {
         setAllocations([...allocations, { entity_id: '', user_id: '', contribution_percentage: 0 }]);

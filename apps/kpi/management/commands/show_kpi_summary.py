@@ -32,9 +32,9 @@ class Command(BaseCommand):
             '--action',
             '-a',
             type=str,
-            choices=['overall', 'list', 'cascading', 'weights', 'phasings'],
+            choices=['overall', 'list', 'cascading', 'tree', 'weights', 'phasings'],
             default='overall',
-            help='Specific KPI inspection action to run (overall, list, cascading, weights, phasings)'
+            help='Specific KPI inspection action to run (overall, list, cascading, tree, weights, phasings)'
         )
         parser.add_argument(
             '--kpi-name',
@@ -87,6 +87,8 @@ class Command(BaseCommand):
             self.show_list(tenant_id, year, kpis, all_users)
         elif action == 'cascading':
             self.show_cascading(tenant_id, year, kpis, all_users)
+        elif action == 'tree':
+            self.show_tree(tenant_id, year, kpis, all_users)
         elif action == 'weights':
             self.show_weights(tenant_id, kpis, all_users)
         elif action == 'phasings':
@@ -232,3 +234,63 @@ class Command(BaseCommand):
             self.stdout.write(f"   - Month {act.month:02d}: Actual = ${act.actual_value:,.2f} | Status = {act.status}")
 
         self.stdout.write("\n" + "=" * 85)
+
+    def show_tree(self, tenant_id, year, kpis, all_users):
+        self.stdout.write("=" * 85)
+        self.stdout.write(self.style.SUCCESS(f" TARGET CASCADE TREE HIERARCHY FOR TENANT: {tenant_id} (Year: {year})"))
+        self.stdout.write("=" * 85 + "\n")
+
+        from apps.kpi.services.cascade import TargetCascader
+
+        for k in kpis:
+            k_code = getattr(k, 'code', getattr(k, 'kpi_code', 'N/A'))
+            self.stdout.write(self.style.WARNING(f"MASTER KPI: {k.name} ({k_code})\n"))
+
+            root_target = AnnualTarget.objects.filter(
+                kpi=k,
+                tenant_id=tenant_id,
+                year=year
+            ).order_by('-target_value').first()
+
+            if not root_target:
+                self.stdout.write("   (No AnnualTarget found for this KPI)\n\n")
+                continue
+
+            cascader = TargetCascader()
+            tree_data = cascader.get_cascade_tree(str(root_target.id), tenant_id)
+
+            if not tree_data:
+                self.stdout.write("   (No cascade tree data returned)\n\n")
+                continue
+
+            def print_tree_node(node, prefix="", is_last=True, depth=0):
+                if not node:
+                    return
+
+                level = node.get('level', 'TARGET')
+                node_name = node.get('name', 'Unassigned Node')
+                lead_name = node.get('lead_name', node.get('user_name', 'Executive'))
+                target_val = node.get('target_value', 0.0)
+                val_str = f"${target_val:,.2f}"
+
+                connector = "\\-- " if is_last else "|-- "
+                branch = prefix + connector if depth > 0 else ""
+
+                if level in ['ORGANIZATION', 'DIVISION', 'DEPARTMENT', 'SECTION', 'UNIT']:
+                    title_display = f"{node_name} (Lead: {lead_name})"
+                else:
+                    title_display = lead_name
+
+                self.stdout.write(f"{branch}[{level}] {title_display} | Target: {val_str}")
+
+                children = node.get('children', [])
+                count = len(children)
+                for idx, child in enumerate(children):
+                    child_is_last = (idx == count - 1)
+                    new_prefix = prefix + ("    " if is_last else "|   ") if depth > 0 else ""
+                    print_tree_node(child, prefix=new_prefix, is_last=child_is_last, depth=depth + 1)
+
+            print_tree_node(tree_data)
+            self.stdout.write("")
+            self.stdout.write("-" * 85 + "\n")
+

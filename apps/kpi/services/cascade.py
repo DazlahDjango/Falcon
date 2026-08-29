@@ -90,9 +90,19 @@ class TargetCascader:
         if cached:
             return cached
 
-        cascade_maps = CascadeMap.objects.filter(
-            tenant_id=tenant_id,
-            organization_target_id=org_target_id
+        org_target = AnnualTarget.objects.filter(
+            id=org_target_id,
+            tenant_id=tenant_id
+        ).select_related('user', 'kpi').first()
+
+        if not org_target:
+            return {}
+
+        # Fetch all CascadeMap entries for this tenant and KPI
+        cascade_maps = list(CascadeMap.objects.filter(
+            tenant_id=tenant_id
+        ).filter(
+            Q(organization_target_id=org_target_id) | Q(parent_target__kpi=org_target.kpi) | Q(child_target__kpi=org_target.kpi)
         ).select_related(
             'department_target',
             'individual_target',
@@ -100,22 +110,59 @@ class TargetCascader:
             'section_target',
             'unit_target',
             'parent_target',
+            'parent_target__user',
+            'parent_target__kpi',
             'child_target',
+            'child_target__user',
+            'child_target__kpi',
             'cascade_rule',
             'organization_target'
-        )
+        ))
 
+        # Check if multi-level maps with parent_target_id exist
+        has_parent_maps = any(cm.parent_target_id is not None for cm in cascade_maps)
+
+        # Group maps by parent_target_id (or organization_target_id fallback if only flat maps exist)
         children_map = {}
+        seen_pairs = set()
         for cm in cascade_maps:
+            if has_parent_maps and cm.parent_target_id is None:
+                continue
             p_id = str(cm.parent_target_id) if cm.parent_target_id else str(cm.organization_target_id)
+            c_id = str(cm.child_target_id) if cm.child_target_id else None
+            if not p_id or not c_id:
+                continue
+            pair = (p_id, c_id)
+            if pair in seen_pairs:
+                continue
+            seen_pairs.add(pair)
             children_map.setdefault(p_id, []).append(cm)
 
-        org_target = AnnualTarget.objects.filter(
-            id=org_target_id,
-            tenant_id=tenant_id
-        ).select_related('user', 'kpi').first()
+        from apps.structure.models import Division, Department, Section, Unit, Employment
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user_map = {str(u.id): u for u in User.objects.filter(tenant_id=tenant_id)}
 
-        def build_node(target, depth=0, visited=None):
+        division_map = {str(d.id): d for d in Division.objects.filter(tenant_id=tenant_id, is_deleted=False)}
+        department_map = {str(d.id): d for d in Department.objects.filter(tenant_id=tenant_id, is_deleted=False)}
+        section_map = {str(s.id): s for s in Section.objects.filter(tenant_id=tenant_id, is_deleted=False)}
+        unit_map = {str(u.id): u for u in Unit.objects.filter(tenant_id=tenant_id, is_deleted=False)}
+        
+        division_lead_map = {str(d.director_id): d for d in Division.objects.filter(tenant_id=tenant_id, is_deleted=False, director_id__isnull=False)}
+        department_lead_map = {str(d.manager_id): d for d in Department.objects.filter(tenant_id=tenant_id, is_deleted=False, manager_id__isnull=False)}
+        section_lead_map = {str(s.section_lead_id): s for s in Section.objects.filter(tenant_id=tenant_id, is_deleted=False, section_lead_id__isnull=False)}
+        unit_lead_map = {str(u.unit_lead_id): u for u in Unit.objects.filter(tenant_id=tenant_id, is_deleted=False, unit_lead_id__isnull=False)}
+
+        employments = Employment.objects.filter(
+            tenant_id=tenant_id,
+            is_current=True
+        ).select_related('position__division', 'position__department', 'position__section', 'position__unit')
+
+        user_emp_map = {}
+        for emp in employments:
+            user_emp_map[str(emp.user_id)] = emp
+
+        def build_node(target, depth=0, visited=None, cascade_map=None):
             if not target:
                 return {}
             if visited is None:
@@ -125,51 +172,146 @@ class TargetCascader:
                 return {}
             visited.add(target_id)
 
-            # Determine level for node based on FKs, user role, and depth
-            user_role = str(getattr(target.user, 'role', '')).lower() if target.user else ''
+            u_id = str(target.user_id) if target.user_id else None
+            u = user_map.get(u_id) if u_id else (target.user if hasattr(target, 'user') else None)
+            emp = user_emp_map.get(u_id) if u_id else None
+            pos = emp.position if emp else None
+
+            user_full_name = u.get_full_name() if (u and u.get_full_name()) else (u.email if u else 'Executive Owner')
+            user_role = str(getattr(u, 'role', '')).lower() if u else ''
+
             if depth == 0:
                 level = 'ORGANIZATION'
-            elif 'division' in user_role or ('executive' in user_role and depth <= 1):
+                node_name = f"{target.kpi.name} Target" if (hasattr(target, 'kpi') and target.kpi) else "Organization Target"
+                code = getattr(target.kpi, 'code', '') or ''
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Chief Executive Officer"
+            elif cascade_map and cascade_map.division_target_id:
                 level = 'DIVISION'
-            elif 'department' in user_role or ('manager' in user_role and depth <= 2):
+                node_name = pos.division.name if (pos and pos.division) else (division_lead_map[u_id].name if (u_id and u_id in division_lead_map) else (division_map[str(cascade_map.division_target_id)].name if str(cascade_map.division_target_id) in division_map else "Division"))
+                code = pos.division.code if (pos and pos.division) else (division_lead_map[u_id].code if (u_id and u_id in division_lead_map) else "")
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Division Director"
+            elif cascade_map and cascade_map.department_target_id:
                 level = 'DEPARTMENT'
-            elif 'section' in user_role:
+                node_name = pos.department.name if (pos and pos.department) else (department_lead_map[u_id].name if (u_id and u_id in department_lead_map) else (department_map[str(cascade_map.department_target_id)].name if str(cascade_map.department_target_id) in department_map else "Department"))
+                code = pos.department.code if (pos and pos.department) else (department_lead_map[u_id].code if (u_id and u_id in department_lead_map) else "")
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Department Manager"
+            elif cascade_map and cascade_map.section_target_id:
                 level = 'SECTION'
-            elif 'unit' in user_role:
+                node_name = pos.section.name if (pos and pos.section) else (section_lead_map[u_id].name if (u_id and u_id in section_lead_map) else (section_map[str(cascade_map.section_target_id)].name if str(cascade_map.section_target_id) in section_map else "Section"))
+                code = pos.section.code if (pos and pos.section) else (section_lead_map[u_id].code if (u_id and u_id in section_lead_map) else "")
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Section Head"
+            elif cascade_map and cascade_map.unit_target_id:
                 level = 'UNIT'
-            elif 'supervisor' in user_role:
-                depth_levels = {1: 'DIVISION', 2: 'DEPARTMENT', 3: 'SECTION', 4: 'UNIT'}
-                level = depth_levels.get(depth, 'SECTION')
+                node_name = pos.unit.name if (pos and pos.unit) else (unit_lead_map[u_id].name if (u_id and u_id in unit_lead_map) else (unit_map[str(cascade_map.unit_target_id)].name if str(cascade_map.unit_target_id) in unit_map else "Unit"))
+                code = pos.unit.code if (pos and pos.unit) else (unit_lead_map[u_id].code if (u_id and u_id in unit_lead_map) else "")
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Unit Lead"
+            elif cascade_map and cascade_map.individual_target_id:
+                level = 'INDIVIDUAL'
+                node_name = user_full_name
+                code = ''
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Individual Contributor"
+            elif u_id and u_id in division_lead_map:
+                div = division_lead_map[u_id]
+                level = 'DIVISION'
+                node_name = div.name
+                code = div.code
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Division Director"
+            elif u_id and u_id in department_lead_map:
+                dept = department_lead_map[u_id]
+                level = 'DEPARTMENT'
+                node_name = dept.name
+                code = dept.code
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Department Manager"
+            elif u_id and u_id in section_lead_map:
+                sec = section_lead_map[u_id]
+                level = 'SECTION'
+                node_name = sec.name
+                code = sec.code
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Section Head"
+            elif u_id and u_id in unit_lead_map:
+                unit_obj = unit_lead_map[u_id]
+                level = 'UNIT'
+                node_name = unit_obj.name
+                code = unit_obj.code
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Unit Lead"
+            elif emp and emp.is_executive:
+                level = 'DIVISION'
+                node_name = pos.division.name if (pos and pos.division) else f"{user_full_name}'s Division"
+                code = pos.division.code if (pos and pos.division) else ''
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Executive Director"
+            elif emp and emp.is_manager:
+                level = 'DEPARTMENT'
+                node_name = pos.department.name if (pos and pos.department) else f"{user_full_name}'s Department"
+                code = pos.department.code if (pos and pos.department) else ''
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Department Manager"
+            elif emp and emp.is_team_lead:
+                if pos and pos.section:
+                    level = 'SECTION'
+                    node_name = pos.section.name
+                    code = pos.section.code
+                    lead_title = pos.title or "Section Head"
+                elif pos and pos.unit:
+                    level = 'UNIT'
+                    node_name = pos.unit.name
+                    code = pos.unit.code
+                    lead_title = pos.title or "Unit Lead"
+                else:
+                    level = 'SECTION'
+                    node_name = f"{user_full_name}'s Section"
+                    code = ''
+                    lead_title = "Team Lead"
+                lead_name = user_full_name
+            elif 'division' in user_role:
+                level = 'DIVISION'
+                node_name = pos.division.name if (pos and pos.division) else f"{user_full_name}'s Division"
+                code = pos.division.code if (pos and pos.division) else ''
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Division Director"
+            elif 'department' in user_role:
+                level = 'DEPARTMENT'
+                node_name = pos.department.name if (pos and pos.department) else f"{user_full_name}'s Department"
+                code = pos.department.code if (pos and pos.department) else ''
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Department Manager"
             else:
-                depth_levels = {1: 'DIVISION', 2: 'DEPARTMENT', 3: 'SECTION', 4: 'UNIT'}
-                level = depth_levels.get(depth, 'INDIVIDUAL')
+                level = 'INDIVIDUAL'
+                node_name = user_full_name
+                code = ''
+                lead_name = user_full_name
+                lead_title = getattr(pos, 'title', None) or "Individual Contributor"
 
             node = {
                 'id': target_id,
+                'name': node_name,
+                'code': code,
                 'target_value': float(target.target_value),
-                'user_id': str(target.user_id) if target.user_id else None,
-                'user_name': target.user.get_full_name() if (target.user and target.user.get_full_name()) else (target.user.email if target.user else 'Executive Owner'),
-                'user_email': target.user.email if target.user else None,
+                'user_id': u_id,
+                'user_name': user_full_name,
+                'user_email': u.email if u else None,
+                'lead_name': lead_name,
+                'lead_title': lead_title,
                 'level': level,
                 'children': []
             }
             for cm in children_map.get(target_id, []):
                 child = cm.child_target or cm.individual_target or cm.department_target or cm.division_target or cm.section_target or cm.unit_target
                 if child and str(child.id) not in visited:
-                    child_node = build_node(child, depth + 1, visited.copy())
+                    child_node = build_node(child, depth + 1, visited.copy(), cascade_map=cm)
                     if child_node:
                         child_node['contribution'] = float(cm.contribution_percentage)
                         child_node['rule'] = cm.cascade_rule.name if cm.cascade_rule else 'Default'
-                        
-                        if cm.division_target_id:
-                            child_node['level'] = 'DIVISION'
-                        elif cm.department_target_id:
-                            child_node['level'] = 'DEPARTMENT'
-                        elif cm.section_target_id:
-                            child_node['level'] = 'SECTION'
-                        elif cm.unit_target_id:
-                            child_node['level'] = 'UNIT'
-
                         node['children'].append(child_node)
             return node
 
