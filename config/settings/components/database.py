@@ -55,4 +55,4 @@ DATABASE_ROUTERS = [
 # Tenant Connection & Multi-Tenant Schema Caching Configuration
 TENANT_SCHEMA_CACHE_TTL = env.int('TENANT_SCHEMA_CACHE_TTL', default=300)
 ENABLE_PGBOUNCER_MODE = env.bool('ENABLE_PGBOUNCER_MODE', default=True)
-CONNECTION_METRICS_ASYNC = env.bool('CONNECTION_METRICS_ASYNC', default=False)
+CONNECTION_METRICS_ASYNC = env.bool('CONNECTION_METRICS_ASYNC', default=True)

@@ -102,6 +102,9 @@ class CascadeEngine:
                     }
                 )
 
+                if str(target_obj.id) == str(parent_target_obj.id) or str(target_obj.user_id) == str(parent_target_obj.user_id):
+                    continue
+
                 map_kwargs = {
                     'tenant_id': self.tenant_id,
                     'organization_target': org_target,
@@ -121,6 +124,11 @@ class CascadeEngine:
                     map_kwargs['unit_target'] = target_obj
                 elif entity_type == 'INDIVIDUAL':
                     map_kwargs['individual_target'] = target_obj
+
+                CascadeMap.objects.filter(
+                    tenant_id=self.tenant_id,
+                    child_target=target_obj,
+                ).exclude(parent_target=parent_target_obj).delete()
                 
                 cascade_map, _ = CascadeMap.objects.update_or_create(
                     tenant_id=self.tenant_id,
@@ -172,6 +180,14 @@ class CascadeEngine:
                         'notes': f"Cascaded from parent target {dept_target.id}"
                     }
                 )
+
+                if str(individual_target.id) == str(dept_target.id) or str(individual_target.user_id) == str(dept_target.user_id):
+                    continue
+
+                CascadeMap.objects.filter(
+                    tenant_id=self.tenant_id,
+                    child_target=individual_target,
+                ).exclude(parent_target=dept_target).delete()
                 
                 cascade_map, _ = CascadeMap.objects.update_or_create(
                     tenant_id=self.tenant_id,

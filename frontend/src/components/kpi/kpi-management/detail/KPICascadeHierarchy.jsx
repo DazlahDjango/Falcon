@@ -28,14 +28,17 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
                     ? raw.results 
                     : (Array.isArray(res?.results) ? res.results : []));
             
-            // Sort targets descending by target_value to find the main root org target
+            // Sort targets descending by target_value and prioritize root org targets
             const sortedList = [...list].sort((a, b) => Number(b.target_value || 0) - Number(a.target_value || 0));
             console.log('KPICascadeHierarchy parsed & sorted targets list:', sortedList);
             setTargets(sortedList);
 
             if (sortedList.length > 0) {
-                // Find root org target (highest target_value or most cascades)
-                const mainRootTarget = sortedList.find(t => (t.cascades_count || 0) > 0) || sortedList[0];
+                // Find true root org target (prioritize targets without parent cascades or with Org Target notes)
+                const mainRootTarget = sortedList.find(t => (t.cascades_count || 0) > 0 && (!t.parent_target_id || (t.notes && t.notes.includes('Organization'))))
+                    || sortedList.find(t => !t.parent_target_id)
+                    || sortedList.find(t => (t.cascades_count || 0) > 0)
+                    || sortedList[0];
                 setSelectedTargetId(mainRootTarget.id);
             }
         } catch (err) {

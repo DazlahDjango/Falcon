@@ -4,8 +4,10 @@ Usage:
     python manage.py show_kpi_summary --tenant-id 275adb1f-8e12-46ee-b394-ea42d41b10c9 --action overall
     python manage.py show_kpi_summary --action list
     python manage.py show_kpi_summary --action cascading
+    python manage.py show_kpi_summary --action cascading --kpi-name "Revenue Growth"
+    python manage.py show_kpi_summary --action cascading --limit 80
     python manage.py show_kpi_summary --action weights
-    python manage.py show_kpi_summary --action phasings
+    python manage.py show_kpi_summary --action repair-cascade --kpi-name "Revenue Growth"
 """
 
 from django.core.management.base import BaseCommand, CommandError
@@ -32,9 +34,9 @@ class Command(BaseCommand):
             '--action',
             '-a',
             type=str,
-            choices=['overall', 'list', 'cascading', 'tree', 'weights', 'phasings'],
+            choices=['overall', 'list', 'cascading', 'tree', 'weights', 'phasings', 'repair-cascade'],
             default='overall',
-            help='Specific KPI inspection action to run (overall, list, cascading, tree, weights, phasings)'
+            help='Specific KPI inspection action (overall, list, cascading, tree, weights, phasings, repair-cascade)'
         )
         parser.add_argument(
             '--kpi-name',
@@ -52,12 +54,20 @@ class Command(BaseCommand):
             default=2026,
             help='Filter targets and actuals by year (default: 2026)'
         )
+        parser.add_argument(
+            '--limit',
+            '-l',
+            type=int,
+            default=0,
+            help='Max cascade rows to print for --action cascading (0 = print all)'
+        )
 
     def handle(self, *args, **options):
         tenant_id = options['tenant_id']
         action = options['action']
         kpi_name = options['kpi_name']
         year = options['year']
+        limit = options.get('limit') or 0
 
         from apps.tenant.models import Organization, OrganizationSchema
         schema_obj = OrganizationSchema.objects.filter(organization_id=tenant_id).first()
@@ -86,13 +96,15 @@ class Command(BaseCommand):
         elif action == 'list':
             self.show_list(tenant_id, year, kpis, all_users)
         elif action == 'cascading':
-            self.show_cascading(tenant_id, year, kpis, all_users)
+            self.show_cascading(tenant_id, year, kpis, all_users, limit=limit)
         elif action == 'tree':
             self.show_tree(tenant_id, year, kpis, all_users)
         elif action == 'weights':
             self.show_weights(tenant_id, kpis, all_users)
         elif action == 'phasings':
             self.show_phasings(tenant_id, year, kpis, all_users)
+        elif action == 'repair-cascade':
+            self.repair_cascade(tenant_id, year, kpis)
 
     def show_overall(self, tenant_id, schema_name, year, kpis, all_users):
         self.stdout.write("=" * 85)
@@ -155,41 +167,128 @@ class Command(BaseCommand):
             self.stdout.write(f"  - Total Target Value ({year}): {target_sum:,.2f} {k.unit or ''}")
             self.stdout.write("-" * 85 + "\n")
 
-    def show_cascading(self, tenant_id, year, kpis, all_users):
+    def show_cascading(self, tenant_id, year, kpis, all_users, limit=0):
         self.stdout.write("=" * 85)
         self.stdout.write(self.style.SUCCESS(f" TARGET CASCADING MAP FOR TENANT: {tenant_id} (Year: {year})"))
         self.stdout.write("=" * 85 + "\n")
 
+        def person_label(user, fallback="Unknown"):
+            if not user:
+                return fallback
+            name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+            email = getattr(user, 'email', None)
+            if name and email:
+                return f"{name} ({email})"
+            return name or email or fallback
+
         for k in kpis:
             self.stdout.write(self.style.WARNING(f"MASTER KPI: {k.name}\n"))
-            cascades = CascadeMap.objects.filter(
+            cascades = list(CascadeMap.objects.filter(
                 tenant_id=tenant_id,
-                parent_target__kpi=k
-            ).select_related('parent_target', 'child_target', 'cascade_rule', 'parent_target__user', 'child_target__user')
+                parent_target__kpi=k,
+                parent_target__year=year,
+            ).select_related(
+                'parent_target', 'child_target', 'cascade_rule',
+                'parent_target__user', 'child_target__user',
+            ).order_by('parent_target_id', 'child_target_id'))
 
-            if not cascades.exists():
+            if not cascades:
                 self.stdout.write("   (No CascadeMap entries found for this KPI)\n")
                 continue
 
-            self.stdout.write(f"   Found {cascades.count()} cascaded target relationships:\n")
-            for c in cascades[:50]:
-                p_user = all_users.get(c.parent_target.user_id) if c.parent_target else None
-                c_user = all_users.get(c.child_target.user_id) if c.child_target else None
+            issues = []
+            seen_child = {}
+            parent_totals = {}
+            grouped = {}
+            for c in cascades:
+                p_id = str(c.parent_target_id) if c.parent_target_id else None
+                c_id = str(c.child_target_id) if c.child_target_id else None
+                if p_id and c_id and p_id == c_id:
+                    issues.append(f"self-loop on target {c_id}")
+                if c_id in seen_child:
+                    issues.append(f"child {c_id} has multiple parents")
+                elif c_id:
+                    seen_child[c_id] = p_id
+                parent_totals.setdefault(p_id, 0)
+                parent_totals[p_id] += float(c.contribution_percentage or 0)
+                grouped.setdefault(p_id, []).append(c)
 
-                p_role = (getattr(p_user, 'role', 'ORG') or 'ORG').upper()
-                c_role = (getattr(c_user, 'role', 'CHILD') or 'CHILD').upper()
+            for p_id, total in parent_totals.items():
+                if abs(total - 100) > 0.05:
+                    issues.append(f"parent {p_id} contribution sums to {total:.2f}% (expected 100%)")
 
-                p_str = f"[{p_role}] {p_user.first_name} {p_user.last_name}" if p_user else "[ORG] Organization Target"
-                c_str = f"[{c_role}] {c_user.first_name} {c_user.last_name} ({c_user.email})" if c_user else "[CHILD] Child Target"
+            self.stdout.write(f"   Found {len(cascades)} cascaded relationships under {len(grouped)} parents.")
+            if issues:
+                self.stdout.write(self.style.ERROR(f"   Integrity issues: {len(issues)}"))
+                for issue in issues:
+                    self.stdout.write(self.style.ERROR(f"     - {issue}"))
+            else:
+                self.stdout.write(self.style.SUCCESS("   Integrity: one parent per child, no self-loops, sibling % sums to 100."))
+            self.stdout.write("")
 
-                c_val = c.child_target.target_value if c.child_target else 0
+            def parent_sort_key(item):
+                p_id, rows = item
+                sample = rows[0]
+                p_user = all_users.get(sample.parent_target.user_id) if sample.parent_target else None
+                return person_label(p_user, "Organization").lower()
 
-                self.stdout.write(f"   - {p_str}  ==[{c.contribution_percentage}% / Rule: {c.cascade_rule.name}]==>  {c_str}")
-                self.stdout.write(f"     Target Value: ${c_val:,.2f}")
-
-            if cascades.count() > 50:
-                self.stdout.write(f"   ... and {cascades.count() - 50} more cascaded relationships.")
+            shown = 0
+            truncated = False
+            for p_id, rows in sorted(grouped.items(), key=parent_sort_key):
+                if limit and shown >= limit:
+                    truncated = True
+                    break
+                sample = rows[0]
+                p_user = all_users.get(sample.parent_target.user_id) if sample.parent_target else None
+                p_str = person_label(p_user, "Organization")
+                total = parent_totals.get(p_id, 0)
+                self.stdout.write(f"   PARENT: {p_str}  (children {len(rows)}, share {total:.2f}%)")
+                for c in rows:
+                    if limit and shown >= limit:
+                        truncated = True
+                        break
+                    c_user = all_users.get(c.child_target.user_id) if c.child_target else None
+                    c_str = person_label(c_user, "Child Target")
+                    role = (
+                        'DIVISION' if c.division_target_id else
+                        'DEPARTMENT' if c.department_target_id else
+                        'SECTION' if c.section_target_id else
+                        'UNIT' if c.unit_target_id else
+                        'INDIVIDUAL'
+                    )
+                    self.stdout.write(f"      -> [{role}] {c.contribution_percentage}%  {c_str}")
+                    shown += 1
+                if truncated:
+                    break
+            if truncated:
+                self.stdout.write(f"   ... {len(cascades) - shown} more relationships not listed (omit --limit or use --limit 0 to print all).")
+            else:
+                self.stdout.write(f"\n   Listed all {shown} relationships.")
             self.stdout.write("-" * 85 + "\n")
+
+    def repair_cascade(self, tenant_id, year, kpis):
+        from apps.kpi.services.cascade import TargetCascader
+
+        self.stdout.write("=" * 85)
+        self.stdout.write(self.style.SUCCESS(f" REPAIR STRUCTURAL CASCADE MAPS FOR TENANT: {tenant_id} (Year: {year})"))
+        self.stdout.write("=" * 85 + "\n")
+
+        if not kpis:
+            self.stdout.write("No KPIs matched. Pass --kpi-name to limit, or omit it to repair all.")
+            return
+
+        cascader = TargetCascader()
+        for k in kpis:
+            self.stdout.write(self.style.WARNING(f"KPI: {k.name}"))
+            try:
+                result = cascader.repair_structural_cascade_maps(tenant_id, str(k.id), year)
+                self.stdout.write(
+                    f"   rebuilt {result['maps_created']} maps across {result['parents']} parents "
+                    f"(skipped {result['skipped_no_parent']}, rule={result['rule']})"
+                )
+            except Exception as exc:
+                self.stdout.write(self.style.ERROR(f"   failed: {exc}"))
+            self.stdout.write("")
 
     def show_weights(self, tenant_id, kpis, all_users):
         self.stdout.write("=" * 85)
