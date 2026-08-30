@@ -194,6 +194,33 @@ class TargetService extends BaseKPIService {
     });
   }
 
+  async repairCascade(kpiId, year) {
+    if (!kpiId) throw new Error('KPI ID is required');
+    if (!year) throw new Error('Year is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.REPAIR, { kpi_id: kpiId, year });
+      return response;
+    });
+  }
+
+  async getContributors(orgTargetId) {
+    if (!orgTargetId) throw new Error('Organization target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.CONTRIBUTORS, { params: { organization_target: orgTargetId } });
+      return response;
+    });
+  }
+
+  async getUserContributions(userId, year) {
+    return withRetry(async () => {
+      const params = {};
+      if (userId) params.user_id = userId;
+      if (year) params.year = year;
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.USER_CONTRIBUTIONS, { params });
+      return response;
+    });
+  }
+
   async rollbackCascadeMap(mapId) {
     if (!mapId) throw new Error('Cascade map ID is required');
     return withRetry(async () => {
@@ -201,6 +228,22 @@ class TargetService extends BaseKPIService {
       return response;
     });
   }
+
+  async rollbackOrganizationCascade(orgTargetId) {
+    if (!orgTargetId) throw new Error('Organization target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.ROLLBACK_ORGANIZATION, { organization_target: orgTargetId });
+      return response;
+    });
+  }
+
+  async verifyCascadeIntegrity(orgTargetId) {
+    if (!orgTargetId) throw new Error('Organization target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.VERIFY_INTEGRITY, { params: { organization_target: orgTargetId } });
+      return response;
+    });
+  }
 }
 
-export const targetService = new TargetService();
+export const targetService = new TargetService();

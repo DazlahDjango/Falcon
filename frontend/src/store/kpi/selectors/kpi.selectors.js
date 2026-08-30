@@ -231,6 +231,27 @@ export const selectCascadeError = createSelector(
   (cascade) => cascade?.error || null
 );
 
+export const selectCascadeContributors = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.contributors || []
+);
+
+export const selectCascadeUserContributions = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.userContributions || []
+);
+
+export const selectCascadeIntegrityReport = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.integrityReport || null
+);
+
+export const selectCascadeRepairResult = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.repairResult || null
+);
+
+
 // ============ Actual Selectors ============
 export const selectActuals = createSelector(
   [selectActualState],

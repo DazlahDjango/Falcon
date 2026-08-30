@@ -136,6 +136,71 @@ export const rollbackCascadeMap = createAsyncThunk(
   }
 );
 
+// Repair cascade maps
+export const repairCascade = createAsyncThunk(
+  'cascade/repair',
+  async ({ kpiId, year }, { rejectWithValue }) => {
+    try {
+      const response = await targetService.repairCascade(kpiId, year);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Fetch contributors for an organization target
+export const fetchContributors = createAsyncThunk(
+  'cascade/fetchContributors',
+  async (orgTargetId, { rejectWithValue }) => {
+    try {
+      const response = await targetService.getContributors(orgTargetId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Fetch user contributions
+export const fetchUserContributions = createAsyncThunk(
+  'cascade/fetchUserContributions',
+  async ({ userId, year } = {}, { rejectWithValue }) => {
+    try {
+      const response = await targetService.getUserContributions(userId, year);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Rollback organization cascade
+export const rollbackOrgCascade = createAsyncThunk(
+  'cascade/rollbackOrg',
+  async (orgTargetId, { rejectWithValue }) => {
+    try {
+      const response = await targetService.rollbackOrganizationCascade(orgTargetId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Verify cascade integrity
+export const verifyCascadeIntegrity = createAsyncThunk(
+  'cascade/verifyIntegrity',
+  async (orgTargetId, { rejectWithValue }) => {
+    try {
+      const response = await targetService.verifyCascadeIntegrity(orgTargetId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 // ============ Initial State ============
 const initialState = {
   // Cascade Rules
@@ -148,6 +213,12 @@ const initialState = {
   
   // Cascade Tree
   cascadeTree: null,
+  
+  // Contributors & Contributions
+  contributors: [],
+  userContributions: [],
+  integrityReport: null,
+  repairResult: null,
   
   // UI State
   loading: false,
@@ -175,6 +246,12 @@ const cascadeSlice = createSlice({
     },
     clearCascadeTree: (state) => {
       state.cascadeTree = null;
+    },
+    clearIntegrityReport: (state) => {
+      state.integrityReport = null;
+    },
+    clearRepairResult: (state) => {
+      state.repairResult = null;
     },
     clearErrors: (state) => {
       state.error = null;
@@ -311,6 +388,77 @@ const cascadeSlice = createSlice({
       .addCase(rollbackCascadeMap.rejected, (state, action) => {
         state.submitting = false;
         state.error = action.payload;
+      })
+
+      // Repair Cascade
+      .addCase(repairCascade.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
+      .addCase(repairCascade.fulfilled, (state, action) => {
+        state.submitting = false;
+        state.repairResult = action.payload;
+      })
+      .addCase(repairCascade.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload;
+      })
+
+      // Fetch Contributors
+      .addCase(fetchContributors.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchContributors.fulfilled, (state, action) => {
+        state.loading = false;
+        state.contributors = action.payload;
+      })
+      .addCase(fetchContributors.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Fetch User Contributions
+      .addCase(fetchUserContributions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserContributions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userContributions = action.payload;
+      })
+      .addCase(fetchUserContributions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Rollback Org Cascade
+      .addCase(rollbackOrgCascade.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
+      .addCase(rollbackOrgCascade.fulfilled, (state) => {
+        state.submitting = false;
+        state.cascadeMaps = [];
+        state.cascadeTree = null;
+      })
+      .addCase(rollbackOrgCascade.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload;
+      })
+
+      // Verify Integrity
+      .addCase(verifyCascadeIntegrity.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyCascadeIntegrity.fulfilled, (state, action) => {
+        state.loading = false;
+        state.integrityReport = action.payload;
+      })
+      .addCase(verifyCascadeIntegrity.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
@@ -319,8 +467,10 @@ export const {
   clearCurrentRule,
   clearCurrentMap,
   clearCascadeTree,
+  clearIntegrityReport,
+  clearRepairResult,
   clearErrors: clearCascadeErrors,
   setCascadeRules,
 } = cascadeSlice.actions;
 
-export default cascadeSlice.reducer;
+export default cascadeSlice.reducer;

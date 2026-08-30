@@ -12,7 +12,9 @@ import {
     FiRefreshCw, 
     FiDownload, 
     FiMaximize2, 
-    FiMinimize2 
+    FiMinimize2,
+    FiTool,
+    FiCheckCircle
 } from 'react-icons/fi';
 
 const LEVEL_CONFIG = {
@@ -69,9 +71,9 @@ const LEVEL_CONFIG = {
     UNIT: {
         label: 'UNIT',
         subLabel: 'Unit Level',
-        badgeBg: '#ccfbf1',
-        badgeColor: '#0f766e',
-        iconBg: '#14b8a6',
+        badgeBg: '#ffedd5',
+        badgeColor: '#c2410c',
+        iconBg: '#f97316',
         iconColor: '#ffffff',
         icon: FiCornerDownRight,
         defaultTitle: 'Unit Lead',
@@ -79,23 +81,23 @@ const LEVEL_CONFIG = {
     INDIVIDUAL: {
         label: 'INDIVIDUAL',
         subLabel: 'Individual Contributor',
-        badgeBg: '#f3e8ff',
-        badgeColor: '#7e22ce',
-        iconBg: '#8b5cf6',
+        badgeBg: '#f1f5f9',
+        badgeColor: '#475569',
+        iconBg: '#64748b',
         iconColor: '#ffffff',
         icon: FiUser,
         defaultTitle: 'Individual Contributor',
     },
 };
 
-const getLevelMeta = (level) => {
-    const key = (level || '').toUpperCase();
+const getLevelMeta = (levelStr) => {
+    const key = (levelStr || 'INDIVIDUAL').toUpperCase();
     return LEVEL_CONFIG[key] || LEVEL_CONFIG.INDIVIDUAL;
 };
 
 const formatCurrency = (val) => {
-    if (val === undefined || val === null || isNaN(val)) return '$0';
-    return '$' + Number(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    if (val === undefined || val === null || isNaN(val)) return '$0.00';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(val);
 };
 
 const formatPercent = (val) => {
@@ -112,12 +114,12 @@ const getInitials = (name) => {
     return name.slice(0, 2).toUpperCase();
 };
 
-const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport }) => {
+const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport, onRepair, onVerifyIntegrity }) => {
     const [expanded, setExpanded] = useState({});
     const [defaultExpanded, setDefaultExpanded] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [levelFilter, setLevelFilter] = useState('ALL');
-    const [year, setYear] = useState('2024');
+    const [year, setYear] = useState('2026');
 
     const toggleExpand = (id) => {
         const current = expanded[id] !== undefined ? expanded[id] : defaultExpanded;
@@ -563,6 +565,52 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport }) => {
                         Collapse
                     </button>
 
+                    {onVerifyIntegrity && (
+                        <button
+                            onClick={onVerifyIntegrity}
+                            style={{
+                                padding: '8px 14px',
+                                borderRadius: '8px',
+                                border: '1px solid #0284c7',
+                                background: '#f0f9ff',
+                                color: '#0369a1',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                            }}
+                            title="Verify Split Integrity"
+                        >
+                            <FiCheckCircle size={15} />
+                            Verify
+                        </button>
+                    )}
+
+                    {onRepair && (
+                        <button
+                            onClick={() => onRepair(year)}
+                            style={{
+                                padding: '8px 14px',
+                                borderRadius: '8px',
+                                border: '1px solid #d97706',
+                                background: '#fffbeb',
+                                color: '#b45309',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                            }}
+                            title="Repair Structural Maps"
+                        >
+                            <FiTool size={15} />
+                            Repair
+                        </button>
+                    )}
+
                     {onRefresh && (
                         <button
                             onClick={onRefresh}
@@ -583,6 +631,7 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport }) => {
                             <FiRefreshCw size={16} />
                         </button>
                     )}
+
 
                     {onExport && (
                         <button

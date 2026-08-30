@@ -117,9 +117,15 @@ export const CASCADE_ENDPOINTS = {
     MAP_CREATE: `${API_BASE}/kpis/cascade-maps/`,
     CASCADE_DEPARTMENT: `${API_BASE}/kpis/cascade-maps/cascade_department/`,
     TREE: `${API_BASE}/kpis/cascade-maps/tree/`,
+    REPAIR: `${API_BASE}/kpis/cascade-maps/repair/`,
+    CONTRIBUTORS: `${API_BASE}/kpis/cascade-maps/contributors/`,
+    USER_CONTRIBUTIONS: `${API_BASE}/kpis/cascade-maps/user_contributions/`,
     ROLLBACK: (id) => `${API_BASE}/kpis/cascade-maps/${id}/rollback/`,
+    ROLLBACK_ORGANIZATION: `${API_BASE}/kpis/cascade-maps/rollback_organization/`,
+    VERIFY_INTEGRITY: `${API_BASE}/kpis/cascade-maps/verify_integrity/`,
     QUERY_PARAMS: { RULE_TYPE: 'rule_type', IS_ACTIVE: 'is_active', IS_DEFAULT: 'is_default' },
 };
+
 
 // ============================================
 // 4. ACTUAL DATA ENDPOINTS

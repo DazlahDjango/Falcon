@@ -9,7 +9,7 @@ from django.utils import timezone
 from .base import BaseKpiViewset
 from ..serializers import CascadeMapSerializer, CascadeRuleSerializer
 from ....models import CascadeMap, CascadeRule
-from ....services import TargetCascader, CascadeRollback
+from ....services import TargetCascader, CascadeRollback, CascadeMapper
 from ..permissions import CanCascadeTargets
 
 
@@ -136,5 +136,73 @@ class CascadeMapViewSet(BaseKpiViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         cascader = TargetCascader()
-        tree = cascader.get_cascade_tree(org_target_id, str(getattr(request, 'current_tenant_id', None)))
+        tenant_id = str(getattr(request, 'current_tenant_id', None) or getattr(request.user, 'tenant_id', None))
+        tree = cascader.get_cascade_tree(org_target_id, tenant_id)
         return Response(tree)
+
+    @action(detail=False, methods=['post'])
+    def repair(self, request):
+        kpi_id = request.data.get('kpi_id')
+        year = request.data.get('year')
+        if not kpi_id or not year:
+            return Response(
+                {'error': 'kpi_id and year parameters are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        cascader = TargetCascader()
+        tenant_id = str(getattr(request, 'current_tenant_id', None) or getattr(request.user, 'tenant_id', None))
+        try:
+            result = cascader.repair_structural_cascade_maps(tenant_id, str(kpi_id), int(year))
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'])
+    def contributors(self, request):
+        org_target_id = request.query_params.get('organization_target')
+        if not org_target_id:
+            return Response(
+                {'error': 'organization_target parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        mapper = CascadeMapper()
+        tenant_id = str(getattr(request, 'current_tenant_id', None) or getattr(request.user, 'tenant_id', None))
+        data = mapper.get_contributors(org_target_id, tenant_id)
+        return Response(data)
+
+    @action(detail=False, methods=['get'])
+    def user_contributions(self, request):
+        user_id = request.query_params.get('user_id') or str(request.user.id)
+        year = request.query_params.get('year') or timezone.now().year
+        mapper = CascadeMapper()
+        tenant_id = str(getattr(request, 'current_tenant_id', None) or getattr(request.user, 'tenant_id', None))
+        data = mapper.get_contributions_for_user(str(user_id), int(year), tenant_id)
+        return Response(data)
+
+    @action(detail=False, methods=['post'])
+    def rollback_organization(self, request):
+        org_target_id = request.data.get('organization_target')
+        if not org_target_id:
+            return Response(
+                {'error': 'organization_target is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        rollback_service = CascadeRollback()
+        try:
+            res = rollback_service.rollback_organization_cascade(str(org_target_id), request.user)
+            return Response(res, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'])
+    def verify_integrity(self, request):
+        org_target_id = request.query_params.get('organization_target')
+        if not org_target_id:
+            return Response(
+                {'error': 'organization_target parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        rollback_service = CascadeRollback()
+        tenant_id = str(getattr(request, 'current_tenant_id', None) or getattr(request.user, 'tenant_id', None))
+        res = rollback_service.verify_cascade_integrity(str(org_target_id), tenant_id)
+        return Response(res)

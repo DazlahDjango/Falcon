@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiRotateCcw, FiAlertTriangle } from 'react-icons/fi';
 
-const CascadeRollback = ({ cascadeMap, onRollback, loading }) => {
+const CascadeRollback = ({ cascadeMap, orgTargetId, isOrgRollback = false, onRollback, onRollbackOrg, onClose, loading }) => {
     const [confirmText, setConfirmText] = useState('');
     const [error, setError] = useState('');
 
@@ -10,26 +10,40 @@ const CascadeRollback = ({ cascadeMap, onRollback, loading }) => {
             setError('Please type "ROLLBACK" to confirm');
             return;
         }
-        onRollback();
+        if (isOrgRollback && onRollbackOrg) {
+            onRollbackOrg(orgTargetId || cascadeMap?.organization_target);
+        } else if (onRollback) {
+            onRollback();
+        }
+    };
+
+    const handleCancel = () => {
+        if (onClose) {
+            onClose();
+        } else {
+            window.location.reload();
+        }
     };
 
     return (
         <div className="kpi-cascade-rollback-modal">
             <div className="kpi-cascade-rollback-container">
                 <div className="kpi-cascade-rollback-header">
-                    <FiRotateCcw size={24} color="var(--kpi-danger)" />
-                    <h3>Rollback Cascade</h3>
+                    <FiRotateCcw size={24} color="var(--kpi-danger, #ef4444)" />
+                    <h3>{isOrgRollback ? 'Rollback Entire Organization Cascade' : 'Rollback Cascade Map'}</h3>
                 </div>
                 
                 <div className="kpi-cascade-rollback-body">
                     <div className="kpi-cascade-rollback-warning">
                         <FiAlertTriangle size={20} />
-                        <p>This will <strong>remove all cascaded targets</strong> and restore original values.</p>
+                        <p>This will <strong>{isOrgRollback ? 'delete all sub-targets under this organization target' : 'remove this cascaded target'}</strong> and restore original parent state.</p>
                     </div>
                     
                     <div className="kpi-cascade-rollback-info">
-                        <p><strong>KPI:</strong> {cascadeMap?.kpi_name}</p>
-                        <p><strong>Organization Target:</strong> {cascadeMap?.organization_target_value}</p>
+                        {cascadeMap?.kpi_name && <p><strong>KPI:</strong> {cascadeMap.kpi_name}</p>}
+                        {(cascadeMap?.organization_target_value || orgTargetId) && (
+                            <p><strong>Organization Target ID/Value:</strong> {cascadeMap?.organization_target_value || orgTargetId}</p>
+                        )}
                         {cascadeMap?.department_target_value && (
                             <p><strong>Department Target:</strong> {cascadeMap?.department_target_value}</p>
                         )}
@@ -54,7 +68,7 @@ const CascadeRollback = ({ cascadeMap, onRollback, loading }) => {
                 </div>
                 
                 <div className="kpi-cascade-rollback-footer">
-                    <button className="cancel" onClick={() => window.location.reload()}>
+                    <button className="cancel" onClick={handleCancel}>
                         Cancel
                     </button>
                     <button 
@@ -63,7 +77,7 @@ const CascadeRollback = ({ cascadeMap, onRollback, loading }) => {
                         disabled={loading}
                     >
                         <FiRotateCcw size={14} />
-                        {loading ? 'Rolling back...' : 'Confirm Rollback'}
+                        {loading ? 'Rolling back...' : (isOrgRollback ? 'Confirm Org Rollback' : 'Confirm Rollback')}
                     </button>
                 </div>
             </div>
@@ -71,4 +85,4 @@ const CascadeRollback = ({ cascadeMap, onRollback, loading }) => {
     );
 };
 
-export default CascadeRollback;
+export default CascadeRollback;
