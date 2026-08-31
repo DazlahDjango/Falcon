@@ -18,7 +18,12 @@ class AnnualTargetViewSet(BaseKpiViewset):
     filterset_class = AnnualTargetListFilter
     search_fields = ['kpi__name', 'user__email', 'user__first_name', 'user__last_name']
     ordering_fields = ['year', 'target_value', 'created_at']
-    ordering = ['-year', 'kpi__name']
+    ordering = ['-target_value', '-year']
+
+    def paginate_queryset(self, queryset):
+        if self.request.query_params.get('all') == 'true' or self.request.query_params.get('no_page') == 'true':
+            return None
+        return super().paginate_queryset(queryset)
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related('kpi', 'user', 'approved_by')

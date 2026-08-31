@@ -66,7 +66,7 @@ class KPIViewSet(BaseKpiViewset):
                 cleaned['tenant_id'] = request.user.tenant_id
 
         nullable_fields = [
-            'category_id', 'target_min','target_max', 'owner_id', 'department_id', 'decimal_places',
+            'category_id', 'owner_id', 'department_id', 'decimal_places',
         ]
         for field in nullable_fields:
             if field in cleaned and cleaned[field] == '':
@@ -77,13 +77,6 @@ class KPIViewSet(BaseKpiViewset):
                 cleaned['decimal_places'] = int(cleaned['decimal_places'])
             except (ValueError, TypeError):
                 pass
-
-        for field in ['target_min', 'target_max']:
-            if cleaned.get(field) is not None and cleaned[field] != '':
-                try:
-                    cleaned[field] = Decimal(str(cleaned[field]))
-                except Exception:
-                    pass
 
         return cleaned
 

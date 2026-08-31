@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List, Dict
+from typing import List, Dict, Optional
 from django.core.exceptions import ValidationError
 
 from apps.kpi.models import AnnualTarget, CascadeRule, CascadeMap
@@ -8,7 +8,7 @@ from apps.kpi.models import AnnualTarget, CascadeRule, CascadeMap
 class CascadeValidator:
     def validate_cascade(self, org_target: AnnualTarget, targets: List[Dict], rule: CascadeRule) -> None:
         # Validate target sum
-        total_contribution = sum(Decimal(str(round(t.get('contribution_percentage', 0), 4))) for t in targets)
+        total_contribution = sum(Decimal(str(round(t.get('contribution_percentage') or 0, 4))) for t in targets)
         if total_contribution > Decimal('100.00'):
             raise ValidationError(
                 f"Total contribution {total_contribution}% exceeds 100%"
@@ -20,14 +20,15 @@ class CascadeValidator:
         # Validate target values
         total_value = Decimal('0')
         for target in targets:
-            contribution = target.get('contribution_percentage', 0)
+            contribution = target.get('contribution_percentage')
             if contribution:
                 value = org_target.target_value * (Decimal(str(contribution)) / 100)
             else:
-                value = self._calculate_target_value(org_target, rule, target)
+                value = self._calculate_target_value(org_target, rule, target, targets_scope=targets)
             total_value += value
             if value <= 0:
-                raise ValidationError(f"Target value must be positive for {target['entity_id']}")
+                ent_id = target.get('entity_id') or target.get('user_id') or 'unknown'
+                raise ValidationError(f"Target value must be positive for {ent_id}")
         # Validate total matches org target (within tolerance)
         tolerance = Decimal('0.01')  # 1 cent tolerance
         if abs(total_value - org_target.target_value) > tolerance:
@@ -60,15 +61,18 @@ class CascadeValidator:
             return abs(total - parent.target_value) <= tolerance
         return True
     def _calculate_target_value(self, org_target: AnnualTarget, rule: CascadeRule,
-                                 target: Dict) -> Decimal:
+                                 target: Dict, targets_scope: Optional[List[Dict]] = None) -> Decimal:
         """Calculate target value using rule."""
         from .split_rule import SplitRules
         
         split_rules = SplitRules()
+        entity_id = target.get('entity_id') or target.get('user_id')
+        entity_type = target.get('entity_type', 'INDIVIDUAL')
         return split_rules.calculate_target(
             org_target.target_value,
             rule,
-            target['entity_id'],
-            target['entity_type'],
-            str(org_target.tenant_id)
+            entity_id,
+            entity_type,
+            str(org_target.tenant_id),
+            targets_scope=targets_scope
         )

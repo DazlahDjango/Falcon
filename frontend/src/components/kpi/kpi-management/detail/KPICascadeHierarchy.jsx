@@ -34,9 +34,9 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
             setTargets(sortedList);
 
             if (sortedList.length > 0) {
-                // Find true root org target (prioritize targets without parent cascades or with Org Target notes)
-                const mainRootTarget = sortedList.find(t => (t.cascades_count || 0) > 0 && (!t.parent_target_id || (t.notes && t.notes.includes('Organization'))))
-                    || sortedList.find(t => !t.parent_target_id)
+                // Find true root org target (is_root === true and has child cascades)
+                const mainRootTarget = sortedList.find(t => (t.is_root || t.parent_target_id === null) && (t.cascades_count || 0) > 0)
+                    || sortedList.find(t => t.is_root || t.parent_target_id === null)
                     || sortedList.find(t => (t.cascades_count || 0) > 0)
                     || sortedList[0];
                 setSelectedTargetId(mainRootTarget.id);
@@ -143,11 +143,16 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
                                 fontWeight: 600
                             }}
                         >
-                            {targets.map((t, idx) => (
-                                <option key={t.id} value={t.id}>
-                                    {idx === 0 ? '👑 Root Org Target' : (t.user_email ? t.user_email.split('@')[0] : `Target ${t.id}`)} ({t.year}) - ${Number(t.target_value).toLocaleString()} {kpi?.unit || ''} ({t.cascades_count || 0} cascades)
-                                </option>
-                            ))}
+                            {targets.map((t, idx) => {
+                                const formattedVal = kpi?.unit && kpi.unit !== '$' && kpi.unit !== 'USD'
+                                    ? `${kpi.unit} ${Number(t.target_value).toLocaleString()}`
+                                    : `$${Number(t.target_value).toLocaleString()}`;
+                                return (
+                                    <option key={t.id} value={t.id}>
+                                        {idx === 0 ? '👑 Root Org Target' : (t.user_email ? t.user_email.split('@')[0] : `Target ${t.id}`)} ({t.year}) - {formattedVal} ({t.cascades_count || 0} cascades)
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
 
@@ -178,7 +183,7 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
             {loadingTree ? (
                 <KPILoading text="Building multi-level structural tree diagram..." />
             ) : (
-                <CascadeHierarchyTree tree={tree} />
+                <CascadeHierarchyTree tree={tree} unit={kpi?.unit} />
             )}
         </div>
     );

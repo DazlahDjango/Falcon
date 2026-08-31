@@ -21,7 +21,7 @@ class KPIListSerializer(TenantAwareSerializer):
         fields = [
             'id', 'name', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
-            'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
+            'measure_type_display', 'unit', 'decimal_places',
             'category', 'category_name', 'parent_kpi', 'parent_kpi_name',
             'is_staff_created', 'approval_status', 'approval_status_display', 'rejection_reason',
             'owner', 'owner_email', 'department', 'department_name',
@@ -52,7 +52,7 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
         fields = [
             'id', 'name', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
-            'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
+            'measure_type_display', 'unit', 'decimal_places',
             'formula', 'category', 'category_name', 'category_detail',
             'parent_kpi', 'parent_kpi_name', 'is_staff_created', 'approval_status', 'approval_status_display',
             'rejection_reason', 'approved_by', 'approved_by_email',
@@ -111,16 +111,6 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
         return value
 
     def validate(self, data):
-        target_min = data.get('target_min')
-        target_max = data.get('target_max')
-        if target_min is not None and target_max is not None:
-            if target_min > target_max:
-                raise serializers.ValidationError("Target minimum cannot be greater than target maximum")
-        if data.get('kpi_type') == 'PERCENTAGE':
-            if target_min and target_min > 100:
-                raise serializers.ValidationError("Percentage target min cannot exceed 100")
-            if target_max and target_max > 100:
-                raise serializers.ValidationError("Percentage target max cannot exceed 100")
         return data
 
 

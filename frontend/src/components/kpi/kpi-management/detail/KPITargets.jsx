@@ -192,7 +192,9 @@ const KPITargets = ({ kpiId, kpi }) => {
                                             </td>
                                             <td style={{ padding: '10px 12px' }}>{target.year}</td>
                                             <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
-                                                ${Number(target.target_value).toLocaleString()} {kpi?.unit}
+                                                {kpi?.unit && kpi.unit !== '$' && kpi.unit !== 'USD' 
+                                                    ? `${kpi.unit} ${Number(target.target_value).toLocaleString()}` 
+                                                    : `$${Number(target.target_value).toLocaleString()}`}
                                             </td>
                                             <td style={{ padding: '10px 12px' }}>
                                                 <span
@@ -315,7 +317,11 @@ const KPITargets = ({ kpiId, kpi }) => {
                                                                                     </span>
                                                                                 </td>
                                                                                 <td style={{ padding: '6px 8px', fontWeight: 700, color: '#0f172a' }}>
-                                                                                    {cascade.target_amount ? `$${Number(cascade.target_amount).toLocaleString()} ${kpi?.unit || ''}` : '-'}
+                                                                                    {cascade.target_amount ? (
+                                                                                        kpi?.unit && kpi.unit !== '$' && kpi.unit !== 'USD'
+                                                                                            ? `${kpi.unit} ${Number(cascade.target_amount).toLocaleString()}`
+                                                                                            : `$${Number(cascade.target_amount).toLocaleString()}`
+                                                                                    ) : '-'}
                                                                                 </td>
                                                                                 <td style={{ padding: '6px 8px', color: '#2563eb', fontWeight: 600 }}>
                                                                                     {cascade.contribution_percentage}%

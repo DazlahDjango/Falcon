@@ -78,7 +78,7 @@ class CascadeHistory(BaseKPIModel):
         ('ROLLBACK', 'Rolled Back'),
         ('REVIEW', 'Reviewed'),
     ]
-    cascade_map = models.ForeignKey('CascadeMap', on_delete=models.CASCADE, related_name='history')
+    cascade_map = models.ForeignKey('CascadeMap', on_delete=models.SET_NULL, null=True, blank=True, related_name='history')
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
     source_target_value = models.DecimalField(max_digits=20, decimal_places=2)
     resulting_targets = models.JSONField(help_text="JSON of resulting targets")

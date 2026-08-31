@@ -95,9 +95,13 @@ const getLevelMeta = (levelStr) => {
     return LEVEL_CONFIG[key] || LEVEL_CONFIG.INDIVIDUAL;
 };
 
-const formatCurrency = (val) => {
-    if (val === undefined || val === null || isNaN(val)) return '$0.00';
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(val);
+const formatCurrency = (val, unit) => {
+    if (val === undefined || val === null || isNaN(val)) return '0.00';
+    const formatted = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+    if (unit && unit !== '$' && unit !== 'USD') {
+        return `${unit} ${formatted}`;
+    }
+    return `$${formatted}`;
 };
 
 const formatPercent = (val) => {
@@ -114,7 +118,7 @@ const getInitials = (name) => {
     return name.slice(0, 2).toUpperCase();
 };
 
-const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport, onRepair, onVerifyIntegrity }) => {
+const CascadeHierarchyTree = ({ tree, unit, onNodeSelect, onRefresh, onExport, onRepair, onVerifyIntegrity }) => {
     const [expanded, setExpanded] = useState({});
     const [defaultExpanded, setDefaultExpanded] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -184,6 +188,7 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport, onRepai
         const varianceValue = node.variance_value !== undefined ? Number(node.variance_value) : Math.max(0, targetAssigned - achievedValue);
         const achievedPercentage = targetAssigned > 0 ? (achievedValue / targetAssigned) * 100 : achievedRate;
 
+        const nodeUnit = node.unit || node.kpi_unit || tree?.unit || tree?.kpi_unit || unit;
         const leadName = node.user_name || node.lead_name || node.user_email || 'Executive Lead';
         const leadTitle = node.lead_title || node.user_role || meta.defaultTitle;
         const membersCount = node.members_count !== undefined ? node.members_count : (hasChildren ? node.children.length : null);
@@ -278,7 +283,7 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport, onRepai
                             Target Assigned
                         </div>
                         <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
-                            {formatCurrency(targetAssigned)}
+                            {formatCurrency(targetAssigned, nodeUnit)}
                         </div>
                     </div>
 
@@ -289,7 +294,7 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport, onRepai
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
                             <span style={{ fontSize: '1rem', fontWeight: 800, color: '#16a34a' }}>
-                                {formatCurrency(achievedValue)}
+                                {formatCurrency(achievedValue, nodeUnit)}
                             </span>
                             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a' }}>
                                 ({formatPercent(achievedPercentage)})
@@ -303,7 +308,7 @@ const CascadeHierarchyTree = ({ tree, onNodeSelect, onRefresh, onExport, onRepai
                             Variance
                         </div>
                         <div style={{ fontSize: '1rem', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
-                            {formatCurrency(varianceValue)}
+                            {formatCurrency(varianceValue, nodeUnit)}
                         </div>
                     </div>
 

@@ -11,6 +11,8 @@ class AnnualTargetSerializer(TenantAwareSerializer):
     monthly_phasing_count = serializers.SerializerMethodField()
     child_cascades = serializers.SerializerMethodField()
     cascades_count = serializers.SerializerMethodField()
+    is_root = serializers.SerializerMethodField()
+    parent_target_id = serializers.SerializerMethodField()
 
     class Meta:
         model = AnnualTarget
@@ -19,6 +21,7 @@ class AnnualTargetSerializer(TenantAwareSerializer):
             'user_full_name', 'year', 'target_value', 'approved_by',
             'approved_by_email', 'approved_at', 'notes', 'is_approved',
             'monthly_phasing_count', 'child_cascades', 'cascades_count',
+            'is_root', 'parent_target_id',
             'tenant_id', 'created_at', 'updated_at',
             'created_by', 'updated_by'
         ]
@@ -38,6 +41,13 @@ class AnnualTargetSerializer(TenantAwareSerializer):
 
     def get_cascades_count(self, obj):
         return obj.child_cascades.count()
+
+    def get_is_root(self, obj):
+        return not obj.parent_cascades.exists()
+
+    def get_parent_target_id(self, obj):
+        first_parent = obj.parent_cascades.first()
+        return str(first_parent.parent_target_id) if first_parent else None
 
     def validate_target_value(self, value):
         if value <= 0:

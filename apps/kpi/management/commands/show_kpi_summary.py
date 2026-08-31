@@ -130,8 +130,8 @@ class Command(BaseCommand):
         self.stdout.write(f"   - Total Configured KPI Weights: {weights_qs.count()}\n")
 
         self.stdout.write(self.style.WARNING("[FINANCIAL & VOLUME TOTALS]:"))
-        self.stdout.write(f"   - Total Sum of Annual Targets ({year}): ${total_target_value:,.2f}")
-        self.stdout.write(f"   - Total Sum of Monthly Actuals Recorded: ${total_actual_value:,.2f}\n")
+        self.stdout.write(f"   - Total Sum of Annual Targets ({year}): {total_target_value:,.2f}")
+        self.stdout.write(f"   - Total Sum of Monthly Actuals Recorded: {total_actual_value:,.2f}\n")
 
         self.stdout.write(self.style.WARNING("[MASTER KPIS BREAKDOWN]:"))
         for k in kpis:
@@ -370,7 +370,8 @@ class Command(BaseCommand):
                 node_name = node.get('name', 'Unassigned Node')
                 lead_name = node.get('lead_name', node.get('user_name', 'Executive'))
                 target_val = node.get('target_value', 0.0)
-                val_str = f"${target_val:,.2f}"
+                unit_str = f"{k.unit} " if (k and k.unit) else ""
+                val_str = f"{unit_str}{target_val:,.2f}"
 
                 connector = "\\-- " if is_last else "|-- "
                 branch = prefix + connector if depth > 0 else ""

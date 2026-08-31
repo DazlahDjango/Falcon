@@ -45,8 +45,6 @@ class KPICascadeTests(TestCase):
             'category_id': self.category.id,
             'kpi_type': 'FINANCIAL',
             'owner_id': self.user.id,
-            'target_min': Decimal('1000.00'),
-            'target_max': Decimal('50000.00')
         }
         kpi = creator.create(kpi_data, self.user)
         self.assertEqual(kpi.name, 'Gross Revenue Target')

@@ -45,7 +45,7 @@ class CascadeEngine:
                     target_value = parent_target_obj.target_value * (Decimal(str(contribution)) / 100)
                 else:
                     target_value = self.split_rules.calculate_target(
-                        parent_target_obj.target_value, rule, entity_id, entity_type, self.tenant_id
+                        parent_target_obj.target_value, rule, entity_id, entity_type, self.tenant_id, targets_scope=targets
                     )
                 
                 target_user_id = target_data.get('user_id')
@@ -102,7 +102,7 @@ class CascadeEngine:
                     }
                 )
 
-                if str(target_obj.id) == str(parent_target_obj.id) or str(target_obj.user_id) == str(parent_target_obj.user_id):
+                if str(target_obj.id) == str(parent_target_obj.id):
                     continue
 
                 map_kwargs = {
@@ -211,18 +211,14 @@ class CascadeEngine:
         cascade_map = CascadeMap.objects.get(id=cascade_map_id, tenant_id=self.tenant_id)
         
         with transaction.atomic():
-            if cascade_map.child_target:
-                cascade_map.child_target.delete()
-            if cascade_map.department_target:
-                cascade_map.department_target.delete()
-            if cascade_map.individual_target:
-                cascade_map.individual_target.delete()
-            if cascade_map.division_target:
-                cascade_map.division_target.delete()
-            if cascade_map.section_target:
-                cascade_map.section_target.delete()
-            if cascade_map.unit_target:
-                cascade_map.unit_target.delete()
+            target_ids = set()
+            for target_field in ['child_target_id', 'department_target_id', 'individual_target_id', 'division_target_id', 'section_target_id', 'unit_target_id']:
+                val = getattr(cascade_map, target_field, None)
+                if val:
+                    target_ids.add(val)
+
+            if target_ids:
+                AnnualTarget.objects.filter(id__in=target_ids, tenant_id=self.tenant_id).delete()
             
             CascadeHistory.objects.create(
                 tenant_id=self.tenant_id,

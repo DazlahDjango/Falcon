@@ -48,7 +48,13 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, onViewT
                                 </td>
                                 <td>{target.user_email?.split('@')[0] || target.user?.email?.split('@')[0]}</td>
                                 <td>{target.year}</td>
-                                <td className="kpi-target-table-value">${Number(target.target_value).toLocaleString()}</td>
+                                <td className="kpi-target-table-value">
+                                    {target.unit && target.unit !== '$' && target.unit !== 'USD'
+                                        ? `${target.unit} ${Number(target.target_value).toLocaleString()}`
+                                        : (target.kpi?.unit && target.kpi.unit !== '$' && target.kpi.unit !== 'USD'
+                                            ? `${target.kpi.unit} ${Number(target.target_value).toLocaleString()}`
+                                            : `$${Number(target.target_value).toLocaleString()}`)}
+                                </td>
                                 <td>
                                     <div className="kpi-target-table-progress">
                                         <div className="kpi-target-table-progress-bar">

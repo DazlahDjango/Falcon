@@ -415,6 +415,10 @@ class TargetCascader:
         if not org_target:
             raise ValidationError("No annual target found for this KPI/year")
 
+        if org_target.target_value <= Decimal('0.01') and org_target.kpi and org_target.kpi.target_max and org_target.kpi.target_max > Decimal('1.00'):
+            org_target.target_value = org_target.kpi.target_max
+            org_target.save(update_fields=['target_value'])
+
         rule = (
             CascadeRule.objects.filter(tenant_id=tenant_id, is_default=True, is_active=True).first()
             or CascadeRule.objects.filter(tenant_id=tenant_id, is_active=True).first()
@@ -583,6 +587,23 @@ class TargetCascader:
                         map_kwargs['individual_target'] = child_target
                     created.append(CascadeMap.objects.create(**map_kwargs))
 
+            # Propagate target values down the tree
+            queue = [org_target]
+            while queue:
+                curr_parent = queue.pop(0)
+                child_maps = list(CascadeMap.objects.filter(
+                    parent_target=curr_parent,
+                    tenant_id=tenant_id
+                ).select_related('child_target'))
+                for cm in child_maps:
+                    child = cm.child_target
+                    if child:
+                        new_val = (curr_parent.target_value * (cm.contribution_percentage / Decimal('100.00'))).quantize(Decimal('0.01'))
+                        if child.target_value != new_val:
+                            child.target_value = new_val
+                            child.save(update_fields=['target_value'])
+                        queue.append(child)
+
         self._invalidate_caches(str(org_target.id))
         return {
             'deleted_and_rebuilt': True,
@@ -718,6 +739,17 @@ class CascadeRollback:
             raise ValidationError("Cascade map not found")
 
         with transaction.atomic():
+            self.engine.set_context(user.tenant_id, str(user.id))
+            if cascade_map.child_target:
+                downstream_maps = CascadeMap.objects.filter(
+                    parent_target=cascade_map.child_target,
+                    tenant_id=user.tenant_id
+                )
+                for dm in list(downstream_maps):
+                    try:
+                        self.rollback_cascade(str(dm.id), user)
+                    except ValidationError:
+                        pass
             result = self.engine.rollback_cascade(cascade_map_id)
             self._invalidate_caches(cascade_map_id)
             return result
@@ -791,5 +823,4 @@ class CascadeRollback:
         cache.delete(f"{CACHE_PREFIX}:tree:v3:{target_id}")
         cache.delete(f"{CACHE_PREFIX}:tree:v4:{target_id}")
         cache.delete(f"{CACHE_PREFIX}:contributors:{target_id}")
-        safe_delete_pattern(f"{CACHE_PREFIX}:user_contributions:*")
         safe_delete_pattern(f"{CACHE_PREFIX}:user_contributions:*")

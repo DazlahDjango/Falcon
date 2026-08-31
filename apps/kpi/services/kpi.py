@@ -30,12 +30,6 @@ class KPICreator:
             is_super_admin = True
 
         validate_kpi_name(data['name'])
-        validate_target_range(data.get('target_min'), data.get('target_max'))
-
-        if data.get('target_min'):
-            validate_decimal_precision(data['target_min'])
-        if data.get('target_max'):
-            validate_decimal_precision(data['target_max'])
 
         parent_kpi_id = data.get('parent_kpi_id') or data.get('parent_kpi')
         is_staff = data.get('is_staff_created', False)
@@ -63,8 +57,6 @@ class KPICreator:
                 measure_type=data.get('measure_type', MeasureType.CUMULATIVE),
                 unit=data.get('unit', ''),
                 decimal_places=data.get('decimal_places', 2),
-                target_min=data.get('target_min'),
-                target_max=data.get('target_max'),
                 formula=data.get('formula', {}),
                 owner_id=data.get('owner_id', user.id),
                 department_id=data.get('department_id'),
@@ -99,8 +91,6 @@ class KPICreator:
             'parent_kpi_id': str(kpi.parent_kpi_id) if kpi.parent_kpi_id else None,
             'is_staff_created': kpi.is_staff_created,
             'approval_status': kpi.approval_status,
-            'target_min': str(kpi.target_min) if kpi.target_min else None,
-            'target_max': str(kpi.target_max) if kpi.target_max else None,
         }
 
     def _invalidate_caches(self, kpi_id: str = None) -> None:
