@@ -14,7 +14,8 @@ import {
     FiMaximize2, 
     FiMinimize2,
     FiTool,
-    FiCheckCircle
+    FiCheckCircle,
+    FiSliders
 } from 'react-icons/fi';
 
 const LEVEL_CONFIG = {
@@ -118,12 +119,15 @@ const getInitials = (name) => {
     return name.slice(0, 2).toUpperCase();
 };
 
+import LeadCascadeActionModal from './LeadCascadeActionModal';
+
 const CascadeHierarchyTree = ({ tree, unit, onNodeSelect, onRefresh, onExport, onRepair, onVerifyIntegrity }) => {
     const [expanded, setExpanded] = useState({});
     const [defaultExpanded, setDefaultExpanded] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [levelFilter, setLevelFilter] = useState('ALL');
     const [year, setYear] = useState('2026');
+    const [actionNode, setActionNode] = useState(null);
 
     const toggleExpand = (id) => {
         const current = expanded[id] !== undefined ? expanded[id] : defaultExpanded;
@@ -181,12 +185,20 @@ const CascadeHierarchyTree = ({ tree, unit, onNodeSelect, onRefresh, onExport, o
         const meta = getLevelMeta(node.level);
         const LevelIcon = meta.icon;
 
-        // Calculations
+        // Real Data Calculations
         const targetAssigned = Number(node.target_value || 0);
-        const achievedRate = node.achievement_percentage !== undefined ? node.achievement_percentage : 65.4;
-        const achievedValue = node.achieved_value !== undefined ? Number(node.achieved_value) : targetAssigned * (achievedRate / 100);
-        const varianceValue = node.variance_value !== undefined ? Number(node.variance_value) : Math.max(0, targetAssigned - achievedValue);
-        const achievedPercentage = targetAssigned > 0 ? (achievedValue / targetAssigned) * 100 : achievedRate;
+        const achievedValue = (node.achieved_value !== undefined && node.achieved_value !== null) 
+            ? Number(node.achieved_value) 
+            : 0;
+        const achievedPercentage = targetAssigned > 0 ? (achievedValue / targetAssigned) * 100 : (node.achievement_percentage || 0);
+        
+        const calculationLogic = (node.calculation_logic || tree?.calculation_logic || 'HIGHER_IS_BETTER').toUpperCase();
+        let varianceValue = 0;
+        if (calculationLogic === 'LOWER_IS_BETTER') {
+            varianceValue = achievedValue - targetAssigned;
+        } else {
+            varianceValue = Math.max(0, targetAssigned - achievedValue);
+        }
 
         const nodeUnit = node.unit || node.kpi_unit || tree?.unit || tree?.kpi_unit || unit;
         const leadName = node.user_name || node.lead_name || node.user_email || 'Executive Lead';
@@ -365,8 +377,27 @@ const CascadeHierarchyTree = ({ tree, unit, onNodeSelect, onRefresh, onExport, o
                         </div>
                     </div>
 
-                    {/* Col 7: Expand/Collapse Arrow Button */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {/* Col 7: Lead Action & Expand/Collapse Buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setActionNode(node); }}
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '8px',
+                                border: '1px solid #cbd5e1',
+                                background: '#ffffff',
+                                color: '#2563eb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                            }}
+                            title="Manage Lead Cascade Actions (Sub-allocate, Verify, Rollback)"
+                        >
+                            <FiSliders size={15} />
+                        </button>
                         {hasChildren ? (
                             <button
                                 onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}
@@ -667,6 +698,17 @@ const CascadeHierarchyTree = ({ tree, unit, onNodeSelect, onRefresh, onExport, o
             <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {renderNodeCard(tree)}
             </div>
+
+            {/* Lead Cascade Action Modal */}
+            {actionNode && (
+                <LeadCascadeActionModal
+                    node={actionNode}
+                    unit={unit}
+                    year={year}
+                    onClose={() => setActionNode(null)}
+                    onRefreshTree={onRefresh}
+                />
+            )}
         </div>
     );
 };

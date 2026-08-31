@@ -183,7 +183,7 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
             {loadingTree ? (
                 <KPILoading text="Building multi-level structural tree diagram..." />
             ) : (
-                <CascadeHierarchyTree tree={tree} unit={kpi?.unit} />
+                <CascadeHierarchyTree tree={tree} unit={kpi?.unit} onRefresh={() => selectedTargetId && loadTree(selectedTargetId)} />
             )}
         </div>
     );
