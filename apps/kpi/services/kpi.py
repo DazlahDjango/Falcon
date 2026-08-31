@@ -23,10 +23,10 @@ class KPICreator:
         if not user.tenant_id:
             raise PermissionDenied("User has no tenant association")
 
-        # Check for Super Admin
+        # Check for Super Admin or Admin role
         is_super_admin = False
         role = str(getattr(user, 'role', '')).lower()
-        if role in ['super_admin', 'superadmin', 'platform_admin']:
+        if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion']:
             is_super_admin = True
 
         validate_kpi_name(data['name'])
@@ -37,12 +37,27 @@ class KPICreator:
         if data.get('target_max'):
             validate_decimal_precision(data['target_max'])
 
+        parent_kpi_id = data.get('parent_kpi_id') or data.get('parent_kpi')
+        is_staff = data.get('is_staff_created', False)
+        if parent_kpi_id or (not is_super_admin and role not in ['super_admin', 'client_admin', 'dashboard_champion']):
+            is_staff = True
+
+        approval_status = 'APPROVED'
+        is_active = data.get('is_active', True)
+        if is_staff and not is_super_admin:
+            approval_status = data.get('approval_status', 'PENDING_APPROVAL')
+            if approval_status == 'PENDING_APPROVAL':
+                is_active = False
+
         with transaction.atomic():
             kpi = KPI.objects.create(
                 tenant_id=user.tenant_id if not is_super_admin else data.get('tenant_id', user.tenant_id),
                 name=data['name'],
                 description=data.get('description', ''),
                 category_id=data.get('category_id'),
+                parent_kpi_id=parent_kpi_id,
+                is_staff_created=is_staff,
+                approval_status=approval_status,
                 kpi_type=data['kpi_type'],
                 calculation_logic=data.get('calculation_logic', CalculationLogic.HIGHER_IS_BETTER),
                 measure_type=data.get('measure_type', MeasureType.CUMULATIVE),
@@ -51,12 +66,12 @@ class KPICreator:
                 target_min=data.get('target_min'),
                 target_max=data.get('target_max'),
                 formula=data.get('formula', {}),
-                owner_id=data['owner_id'],
+                owner_id=data.get('owner_id', user.id),
                 department_id=data.get('department_id'),
                 strategic_objective=data.get('strategic_objective', ''),
                 metadata=data.get('metadata', {}),
-                is_active=data.get('is_active', True),
-                activation_date=timezone.now().date() if data.get('is_active', True) else None,
+                is_active=is_active,
+                activation_date=timezone.now().date() if is_active else None,
                 created_by=user,
                 updated_by=user
             )
@@ -81,6 +96,9 @@ class KPICreator:
             'kpi_type': kpi.kpi_type,
             'calculation_logic': kpi.calculation_logic,
             'measure_type': kpi.measure_type,
+            'parent_kpi_id': str(kpi.parent_kpi_id) if kpi.parent_kpi_id else None,
+            'is_staff_created': kpi.is_staff_created,
+            'approval_status': kpi.approval_status,
             'target_min': str(kpi.target_min) if kpi.target_min else None,
             'target_max': str(kpi.target_max) if kpi.target_max else None,
         }
@@ -89,6 +107,65 @@ class KPICreator:
         if kpi_id:
             cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
         safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+
+class KPIApprovalService:
+    def approve_sub_kpi(self, kpi_id: str, supervisor_user) -> KPI:
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=supervisor_user.tenant_id).first()
+        if not kpi:
+            raise ValidationError("Sub-KPI not found or access denied")
+        if kpi.approval_status == 'APPROVED':
+            return kpi
+
+        with transaction.atomic():
+            kpi.approval_status = 'APPROVED'
+            kpi.approved_by = supervisor_user
+            kpi.is_active = True
+            kpi.rejection_reason = ""
+            kpi.activation_date = timezone.now().date()
+            kpi.updated_by = supervisor_user
+            kpi.save()
+
+            KPIHistory.objects.create(
+                tenant_id=kpi.tenant_id,
+                kpi=kpi,
+                action='APPROVE',
+                snapshot={'id': str(kpi.id), 'approval_status': 'APPROVED'},
+                performed_by=supervisor_user,
+                reason="Sub-KPI approved by supervisor"
+            )
+
+            cache.delete(f"{CACHE_PREFIX}:kpi_{kpi.id}")
+            safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+        return kpi
+
+    def reject_sub_kpi(self, kpi_id: str, supervisor_user, reason: str = "") -> KPI:
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=supervisor_user.tenant_id).first()
+        if not kpi:
+            raise ValidationError("Sub-KPI not found or access denied")
+
+        with transaction.atomic():
+            kpi.approval_status = 'REJECTED'
+            kpi.rejection_reason = reason
+            kpi.is_active = False
+            kpi.updated_by = supervisor_user
+            kpi.save()
+
+            KPIHistory.objects.create(
+                tenant_id=kpi.tenant_id,
+                kpi=kpi,
+                action='REJECT',
+                snapshot={'id': str(kpi.id), 'approval_status': 'REJECTED', 'reason': reason},
+                performed_by=supervisor_user,
+                reason=reason or "Sub-KPI rejected by supervisor"
+            )
+
+            cache.delete(f"{CACHE_PREFIX}:kpi_{kpi.id}")
+            safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+        return kpi
+
 
 
 class KPIUpdater:

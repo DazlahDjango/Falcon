@@ -27,18 +27,28 @@ def validate_month(value):
 
 def validate_year(value):
     current_year = timezone.now().year
-    if value is not None and (value < 2000 or value > current_year + 10):
-        raise ValidationError(_(f"Year must be between 2000 and {current_year + 10}."))
+    if value is not None:
+        try:
+            val_int = int(value)
+            if val_int < 2000 or val_int > current_year + 10:
+                raise ValidationError(_(f"Year must be between 2000 and {current_year + 10}."))
+        except (ValueError, TypeError):
+            raise ValidationError(_("Year must be a valid integer."))
 
 def validate_future_date(date):
     """Validate that date is not in the past"""
     if date and date < timezone.now().date():
         raise ValidationError(_("Date cannot be in the past."))
 
-def validate_future_period(year, month):
+def validate_future_period(year, month=1):
     now = timezone.now()
-    if year > now.year or (year == now.year and month > now.month):
-        raise ValidationError(_("Cannot set targets for future periods."))
+    try:
+        y_int = int(year)
+        if y_int < 2000 or y_int > now.year + 10:
+            raise ValidationError(_(f"Year must be between 2000 and {now.year + 10}."))
+    except (ValueError, TypeError):
+        raise ValidationError(_("Invalid year specified."))
+
 
 def validate_past_period_locked(tenant_id, year, month):
     from .models import PhasingLock

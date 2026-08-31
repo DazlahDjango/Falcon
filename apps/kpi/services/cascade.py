@@ -792,3 +792,4 @@ class CascadeRollback:
         cache.delete(f"{CACHE_PREFIX}:tree:v4:{target_id}")
         cache.delete(f"{CACHE_PREFIX}:contributors:{target_id}")
         safe_delete_pattern(f"{CACHE_PREFIX}:user_contributions:*")
+        safe_delete_pattern(f"{CACHE_PREFIX}:user_contributions:*")

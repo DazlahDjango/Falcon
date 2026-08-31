@@ -24,9 +24,12 @@ class TargetSetter:
         target_value: Decimal,
         user
     ) -> AnnualTarget:
+        year = int(year)
+        target_value = Decimal(str(target_value))
         validate_positive_value(target_value)
         validate_year(year)
         validate_future_period(year, 1)
+
 
         if not hasattr(user, 'tenant_id') or not user.tenant_id:
             raise PermissionDenied("User has no tenant association")
@@ -102,10 +105,17 @@ class TargetPhaser:
         strategy_params: Optional[Dict] = None,
         user = None
     ) -> List[MonthlyPhasing]:
-        annual_target = AnnualTarget.objects.select_related('kpi', 'user').get(id=annual_target_id)
+        if user and hasattr(user, 'tenant_id') and user.tenant_id:
+            annual_target = AnnualTarget.objects.filter(id=annual_target_id, tenant_id=user.tenant_id).select_related('kpi', 'user').first()
+        else:
+            annual_target = AnnualTarget.objects.filter(id=annual_target_id).select_related('kpi', 'user').first()
+
+        if not annual_target:
+            raise DjangoValidationError(f"Annual target {annual_target_id} not found")
 
         if user and annual_target.tenant_id != user.tenant_id:
             raise PermissionDenied("Target does not belong to your tenant")
+
 
         if MonthlyPhasing.objects.filter(annual_target=annual_target).exists():
             raise DuplicatePhasingError(f"Target already phased for {annual_target.kpi.name}")
@@ -118,10 +128,11 @@ class TargetPhaser:
 
         with transaction.atomic():
             monthly_phasing = self.engine.phase_target(
-                annual_target_id,
+                annual_target,
                 strategy,
                 strategy_params
             )
+
 
             TargetHistory.objects.create(
                 tenant_id=annual_target.tenant_id,
@@ -163,14 +174,18 @@ class TargetPhaser:
 
 class TargetLocker:
     def lock_phasing_for_cycle(self, tenant_id: str, performance_cycle: str, user) -> int:
+        import re
         with transaction.atomic():
-            PhasingLock.objects.create(
+            PhasingLock.objects.get_or_create(
                 tenant_id=tenant_id,
                 performance_cycle=performance_cycle,
-                locked_by=user,
-                reason="Performance cycle started"
+                defaults={
+                    'locked_by': user,
+                    'reason': "Performance cycle started"
+                }
             )
-            year = int(performance_cycle[-4:])
+            match = re.search(r'\d{4}', str(performance_cycle))
+            year = int(match.group()) if match else timezone.now().year
             updated = MonthlyPhasing.objects.filter(
                 tenant_id=tenant_id,
                 annual_target__year=year
@@ -184,12 +199,14 @@ class TargetLocker:
             return updated
 
     def unlock_phasing_for_cycle(self, tenant_id: str, performance_cycle: str, user) -> int:
+        import re
         with transaction.atomic():
             PhasingLock.objects.filter(
                 tenant_id=tenant_id,
                 performance_cycle=performance_cycle
             ).delete()
-            year = int(performance_cycle[-4:])
+            match = re.search(r'\d{4}', str(performance_cycle))
+            year = int(match.group()) if match else timezone.now().year
             updated = MonthlyPhasing.objects.filter(
                 tenant_id=tenant_id,
                 annual_target__year=year
@@ -201,6 +218,7 @@ class TargetLocker:
             from apps.kpi.utils.cache_keys import safe_delete_pattern
             safe_delete_pattern(f"{CACHE_PREFIX}:monthly_phasing_*")
             return updated
+
 
 
 class TargetAdjuster:

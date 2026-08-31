@@ -25,6 +25,19 @@ class KPIManager(SoftDeleteManager):
     def with_measure_type(self, measure_type):
         return self.filter(measure_type=measure_type)
 
+    def approved(self):
+        return self.filter(approval_status='APPROVED')
+
+    def pending_approval(self):
+        return self.filter(approval_status='PENDING_APPROVAL')
+
+    def for_parent(self, parent_kpi_id):
+        return self.filter(parent_kpi_id=parent_kpi_id)
+
+    def staff_created(self):
+        return self.filter(is_staff_created=True)
+
+
     def for_user_hierarchy(self, user):
         user_kpis = Q(owner=user)
         direct_reports = user.get_direct_reports().values_list('id', flat=True)

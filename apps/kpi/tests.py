@@ -116,3 +116,6 @@ class KPICascadeTests(TestCase):
         self.assertNotEqual(res_after['status'], 'PAUSED')
 
 
+        self.assertNotEqual(res_after['status'], 'PAUSED')
+
+

@@ -13,7 +13,7 @@ from ..serializers import (
 )
 from ....models import KPI, KPIWeight, StrategicLinkage, KPIDependency
 from ..filters import KPIListFilter, KPIWeightListFilter
-from ....services import KPICreator, KPIUpdater, KPIActivator, KPIValidator
+from ....services import KPICreator, KPIUpdater, KPIActivator, KPIValidator, KPIApprovalService
 from ....exceptions import DuplicateKPICodeError
 
 
@@ -39,6 +39,10 @@ class KPIViewSet(BaseKpiViewset):
         mappings = {
             'tenantId': 'tenant_id',
             'categoryId': 'category_id',
+            'parentKpi': 'parent_kpi_id',
+            'parentKpiId': 'parent_kpi_id',
+            'isStaffCreated': 'is_staff_created',
+            'approvalStatus': 'approval_status',
             'kpiType': 'kpi_type',
             'calculationLogic': 'calculation_logic',
             'measureType': 'measure_type',
@@ -50,6 +54,7 @@ class KPIViewSet(BaseKpiViewset):
             'strategicObjective': 'strategic_objective',
             'isActive': 'is_active',
         }
+
         for camel, snake in mappings.items():
             if camel in cleaned and snake not in cleaned:
                 cleaned[snake] = cleaned[camel]
@@ -139,6 +144,41 @@ class KPIViewSet(BaseKpiViewset):
         if year:
             targets = targets.filter(year=year)
         serializer = AnnualTargetSerializer(targets, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        service = KPIApprovalService()
+        kpi = service.approve_sub_kpi(str(pk), request.user)
+        serializer = KPIDetailSerializer(kpi)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        service = KPIApprovalService()
+        reason = request.data.get('reason', '')
+        kpi = service.reject_sub_kpi(str(pk), request.user, reason)
+        serializer = KPIDetailSerializer(kpi)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def pending_approvals(self, request):
+        queryset = self.filter_queryset(self.get_queryset()).filter(approval_status='PENDING_APPROVAL')
+        user_role = str(getattr(request.user, 'role', '')).lower()
+        if user_role not in ['super_admin', 'executive', 'dashboard_champion', 'client_admin']:
+            if hasattr(request.user, 'get_direct_reports'):
+                direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
+                if direct_reports.exists():
+                    queryset = queryset.filter(owner_id__in=direct_reports)
+        serializer = KPIListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+    @action(detail=True, methods=['get'])
+    def sub_kpis(self, request, pk=None):
+        kpi = self.get_object()
+        sub_kpis = kpi.sub_kpis.all()
+        serializer = KPIListSerializer(sub_kpis, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'])

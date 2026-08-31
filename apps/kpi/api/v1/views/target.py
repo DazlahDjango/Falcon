@@ -58,26 +58,32 @@ class AnnualTargetViewSet(BaseKpiViewset):
                 Q(user=user)
             )
         elif hierarchy_level in ['unit_lead', 'supervisor']:
-            # Unit Lead sees team / individual member targets
+            # Unit Lead sees team / individual member targets or targets created by user
             queryset = queryset.filter(
                 Q(child_cascades__unit_target__isnull=False) |
                 Q(child_cascades__individual_target__isnull=False) |
-                Q(user=user)
+                Q(user=user) |
+                Q(created_by=user)
             )
         elif hierarchy_level in ['staff', 'employee', 'individual']:
-            # Individual views own assigned targets
-            queryset = queryset.filter(user=user)
+            # Individual views own assigned targets or targets created by user
+            queryset = queryset.filter(Q(user=user) | Q(created_by=user))
 
         return queryset.distinct()
 
+
     def create(self, request, *args, **kwargs):
         setter = TargetSetter()
+        kpi_id = request.data.get('kpi') or request.data.get('kpi_id') or request.data.get('kpiId')
+        user_id = request.data.get('user') or request.data.get('user_id') or request.data.get('userId')
+        year = request.data.get('year')
+        target_value = request.data.get('target_value') if 'target_value' in request.data else request.data.get('targetValue')
         try:
             target = setter.set_annual_target(
-                kpi_id=request.data.get('kpi'),
-                user_id=request.data.get('user'),
-                year=request.data.get('year'),
-                target_value=request.data.get('target_value'),
+                kpi_id=kpi_id,
+                user_id=user_id,
+                year=year,
+                target_value=target_value,
                 user=request.user
             )
             serializer = self.get_serializer(target)
@@ -93,7 +99,7 @@ class AnnualTargetViewSet(BaseKpiViewset):
         target = self.get_object()
         phaser = TargetPhaser()
         strategy = request.data.get('strategy', 'equal_split')
-        strategy_params = request.data.get('strategy_params', {})
+        strategy_params = request.data.get('strategy_params') or request.data.get('strategyParams') or {}
         try:
             monthly_targets = phaser.phase_target(
                 str(target.id),
@@ -103,7 +109,7 @@ class AnnualTargetViewSet(BaseKpiViewset):
             )
             serializer = MonthlyPhasingSerializer(monthly_targets, many=True)
             return Response(serializer.data)
-        except (PhasingLockedError, DuplicatePhasingError) as e:
+        except Exception as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -162,7 +168,7 @@ class MonthlyPhasingViewSet(BaseKpiViewset):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        performance_cycle = request.data.get('performance_cycle')
+        performance_cycle = request.data.get('performance_cycle') or request.data.get('performanceCycle')
         if not performance_cycle:
             return Response(
                 {'error': 'performance_cycle is required'},
@@ -180,6 +186,36 @@ class MonthlyPhasingViewSet(BaseKpiViewset):
             'updated_count': updated
         })
 
+    @action(detail=False, methods=['post'])
+    def unlock_cycle(self, request):
+        locker = TargetLocker()
+        tenant_id = getattr(request, 'current_tenant_id', None)
+        if not tenant_id and hasattr(request.user, 'tenant_id'):
+            tenant_id = str(request.user.tenant_id)
+        if not tenant_id:
+            return Response(
+                {'error': 'Unable to determine tenant'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        performance_cycle = request.data.get('performance_cycle') or request.data.get('performanceCycle')
+        if not performance_cycle:
+            return Response(
+                {'error': 'performance_cycle is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        updated = locker.unlock_phasing_for_cycle(
+            str(tenant_id),
+            performance_cycle,
+            request.user
+        )
+        
+        return Response({
+            'message': f'Unlocked {updated} phasing records',
+            'updated_count': updated
+        })
+
     @action(detail=True, methods=['post'])
     def lock(self, request, pk=None):
         phasing = self.get_object()
@@ -190,4 +226,4 @@ class MonthlyPhasingViewSet(BaseKpiViewset):
             )
         phasing.lock(request.user)
         serializer = self.get_serializer(phasing)
-        return Response(serializer.data)
+        return Response(serializer.data)

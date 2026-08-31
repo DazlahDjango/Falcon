@@ -19,9 +19,13 @@ class KPIListFilter(BaseKPIListFilter):
     kpi_type = filters.ChoiceFilter(choices=KPI.KPI_TYPES, field_name='kpi_type')
     calculation_logic = filters.ChoiceFilter(choices=KPI.CALCULATION_LOGIC, field_name='calculation_logic')
     measure_type = filters.ChoiceFilter(choices=KPI.MEASURE_TYPE, field_name='measure_type')
+    approval_status = filters.ChoiceFilter(choices=KPI.APPROVAL_STATUS, field_name='approval_status')
+    is_staff_created = filters.BooleanFilter(field_name='is_staff_created')
+    parent_kpi = filters.UUIDFilter(field_name='parent_kpi__id')
     category = filters.UUIDFilter(field_name='category__id')
     owner = filters.UUIDFilter(field_name='owner__id')
     department = filters.UUIDFilter(field_name='department__id')
+
     
     kpi_types = filters.MultipleChoiceFilter(choices=KPI.KPI_TYPES, field_name='kpi_type', lookup_expr='in')
     
