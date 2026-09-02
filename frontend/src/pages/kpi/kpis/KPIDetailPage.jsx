@@ -8,18 +8,18 @@ const KPIDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { canManageKPIs } = useKPIPermissions();
-    
+
     const handleBack = () => {
         navigate(KpiPaths.KPIs);
     };
-    
+
     const handleEdit = (kpiId) => {
         navigate(KpiPaths.KPIEdit(kpiId));
     };
-    
+
     return (
         <div className="kpi-page-container">
-            <KPIDetail 
+            <KPIDetail
                 kpiId={id}
                 onBack={handleBack}
                 onEdit={canManageKPIs ? handleEdit : null}

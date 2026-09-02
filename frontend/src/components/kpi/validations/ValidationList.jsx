@@ -3,6 +3,7 @@ import { FiInbox } from 'react-icons/fi';
 import ValidationCard from './ValidationCard';
 import KPIEmptyState from '../common/KPIEmptyState';
 import KPILoading from '../common/KPILoading';
+import KPIPagination from '../common/KPIPagination';
 
 const ValidationList = ({ 
     validations, 
@@ -10,9 +11,12 @@ const ValidationList = ({
     onApprove, 
     onReject, 
     onEscalate,
-    canValidate 
+    canValidate,
+    pagination = {},
+    onPageChange,
+    onPageSizeChange
 }) => {
-    if (loading) {
+    if (loading && (!validations || validations.length === 0)) {
         return <KPILoading text="Loading validations..." />;
     }
 
@@ -47,6 +51,19 @@ const ValidationList = ({
                     canValidate={canValidate}
                 />
             ))}
+            
+            {validations && validations.length > 0 && (
+                <KPIPagination 
+                    currentPage={pagination.page || pagination.currentPage || 1}
+                    pageSize={pagination.pageSize || 20}
+                    total={pagination.total || validations.length}
+                    totalPages={pagination.totalPages || 1}
+                    itemCount={validations.length}
+                    isLoading={loading}
+                    onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
+                />
+            )}
         </div>
     );
 };

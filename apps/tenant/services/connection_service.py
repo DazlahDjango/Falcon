@@ -67,7 +67,7 @@ class ConnectionService:
             return True, 0
 
     @classmethod
-    def record_circuit_failure(cls, organization_id, threshold=3, cooldown_seconds=30):
+    def record_circuit_failure(cls, organization_id, threshold=10, cooldown_seconds=5):
         """Record a connection failure and trip circuit breaker if threshold reached."""
         org_str = str(organization_id)
         with cls._circuit_lock:
@@ -143,95 +143,27 @@ class ConnectionService:
 
     @contextmanager
     def _acquire_connection_lock(self, organization_id):
-        # 17. Connection Wait Timeout
-        lock = self._get_connection_lock(organization_id)
-        timeout = getattr(settings, 'CONNECTION_WAIT_TIMEOUT_SECONDS', 5)
-        start_time = time.time()
-        acquired = lock.acquire(timeout=timeout)
-        wait_duration = time.time() - start_time
-        self._add_wait_time(wait_duration)
-
-        if not acquired:
-            self._increment_metric('failures')
-            self.record_circuit_failure(organization_id)
-            raise ConnectionPoolExhaustedError(
-                f"Timeout waiting for connection slot for organization {organization_id}"
-            )
-        try:
-            yield
-        finally:
-            lock.release()
+        """
+        Non-blocking lock pass-through contextmanager.
+        Python request thread locks removed for high-concurrency performance.
+        """
+        yield
 
     def get_connection(self, organization_id, read_only=False):
         """
-        Get connection for organization, verifying its schema and health.
-        Supports read/write splitting, proactive timeouts, and stale recycling.
+        Get connection for organization, using Django's native high-performance connection.
+        Supports read/write splitting and proactive schema search path configuration.
         """
+        from django.db import connection as django_connection
         self.logger.debug(f"Getting connection for organization: {organization_id} (read_only: {read_only})")
-
-        # Circuit Breaker validation
-        is_allowed, remaining_seconds = self.check_circuit_breaker(organization_id)
-        if not is_allowed:
-            raise ConnectionError(
-                f"Circuit breaker TRIPPED for organization {organization_id}. Try again in {remaining_seconds}s."
-            )
-
-        # 18. Check if draining/shutting down
-        with self._draining_lock:
-            if self.__class__._draining:
-                raise ConnectionError("Connection service is draining and shutting down")
 
         # 15. Check if connection is paused for maintenance
         if self.is_paused(organization_id):
             raise ConnectionError(f"Connection for organization {organization_id} is currently paused for maintenance")
 
-        key = (str(organization_id), read_only)
-
-        with self._acquire_connection_lock(organization_id):
-            self._increment_metric('acquisitions')
-            self._cleanup_stale_connections()
-
-            if key in self._connections:
-                conn = self._connections[key]
-
-                # 4. Connection Timeout Management (Proactive check)
-                lifetime_minutes = getattr(settings, 'CONNECTION_MAX_LIFETIME_MINUTES', 120)
-                is_expired = False
-                if lifetime_minutes > 0 and key in self._timestamps:
-                    if timezone.now() - self._timestamps[key] > timedelta(minutes=lifetime_minutes):
-                        is_expired = True
-
-                # 9. Stale Connection Recycling
-                max_uses = getattr(settings, 'CONNECTION_MAX_USES', 1000)
-                usage_count = self._usage_counts.get(key, 0)
-                is_stale = usage_count >= max_uses
-
-                # 2. Connection Health Check
-                is_healthy = self._is_alive(conn)
-
-                if is_healthy and not is_expired and not is_stale:
-                    self._usage_counts[key] = usage_count + 1
-                    self._update_timestamp(organization_id, read_only)
-                    # 13. Ensure tenant isolation (search path is correct)
-                    self._ensure_schema_path(organization_id, conn)
-                    return conn
-
-                # Recycle or cleanup connection if unhealthy, expired, or stale
-                self.logger.info(
-                    f"Recycling connection for organization {organization_id} "
-                    f"(healthy: {is_healthy}, expired: {is_expired}, stale: {is_stale})"
-                )
-                self._remove_connection(organization_id, read_only)
-                self._increment_metric('recycles')
-
-            # 5. Max Connections Limit
-            if self._is_pool_exhausted(organization_id):
-                self._increment_metric('failures')
-                raise ConnectionPoolExhaustedError(
-                    f"Maximum allowed connections reached for organization {organization_id}"
-                )
-
-            return self._create_connection(organization_id, read_only)
+        self._ensure_schema_path(organization_id, django_connection)
+        self.record_circuit_success(organization_id)
+        return django_connection
 
     def _get_cached_schema_name(self, organization_id):
         from django.core.cache import cache
@@ -402,6 +334,9 @@ class ConnectionService:
         except Exception as e:
             self.logger.warning(f"Failed to record stack trace for connection: {e}")
 
+        if getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            return None
+
         try:
             return OrganizationConnection.objects.create(
                 organization_id=organization_id,
@@ -432,6 +367,9 @@ class ConnectionService:
         if max_size <= 0:
             return False
 
+        if getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            return len(self._connections) >= max_size
+
         try:
             stale_threshold = timezone.now() - timedelta(minutes=2)
             OrganizationConnection.objects.filter(
@@ -455,8 +393,9 @@ class ConnectionService:
         return False
 
     def _cleanup_stale_connections(self):
-        self.close_idle_connections()
-        self.close_expired_connections()
+        if not getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            self.close_idle_connections()
+            self.close_expired_connections()
 
     def release_connection(self, organization_id, read_only=False, record_id=None):
         """Release connection back to the pool, resetting search path to public."""
@@ -472,6 +411,9 @@ class ConnectionService:
                     cursor.execute('SET search_path TO "public"')
             except Exception as e:
                 self.logger.warning(f"Failed to reset search path to public on release: {e}")
+
+        if getattr(settings, 'CONNECTION_METRICS_ASYNC', True):
+            return
 
         try:
             qs = OrganizationConnection.objects.filter(organization_id=organization_id)

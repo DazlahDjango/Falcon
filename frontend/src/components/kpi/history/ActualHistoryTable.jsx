@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiEye } from 'react-icons/fi';
-import { fetchActualHistory, selectActualHistory, selectHistoryLoading } from '../../../store/kpi';
+import { fetchActualHistory, selectActualHistory, selectHistoryLoading, selectHistoryPagination } from '../../../store/kpi';
 import KPILoading from '../common/KPILoading';
+import KPIPagination from '../common/KPIPagination';
 
 const ActualHistoryTable = ({ onViewDetail, filters = {} }) => {
     const dispatch = useDispatch();
     const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(20);
     
     const history = useSelector(selectActualHistory);
     const loading = useSelector(selectHistoryLoading);
+    const pagination = useSelector(selectHistoryPagination);
     
     useEffect(() => {
-        dispatch(fetchActualHistory({ ...filters, page, page_size: 20 }));
-    }, [dispatch, page, filters]);
+        dispatch(fetchActualHistory({ ...filters, page, pageSize, page_size: pageSize }));
+    }, [dispatch, page, pageSize, filters]);
+
+    const handlePageSizeChange = (newSize) => {
+        setPageSize(newSize);
+        setPage(1);
+    };
     
     const getActionColor = (action) => {
         switch (action) {
@@ -26,7 +34,7 @@ const ActualHistoryTable = ({ onViewDetail, filters = {} }) => {
         }
     };
     
-    if (loading) {
+    if (loading && (!history || history.length === 0)) {
         return <KPILoading size="sm" text="Loading actual history..." />;
     }
     
@@ -67,6 +75,19 @@ const ActualHistoryTable = ({ onViewDetail, filters = {} }) => {
                     ))}
                 </tbody>
             </table>
+
+            {history && history.length > 0 && (
+                <KPIPagination
+                    currentPage={page}
+                    pageSize={pageSize}
+                    total={pagination.total || history.length}
+                    totalPages={pagination.totalPages || 1}
+                    itemCount={history.length}
+                    isLoading={loading}
+                    onPageChange={setPage}
+                    onPageSizeChange={handlePageSizeChange}
+                />
+            )}
         </div>
     );
 };

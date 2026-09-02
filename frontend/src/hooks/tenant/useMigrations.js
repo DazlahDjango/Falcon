@@ -188,6 +188,16 @@ export const useMigrations = (options = {}) => {
     dispatch(setPagination(newPagination));
   }, [dispatch]);
 
+  const setPage = useCallback((page) => {
+    dispatch(setPagination({ page }));
+    dispatch(fetchMigrations({ page }));
+  }, [dispatch]);
+
+  const setPageSize = useCallback((pageSize) => {
+    dispatch(setPagination({ pageSize, page: 1 }));
+    dispatch(fetchMigrations({ pageSize, page: 1 }));
+  }, [dispatch]);
+
   const clearCurrent = useCallback(() => {
     dispatch(clearCurrentMigration());
   }, [dispatch]);
@@ -294,6 +304,8 @@ export const useMigrations = (options = {}) => {
     updateFilters,
     resetAllFilters,
     updatePagination,
+    setPage,
+    setPageSize,
     clearCurrent,
     clearAllErrors,
     clearAllStats,

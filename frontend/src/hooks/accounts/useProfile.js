@@ -11,8 +11,8 @@ import {
   removeSkill as removeSkillThunk,
   addCertification as addCertificationThunk,
   removeCertification as removeCertificationThunk,
-  fetchMyProfile,
-  updateMyProfile,
+  fetchMyProfile as fetchMyProfileThunk,
+  updateMyProfile as updateMyProfileThunk,
   setProfileFilters,
   setProfilePage,
   clearSelectedProfile,
@@ -73,8 +73,14 @@ export const useProfile = () => {
   );
 
   const upload = useCallback(
-    async (id, file, onProgress) => {
-      const result = await dispatch(uploadAvatar({ id, file, onProgress })).unwrap();
+    async (arg1, file, onProgress) => {
+      let payload;
+      if (typeof arg1 === 'object' && arg1 !== null) {
+        payload = arg1;
+      } else {
+        payload = { id: arg1, file, onProgress };
+      }
+      const result = await dispatch(uploadAvatar(payload)).unwrap();
       return result;
     },
     [dispatch]
@@ -129,14 +135,22 @@ export const useProfile = () => {
   );
 
   const getMyProfile = useCallback(async () => {
-    const result = await dispatch(fetchMyProfile()).unwrap();
-    return result;
+    try {
+      const result = await dispatch(fetchMyProfileThunk()).unwrap();
+      return { success: true, data: result };
+    } catch (err) {
+      return { success: false, error: err };
+    }
   }, [dispatch]);
 
   const updateMyProfile = useCallback(
     async (data) => {
-      const result = await dispatch(updateMyProfile(data)).unwrap();
-      return result;
+      try {
+        const result = await dispatch(updateMyProfileThunk(data)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, error: err };
+      }
     },
     [dispatch]
   );
@@ -200,7 +214,9 @@ export const useProfile = () => {
       getProfile,
       update,
       upload,
+      uploadAvatar: upload,
       removeAvatar,
+      deleteAvatar: removeAvatar,
       addSkill,
       updateSkill,
       removeSkill,

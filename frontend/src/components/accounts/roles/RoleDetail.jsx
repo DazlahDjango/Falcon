@@ -69,7 +69,7 @@ export const RoleDetail = () => {
   if (error) {
     return (
       <div className="role-detail-error">
-        <p>{error}</p>
+        <p>{typeof error === 'string' ? error : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error))}</p>
         <button className="btn-primary" onClick={() => navigate(ACCOUNTS_ROUTES.ROLES)}>
           <FiArrowLeft /> Back to Roles
         </button>

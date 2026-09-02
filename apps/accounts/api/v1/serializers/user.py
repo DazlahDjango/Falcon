@@ -9,32 +9,56 @@ class UserMinimalSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(format='hex')
     tenant_id = serializers.UUIDField(read_only=True)
     full_name = serializers.SerializerMethodField(read_only=True)
+    avatar = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'role', 'full_name',
-            'is_superuser', 'is_verified', 'tenant_id'
+            'is_superuser', 'is_verified', 'tenant_id', 'avatar'
         ]
         read_only_fields = fields
     def get_full_name(self, obj):
         return obj.get_full_name()
+    def get_avatar(self, obj):
+        if hasattr(obj, 'profile') and obj.profile and obj.profile.avatar:
+            try:
+                request = self.context.get('request')
+                url = obj.profile.avatar.url
+                if request:
+                    return request.build_absolute_uri(url)
+                return url
+            except Exception:
+                return None
+        return None
 
 class UserListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
     full_name = serializers.SerializerMethodField()
     manager_name = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = User
         fields = [
             'id', 'email', 'username', 'first_name', 'last_name', 'full_name',
             'role', 'is_active', 'is_verified', 'is_onboarded', 'mfa_enabled',
             'manager', 'manager_name', 'department', 'title', 'employee_id',
-            'last_login', 'created_at', 'updated_at', 'created_by', 'modified_by'
+            'last_login', 'created_at', 'updated_at', 'created_by', 'modified_by', 'avatar'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'modified_by']    
     def get_full_name(self, obj):
         return obj.get_full_name()
     def get_manager_name(self, obj):
         return obj.manager.get_full_name() if obj.manager else None
+    def get_avatar(self, obj):
+        if hasattr(obj, 'profile') and obj.profile and obj.profile.avatar:
+            try:
+                request = self.context.get('request')
+                url = obj.profile.avatar.url
+                if request:
+                    return request.build_absolute_uri(url)
+                return url
+            except Exception:
+                return None
+        return None
 
 class UserDetailSerializer(UserListSerializer):
     phone = serializers.CharField(source='phone_number', required=False, allow_blank=True, max_length=20)

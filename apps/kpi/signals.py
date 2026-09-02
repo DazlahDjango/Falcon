@@ -22,13 +22,9 @@ def _manager_user_id_for_employee(user_id):
         employment = Employment.objects.filter(
             user_id=user_id, is_current=True, is_active=True,
         ).first()
-        if not employment:
-            return None
-        line = Employment.objects.filter(
-            employee=employment, is_active=True, relation_type='solid',
-        ).select_related('manager').first()
-        if line and line.manager:
-            return str(line.manager.user_id)
+        if employment:
+            mgr_id = employment.effective_manager_user_id
+            return str(mgr_id) if mgr_id else None
     except Exception as e:
         logger.warning(f"Failed to get manager for user {user_id}: {e}")
     return None
@@ -37,7 +33,7 @@ def _manager_user_id_for_employee(user_id):
 # KPI Signals
 @receiver(post_save, sender=KPI)
 def kpi_post_save_handler(sender, instance, created, **kwargs):
-    logger.info(f"KPI {instance.code} {'created' if created else 'updated'}")
+    logger.info(f"KPI {instance.name} {'created' if created else 'updated'}")
     invalidate_kpi_cache(str(instance.id))
     
     if created:
@@ -48,6 +44,21 @@ def kpi_post_save_handler(sender, instance, created, **kwargs):
             pass
         except Exception as e:
             logger.warning(f"Failed to sync tenant: {e}")
+
+        if instance.is_staff_created and instance.approval_status == 'PENDING_APPROVAL':
+            try:
+                manager_id = _manager_user_id_for_employee(instance.owner_id)
+                if manager_id:
+                    from .services.realtime import KPIEventBroadcaster
+                    from .tasks import create_in_app_notification_task
+                    create_in_app_notification_task.delay(
+                        user_id=manager_id,
+                        title="KPI Pending Approval",
+                        message=f"{instance.owner.get_full_name() if hasattr(instance.owner, 'get_full_name') else instance.owner.email} created a new KPI '{instance.name}' awaiting your approval.",
+                        data={'kpi_id': str(instance.id), 'type': 'kpi_approval'}
+                    )
+            except Exception as ne:
+                logger.warning(f"Failed to notify manager for KPI approval: {ne}")
     
     if not created and not instance.is_active:
         try:
@@ -69,7 +80,7 @@ def kpi_pre_save_handler(sender, instance, **kwargs):
         try:
             old = sender.objects.get(pk=instance.pk)
             instance._changed_fields = {}
-            for field in ['name', 'code', 'description', 'kpi_type', 'calculation_logic',
+            for field in ['name', 'description', 'kpi_type', 'calculation_logic',
                           'measure_type', 'unit', 'decimal_places', 'is_active']:
                 old_value = getattr(old, field)
                 new_value = getattr(instance, field)
@@ -83,7 +94,7 @@ def kpi_pre_save_handler(sender, instance, **kwargs):
 # KPI Weight Signals
 @receiver([post_save, post_delete], sender=KPIWeight)
 def kpi_weight_changed_handler(sender, instance, **kwargs):
-    logger.info(f"KPI weight changed for {instance.kpi.code} - user {instance.user.email}")
+    logger.info(f"KPI weight changed for {instance.kpi.name} - user {instance.user.email}")
     invalidate_user_dashboards(str(instance.user_id))
     
     try:
@@ -115,7 +126,7 @@ def kpi_weight_changed_handler(sender, instance, **kwargs):
 # Target Signals
 @receiver(post_save, sender=AnnualTarget)
 def annual_target_post_save_handler(sender, instance, created, **kwargs):
-    logger.info(f"Annual target {'created' if created else 'updated'} for {instance.kpi.code} - {instance.year}")
+    logger.info(f"Annual target {'created' if created else 'updated'} for {instance.kpi.name} - {instance.year}")
     cache_key = f"kpi:target:{instance.kpi_id}:{instance.user_id}:{instance.year}"
     cache.delete(cache_key)
     
@@ -152,7 +163,7 @@ def monthly_phasing_post_save_handler(sender, instance, created, **kwargs):
 # Actual Data Signals
 @receiver(post_save, sender=MonthlyActual)
 def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
-    logger.info(f"Monthly actual {'created' if created else 'updated'} for {instance.kpi.code} - "
+    logger.info(f"Monthly actual {'created' if created else 'updated'} for {instance.kpi.name} - "
                 f"period {instance.year}-{instance.month:02d}, status: {instance.status}")
     invalidate_user_dashboards(str(instance.user_id))
     
@@ -231,7 +242,7 @@ def validation_record_post_save_handler(sender, instance, created, **kwargs):
         try:
             from .tasks import send_validation_notification_task, refresh_materialized_views_task
             send_validation_notification_task.delay(
-                validation_id=str(instance.id),
+                actual_id=str(instance.actual_id),
                 notification_type=instance.status.lower()
             )
             transaction.on_commit(lambda: refresh_materialized_views_task.delay(
@@ -266,7 +277,7 @@ def escalation_post_save_handler(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Score)
 def score_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        logger.info(f"Score calculated for {instance.kpi.code} - {instance.user.email}: {instance.score}%")
+        logger.info(f"Score calculated for {instance.kpi.name} - {instance.user.email}: {instance.score}%")
         try:
             from .tasks import update_traffic_light_task, update_aggregated_scores_task
             from .services.realtime import KPIEventBroadcaster
@@ -326,13 +337,13 @@ def score_post_save_trend_handler(sender, instance, **kwargs):
 # Cleanup Signals
 @receiver(post_delete, sender=KPI)
 def kpi_post_delete_handler(sender, instance, **kwargs):
-    logger.info(f"KPI {instance.code} deleted")
+    logger.info(f"KPI {instance.name} deleted")
     invalidate_kpi_cache(str(instance.id))
 
 
 @receiver(post_delete, sender=MonthlyActual)
 def monthly_actual_post_delete_handler(sender, instance, **kwargs):
-    logger.info(f"Monthly actual deleted for {instance.kpi.code} - period {instance.year}-{instance.month:02d}")
+    logger.info(f"Monthly actual deleted for {instance.kpi.name} - period {instance.year}-{instance.month:02d}")
     try:
         from .tasks import calculate_kpi_score_task
         calculate_kpi_score_task.delay(

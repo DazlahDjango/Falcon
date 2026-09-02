@@ -65,8 +65,9 @@ class UserViewSet(BaseModelViewset):
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.select_related('manager')
-        if not self.request.user.is_superuser:
-            qs = qs.filter(tenant_id=self.request.user.tenant_id)
+        if not self.request.user.is_superuser and getattr(self.request.user, 'role', None) != 'super_admin':
+            if self.request.user.tenant_id:
+                qs = qs.filter(tenant_id=self.request.user.tenant_id)
         return qs
     
     @action(detail=True, methods=['post'], url_path='change-password')

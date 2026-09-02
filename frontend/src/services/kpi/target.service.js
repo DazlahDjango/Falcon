@@ -50,12 +50,24 @@ class TargetService extends BaseKPIService {
     });
   }
 
-  async phaseTarget(id, strategy = 'equal_split', strategyParams = {}) {
+  async phaseTarget(id, strategy = 'equal_split', strategyParams = {}, overwrite = true) {
     if (!id) throw new Error('Target ID is required');
     return withRetry(async () => {
       const response = await this.apiClient.post(TARGET_ENDPOINTS.PHASE(id), {
         strategy,
         strategy_params: strategyParams,
+        overwrite,
+      });
+      return response;
+    });
+  }
+
+  async bulkPhaseTargets(year, strategy = 'equal_split') {
+    if (!year) throw new Error('Year is required for bulk phasing');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(TARGET_ENDPOINTS.BULK_PHASE, {
+        year,
+        strategy,
       });
       return response;
     });
@@ -93,6 +105,17 @@ class TargetService extends BaseKPIService {
     });
   }
 
+  async bulkUpdateMonthlyPhasing(annualTargetId, months) {
+    if (!annualTargetId) throw new Error('Annual Target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(MONTHLY_PHASING_ENDPOINTS.BULK_UPDATE, {
+        annual_target: annualTargetId,
+        months,
+      });
+      return response;
+    });
+  }
+
   async lockPhasing(id) {
     if (!id) throw new Error('Phasing ID is required');
     return withRetry(async () => {
@@ -105,6 +128,14 @@ class TargetService extends BaseKPIService {
     if (!performanceCycle) throw new Error('Performance cycle is required');
     return withRetry(async () => {
       const response = await this.apiClient.post(MONTHLY_PHASING_ENDPOINTS.LOCK_CYCLE, { performance_cycle: performanceCycle });
+      return response;
+    });
+  }
+
+  async unlockPhasingCycle(performanceCycle) {
+    if (!performanceCycle) throw new Error('Performance cycle is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(MONTHLY_PHASING_ENDPOINTS.UNLOCK_CYCLE, { performance_cycle: performanceCycle });
       return response;
     });
   }
@@ -194,6 +225,33 @@ class TargetService extends BaseKPIService {
     });
   }
 
+  async repairCascade(kpiId, year) {
+    if (!kpiId) throw new Error('KPI ID is required');
+    if (!year) throw new Error('Year is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.REPAIR, { kpi_id: kpiId, year });
+      return response;
+    });
+  }
+
+  async getContributors(orgTargetId) {
+    if (!orgTargetId) throw new Error('Organization target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.CONTRIBUTORS, { params: { organization_target: orgTargetId } });
+      return response;
+    });
+  }
+
+  async getUserContributions(userId, year) {
+    return withRetry(async () => {
+      const params = {};
+      if (userId) params.user_id = userId;
+      if (year) params.year = year;
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.USER_CONTRIBUTIONS, { params });
+      return response;
+    });
+  }
+
   async rollbackCascadeMap(mapId) {
     if (!mapId) throw new Error('Cascade map ID is required');
     return withRetry(async () => {
@@ -201,6 +259,22 @@ class TargetService extends BaseKPIService {
       return response;
     });
   }
+
+  async rollbackOrganizationCascade(orgTargetId) {
+    if (!orgTargetId) throw new Error('Organization target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(CASCADE_ENDPOINTS.ROLLBACK_ORGANIZATION, { organization_target: orgTargetId });
+      return response;
+    });
+  }
+
+  async verifyCascadeIntegrity(orgTargetId) {
+    if (!orgTargetId) throw new Error('Organization target ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.get(CASCADE_ENDPOINTS.VERIFY_INTEGRITY, { params: { organization_target: orgTargetId } });
+      return response;
+    });
+  }
 }
 
-export const targetService = new TargetService();
+export const targetService = new TargetService();

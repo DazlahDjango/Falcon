@@ -22,7 +22,8 @@ import useKPIPermissions from '../../../../hooks/kpi/useKPIPermissions';
 
 const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
     const dispatch = useDispatch();
-    const { canManageKPIs } = useKPIPermissions();
+    const { canManageKPIs, canApproveKPI, isManager, isExecutive } = useKPIPermissions();
+    const canManageOrApprove = canManageKPIs || canApproveKPI || isManager || isExecutive;
     
     const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
     
@@ -77,6 +78,10 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
     
     const handlePageChange = (page) => {
         dispatch(setKpiPagination({ page }));
+    };
+
+    const handlePageSizeChange = (pageSize) => {
+        dispatch(setKpiPagination({ page: 1, pageSize }));
     };
     
     if (loading && kpis.length === 0) {
@@ -146,7 +151,7 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
                             kpi={kpi}
                             onView={() => onViewKPI(kpi.id)}
                             onEdit={() => onEditKPI(kpi.id)}
-                            canManage={canManageKPIs}
+                            canManage={canManageOrApprove}
                         />
                     ))}
                 </div>
@@ -155,15 +160,20 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
                     kpis={kpis}
                     onView={onViewKPI}
                     onEdit={onEditKPI}
-                    canManage={canManageKPIs}
+                    canManage={canManageOrApprove}
                 />
             )}
             
-            {pagination.totalPages > 1 && (
+            {kpis.length > 0 && (
                 <KPIPagination 
                     currentPage={pagination.page}
+                    pageSize={pagination.pageSize}
+                    total={pagination.total}
                     totalPages={pagination.totalPages}
+                    itemCount={kpis.length}
+                    isLoading={loading}
                     onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                 />
             )}
         </div>

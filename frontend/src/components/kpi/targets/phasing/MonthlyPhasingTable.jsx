@@ -1,11 +1,24 @@
 import React from 'react';
 import { FiEdit2, FiLock } from 'react-icons/fi';
 
-const MonthlyPhasingTable = ({ phasing, onValueChange, canEdit }) => {
+const MonthlyPhasingTable = ({ phasing, onValueChange, canEdit, monthlyValues, onChange, readOnly }) => {
+    const items = phasing || monthlyValues || [];
+    const editable = canEdit !== undefined ? canEdit : (!readOnly);
+
+    const handleSingleValueChange = (monthNum, val) => {
+        const numVal = isNaN(val) ? 0 : val;
+        if (onValueChange) {
+            onValueChange(monthNum, numVal);
+        } else if (onChange) {
+            const updated = items.map(p => p.month === monthNum ? { ...p, target_value: numVal } : p);
+            onChange(updated);
+        }
+    };
+
     const months = [
-                        'January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November', 'December'
-                    ];
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
 
     return (
         <div className="kpi-phasing-table-container">
@@ -16,28 +29,28 @@ const MonthlyPhasingTable = ({ phasing, onValueChange, canEdit }) => {
                         <th>Target Value</th>
                         <th>% of Annual</th>
                         <th>Cumulative</th>
-                        {canEdit && <th>Actions</th>}
+                        {editable && <th>Actions</th>}
                     </tr>
                 </thead>
                 <tbody>
                     {months.map((month, index) => {
                         const monthNum = index + 1;
-                        const phasingItem = phasing?.find(p => p.month === monthNum);
-                        const value = phasingItem?.target_value || 0;
-                        const total = phasing?.reduce((sum, p) => sum + p.target_value, 0) || 1;
-                        const percentage = (value / total) * 100;
-                        const cumulative = phasing?.slice(0, index + 1).reduce((sum, p) => sum + p.target_value, 0) || 0;
+                        const phasingItem = items.find(p => p.month === monthNum);
+                        const value = Number(phasingItem?.target_value || 0);
+                        const total = items.reduce((sum, p) => sum + Number(p.target_value || 0), 0) || 1;
+                        const percentage = total > 0 ? (value / total) * 100 : 0;
+                        const cumulative = items.slice(0, index + 1).reduce((sum, p) => sum + Number(p.target_value || 0), 0) || 0;
                         
                         return (
                             <tr key={monthNum}>
                                 <td>{month}</td>
                                 <td>
-                                    {canEdit && !phasingItem?.is_locked ? (
+                                    {editable && !phasingItem?.is_locked ? (
                                         <input 
                                             type="number"
                                             className="kpi-phasing-input"
                                             value={value}
-                                            onChange={(e) => onValueChange?.(monthNum, parseFloat(e.target.value))}
+                                            onChange={(e) => handleSingleValueChange(monthNum, parseFloat(e.target.value))}
                                             step="0.01"
                                         />
                                     ) : (

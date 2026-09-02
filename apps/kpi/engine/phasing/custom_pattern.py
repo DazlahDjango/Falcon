@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import List, Dict, Optional
 
 
@@ -9,13 +9,18 @@ class CustomPatternStrategy:
         pattern = params['pattern']
         if len(pattern) != 12:
             raise ValueError("Pattern must have exactly 12 values")
-        if all(isinstance(v, (int, float, Decimal)) and v <= 1 for v in pattern):
-            total_weight = sum(pattern)
-            monthly_values = [total * Decimal(str(v / total_weight)) for v in pattern]
-        else:
-            total_pattern = sum(pattern)
-            monthly_values = [total * Decimal(str(v / total_pattern)) for v in pattern]
-        if sum(monthly_values) != total:
-            diff = total - sum(monthly_values)
+        
+        total_weight = Decimal(str(sum(pattern)))
+        if total_weight == 0:
+            raise ValueError("Sum of pattern values cannot be zero")
+            
+        monthly_values = [
+            (total * (Decimal(str(v)) / total_weight)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            for v in pattern
+        ]
+        
+        total_sum = sum(monthly_values)
+        if total_sum != total:
+            diff = total - total_sum
             monthly_values[-1] += diff
-        return monthly_values
+        return monthly_values

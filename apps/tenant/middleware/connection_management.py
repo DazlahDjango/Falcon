@@ -164,6 +164,7 @@ class ConnectionManagementMiddleware(MiddlewareMixin):
             '/static/',
             '/media/',
             '/api/v1/auth/',
+            '/ws/',
         ])
         for path in excluded:
             if request.path.startswith(path):

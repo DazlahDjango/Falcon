@@ -196,6 +196,14 @@ export const useOrganizations = (options = {}) => {
     dispatch(setPagination(newPagination));
   }, [dispatch]);
 
+  const setPage = useCallback((page) => {
+    dispatch(setPagination({ page }));
+  }, [dispatch]);
+
+  const setPageSize = useCallback((pageSize) => {
+    dispatch(setPagination({ page: 1, pageSize }));
+  }, [dispatch]);
+
   const updateAdminFilters = useCallback((newFilters) => {
     dispatch(setAdminFilters(newFilters));
   }, [dispatch]);
@@ -363,6 +371,8 @@ export const useOrganizations = (options = {}) => {
     updateFilters,
     resetAllFilters,
     updatePagination,
+    setPage,
+    setPageSize,
     updateAdminFilters,
     resetAllAdminFilters,
     updateAdminPagination,

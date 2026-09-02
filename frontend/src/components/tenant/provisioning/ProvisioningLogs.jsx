@@ -49,7 +49,7 @@ export const ProvisioningLogs = ({ logs = [], statusMeta = null, onClear }) => {
           entries.map((entry, idx) => (
             <div key={idx} className={`provisioning-log-entry ${levelClass(entry.level)}`}>
               <span className="provisioning-log-time">{formatTime(entry.time)}</span>
-              {entry.message}
+              {typeof entry.message === 'object' ? (entry.message?.message || JSON.stringify(entry.message)) : entry.message}
             </div>
           ))
         )}

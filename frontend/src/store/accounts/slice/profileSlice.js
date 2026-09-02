@@ -281,31 +281,65 @@ const profileSlice = createSlice({
         }
       })
       .addCase(addSkill.fulfilled, (state, action) => {
+        const skills = action.payload.skills || [
+          ...(state.currentProfile?.skills || state.selectedProfile?.skills || []),
+          action.payload.skill || action.payload,
+        ];
         if (state.selectedProfile) {
-          state.selectedProfile.skills = [...(state.selectedProfile.skills || []), action.payload];
+          state.selectedProfile.skills = skills;
+        }
+        if (state.currentProfile) {
+          state.currentProfile.skills = skills;
         }
       })
       .addCase(updateSkill.fulfilled, (state, action) => {
-        if (state.selectedProfile) {
-          const index = state.selectedProfile.skills?.findIndex(s => s.name === action.payload.name);
-          if (index !== -1 && index !== undefined) {
-            state.selectedProfile.skills[index] = action.payload;
+        const skills = action.payload.skills;
+        if (skills) {
+          if (state.selectedProfile) state.selectedProfile.skills = skills;
+          if (state.currentProfile) state.currentProfile.skills = skills;
+        } else if (action.payload.name) {
+          if (state.selectedProfile?.skills) {
+            const idx = state.selectedProfile.skills.findIndex(s => s.name === action.payload.name);
+            if (idx !== -1) state.selectedProfile.skills[idx] = action.payload;
+          }
+          if (state.currentProfile?.skills) {
+            const idx = state.currentProfile.skills.findIndex(s => s.name === action.payload.name);
+            if (idx !== -1) state.currentProfile.skills[idx] = action.payload;
           }
         }
       })
       .addCase(removeSkill.fulfilled, (state, action) => {
+        const skills = action.payload.skills || (
+          state.currentProfile?.skills?.filter(s => s.name !== action.payload) || []
+        );
         if (state.selectedProfile) {
-          state.selectedProfile.skills = state.selectedProfile.skills?.filter(s => s.name !== action.payload) || [];
+          state.selectedProfile.skills = skills;
+        }
+        if (state.currentProfile) {
+          state.currentProfile.skills = skills;
         }
       })
       .addCase(addCertification.fulfilled, (state, action) => {
+        const certs = action.payload.certifications || [
+          ...(state.currentProfile?.certifications || state.selectedProfile?.certifications || []),
+          action.payload.certification || action.payload,
+        ];
         if (state.selectedProfile) {
-          state.selectedProfile.certifications = [...(state.selectedProfile.certifications || []), action.payload];
+          state.selectedProfile.certifications = certs;
+        }
+        if (state.currentProfile) {
+          state.currentProfile.certifications = certs;
         }
       })
       .addCase(removeCertification.fulfilled, (state, action) => {
+        const certs = action.payload.certifications || (
+          state.currentProfile?.certifications?.filter(c => c.name !== action.payload) || []
+        );
         if (state.selectedProfile) {
-          state.selectedProfile.certifications = state.selectedProfile.certifications?.filter(c => c.name !== action.payload) || [];
+          state.selectedProfile.certifications = certs;
+        }
+        if (state.currentProfile) {
+          state.currentProfile.certifications = certs;
         }
       })
       .addCase(fetchMyProfile.pending, (state) => {

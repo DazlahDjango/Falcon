@@ -44,7 +44,7 @@ class IsDashboardChampion(BasePermission):
 
 
 class CanCascadeTargets(BasePermission):
-    """Permission to cascade targets (Dashboard Champion or Admin)."""
+    """Permission to cascade targets (Dashboard Champion, Admin, or Org/Department/Unit Leads)."""
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
@@ -52,8 +52,13 @@ class CanCascadeTargets(BasePermission):
         if request.user.is_superuser:
             return True
         
-        role = getattr(request.user, 'role', '').lower()
-        if role in ['dashboard_champion', 'super_admin', 'client_admin']:
+        role = str(getattr(request.user, 'role', '')).lower()
+        if role in [
+            'dashboard_champion', 'super_admin', 'superadmin', 'platform_admin', 
+            'client_admin', 'admin', 'kpi_champion', 'hr_admin',
+            'executive', 'ceo', 'director', 'division_lead', 'department_lead',
+            'section_lead', 'unit_lead', 'manager', 'supervisor'
+        ]:
             return True
         
         return request.user.get_direct_reports().exists()
@@ -148,6 +153,9 @@ class CanArchiveFramework(BasePermission):
 class IsOwnerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
+            return True
+        
+        if request.user and (request.user.is_superuser or getattr(request.user, 'role', '').lower() in ['super_admin', 'client_admin']):
             return True
         
         user_id = getattr(obj, 'user_id', None)

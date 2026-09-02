@@ -77,7 +77,12 @@ const ResourceList = ({ organizationId }) => {
 
   const handlePageChange = useCallback((page) => {
     updatePagination({ page });
-    fetchList({ page });
+    fetchList({ page, page_size: pagination.pageSize || 20 });
+  }, [fetchList, updatePagination, pagination.pageSize]);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    updatePagination({ pageSize, page: 1 });
+    fetchList({ page: 1, pageSize, page_size: pageSize });
   }, [fetchList, updatePagination]);
 
   const handleDelete = useCallback(async (id) => {
@@ -431,41 +436,57 @@ const ResourceList = ({ organizationId }) => {
       )}
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="resource-pagination resource-flex-center">
-          <button
-            className={`resource-pagination-btn ${pagination.page <= 1 ? 'resource-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page <= 1 || loading}
-          >
-            Previous
-          </button>
-          {[...Array(Math.min(pagination.totalPages, 5))].map((_, i) => {
-            const pageNum = i + 1;
-            return (
-              <button
-                key={pageNum}
-                className={`resource-pagination-btn ${pageNum === pagination.page ? 'resource-pagination-btn-active' : ''}`}
-                onClick={() => handlePageChange(pageNum)}
-                disabled={loading}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-          {pagination.totalPages > 5 && (
-            <span className="resource-pagination-info">...</span>
-          )}
-          <button
-            className={`resource-pagination-btn ${pagination.page >= pagination.totalPages ? 'resource-pagination-btn-disabled' : ''}`}
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page >= pagination.totalPages || loading}
-          >
-            Next
-          </button>
-          <span className="resource-pagination-info">
-            Page {pagination.page} of {pagination.totalPages}
-          </span>
+      {resources.length > 0 && (
+        <div className="resource-pagination">
+          <div className="resource-pagination-info">
+            Showing {resources.length} of {pagination.total || count || resources.length} resources
+          </div>
+          <div className="resource-pagination-controls">
+            <select
+              value={pagination.pageSize || 20}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="resource-pagination-select"
+              disabled={loading}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <button
+              className={`resource-pagination-btn ${pagination.page <= 1 ? 'resource-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1 || loading}
+            >
+              Previous
+            </button>
+            {[...Array(Math.min(pagination.totalPages || 1, 5))].map((_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  className={`resource-pagination-btn ${pageNum === pagination.page ? 'resource-pagination-btn-active' : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                  disabled={loading}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            {(pagination.totalPages || 1) > 5 && (
+              <span className="resource-pagination-info">...</span>
+            )}
+            <button
+              className={`resource-pagination-btn ${pagination.page >= (pagination.totalPages || 1) ? 'resource-pagination-btn-disabled' : ''}`}
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page >= (pagination.totalPages || 1) || loading}
+            >
+              Next
+            </button>
+            <span className="resource-pagination-info">
+              Page {pagination.page || 1} of {pagination.totalPages || 1}
+            </span>
+          </div>
         </div>
       )}
 

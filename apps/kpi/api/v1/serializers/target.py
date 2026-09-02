@@ -4,26 +4,50 @@ from .base import TenantAwareSerializer
 
 class AnnualTargetSerializer(TenantAwareSerializer):
     kpi_name = serializers.CharField(source='kpi.name', read_only=True)
-    kpi_code = serializers.CharField(source='kpi.code', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
     user_full_name = serializers.CharField(source='user.get_full_name', read_only=True)
     approved_by_email = serializers.EmailField(source='approved_by.email', read_only=True, default=None)
     is_approved = serializers.BooleanField(read_only=True)
     monthly_phasing_count = serializers.SerializerMethodField()
+    child_cascades = serializers.SerializerMethodField()
+    cascades_count = serializers.SerializerMethodField()
+    is_root = serializers.SerializerMethodField()
+    parent_target_id = serializers.SerializerMethodField()
 
     class Meta:
         model = AnnualTarget
         fields = [
-            'id', 'kpi', 'kpi_name', 'kpi_code', 'user', 'user_email',
-            'user_full_name', 'year', 'target_value', 'approved_by',
+            'id', 'kpi', 'kpi_name', 'user', 'user_email',
+            'user_full_name', 'year', 'target_value', 'baseline', 'approved_by',
             'approved_by_email', 'approved_at', 'notes', 'is_approved',
-            'monthly_phasing_count', 'tenant_id', 'created_at', 'updated_at',
+            'monthly_phasing_count', 'child_cascades', 'cascades_count',
+            'is_root', 'parent_target_id',
+            'tenant_id', 'created_at', 'updated_at',
             'created_by', 'updated_by'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'approved_at']
 
     def get_monthly_phasing_count(self, obj):
         return obj.monthly_phasing.count()
+
+    def get_child_cascades(self, obj):
+        from .cascade import CascadeMapSerializer
+        cascades = obj.child_cascades.select_related(
+            'cascade_rule', 'child_target', 'child_target__user',
+            'individual_target', 'individual_target__user',
+            'department_target', 'unit_target', 'section_target', 'division_target'
+        ).all()
+        return CascadeMapSerializer(cascades, many=True, context=self.context).data
+
+    def get_cascades_count(self, obj):
+        return obj.child_cascades.count()
+
+    def get_is_root(self, obj):
+        return not obj.parent_cascades.exists()
+
+    def get_parent_target_id(self, obj):
+        first_parent = obj.parent_cascades.first()
+        return str(first_parent.parent_target_id) if first_parent else None
 
     def validate_target_value(self, value):
         if value <= 0:
@@ -65,7 +89,6 @@ class MonthlyPhasingSerializer(TenantAwareSerializer):
 
 class MonthlyActualSerializer(TenantAwareSerializer):
     kpi_name = serializers.CharField(source='kpi.name', read_only=True)
-    kpi_code = serializers.CharField(source='kpi.code', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
     user_full_name = serializers.CharField(source='user.get_full_name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -77,7 +100,7 @@ class MonthlyActualSerializer(TenantAwareSerializer):
     class Meta:
         model = MonthlyActual
         fields = [
-            'id', 'kpi', 'kpi_name', 'kpi_code', 'user', 'user_email',
+            'id', 'kpi', 'kpi_name', 'user', 'user_email',
             'user_full_name', 'year', 'month', 'period', 'actual_value',
             'status', 'status_display', 'submitted_at', 'submitted_by', 'submitted_by_email',
             'notes', 'evidence_count', 'validation_status',

@@ -18,28 +18,28 @@ const ValidationCard = ({ validation, onApprove, onReject, onEscalate, canValida
             <div className="kpi-validation-header">
                 <div className="kpi-validation-title">
                     <FiTarget size={16} />
-                    <span>{validation.actual_kpi || validation.kpi_name}</span>
+                    <span>{validation.kpi?.name || validation.kpi_name || validation.actual_kpi || 'KPI Submission'}</span>
                 </div>
-                <KPIStatusBadge status={validation.status || validation.status_display} />
+                <KPIStatusBadge status={validation.status || 'PENDING'} />
             </div>
             
             <div className="kpi-validation-meta">
                 <div className="kpi-validation-meta-item">
                     <FiUser size={12} />
-                    <span>{validation.actual_user || validation.user_email}</span>
+                    <span>{validation.user?.email || validation.user_email || validation.user_detail?.email || validation.actual_user || 'Staff User'}</span>
                 </div>
                 <div className="kpi-validation-meta-item">
                     <HiOutlineCalendar size={12} />
-                    <span>Period: {validation.period || `${validation.year}-${validation.month}`}</span>
+                    <span>Period: {validation.period || (validation.year && validation.month ? `${validation.year}-${String(validation.month).padStart(2, '0')}` : 'N/A')}</span>
                 </div>
                 <div className="kpi-validation-meta-item">
                     <FiClock size={12} />
-                    <span>Submitted: {new Date(validation.submitted_at).toLocaleDateString()}</span>
+                    <span>Submitted: {validation.submitted_at ? new Date(validation.submitted_at).toLocaleDateString() : 'N/A'}</span>
                 </div>
             </div>
             
             <div className="kpi-validation-value">
-                Value: {validation.actual_value}
+                Submitted Value: <strong>{validation.actual_value}</strong>
             </div>
             
             {validation.notes && (

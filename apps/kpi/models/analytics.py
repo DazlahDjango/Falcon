@@ -63,11 +63,11 @@ class RefreshTracker(BaseKPIModel):
         ('organization_health', 'Organization Health'),
     ]
     view_name = models.CharField(max_length=50, choices=VIEW_NAME_CHOICES)
-    last_refresh = models.DateTimeField()
-    next_refresh = models.DateTimeField()
-    refresh_duration_ms = models.PositiveIntegerField(help_text="Duration in milliseconds")
-    rows_affected = models.PositiveIntegerField()
-    status = models.CharField(max_length=20, choices=[('SUCCESS', 'Success'), ('FAILED', 'Failed')])
+    last_refresh = models.DateTimeField(default=timezone.now)
+    next_refresh = models.DateTimeField(null=True, blank=True)
+    refresh_duration_ms = models.PositiveIntegerField(default=0, help_text="Duration in milliseconds")
+    rows_affected = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, choices=[('SUCCESS', 'Success'), ('FAILED', 'Failed')], default='SUCCESS')
     error_message = models.TextField(blank=True)
     triggered_by = models.CharField(max_length=255, default='system')
     class Meta:

@@ -45,6 +45,22 @@ class OrganizationContextMiddleware(MiddlewareMixin):
                     tenant_id = str(user_tenant_id)
                     logger.debug(f"Set tenant_id from user: {tenant_id}")
 
+        # Try 4: Extract from active organization fallback for authenticated requests
+        if not tenant_id and hasattr(request, 'user') and request.user.is_authenticated:
+            try:
+                fallback_key = "tenant_fallback_active_org_id"
+                tenant_id = cache.get(fallback_key)
+                if not tenant_id:
+                    from apps.tenant.models import Organization
+                    first_org = Organization.objects.filter(is_active=True).first()
+                    if first_org:
+                        tenant_id = str(first_org.id)
+                        cache.set(fallback_key, tenant_id, timeout=300)
+                if tenant_id:
+                    logger.debug(f"Set tenant_id from active organization fallback: {tenant_id}")
+            except Exception as e:
+                logger.warning(f"Failed fallback tenant resolution: {e}")
+
         # Set everything for backward compatibility
         if tenant_id:
             # Set thread-local context for OrganizationDatabaseRouter

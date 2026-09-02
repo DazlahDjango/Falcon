@@ -3,9 +3,9 @@ from django.db import models
 from typing import Dict, List, Optional, Any
 from django.db import transaction
 from django.utils import timezone
-from apps.accounts.exceptions import ValidationError
-from apps.configs.exceptions import ValidationError
+from django.core.exceptions import ValidationError
 from apps.kpi.models import AnnualTarget, MonthlyPhasing, PhasingLock
+
 
 class PhasingEngine:
     STRATEGY_MAP = {}
@@ -21,17 +21,26 @@ class PhasingEngine:
             'seasonal': SeasonalStrategy(),
             'custom_pattern': CustomPatternStrategy(),
         }
-    def phase_target(self, annual_target_id: str, strategy: str = 'equal_split', strategy_params: Optional[Dict] = None) -> List[MonthlyPhasing]:
-        annual_target = AnnualTarget.objects.get(id=annual_target_id)
+    def phase_target(self, annual_target_id: Any, strategy: str = 'equal_split', strategy_params: Optional[Dict] = None, overwrite: bool = False) -> List[MonthlyPhasing]:
+        if isinstance(annual_target_id, AnnualTarget):
+            annual_target = annual_target_id
+        else:
+            annual_target = AnnualTarget.objects.get(id=annual_target_id)
+
         # Validate strategy_params
         if strategy_params:
             self._validate_strategy_params(strategy, strategy_params)
-        # Check if phasing is locked
+        # Check if phasing is locked for this annual target or cycle
         if self._is_phasing_locked(annual_target.tenant_id, annual_target.year):
             raise Exception(f"Phasing is locked for performance cycle {annual_target.year}")
-        # Check if phasing already exists
-        if MonthlyPhasing.objects.filter(annual_target=annual_target).exists():
-            raise Exception(f"Phasing already exists for target {annual_target.id}")
+
+        existing_phasing = MonthlyPhasing.objects.filter(annual_target=annual_target)
+        if existing_phasing.exists():
+            if existing_phasing.filter(is_locked=True).exists():
+                raise Exception(f"Cannot re-phase target {annual_target.id}: One or more monthly phasing records are locked.")
+            if not overwrite:
+                raise Exception(f"Phasing already exists for target {annual_target.id}. Pass overwrite=True to re-phase.")
+
         # Get strategy
         phasing_strategy = self.STRATEGY_MAP.get(strategy)
         if not phasing_strategy:
@@ -42,9 +51,12 @@ class PhasingEngine:
             annual_target.kpi,
             strategy_params
         )
-        # Create monthly phasing records
+        # Create or update monthly phasing records inside atomic transaction
         monthly_phasing = []
         with transaction.atomic():
+            if existing_phasing.exists():
+                existing_phasing.delete()
+
             for month, value in enumerate(monthly_values, start=1):
                 phasing = MonthlyPhasing.objects.create(
                     tenant_id=annual_target.tenant_id,
@@ -80,12 +92,14 @@ class PhasingEngine:
             locked_by_id=user_id,
             locked_at=timezone.now()
         )
-        # Lock all phasing for this cycle
-        year = int(performance_cycle[-4:])  # Extract year from FY2025
+        import re
+        match = re.search(r'\d{4}', str(performance_cycle))
+        year = int(match.group()) if match else timezone.now().year
         updated = MonthlyPhasing.objects.filter(
             tenant_id=tenant_id,
             annual_target__year=year
         ).update(is_locked=True, locked_at=timezone.now(), locked_by_id=user_id)
+
         return updated > 0
     def verify_phasing_sum(self, annual_target_id: str) -> bool:
         """Verify that monthly phasing sums to annual target."""

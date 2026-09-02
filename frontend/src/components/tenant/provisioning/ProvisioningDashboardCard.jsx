@@ -1,5 +1,5 @@
 import React from 'react';
-import { getProvisioningMeta, normalizeOrgStatus } from '../../../services/tenant';
+import { getProvisioningMeta, normalizeOrgStatus, formatErrorMessage } from '../../../services/tenant';
 import { SUBSCRIPTION_TIER_LABELS } from '../../../services/tenant';
 
 const STATUS_CLASS = {
@@ -28,8 +28,8 @@ export const ProvisioningDashboardCard = ({
 
   const provMeta = getProvisioningMeta(org);
   const progress = provMeta.progress ?? 0;
-  const stepName = provMeta.step_name || provMeta.message;
-  const errorMsg = provMeta.error;
+  const stepName = formatErrorMessage(provMeta.step_name || provMeta.message);
+  const errorMsg = formatErrorMessage(provMeta.error);
 
   return (
     <div className={`prov-card prov-card-${status.toLowerCase()}`}>

@@ -35,7 +35,7 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
             return None
         if getattr(request, '_schema_path_set', None) == str(tenant_id):
             return None
-        if self._set_schema_path(tenant_id):
+        if self._set_schema_path(request, tenant_id):
             request._schema_path_set = str(tenant_id)
         return None
 
@@ -47,29 +47,45 @@ class TenantDatabaseRouterMiddleware(MiddlewareMixin):
                     cursor.execute('SET search_path TO "public"; SELECT set_config(\'app.current_tenant_id\', \'\', true);')
             except Exception as e:
                 logger.debug(f"Could not reset search_path / tenant session to public: {e}")
+            finally:
+                delattr(request, '_schema_path_set')
         return response
 
-    def _get_schema_name(self, tenant_id):
+    def _get_schema_name(self, request, tenant_id):
         cache_key = f"tenant_schema_name:{tenant_id}"
         schema_name = cache.get(cache_key)
-        if not schema_name:
-            try:
-                from apps.tenant.models import Organization
-                org = Organization.objects.filter(id=tenant_id, is_active=True).first()
-                if org and hasattr(org, 'schema_name') and org.schema_name:
-                    schema_name = org.schema_name
-                    ttl = getattr(settings, 'TENANT_SCHEMA_CACHE_TTL', 300)
-                    cache.set(cache_key, schema_name, timeout=ttl)
-            except Exception as e:
-                logger.warning(f"[DBRouting] Error fetching schema_name for tenant {tenant_id}: {e}")
+        if schema_name:
+            return schema_name
+
+        # Check if organization is attached to request or user to prevent DB lookup
+        org = getattr(request, 'organization', None) or (
+            getattr(request.user, 'organization', None) if hasattr(request, 'user') and request.user.is_authenticated else None
+        )
+        if org and str(getattr(org, 'id', '')) == str(tenant_id):
+            if hasattr(org, 'schema_name') and org.schema_name:
+                schema_name = org.schema_name
+                ttl = getattr(settings, 'TENANT_SCHEMA_CACHE_TTL', 300)
+                cache.set(cache_key, schema_name, timeout=ttl)
+                return schema_name
+
+        try:
+            from apps.tenant.models import Organization
+            org = Organization.objects.filter(id=tenant_id, is_active=True).first()
+            if org and hasattr(org, 'schema_name') and org.schema_name:
+                schema_name = org.schema_name
+                ttl = getattr(settings, 'TENANT_SCHEMA_CACHE_TTL', 300)
+                cache.set(cache_key, schema_name, timeout=ttl)
+        except Exception as e:
+            logger.warning(f"[DBRouting] Error fetching schema_name for tenant {tenant_id}: {e}")
+
         return schema_name
 
-    def _set_schema_path(self, tenant_id):
+    def _set_schema_path(self, request, tenant_id):
         """
         Resolve the Organisation's schema_name and set PostgreSQL search_path and app.current_tenant_id for RLS policies.
         Uses cached org.schema_name (e.g. 'org_airtel') and transaction-scoped set_config for PgBouncer compatibility.
         """
-        schema_name = self._get_schema_name(tenant_id)
+        schema_name = self._get_schema_name(request, tenant_id)
         if not schema_name:
             return False
 

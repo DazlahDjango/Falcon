@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProvision } from '../../hooks/tenant/useProvision';
 import { ProvisioningDashboardCard } from '../../components/tenant/provisioning';
+import { formatErrorMessage } from '../../services/tenant';
 
 /**
  * Global admin provisioning monitor (Super Admin only).
@@ -115,7 +116,7 @@ export const ProvisioningDashboardPage = () => {
               <div className="prov-error-banner-title">
                 {actionError ? 'Action failed' : 'Failed to load data'}
               </div>
-              <div className="prov-error-banner-msg">{actionError || error}</div>
+              <div className="prov-error-banner-msg">{formatErrorMessage(actionError || error)}</div>
             </div>
             <button
               type="button"

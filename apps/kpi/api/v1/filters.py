@@ -16,13 +16,16 @@ class BaseKPIListFilter(filters.FilterSet):
 
 class KPIListFilter(BaseKPIListFilter):
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
-    code = filters.CharFilter(field_name='code', lookup_expr='icontains')
     kpi_type = filters.ChoiceFilter(choices=KPI.KPI_TYPES, field_name='kpi_type')
     calculation_logic = filters.ChoiceFilter(choices=KPI.CALCULATION_LOGIC, field_name='calculation_logic')
     measure_type = filters.ChoiceFilter(choices=KPI.MEASURE_TYPE, field_name='measure_type')
+    approval_status = filters.ChoiceFilter(choices=KPI.APPROVAL_STATUS, field_name='approval_status')
+    is_staff_created = filters.BooleanFilter(field_name='is_staff_created')
+    parent_kpi = filters.UUIDFilter(field_name='parent_kpi__id')
     category = filters.UUIDFilter(field_name='category__id')
     owner = filters.UUIDFilter(field_name='owner__id')
     department = filters.UUIDFilter(field_name='department__id')
+
     
     kpi_types = filters.MultipleChoiceFilter(choices=KPI.KPI_TYPES, field_name='kpi_type', lookup_expr='in')
     
@@ -36,14 +39,13 @@ class KPIListFilter(BaseKPIListFilter):
     def filter_search(self, queryset, name, value):
         return queryset.filter(
             Q(name__icontains=value) |
-            Q(code__icontains=value) |
             Q(description__icontains=value)
         )
 
     class Meta:
         model = KPI
         fields = [
-            'is_active', 'name', 'code', 'kpi_type', 'calculation_logic', 
+            'is_active', 'name', 'kpi_type', 'calculation_logic', 
             'measure_type', 'category', 'owner', 
             'department', 'search'
         ]

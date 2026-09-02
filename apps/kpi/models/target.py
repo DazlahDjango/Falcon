@@ -10,6 +10,7 @@ class AnnualTarget(BaseKPIModel):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='annual_targets')
     year = models.PositiveSmallIntegerField()
     target_value = models.DecimalField(max_digits=20, decimal_places=2)
+    baseline = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, help_text="Benchmark value prior to performance cycle")
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_targets')
     notes = models.TextField(blank=True)

@@ -17,12 +17,14 @@ import {
 } from 'react-icons/fi';
 import { usePreferences } from '../../../hooks/accounts/usePreferences';
 import { useAuth } from '../../../hooks/accounts/useAuth';
+import { useThemeContext } from '../../../contexts/global/ThemeContext';
 
 export const UserPreferences = () => {
   const { user } = useAuth();
+  const { setThemeMode } = useThemeContext();
   const {
     userPreferences,
-    getUserPreferences,
+    getMyPreferences,
     updateMyPreferences,
     isLoading,
     error,
@@ -52,6 +54,7 @@ export const UserPreferences = () => {
 
   useEffect(() => {
     if (userPreferences) {
+      const activeTheme = userPreferences.theme || 'light';
       setFormData({
         items_per_page: userPreferences.items_per_page || 20,
         default_dashboard: userPreferences.default_dashboard || 'individual',
@@ -62,17 +65,31 @@ export const UserPreferences = () => {
         work_start_time: userPreferences.work_start_time || '09:00',
         work_end_time: userPreferences.work_end_time || '17:00',
         working_days: userPreferences.working_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-        theme: userPreferences.theme || 'light',
+        theme: activeTheme,
       });
+      if (activeTheme) {
+        setThemeMode(activeTheme);
+      }
     }
-  }, [userPreferences]);
+  }, [userPreferences, setThemeMode]);
 
   const loadPreferences = async () => {
-    await getUserPreferences({ user: user?.id });
+    try {
+      const res = await getMyPreferences();
+      const prefs = res?.data || res;
+      if (prefs?.theme) {
+        setThemeMode(prefs.theme);
+      }
+    } catch (err) {
+      console.warn("Could not load my preferences", err);
+    }
   };
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+    if (key === 'theme') {
+      setThemeMode(value);
+    }
   };
 
   const handleToggleArray = (key, value) => {
@@ -220,7 +237,6 @@ export const UserPreferences = () => {
                   type="button"
                   className={`theme-btn ${formData.theme === 'light' ? 'active' : ''}`}
                   onClick={() => handleChange('theme', 'light')}
-                  disabled={!editing}
                 >
                   <FiSun /> Light
                 </button>
@@ -228,7 +244,6 @@ export const UserPreferences = () => {
                   type="button"
                   className={`theme-btn ${formData.theme === 'dark' ? 'active' : ''}`}
                   onClick={() => handleChange('theme', 'dark')}
-                  disabled={!editing}
                 >
                   <FiMoon /> Dark
                 </button>
@@ -236,7 +251,6 @@ export const UserPreferences = () => {
                   type="button"
                   className={`theme-btn ${formData.theme === 'system' ? 'active' : ''}`}
                   onClick={() => handleChange('theme', 'system')}
-                  disabled={!editing}
                 >
                   <FiShield /> System
                 </button>

@@ -8,10 +8,18 @@ import { historyService } from '../../../services/kpi';
 
 export const fetchKPIHistory = createAsyncThunk(
   'history/fetchKPIHistory',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await historyService.getKPIHistory(params);
-      return response.data;
+      const state = getState();
+      const currentPagination = state.history?.pagination || { page: 1, pageSize: 20 };
+      const page = params.page || currentPagination.page || 1;
+      const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+      const limit = pageSize;
+      const offset = (page - 1) * pageSize;
+
+      const queryParams = { limit, offset, page, page_size: pageSize, ...params };
+      const response = await historyService.getKPIHistory(queryParams);
+      return { data: response.data, page, pageSize };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -32,10 +40,18 @@ export const fetchKPIHistoryForKPI = createAsyncThunk(
 
 export const fetchActualHistory = createAsyncThunk(
   'history/fetchActualHistory',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await historyService.getActualHistory(params);
-      return response.data;
+      const state = getState();
+      const currentPagination = state.history?.pagination || { page: 1, pageSize: 20 };
+      const page = params.page || currentPagination.page || 1;
+      const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+      const limit = pageSize;
+      const offset = (page - 1) * pageSize;
+
+      const queryParams = { limit, offset, page, page_size: pageSize, ...params };
+      const response = await historyService.getActualHistory(queryParams);
+      return { data: response.data, page, pageSize };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -56,10 +72,18 @@ export const fetchActualHistoryForActual = createAsyncThunk(
 
 export const fetchTargetHistory = createAsyncThunk(
   'history/fetchTargetHistory',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await historyService.getTargetHistory(params);
-      return response.data;
+      const state = getState();
+      const currentPagination = state.history?.pagination || { page: 1, pageSize: 20 };
+      const page = params.page || currentPagination.page || 1;
+      const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+      const limit = pageSize;
+      const offset = (page - 1) * pageSize;
+
+      const queryParams = { limit, offset, page, page_size: pageSize, ...params };
+      const response = await historyService.getTargetHistory(queryParams);
+      return { data: response.data, page, pageSize };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -121,8 +145,11 @@ const historySlice = createSlice({
       })
       .addCase(fetchKPIHistory.fulfilled, (state, action) => {
         state.loading = false;
-        state.kpiHistory = action.payload.results || action.payload;
-        if (action.payload.count) state.pagination.total = action.payload.count;
+        const { data, page, pageSize } = action.payload || {};
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        const total = data?.count != null ? data.count : (Array.isArray(data) ? data.length : results.length);
+        state.kpiHistory = results;
+        state.pagination = { page: page || 1, pageSize: pageSize || 20, total, totalPages: Math.max(1, Math.ceil(total / (pageSize || 20))) };
       })
       .addCase(fetchKPIHistory.rejected, (state, action) => {
         state.loading = false;
@@ -134,7 +161,11 @@ const historySlice = createSlice({
       })
       
       .addCase(fetchActualHistory.fulfilled, (state, action) => {
-        state.actualHistory = action.payload.results || action.payload;
+        const { data, page, pageSize } = action.payload || {};
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        const total = data?.count != null ? data.count : (Array.isArray(data) ? data.length : results.length);
+        state.actualHistory = results;
+        state.pagination = { page: page || 1, pageSize: pageSize || 20, total, totalPages: Math.max(1, Math.ceil(total / (pageSize || 20))) };
       })
       
       .addCase(fetchActualHistoryForActual.fulfilled, (state, action) => {
@@ -142,7 +173,11 @@ const historySlice = createSlice({
       })
       
       .addCase(fetchTargetHistory.fulfilled, (state, action) => {
-        state.targetHistory = action.payload.results || action.payload;
+        const { data, page, pageSize } = action.payload || {};
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        const total = data?.count != null ? data.count : (Array.isArray(data) ? data.length : results.length);
+        state.targetHistory = results;
+        state.pagination = { page: page || 1, pageSize: pageSize || 20, total, totalPages: Math.max(1, Math.ceil(total / (pageSize || 20))) };
       })
       
       .addCase(fetchTargetHistoryForTarget.fulfilled, (state, action) => {

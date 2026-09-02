@@ -12,10 +12,29 @@ import {
 // KPI CRUD
 export const fetchKPIs = createAsyncThunk(
   'kpi/fetchKPIs',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await kpiService.getKPIs(params);
-      return response.data;
+      const state = getState();
+      const currentPagination = state.kpi?.pagination || { page: 1, pageSize: 20 };
+      const page = params.page || currentPagination.page || 1;
+      const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+      const limit = pageSize;
+      const offset = (page - 1) * pageSize;
+
+      const queryParams = {
+        limit,
+        offset,
+        page,
+        page_size: pageSize,
+        ...params,
+      };
+
+      const response = await kpiService.getKPIs(queryParams);
+      return {
+        data: response.data,
+        page,
+        pageSize,
+      };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -99,6 +118,42 @@ export const validateKPI = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await kpiService.validateKPI(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const fetchPendingKPIApprovals = createAsyncThunk(
+  'kpi/fetchPendingKPIApprovals',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await kpiService.getPendingKPIApprovals(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const approveKPI = createAsyncThunk(
+  'kpi/approveKPI',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await kpiService.approveKPI(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const rejectKPI = createAsyncThunk(
+  'kpi/rejectKPI',
+  async ({ id, reason }, { rejectWithValue }) => {
+    try {
+      const response = await kpiService.rejectKPI(id, reason);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -272,6 +327,7 @@ const initialState = {
   kpis: [],
   currentKPI: null,
   kpiValidation: null,
+  pendingApprovals: [],
   
   // Weights
   weights: [],
@@ -360,12 +416,21 @@ const kpiSlice = createSlice({
       })
       .addCase(fetchKPIs.fulfilled, (state, action) => {
         state.loading = false;
-        const payload = action.payload;
-        state.kpis = Array.isArray(payload) ? payload : (payload?.results || []);
-        if (payload?.count) {
-          state.pagination.total = payload.count;
-          state.pagination.totalPages = Math.ceil(payload.count / state.pagination.pageSize);
-        }
+        const { data, page, pageSize } = action.payload || {};
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        const total = data?.count != null ? data.count : (Array.isArray(data) ? data.length : results.length);
+
+        state.kpis = results;
+        const activePageSize = pageSize || state.pagination.pageSize || 20;
+        const activePage = page || state.pagination.page || 1;
+        const totalPages = Math.max(1, Math.ceil(total / activePageSize));
+
+        state.pagination = {
+          page: activePage,
+          pageSize: activePageSize,
+          total,
+          totalPages,
+        };
       })
       .addCase(fetchKPIs.rejected, (state, action) => {
         state.loading = false;
@@ -438,6 +503,25 @@ const kpiSlice = createSlice({
       // ============ Validate KPI ============
       .addCase(validateKPI.fulfilled, (state, action) => {
         state.kpiValidation = action.payload;
+      })
+
+      // ============ Pending KPI Approvals ============
+      .addCase(fetchPendingKPIApprovals.fulfilled, (state, action) => {
+        state.pendingApprovals = Array.isArray(action.payload) ? action.payload : (action.payload?.results || []);
+      })
+      .addCase(approveKPI.fulfilled, (state, action) => {
+        state.pendingApprovals = state.pendingApprovals.filter(p => p.id !== action.payload.id);
+        const index = state.kpis.findIndex(k => k.id === action.payload.id);
+        if (index !== -1) {
+          state.kpis[index] = action.payload;
+        } else {
+          state.kpis.unshift(action.payload);
+        }
+      })
+      .addCase(rejectKPI.fulfilled, (state, action) => {
+        state.pendingApprovals = state.pendingApprovals.filter(p => p.id !== action.payload.id);
+        const index = state.kpis.findIndex(k => k.id === action.payload.id);
+        if (index !== -1) state.kpis[index] = action.payload;
       })
       
       // ============ Weights ============

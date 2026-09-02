@@ -6,29 +6,32 @@ import KPIEmptyState from '../../common/KPIEmptyState';
 import KPILoading from '../../common/KPILoading';
 import KPIPagination from '../../common/KPIPagination';
 
-const TargetList = ({ 
-    targets, 
-    loading, 
-    pagination,
+const TargetList = ({
+    targets,
+    loading,
+    pagination = {},
     filters = {},
     onFilterChange,
     onClearFilters,
     onPageChange,
+    onPageSizeChange,
     onRowClick,
     onEdit,
     onDelete,
     onCascade,
+    onViewTree,
+    onPhase,
     canEdit,
     canDelete,
     canCascade
 }) => {
-    if (loading) {
+    if (loading && (!targets || targets.length === 0)) {
         return <KPILoading text="Loading targets..." />;
     }
 
     if (!targets || targets.length === 0) {
         return (
-            <KPIEmptyState 
+            <KPIEmptyState
                 icon={<FiInbox size={40} />}
                 title="No Targets Found"
                 description="No annual targets have been set yet."
@@ -40,28 +43,35 @@ const TargetList = ({
 
     return (
         <div className="kpi-target-list-container">
-            <TargetFilters 
+            <TargetFilters
                 filters={filters}
                 onFilterChange={onFilterChange}
                 onClearFilters={onClearFilters}
             />
-            
-            <TargetTable 
+
+            <TargetTable
                 targets={targets}
                 onRowClick={onRowClick}
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onCascade={onCascade}
+                onViewTree={onViewTree}
+                onPhase={onPhase}
                 canEdit={canEdit}
                 canDelete={canDelete}
                 canCascade={canCascade}
             />
-            
-            {pagination && pagination.totalPages > 1 && (
-                <KPIPagination 
-                    currentPage={pagination.currentPage}
-                    totalPages={pagination.totalPages}
+
+            {targets && targets.length > 0 && (
+                <KPIPagination
+                    currentPage={pagination.page || pagination.currentPage || 1}
+                    pageSize={pagination.pageSize || 20}
+                    total={pagination.total || targets.length}
+                    totalPages={pagination.totalPages || 1}
+                    itemCount={targets.length}
+                    isLoading={loading}
                     onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
                 />
             )}
         </div>

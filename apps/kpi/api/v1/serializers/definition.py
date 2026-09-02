@@ -10,17 +10,21 @@ class KPIListSerializer(TenantAwareSerializer):
     kpi_type_display = serializers.CharField(source='get_kpi_type_display', read_only=True)
     calculation_logic_display = serializers.CharField(source='get_calculation_logic_display', read_only=True)
     measure_type_display = serializers.CharField(source='get_measure_type_display', read_only=True)
+    approval_status_display = serializers.CharField(source='get_approval_status_display', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
+    parent_kpi_name = serializers.CharField(source='parent_kpi.name', read_only=True, default=None)
     owner_email = serializers.EmailField(source='owner.email', read_only=True)
     department_name = serializers.CharField(source='department.name', read_only=True, default=None)
 
     class Meta:
         model = KPI
         fields = [
-            'id', 'name', 'code', 'description', 'kpi_type', 'kpi_type_display',
+            'id', 'name', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
-            'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
-            'category', 'category_name', 'owner', 'owner_email', 'department', 'department_name',
+            'measure_type_display', 'unit', 'decimal_places', 'baseline',
+            'category', 'category_name', 'parent_kpi', 'parent_kpi_name',
+            'is_staff_created', 'approval_status', 'approval_status_display', 'rejection_reason',
+            'owner', 'owner_email', 'department', 'department_name',
             'is_active', 'strategic_objective', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -30,23 +34,38 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
     kpi_type_display = serializers.CharField(source='get_kpi_type_display', read_only=True)
     calculation_logic_display = serializers.CharField(source='get_calculation_logic_display', read_only=True)
     measure_type_display = serializers.CharField(source='get_measure_type_display', read_only=True)
+    approval_status_display = serializers.CharField(source='get_approval_status_display', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True, default=None)
+    parent_kpi_name = serializers.CharField(source='parent_kpi.name', read_only=True, default=None)
+    owner_email = serializers.EmailField(source='owner.email', read_only=True, default=None)
+    owner_name = serializers.CharField(source='owner.get_full_name', read_only=True, default=None)
+    approved_by_email = serializers.EmailField(source='approved_by.email', read_only=True, default=None)
+    department_name = serializers.CharField(source='department.name', read_only=True, default=None)
     category_detail = KPICategorySerializer(source='category', read_only=True)
     weights_count = serializers.SerializerMethodField()
     actuals_count = serializers.SerializerMethodField()
     scores_count = serializers.SerializerMethodField()
+    sub_kpis_count = serializers.SerializerMethodField()
 
     class Meta:
         model = KPI
         fields = [
-            'id', 'name', 'code', 'description', 'kpi_type', 'kpi_type_display',
+            'id', 'name', 'description', 'kpi_type', 'kpi_type_display',
             'calculation_logic', 'calculation_logic_display', 'measure_type',
-            'measure_type_display', 'unit', 'decimal_places', 'target_min', 'target_max',
-            'formula', 'category', 'category_detail', 'owner', 'department', 'is_active',
+            'measure_type_display', 'unit', 'decimal_places', 'baseline',
+            'formula', 'category', 'category_name', 'category_detail',
+            'parent_kpi', 'parent_kpi_name', 'is_staff_created', 'approval_status', 'approval_status_display',
+            'rejection_reason', 'approved_by', 'approved_by_email',
+            'owner', 'owner_email', 'owner_name', 'department', 'department_name', 'is_active',
             'activation_date', 'deactivation_date', 'strategic_objective', 'metadata',
-            'weights_count', 'actuals_count', 'scores_count',
+            'weights_count', 'actuals_count', 'scores_count', 'sub_kpis_count',
             'tenant_id', 'created_at', 'updated_at', 'created_by_email', 'updated_by_email'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+
+    def get_sub_kpis_count(self, obj):
+        return obj.sub_kpis.count() if hasattr(obj, 'sub_kpis') else 0
+
 
     def get_weights_count(self, obj):
         return obj.weights.count() if hasattr(obj, 'weights') else 0
@@ -56,10 +75,6 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
 
     def get_scores_count(self, obj):
         return obj.scores.count()
-
-    def validate_code(self, value):
-        validate_kpi_code(value)
-        return value
 
     def validate_name(self, value):
         validate_kpi_name(value)
@@ -96,16 +111,6 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
         return value
 
     def validate(self, data):
-        target_min = data.get('target_min')
-        target_max = data.get('target_max')
-        if target_min is not None and target_max is not None:
-            if target_min > target_max:
-                raise serializers.ValidationError("Target minimum cannot be greater than target maximum")
-        if data.get('kpi_type') == 'PERCENTAGE':
-            if target_min and target_min > 100:
-                raise serializers.ValidationError("Percentage target min cannot exceed 100")
-            if target_max and target_max > 100:
-                raise serializers.ValidationError("Percentage target max cannot exceed 100")
         return data
 
 

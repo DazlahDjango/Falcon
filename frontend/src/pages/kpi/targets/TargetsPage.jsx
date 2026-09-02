@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { TargetList, TargetCreate, CascadeRules, CascadeMapping } from '../../../components/kpi';
+import { TargetList, TargetCreate, CascadeRules, CascadeMapping, CascadeTreeModal, TargetPhasingModal } from '../../../components/kpi';
 import { useKPIPermissions, useTargets, useCascadeRules } from '../../../hooks/kpi';
-import { fetchTarget, createCascadeMap } from '../../../store/kpi';
+import { fetchTarget, createCascadeMap, phaseTarget, bulkUpdateMonthlyPhasing, lockPhasingCycle } from '../../../store/kpi';
 
 const TargetsPage = () => {
     const navigate = useNavigate();
@@ -13,6 +13,8 @@ const TargetsPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [cascadeTarget, setCascadeTarget] = useState(null);
     const [loadingCascadeTarget, setLoadingCascadeTarget] = useState(false);
+    const [viewTreeTarget, setViewTreeTarget] = useState(null);
+    const [phasingTarget, setPhasingTarget] = useState(null);
 
     const { targets, loading, remove, refresh } = useTargets();
     const cascadeRules = useCascadeRules();
@@ -83,10 +85,10 @@ const TargetsPage = () => {
         return true;
     });
 
-    const currentTab = location.pathname === '/kpi/targets/cascade/rules' 
-        ? 'rules' 
-        : location.pathname === '/kpi/targets/cascade' 
-            ? 'cascade' 
+    const currentTab = location.pathname === '/kpi/targets/cascade/rules'
+        ? 'rules'
+        : location.pathname === '/kpi/targets/cascade'
+            ? 'cascade'
             : 'list';
 
     return (
@@ -153,8 +155,8 @@ const TargetsPage = () => {
                             <div style={{ padding: '40px', background: 'white', borderRadius: '8px', textAlign: 'center' }}>
                                 <h3>Select a target to cascade</h3>
                                 <p style={{ color: 'var(--kpi-gray-500)', marginBottom: '20px' }}>Please go to the Annual Targets tab and click the Cascade icon on any target to begin the wizard.</p>
-                                <button 
-                                    className="kpi-cascade-add-btn" 
+                                <button
+                                    className="kpi-cascade-add-btn"
                                     style={{ margin: '0 auto' }}
                                     onClick={() => navigate('/kpi/targets')}
                                 >
@@ -184,6 +186,8 @@ const TargetsPage = () => {
                             onEdit={handleEditTarget}
                             onDelete={remove}
                             onCascade={handleCascadeTrigger}
+                            onViewTree={(t) => setViewTreeTarget(t)}
+                            onPhase={(t) => setPhasingTarget(t)}
                             canEdit={canManageKPIs}
                             canDelete={canManageKPIs}
                             canCascade={canCascadeTargets}
@@ -199,6 +203,48 @@ const TargetsPage = () => {
                         refresh();
                     }}
                     onCancel={() => setShowCreateModal(false)}
+                />
+            )}
+
+            {/* Cascade Tree Modal */}
+            {viewTreeTarget && (
+                <CascadeTreeModal
+                    targetId={viewTreeTarget.id}
+                    targetName={`${viewTreeTarget.kpi_name || viewTreeTarget.kpi?.name || 'KPI Target'} (${viewTreeTarget.year})`}
+                    onClose={() => setViewTreeTarget(null)}
+                />
+            )}
+
+            {/* Target Phasing Modal */}
+            {phasingTarget && (
+                <TargetPhasingModal
+                    target={phasingTarget}
+                    onClose={() => setPhasingTarget(null)}
+                    onSave={async ({ targetId, strategy, monthlyValues }) => {
+                        try {
+                            if (strategy && strategy !== 'CUSTOM') {
+                                await dispatch(phaseTarget({ id: targetId, strategy, overwrite: true })).unwrap();
+                            } else if (monthlyValues && monthlyValues.length === 12) {
+                                await dispatch(bulkUpdateMonthlyPhasing({ annualTargetId: targetId, months: monthlyValues })).unwrap();
+                            }
+                            alert('Monthly target phasing saved successfully!');
+                            setPhasingTarget(null);
+                            refresh();
+                        } catch (err) {
+                            alert('Failed to save phasing: ' + (err.message || err.error || JSON.stringify(err)));
+                        }
+                    }}
+                    onLock={async (targetId, cycleName) => {
+                        try {
+                            await dispatch(lockPhasingCycle({ performanceCycle: cycleName || `FY${phasingTarget.year}` })).unwrap();
+                            alert('Phasing cycle locked successfully!');
+                            setPhasingTarget(null);
+                            refresh();
+                        } catch (err) {
+                            alert('Failed to lock cycle: ' + (err.message || err.error || JSON.stringify(err)));
+                        }
+                    }}
+                    readOnly={!canManageKPIs}
                 />
             )}
         </div>

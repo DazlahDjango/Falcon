@@ -10,6 +10,7 @@ import KPIDependencies from './KPIDependencies';
 import KPIStrategicLinkages from './KPIStrategicLinkages';
 import KPIValidation from './KPIValidation';
 import KPIHistory from './KPIHistory';
+import KPICascadeHierarchy from './KPICascadeHierarchy';
 import KPILoading from '../../common/KPILoading';
 import KPIError from '../../common/KPIError';
 import KPIConfirmDialog from '../../common/KPIConfirmDialog';
@@ -17,6 +18,7 @@ import {
     fetchKPI, 
     activateKPI, 
     deactivateKPI, 
+    approveKPI,
     clearCurrentKPI,
     selectCurrentKPI,
     selectKPILoadingDetails,
@@ -26,8 +28,10 @@ import useKPIPermissions from '../../../../hooks/kpi/useKPIPermissions';
 
 const KPIDetail = ({ kpiId, onBack, onEdit }) => {
     const dispatch = useDispatch();
-    const { canManageKPIs } = useKPIPermissions();
-    
+    const { canManageKPIs, canApproveKPI, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion } = useKPIPermissions();
+    const canSeeAdminTabs = canManageKPIs || isManager || isExecutive || isClientAdmin || isSuperAdmin || isDashboardChampion;
+    const canManageOrApprove = canManageKPIs || canApproveKPI || isManager;
+
     const [activeTab, setActiveTab] = useState('info');
     const [showActivateConfirm, setShowActivateConfirm] = useState(false);
     const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
@@ -56,25 +60,36 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
         setShowDeactivateConfirm(false);
         dispatch(fetchKPI(kpiId));
     };
-    
-    const tabs = [
+
+    const handleApproveKPI = async () => {
+        await dispatch(approveKPI(kpiId)).unwrap();
+        dispatch(fetchKPI(kpiId));
+    };
+
+    const allTabs = [
         { id: 'info', label: 'Information' },
         { id: 'stats', label: 'Statistics' },
         { id: 'targets', label: 'Targets' },
         { id: 'scores', label: 'Scores' },
         { id: 'weights', label: 'Weights' },
-        { id: 'dependencies', label: 'Dependencies' },
-        { id: 'linkages', label: 'Strategic Linkages' },
-        { id: 'validation', label: 'Validation' },
-        { id: 'history', label: 'History' }
+        { id: 'dependencies', label: 'Dependencies', adminOnly: true },
+        { id: 'linkages', label: 'Strategic Linkages', adminOnly: true },
+        { id: 'validation', label: 'Validation', adminOnly: true },
+        { id: 'history', label: 'History' },
+        { id: 'hierarchy', label: 'Cascade Hierarchy', adminOnly: true }
     ];
+
+    const tabs = allTabs.filter(tab => !tab.adminOnly || canSeeAdminTabs);
     
     if (loading) {
         return <KPILoading text="Loading KPI details..." />;
     }
     
     if (error || !kpi) {
-        return <KPIError message={error || "KPI not found"} onRetry={() => dispatch(fetchKPI(kpiId))} />;
+        const errorMessage = typeof error === 'string' 
+            ? error 
+            : (error?.message || error?.detail || (!kpi ? "KPI not found or does not exist." : "An error occurred while loading KPI details."));
+        return <KPIError message={errorMessage} onRetry={() => dispatch(fetchKPI(kpiId))} />;
     }
     
     return (
@@ -85,7 +100,17 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                     Back to List
                 </button>
                 <div className="kpi-detail-actions">
-                    {canManageKPIs && (
+                    {kpi.approval_status === 'PENDING_APPROVAL' && canManageOrApprove && (
+                        <button 
+                            className="kpi-detail-activate"
+                            style={{ backgroundColor: '#059669', color: '#ffffff', border: 'none' }}
+                            onClick={handleApproveKPI}
+                        >
+                            <FiCheckCircle size={14} />
+                            Approve KPI
+                        </button>
+                    )}
+                    {canManageOrApprove && (
                         <>
                             {kpi.is_active ? (
                                 <button 
@@ -104,7 +129,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                                     Activate
                                 </button>
                             )}
-                            <button className="kpi-detail-edit" onClick={() => onEdit(kpiId)}>
+                            <button className="kpi-detail-edit" onClick={() => onEdit && onEdit(kpiId)}>
                                 <FiEdit size={14} />
                                 Edit
                             </button>
@@ -139,6 +164,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                 {activeTab === 'linkages' && <KPIStrategicLinkages kpiId={kpiId} />}
                 {activeTab === 'validation' && <KPIValidation kpiId={kpiId} />}
                 {activeTab === 'history' && <KPIHistory kpiId={kpiId} />}
+                {activeTab === 'hierarchy' && <KPICascadeHierarchy kpiId={kpiId} kpi={kpi} />}
             </div>
             
             <KPIConfirmDialog

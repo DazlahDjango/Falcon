@@ -17,10 +17,9 @@ const KPIInfo = ({ kpi }) => {
         <div className="kpi-info-section">
             <div className="info-grid">
                 <InfoRow icon={<FiTag size={16} />} label="Name" value={kpi.name} />
-                <InfoRow icon={<FiHash size={16} />} label="Code" value={kpi.code} />
                 <InfoRow icon={<FiTarget size={16} />} label="Type" value={kpi.kpi_type_display || kpi.kpi_type} />
-                <InfoRow icon={<FiFolder size={16} />} label="Category" value={kpi.category_name || '—'} />
-                <InfoRow icon={<FiUser size={16} />} label="Owner" value={kpi.owner_email} />
+                <InfoRow icon={<FiFolder size={16} />} label="Category" value={kpi.category_name || kpi.category_detail?.name || '—'} />
+                <InfoRow icon={<FiUser size={16} />} label="Owner" value={kpi.owner_name || kpi.owner_email || '—'} />
                 <InfoRow icon={<FiUser size={16} />} label="Department" value={kpi.department_name || '—'} />
                 <InfoRow icon={<FiCalendar size={16} />} label="Created" value={new Date(kpi.created_at).toLocaleDateString()} />
                 <InfoRow icon={<FiCalendar size={16} />} label="Last Updated" value={new Date(kpi.updated_at).toLocaleDateString()} />
@@ -57,10 +56,6 @@ const KPIInfo = ({ kpi }) => {
                 <div className="meta-item">
                     <span className="meta-label">Decimal Places:</span>
                     <span className="meta-value">{kpi.decimal_places}</span>
-                </div>
-                <div className="meta-item">
-                    <span className="meta-label">Target Range:</span>
-                    <span className="meta-value">{kpi.target_min || '0'} — {kpi.target_max || '∞'}</span>
                 </div>
             </div>
         </div>

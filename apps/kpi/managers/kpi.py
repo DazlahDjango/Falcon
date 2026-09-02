@@ -25,10 +25,37 @@ class KPIManager(SoftDeleteManager):
     def with_measure_type(self, measure_type):
         return self.filter(measure_type=measure_type)
 
+    def approved(self):
+        return self.filter(approval_status='APPROVED')
+
+    def pending_approval(self):
+        return self.filter(approval_status='PENDING_APPROVAL')
+
+    def for_parent(self, parent_kpi_id):
+        return self.filter(parent_kpi_id=parent_kpi_id)
+
+    def staff_created(self):
+        return self.filter(is_staff_created=True)
+
+    def staff_operational(self):
+        return self.filter(is_staff_created=True, parent_kpi__isnull=True)
+
+    def sub_kpis(self):
+        return self.filter(parent_kpi__isnull=False)
+
     def for_user_hierarchy(self, user):
+        role = str(getattr(user, 'role', '')).lower()
+        if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion', 'executive']:
+            return self
+
         user_kpis = Q(owner=user)
-        direct_reports = user.get_direct_reports().values_list('id', flat=True)
-        report_kpis = Q(owner_id__in=direct_reports)
+        direct_reports = []
+        if hasattr(user, 'get_direct_reports'):
+            try:
+                direct_reports = user.get_direct_reports().values_list('id', flat=True)
+            except Exception:
+                direct_reports = []
+        report_kpis = Q(owner_id__in=direct_reports) if direct_reports else Q()
         managed_depts = getattr(user, 'managed_departments', [])
         dept_kpis = Q(department_id__in=managed_depts) if managed_depts else Q()
         return self.filter(user_kpis | report_kpis | dept_kpis)

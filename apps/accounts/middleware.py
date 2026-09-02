@@ -6,92 +6,12 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import resolve
 from .models import UserSession, AuditLog
-from .services import JWTServices, TenantAccessService, AuditService
+from .services import JWTServices, AuditService
 from .constants import CacheKeys
-from apps.tenant.context import set_current_tenant_id, get_current_tenant_id, clear_current_tenant_id
 
 logger = logging.getLogger(__name__)
 jwt_service = JWTServices()
-tenant_service = TenantAccessService()
 audit_service = AuditService()
-
-
-class TenantContextMiddleware(MiddlewareMixin):
-    """
-    Middleware to extract and set tenant context for the request.
-
-    Sources (in priority order):
-      1. JWT Bearer token payload → tenant_id claim
-      2. Authenticated user's tenant_id field
-
-    Stores the resolved tenant_id in:
-      - request.current_tenant_id  (for view/serializer access)
-      - Thread-local via set_current_tenant_id()  (for ORM manager filtering)
-
-    On response, clears the thread-local to prevent state leaking to the
-    next request on the same thread.
-    """
-
-    def process_request(self, request):
-        if self._is_public_path(request.path):
-            return None
-
-        tenant_id = self._extract_tenant_from_token(request)
-
-        if not tenant_id:
-            # Fallback: authenticated user already has tenant_id on their record
-            if hasattr(request, 'user') and request.user.is_authenticated:
-                if getattr(request.user, 'tenant_id', None):
-                    tenant_id = str(request.user.tenant_id)
-
-        if tenant_id:
-            request.current_tenant_id = tenant_id
-            set_current_tenant_id(tenant_id)   # ← thread-local, NOT shared cache
-            logger.debug(f"[TenantContext] Resolved tenant_id={tenant_id} for {request.path}")
-        else:
-            # Super admin or unauthenticated — no tenant context
-            logger.debug(f"[TenantContext] No tenant_id resolved for {request.path}")
-
-        return None
-
-    def process_response(self, request, response):
-        # Always clear thread-local on response to prevent cross-request leakage
-        clear_current_tenant_id()
-        return response
-
-    def _is_public_path(self, path):
-        public_paths = [
-            '/api/v1/auth/login',
-            '/api/v1/auth/register',
-            '/api/v1/auth/password-reset',
-            '/api/v1/auth/verify-email',
-            '/api/v1/auth/accept-invitation',
-            '/api/v1/auth/refresh/',
-            '/api/v1/health',
-            '/admin/',
-            '/static/',
-            '/media/',
-        ]
-        return any(path.startswith(p) for p in public_paths)
-
-    def _extract_tenant_from_token(self, request):
-        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-        if not auth_header.startswith('Bearer '):
-            return None
-        token = auth_header.split(' ')[1]
-        try:
-            payload = jwt_service.verify_token(token)
-            if payload and payload.get('tenant_id'):
-                tid = payload['tenant_id']
-                # Guard against the string 'None' being stored in old tokens
-                return tid if tid and tid != 'None' else None
-        except Exception:
-            pass
-        return None
-
-
-# Backwards-compatible alias — settings.py can keep 'TenantMiddleware'
-TenantMiddleware = TenantContextMiddleware
 
 
 class SessionMiddleware(MiddlewareMixin):
@@ -104,8 +24,11 @@ class SessionMiddleware(MiddlewareMixin):
         session_id = self._extract_session_from_token(request)
         if session_id:
             request.current_session_id = session_id
-            # Update last activity
-            UserSession.objects.filter(id=session_id).update(last_activity=timezone.now())
+            # Throttle last activity DB updates (once per 5 min per session)
+            cache_key = f"session_activity:{session_id}"
+            if not cache.get(cache_key):
+                UserSession.objects.filter(id=session_id).update(last_activity=timezone.now())
+                cache.set(cache_key, True, timeout=300)
         elif hasattr(request, 'user') and request.user.is_authenticated:
             # ✅ FIXED: Indentation was incorrect - this block should run when no session_id found
             # Create session for authenticated users without one
@@ -183,18 +106,23 @@ class AuditMiddleware(MiddlewareMixin):
             '/static/',
             '/media/',
             '/admin/jsi18n/',  # Skip admin JS
+            '/ws/',
         ]
         return any(path.startswith(p) for p in skip_paths)
     
     def _log_request(self, request, response):
         try:
+            # Skip auditing successful GET requests to eliminate DB overhead
+            if request.method == 'GET' and response.status_code < 400:
+                return
+
             duration = (timezone.now() - request._request_start_time).total_seconds()
             audit_service.log(
                 user=request.user,
                 action=f"request.{request.method.lower()}",
-                action_type='view',
+                action_type='view' if request.method == 'GET' else 'action',
                 request=request,
-                severity='info',
+                severity='warning' if response.status_code >= 400 else 'info',
                 metadata={
                     'path': request.path,
                     'method': request.method,
@@ -293,71 +221,3 @@ class SecurityMiddleware(MiddlewareMixin):
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR', '')
-
-
-class TenantAccessMiddleware(MiddlewareMixin):
-    """Middleware to enforce tenant isolation."""
-    
-    def process_request(self, request):
-        if self._should_skip(request.path):
-            return None
-        
-        if not hasattr(request, 'user') or not request.user:
-            return None
-        
-        if request.user.is_authenticated and not request.user.is_superuser:
-            # Check if user is trying to access a different tenant's data
-            requested_tenant = self._extract_tenant_from_path(request.path)
-            if requested_tenant and requested_tenant != str(request.user.tenant_id):
-                logger.warning(
-                    f"[TenantAccessMiddleware] User {request.user.email} attempted to access "
-                    f"tenant {requested_tenant} (their tenant: {request.user.tenant_id})"
-                )
-                return JsonResponse(
-                    {'error': 'You do not have access to this tenant\'s data'},
-                    status=403
-                )
-        
-        return None
-    
-    def _should_skip(self, path):
-        skip_paths = [
-            '/api/v1/auth/',
-            '/api/v1/health',
-            '/admin/',
-            '/static/',
-            '/media/',
-            '/api/v1/auth/login',
-            '/api/v1/auth/register',
-            '/api/v1/auth/password-reset',
-            '/api/v1/auth/refresh/',
-        ]
-        return any(path.startswith(p) for p in skip_paths)
-    
-    def _extract_tenant_from_path(self, path):
-        """Extract tenant ID from URL path patterns."""
-        parts = path.split('/')
-        
-        # Pattern 1: /api/v1/tenants/{tenant_id}/...
-        try:
-            if 'tenants' in parts:
-                idx = parts.index('tenants')
-                if idx + 1 < len(parts) and parts[idx + 1]:
-                    return parts[idx + 1]
-        except ValueError:
-            pass
-        
-        # Pattern 2: /api/v1/admin/tenants/{tenant_id}/...
-        try:
-            if 'admin' in parts and 'tenants' in parts:
-                admin_idx = parts.index('admin')
-                tenants_idx = parts.index('tenants', admin_idx)
-                if tenants_idx + 1 < len(parts) and parts[tenants_idx + 1]:
-                    return parts[tenants_idx + 1]
-        except ValueError:
-            pass
-        
-        # Pattern 3: /api/v1/users/{user_id}/ - would need DB lookup, skip for performance
-        # Tenant isolation is already enforced by queryset filtering in views
-        
-        return None

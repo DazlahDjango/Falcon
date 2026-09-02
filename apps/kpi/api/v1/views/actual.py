@@ -27,6 +27,16 @@ class MonthlyActualViewSet(BaseKpiViewset):
     ordering_fields = ['year', 'month', 'actual_value', 'status', 'submitted_at']
     ordering = ['-year', '-month', 'kpi__name']
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return qs.none()
+        role = str(getattr(user, 'role', '')).lower()
+        if role in ['staff', 'employee']:
+            return qs.filter(user_id=user.id)
+        return qs
+
     def create(self, request, *args, **kwargs):
         entry_service = ActualEntry()
         try:

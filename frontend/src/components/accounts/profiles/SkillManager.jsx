@@ -12,7 +12,7 @@ import {
 import { useProfile } from '../../../hooks/accounts/useProfile';
 
 export const SkillManager = ({ profileId, skills = [], isOwner = true }) => {
-  const { addSkill, updateSkill, removeSkill, isLoading } = useProfile();
+  const { addSkill, updateSkill, removeSkill, fetchMyProfile, isLoading } = useProfile();
 
   const [showForm, setShowForm] = useState(false);
   const [editingSkill, setEditingSkill] = useState(null);
@@ -91,6 +91,11 @@ export const SkillManager = ({ profileId, skills = [], isOwner = true }) => {
       setShowForm(false);
       setEditingSkill(null);
       setTimeout(() => setSuccess(false), 3000);
+      try {
+        await fetchMyProfile();
+      } catch (err) {
+        // ignore
+      }
     } else {
       setFormError(result.error || 'Failed to save skill');
     }
@@ -102,6 +107,11 @@ export const SkillManager = ({ profileId, skills = [], isOwner = true }) => {
     if (result.success !== false) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
+      try {
+        await fetchMyProfile();
+      } catch (err) {
+        // ignore
+      }
     }
   };
 

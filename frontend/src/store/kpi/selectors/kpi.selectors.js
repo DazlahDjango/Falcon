@@ -67,6 +67,11 @@ export const selectKPIValidation = createSelector(
   (kpi) => kpi?.kpiValidation || null
 );
 
+export const selectPendingKPIApprovals = createSelector(
+  [selectKPIState],
+  (kpi) => kpi?.pendingApprovals || []
+);
+
 export const selectKPIWeights = createSelector(
   [selectKPIState],
   (kpi) => kpi?.weights || []
@@ -231,6 +236,27 @@ export const selectCascadeError = createSelector(
   (cascade) => cascade?.error || null
 );
 
+export const selectCascadeContributors = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.contributors || []
+);
+
+export const selectCascadeUserContributions = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.userContributions || []
+);
+
+export const selectCascadeIntegrityReport = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.integrityReport || null
+);
+
+export const selectCascadeRepairResult = createSelector(
+  [selectCascadeState],
+  (cascade) => cascade?.repairResult || null
+);
+
+
 // ============ Actual Selectors ============
 export const selectActuals = createSelector(
   [selectActualState],
@@ -270,6 +296,11 @@ export const selectActualSubmitting = createSelector(
 export const selectActualUploading = createSelector(
   [selectActualState],
   (actual) => actual?.uploading || false
+);
+
+export const selectActualPagination = createSelector(
+  [selectActualState],
+  (actual) => actual?.pagination || { page: 1, pageSize: 20 }
 );
 
 export const selectActualError = createSelector(
@@ -664,6 +695,11 @@ export const selectHistoryLoading = createSelector(
 export const selectHistoryError = createSelector(
   [selectHistoryState],
   (history) => history?.error || null
+);
+
+export const selectHistoryPagination = createSelector(
+  [selectHistoryState],
+  (history) => history?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 0 }
 );
 
 // ============ Combined Selectors ============

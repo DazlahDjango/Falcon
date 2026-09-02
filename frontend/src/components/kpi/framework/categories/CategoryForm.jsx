@@ -4,7 +4,6 @@ import { FiSave, FiX } from 'react-icons/fi';
 const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel }) => {
     const [formData, setFormData] = useState({
         name: category?.name || '',
-        code: category?.code || '',
         category_type: category?.category_type || 'OPERATIONAL',
         parent: category?.parent || parentCategory?.id || null,
         description: category?.description || '',
@@ -28,7 +27,6 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
     const handleSubmit = async () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Category name is required';
-        if (!formData.code.trim()) newErrors.code = 'Category code is required';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -80,18 +78,6 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                             placeholder="e.g., Revenue Growth"
                         />
                         {errors.name && <span className="error">{errors.name}</span>}
-                    </div>
-
-                    <div className="form-group">
-                        <label>Category Code <span className="required">*</span></label>
-                        <input
-                            type="text"
-                            className={errors.code ? 'error' : ''}
-                            value={formData.code}
-                            onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                            placeholder="e.g., REV_GROWTH"
-                        />
-                        {errors.code && <span className="error">{errors.code}</span>}
                     </div>
 
                     <div className="form-group">

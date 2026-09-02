@@ -23,15 +23,26 @@ class KPI(BaseKPIModel):
         ('CUMULATIVE', 'Cumulative (YTD)'),
         ('NON_CUMULATIVE', 'Non-Cumulative (Period Only)'),
     ]
+    APPROVAL_STATUS = [
+        ('DRAFT', 'Draft'),
+        ('PENDING_APPROVAL', 'Pending Approval'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
     name = models.CharField(max_length=255)
-    code = models.CharField(max_length=100, db_index=True)
     description = models.TextField(blank=True)
     category = models.ForeignKey(KPICategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='kpis')
+    parent_kpi = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='sub_kpis', help_text="Master KPI this strategy sub-KPI supports")
+    is_staff_created = models.BooleanField(default=False)
+    approval_status = models.CharField(max_length=20, choices=APPROVAL_STATUS, default='APPROVED')
+    rejection_reason = models.TextField(blank=True)
+    approved_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_sub_kpis')
     kpi_type = models.CharField(max_length=20, choices=KPI_TYPES)
     calculation_logic = models.CharField(max_length=20, choices=CALCULATION_LOGIC, default='HIGHER_IS_BETTER')
     measure_type = models.CharField(max_length=20, choices=MEASURE_TYPE, default='CUMULATIVE')
     unit = models.CharField(max_length=50, blank=True, help_text='e.g., KES, people, days etc')
     decimal_places = models.PositiveSmallIntegerField(default=0)
+    baseline = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, help_text="Starting benchmark or previous achieved value")
     target_min = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     target_max = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     formula = models.JSONField(default=dict, blank=True)
@@ -46,9 +57,11 @@ class KPI(BaseKPIModel):
     class Meta:
         db_table = 'kpi_definitions'
         ordering = ['name']
-        unique_together = [['tenant_id', 'code']]
+        unique_together = [['tenant_id', 'name']]
         indexes = [
             models.Index(fields=['tenant_id', 'owner', 'is_active']),
+            models.Index(fields=['tenant_id', 'owner', 'approval_status']),
+            models.Index(fields=['parent_kpi', 'approval_status']),
         ]
 
     def __str__(self):
@@ -78,6 +91,8 @@ class KPIHistory(BaseKPIModel):
         ('ACTIVATE', 'Activated'),
         ('DEACTIVATE', 'Deactivated'),
         ('ARCHIVE', 'Archived'),
+        ('APPROVE', 'Approved'),
+        ('REJECT', 'Rejected'),
     ]
     kpi = models.ForeignKey(KPI, on_delete=models.CASCADE, related_name='history')
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)

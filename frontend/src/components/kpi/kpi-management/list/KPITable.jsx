@@ -25,7 +25,7 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
             <table className="kpi-table">
                 <thead>
                     <tr>
-                        <th>Name / Code</th>
+                        <th>Name</th>
                         <th>Type</th>
                         <th>Target Range</th>
                         <th>Owner</th>
@@ -39,7 +39,6 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
                         <tr key={kpi.id} className="kpi-table-row" onClick={() => onView(kpi.id)}>
                             <td className="kpi-name-cell">
                                 <div className="kpi-name">{kpi.name}</div>
-                                <div className="kpi-code">{kpi.code}</div>
                             </td>
                             <td>{kpi.kpi_type_display || kpi.kpi_type}</td>
                             <td>{kpi.target_min} - {kpi.target_max}</td>
@@ -60,7 +59,11 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
                             </td>
                             <td>
                                 <div className="kpi-status-wrapper">
-                                    <KPIStatusBadge status={kpi.is_active ? 'active' : 'inactive'} />
+                                    {kpi.approval_status === 'PENDING_APPROVAL' ? (
+                                        <span style={{ padding: '0.2rem 0.5rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#b45309' }}>Pending</span>
+                                    ) : (
+                                        <KPIStatusBadge status={kpi.is_active ? 'active' : 'inactive'} />
+                                    )}
                                     {kpi.traffic_light && <TrafficLightIcon status={kpi.traffic_light} size="sm" />}
                                 </div>
                             </td>

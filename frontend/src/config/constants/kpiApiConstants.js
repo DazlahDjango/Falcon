@@ -91,6 +91,7 @@ export const TARGET_ENDPOINTS = {
     UPDATE: (id) => `${API_BASE}/kpis/targets/${id}/`,
     DELETE: (id) => `${API_BASE}/kpis/targets/${id}/`,
     PHASE: (id) => `${API_BASE}/kpis/targets/${id}/phase/`,
+    BULK_PHASE: `${API_BASE}/kpis/targets/bulk_phase/`,
     PHASING: (id) => `${API_BASE}/kpis/targets/${id}/phasing/`,
     VALIDATE: (id) => `${API_BASE}/kpis/targets/${id}/validate/`,
     QUERY_PARAMS: { KPI: 'kpi', USER: 'user', YEAR: 'year' },
@@ -102,6 +103,8 @@ export const MONTHLY_PHASING_ENDPOINTS = {
     UPDATE: (id) => `${API_BASE}/kpis/monthly-phasing/${id}/`,
     LOCK: (id) => `${API_BASE}/kpis/monthly-phasing/${id}/lock/`,
     LOCK_CYCLE: `${API_BASE}/kpis/monthly-phasing/lock_cycle/`,
+    UNLOCK_CYCLE: `${API_BASE}/kpis/monthly-phasing/unlock_cycle/`,
+    BULK_UPDATE: `${API_BASE}/kpis/monthly-phasing/bulk_update/`,
     QUERY_PARAMS: { ANNUAL_TARGET: 'annual_target', MONTH: 'month', IS_LOCKED: 'is_locked' },
 };
 
@@ -117,9 +120,15 @@ export const CASCADE_ENDPOINTS = {
     MAP_CREATE: `${API_BASE}/kpis/cascade-maps/`,
     CASCADE_DEPARTMENT: `${API_BASE}/kpis/cascade-maps/cascade_department/`,
     TREE: `${API_BASE}/kpis/cascade-maps/tree/`,
+    REPAIR: `${API_BASE}/kpis/cascade-maps/repair/`,
+    CONTRIBUTORS: `${API_BASE}/kpis/cascade-maps/contributors/`,
+    USER_CONTRIBUTIONS: `${API_BASE}/kpis/cascade-maps/user_contributions/`,
     ROLLBACK: (id) => `${API_BASE}/kpis/cascade-maps/${id}/rollback/`,
+    ROLLBACK_ORGANIZATION: `${API_BASE}/kpis/cascade-maps/rollback_organization/`,
+    VERIFY_INTEGRITY: `${API_BASE}/kpis/cascade-maps/verify_integrity/`,
     QUERY_PARAMS: { RULE_TYPE: 'rule_type', IS_ACTIVE: 'is_active', IS_DEFAULT: 'is_default' },
 };
+
 
 // ============================================
 // 4. ACTUAL DATA ENDPOINTS

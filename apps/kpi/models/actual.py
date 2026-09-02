@@ -40,9 +40,13 @@ class MonthlyActual(BaseKPIModel):
             raise ValidationError("Month must be between 1 and 12")
         
     def approve(self, supervisor, comment=None):
+        t_id = self.tenant_id or getattr(supervisor, 'tenant_id', None) or getattr(self.kpi, 'tenant_id', None)
         self.status = 'APPROVED'
+        if not self.tenant_id and t_id:
+            self.tenant_id = t_id
         self.save()
         ValidationRecord.objects.create(
+            tenant_id=self.tenant_id or t_id,
             actual=self,
             status='APPROVED',
             validated_by=supervisor,

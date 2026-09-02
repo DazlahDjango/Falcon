@@ -73,7 +73,7 @@ export const ProfileView = () => {
   if (error) {
     return (
       <div className="profile-error">
-        <p>{error}</p>
+        <p>{typeof error === 'string' ? error : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error))}</p>
         <button className="btn-primary" onClick={() => navigate(ACCOUNTS_ROUTES.MY_PROFILE)}>
           <FiArrowLeft /> Back to Profile
         </button>
@@ -93,7 +93,11 @@ export const ProfileView = () => {
     );
   }
 
-  const user = displayProfile.user || displayProfile;
+  const profileAvatar = displayProfile?.avatar || displayProfile?.user?.avatar || currentUser?.avatar;
+  const user = {
+    ...(displayProfile.user || displayProfile),
+    avatar: profileAvatar,
+  };
   const profileData = displayProfile;
 
   const formatDate = (dateString) => {
@@ -107,13 +111,16 @@ export const ProfileView = () => {
   };
 
   const getCompletionPercentage = () => {
+    if (displayProfile?.completion_percentage !== undefined) {
+      return displayProfile.completion_percentage;
+    }
     const fields = [
       user?.first_name,
       user?.last_name,
+      profileData?.title || user?.title,
       profileData?.bio,
       profileData?.date_of_birth,
-      profileData?.work_phone,
-      profileData?.mobile_phone,
+      profileData?.work_phone || profileData?.mobile_phone,
       profileData?.address,
       profileData?.city,
       profileData?.country,
@@ -136,7 +143,7 @@ export const ProfileView = () => {
         {isOwnProfile && (
           <button
             className="btn-primary"
-            onClick={() => navigate(ACCOUNTS_ROUTES.PROFILE_EDIT)}
+            onClick={() => navigate(ACCOUNTS_ROUTES.MY_PROFILE_EDIT || '/profile/edit')}
           >
             <FiEdit /> Edit Profile
           </button>
@@ -147,7 +154,7 @@ export const ProfileView = () => {
         <div className="profile-cover" />
         <div className="profile-avatar-section">
           <div className="profile-avatar-wrapper">
-            <UserAvatar user={user} size="2xl" />
+            <UserAvatar user={user} avatar={profileAvatar} size="2xl" />
             {isOwnProfile && (
               <button
                 className="avatar-upload-btn"
@@ -359,7 +366,7 @@ export const ProfileView = () => {
       {showAvatarUpload && (
         <AvatarUpload
           profileId={profileData?.id || user?.id}
-          currentAvatar={user?.avatar}
+          currentAvatar={profileAvatar}
           onClose={() => setShowAvatarUpload(false)}
           onSuccess={() => {
             setShowAvatarUpload(false);

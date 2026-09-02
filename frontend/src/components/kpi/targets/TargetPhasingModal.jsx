@@ -56,9 +56,12 @@ const TargetPhasingModal = ({ target, onClose, onSave, onLock, readOnly = false 
                 <div className="target-phasing-modal-body">
                     {!isLocked && !readOnly && (
                         <PhasingStrategySelect
+                            target={target}
                             annualTarget={target.target_value}
                             selectedStrategy={activeStrategy}
                             onStrategyChange={handleStrategyChange}
+                            onSelect={(strat, params, monthlyList) => handleStrategyChange(strat, monthlyList)}
+                            onCancel={onClose}
                         />
                     )}
 

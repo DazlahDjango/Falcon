@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProvision } from '../../hooks/tenant/useProvision';
 import { useOrganization } from '../../hooks/tenant/useOrganizations';
-import { getProvisioningMeta } from '../../services/tenant';
+import { getProvisioningMeta, formatErrorMessage } from '../../services/tenant';
 import {
   ProvisioningProgress,
   ProvisioningSteps,
@@ -86,7 +86,7 @@ export const TenantProvisioningPage = () => {
             <span className="prov-error-banner-icon">⚠</span>
             <div>
               <div className="prov-error-banner-title">Failed to load provisioning data</div>
-              <div className="prov-error-banner-msg">{error}</div>
+              <div className="prov-error-banner-msg">{formatErrorMessage(error)}</div>
             </div>
           </div>
           <button
@@ -152,7 +152,7 @@ export const TenantProvisioningPage = () => {
             <span className="prov-error-banner-icon">✕</span>
             <div>
               <div className="prov-error-banner-title">Provisioning Failed</div>
-              <div className="prov-error-banner-msg">{provMeta.error}</div>
+              <div className="prov-error-banner-msg">{formatErrorMessage(provMeta.error)}</div>
             </div>
           </div>
         )}
@@ -162,7 +162,7 @@ export const TenantProvisioningPage = () => {
             <span className="prov-error-banner-icon">⚠</span>
             <div>
               <div className="prov-error-banner-title">Action Failed</div>
-              <div className="prov-error-banner-msg">{actionError}</div>
+              <div className="prov-error-banner-msg">{formatErrorMessage(actionError)}</div>
             </div>
           </div>
         )}

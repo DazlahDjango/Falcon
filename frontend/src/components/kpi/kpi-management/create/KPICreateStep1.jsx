@@ -17,7 +17,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     
     const [formData, setFormData] = useState({
         name: data.name || '',
-        code: data.code || '',
         description: data.description || '',
         kpi_type: data.kpi_type || 'PERCENTAGE',
         calculation_logic: data.calculation_logic || 'HIGHER_IS_BETTER',
@@ -76,7 +75,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     const validate = () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'KPI name is required';
-        if (!formData.code.trim()) newErrors.code = 'KPI code is required';
         if (!formData.owner_id) newErrors.owner_id = 'Owner is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -100,31 +98,16 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
             </div>
             
             <div className="step-form">
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>KPI Name <span className="required">*</span></label>
-                        <input
-                            type="text"
-                            value={formData.name}
-                            onChange={(e) => handleChange('name', e.target.value)}
-                            placeholder="e.g., Revenue Growth"
-                            className={errors.name ? 'error' : ''}
-                        />
-                        {errors.name && <span className="error-text">{errors.name}</span>}
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>KPI Code <span className="required">*</span></label>
-                        <input
-                            type="text"
-                            value={formData.code}
-                            onChange={(e) => handleChange('code', e.target.value.toUpperCase().replace(/\s/g, '_'))}
-                            placeholder="e.g., REV_GROWTH_001"
-                            className={errors.code ? 'error' : ''}
-                        />
-                        {errors.code && <span className="error-text">{errors.code}</span>}
-                        <small>Use uppercase letters, numbers, and underscores</small>
-                    </div>
+                <div className="form-group full-width">
+                    <label>KPI Name <span className="required">*</span></label>
+                    <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => handleChange('name', e.target.value)}
+                        placeholder="e.g., Revenue Growth"
+                        className={errors.name ? 'error' : ''}
+                    />
+                    {errors.name && <span className="error-text">{errors.name}</span>}
                 </div>
                 
                 <div className="form-group full-width">

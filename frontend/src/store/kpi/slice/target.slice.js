@@ -10,10 +10,29 @@ import { targetService } from '../../../services/kpi';
 // Fetch all targets
 export const fetchTargets = createAsyncThunk(
   'target/fetchTargets',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await targetService.getTargets(params);
-      return response.data;
+      const state = getState();
+      const currentPagination = state.target?.pagination || { page: 1, pageSize: 20 };
+      const page = params.page || currentPagination.page || 1;
+      const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+      const limit = pageSize;
+      const offset = (page - 1) * pageSize;
+
+      const queryParams = {
+        limit,
+        offset,
+        page,
+        page_size: pageSize,
+        ...params,
+      };
+
+      const response = await targetService.getTargets(queryParams);
+      return {
+        data: response.data,
+        page,
+        pageSize,
+      };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -75,9 +94,22 @@ export const deleteTarget = createAsyncThunk(
 // Phase target - generate monthly distribution
 export const phaseTarget = createAsyncThunk(
   'target/phaseTarget',
-  async ({ id, strategy, strategyParams = {} }, { rejectWithValue }) => {
+  async ({ id, strategy, strategyParams = {}, overwrite = true }, { rejectWithValue }) => {
     try {
-      const response = await targetService.phaseTarget(id, strategy, strategyParams);
+      const response = await targetService.phaseTarget(id, strategy, strategyParams, overwrite);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Bulk update monthly phasing for a target
+export const bulkUpdateMonthlyPhasing = createAsyncThunk(
+  'target/bulkUpdateMonthlyPhasing',
+  async ({ annualTargetId, months }, { rejectWithValue }) => {
+    try {
+      const response = await targetService.bulkUpdateMonthlyPhasing(annualTargetId, months);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -101,9 +133,10 @@ export const fetchPhasing = createAsyncThunk(
 // Lock phasing cycle (lock all monthly targets for a period)
 export const lockPhasingCycle = createAsyncThunk(
   'target/lockPhasingCycle',
-  async (performanceCycle, { rejectWithValue }) => {
+  async ({ performanceCycle }, { rejectWithValue }) => {
     try {
-      const response = await targetService.lockPhasingCycle(performanceCycle);
+      const cycle = typeof performanceCycle === 'string' ? performanceCycle : (performanceCycle?.performanceCycle || performanceCycle?.cycleName);
+      const response = await targetService.lockPhasingCycle(cycle);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -210,11 +243,21 @@ const targetSlice = createSlice({
       })
       .addCase(fetchTargets.fulfilled, (state, action) => {
         state.loading = false;
-        state.targets = action.payload.results || action.payload;
-        if (action.payload.count) {
-          state.pagination.total = action.payload.count;
-          state.pagination.totalPages = Math.ceil(action.payload.count / state.pagination.pageSize);
-        }
+        const { data, page, pageSize } = action.payload || {};
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        const total = data?.count != null ? data.count : (Array.isArray(data) ? data.length : results.length);
+
+        state.targets = results;
+        const activePageSize = pageSize || state.pagination.pageSize || 20;
+        const activePage = page || state.pagination.page || 1;
+        const totalPages = Math.max(1, Math.ceil(total / activePageSize));
+
+        state.pagination = {
+          page: activePage,
+          pageSize: activePageSize,
+          total,
+          totalPages,
+        };
       })
       .addCase(fetchTargets.rejected, (state, action) => {
         state.loading = false;

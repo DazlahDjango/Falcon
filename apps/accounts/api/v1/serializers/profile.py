@@ -40,14 +40,42 @@ class ProfilDetailSerializer(ProfileListSerializer):
     skills = SkillSerializer(many=True, read_only=True)
     certifications = CertificationSerializer(many=True, read_only=True)
     education = serializers.JSONField(read_only=True)
+    completion_percentage = serializers.SerializerMethodField()
+    completion_status = serializers.SerializerMethodField()
+
     class Meta(ProfileListSerializer.Meta):
         fields = ProfileListSerializer.Meta.fields + [
             'skills', 'certifications', 'education', 'date_of_birth',
             'address', 'alternative_email', 'emergency_contact_name',
-            'emergency_contact_phone', 'emergency_contact_relation'
+            'emergency_contact_phone', 'emergency_contact_relation',
+            'completion_percentage', 'completion_status'
         ]
 
+    def get_completion_percentage(self, obj):
+        try:
+            from apps.accounts.services.profile.profile_manager import ProfileService
+            service = ProfileService()
+            return service.get_profile_completion_percentage(obj.user)
+        except Exception as e:
+            return 100
+
+    def get_completion_status(self, obj):
+        try:
+            pct = self.get_completion_percentage(obj)
+            if pct == 100:
+                return 'Complete'
+            if pct >= 75:
+                return 'Almost Complete'
+            if pct >= 50:
+                return 'In Progress'
+            return 'Incomplete'
+        except Exception:
+            return 'Complete'
+
 class ProfileUpdateSerializer(serializers.ModelSerializer):
+    number_format = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    date_format = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = Profile
         fields = [
@@ -58,11 +86,20 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'emergency_contact_relation', 'timezone', 'date_format', 'number_format'
         ]
     def validate_avatar(self, value):
-        if value:
+        if value and hasattr(value, 'size'):
             max_size = 5 * 1024 * 1024
             if value.size > max_size:
                 raise serializers.ValidationError(_("Avatar size must be less than 5MB"))
         return value
+
+    def validate_number_format(self, value):
+        if not value:
+            return 'comma'
+        if value in ['1,000.00', 'comma']:
+            return 'comma'
+        if value in ['1.000,00', 'dot']:
+            return 'dot'
+        return 'comma'
     
 class SkillUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)

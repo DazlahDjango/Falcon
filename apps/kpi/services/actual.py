@@ -77,8 +77,10 @@ class ActualEntry:
                 if not kpi:
                     raise ValidationError(f"KPI {kpi_id} not found")
 
+                tenant_id = kpi.tenant_id or getattr(user, 'tenant_id', None) or getattr(submitter, 'tenant_id', None)
+
                 actual = MonthlyActual.objects.create(
-                    tenant_id=kpi.tenant_id,
+                    tenant_id=tenant_id,
                     kpi_id=kpi_id,
                     user_id=user_id,
                     year=year,
@@ -90,7 +92,7 @@ class ActualEntry:
                 )
 
                 ActualHistory.objects.create(
-                    tenant_id=actual.tenant_id,
+                    tenant_id=actual.tenant_id or tenant_id,
                     actual=actual,
                     action='CREATE',
                     new_value=actual_value,

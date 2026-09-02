@@ -1,8 +1,56 @@
 import React, { useState } from 'react';
 import { FiTrendingUp, FiTrendingDown, FiBarChart2, FiCalendar } from 'react-icons/fi';
 
-const PhasingStrategySelect = ({ target, onSelect, onCancel }) => {
-    const [selectedStrategy, setSelectedStrategy] = useState('equal_split');
+export const generateMonthlyValues = (annualTarget, strategyId, params = {}) => {
+    const target = Number(annualTarget || 0);
+    let values = [];
+    if (strategyId === 'equal_split') {
+        const monthly = parseFloat((target / 12).toFixed(2));
+        values = Array.from({ length: 12 }, () => monthly);
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) {
+            values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
+        }
+    } else if (strategyId === 'linear_increasing') {
+        const weights = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        const totalW = 78;
+        values = weights.map(w => parseFloat((target * (w / totalW)).toFixed(2)));
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
+    } else if (strategyId === 'linear_decreasing') {
+        const weights = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+        const totalW = 78;
+        values = weights.map(w => parseFloat((target * (w / totalW)).toFixed(2)));
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
+    } else if (strategyId === 'front_loaded') {
+        const weights = [0.15, 0.15, 0.15, 0.10, 0.10, 0.08, 0.07, 0.05, 0.05, 0.05, 0.03, 0.02];
+        values = weights.map(w => parseFloat((target * w).toFixed(2)));
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
+    } else if (strategyId === 'back_loaded') {
+        const weights = [0.02, 0.03, 0.05, 0.05, 0.05, 0.07, 0.08, 0.10, 0.10, 0.15, 0.15, 0.15];
+        values = weights.map(w => parseFloat((target * w).toFixed(2)));
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
+    } else if (strategyId === 'seasonal') {
+        const weights = [0.07, 0.07, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.14];
+        values = weights.map(w => parseFloat((target * w).toFixed(2)));
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
+    } else {
+        const monthly = parseFloat((target / 12).toFixed(2));
+        values = Array.from({ length: 12 }, () => monthly);
+    }
+
+    return values.map((val, idx) => ({
+        month: idx + 1,
+        target_value: val
+    }));
+};
+
+const PhasingStrategySelect = ({ target, onSelect, onCancel, annualTarget, selectedStrategy, onStrategyChange }) => {
+    const [currentStrategy, setCurrentStrategy] = useState(selectedStrategy || 'equal_split');
     const [params, setParams] = useState({});
 
     const strategies = [
@@ -44,15 +92,36 @@ const PhasingStrategySelect = ({ target, onSelect, onCancel }) => {
         }
     ];
 
+    const targetVal = annualTarget || target?.target_value || 0;
+
     const handleStrategyChange = (strategyId) => {
-        setSelectedStrategy(strategyId);
+        setCurrentStrategy(strategyId);
+        let p = params;
         if (strategyId === 'seasonal') {
-            setParams({ peak_month: 6, peak_multiplier: 1.5 });
+            p = { peak_month: 6, peak_multiplier: 1.5 };
+            setParams(p);
+        }
+        const monthlyList = generateMonthlyValues(targetVal, strategyId, p);
+        if (onStrategyChange) {
+            onStrategyChange(strategyId, monthlyList);
         }
     };
 
-    const handleGenerate = () => {
-        onSelect(selectedStrategy, params);
+    const handleGenerate = (e) => {
+        e && e.preventDefault && e.preventDefault();
+        const monthlyList = generateMonthlyValues(targetVal, currentStrategy, params);
+        if (onSelect) {
+            onSelect(currentStrategy, params, monthlyList);
+        } else if (onStrategyChange) {
+            onStrategyChange(currentStrategy, monthlyList);
+        }
+    };
+
+    const handleCancel = (e) => {
+        e && e.preventDefault && e.preventDefault();
+        if (onCancel) {
+            onCancel();
+        }
     };
 
     return (
@@ -70,7 +139,7 @@ const PhasingStrategySelect = ({ target, onSelect, onCancel }) => {
                         {strategies.map(strategy => (
                             <div 
                                 key={strategy.id}
-                                className={`kpi-phasing-strategy-item ${selectedStrategy === strategy.id ? 'selected' : ''}`}
+                                className={`kpi-phasing-strategy-item ${currentStrategy === strategy.id ? 'selected' : ''}`}
                                 onClick={() => handleStrategyChange(strategy.id)}
                             >
                                 <div className="kpi-phasing-strategy-icon">
@@ -84,7 +153,7 @@ const PhasingStrategySelect = ({ target, onSelect, onCancel }) => {
                         ))}
                     </div>
                     
-                    {selectedStrategy === 'seasonal' && (
+                    {currentStrategy === 'seasonal' && (
                         <div className="kpi-phasing-strategy-params">
                             <label>Peak Month (1-12):</label>
                             <input 

@@ -473,15 +473,15 @@ class AdminTenantViewSet(BaseModelViewset):
     def stats(self, request):
         total_tenants = Organization.objects.count()
         active_tenants = Organization.objects.filter(is_active=True).count()
-        # Tenants by plan
-        plans = ['trial', 'basic', 'professional', 'enterprise']
-        tenants_by_plan = {}
-        for plan in plans:
-            tenants_by_plan[plan] = Organization.objects.filter(subscription_plan=plan).count()
+        # Tenants by tier
+        tiers = ['free', 'basic', 'pro', 'enterprise']
+        tenants_by_tier = {}
+        for tier in tiers:
+            tenants_by_tier[tier] = Organization.objects.filter(subscription_tier=tier).count()
         return Response({
             'total_tenants': total_tenants,
             'active_tenants': active_tenants,
-            'tenants_by_plan': tenants_by_plan
+            'tenants_by_tier': tenants_by_tier
         }, status=status.HTTP_200_OK)
     
 class AdminSystemView(viewsets.ViewSet):

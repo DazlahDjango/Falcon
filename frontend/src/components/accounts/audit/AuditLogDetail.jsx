@@ -83,7 +83,7 @@ export const AuditLogDetail = () => {
   if (error) {
     return (
       <div className="audit-detail-error">
-        <p>{error}</p>
+        <p>{typeof error === 'string' ? error : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error))}</p>
         <button className="btn-primary" onClick={() => navigate(ACCOUNTS_ROUTES.AUDIT_LOGS)}>
           <FiArrowLeft /> Back to Audit Logs
         </button>

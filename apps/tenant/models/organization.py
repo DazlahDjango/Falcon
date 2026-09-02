@@ -73,6 +73,11 @@ class Organization(BaseModel):
 
     @property
     def schema_name(self):
+        try:
+            if hasattr(self, 'schema') and self.schema and self.schema.schema_name:
+                return self.schema.schema_name
+        except Exception:
+            pass
         return f"org_{self.slug.replace('-', '_').lower()}"
 
     @property

@@ -4,12 +4,14 @@ export { default as KPICard } from './list/KPICard';
 export { default as KPITable } from './list/KPITable';
 export { default as KPIFilters } from './list/KPIFilters';
 export { default as KPISearch } from './list/KPISearch';
+export { default as KPIPendingApprovalsModal } from './list/KPIPendingApprovalsModal';
 
 export { default as KPICreate } from './create/KPICreate';
 export { default as KPICreateStep1 } from './create/KPICreateStep1';
 export { default as KPICreateStep2 } from './create/KPICreateStep2';
 export { default as KPICreateStep3 } from './create/KPICreateStep3';
 export { default as KPICreateSuccess } from './create/KPICreateSuccess';
+export { default as StaffKPICreateModal } from './create/StaffKPICreateModal';
 
 export { default as KPIDetail } from './detail/KPIDetail';
 export { default as KPIInfo } from './detail/KPIInfo';

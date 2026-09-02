@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import List, Dict, Optional
 
 
@@ -21,10 +21,11 @@ class SeasonalStrategy:
         weights = params.get('weights', self.DEFAULT_WEIGHTS) if params else self.DEFAULT_WEIGHTS
         monthly_values = []
         for month in range(1, 13):
-            weight = weights.get(month, 0.0833)
-            value = total * Decimal(str(weight))
-            monthly_values.append(value)
-        if sum(monthly_values) != total:
-            diff = total - sum(monthly_values)
+            w = weights.get(month) if month in weights else weights.get(str(month), 0.0833)
+            val = (total * Decimal(str(w))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            monthly_values.append(val)
+        total_sum = sum(monthly_values)
+        if total_sum != total:
+            diff = total - total_sum
             monthly_values[-1] += diff
-        return monthly_values
+        return monthly_values

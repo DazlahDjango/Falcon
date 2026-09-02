@@ -16,8 +16,7 @@ CACHE_PREFIX = "kpi_validation"
 class ValidationApprover:
     def approve(self, actual_id: str, supervisor, comment: str = "") -> MonthlyActual:
         actual = MonthlyActual.objects.select_related('kpi', 'user').filter(
-            id=actual_id,
-            tenant_id=supervisor.tenant_id
+            id=actual_id
         ).first()
 
         if not actual:
@@ -28,15 +27,14 @@ class ValidationApprover:
         if actual.status != 'PENDING':
             raise ApprovalError(f"Cannot approve entry with status: {actual.status}")
 
+        tenant_id = actual.tenant_id or getattr(supervisor, 'tenant_id', None) or getattr(actual.kpi, 'tenant_id', None)
+
         with transaction.atomic():
+            if not actual.tenant_id and tenant_id:
+                actual.tenant_id = tenant_id
+                actual.save(update_fields=['tenant_id'])
+
             actual.approve(supervisor, comment)
-            ValidationRecord.objects.create(
-                tenant_id=actual.tenant_id,
-                actual=actual,
-                status='APPROVED',
-                validated_by=supervisor,
-                comment=comment
-            )
             self._invalidate_caches(actual.user_id, actual.year, actual.month)
             return actual
 
@@ -70,9 +68,23 @@ class ValidationApprover:
         return results
 
     def _validate_supervisor_access(self, supervisor, user_id: str) -> None:
+        role = str(getattr(supervisor, 'role', '')).lower()
+        if role in ['super_admin', 'superadmin', 'client_admin', 'admin', 'dashboard_champion', 'manager', 'supervisor', 'executive'] or getattr(supervisor, 'is_superuser', False):
+            return
+
         direct_reports = self._get_direct_reports(supervisor.id)
-        if str(user_id) not in direct_reports:
-            raise PermissionDenied("You are not authorized to validate this entry")
+        if str(user_id) in direct_reports:
+            return
+
+        try:
+            from apps.structure.models import Employment
+            emp = Employment.objects.filter(user_id=user_id, is_current=True, is_active=True).first()
+            if emp and emp.effective_manager_user_id and str(emp.effective_manager_user_id) == str(supervisor.id):
+                return
+        except Exception:
+            pass
+
+        raise PermissionDenied("You are not authorized to validate this entry")
 
     def _get_direct_reports(self, supervisor_id: str) -> List[str]:
         cache_key = f"{CACHE_PREFIX}:direct_reports:{supervisor_id}"
@@ -80,14 +92,28 @@ class ValidationApprover:
         if cached:
             return cached
 
+        reports = []
         try:
             supervisor = User.objects.get(id=supervisor_id)
-            reports = list(supervisor.get_direct_reports().values_list('id', flat=True))
-            reports = [str(r) for r in reports]
-            cache.set(cache_key, reports, CACHE_TTL)
-            return reports
+            if hasattr(supervisor, 'get_direct_reports'):
+                directs = list(supervisor.get_direct_reports().values_list('id', flat=True))
+                reports.extend([str(r) for r in directs])
         except User.DoesNotExist:
-            return []
+            pass
+
+        try:
+            from apps.structure.models import Employment
+            employments = Employment.objects.filter(is_current=True, is_active=True)
+            for emp in employments:
+                mgr_id = emp.effective_manager_user_id
+                if mgr_id and str(mgr_id) == str(supervisor_id):
+                    reports.append(str(emp.user_id))
+        except Exception:
+            pass
+
+        reports = list(set(reports))
+        cache.set(cache_key, reports, CACHE_TTL)
+        return reports
 
     def _invalidate_caches(self, user_id: str, year: int, month: int) -> None:
         from apps.kpi.utils.cache_keys import safe_delete_pattern
@@ -104,8 +130,7 @@ class ValidationRejecter:
         comment: str = ""
     ) -> MonthlyActual:
         actual = MonthlyActual.objects.select_related('kpi', 'user').filter(
-            id=actual_id,
-            tenant_id=supervisor.tenant_id
+            id=actual_id
         ).first()
 
         if not actual:
@@ -116,20 +141,23 @@ class ValidationRejecter:
         if actual.status != 'PENDING':
             raise ApprovalError(f"Cannot reject entry with status: {actual.status}")
 
+        tenant_id = actual.tenant_id or getattr(supervisor, 'tenant_id', None) or getattr(actual.kpi, 'tenant_id', None)
+
         rejection_reason = None
         if reason_id:
             rejection_reason = RejectionReason.objects.filter(
-                id=reason_id,
-                tenant_id=supervisor.tenant_id
+                id=reason_id
             ).first()
 
         with transaction.atomic():
+            if not actual.tenant_id and tenant_id:
+                actual.tenant_id = tenant_id
             actual.status = 'REJECTED'
             actual.updated_by = supervisor
             actual.save()
 
             ValidationRecord.objects.create(
-                tenant_id=actual.tenant_id,
+                tenant_id=tenant_id,
                 actual=actual,
                 status='REJECTED',
                 validated_by=supervisor,

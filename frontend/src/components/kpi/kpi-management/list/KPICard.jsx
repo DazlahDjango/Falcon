@@ -42,11 +42,13 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                 </div>
                 <div className="kpi-card-badges">
                     <span className="kpi-type-badge">{getKpiTypeLabel(kpi.kpi_type)}</span>
-                    <KPIStatusBadge status={kpi.is_active ? 'active' : 'inactive'} />
+                    {kpi.approval_status === 'PENDING_APPROVAL' ? (
+                        <span style={{ padding: '0.25rem 0.5rem', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#b45309' }}>Pending Approval</span>
+                    ) : (
+                        <KPIStatusBadge status={kpi.is_active ? 'active' : 'inactive'} />
+                    )}
                 </div>
             </div>
-            
-            <div className="kpi-card-code">{kpi.code}</div>
             
             <div className="kpi-card-description">
                 {kpi.description || 'No description provided'}
@@ -55,11 +57,22 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
             <div className="kpi-card-stats">
                 <div className="kpi-stat">
                     <FiTarget size={14} />
-                    <span>Target: {kpi.target_min} - {kpi.target_max}</span>
+                    <span>
+                        {kpi.target_min !== null && kpi.target_max !== null
+                            ? `Target: ${kpi.target_min} - ${kpi.target_max}`
+                            : kpi.target_value !== undefined
+                                ? `Target: ${kpi.target_value} ${kpi.unit || ''}`
+                                : `Unit: ${kpi.unit || 'Standard'}`}
+                    </span>
                 </div>
+                {kpi.baseline !== null && kpi.baseline !== undefined && (
+                    <div className="kpi-stat">
+                        <span>Baseline: {kpi.baseline}</span>
+                    </div>
+                )}
                 <div className="kpi-stat">
                     <FiUser size={14} />
-                    <span>Owner: {kpi.owner_email?.split('@')[0]}</span>
+                    <span>Owner: {kpi.owner_email?.split('@')[0] || 'Staff'}</span>
                 </div>
             </div>
             
@@ -85,12 +98,14 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                 <div className="kpi-card-actions">
                     <button className="view-btn" onClick={(e) => { e.stopPropagation(); onView(kpi.id); }}>
                         <FiEye size={14} />
-                        View
+                        View / Approve
                     </button>
-                    <button className="edit-btn" onClick={(e) => { e.stopPropagation(); onEdit(kpi.id); }}>
-                        <FiEdit size={14} />
-                        Edit
-                    </button>
+                    {onEdit && (
+                        <button className="edit-btn" onClick={(e) => { e.stopPropagation(); onEdit(kpi.id); }}>
+                            <FiEdit size={14} />
+                            Edit
+                        </button>
+                    )}
                 </div>
             )}
         </div>

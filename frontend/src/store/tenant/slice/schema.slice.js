@@ -27,10 +27,18 @@ const initialState = {
 
 export const fetchSchemas = createAsyncThunk(
   'schema/fetchSchemas',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await schemaService.getSchemas(params);
-      return response.data;
+      const state = getState();
+      const currentPagination = state.schema?.pagination || { page: 1, pageSize: 20 };
+      const page = params.page || currentPagination.page || 1;
+      const pageSize = params.pageSize || params.page_size || currentPagination.pageSize || 20;
+      const limit = pageSize;
+      const offset = (page - 1) * pageSize;
+
+      const queryParams = { limit, offset, page, page_size: pageSize, ...params };
+      const response = await schemaService.getSchemas(queryParams);
+      return { data: response.data, page, pageSize };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -209,12 +217,21 @@ const schemaSlice = createSlice({
       })
       .addCase(fetchSchemas.fulfilled, (state, action) => {
         state.loading = false;
-        const payload = action.payload;
-        state.schemas = Array.isArray(payload) ? payload : (payload?.results || []);
-        if (payload?.count) {
-          state.pagination.total = payload.count;
-          state.pagination.totalPages = Math.ceil(payload.count / state.pagination.pageSize);
-        }
+        const { data, page, pageSize } = action.payload || {};
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        const total = data?.count != null ? data.count : (Array.isArray(data) ? data.length : results.length);
+
+        state.schemas = results;
+        const activePageSize = pageSize || state.pagination.pageSize || 20;
+        const activePage = page || state.pagination.page || 1;
+        const totalPages = Math.max(1, Math.ceil(total / activePageSize));
+
+        state.pagination = {
+          page: activePage,
+          pageSize: activePageSize,
+          total,
+          totalPages,
+        };
       })
       .addCase(fetchSchemas.rejected, (state, action) => {
         state.loading = false;

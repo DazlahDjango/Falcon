@@ -41,6 +41,8 @@ const useKPIPermissions = () => {
 
             // Create permissions
             canCreateKPI: isClientAdmin || isSuperAdmin || isDashboardChampion,
+            canCreateStaffKPI: isAuthenticated,
+            canApproveKPI: isManager || isExecutive || isClientAdmin || isSuperAdmin || isDashboardChampion,
             canCreateFramework: isClientAdmin || isSuperAdmin,
             canCreateSector: isClientAdmin || isSuperAdmin,
             canCreateCategory: isClientAdmin || isSuperAdmin,
@@ -122,17 +124,6 @@ const useKPIPermissions = () => {
             can: (permission) => permissions[permission] || false,
         };
     }, [user, isAuthenticated]);
-
-    // Debug only in development
-    if (import.meta.env.DEV && user) {
-        console.log('[KPI Permissions]', {
-            role: permissionsData.role,
-            isSuperAdmin: permissionsData.isSuperAdmin,
-            isClientAdmin: permissionsData.isClientAdmin,
-            canViewAdminOverview: permissionsData.permissions.canViewAdminOverview,
-            canViewAnalytics: permissionsData.permissions.canViewAnalytics,
-        });
-    }
 
     return permissionsData;
 };

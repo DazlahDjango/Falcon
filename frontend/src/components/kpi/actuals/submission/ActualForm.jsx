@@ -1,7 +1,8 @@
 import React from 'react';
 import { FiTarget, FiCalendar, FiFileText } from 'react-icons/fi';
 
-const ActualForm = ({ data, kpis, onChange }) => {
+const ActualForm = ({ data, kpis = [], onChange }) => {
+    const kpiList = Array.isArray(kpis) ? kpis : (kpis?.results || []);
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 3 }, (_, i) => currentYear - i);
     const months = [
@@ -13,7 +14,7 @@ const ActualForm = ({ data, kpis, onChange }) => {
                         { value: 11, label: 'November' }, { value: 12, label: 'December' }
                     ];
 
-    const selectedKpi = kpis.find(k => k.id === data.kpi_id);
+    const selectedKpi = kpiList.find(k => k.id === data.kpi_id);
 
     return (
         <div className="kpi-actual-form">
@@ -28,7 +29,7 @@ const ActualForm = ({ data, kpis, onChange }) => {
                     onChange={(e) => onChange({ kpi_id: e.target.value })}
                 >
                     <option value="">Select a KPI...</option>
-                    {kpis.map(kpi => (
+                    {kpiList.map(kpi => (
                         <option key={kpi.id} value={kpi.id}>
                             {kpi.name} ({kpi.unit || 'value'})
                         </option>

@@ -16,7 +16,11 @@ const MonthlyPhasing = ({
     canLock 
 }) => {
     const [showStrategy, setShowStrategy] = useState(false);
-    const [localPhasing, setLocalPhasing] = useState(phasing);
+    const [localPhasing, setLocalPhasing] = useState(phasing || []);
+
+    React.useEffect(() => {
+        setLocalPhasing(phasing || []);
+    }, [phasing]);
 
     const handleStrategySelect = async (strategy, params) => {
         await onGeneratePhasing(strategy, params);

@@ -9,16 +9,17 @@ import KPIPagination from '../../common/KPIPagination';
 const ActualList = ({ 
     actuals, 
     loading, 
-    pagination,
+    pagination = {},
     filters,
     onFilterChange,
     onClearFilters,
     onPageChange,
+    onPageSizeChange,
     onRowClick,
     onStatusClick,
     canValidate
 }) => {
-    if (loading) {
+    if (loading && (!actuals || actuals.length === 0)) {
         return <KPILoading text="Loading actuals..." />;
     }
 
@@ -47,11 +48,16 @@ const ActualList = ({
                 canValidate={canValidate}
             />
             
-            {pagination && pagination.totalPages > 1 && (
+            {actuals && actuals.length > 0 && (
                 <KPIPagination 
-                    currentPage={pagination.currentPage}
-                    totalPages={pagination.totalPages}
+                    currentPage={pagination.page || pagination.currentPage || 1}
+                    pageSize={pagination.pageSize || 20}
+                    total={pagination.total || actuals.length}
+                    totalPages={pagination.totalPages || 1}
+                    itemCount={actuals.length}
+                    isLoading={loading}
                     onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
                 />
             )}
         </div>

@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { PendingValidations, ValidationDetail } from '../../../components/kpi';
-import { fetchPendingValidations, approveActual, rejectActual } from '../../../store/kpi';
+import { useDispatch, useSelector } from 'react-redux';
+import { PendingValidations } from '../../../components/kpi';
+import { 
+    fetchPendingValidations, 
+    approveActual, 
+    rejectActual, 
+    selectPendingValidations, 
+    selectValidationLoading 
+} from '../../../store/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
 
 const ValidationsPage = () => {
@@ -9,6 +15,9 @@ const ValidationsPage = () => {
     const { canValidateActuals, isManager, isExecutive, isSuperAdmin, isClientAdmin } = useKPIPermissions();
     const [selectedValidation, setSelectedValidation] = useState(null);
     
+    const pendingValidations = useSelector(selectPendingValidations) || [];
+    const loading = useSelector(selectValidationLoading);
+
     const canValidate = canValidateActuals || isManager || isExecutive || isSuperAdmin || isClientAdmin;
     
     useEffect(() => {
@@ -46,8 +55,11 @@ const ValidationsPage = () => {
             </div>
             
             <PendingValidations 
+                validations={pendingValidations}
+                loading={loading}
                 onApprove={handleApprove}
                 onReject={handleReject}
+                onRefresh={() => dispatch(fetchPendingValidations())}
                 canValidate={canValidate}
             />
         </div>

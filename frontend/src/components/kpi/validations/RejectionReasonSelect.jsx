@@ -26,7 +26,7 @@ const RejectionReasonSelect = ({ value, onChange }) => {
                 <option value="">Select a reason...</option>
                 {reasons.map(reason => (
                     <option key={reason.id} value={reason.id}>
-                        {reason.category_display}: {reason.reason}
+                        {reason.category_display || reason.category || 'Reason'}: {reason.reason || reason.description || 'Reason'}
                     </option>
                 ))}
             </select>

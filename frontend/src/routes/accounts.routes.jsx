@@ -134,7 +134,11 @@ const accountsRoutes = [
         element: <ProfilePage />,
     },
     {
-        path: ACCOUNTS_ROUTES.PROFILE_EDIT,
+        path: ACCOUNTS_ROUTES.MY_PROFILE_EDIT,
+        element: <ProfileEditPage />,
+    },
+    {
+        path: '/profiles/:id/edit',
         element: <ProfileEditPage />,
     },
     {

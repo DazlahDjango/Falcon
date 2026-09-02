@@ -20,6 +20,7 @@ export {
   getStepStates,
   buildLogEntries,
   normalizeOrgStatus,
+  formatErrorMessage,
   PIPELINE_STEPS,
 } from './provisioning.utils';
 export { BaseTenantService, apiClient, withRetry, encryptSensitiveData, decryptSensitiveData, logAudit } from './tenantBase.service';

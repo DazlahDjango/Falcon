@@ -76,6 +76,36 @@ class KPIService extends BaseKPIService {
     });
   }
 
+  async approveKPI(id) {
+    if (!id) throw new Error('KPI ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(`${KPI_ENDPOINTS.DETAIL(id)}approve/`, {});
+      return response;
+    });
+  }
+
+  async rejectKPI(id, reason = '') {
+    if (!id) throw new Error('KPI ID is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(`${KPI_ENDPOINTS.DETAIL(id)}reject/`, { reason });
+      return response;
+    });
+  }
+
+  async getPendingKPIApprovals(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(`${KPI_ENDPOINTS.LIST}pending_approvals/`, { params });
+      return response;
+    });
+  }
+
+  async getStaffKPIs(params = {}) {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(`${KPI_ENDPOINTS.LIST}staff_kpis/`, { params });
+      return response;
+    });
+  }
+
   // ============ KPI Weights ============
   async getKPIWeights(kpiId, params = {}) {
     if (!kpiId) throw new Error('KPI ID is required');

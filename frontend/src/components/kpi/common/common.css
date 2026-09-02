@@ -460,10 +460,45 @@
 .kpi-pagination {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--kpi-space-2);
-    margin-top: var(--kpi-space-8);
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--kpi-space-4);
+    margin-top: var(--kpi-space-6);
     margin-bottom: var(--kpi-space-6);
+    padding: var(--kpi-space-3) var(--kpi-space-4);
+    background: white;
+    border: 1px solid var(--kpi-gray-200);
+    border-radius: var(--kpi-radius-lg);
+}
+
+.kpi-pagination-info {
+    font-size: 0.875rem;
+    color: var(--kpi-gray-600);
+    font-weight: 500;
+}
+
+.kpi-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--kpi-space-2);
+}
+
+.kpi-pagination-select {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid var(--kpi-gray-300);
+    border-radius: var(--kpi-radius-md);
+    background-color: white;
+    color: var(--kpi-gray-700);
+    cursor: pointer;
+    outline: none;
+    transition: var(--kpi-transition-base);
+    margin-right: var(--kpi-space-2);
+}
+
+.kpi-pagination-select:focus {
+    border-color: var(--kpi-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .kpi-pagination-btn {

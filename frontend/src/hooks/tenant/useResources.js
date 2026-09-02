@@ -171,6 +171,16 @@ export const useResources = (options = {}) => {
     dispatch(setPagination(newPagination));
   }, [dispatch]);
 
+  const setPage = useCallback((page) => {
+    dispatch(setPagination({ page }));
+    dispatch(fetchResources({ page }));
+  }, [dispatch]);
+
+  const setPageSize = useCallback((pageSize) => {
+    dispatch(setPagination({ pageSize, page: 1 }));
+    dispatch(fetchResources({ pageSize, page: 1 }));
+  }, [dispatch]);
+
   const clearCurrent = useCallback(() => {
     dispatch(clearCurrentResource());
   }, [dispatch]);
@@ -313,6 +323,8 @@ export const useResources = (options = {}) => {
     updateFilters,
     resetAllFilters,
     updatePagination,
+    setPage,
+    setPageSize,
     clearCurrent,
     clearAllErrors,
     clearAll,

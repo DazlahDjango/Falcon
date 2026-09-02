@@ -8,25 +8,22 @@ import KPILoading from '../../../components/kpi/common/KPILoading';
 
 const AggregatedScoresPage = () => {
     const dispatch = useDispatch();
-    const [year, setYear] = useState(2026);
-    const [month, setMonth] = useState(6);
-    const { isAuthenticated, isExecutive, isSuperAdmin, isClientAdmin } = useKPIPermissions();
-    const canView = isExecutive || isSuperAdmin || isClientAdmin;
+    const [year, setYear] = useState(new Date().getFullYear());
+    const [month, setMonth] = useState(new Date().getMonth() + 1);
+    const { isAuthenticated, isExecutive } = useKPIPermissions();
     
     const scores = useSelector(selectAggregatedScores);
     const loading = useSelector(selectScoreLoading);
     
     useEffect(() => {
-        if (canView) {
-            dispatch(fetchAggregatedScores({ year, month }));
-        }
-    }, [dispatch, canView, year, month]);
+        dispatch(fetchAggregatedScores({ year, month }));
+    }, [dispatch, year, month]);
     
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
     
-    if (!canView) {
+    if (!isExecutive) {
         return <Navigate to="/dashboard" replace />;
     }
     

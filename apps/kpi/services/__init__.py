@@ -1,4 +1,4 @@
-from .kpi import KPICreator, KPIUpdater, KPIActivator, KPIValidator, KPIImportExport
+from .kpi import KPICreator, KPIUpdater, KPIActivator, KPIValidator, KPIImportExport, KPIApprovalService
 from .target import TargetSetter, TargetPhaser, TargetLocker, TargetAdjuster, TargetValidator
 from .actual import ActualEntry, ActualSubmitter, ActualBatchUpload, ActualEvidence, ActualAdjustmentService
 from .validation import ValidationApprover, ValidationRejecter, ValidationResubmission, ValidationEscalator, BatchValidator
@@ -14,7 +14,7 @@ from .validator import ValidationService
 from .sync import DataSyncService
 
 __all__ = [
-    'KPICreator', 'KPIUpdater', 'KPIActivator', 'KPIValidator', 'KPIImportExport',
+    'KPICreator', 'KPIUpdater', 'KPIActivator', 'KPIValidator', 'KPIImportExport', 'KPIApprovalService',
     'TargetSetter', 'TargetPhaser', 'TargetLocker', 'TargetAdjuster', 'TargetValidator',
     'ActualEntry', 'ActualSubmitter', 'ActualBatchUpload', 'ActualEvidence', 'ActualAdjustmentService',
     'ValidationApprover', 'ValidationRejecter', 'ValidationResubmission', 'ValidationEscalator', 'BatchValidator',
@@ -28,4 +28,4 @@ __all__ = [
     'KPIEventBroadcaster',
     'ValidationService',
     'DataSyncService'
-]
+]

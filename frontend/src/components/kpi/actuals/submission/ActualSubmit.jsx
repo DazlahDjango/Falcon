@@ -1,17 +1,30 @@
-import React, { useState } from 'react';
-import { FiUpload, FiSave, FiSend, FiX, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { FiSave, FiSend, FiX, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import ActualForm from './ActualForm';
 import EvidenceUpload from './EvidenceUpload';
 import KPILoading from '../../common/KPILoading';
 import KPISuccess from '../../common/KPISuccess';
+import { fetchKPIs, createActual, selectKPIs } from '../../../../store/kpi';
 
 const ActualSubmit = ({ 
-    kpis, 
+    kpis: propKpis, 
     onSubmit, 
-    loading,
+    loading: propLoading,
     onCancel 
 }) => {
-    const [step, setStep] = useState(1);
+    const dispatch = useDispatch();
+    const reduxKpis = useSelector(selectKPIs) || [];
+    
+    useEffect(() => {
+        if (!propKpis || propKpis.length === 0) {
+            dispatch(fetchKPIs());
+        }
+    }, [dispatch, propKpis]);
+
+    const activeKpis = (propKpis && propKpis.length > 0) ? propKpis : reduxKpis;
+    const kpiList = Array.isArray(activeKpis) ? activeKpis : (activeKpis?.results || []);
+
     const [formData, setFormData] = useState({
         kpi_id: '',
         year: new Date().getFullYear(),
@@ -21,6 +34,7 @@ const ActualSubmit = ({
     });
     const [evidenceFiles, setEvidenceFiles] = useState([]);
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [validationError, setValidationError] = useState(null);
 
     const handleFormChange = (data) => {
@@ -31,146 +45,164 @@ const ActualSubmit = ({
         setEvidenceFiles(files);
     };
 
-    const handleNext = () => {
-        if (step === 1 && !formData.kpi_id) {
-            setValidationError('Please select a KPI before continuing.');
+    const handleSubmit = async (e) => {
+        if (e) e.preventDefault();
+        
+        if (!formData.kpi_id) {
+            setValidationError('Please select a KPI before submitting.');
             return;
         }
-        if (step === 1 && (formData.actual_value === '' || formData.actual_value === null || formData.actual_value === undefined)) {
-            setValidationError('Please enter the actual value before continuing.');
+        if (formData.actual_value === '' || formData.actual_value === null || formData.actual_value === undefined || isNaN(formData.actual_value)) {
+            setValidationError('Please enter a valid actual value before submitting.');
             return;
         }
-        setValidationError(null);
-        setStep(step + 1);
-    };
 
-    const handleBack = () => {
-        setStep(step - 1);
-    };
-
-    const handleSubmit = async () => {
-        const result = await onSubmit(formData, evidenceFiles);
-        if (result) {
+        try {
+            setSubmitting(true);
+            setValidationError(null);
+            const payloadData = {
+                kpi: formData.kpi_id,
+                kpi_id: formData.kpi_id,
+                year: Number(formData.year),
+                month: Number(formData.month),
+                actual_value: parseFloat(formData.actual_value),
+                notes: formData.notes || ''
+            };
+            if (onSubmit) {
+                await onSubmit(payloadData, evidenceFiles);
+            } else {
+                await dispatch(createActual({
+                    data: payloadData,
+                    evidenceFile: evidenceFiles.length > 0 ? evidenceFiles[0] : null
+                })).unwrap();
+            }
             setSubmitted(true);
             setTimeout(() => {
                 setSubmitted(false);
-                onCancel();
-            }, 2000);
+                if (onCancel) onCancel();
+            }, 1800);
+        } catch (err) {
+            setValidationError(typeof err === 'string' ? err : (err?.detail || err?.message || 'Failed to submit actual value.'));
+        } finally {
+            setSubmitting(false);
         }
     };
 
-    if (loading) {
-        return <KPILoading text="Submitting actual data..." />;
+    if (propLoading || submitting) {
+        return (
+            <div className="kpi-modal-overlay" style={overlayStyle}>
+                <div className="kpi-actual-submit" style={containerStyle}>
+                    <KPILoading text="Submitting actual data..." />
+                </div>
+            </div>
+        );
     }
 
     if (submitted) {
-        return <KPISuccess title="Success!" message="Actual data submitted successfully." />;
+        return (
+            <div className="kpi-modal-overlay" style={overlayStyle}>
+                <div className="kpi-actual-submit" style={containerStyle}>
+                    <KPISuccess title="Success!" message="Actual data submitted successfully." />
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="kpi-actual-submit">
-            <div className="kpi-actual-submit-header">
-                <h2>Submit Actual Performance</h2>
-                <button className="kpi-actual-submit-close" onClick={onCancel}>
-                    <FiX size={20} />
-                </button>
-            </div>
-            
-            <div className="kpi-actual-submit-steps">
-                <div className={`kpi-actual-step ${step >= 1 ? 'active' : ''}`}>
-                    <div className="kpi-actual-step-number">1</div>
-                    <div className="kpi-actual-step-label">Enter Value</div>
+        <div className="kpi-modal-overlay" style={overlayStyle}>
+            <div className="kpi-actual-submit" style={containerStyle}>
+                <div className="kpi-actual-submit-header">
+                    <h2>Submit Monthly Actual Performance</h2>
+                    <button className="kpi-actual-submit-close" onClick={onCancel}>
+                        <FiX size={20} />
+                    </button>
                 </div>
-                <div className="kpi-actual-step-line" />
-                <div className={`kpi-actual-step ${step >= 2 ? 'active' : ''}`}>
-                    <div className="kpi-actual-step-number">2</div>
-                    <div className="kpi-actual-step-label">Upload Evidence</div>
-                </div>
-                <div className="kpi-actual-step-line" />
-                <div className={`kpi-actual-step ${step >= 3 ? 'active' : ''}`}>
-                    <div className="kpi-actual-step-number">3</div>
-                    <div className="kpi-actual-step-label">Review & Submit</div>
-                </div>
-            </div>
-            
-            <div className="kpi-actual-submit-content">
-                {step === 1 && (
-                    <ActualForm 
-                        data={formData}
-                        kpis={kpis}
-                        onChange={handleFormChange}
-                    />
-                )}
                 
-                {step === 2 && (
-                    <EvidenceUpload 
-                        files={evidenceFiles}
-                        onChange={handleEvidenceChange}
-                    />
-                )}
-                
-                {step === 3 && (
-                    <div className="kpi-actual-review">
-                        <h3>Review Your Submission</h3>
-                        <div className="kpi-actual-review-item">
-                            <span className="kpi-actual-review-label">KPI:</span>
-                            <span className="kpi-actual-review-value">
-                                {kpis.find(k => k.id === formData.kpi_id)?.name || formData.kpi_id}
-                            </span>
-                        </div>
-                        <div className="kpi-actual-review-item">
-                            <span className="kpi-actual-review-label">Period:</span>
-                            <span className="kpi-actual-review-value">
-                                {formData.month}/{formData.year}
-                            </span>
-                        </div>
-                        <div className="kpi-actual-review-item">
-                            <span className="kpi-actual-review-label">Actual Value:</span>
-                            <span className="kpi-actual-review-value">{formData.actual_value}</span>
-                        </div>
-                        {formData.notes && (
-                            <div className="kpi-actual-review-item">
-                                <span className="kpi-actual-review-label">Notes:</span>
-                                <span className="kpi-actual-review-value">{formData.notes}</span>
+                <form onSubmit={handleSubmit}>
+                    <div className="kpi-actual-submit-content" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        {validationError && (
+                            <div className="kpi-actual-validation-error">
+                                <FiAlertCircle size={16} />
+                                {validationError}
                             </div>
                         )}
-                        <div className="kpi-actual-review-item">
-                            <span className="kpi-actual-review-label">Evidence:</span>
-                            <span className="kpi-actual-review-value">
-                                {evidenceFiles.length} file(s) attached
-                            </span>
+
+                        <ActualForm 
+                            data={formData}
+                            kpis={kpiList}
+                            onChange={handleFormChange}
+                        />
+                        
+                        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
+                            <EvidenceUpload 
+                                files={evidenceFiles}
+                                onChange={handleEvidenceChange}
+                            />
                         </div>
                     </div>
-                )}
-            </div>
 
-            {validationError && (
-                <div className="kpi-actual-validation-error">
-                    <FiAlertCircle size={14} />
-                    {validationError}
-                </div>
-            )}
-
-            <div className="kpi-actual-submit-footer">
-                {step > 1 && (
-                    <button className="kpi-actual-back-btn" onClick={handleBack}>
-                        Back
-                    </button>
-                )}
-                {step < 3 && (
-                    <button className="kpi-actual-next-btn" onClick={handleNext}>
-                        Continue
-                    </button>
-                )}
-                {step === 3 && (
-                    <button className="kpi-actual-submit-btn" onClick={handleSubmit}>
-                        <FiSend size={14} />
-                        Submit Actual
-                    </button>
-                )}
+                    <div className="kpi-actual-submit-footer">
+                        <button 
+                            type="button" 
+                            className="kpi-actual-back-btn" 
+                            onClick={onCancel}
+                            style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', cursor: 'pointer' }}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit" 
+                            className="kpi-actual-submit-btn" 
+                            style={{ 
+                                padding: '0.6rem 1.5rem', 
+                                borderRadius: '8px', 
+                                border: 'none', 
+                                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 
+                                color: '#ffffff', 
+                                fontWeight: 600, 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '0.5rem', 
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)'
+                            }}
+                        >
+                            <FiSend size={16} />
+                            Submit Actual Data
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
+};
+
+const overlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+    padding: '1rem'
+};
+
+const containerStyle = {
+    backgroundColor: '#ffffff',
+    borderRadius: '16px',
+    width: '100%',
+    maxWidth: '650px',
+    maxHeight: '90vh',
+    overflowY: 'auto',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    border: '1px solid #e2e8f0',
+    padding: '1.5rem',
+    position: 'relative'
 };
 
 export default ActualSubmit;

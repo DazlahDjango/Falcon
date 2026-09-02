@@ -132,6 +132,16 @@ export const useSectors = (options = {}) => {
         dispatch(setPagination(newPagination));
     }, [dispatch]);
 
+    const setPage = useCallback((page) => {
+        dispatch(setPagination({ page }));
+        dispatch(fetchSectors({ page }));
+    }, [dispatch]);
+
+    const setPageSize = useCallback((pageSize) => {
+        dispatch(setPagination({ pageSize, page: 1 }));
+        dispatch(fetchSectors({ pageSize, page: 1 }));
+    }, [dispatch]);
+
     const clearCurrent = useCallback(() => {
         dispatch(clearCurrentSector());
     }, [dispatch]);
@@ -222,6 +232,8 @@ export const useSectors = (options = {}) => {
         updateFilters,
         resetAllFilters,
         updatePagination,
+        setPage,
+        setPageSize,
         clearCurrent,
         clearAllErrors,
         clearAll,

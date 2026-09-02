@@ -88,6 +88,7 @@ export {
     MonthlyPhasingChart,
     PhasingStrategySelect,
     PhasingLockCycle,
+    TargetPhasingModal,
     // Cascade
     CascadeRules,
     CascadeRuleForm,
@@ -95,6 +96,8 @@ export {
     CascadeMapping,
     CascadeDepartment,
     CascadeTree,
+    CascadeTreeModal,
+    CascadeHierarchyTree,
     CascadeRollback,
 } from './targets';
 
@@ -116,12 +119,14 @@ export {
     KPITable,
     KPIFilters,
     KPISearch,
+    KPIPendingApprovalsModal,
     // Create
     KPICreate,
     KPICreateStep1,
     KPICreateStep2,
     KPICreateStep3,
     KPICreateSuccess,
+    StaffKPICreateModal,
     // Detail
     KPIDetail,
     KPIInfo,

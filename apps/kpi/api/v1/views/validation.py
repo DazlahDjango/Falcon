@@ -25,15 +25,35 @@ class ValidationRecordViewSet(BaseKpiViewset):
 
     @action(detail=False, methods=['get'])
     def pending(self, request):
-        direct_reports = request.user.get_direct_reports().values_list('id', flat=True)
-        validations = self.get_queryset().filter(
-            actual__user_id__in=direct_reports,
-            status='PENDING'
-        )
-        serializer = self.get_serializer(validations, many=True)
+        from apps.kpi.models import MonthlyActual
+        from apps.kpi.api.v1.serializers import MonthlyActualSerializer
+
+        user = request.user
+        role = str(getattr(user, 'role', '')).lower()
+
+        qs = MonthlyActual.objects.filter(status='PENDING').select_related('kpi', 'user')
+
+        if role not in ['super_admin', 'superadmin', 'client_admin', 'admin', 'dashboard_champion', 'executive'] and not getattr(user, 'is_superuser', False):
+            reports = []
+            if hasattr(user, 'get_direct_reports'):
+                reports.extend([str(r) for r in user.get_direct_reports().values_list('id', flat=True)])
+
+            try:
+                from apps.structure.models import Employment
+                employments = Employment.objects.filter(is_current=True, is_active=True)
+                for emp in employments:
+                    if emp.effective_manager_user_id and str(emp.effective_manager_user_id) == str(user.id):
+                        reports.append(str(emp.user_id))
+            except Exception:
+                pass
+
+            reports = list(set(reports))
+            qs = qs.filter(user_id__in=reports)
+
+        serializer = MonthlyActualSerializer(qs, many=True)
         return Response({
             'results': serializer.data,
-            'count': len(serializer.data),
+            'count': qs.count(),
         })
 
     @action(detail=False, methods=['get'], url_path='pending-summary')

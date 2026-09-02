@@ -15,20 +15,33 @@ export function normalizeOrgStatus(status) {
   return (status || '').toUpperCase();
 }
 
+export function formatErrorMessage(err) {
+  if (!err) return '';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object') {
+    return err.message || err.error || err.detail || (err.status ? `Error (${err.status})` : JSON.stringify(err));
+  }
+  return String(err);
+}
+
 /** Merge list/detail provisioning fields from backend serializers. */
 export function getProvisioningMeta(org) {
   if (!org) return {};
 
   if (org.provisioning && typeof org.provisioning === 'object') {
-    return org.provisioning;
+    return {
+      ...org.provisioning,
+      error: formatErrorMessage(org.provisioning.error),
+      message: formatErrorMessage(org.provisioning.message),
+    };
   }
 
   return {
     status: org.provisioning_status,
     progress: org.provisioning_progress ?? 0,
-    error: org.provisioning_error,
+    error: formatErrorMessage(org.provisioning_error),
     step_name: org.provisioning_step_name,
-    message: org.provisioning_message,
+    message: formatErrorMessage(org.provisioning_message),
     ...(org.metadata?.provisioning || {}),
   };
 }
@@ -80,7 +93,7 @@ export function buildLogEntries(provMeta = {}) {
     entries.push({
       level: provMeta.status === 'FAILED' ? 'error' : 'info',
       time: provMeta.updated_at || provMeta.started_at,
-      message: provMeta.message || `Step: ${provMeta.step_name || provMeta.status}`,
+      message: formatErrorMessage(provMeta.message) || `Step: ${provMeta.step_name || provMeta.status}`,
     });
   }
 
@@ -88,7 +101,7 @@ export function buildLogEntries(provMeta = {}) {
     entries.push({
       level: 'success',
       time: provMeta.updated_at,
-      message: provMeta.message || 'Provisioning completed successfully.',
+      message: formatErrorMessage(provMeta.message) || 'Provisioning completed successfully.',
     });
   }
 
@@ -96,7 +109,7 @@ export function buildLogEntries(provMeta = {}) {
     entries.push({
       level: 'error',
       time: provMeta.failed_at || provMeta.updated_at,
-      message: provMeta.error,
+      message: formatErrorMessage(provMeta.error),
     });
   }
 

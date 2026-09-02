@@ -9,11 +9,10 @@ import {
   FiFileText, FiCheckCircle, FiAlertCircle, FiUpload, FiSettings,
   FiLayers, FiBarChart2, FiGrid, FiUsers, FiUser, FiPlus,
   FiClock, FiShield, FiEye, FiTrendingUp,
-  FiRotateCcw, FiShare2, FiSliders, FiAward,
+  FiRotateCcw, FiShare2, FiSliders, FiAward
 } from 'react-icons/fi';
 
 import { KPI_ROUTES } from '../constants/kpiRouteConstants';
-import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 
 // ============================================
 // 1. SUPER ADMIN KPI NAV GROUPS (Platform Scope)
@@ -23,11 +22,11 @@ export const KPI_SUPER_ADMIN_NAV_GROUPS = {
     { path: KPI_ROUTES.ADMIN_OVERVIEW, name: 'KPI Platform Admin', icon: FiPieChart },
   ],
   kpi_admin: [
-    { path: KPI_ROUTES.ADMIN_CATEGORIES, name: 'Category Taxonomy', icon: FiLayers },
+    { path: KPI_ROUTES.ADMIN_CATEGORIES, name: 'Key Result Areas', icon: FiLayers },
     { path: KPI_ROUTES.SYSTEM_SETTINGS, name: 'Platform KPI Policy', icon: FiSliders },
     { path: KPI_ROUTES.REFERENCE_DATA, name: 'Reference Data', icon: FiUsers },
     { path: KPI_ROUTES.AUDIT_LOGS, name: 'KPI Audit Logs', icon: FiFileText },
-    { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'All KPIs', icon: FiTarget },
+    { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'Organization KPIs', icon: FiTarget },
     { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiUsers },
     { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiCalendar },
     { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiActivity },
@@ -67,11 +66,10 @@ export const KPI_SUPER_ADMIN_DEFAULT_EXPANDED = {
 // ============================================
 export const KPI_CLIENT_ADMIN_NAV_GROUPS = {
   kpi_main: [
-    { path: DASHBOARD_ROUTES.CLIENT_ADMIN.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
     { path: KPI_ROUTES.DASHBOARD, name: 'KPI Summary', icon: FiPieChart },
   ],
   kpi_management: [
-    { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'KPI Directory', icon: FiTarget },
+    { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'Organization KPIs', icon: FiTarget },
     { path: KPI_ROUTES.KPI_CREATE, name: 'Define New KPI', icon: FiPlus },
     { path: KPI_ROUTES.ADMIN_CATEGORIES, name: 'Category Tree', icon: FiLayers },
     { path: KPI_ROUTES.TARGETS, name: 'Annual Targets', icon: FiTrendingUp },
@@ -117,7 +115,7 @@ export const KPI_CHAMPION_NAV_GROUPS = {
     { path: KPI_ROUTES.DASHBOARD, name: 'Tenant Performance', icon: FiGrid },
   ],
   kpi_management: [
-    { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'KPI Directory', icon: FiTarget },
+    { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'Organization KPIs', icon: FiTarget },
     { path: KPI_ROUTES.KPI_CREATE, name: 'Create Indicator', icon: FiPlus },
     { path: KPI_ROUTES.TARGETS, name: 'Annual Targets', icon: FiTrendingUp },
     { path: KPI_ROUTES.TARGET_CASCADE, name: 'Cascade Targets', icon: FiShare2 },
@@ -163,6 +161,7 @@ export const KPI_EXECUTIVE_NAV_GROUPS = {
     { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiBarChart2 },
     { path: KPI_ROUTES.ANALYTICS_INSIGHTS, name: 'Trend & Risk Indicators', icon: FiTrendingUp },
     { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alert Summary', icon: FiAlertCircle },
+    { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiCalendar },
   ],
   kpi_reports: [
     { path: KPI_ROUTES.REPORTS, name: 'Reports Center', icon: FiFileText },
@@ -225,6 +224,7 @@ export const KPI_STAFF_NAV_GROUPS = {
   ],
   my_kpi: [
     { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My Assigned KPIs', icon: FiTarget },
+    { path: KPI_ROUTES.KPI_CREATE, name: 'Propose Staff KPI', icon: FiPlus },
     { path: KPI_ROUTES.ACTUAL_SUBMIT, name: 'Submit Monthly Actual', icon: FiPlus },
     { path: KPI_ROUTES.ACTUALS, name: 'Submission History', icon: FiClock },
     { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'My Performance Scores', icon: FiAward },

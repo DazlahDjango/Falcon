@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FiArrowLeft, FiEdit, FiCheckCircle, FiXCircle, FiAlertTriangle } from 'react-icons/fi';
 import ActualInfo from './ActualInfo';
 import ActualEvidence from './ActualEvidence';
@@ -6,27 +7,86 @@ import ActualValidations from './ActualValidations';
 import KPILoading from '../../common/KPILoading';
 import KPIConfirmDialog from '../../common/KPIConfirmDialog';
 import EscalationPanel from '../../validations/EscalationPanel';
+import ValidationModal from '../../validations/ValidationModal';
+import { 
+    fetchActual, 
+    approveActual, 
+    rejectActual, 
+    selectCurrentActual, 
+    selectActualLoading,
+    selectActuals
+} from '../../../../store/kpi';
+import useKPIPermissions from '../../../../hooks/kpi/useKPIPermissions';
 
 const ActualDetail = ({ 
-    actual, 
-    loading, 
+    actual: propActual,
+    actualId, 
+    loading: propLoading, 
     onBack, 
-    onValidate,
+    onValidate: propOnValidate,
     onResubmit,
-    canValidate,
+    canValidate: propCanValidate,
     canResubmit
 }) => {
+    const dispatch = useDispatch();
+    const { canValidateActuals, canManageKPIs, isManager, isExecutive } = useKPIPermissions();
+    const canValidate = propCanValidate || canValidateActuals || canManageKPIs || isManager || isExecutive;
+
+    const reduxCurrentActual = useSelector(selectCurrentActual);
+    const reduxActuals = useSelector(selectActuals) || [];
+    const reduxLoading = useSelector(selectActualLoading);
+
+    const actual = propActual || reduxCurrentActual || (actualId ? reduxActuals.find(a => a.id === actualId) : null);
+    const loading = propLoading || (actualId && !actual && reduxLoading);
+
+    useEffect(() => {
+        if (actualId && (!actual || actual.id !== actualId)) {
+            dispatch(fetchActual(actualId));
+        }
+    }, [dispatch, actualId]);
+
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showResubmitModal, setShowResubmitModal] = useState(false);
     const [showEscalate, setShowEscalate] = useState(false);
+
+    const handleApprove = async () => {
+        const targetId = actual?.id || actualId;
+        if (propOnValidate) {
+            await propOnValidate('approve', targetId);
+        } else {
+            await dispatch(approveActual({ id: targetId })).unwrap();
+            dispatch(fetchActual(targetId));
+        }
+        setShowApproveModal(false);
+    };
+
+    const handleReject = async (payload = {}) => {
+        const targetId = actual?.id || actualId;
+        const reasonId = payload?.reasonId || null;
+        const comment = payload?.comment || '';
+        if (propOnValidate) {
+            await propOnValidate('reject', targetId, reasonId, comment);
+        } else {
+            await dispatch(rejectActual({ id: targetId, reasonId, comment })).unwrap();
+            dispatch(fetchActual(targetId));
+        }
+        setShowRejectModal(false);
+    };
 
     if (loading) {
         return <KPILoading text="Loading actual details..." />;
     }
 
     if (!actual) {
-        return null;
+        return (
+            <div className="kpi-actual-detail" style={{ padding: '2rem', textAlign: 'center' }}>
+                <button className="kpi-actual-detail-back" onClick={onBack} style={{ marginBottom: '1rem' }}>
+                    <FiArrowLeft size={16} /> Back to List
+                </button>
+                <p style={{ color: '#64748b' }}>Actual submission not found or failed to load.</p>
+            </div>
+        );
     }
 
     const isPending = actual.status === 'PENDING';
@@ -86,7 +146,7 @@ const ActualDetail = ({
                     <EscalationPanel 
                         actualId={actual.id}
                         onClose={() => setShowEscalate(false)}
-                        onEscalate={onValidate}
+                        onEscalate={propOnValidate}
                     />
                 )}
             </div>
@@ -97,24 +157,16 @@ const ActualDetail = ({
                 message={`Are you sure you want to approve this submission?`}
                 confirmText="Approve"
                 type="success"
-                onConfirm={() => {
-                    onValidate('approve', actual.id);
-                    setShowApproveModal(false);
-                }}
+                onConfirm={handleApprove}
                 onCancel={() => setShowApproveModal(false)}
             />
             
-            <KPIConfirmDialog
+            <ValidationModal
                 isOpen={showRejectModal}
-                title="Reject Submission"
-                message="Are you sure you want to reject this submission?"
-                confirmText="Reject"
-                type="danger"
-                onConfirm={() => {
-                    onValidate('reject', actual.id);
-                    setShowRejectModal(false);
-                }}
-                onCancel={() => setShowRejectModal(false)}
+                type="reject"
+                validation={actual}
+                onConfirm={handleReject}
+                onClose={() => setShowRejectModal(false)}
             />
             
             <KPIConfirmDialog

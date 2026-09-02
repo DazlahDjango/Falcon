@@ -138,7 +138,7 @@ export const RoleList = () => {
 
       {error && (
         <div className="role-list-error">
-          <span>{error}</span>
+          <span>{typeof error === 'string' ? error : (error?.displayMessage || error?.message || error?.detail || error?.error || JSON.stringify(error))}</span>
           <button onClick={clearError}>×</button>
         </div>
       )}

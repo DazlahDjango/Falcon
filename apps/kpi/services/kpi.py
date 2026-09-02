@@ -23,54 +23,99 @@ class KPICreator:
         if not user.tenant_id:
             raise PermissionDenied("User has no tenant association")
 
-        # Check for Super Admin
+        # Check for Super Admin or Admin role
         is_super_admin = False
         role = str(getattr(user, 'role', '')).lower()
-        if role in ['super_admin', 'superadmin', 'platform_admin']:
+        if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion']:
             is_super_admin = True
 
-        kpi_exists_query = KPI.objects.filter(
-            code=data['code']
-        )
-        if not is_super_admin:
-            kpi_exists_query = kpi_exists_query.filter(tenant_id=user.tenant_id)
-            
-        if kpi_exists_query.exists():
-            raise DuplicateKPICodeError("KPI code must be unique within the tenant.")
-
         validate_kpi_name(data['name'])
-        validate_kpi_code(data['code'])
-        validate_target_range(data.get('target_min'), data.get('target_max'))
 
-        if data.get('target_min'):
-            validate_decimal_precision(data['target_min'])
-        if data.get('target_max'):
-            validate_decimal_precision(data['target_max'])
+        parent_kpi_id = data.get('parent_kpi_id') or data.get('parent_kpi')
+        is_staff = data.get('is_staff_created', False)
+        if parent_kpi_id or (not is_super_admin and role not in ['super_admin', 'client_admin', 'dashboard_champion']):
+            is_staff = True
+
+        approval_status = 'APPROVED'
+        is_active = data.get('is_active', True)
+        if is_staff and not is_super_admin:
+            approval_status = data.get('approval_status', 'PENDING_APPROVAL')
+            if approval_status == 'PENDING_APPROVAL':
+                is_active = False
+
+        # Auto-derive calculation_logic if staff created or not specified
+        calc_logic = data.get('calculation_logic')
+        if not calc_logic or is_staff:
+            k_type = str(data.get('kpi_type', '')).upper()
+            unit_str = str(data.get('unit', '')).lower()
+            if k_type == 'TIME' or any(u in unit_str for u in ['hour', 'day', 'sec', 'min', 'cost', 'latency']):
+                calc_logic = CalculationLogic.LOWER_IS_BETTER
+            else:
+                calc_logic = CalculationLogic.HIGHER_IS_BETTER
+
+        # Auto-derive owner and department from user structure if missing
+        owner_id = data.get('owner_id') or user.id
+        dept_id = data.get('department_id')
+        if not dept_id:
+            dept_id = getattr(user, 'department_id', None)
+            if not dept_id and hasattr(user, 'employments'):
+                emp = user.employments.filter(is_current=True, is_active=True).first()
+                if emp:
+                    dept_id = emp.department_id
+
+        baseline_val = Decimal(str(data['baseline'])) if data.get('baseline') is not None and data['baseline'] != '' else None
+        target_val = Decimal(str(data.get('target_value') or data.get('targetValue'))) if (data.get('target_value') is not None or data.get('targetValue') is not None) else None
 
         with transaction.atomic():
             kpi = KPI.objects.create(
                 tenant_id=user.tenant_id if not is_super_admin else data.get('tenant_id', user.tenant_id),
                 name=data['name'],
-                code=data['code'],
                 description=data.get('description', ''),
                 category_id=data.get('category_id'),
+                parent_kpi_id=parent_kpi_id,
+                is_staff_created=is_staff,
+                approval_status=approval_status,
                 kpi_type=data['kpi_type'],
-                calculation_logic=data.get('calculation_logic', CalculationLogic.HIGHER_IS_BETTER),
+                calculation_logic=calc_logic,
                 measure_type=data.get('measure_type', MeasureType.CUMULATIVE),
                 unit=data.get('unit', ''),
                 decimal_places=data.get('decimal_places', 2),
-                target_min=data.get('target_min'),
-                target_max=data.get('target_max'),
+                baseline=baseline_val,
                 formula=data.get('formula', {}),
-                owner_id=data['owner_id'],
-                department_id=data.get('department_id'),
+                owner_id=owner_id,
+                department_id=dept_id,
                 strategic_objective=data.get('strategic_objective', ''),
                 metadata=data.get('metadata', {}),
-                is_active=data.get('is_active', True),
-                activation_date=timezone.now().date() if data.get('is_active', True) else None,
+                is_active=is_active,
+                activation_date=timezone.now().date() if is_active else None,
                 created_by=user,
                 updated_by=user
             )
+
+            # Auto-create AnnualTarget and 12-month equal phasing if target_value is provided
+            if target_val is not None:
+                from apps.kpi.models import AnnualTarget, MonthlyPhasing
+                from apps.kpi.services.target import TargetPhaser
+                current_year = data.get('year') or timezone.now().year
+                annual_target, _ = AnnualTarget.objects.get_or_create(
+                    tenant_id=kpi.tenant_id,
+                    kpi=kpi,
+                    user_id=owner_id,
+                    year=int(current_year),
+                    defaults={
+                        'target_value': target_val,
+                        'baseline': baseline_val,
+                        'approved_by': user if approval_status == 'APPROVED' else None,
+                        'approved_at': timezone.now() if approval_status == 'APPROVED' else None
+                    }
+                )
+                phaser = TargetPhaser()
+                phaser.phase_target(
+                    annual_target_id=str(annual_target.id),
+                    strategy='equal_split',
+                    user=user,
+                    overwrite=True
+                )
 
             KPIHistory.objects.create(
                 tenant_id=kpi.tenant_id,
@@ -88,19 +133,98 @@ class KPICreator:
         return {
             'id': str(kpi.id),
             'name': kpi.name,
-            'code': kpi.code,
             'description': kpi.description,
             'kpi_type': kpi.kpi_type,
             'calculation_logic': kpi.calculation_logic,
             'measure_type': kpi.measure_type,
-            'target_min': str(kpi.target_min) if kpi.target_min else None,
-            'target_max': str(kpi.target_max) if kpi.target_max else None,
+            'parent_kpi_id': str(kpi.parent_kpi_id) if kpi.parent_kpi_id else None,
+            'is_staff_created': kpi.is_staff_created,
+            'approval_status': kpi.approval_status,
         }
 
     def _invalidate_caches(self, kpi_id: str = None) -> None:
         if kpi_id:
             cache.delete(f"{CACHE_PREFIX}:kpi_{kpi_id}")
         safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+
+class KPIApprovalService:
+    def approve_sub_kpi(self, kpi_id: str, supervisor_user) -> KPI:
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=supervisor_user.tenant_id).first()
+        if not kpi:
+            raise ValidationError("Sub-KPI not found or access denied")
+        if kpi.approval_status == 'APPROVED':
+            return kpi
+
+        with transaction.atomic():
+            kpi.approval_status = 'APPROVED'
+            kpi.approved_by = supervisor_user
+            kpi.is_active = True
+            kpi.rejection_reason = ""
+            kpi.activation_date = timezone.now().date()
+            kpi.updated_by = supervisor_user
+            kpi.save()
+
+            # Ensure any annual targets for this KPI are marked approved and phased
+            for target in kpi.annual_targets.all():
+                if not target.approved_by:
+                    target.approved_by = supervisor_user
+                    target.approved_at = timezone.now()
+                    target.save()
+
+                if not target.monthly_phasing.exists():
+                    from apps.kpi.services.target import TargetPhaser
+                    phaser = TargetPhaser()
+                    try:
+                        phaser.phase_target(
+                            annual_target_id=str(target.id),
+                            strategy='equal_split',
+                            user=supervisor_user,
+                            overwrite=True
+                        )
+                    except Exception as pe:
+                        pass
+
+            KPIHistory.objects.create(
+                tenant_id=kpi.tenant_id,
+                kpi=kpi,
+                action='APPROVE',
+                snapshot={'id': str(kpi.id), 'approval_status': 'APPROVED'},
+                performed_by=supervisor_user,
+                reason="KPI approved by supervisor"
+            )
+
+            cache.delete(f"{CACHE_PREFIX}:kpi_{kpi.id}")
+            safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+        return kpi
+
+    def reject_sub_kpi(self, kpi_id: str, supervisor_user, reason: str = "") -> KPI:
+        kpi = KPI.objects.filter(id=kpi_id, tenant_id=supervisor_user.tenant_id).first()
+        if not kpi:
+            raise ValidationError("Sub-KPI not found or access denied")
+
+        with transaction.atomic():
+            kpi.approval_status = 'REJECTED'
+            kpi.rejection_reason = reason
+            kpi.is_active = False
+            kpi.updated_by = supervisor_user
+            kpi.save()
+
+            KPIHistory.objects.create(
+                tenant_id=kpi.tenant_id,
+                kpi=kpi,
+                action='REJECT',
+                snapshot={'id': str(kpi.id), 'approval_status': 'REJECTED', 'reason': reason},
+                performed_by=supervisor_user,
+                reason=reason or "Sub-KPI rejected by supervisor"
+            )
+
+            cache.delete(f"{CACHE_PREFIX}:kpi_{kpi.id}")
+            safe_delete_pattern(f"{CACHE_PREFIX}:kpi_list_*")
+
+        return kpi
+
 
 
 class KPIUpdater:
@@ -146,7 +270,6 @@ class KPIUpdater:
         return {
             'id': str(kpi.id),
             'name': kpi.name,
-            'code': kpi.code,
             'description': kpi.description,
             'is_active': kpi.is_active,
             'updated_at': kpi.updated_at.isoformat() if kpi.updated_at else None,
@@ -224,8 +347,6 @@ class KPIValidator:
         errors = []
         if not kpi.name:
             errors.append("KPI name is required.")
-        if not kpi.code:
-            errors.append("KPI code is required.")
         if not kpi.owner:
             errors.append("KPI owner is required.")
         return errors

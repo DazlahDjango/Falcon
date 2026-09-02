@@ -8,11 +8,12 @@ and PgBouncer options.
 from config.settings.base import env
 
 # Connection Management Settings
-ENABLE_CONNECTION_MIDDLEWARE = True
+# Set to False so Django relies on high-performance TenantDatabaseRouterMiddleware
+ENABLE_CONNECTION_MIDDLEWARE = False
 CONNECTION_IDLE_TIMEOUT_MINUTES = 5
 CONNECTION_MAX_LIFETIME_MINUTES = 120
-CONNECTION_POOL_MAX_SIZE = 20
-CONNECTION_WAIT_TIMEOUT_SECONDS = 10
+CONNECTION_POOL_MAX_SIZE = 50
+CONNECTION_WAIT_TIMEOUT_SECONDS = 5
 CONNECTION_RETRY_COUNT = 3
 CONNECTION_RETRY_BACKOFF_BASE_SECONDS = 0.2
 CONNECTION_CLEANUP_INTERVAL_SECONDS = 60
@@ -42,7 +43,7 @@ DATABASES = {
         'OPTIONS': DB_OPTIONS_CFG,
         'DISABLE_SERVER_SIDE_CURSORS': True,
         # Connection pooling
-        'CONN_MAX_AGE': env.int('CONN_MAX_AGE', default=60),  # Persistent connections
+        'CONN_MAX_AGE': env.int('CONN_MAX_AGE', default=0),  # Close connections at request end in dev to prevent thread accumulation
         'CONN_HEALTH_CHECKS': True,
     }
 }
@@ -54,4 +55,4 @@ DATABASE_ROUTERS = [
 # Tenant Connection & Multi-Tenant Schema Caching Configuration
 TENANT_SCHEMA_CACHE_TTL = env.int('TENANT_SCHEMA_CACHE_TTL', default=300)
 ENABLE_PGBOUNCER_MODE = env.bool('ENABLE_PGBOUNCER_MODE', default=True)
-CONNECTION_METRICS_ASYNC = env.bool('CONNECTION_METRICS_ASYNC', default=True)
+CONNECTION_METRICS_ASYNC = True  # Always True to eliminate synchronous DB connection tracking overhead
