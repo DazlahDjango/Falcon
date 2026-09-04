@@ -38,15 +38,15 @@ const UserKPIs = ({ userId, onViewKPI }) => {
     };
     
     if (loading) {
-        return <KPILoading size="sm" text="Loading user KPIs..." />;
+        return <KPILoading size="sm" text="Loading user Performance Indicators..." />;
     }
     
     if (!filteredKPIs || filteredKPIs.length === 0) {
         return (
             <KPIEmptyState 
                 icon="📊"
-                title="No KPIs Assigned"
-                description="This user has no KPIs assigned yet"
+                title="No Performance Indicators Assigned"
+                description="This user has no Performance Indicators assigned yet"
             />
         );
     }
@@ -54,11 +54,11 @@ const UserKPIs = ({ userId, onViewKPI }) => {
     return (
         <div className="kpi-user-kpis">
             <div className="user-kpis-header">
-                <h3>Assigned KPIs</h3>
+                <h3>Assigned Performance Indicators</h3>
                 <div className="kpi-search">
                     <input 
                         type="text"
-                        placeholder="Search KPIs..."
+                        placeholder="Search Performance Indicators..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />

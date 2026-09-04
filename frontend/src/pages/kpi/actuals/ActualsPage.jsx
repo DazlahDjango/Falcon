@@ -30,6 +30,8 @@ const ActualsPage = () => {
         }
     }, [location.pathname]);
 
+    const scope = new URLSearchParams(location.search).get('scope');
+
     const actuals = useSelector(selectActuals) || [];
     const loading = useSelector(selectActualLoading);
     const pagination = useSelector(selectActualPagination);
@@ -39,9 +41,10 @@ const ActualsPage = () => {
         dispatch(fetchActuals({
             page: pagination.page || 1,
             page_size: pagination.pageSize || 20,
-            ...filters
+            ...filters,
+            ...(scope ? { scope } : {})
         }));
-    }, [dispatch, pagination.page, pagination.pageSize, filters]);
+    }, [dispatch, pagination.page, pagination.pageSize, filters, scope]);
 
     useEffect(() => {
         loadActuals();

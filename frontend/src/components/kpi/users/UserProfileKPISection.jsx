@@ -9,7 +9,7 @@ const UserProfileKPISection = ({ userId, userName }) => {
     const [activeTab, setActiveTab] = useState('kpis');
     
     const tabs = [
-        { id: 'kpis', label: 'KPIs', icon: <FiTarget size={14} /> },
+        { id: 'kpis', label: 'Performance Indicators', icon: <FiTarget size={14} /> },
         { id: 'targets', label: 'Targets', icon: <FiTrendingUp size={14} /> },
         { id: 'scores', label: 'Scores', icon: <FiCheckCircle size={14} /> },
         { id: 'actuals', label: 'Actuals', icon: <FiClock size={14} /> }
@@ -25,7 +25,7 @@ const UserProfileKPISection = ({ userId, userName }) => {
     return (
         <div className="kpi-user-profile-section">
             <div className="profile-kpi-header">
-                <h3>KPI Performance</h3>
+                <h3>Performance Indicator Performance</h3>
                 <p>Track {userName}'s key performance indicators</p>
             </div>
             
@@ -34,7 +34,7 @@ const UserProfileKPISection = ({ userId, userName }) => {
                     <FiTarget size={20} />
                     <div className="stat-info">
                         <div className="stat-value">{stats.totalKPIs}</div>
-                        <div className="stat-label">Total KPIs</div>
+                        <div className="stat-label">Total Performance Indicators</div>
                     </div>
                 </div>
                 <div className="stat-card">

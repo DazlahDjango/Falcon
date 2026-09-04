@@ -21,7 +21,7 @@ const CategoryDeleteConfirm = ({ category, hasChildren, onConfirm, onCancel }) =
             console.log('Category deletion successful');
         } catch (err) {
             console.error('Category deletion error:', err);
-            setError(err?.message || 'Failed to delete category. Please try again.');
+            setError(err?.message || 'Failed to delete Key Result Area. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -32,7 +32,7 @@ const CategoryDeleteConfirm = ({ category, hasChildren, onConfirm, onCancel }) =
             <div className="kpi-category-delete-container">
                 <div className="kpi-category-delete-header">
                     <FiAlertTriangle size={24} color="var(--kpi-danger)" />
-                    <h3>Delete Category</h3>
+                    <h3>Delete Key Result Area</h3>
                 </div>
                 
                 <div className="kpi-category-delete-body">
@@ -40,7 +40,7 @@ const CategoryDeleteConfirm = ({ category, hasChildren, onConfirm, onCancel }) =
                     {hasChildren && (
                         <div className="warning">
                             <FiAlertTriangle size={16} />
-                            <span>This category has {hasChildren} subcategory(ies). They will become root categories.</span>
+                            <span>This key result area has {hasChildren} sub-key result area(s). They will become root key result areas.</span>
                         </div>
                     )}
                     
@@ -62,7 +62,7 @@ const CategoryDeleteConfirm = ({ category, hasChildren, onConfirm, onCancel }) =
                 <div className="kpi-category-delete-footer">
                     <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
                     <button className="delete" onClick={handleConfirm} disabled={isLoading}>
-                        {isLoading ? 'Deleting...' : 'Delete Category'}
+                        {isLoading ? 'Deleting...' : 'Delete Key Result Area'}
                     </button>
                 </div>
             </div>

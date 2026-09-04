@@ -14,7 +14,7 @@ const RedAlertsList = ({ alerts, loading, title = "Red Alerts", onAlertClick }) 
             <KPIEmptyState 
                 icon={<FiBell size={40} />}
                 title="No Red Alerts"
-                description="All KPIs are performing within acceptable ranges."
+                description="All Performance Indicators are performing within acceptable ranges."
             />
         );
     }

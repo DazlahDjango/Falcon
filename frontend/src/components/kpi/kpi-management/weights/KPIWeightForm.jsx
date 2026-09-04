@@ -131,7 +131,7 @@ const KPIWeightForm = ({ weight, onSubmit, onCancel }) => {
                             className={errors.weight ? 'error' : ''}
                         />
                         {errors.weight && <span className="error-text">{errors.weight}</span>}
-                        <small>Percentage of KPI responsibility for this user</small>
+                        <small>Percentage of Performance Indicator responsibility for this user</small>
                     </div>
                     
                     <div className="form-row">

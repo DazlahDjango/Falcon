@@ -48,7 +48,7 @@ class KPIManager(SoftDeleteManager):
         if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion', 'executive']:
             return self
 
-        user_kpis = Q(owner=user)
+        user_kpis = Q(owner=user) | Q(created_by=user)
         direct_reports = []
         if hasattr(user, 'get_direct_reports'):
             try:

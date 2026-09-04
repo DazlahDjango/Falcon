@@ -127,6 +127,7 @@ const kpiRoutes = [
     { path: KPI_ROUTES.ORGANIZATION_HEALTH, element: <OrganizationHealthPage /> },
     // Bulk Operations
     { path: KPI_ROUTES.BULK_UPLOAD, element: <BulkUploadPage /> },
+    { path: KPI_ROUTES.BULK_FORM, element: <BulkUploadPage /> },
     { path: KPI_ROUTES.BULK_KPI_UPLOAD, element: <BulkUploadPage /> },
     { path: KPI_ROUTES.BULK_ACTUAL_UPLOAD, element: <BulkUploadPage /> },
     { path: KPI_ROUTES.BULK_TARGET_UPLOAD, element: <BulkUploadPage /> },

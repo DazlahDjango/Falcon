@@ -33,14 +33,14 @@ const KPIEdit = ({ kpiId, onSave, onCancel }) => {
     ];
     
     if (loading) {
-        return <KPILoading text="Loading KPI data..." />;
+        return <KPILoading text="Loading Performance Indicator data..." />;
     }
     
     return (
         <div className="kpi-edit-modal">
             <div className="kpi-edit-container">
                 <div className="kpi-edit-header">
-                    <h2>Edit KPI: {kpi?.name}</h2>
+                    <h2>Edit Performance Indicator: {kpi?.name}</h2>
                     <button className="close-btn" onClick={onCancel}>×</button>
                 </div>
                 

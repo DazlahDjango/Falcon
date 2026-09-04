@@ -7,6 +7,9 @@ import {
     uploadKPIs,
     uploadActuals,
     uploadTargets,
+    createKPIsForm as createKPIsFormThunk,
+    submitActualsForm as submitActualsFormThunk,
+    submitCombinedForm as submitCombinedFormThunk,
     downloadTemplate,
     clearUploadResult,
     selectUploadResult,
@@ -54,6 +57,21 @@ const useBulkUpload = () => {
         setUploadType(null);
     }, [dispatch]);
     
+    const submitKPIsForm = useCallback(async (items) => {
+        setUploadType('form_kpi');
+        return dispatch(createKPIsFormThunk({ items })).unwrap();
+    }, [dispatch]);
+
+    const submitActualsForm = useCallback(async (year, month, items) => {
+        setUploadType('form_actual');
+        return dispatch(submitActualsFormThunk({ year, month, items })).unwrap();
+    }, [dispatch]);
+
+    const submitCombinedForm = useCallback(async (year, month, items) => {
+        setUploadType('form_combined');
+        return dispatch(submitCombinedFormThunk({ year, month, items })).unwrap();
+    }, [dispatch]);
+
     return {
         uploadType,
         uploadResult,
@@ -62,6 +80,9 @@ const useBulkUpload = () => {
         uploadKPIs: uploadKPIsFile,
         uploadActuals: uploadActualsFile,
         uploadTargets: uploadTargetsFile,
+        submitKPIsForm,
+        submitActualsForm,
+        submitCombinedForm,
         downloadKpiTemplate,
         downloadActualTemplate,
         downloadTargetTemplate,

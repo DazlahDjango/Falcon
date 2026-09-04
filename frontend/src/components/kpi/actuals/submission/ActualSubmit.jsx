@@ -5,7 +5,7 @@ import ActualForm from './ActualForm';
 import EvidenceUpload from './EvidenceUpload';
 import KPILoading from '../../common/KPILoading';
 import KPISuccess from '../../common/KPISuccess';
-import { fetchKPIs, createActual, selectKPIs } from '../../../../store/kpi';
+import { fetchUserKPIs, createActual, selectUserKPIs } from '../../../../store/kpi';
 
 const ActualSubmit = ({ 
     kpis: propKpis, 
@@ -14,16 +14,22 @@ const ActualSubmit = ({
     onCancel 
 }) => {
     const dispatch = useDispatch();
-    const reduxKpis = useSelector(selectKPIs) || [];
+    const userKpis = useSelector(state => selectUserKPIs()(state)) || [];
     
     useEffect(() => {
         if (!propKpis || propKpis.length === 0) {
-            dispatch(fetchKPIs());
+            dispatch(fetchUserKPIs({ params: { for_actuals: true } }));
         }
     }, [dispatch, propKpis]);
 
-    const activeKpis = (propKpis && propKpis.length > 0) ? propKpis : reduxKpis;
-    const kpiList = Array.isArray(activeKpis) ? activeKpis : (activeKpis?.results || []);
+    const activeKpis = (propKpis && propKpis.length > 0) ? propKpis : userKpis;
+    const rawKpiList = Array.isArray(activeKpis) ? activeKpis : (activeKpis?.results || []);
+    
+    // Filter to only approved and active KPIs owned by/issued to the user
+    const kpiList = rawKpiList.filter(k => 
+        k.is_active !== false && 
+        k.approval_status === 'APPROVED'
+    );
 
     const [formData, setFormData] = useState({
         kpi_id: '',

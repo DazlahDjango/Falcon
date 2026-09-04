@@ -22,7 +22,7 @@ const ScoreFilters = ({ filters, onFilterChange, onClearFilters, years, months }
                 <KPISearchBar 
                     value={filters.search || ''}
                     onSearch={(value) => onFilterChange('search', value)}
-                    placeholder="Search by KPI name or user..."
+                    placeholder="Search by Performance Indicator name or user..."
                 />
             </div>
             

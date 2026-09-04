@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiX, FiCheck, FiInfo, FiTarget, FiClock, FiActivity } from 'react-icons/fi';
 import { createKPI, fetchCategories, selectCategories, selectKPISubmitting, selectKPIError } from '../../../../store/kpi';
+import UnitSelector from '../../common/UnitSelector';
 import './create.css';
 
 const StaffKPICreateModal = ({ onComplete, onCancel }) => {
@@ -38,11 +39,11 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      setValidationError('KPI Name is required');
+      setValidationError('Performance Indicator Name is required');
       return;
     }
     if (!formData.kpiType) {
-      setValidationError('KPI Type is required');
+      setValidationError('Performance Indicator Type is required');
       return;
     }
 
@@ -122,7 +123,7 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: '#ffffff' }}>
-                Propose Operational KPI
+                Propose Operational Performance Indicator
               </h3>
               <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>
                 Set your personal work measure and target for supervisor approval
@@ -181,7 +182,7 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
               {isTimeMetric ? (
                 <span><strong>Time & Latency Metric:</strong> The system automatically evaluates <em>Lower is Better</em>. Resolving tasks faster or reducing turnaround hours yields a higher score.</span>
               ) : (
-                <span><strong>Auto-Scored KPI:</strong> Your supervisor will review and approve this KPI. Phasing will automatically split your target across 12 months equal split.</span>
+                <span><strong>Auto-Scored Performance Indicator:</strong> Your supervisor will review and approve this Performance Indicator. Phasing will automatically split your target across 12 months equal split.</span>
               )}
             </div>
           </div>
@@ -190,7 +191,7 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
             {/* KPI Title */}
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                KPI Name / Title <span style={{ color: '#ef4444' }}>*</span>
+                Performance Indicator Name / Title <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="text"
@@ -237,7 +238,7 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                  Category
+                  Key Result Area
                 </label>
                 <select
                   name="categoryId"
@@ -252,7 +253,7 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
                     backgroundColor: '#ffffff'
                   }}
                 >
-                  <option value="">Select Category...</option>
+                  <option value="">Select Key Result Area...</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
@@ -261,7 +262,7 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                  KPI Type <span style={{ color: '#ef4444' }}>*</span>
+                  Performance Indicator Type <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <select
                   name="kpiType"
@@ -292,19 +293,10 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                   Unit of Measure
                 </label>
-                <input
-                  type="text"
-                  name="unit"
+                <UnitSelector
+                  kpiType={formData.kpiType}
                   value={formData.unit}
-                  onChange={handleChange}
-                  placeholder="e.g. Hours, Shifts, KES, %"
-                  style={{
-                    width: '100%',
-                    padding: '0.65rem 0.85rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.9rem'
-                  }}
+                  onChange={(newUnit) => setFormData(prev => ({ ...prev, unit: newUnit }))}
                 />
               </div>
 
@@ -335,23 +327,42 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                 Annual Fixed Target Value
               </label>
-              <input
-                type="number"
-                step="any"
-                name="targetValue"
-                value={formData.targetValue}
-                onChange={handleChange}
-                placeholder="e.g. 2.00 (Hours) or 120 (Shifts)"
-                style={{
-                  width: '100%',
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: '8px',
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                <input
+                  type="number"
+                  step="any"
+                  name="targetValue"
+                  value={formData.targetValue}
+                  onChange={handleChange}
+                  placeholder="e.g. 2.00 or 120"
+                  style={{
+                    flex: 1,
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '8px 0 0 8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    outline: 'none'
+                  }}
+                />
+                <div style={{
+                  padding: '0.65rem 1rem',
+                  backgroundColor: '#f1f5f9',
                   border: '1px solid #cbd5e1',
-                  fontSize: '0.9rem',
+                  borderLeft: 'none',
+                  borderRadius: '0 8px 8px 0',
                   fontWeight: 600,
-                  color: '#0f172a'
-                }}
-              />
+                  fontSize: '0.85rem',
+                  color: '#334155',
+                  minWidth: '65px',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
+                  boxSizing: 'border-box'
+                }}>
+                  {formData.unit || '%'}
+                </div>
+              </div>
               <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.2rem', display: 'block' }}>
                 This single target will be split equally into 12 monthly targets automatically.
               </span>

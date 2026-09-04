@@ -71,7 +71,7 @@ const KPIsPage = () => {
                         }}
                     >
                         <FiClock size={16} />
-                        <span>Pending KPI Approvals</span>
+                        <span>Pending Performance Indicator Approvals</span>
                     </button>
                 )}
 
@@ -94,7 +94,7 @@ const KPIsPage = () => {
                     }}
                 >
                     <FiTarget size={16} />
-                    <span>Propose Staff KPI</span>
+                    <span>Propose Staff Performance Indicator</span>
                 </button>
             </div>
 

@@ -26,7 +26,7 @@ const CategoryList = ({
     };
 
     if (loading) {
-        return <KPILoading text="Loading categories..." />;
+        return <KPILoading text="Loading Key Result Areas..." />;
     }
 
     const categoryTree = buildCategoryTree(categories);
@@ -35,13 +35,13 @@ const CategoryList = ({
         <div className="kpi-categories-container">
             <div className="kpi-categories-header">
                 <div>
-                    <h2>KPI Categories</h2>
-                    <p>Organize KPIs into hierarchical categories</p>
+                    <h2>Key Result Areas</h2>
+                    <p>Organize Performance Indicators into hierarchical Key Result Areas</p>
                 </div>
                 {canManage && (
                     <button className="kpi-categories-add-btn" onClick={() => setShowForm(true)}>
                         <FiPlus size={16} />
-                        Add Category
+                        Add Key Result Area
                     </button>
                 )}
             </div>
@@ -49,9 +49,9 @@ const CategoryList = ({
             {categories?.length === 0 ? (
                 <KPIEmptyState 
                     icon="📁"
-                    title="No Categories Found"
-                    description="No categories have been created yet"
-                    actionText={canManage ? "Create Category" : null}
+                    title="No Key Result Areas Found"
+                    description="No Key Result Areas have been created yet"
+                    actionText={canManage ? "Create Key Result Area" : null}
                     onAction={canManage ? () => setShowForm(true) : null}
                 />
             ) : (

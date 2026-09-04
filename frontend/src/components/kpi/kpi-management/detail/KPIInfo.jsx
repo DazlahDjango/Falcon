@@ -18,7 +18,7 @@ const KPIInfo = ({ kpi }) => {
             <div className="info-grid">
                 <InfoRow icon={<FiTag size={16} />} label="Name" value={kpi.name} />
                 <InfoRow icon={<FiTarget size={16} />} label="Type" value={kpi.kpi_type_display || kpi.kpi_type} />
-                <InfoRow icon={<FiFolder size={16} />} label="Category" value={kpi.category_name || kpi.category_detail?.name || '—'} />
+                <InfoRow icon={<FiFolder size={16} />} label="Key Result Area" value={kpi.category_name || kpi.category_detail?.name || '—'} />
                 <InfoRow icon={<FiUser size={16} />} label="Owner" value={kpi.owner_name || kpi.owner_email || '—'} />
                 <InfoRow icon={<FiUser size={16} />} label="Department" value={kpi.department_name || '—'} />
                 <InfoRow icon={<FiCalendar size={16} />} label="Created" value={new Date(kpi.created_at).toLocaleDateString()} />

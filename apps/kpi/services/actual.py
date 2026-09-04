@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, Any
 from django.db import transaction
 from django.utils import timezone
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from django.db.models import Q, F
 from apps.accounts.models import User
 from apps.kpi.models import MonthlyActual, ActualHistory, Evidence, ActualAdjustment, KPI
@@ -75,7 +75,16 @@ class ActualEntry:
             else:
                 kpi = KPI.objects.filter(id=kpi_id).first()
                 if not kpi:
-                    raise ValidationError(f"KPI {kpi_id} not found")
+                    raise ValidationError(f"Performance Indicator {kpi_id} not found")
+
+                if kpi.approval_status != 'APPROVED':
+                    raise ValidationError(f"Cannot submit actual value for Performance Indicator '{kpi.name}' because it is not approved yet (Status: {kpi.approval_status}).")
+
+                if not kpi.is_active:
+                    raise ValidationError(f"Cannot submit actual value for Performance Indicator '{kpi.name}' because it is inactive.")
+
+                if user and not getattr(user, 'is_superuser', False) and kpi.owner_id and str(kpi.owner_id) != str(user.id) and str(kpi.owner_id) != str(user_id):
+                    raise PermissionDenied(f"You can only submit actual values for Performance Indicators assigned to or created by you.")
 
                 tenant_id = kpi.tenant_id or getattr(user, 'tenant_id', None) or getattr(submitter, 'tenant_id', None)
 

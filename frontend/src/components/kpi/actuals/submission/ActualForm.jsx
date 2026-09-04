@@ -21,14 +21,14 @@ const ActualForm = ({ data, kpis = [], onChange }) => {
             <div className="kpi-actual-form-group">
                 <label className="kpi-actual-form-label">
                     <FiTarget size={14} />
-                    Select KPI <span className="kpi-required">*</span>
+                    Select Performance Indicator <span className="kpi-required">*</span>
                 </label>
                 <select 
                     className="kpi-actual-form-select"
                     value={data.kpi_id}
                     onChange={(e) => onChange({ kpi_id: e.target.value })}
                 >
-                    <option value="">Select a KPI...</option>
+                    <option value="">Select a Performance Indicator...</option>
                     {kpiList.map(kpi => (
                         <option key={kpi.id} value={kpi.id}>
                             {kpi.name} ({kpi.unit || 'value'})

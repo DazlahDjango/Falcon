@@ -66,6 +66,32 @@ class BulkService extends BaseKPIService {
       return response;
     });
   }
+
+  async createKPIsForm(items) {
+    if (!items || items.length === 0) throw new Error('Items array is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(BULK_ENDPOINTS.FORM_CREATE_KPIS, { items });
+      return response;
+    });
+  }
+
+  async submitActualsForm(year, month, items) {
+    if (!year || !month) throw new Error('Year and Month are required');
+    if (!items || items.length === 0) throw new Error('Items array is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(BULK_ENDPOINTS.FORM_SUBMIT_ACTUALS, { year, month, items });
+      return response;
+    });
+  }
+
+  async submitCombinedForm(year, month, items) {
+    if (!year || !month) throw new Error('Year and Month are required');
+    if (!items || items.length === 0) throw new Error('Items array is required');
+    return withRetry(async () => {
+      const response = await this.apiClient.post(BULK_ENDPOINTS.FORM_SUBMIT_COMBINED, { year, month, items });
+      return response;
+    });
+  }
 }
 
 export const bulkService = new BulkService();

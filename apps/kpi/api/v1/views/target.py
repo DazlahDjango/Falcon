@@ -28,8 +28,36 @@ class AnnualTargetViewSet(BaseKpiViewset):
     def get_queryset(self):
         queryset = super().get_queryset().select_related('kpi', 'user', 'approved_by')
         user = self.request.user
+        if not user or not user.is_authenticated:
+            return queryset.none()
 
-        # Champions / HR Admins / Super Admins / Client Admins see overall targets
+        scope = self.request.query_params.get('scope')
+        if scope == 'my':
+            return queryset.filter(user=user)
+        elif scope == 'team':
+            direct_reports = []
+            if hasattr(user, 'get_direct_reports'):
+                try:
+                    direct_reports = list(user.get_direct_reports().values_list('id', flat=True))
+                except Exception:
+                    direct_reports = []
+
+            try:
+                from apps.structure.models import Employment
+                emp_reports = list(Employment.objects.filter(
+                    position__reports_to__employments__user_id=user.id,
+                    is_current=True,
+                    is_active=True
+                ).values_list('user_id', flat=True))
+                direct_reports.extend(emp_reports)
+            except Exception:
+                pass
+
+            if direct_reports:
+                return queryset.filter(user_id__in=direct_reports).exclude(user_id=user.id)
+            else:
+                return queryset.exclude(user_id=user.id)
+
         role = str(getattr(user, 'role', '')).lower()
         is_admin_or_champion = role in [
             'super_admin', 'superadmin', 'platform_admin', 

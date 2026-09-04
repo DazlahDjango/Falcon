@@ -58,3 +58,31 @@ class BulkUploadResultSerializer(serializers.Serializer):
     updated = serializers.IntegerField()
     errors = serializers.ListField(child=serializers.DictField())
     dry_run = serializers.BooleanField()
+
+
+class BulkFormKPICreateSerializer(serializers.Serializer):
+    items = serializers.ListField(child=serializers.DictField(), min_length=1)
+
+
+class BulkFormActualSubmitSerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    month = serializers.IntegerField()
+    items = serializers.ListField(child=serializers.DictField(), min_length=1)
+
+    def validate(self, data):
+        month = data.get('month')
+        if month and (month < 1 or month > 12):
+            raise serializers.ValidationError("Month must be between 1 and 12")
+        return data
+
+
+class BulkFormCombinedSerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    month = serializers.IntegerField()
+    items = serializers.ListField(child=serializers.DictField(), min_length=1)
+
+    def validate(self, data):
+        month = data.get('month')
+        if month and (month < 1 or month > 12):
+            raise serializers.ValidationError("Month must be between 1 and 12")
+        return data

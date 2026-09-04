@@ -74,8 +74,8 @@ const BulkKPIUpload = ({ onComplete, setUploading }) => {
             {step === 1 && (
                 <div>
                     <div className="bulk-upload-header">
-                        <h3>Bulk KPI Upload</h3>
-                        <p>Upload multiple KPIs at once using a CSV or Excel file</p>
+                        <h3>Bulk Performance Indicator Upload</h3>
+                        <p>Upload multiple Performance Indicators at once using a CSV or Excel file</p>
                     </div>
 
                     <div className="bulk-upload-requirements">

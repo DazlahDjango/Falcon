@@ -11,17 +11,27 @@ const KPIEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { canManageKPIs } = useKPIPermissions();
+    const { user, canManageKPIs } = useKPIPermissions();
     const [activeTab, setActiveTab] = useState('basic');
 
     const kpi = useSelector(selectCurrentKPI);
     const loading = useSelector(selectKPILoadingDetails);
 
     useEffect(() => {
-        if (id && canManageKPIs) {
+        if (id) {
             dispatch(fetchKPI(id));
         }
-    }, [dispatch, id, canManageKPIs]);
+    }, [dispatch, id]);
+
+    const isOwnerOrCreator = kpi && user && (
+        String(kpi.owner_id) === String(user.id) ||
+        String(kpi.created_by_id) === String(user.id) ||
+        String(kpi.owner) === String(user.id) ||
+        (kpi.owner_email && user.email && kpi.owner_email.toLowerCase() === user.email.toLowerCase()) ||
+        (kpi.user_email && user.email && kpi.user_email.toLowerCase() === user.email.toLowerCase())
+    );
+    const isPendingOrInactive = kpi && (kpi.approval_status === 'PENDING_APPROVAL' || kpi.approval_status === 'PENDING' || !kpi.is_active);
+    const canEditThisKPI = canManageKPIs || (isOwnerOrCreator && isPendingOrInactive);
 
     const handleUpdate = async (data) => {
         await dispatch(updateKPI({ id, data })).unwrap();
@@ -32,13 +42,13 @@ const KPIEditPage = () => {
         navigate(KpiPaths.KPIDetail(id));
     };
 
-    if (!canManageKPIs) {
-        navigate(KpiPaths.KPIs);
-        return null;
+    if (loading || !kpi) {
+        return <KPILoading text="Loading Performance Indicator data..." />;
     }
 
-    if (loading) {
-        return <KPILoading text="Loading KPI data..." />;
+    if (!canEditThisKPI) {
+        navigate(KpiPaths.KPIDetail(id));
+        return null;
     }
 
     const tabs = [

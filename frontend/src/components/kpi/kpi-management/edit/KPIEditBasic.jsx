@@ -43,8 +43,8 @@ const KPIEditBasic = ({ kpi, onSave, onCancel }) => {
     
     const validate = () => {
         const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = 'KPI name is required';
-        if (!formData.code.trim()) newErrors.code = 'KPI code is required';
+        if (!formData.name.trim()) newErrors.name = 'Performance Indicator name is required';
+        if (!formData.code.trim()) newErrors.code = 'Performance Indicator code is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -58,7 +58,7 @@ const KPIEditBasic = ({ kpi, onSave, onCancel }) => {
             await onSave(formData);
         } catch (error) {
             console.error('Failed to save KPI:', error);
-            setSubmitError(error?.message || 'Failed to save KPI. Please try again.');
+            setSubmitError(error?.message || 'Failed to save Performance Indicator. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -82,7 +82,7 @@ const KPIEditBasic = ({ kpi, onSave, onCancel }) => {
             )}
             <div className="form-row">
                 <div className="form-group">
-                    <label>KPI Name <span className="required">*</span></label>
+                    <label>Performance Indicator Name <span className="required">*</span></label>
                     <input 
                         type="text"
                         value={formData.name}
@@ -93,7 +93,7 @@ const KPIEditBasic = ({ kpi, onSave, onCancel }) => {
                 </div>
                 
                 <div className="form-group">
-                    <label>KPI Code <span className="required">*</span></label>
+                    <label>Performance Indicator Code <span className="required">*</span></label>
                     <input 
                         type="text"
                         value={formData.code}
@@ -115,7 +115,7 @@ const KPIEditBasic = ({ kpi, onSave, onCancel }) => {
             
             <div className="form-row">
                 <div className="form-group">
-                    <label>KPI Type</label>
+                    <label>Performance Indicator Type</label>
                     <select 
                         value={formData.kpi_type}
                         onChange={(e) => handleChange('kpi_type', e.target.value)}

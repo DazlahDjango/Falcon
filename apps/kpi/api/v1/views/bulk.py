@@ -131,3 +131,72 @@ class BulkTargetUploadView(APIView):
             'status': 'PENDING',
             'message': 'Targets file upload accepted. Import is processing in the background.'
         }, status=status.HTTP_202_ACCEPTED)
+
+
+class BulkFormKPICreateView(APIView):
+    permission_classes = [IsAuthenticatedAndActive]
+
+    def post(self, request):
+        from ..serializers import BulkFormKPICreateSerializer
+        from apps.kpi.services.bulk import BulkKPICreator
+
+        serializer = BulkFormKPICreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        items = serializer.validated_data['items']
+        creator = BulkKPICreator()
+        result = creator.create_bulk(items, request.user)
+
+        return Response({
+            'status': 'SUCCESS',
+            'message': f"Successfully processed bulk Performance Indicators ({result['created_count']} created, {result['error_count']} errors).",
+            'data': result
+        }, status=status.HTTP_201_CREATED)
+
+
+class BulkFormActualSubmitView(APIView):
+    permission_classes = [IsAuthenticatedAndActive]
+
+    def post(self, request):
+        from ..serializers import BulkFormActualSubmitSerializer
+        from apps.kpi.services.bulk import BulkActualSubmitter
+
+        serializer = BulkFormActualSubmitSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        items = serializer.validated_data['items']
+        year = serializer.validated_data['year']
+        month = serializer.validated_data['month']
+
+        submitter = BulkActualSubmitter()
+        result = submitter.submit_bulk(items, request.user, year, month)
+
+        return Response({
+            'status': 'SUCCESS',
+            'message': f"Successfully processed bulk actual entries ({result['submitted_count']} submitted, {result['error_count']} errors).",
+            'data': result
+        }, status=status.HTTP_201_CREATED)
+
+
+class BulkFormCombinedSubmitView(APIView):
+    permission_classes = [IsAuthenticatedAndActive]
+
+    def post(self, request):
+        from ..serializers import BulkFormCombinedSerializer
+        from apps.kpi.services.bulk import BulkFormProcessor
+
+        serializer = BulkFormCombinedSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        items = serializer.validated_data['items']
+        year = serializer.validated_data['year']
+        month = serializer.validated_data['month']
+
+        processor = BulkFormProcessor()
+        result = processor.process_combined(items, request.user, year, month)
+
+        return Response({
+            'status': 'SUCCESS',
+            'message': f"Successfully created {result['kpis_created']} Performance Indicators and submitted {result['actuals_submitted']} actual entries.",
+            'data': result
+        }, status=status.HTTP_201_CREATED)

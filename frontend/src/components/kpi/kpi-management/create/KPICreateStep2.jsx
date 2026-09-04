@@ -32,7 +32,7 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
         <div className="kpi-create-step">
             <div className="step-header">
                 <h3>Configuration & Objective</h3>
-                <p>Set display preferences and strategic objectives for this KPI</p>
+                <p>Set display preferences and strategic objectives for this Performance Indicator</p>
             </div>
             
             <div className="step-form">
@@ -61,7 +61,7 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
                             onChange={(e) => handleChange('strategic_objective', e.target.value)}
                             placeholder="e.g., Increase market share by 15%"
                         />
-                        <small>Link this KPI to a strategic goal</small>
+                        <small>Link this Performance Indicator to a strategic goal</small>
                     </div>
                 </div>
                 
@@ -74,12 +74,12 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
                         />
                         Activate immediately after creation
                     </label>
-                    <small>Inactive KPIs won't appear in dashboards or calculations</small>
+                    <small>Inactive Performance Indicators won't appear in dashboards or calculations</small>
                 </div>
                 
                 {data.kpi_type === 'PERCENTAGE' && (
                     <div className="info-box">
-                        <strong>ℹ️ Percentage KPI</strong>
+                        <strong>ℹ️ Percentage Performance Indicator</strong>
                         <p>Target values will be displayed as percentages. Values will be automatically normalized to 0-100 range.</p>
                     </div>
                 )}

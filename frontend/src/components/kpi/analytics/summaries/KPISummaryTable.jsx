@@ -22,7 +22,7 @@ const KPISummaryTable = ({ summaries, loading, onRowClick }) => {
     }
     
     if (!summaries || summaries.length === 0) {
-        return <div className="kpi-empty-container">No KPI summary data available</div>;
+        return <div className="kpi-empty-container">No Performance Indicator summary data available</div>;
     }
     
     return (
@@ -30,7 +30,7 @@ const KPISummaryTable = ({ summaries, loading, onRowClick }) => {
             <table className="analytics-table">
                 <thead>
                     <tr>
-                        <th>KPI Name</th>
+                        <th>Performance Indicator Name</th>
                         <th>Code</th>
                         <th>Period</th>
                         <th>Avg Score</th>

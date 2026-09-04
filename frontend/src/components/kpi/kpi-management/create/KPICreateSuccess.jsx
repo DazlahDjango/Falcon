@@ -8,8 +8,8 @@ const KPICreateSuccess = ({ onClose }) => {
                 <div className="success-icon">
                     <FiCheckCircle size={48} />
                 </div>
-                <h3>KPI Created Successfully!</h3>
-                <p>Your new KPI has been created and is now ready to use.</p>
+                <h3>Performance Indicator Created Successfully!</h3>
+                <p>Your new Performance Indicator has been created and is now ready to use.</p>
                 <button className="success-close-btn" onClick={onClose}>Close</button>
             </div>
         </div>

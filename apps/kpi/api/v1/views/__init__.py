@@ -8,7 +8,10 @@ from .score import ScoreViewSet, AggregatedScoreViewSet, TrafficLightViewSet
 from .cascade import CascadeRuleViewSet, CascadeMapViewSet
 from .dashboard import IndividualDashboardView, ManagerDashboardView, ExecutiveDashboardView, ChampionDashboardView, KPIOverviewDashboardView
 from .analytics import KPISummaryViewSet, DepartmentRollupViewSet, OrganizationHealthViewSet, PerformanceHeatmapView, AnalyticsExportView, CustomReportView, NotificationPreferencesView
-from .bulk import BulkKPIUploadView, BulkActualUploadView, BulkTargetUploadView
+from .bulk import (
+    BulkKPIUploadView, BulkActualUploadView, BulkTargetUploadView,
+    BulkFormKPICreateView, BulkFormActualSubmitView, BulkFormCombinedSubmitView
+)
 from .calculation import TriggerCalculationView, CalculationStatusView
 from .history import KPIHistoryViewSet, ActualHistoryViewSet, TargetHistoryViewSet
 
@@ -24,6 +27,7 @@ __all__ = [
     'IndividualDashboardView', 'ManagerDashboardView', 'ExecutiveDashboardView', 'ChampionDashboardView','KPIOverviewDashboardView',
     'KPISummaryViewSet', 'DepartmentRollupViewSet', 'OrganizationHealthViewSet',
     'BulkKPIUploadView', 'BulkActualUploadView', 'BulkTargetUploadView',
+    'BulkFormKPICreateView', 'BulkFormActualSubmitView', 'BulkFormCombinedSubmitView',
     'TriggerCalculationView', 'CalculationStatusView',
     'KPIHistoryViewSet', 'ActualHistoryViewSet', 'TargetHistoryViewSet',
 ]

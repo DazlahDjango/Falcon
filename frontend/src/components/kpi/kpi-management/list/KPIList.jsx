@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FiPlus, FiFilter, FiGrid, FiList } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import KPICard from './KPICard';
@@ -22,10 +23,12 @@ import useKPIPermissions from '../../../../hooks/kpi/useKPIPermissions';
 
 const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
     const dispatch = useDispatch();
+    const location = useLocation();
     const { canManageKPIs, canApproveKPI, isManager, isExecutive } = useKPIPermissions();
     const canManageOrApprove = canManageKPIs || canApproveKPI || isManager || isExecutive;
     
     const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+    const scope = new URLSearchParams(location.search).get('scope');
     
     const kpis = useSelector(selectKPIs);
     const loading = useSelector(selectKPILoading);
@@ -38,7 +41,8 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
             page: pagination.page,
             page_size: pagination.pageSize,
             ...filters,
-            search: filters.search
+            search: filters.search,
+            ...(scope ? { scope } : {})
         };
 
         Object.keys(params).forEach(key => {
@@ -85,18 +89,18 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
     };
     
     if (loading && kpis.length === 0) {
-        return <KPILoading text="Loading KPIs..." />;
+        return <KPILoading text="Loading Performance Indicators..." />;
     }
     
     if (error && kpis.length === 0) {
-        return <div className="kpi-error-state">Error loading KPIs. Please try again.</div>;
+        return <div className="kpi-error-state">Error loading Performance Indicators. Please try again.</div>;
     }
     
     return (
         <div className="kpi-list-container">
             <div className="kpi-list-header">
                 <div>
-                    <h2>KPI Management</h2>
+                    <h2>Performance Indicator Management</h2>
                     <p>Manage and monitor all Key Performance Indicators</p>
                 </div>
                 <div className="kpi-list-actions">
@@ -117,7 +121,7 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
                     {canManageKPIs && (
                         <button className="kpi-create-btn" onClick={onCreateKPI}>
                             <FiPlus size={16} />
-                            Create KPI
+                            Create Performance Indicator
                         </button>
                     )}
                 </div>
@@ -138,9 +142,9 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
             {kpis.length === 0 ? (
                 <KPIEmptyState 
                     icon="📊"
-                    title="No KPIs Found"
-                    description={filters.search ? "No KPIs match your search criteria" : "No KPIs have been created yet"}
-                    actionText={canManageKPIs ? "Create Your First KPI" : null}
+                    title="No Performance Indicators Found"
+                    description={filters.search ? "No Performance Indicators match your search criteria" : "No Performance Indicators have been created yet"}
+                    actionText={canManageKPIs ? "Create Your First Performance Indicator" : null}
                     onAction={canManageKPIs ? onCreateKPI : null}
                 />
             ) : viewMode === 'card' ? (
