@@ -26,7 +26,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
 
     const handleSubmit = async () => {
         const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = 'Category name is required';
+        if (!formData.name.trim()) newErrors.name = 'Key Result Area name is required';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -43,7 +43,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
             console.log('Category submission successful');
         } catch (error) {
             console.error('Category submission error:', error);
-            setSubmitError(error?.message || 'Failed to submit category. Please try again.');
+            setSubmitError(error?.message || 'Failed to submit Key Result Area. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -53,7 +53,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
         <div className="kpi-category-form-modal">
             <div className="kpi-category-form-container">
                 <div className="kpi-category-form-header">
-                    <h3>{category ? 'Edit Category' : 'Create Category'}</h3>
+                    <h3>{category ? 'Edit Key Result Area' : 'Create Key Result Area'}</h3>
                     <button className="close" onClick={onCancel}>
                         <FiX size={20} />
                     </button>
@@ -69,7 +69,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                         </div>
                     )}
                     <div className="form-group">
-                        <label>Category Name <span className="required">*</span></label>
+                        <label>Key Result Area Name <span className="required">*</span></label>
                         <input
                             type="text"
                             className={errors.name ? 'error' : ''}
@@ -81,7 +81,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                     </div>
 
                     <div className="form-group">
-                        <label>Category Type</label>
+                        <label>Key Result Area Type</label>
                         <select
                             value={formData.category_type}
                             onChange={(e) => setFormData({ ...formData, category_type: e.target.value })}
@@ -93,12 +93,12 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                     </div>
 
                     <div className="form-group">
-                        <label>Parent Category</label>
+                        <label>Parent Key Result Area</label>
                         <select
                             value={formData.parent || ''}
                             onChange={(e) => setFormData({ ...formData, parent: e.target.value || null })}
                         >
-                            <option value="">None (Root Category)</option>
+                            <option value="">None (Root Key Result Area)</option>
                             {categories?.filter(c => c.id !== category?.id).map(cat => (
                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))}
@@ -123,7 +123,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             rows="3"
-                            placeholder="Describe this category..."
+                            placeholder="Describe this key result area..."
                         />
                     </div>
 
@@ -148,7 +148,7 @@ const CategoryForm = ({ category, parentCategory, categories, onSubmit, onCancel
                         type="button"
                     >
                         <FiSave size={14} />
-                        {isLoading ? 'Submitting...' : (category ? 'Update' : 'Create')} Category
+                        {isLoading ? 'Submitting...' : (category ? 'Update' : 'Create')} Key Result Area
                     </button>
                 </div>
             </div>

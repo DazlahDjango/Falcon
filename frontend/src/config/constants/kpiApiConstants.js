@@ -297,6 +297,9 @@ export const BULK_ENDPOINTS = {
     KPI_UPLOAD: `${API_BASE}/kpis/bulk/kpi-upload/`,
     ACTUAL_UPLOAD: `${API_BASE}/kpis/bulk/actual-upload/`,
     TARGET_UPLOAD: `${API_BASE}/kpis/bulk/target-upload/`,
+    FORM_CREATE_KPIS: `${API_BASE}/kpis/bulk/form-create-kpis/`,
+    FORM_SUBMIT_ACTUALS: `${API_BASE}/kpis/bulk/form-submit-actuals/`,
+    FORM_SUBMIT_COMBINED: `${API_BASE}/kpis/bulk/form-submit-combined/`,
     TEMPLATE: (type) => `${API_BASE}/kpis/bulk/templates/${type}/`,
     VALIDATE: `${API_BASE}/kpis/bulk/validate/`,
 };

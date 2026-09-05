@@ -10,8 +10,8 @@ const TemplateDownload = ({ type }) => {
         switch (type) {
             case 'kpi':
                 return {
-                    title: 'KPI Template',
-                    description: 'Download CSV template for bulk KPI upload',
+                    title: 'Performance Indicator Template',
+                    description: 'Download CSV template for bulk Performance Indicator upload',
                     headers: ['name', 'code', 'kpi_type', 'framework_id', 'unit', 'target_min', 'target_max']
                 };
             case 'actual':

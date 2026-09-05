@@ -16,6 +16,7 @@ export {
     KPIDateRangePicker,
     KPIStatusBadge,
     KPIScoreGauge,
+    UnitSelector,
 } from './common';
 
 // ============ Validations Components ============
@@ -190,6 +191,7 @@ export {
     UploadResults,
     UploadErrors,
     TemplateDownload,
+    InteractiveBulkForm,
 } from './bulk';
 
 // ============ Calculations Components ============

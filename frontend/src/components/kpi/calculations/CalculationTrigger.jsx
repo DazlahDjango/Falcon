@@ -56,7 +56,7 @@ const CalculationTrigger = () => {
                     </div>
                     <div>
                         <h3>Trigger Calculation</h3>
-                        <p>Recalculate scores for all KPIs for the selected period</p>
+                        <p>Recalculate scores for all Performance Indicators for the selected period</p>
                     </div>
                 </div>
                 

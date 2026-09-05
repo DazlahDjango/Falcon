@@ -152,7 +152,7 @@ const CategoryDetailModal = ({ category, onClose, onAddKpi }) => {
                         <FiSearch style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />
                         <input 
                             type="text"
-                            placeholder="Search KPIs in category..."
+                            placeholder="Search Performance Indicators in Key Result Area..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{ 
@@ -167,7 +167,7 @@ const CategoryDetailModal = ({ category, onClose, onAddKpi }) => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569' }}>
-                            Total KPIs: <span style={{ color: '#2563eb' }}>{kpisCount}</span>
+                            Total Performance Indicators: <span style={{ color: '#2563eb' }}>{kpisCount}</span>
                         </span>
                         <button 
                             onClick={handleAddKpiClick}
@@ -186,7 +186,7 @@ const CategoryDetailModal = ({ category, onClose, onAddKpi }) => {
                                 boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
                             }}
                         >
-                            <FiPlus size={16} /> Add KPI
+                            <FiPlus size={16} /> Add Performance Indicator
                         </button>
                     </div>
                 </div>
@@ -219,12 +219,12 @@ const CategoryDetailModal = ({ category, onClose, onAddKpi }) => {
                                 <FiTarget size={28} />
                             </div>
                             <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>
-                                {searchTerm ? 'No KPIs Match Your Search' : 'No KPIs in this Category Yet'}
+                                {searchTerm ? 'No Performance Indicators Match Your Search' : 'No Performance Indicators in this Key Result Area Yet'}
                             </h3>
                             <p style={{ margin: '0 0 20px 0', fontSize: '0.875rem', color: '#64748b' }}>
                                 {searchTerm 
-                                    ? `No KPIs matching "${searchTerm}" were found in ${category.name}.`
-                                    : `Start creating KPIs for ${category.name} to track organizational objectives.`
+                                    ? `No Performance Indicators matching "${searchTerm}" were found in ${category.name}.`
+                                    : `Start creating Performance Indicators for ${category.name} to track organizational objectives.`
                                 }
                             </p>
                             <button 
@@ -242,7 +242,7 @@ const CategoryDetailModal = ({ category, onClose, onAddKpi }) => {
                                     cursor: 'pointer'
                                 }}
                             >
-                                <FiPlus size={18} /> Add First KPI
+                                <FiPlus size={18} /> Add First Performance Indicator
                             </button>
                         </div>
                     ) : (
@@ -327,7 +327,7 @@ const CategoryDetailModal = ({ category, onClose, onAddKpi }) => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2563eb', fontWeight: 600, fontSize: '0.85rem' }}>
-                                        View KPI <FiExternalLink size={14} />
+                                        View Performance Indicator <FiExternalLink size={14} />
                                     </div>
                                 </div>
                             ))}

@@ -65,7 +65,7 @@ const UserTargets = ({ userId, onEditTarget }) => {
                 <table>
                     <thead>
                         <tr>
-                            <th>KPI</th>
+                            <th>Performance Indicator</th>
                             <th>Target Value</th>
                             <th>Current Progress</th>
                             <th>Status</th>

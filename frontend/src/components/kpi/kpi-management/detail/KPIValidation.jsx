@@ -22,7 +22,7 @@ const KPIValidation = ({ kpiId }) => {
     };
     
     if (loading) {
-        return <KPILoading size="sm" text="Validating KPI..." />;
+        return <KPILoading size="sm" text="Validating Performance Indicator..." />;
     }
     
     const isValid = validation?.is_valid;
@@ -33,7 +33,7 @@ const KPIValidation = ({ kpiId }) => {
     return (
         <div className="kpi-validation-section">
             <div className="section-header">
-                <h3>KPI Validation</h3>
+                <h3>Performance Indicator Validation</h3>
                 <button className="validate-btn" onClick={handleValidate}>
                     <FiCheckCircle size={14} />
                     Run Validation
@@ -46,12 +46,12 @@ const KPIValidation = ({ kpiId }) => {
                         {isValid ? (
                             <>
                                 <FiCheckCircle size={20} />
-                                <span>KPI is valid and ready for use</span>
+                                <span>Performance Indicator is valid and ready for use</span>
                             </>
                         ) : (
                             <>
                                 <FiAlertCircle size={20} />
-                                <span>KPI has validation issues that need attention</span>
+                                <span>Performance Indicator has validation issues that need attention</span>
                             </>
                         )}
                     </div>
@@ -91,7 +91,7 @@ const KPIValidation = ({ kpiId }) => {
             
             {!validation && !loading && (
                 <div className="validation-placeholder">
-                    <p>Click "Run Validation" to check this KPI for completeness and correctness</p>
+                    <p>Click "Run Validation" to check this Performance Indicator for completeness and correctness</p>
                 </div>
             )}
         </div>

@@ -117,8 +117,8 @@ const KPIWeightManager = ({ kpiId, kpiName, userId, readOnly = false }) => {
             {localWeights.length === 0 ? (
                 <KPIEmptyState 
                     icon="⚖️"
-                    title="No Weights Assigned"
-                    description="Assign percentage weights to users for this KPI"
+                    title="No User Weights Assigned"
+                    description="Assign percentage weights to users for this Performance Indicator"
                     actionText="Add Weight"
                     onAction={() => setShowForm(true)}
                 />

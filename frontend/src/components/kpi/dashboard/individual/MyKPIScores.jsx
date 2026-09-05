@@ -7,9 +7,9 @@ const MyKPIScores = ({ scores }) => {
         return (
             <div className="dashboard-card">
                 <div className="card-header">
-                    <h3>My KPI Scores</h3>
+                    <h3>My Performance Indicator Scores</h3>
                 </div>
-                <div className="card-empty">No KPI data available</div>
+                <div className="card-empty">No Performance Indicator data available</div>
             </div>
         );
     }
@@ -17,8 +17,8 @@ const MyKPIScores = ({ scores }) => {
     return (
         <div className="dashboard-card">
             <div className="card-header">
-                <h3>My KPI Scores</h3>
-                <span className="card-count">{scores.length} KPIs</span>
+                <h3>My Performance Indicator Scores</h3>
+                <span className="card-count">{scores.length} Performance Indicators</span>
             </div>
             <div className="kpi-scores-list">
                 {scores.map((kpi, index) => (

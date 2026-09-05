@@ -54,6 +54,42 @@ export const downloadTemplate = createAsyncThunk(
   }
 );
 
+export const createKPIsForm = createAsyncThunk(
+  'bulk/createKPIsForm',
+  async ({ items }, { rejectWithValue }) => {
+    try {
+      const response = await bulkService.createKPIsForm(items);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const submitActualsForm = createAsyncThunk(
+  'bulk/submitActualsForm',
+  async ({ year, month, items }, { rejectWithValue }) => {
+    try {
+      const response = await bulkService.submitActualsForm(year, month, items);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const submitCombinedForm = createAsyncThunk(
+  'bulk/submitCombinedForm',
+  async ({ year, month, items }, { rejectWithValue }) => {
+    try {
+      const response = await bulkService.submitCombinedForm(year, month, items);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 // ============ Initial State ============
 const initialState = {
   uploadResult: null,

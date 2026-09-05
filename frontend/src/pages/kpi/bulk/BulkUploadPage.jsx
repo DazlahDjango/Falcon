@@ -10,7 +10,7 @@ const BulkUploadPage = () => {
         return <Navigate to="/login" replace />;
     }
     
-    if (!canBulkUpload && !isSuperAdmin && !isClientAdmin && !isDashboardChampion) {
+    if (!canBulkUpload) {
         return <Navigate to="/dashboard" replace />;
     }
     

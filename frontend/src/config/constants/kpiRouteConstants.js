@@ -11,6 +11,7 @@ export const KPI_ROUTES = {
     CHAMPION_DASHBOARD: '/kpi/dashboard/champion',
 
     // KPI Management
+    KPI_LIST: '/kpi/kpis',
     KPI_MANAGEMENT: '/kpi/management',
     KPI_CREATE: '/kpi/create',
     KPI_DETAIL: (id = ':id') => `/kpi/detail/${id}`,
@@ -77,6 +78,7 @@ export const KPI_ROUTES = {
 
     // Bulk Operations
     BULK_UPLOAD: '/kpi/bulk',
+    BULK_FORM: '/kpi/bulk/form',
     BULK_KPI_UPLOAD: '/kpi/bulk/kpi-upload',
     BULK_ACTUAL_UPLOAD: '/kpi/bulk/actual-upload',
     BULK_TARGET_UPLOAD: '/kpi/bulk/target-upload',

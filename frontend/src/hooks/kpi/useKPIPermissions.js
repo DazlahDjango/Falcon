@@ -82,7 +82,7 @@ const useKPIPermissions = () => {
             canRejectActual: isManager || isExecutive || isClientAdmin || isSuperAdmin,
             canCascadeTargets: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canTriggerCalculations: isClientAdmin || isSuperAdmin || isDashboardChampion,
-            canBulkUpload: isClientAdmin || isSuperAdmin || isDashboardChampion,
+            canBulkUpload: isAuthenticated,
             canExportData: isClientAdmin || isSuperAdmin || isExecutive || isDashboardChampion || isManager,
 
             // Weight permissions

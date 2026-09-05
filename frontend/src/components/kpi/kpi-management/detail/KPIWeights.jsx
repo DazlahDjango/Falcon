@@ -59,7 +59,7 @@ const KPIWeights = ({ kpiId, kpi }) => {
                 <KPIEmptyState 
                     icon="⚖️"
                     title="No Weights Assigned"
-                    description="Assign weights to users for this KPI"
+                    description="Assign weights to users for this Performance Indicator"
                     actionText="Assign Weights"
                     onAction={() => setShowForm(true)}
                 />

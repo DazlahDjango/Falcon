@@ -55,7 +55,7 @@ const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
             await onSave(formData);
         } catch (error) {
             console.error('Failed to save KPI:', error);
-            setSubmitError(error?.message || 'Failed to save KPI. Please try again.');
+            setSubmitError(error?.message || 'Failed to save Performance Indicator. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -85,12 +85,12 @@ const KPIEditAssignments = ({ kpi, onSave, onCancel }) => {
             
             <div className="form-row">
                 <div className="form-group">
-                    <label>Category</label>
+                    <label>Key Result Area</label>
                     <select 
                         value={formData.category_id}
                         onChange={(e) => handleChange('category_id', e.target.value)}
                     >
-                        <option value="">Select Category</option>
+                        <option value="">Select Key Result Area</option>
                         {categories.map(c => (
                             <option key={c.id} value={c.id}>{c.name}</option>
                         ))}

@@ -15,6 +15,7 @@ from .views import (
     IndividualDashboardView, ManagerDashboardView, ExecutiveDashboardView, ChampionDashboardView,
     KPISummaryViewSet, DepartmentRollupViewSet, OrganizationHealthViewSet,
     BulkKPIUploadView, BulkActualUploadView, BulkTargetUploadView,
+    BulkFormKPICreateView, BulkFormActualSubmitView, BulkFormCombinedSubmitView,
     TriggerCalculationView, CalculationStatusView,
     KPIHistoryViewSet, ActualHistoryViewSet, TargetHistoryViewSet, PerformanceHeatmapView, 
     AnalyticsExportView, CustomReportView, NotificationPreferencesView,
@@ -120,6 +121,9 @@ urlpatterns = [
     path('bulk/kpi-upload/', BulkKPIUploadView.as_view(), name='bulk-kpi-upload'),
     path('bulk/actual-upload/', BulkActualUploadView.as_view(), name='bulk-actual-upload'),
     path('bulk/target-upload/', BulkTargetUploadView.as_view(), name='bulk-target-upload'),
+    path('bulk/form-create-kpis/', BulkFormKPICreateView.as_view(), name='bulk-form-create-kpis'),
+    path('bulk/form-submit-actuals/', BulkFormActualSubmitView.as_view(), name='bulk-form-submit-actuals'),
+    path('bulk/form-submit-combined/', BulkFormCombinedSubmitView.as_view(), name='bulk-form-submit-combined'),
     path('bulk/templates/<str:template_type>/', BulkTemplateDownloadView.as_view(), name='bulk-template-download'),
     
     path('calculations/trigger/', TriggerCalculationView.as_view(), name='trigger-calculation'),

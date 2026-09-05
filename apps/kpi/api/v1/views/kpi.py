@@ -25,6 +25,45 @@ class KPIViewSet(BaseKpiViewset):
     ordering_fields = ['name', 'created_at', 'updated_at']
     ordering = ['name']
 
+    def get_queryset(self):
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return super().get_queryset()
+
+        scope = self.request.query_params.get('scope')
+        if scope == 'my':
+            return super().get_queryset().filter(Q(owner=user) | Q(created_by=user))
+        elif scope == 'team':
+            direct_reports = []
+            if hasattr(user, 'get_direct_reports'):
+                try:
+                    direct_reports = list(user.get_direct_reports().values_list('id', flat=True))
+                except Exception:
+                    direct_reports = []
+
+            try:
+                from apps.structure.models import Employment
+                emp_reports = list(Employment.objects.filter(
+                    position__reports_to__employments__user_id=user.id,
+                    is_current=True,
+                    is_active=True
+                ).values_list('user_id', flat=True))
+                direct_reports.extend(emp_reports)
+            except Exception:
+                pass
+
+            managed_depts = getattr(user, 'managed_departments', [])
+            if direct_reports or managed_depts:
+                return super().get_queryset().filter(
+                    Q(owner_id__in=direct_reports) | 
+                    Q(department_id__in=managed_depts) | 
+                    Q(parent_kpi__owner=user)
+                ).exclude(owner=user)
+            else:
+                return super().get_queryset().exclude(owner=user)
+
+        return KPI.objects.for_user_hierarchy(user)
+
     def get_serializer_class(self):
         if self.action == 'list':
             return KPIListSerializer

@@ -21,7 +21,7 @@ const TemplateUseConfirm = ({ template, frameworks, onConfirm, onCancel }) => {
             console.log('KPI creation from template successful');
         } catch (err) {
             console.error('KPI creation error:', err);
-            setError(err?.message || 'Failed to create KPI from template. Please try again.');
+            setError(err?.message || 'Failed to create Performance Indicator from template. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -47,7 +47,7 @@ const TemplateUseConfirm = ({ template, frameworks, onConfirm, onCancel }) => {
                             </button>
                         </div>
                     )}
-                    <p>Create a new KPI from <strong>{template?.name}</strong> template?</p>
+                    <p>Create a new Performance Indicator from <strong>{template?.name}</strong> template?</p>
                     
                     <div className="form-group">
                         <label>Select Framework</label>
@@ -62,13 +62,13 @@ const TemplateUseConfirm = ({ template, frameworks, onConfirm, onCancel }) => {
                         </select>
                     </div>
                     
-                    <p className="info">The KPI will be created as a draft and can be customized further.</p>
+                    <p className="info">The Performance Indicator will be created as a draft and can be customized further.</p>
                 </div>
                 
                 <div className="kpi-template-use-footer">
                     <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
                     <button className="confirm" onClick={handleConfirm} disabled={isLoading}>
-                        {isLoading ? 'Creating...' : 'Create KPI from Template'}
+                        {isLoading ? 'Creating...' : 'Create Performance Indicator from Template'}
                     </button>
                 </div>
             </div>

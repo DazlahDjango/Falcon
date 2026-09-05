@@ -28,7 +28,7 @@ import useKPIPermissions from '../../../../hooks/kpi/useKPIPermissions';
 
 const KPIDetail = ({ kpiId, onBack, onEdit }) => {
     const dispatch = useDispatch();
-    const { canManageKPIs, canApproveKPI, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion } = useKPIPermissions();
+    const { user, canManageKPIs, canApproveKPI, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion } = useKPIPermissions();
     const canSeeAdminTabs = canManageKPIs || isManager || isExecutive || isClientAdmin || isSuperAdmin || isDashboardChampion;
     const canManageOrApprove = canManageKPIs || canApproveKPI || isManager;
 
@@ -39,6 +39,16 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
     const kpi = useSelector(selectCurrentKPI);
     const loading = useSelector(selectKPILoadingDetails);
     const error = useSelector(selectKPIError);
+
+    const isOwnerOrCreator = kpi && user && (
+        String(kpi.owner_id) === String(user.id) ||
+        String(kpi.created_by_id) === String(user.id) ||
+        String(kpi.owner) === String(user.id) ||
+        (kpi.owner_email && user.email && kpi.owner_email.toLowerCase() === user.email.toLowerCase()) ||
+        (kpi.user_email && user.email && kpi.user_email.toLowerCase() === user.email.toLowerCase())
+    );
+    const isPendingOrInactive = kpi && (kpi.approval_status === 'PENDING_APPROVAL' || kpi.approval_status === 'PENDING' || !kpi.is_active);
+    const canEditThisKPI = canManageKPIs || (isOwnerOrCreator && isPendingOrInactive);
     
     useEffect(() => {
         if (kpiId) {
@@ -82,13 +92,13 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
     const tabs = allTabs.filter(tab => !tab.adminOnly || canSeeAdminTabs);
     
     if (loading) {
-        return <KPILoading text="Loading KPI details..." />;
+        return <KPILoading text="Loading Performance Indicator details..." />;
     }
     
     if (error || !kpi) {
         const errorMessage = typeof error === 'string' 
             ? error 
-            : (error?.message || error?.detail || (!kpi ? "KPI not found or does not exist." : "An error occurred while loading KPI details."));
+            : (error?.message || error?.detail || (!kpi ? "Performance Indicator not found or does not exist." : "An error occurred while loading Performance Indicator details."));
         return <KPIError message={errorMessage} onRetry={() => dispatch(fetchKPI(kpiId))} />;
     }
     
@@ -107,7 +117,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                             onClick={handleApproveKPI}
                         >
                             <FiCheckCircle size={14} />
-                            Approve KPI
+                            Approve Performance Indicator
                         </button>
                     )}
                     {canManageOrApprove && (
@@ -129,11 +139,13 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                                     Activate
                                 </button>
                             )}
-                            <button className="kpi-detail-edit" onClick={() => onEdit && onEdit(kpiId)}>
-                                <FiEdit size={14} />
-                                Edit
-                            </button>
                         </>
+                    )}
+                    {canEditThisKPI && (
+                        <button className="kpi-detail-edit" onClick={() => onEdit && onEdit(kpiId)}>
+                            <FiEdit size={14} />
+                            Edit
+                        </button>
                     )}
                     <button className="kpi-detail-refresh" onClick={() => dispatch(fetchKPI(kpiId))}>
                         <FiRefreshCw size={14} />
@@ -169,7 +181,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
             
             <KPIConfirmDialog
                 isOpen={showActivateConfirm}
-                title="Activate KPI"
+                title="Activate Performance Indicator"
                 message={`Are you sure you want to activate "${kpi.name}"? This will make it visible in dashboards and calculations.`}
                 confirmText="Activate"
                 type="success"
@@ -179,8 +191,8 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
             
             <KPIConfirmDialog
                 isOpen={showDeactivateConfirm}
-                title="Deactivate KPI"
-                message={`Are you sure you want to deactivate "${kpi.name}"? Deactivated KPIs won't appear in dashboards.`}
+                title="Deactivate Performance Indicator"
+                message={`Are you sure you want to deactivate "${kpi.name}"? Deactivated Performance Indicators won't appear in dashboards.`}
                 confirmText="Deactivate"
                 type="danger"
                 onConfirm={handleDeactivate}

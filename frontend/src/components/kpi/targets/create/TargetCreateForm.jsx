@@ -41,14 +41,14 @@ const TargetCreateForm = ({ kpis, users, onSubmit, onCancel }) => {
             <div className="kpi-target-form-group">
                 <label className="kpi-target-form-label">
                     <FiTarget size={14} />
-                    Select KPI <span className="kpi-required">*</span>
+                    Select Performance Indicator <span className="kpi-required">*</span>
                 </label>
                 <select 
                     className={`kpi-target-form-select ${errors.kpi_id ? 'error' : ''}`}
                     value={formData.kpi_id}
                     onChange={(e) => handleChange('kpi_id', e.target.value)}
                 >
-                    <option value="">Select a KPI...</option>
+                    <option value="">Select a Performance Indicator...</option>
                     {kpis?.map(kpi => (
                         <option key={kpi.id} value={kpi.id}>
                             {kpi.name} ({kpi.unit || 'value'})

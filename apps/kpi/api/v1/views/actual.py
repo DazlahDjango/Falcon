@@ -32,9 +32,40 @@ class MonthlyActualViewSet(BaseKpiViewset):
         user = self.request.user
         if not user or not user.is_authenticated:
             return qs.none()
+
         role = str(getattr(user, 'role', '')).lower()
-        if role in ['staff', 'employee']:
+        scope = self.request.query_params.get('scope')
+
+        if scope == 'my' or role in ['staff', 'employee']:
             return qs.filter(user_id=user.id)
+
+        if scope == 'team':
+            direct_reports = []
+            if hasattr(user, 'get_direct_reports'):
+                try:
+                    direct_reports = list(user.get_direct_reports().values_list('id', flat=True))
+                except Exception:
+                    direct_reports = []
+
+            try:
+                from apps.structure.models import Employment
+                emp_reports = list(Employment.objects.filter(
+                    position__reports_to__employments__user_id=user.id,
+                    is_current=True,
+                    is_active=True
+                ).values_list('user_id', flat=True))
+                direct_reports.extend(emp_reports)
+            except Exception:
+                pass
+
+            if direct_reports:
+                return qs.filter(user_id__in=direct_reports).exclude(user_id=user.id)
+            else:
+                return qs.exclude(user_id=user.id)
+
+        if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion', 'executive']:
+            return qs
+
         return qs
 
     def create(self, request, *args, **kwargs):

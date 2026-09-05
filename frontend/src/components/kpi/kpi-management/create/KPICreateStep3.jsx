@@ -40,7 +40,7 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
         <div className="kpi-create-step">
             <div className="step-header">
                 <h3>Review & Confirm</h3>
-                <p>Please review all information before creating the KPI</p>
+                <p>Please review all information before creating the Performance Indicator</p>
             </div>
             
             <div className="review-section">
@@ -65,7 +65,7 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
                 <h4>Configuration</h4>
                 <div className="review-grid">
                     <div className="review-item">
-                        <label>KPI Type</label>
+                        <label>Performance Indicator Type</label>
                         <span>{getKpiTypeLabel(data.kpi_type)}</span>
                     </div>
                     <div className="review-item">
@@ -91,7 +91,7 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
                 <h4>Assignment</h4>
                 <div className="review-grid">
                     <div className="review-item">
-                        <label>Category</label>
+                        <label>Key Result Area</label>
                         <span>{getCategoryName(data.category_id)}</span>
                     </div>
                     <div className="review-item">
@@ -111,7 +111,7 @@ const KPICreateStep3 = ({ data, onSubmit, onBack, onCancel, loading }) => {
                 <button className="cancel-btn" onClick={onCancel} disabled={loading}>Cancel</button>
                 <button className="back-btn" onClick={onBack} disabled={loading}>← Back</button>
                 <button className="submit-btn" onClick={() => onSubmit({})} disabled={loading}>
-                    {loading ? 'Creating...' : 'Create KPI'}
+                    {loading ? 'Creating...' : 'Create Performance Indicator'}
                 </button>
             </div>
         </div>

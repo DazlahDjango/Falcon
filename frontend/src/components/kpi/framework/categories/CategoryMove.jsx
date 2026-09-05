@@ -16,7 +16,7 @@ const CategoryMove = ({ category, categories, onMove, onCancel }) => {
             console.log('Category move successful');
         } catch (err) {
             console.error('Category move error:', err);
-            setError(err?.message || 'Failed to move category. Please try again.');
+            setError(err?.message || 'Failed to move Key Result Area. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -27,7 +27,7 @@ const CategoryMove = ({ category, categories, onMove, onCancel }) => {
             <div className="kpi-category-move-container">
                 <div className="kpi-category-move-header">
                     <FiMove size={20} />
-                    <h3>Move Category</h3>
+                    <h3>Move Key Result Area</h3>
                     <button className="close" onClick={onCancel}>
                         <FiX size={20} />
                     </button>
@@ -45,7 +45,7 @@ const CategoryMove = ({ category, categories, onMove, onCancel }) => {
                     <p>Moving: <strong>{category.name}</strong></p>
                     
                     <div className="form-group">
-                        <label>New Parent Category</label>
+                        <label>New Parent Key Result Area</label>
                         <select 
                             value={targetParentId}
                             onChange={(e) => setTargetParentId(e.target.value)}
@@ -61,7 +61,7 @@ const CategoryMove = ({ category, categories, onMove, onCancel }) => {
                 <div className="kpi-category-move-footer">
                     <button className="cancel" onClick={onCancel} disabled={isLoading}>Cancel</button>
                     <button className="submit" onClick={handleMove} disabled={isLoading}>
-                        {isLoading ? 'Moving...' : 'Move Category'}
+                        {isLoading ? 'Moving...' : 'Move Key Result Area'}
                     </button>
                 </div>
             </div>

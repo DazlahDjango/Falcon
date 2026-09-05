@@ -50,7 +50,7 @@ const CategoryTree = ({ categories, onEdit, onDelete, onMove, onAddSubcategory, 
                         <div className="kpi-category-tree-node-name">
                             {category.name}
                             <span className="kpi-category-badge" style={{ marginLeft: 8, fontSize: '0.75rem', padding: '2px 6px', borderRadius: 4, background: '#e2e8f0', color: '#475569' }}>
-                                {kpisCount} {kpisCount === 1 ? 'KPI' : 'KPIs'}
+                                {kpisCount} {kpisCount === 1 ? 'Performance Indicator' : 'Performance Indicators'}
                             </span>
                         </div>
                         <div className="kpi-category-tree-node-type">{category.category_type_display}</div>
@@ -59,15 +59,15 @@ const CategoryTree = ({ categories, onEdit, onDelete, onMove, onAddSubcategory, 
                         )}
                     </div>
                     <div className="kpi-category-tree-node-actions">
-                        <button onClick={() => setViewingCategory(category)} title="View Category Detail & KPIs" style={{ color: '#0284c7' }}>
+                        <button onClick={() => setViewingCategory(category)} title="View Key Result Area Detail & Performance Indicators" style={{ color: '#0284c7' }}>
                             <FiEye size={14} />
                         </button>
                         {canManage && (
                             <>
-                                <button onClick={(e) => handleAddKpiClick(category, e)} title="Add KPI to this Category" style={{ color: '#2563eb' }}>
+                                <button onClick={(e) => handleAddKpiClick(category, e)} title="Add Performance Indicator to this Key Result Area" style={{ color: '#2563eb' }}>
                                     <FiTarget size={14} />
                                 </button>
-                                <button onClick={() => onAddSubcategory(category)} title="Add Subcategory">
+                                <button onClick={() => onAddSubcategory(category)} title="Add Sub-Key Result Area">
                                     <FiPlus size={14} />
                                 </button>
                                 <button onClick={() => setMovingCategory(category)} title="Move">
@@ -92,7 +92,7 @@ const CategoryTree = ({ categories, onEdit, onDelete, onMove, onAddSubcategory, 
                         {kpiList.length > 0 && (
                             <div className="kpi-category-kpi-list" style={{ marginLeft: (level + 1) * 24 + 16, marginTop: 6, marginBottom: 8, borderLeft: '2px solid #cbd5e1', paddingLeft: 12 }}>
                                 <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
-                                    KPIs in {category.name}:
+                                    Performance Indicators in {category.name}:
                                 </div>
                                 {kpiList.map(kpi => (
                                     <div 
@@ -125,7 +125,7 @@ const CategoryTree = ({ categories, onEdit, onDelete, onMove, onAddSubcategory, 
                         )}
                         {kpiList.length === 0 && !hasChildren && (
                             <div style={{ marginLeft: (level + 1) * 24 + 16, fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', padding: '4px 0' }}>
-                                No KPIs assigned to this category
+                                No Performance Indicators assigned to this Key Result Area
                             </div>
                         )}
                     </div>

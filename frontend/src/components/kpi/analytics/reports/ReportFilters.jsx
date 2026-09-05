@@ -71,7 +71,7 @@ const ReportFilters = ({ filters, reportType, onChange }) => {
                 
                 {reportType !== 'department_comparison' && (
                     <div className="analytics-filter-group" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                        <label>KPIs (Multi-select)</label>
+                        <label>Performance Indicators (Multi-select)</label>
                         <select 
                             multiple
                             value={filters.kpi_ids || []}

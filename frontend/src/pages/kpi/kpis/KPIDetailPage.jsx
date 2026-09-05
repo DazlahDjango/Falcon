@@ -7,7 +7,6 @@ import { KpiPaths } from '../../../routes/kpi.routes';
 const KPIDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { canManageKPIs } = useKPIPermissions();
 
     const handleBack = () => {
         navigate(KpiPaths.KPIs);
@@ -22,7 +21,7 @@ const KPIDetailPage = () => {
             <KPIDetail
                 kpiId={id}
                 onBack={handleBack}
-                onEdit={canManageKPIs ? handleEdit : null}
+                onEdit={handleEdit}
             />
         </div>
     );

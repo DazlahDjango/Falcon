@@ -6,6 +6,7 @@ import {
 } from '../../../../store/kpi';
 import { fetchReferenceData } from '../../../../store/kpi';
 import KPILoading from '../../common/KPILoading';
+import UnitSelector from '../../common/UnitSelector';
 
 const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     const dispatch = useDispatch();
@@ -74,7 +75,7 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     
     const validate = () => {
         const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = 'KPI name is required';
+        if (!formData.name.trim()) newErrors.name = 'Performance Indicator name is required';
         if (!formData.owner_id) newErrors.owner_id = 'Owner is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -94,12 +95,12 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         <div className="kpi-create-step">
             <div className="step-header">
                 <h3>Basic Information</h3>
-                <p>Define the core identity and logic of your KPI</p>
+                <p>Define the core identity and logic of your Performance Indicator</p>
             </div>
             
             <div className="step-form">
                 <div className="form-group full-width">
-                    <label>KPI Name <span className="required">*</span></label>
+                    <label>Performance Indicator Name <span className="required">*</span></label>
                     <input
                         type="text"
                         value={formData.name}
@@ -116,13 +117,13 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         value={formData.description}
                         onChange={(e) => handleChange('description', e.target.value)}
                         rows={3}
-                        placeholder="Describe what this KPI measures, how it's calculated, and its business impact..."
+                        placeholder="Describe what this Performance Indicator measures, how it's calculated, and its business impact..."
                     />
                 </div>
                 
                 <div className="form-row">
                     <div className="form-group">
-                        <label>KPI Type <span className="required">*</span></label>
+                        <label>Performance Indicator Type <span className="required">*</span></label>
                         <select
                             value={formData.kpi_type}
                             onChange={(e) => handleChange('kpi_type', e.target.value)}
@@ -164,22 +165,21 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                 
                 <div className="form-row">
                     <div className="form-group">
-                        <label>Unit</label>
-                        <input
-                            type="text"
+                        <label>Unit of Measure</label>
+                        <UnitSelector
+                            kpiType={formData.kpi_type}
                             value={formData.unit}
-                            onChange={(e) => handleChange('unit', e.target.value)}
-                            placeholder="e.g., KES, %, people, days"
+                            onChange={(newUnit) => handleChange('unit', newUnit)}
                         />
                     </div>
                     
                     <div className="form-group">
-                        <label>Category</label>
+                        <label>Key Result Area</label>
                         <select
                             value={formData.category_id}
                             onChange={(e) => handleChange('category_id', e.target.value)}
                         >
-                            <option value="">Select Category</option>
+                            <option value="">Select Key Result Area</option>
                             {categories.map(c => (
                                 <option key={c.id} value={c.id}>{c.name}</option>
                             ))}

@@ -40,12 +40,12 @@ const KPIFilters = ({ filters, onFilterChange, onClearFilters }) => {
         <div className="kpi-filters">
             <div className="kpi-filters-row">
                 <div className="kpi-filter-group">
-                    <label>Category</label>
+                    <label>Key Result Area</label>
                     <select 
                         value={filters.category || ''}
                         onChange={(e) => onFilterChange('category', e.target.value)}
                     >
-                        <option value="">All Categories</option>
+                        <option value="">All Key Result Areas</option>
                         {categoryOptions.map(cat => (
                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
@@ -53,7 +53,7 @@ const KPIFilters = ({ filters, onFilterChange, onClearFilters }) => {
                 </div>
                 
                 <div className="kpi-filter-group">
-                    <label>KPI Type</label>
+                    <label>Performance Indicator Type</label>
                     <select 
                         value={filters.kpi_type || ''}
                         onChange={(e) => onFilterChange('kpi_type', e.target.value)}

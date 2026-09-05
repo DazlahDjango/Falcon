@@ -5,7 +5,7 @@ const ReportPreview = ({ filters, reportType }) => {
     const getPreviewDescription = () => {
         switch (reportType) {
             case 'kpi_performance':
-                return `KPI Performance Report for ${filters.month}/${filters.year}${filters.kpi_ids?.length ? ` with ${filters.kpi_ids.length} selected KPIs` : ''}`;
+                return `Performance Indicator Performance Report for ${filters.month}/${filters.year}${filters.kpi_ids?.length ? ` with ${filters.kpi_ids.length} selected Performance Indicators` : ''}`;
             case 'department_comparison':
                 return `Department Comparison Report for ${filters.month}/${filters.year}${filters.department_ids?.length ? ` comparing ${filters.department_ids.length} departments` : ''}`;
             case 'trend_analysis':

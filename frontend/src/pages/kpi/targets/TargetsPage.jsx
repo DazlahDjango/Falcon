@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { TargetList, TargetCreate, CascadeRules, CascadeMapping, CascadeTreeModal, TargetPhasingModal } from '../../../components/kpi';
@@ -16,10 +16,13 @@ const TargetsPage = () => {
     const [viewTreeTarget, setViewTreeTarget] = useState(null);
     const [phasingTarget, setPhasingTarget] = useState(null);
 
-    const { targets, loading, remove, refresh } = useTargets();
+    const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+    const scope = queryParams.get('scope');
+    const targetParams = useMemo(() => (scope ? { scope } : {}), [scope]);
+
+    const { targets, loading, remove, refresh } = useTargets(targetParams);
     const cascadeRules = useCascadeRules();
 
-    const queryParams = new URLSearchParams(location.search);
     const targetIdFromQuery = queryParams.get('targetId');
 
     useEffect(() => {

@@ -79,7 +79,23 @@ class UserKPIsViewSet(viewsets.ReadOnlyModelViewSet):
                     is_manager):
                 return KPI.objects.none()
         
-        return KPI.objects.filter(owner_id=user_id, is_active=True)
+        for_actuals = self.request.query_params.get('for_actuals') or self.request.query_params.get('for_actual_submission')
+        approval_status = self.request.query_params.get('approval_status')
+        is_active_param = self.request.query_params.get('is_active')
+        
+        if for_actuals in ['true', '1', True]:
+            qs = KPI.objects.filter(owner_id=user_id, is_active=True, approval_status='APPROVED')
+        else:
+            qs = KPI.objects.filter(owner_id=user_id)
+            if is_active_param in ['true', '1', True]:
+                qs = qs.filter(is_active=True)
+            elif is_active_param in ['false', '0', False]:
+                qs = qs.filter(is_active=False)
+                
+            if approval_status:
+                qs = qs.filter(approval_status=approval_status)
+            
+        return qs
 
 
 class UserTargetsViewSet(viewsets.ReadOnlyModelViewSet):
