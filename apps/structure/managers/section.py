@@ -19,4 +19,4 @@ class SectionManager(OrganizationalUnitManager):
     
     def get_employments(self, section_id):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(section_id=section_id, is_current=True, is_deleted=False, is_active=True)
+        return Employment.objects.filter(position__section_id=section_id, is_current=True, is_deleted=False, is_active=True)

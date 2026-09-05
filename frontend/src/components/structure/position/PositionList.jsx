@@ -257,6 +257,7 @@ export const PositionList = () => {
   }, [navigate]);
 
   const handleRefresh = useCallback(() => {
+    fetchStats();
     const params = {
       page,
       page_size: pageSize,
@@ -264,7 +265,7 @@ export const PositionList = () => {
       ...filters,
     };
     fetchAll(params);
-  }, [fetchAll, page, pageSize, searchTerm, filters]);
+  }, [fetchAll, fetchStats, page, pageSize, searchTerm, filters]);
 
   if (error) {
     return (

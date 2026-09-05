@@ -114,14 +114,26 @@ class PositionViewSet(BaseStructureViewSet):
     @action(detail=False, methods=['get'], url_path='stats')
     def get_stats(self, request):
         tenant_id = request.user.tenant_id
-        total = Position.objects.filter(tenant_id=tenant_id, is_deleted=False).count()
-        vacant = Position.objects.filter(tenant_id=tenant_id, is_deleted=False, current_incumbents_count=0).count()
-        occupied = total - vacant
-        single_incumbent = Position.objects.filter(tenant_id=tenant_id, is_deleted=False, is_single_incumbent=True).count()
-        level_distribution = {}
-        levels = Position.objects.filter(tenant_id=tenant_id, is_deleted=False).values('level').annotate(count=models.Count('id'))
-        for level in levels:
-            level_distribution[level['level']] = level['count']
+        from apps.structure.models.employment import Employment
+        
+        positions_qs = Position.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        total = positions_qs.count()
+        
+        occupied_pos_ids = set(
+            Employment.objects.filter(
+                position__tenant_id=tenant_id,
+                is_current=True,
+                is_deleted=False,
+                is_active=True
+            ).values_list('position_id', flat=True)
+        )
+        occupied = positions_qs.filter(id__in=occupied_pos_ids).count()
+        vacant = max(0, total - occupied)
+        single_incumbent = positions_qs.filter(is_single_incumbent=True).count()
+        
+        levels = positions_qs.values('level').annotate(count=models.Count('id'))
+        level_distribution = {l['level']: l['count'] for l in levels}
+        
         return Response({
             'total_positions': total,
             'vacant_positions': vacant,

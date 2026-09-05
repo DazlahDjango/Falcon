@@ -42,14 +42,14 @@ class UnitViewSet(BaseStructureViewSet):
     def get_employments(self, request, pk=None):
         unit = self.get_object()
         from apps.structure.models.employment import Employment
-        from apps.structure.api.v1.serializers.employment import EmploymentListSerializer
+        from apps.structure.api.v1.serializers.employment import EmploymentSerializer
         employments = Employment.objects.filter(
-            unit_id=unit.id,
+            position__unit_id=unit.id,
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('position')
-        serializer = EmploymentListSerializer(employments, many=True, context={'request': request})
+        ).select_related('position', 'position__section', 'position__department')
+        serializer = EmploymentSerializer(employments, many=True, context={'request': request})
         return Response({
             'unit_id': str(unit.id),
             'unit_code': unit.code,

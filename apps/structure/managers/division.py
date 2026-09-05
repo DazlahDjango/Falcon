@@ -19,4 +19,4 @@ class DivisionManager(OrganizationalUnitManager):
     
     def get_employments(self, division_id):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(division_id=division_id, is_current=True, is_deleted=False, is_active=True)
+        return Employment.objects.filter(position__division_id=division_id, is_current=True, is_deleted=False, is_active=True)

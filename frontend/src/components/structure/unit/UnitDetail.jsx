@@ -411,6 +411,79 @@ export const UnitDetail = () => {
           </div>
         </div>
 
+        {/* Direct Staff Members */}
+        <div className="detail-section" style={{ marginTop: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '18px' }}>Unit Team Members ({currentItem.staff?.length || 0})</h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary, #64748b)' }}>
+                Active specialists and staff members assigned to this operational unit.
+              </p>
+            </div>
+          </div>
+
+          {currentItem.staff && currentItem.staff.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
+              {currentItem.staff.map((member) => (
+                <div 
+                  key={member.employment_id || member.user_id}
+                  style={{
+                    padding: '14px 16px',
+                    border: '1px solid var(--border-color, #e2e8f0)',
+                    borderRadius: '10px',
+                    backgroundColor: 'var(--bg-surface, #ffffff)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                  }}
+                >
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: member.is_executive ? '#7c3aed' : member.is_manager ? '#2563eb' : '#059669',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '15px'
+                  }}>
+                    {member.name ? member.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div style={{ overflow: 'hidden', flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary, #0f172a)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {member.name}
+                      </span>
+                      {member.is_executive && <span style={{ fontSize: '10px', background: '#ede9fe', color: '#7c3aed', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Exec</span>}
+                      {member.is_manager && !member.is_executive && <span style={{ fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Lead</span>}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary, #475569)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {member.position_title || 'Staff'} {member.job_code ? `(${member.job_code})` : ''}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {member.email}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{
+              padding: '24px',
+              textAlign: 'center',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              borderRadius: '8px',
+              border: '1px dashed var(--border-color, #cbd5e1)'
+            }}>
+              <p style={{ color: 'var(--text-secondary, #64748b)', margin: 0, fontSize: '13px' }}>No direct staff assigned at this unit level.</p>
+            </div>
+          )}
+        </div>
+
+
         {currentItem.parent && (
           <div className="detail-section">
             <h3>Parent Hierarchy</h3>

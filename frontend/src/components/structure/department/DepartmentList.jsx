@@ -55,26 +55,9 @@ export const DepartmentList = () => {
   }, [update, fetchAll, page, pageSize, searchTerm, filters]);
 
   const COLUMNS = useMemo(() => [
-    { key: 'code', header: 'Code', width: '120px' },
-    { key: 'name', header: 'Name', width: '200px' },
-    {
-      key: 'parent_name',
-      header: 'Parent',
-      width: '160px',
-      render: (item) => item.parent_name || '-',
-    },
-    {
-      key: 'depth',
-      header: 'Depth',
-      width: '70px',
-      render: (item) => item.depth || 0,
-    },
-    {
-      key: 'headcount_limit',
-      header: 'Headcount',
-      width: '100px',
-      render: (item) => item.headcount_limit || '-',
-    },
+    { key: 'code', header: 'Code', width: '130px' },
+    { key: 'name', header: 'Department Name', width: '240px' },
+    { key: 'description', header: 'Description', render: (item) => item.description || '-' },
     {
       key: 'sensitivity_level',
       header: 'Sensitivity',
@@ -88,7 +71,7 @@ export const DepartmentList = () => {
     {
       key: 'is_active',
       header: 'Status',
-      width: '100px',
+      width: '110px',
       render: (item) => (
         <div
           onClick={(e) => handleToggleActive(item, e)}

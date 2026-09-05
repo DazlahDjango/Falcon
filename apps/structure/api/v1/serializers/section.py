@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 from apps.structure.models.section import Section
 from apps.structure.enums.org_level import OrgLevel
-from .base import BaseStructureSerializer, BaseStructureDetailSerializer, get_node_leader_info
+from .base import BaseStructureSerializer, BaseStructureDetailSerializer, get_node_leader_info, get_node_staff_members
 
 class SectionSerializer(BaseStructureSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
@@ -32,6 +32,7 @@ class SectionDetailSerializer(BaseStructureDetailSerializer):
     unit_count = serializers.SerializerMethodField()
     units = serializers.SerializerMethodField()
     leader = serializers.SerializerMethodField()
+    staff = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     full_path = serializers.SerializerMethodField()
     
@@ -42,7 +43,7 @@ class SectionDetailSerializer(BaseStructureDetailSerializer):
             'level', 'level_display', 'department_id', 'parent_name',
             'parent_code', 'division_id', 'division_name', 'depth', 'path', 'cost_center_id', 'manager_id',
             'budget_code', 'headcount_limit', 'is_active', 'is_deleted',
-            'child_count', 'unit_count', 'units', 'leader', 'employee_count', 'full_path',
+            'child_count', 'unit_count', 'units', 'leader', 'staff', 'employee_count', 'full_path',
             'created_at', 'updated_at', 'created_by', 'updated_by',
             'deleted_at', 'deleted_by'
         ]
@@ -62,6 +63,9 @@ class SectionDetailSerializer(BaseStructureDetailSerializer):
     
     def get_leader(self, obj):
         return get_node_leader_info(obj)
+
+    def get_staff(self, obj):
+        return get_node_staff_members(obj)
 
     def get_units(self, obj):
         from apps.structure.models.employment import Employment

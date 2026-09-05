@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.structure.models.unit import Unit
-from .base import BaseStructureSerializer, BaseStructureDetailSerializer, get_node_leader_info
+from .base import BaseStructureSerializer, BaseStructureDetailSerializer, get_node_leader_info, get_node_staff_members
 
 class UnitSerializer(BaseStructureSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
@@ -33,6 +33,7 @@ class UnitDetailSerializer(BaseStructureDetailSerializer):
     division_id = serializers.SerializerMethodField()
     division_name = serializers.SerializerMethodField()
     leader = serializers.SerializerMethodField()
+    staff = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     full_path = serializers.SerializerMethodField()
     
@@ -44,7 +45,7 @@ class UnitDetailSerializer(BaseStructureDetailSerializer):
             'parent_code', 'department_id', 'department_name', 'division_id', 'division_name',
             'depth', 'path', 'cost_center_id', 'manager_id',
             'budget_code', 'headcount_limit', 'is_active', 'is_deleted',
-            'leader', 'employee_count', 'full_path',
+            'leader', 'staff', 'employee_count', 'full_path',
             'created_at', 'updated_at', 'created_by', 'updated_by',
             'deleted_at', 'deleted_by'
         ]
@@ -64,6 +65,9 @@ class UnitDetailSerializer(BaseStructureDetailSerializer):
 
     def get_leader(self, obj):
         return get_node_leader_info(obj)
+
+    def get_staff(self, obj):
+        return get_node_staff_members(obj)
 
     def get_employee_count(self, obj):
         from apps.structure.models.employment import Employment

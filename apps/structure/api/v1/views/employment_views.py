@@ -55,16 +55,16 @@ class EmploymentViewSet(BaseStructureViewSet):
         ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit')
         division_id = request.query_params.get('division_id')
         if division_id:
-            employments = employments.filter(division_id=division_id)
+            employments = employments.filter(position__division_id=division_id)
         department_id = request.query_params.get('department_id')
         if department_id:
-            employments = employments.filter(department_id=department_id)
+            employments = employments.filter(position__department_id=department_id)
         section_id = request.query_params.get('section_id')
         if section_id:
-            employments = employments.filter(section_id=section_id)
+            employments = employments.filter(position__section_id=section_id)
         unit_id = request.query_params.get('unit_id')
         if unit_id:
-            employments = employments.filter(unit_id=unit_id)
+            employments = employments.filter(position__unit_id=unit_id)
         is_manager = request.query_params.get('is_manager')
         if is_manager is not None:
             employments = employments.filter(is_manager=is_manager.lower() == 'true')

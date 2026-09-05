@@ -91,14 +91,14 @@ class DepartmentViewSet(BaseStructureViewSet):
     def get_employments(self, request, pk=None):
         department = self.get_object()
         from apps.structure.models.employment import Employment
-        from apps.structure.api.v1.serializers.employment import EmploymentListSerializer
+        from apps.structure.api.v1.serializers.employment import EmploymentSerializer
         employments = Employment.objects.filter(
-            department_id=department.id,
+            position__department_id=department.id,
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('position', 'unit', 'section')
-        serializer = EmploymentListSerializer(employments, many=True, context={'request': request})
+        ).select_related('position', 'position__unit', 'position__section')
+        serializer = EmploymentSerializer(employments, many=True, context={'request': request})
         return Response({
             'department_id': str(department.id),
             'department_code': department.code,

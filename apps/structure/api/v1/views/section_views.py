@@ -55,14 +55,14 @@ class SectionViewSet(BaseStructureViewSet):
     def get_employments(self, request, pk=None):
         section = self.get_object()
         from apps.structure.models.employment import Employment
-        from apps.structure.api.v1.serializers.employment import EmploymentListSerializer
+        from apps.structure.api.v1.serializers.employment import EmploymentSerializer
         employments = Employment.objects.filter(
-            section_id=section.id,
+            position__section_id=section.id,
             is_current=True,
             is_deleted=False,
             is_active=True
-        ).select_related('position', 'unit')
-        serializer = EmploymentListSerializer(employments, many=True, context={'request': request})
+        ).select_related('position', 'position__unit', 'position__department')
+        serializer = EmploymentSerializer(employments, many=True, context={'request': request})
         return Response({
             'section_id': str(section.id),
             'section_code': section.code,

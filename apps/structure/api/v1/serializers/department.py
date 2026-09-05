@@ -35,7 +35,7 @@ class DepartmentTreeSerializer(serializers.Serializer):
     children = serializers.ListField(child=serializers.DictField(), required=False, default=list)
     stats = serializers.DictField(required=False, default=dict)
 
-from .base import BaseStructureSerializer, BaseStructureDetailSerializer, get_node_leader_info
+from .base import BaseStructureSerializer, BaseStructureDetailSerializer, get_node_leader_info, get_node_staff_members
 
 class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     level_display = serializers.CharField(source='get_level_display', read_only=True)
@@ -45,6 +45,7 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     section_count = serializers.SerializerMethodField()
     sections = serializers.SerializerMethodField()
     leader = serializers.SerializerMethodField()
+    staff = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     full_path = serializers.SerializerMethodField()
     cost_center_id = serializers.SerializerMethodField()
@@ -57,7 +58,7 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
             'parent_name', 'depth', 'path', 'cost_center_id', 'manager_id',
             'budget_code', 'headcount_limit', 'sensitivity_level',
             'is_active', 'is_deleted', 'child_count', 'section_count',
-            'sections', 'leader', 'employee_count', 'full_path',
+            'sections', 'leader', 'staff', 'employee_count', 'full_path',
             'created_at', 'updated_at', 'created_by', 'updated_by',
             'deleted_at', 'deleted_by'
         ]
@@ -71,6 +72,9 @@ class DepartmentDetailSerializer(BaseStructureDetailSerializer):
     
     def get_leader(self, obj):
         return get_node_leader_info(obj)
+
+    def get_staff(self, obj):
+        return get_node_staff_members(obj)
 
     def get_sections(self, obj):
         from apps.structure.models.employment import Employment

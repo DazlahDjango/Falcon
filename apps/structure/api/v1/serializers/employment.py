@@ -209,3 +209,5 @@ class EmploymentBulkSerializer(serializers.Serializer):
         if len(value) > 100:
             raise serializers.ValidationError(_("Maximum 100 employments per bulk operation."))
         return value
+
+EmploymentListSerializer = EmploymentSerializer

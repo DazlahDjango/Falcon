@@ -64,32 +64,20 @@ export const DivisionList = () => {
   }, [update, fetchAll, page, pageSize, searchTerm, filters]);
 
   const COLUMNS = useMemo(() => [
-    { key: 'code', header: 'Code', width: '120px' },
-    { key: 'name', header: 'Name', width: '200px' },
-    { key: 'description', header: 'Description' },
-    {
-      key: 'level',
-      header: 'Level',
-      width: '100px',
-      render: (item) => item.level || 'Division',
-    },
-    {
-      key: 'depth',
-      header: 'Depth',
-      width: '80px',
-      render: (item) => item.depth || 0,
-    },
+    { key: 'code', header: 'Code', width: '130px' },
+    { key: 'name', header: 'Division Name', width: '250px' },
+    { key: 'description', header: 'Description', render: (item) => item.description || '-' },
     {
       key: 'is_active',
       header: 'Status',
-      width: '120px',
+      width: '110px',
       render: (item) => (
         <div
           onClick={(e) => handleToggleActive(item, e)}
           style={{ cursor: 'pointer', display: 'inline-block' }}
           title={item.is_active ? "Click to deactivate" : "Click to activate"}
         >
-          <StructureStatusBadge status={item.is_active ? 'active' : 'inactive'} />
+          <StructureStatusBadge status={item.is_active ? 'active' : 'inactive'} size="sm" />
         </div>
       ),
     },

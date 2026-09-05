@@ -26,7 +26,7 @@ class DepartmentManager(OrganizationalUnitManager):
     
     def get_employments(self, department_id):
         from apps.structure.models.employment import Employment
-        return Employment.objects.filter(department_id=department_id, is_current=True, is_deleted=False, is_active=True)
+        return Employment.objects.filter(position__department_id=department_id, is_current=True, is_deleted=False, is_active=True)
     
     def get_descendants(self, department_id, include_self=False):
         department = self.get(id=department_id)
