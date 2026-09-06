@@ -48,14 +48,14 @@ const ValidationModal = ({ isOpen, type, validation, onConfirm, onClose }) => {
                     
                     <div className="kpi-escalation-form-group">
                         <label className="kpi-escalation-form-label">
-                            Comment (optional)
+                            Remarks (optional)
                         </label>
                         <textarea
                             className="kpi-rejection-comment"
                             rows="3"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            placeholder="Add any additional comments..."
+                            placeholder="Add any additional remarks..."
                         />
                     </div>
                 </div>

@@ -43,7 +43,7 @@ const KPIEditBasic = ({ kpi, onSave, onCancel }) => {
     
     const validate = () => {
         const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = 'Performance Indicator name is required';
+        if (!formData.name.trim()) newErrors.name = 'Performance Indicator is required';
         if (!formData.code.trim()) newErrors.code = 'Performance Indicator code is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -82,7 +82,7 @@ const KPIEditBasic = ({ kpi, onSave, onCancel }) => {
             )}
             <div className="form-row">
                 <div className="form-group">
-                    <label>Performance Indicator Name <span className="required">*</span></label>
+                    <label>Performance Indicator <span className="required">*</span></label>
                     <input 
                         type="text"
                         value={formData.name}

@@ -33,3 +33,6 @@ export { default as ChampionDashboard } from './champion/ChampionDashboard';
 export { default as DepartmentCompliance } from './champion/DepartmentCompliance';
 export { default as SubmissionRateCard } from './champion/SubmissionRateCard';
 export { default as PendingEscalationsCard } from './champion/PendingEscalationsCard';
+
+// Shared Organization KPIs Table
+export { default as OrganizationKPITable } from './OrganizationKPITable';

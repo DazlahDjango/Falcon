@@ -100,7 +100,7 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
 
     const validate = () => {
         const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = 'Performance Indicator name is required';
+        if (!formData.name.trim()) newErrors.name = 'Performance Indicator is required';
         if (!formData.owner_id) newErrors.owner_id = 'Owner is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -247,14 +247,39 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                     ) : (
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-                            {/* Section 1: Core Identity */}
+                            {/* Section 1: Core Identity & KRA */}
                             <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1.25rem' }}>
                                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ width: '6px', height: '14px', backgroundColor: '#2563eb', borderRadius: '3px' }}></span>
-                                    Basic Information
+                                    Identity & Category (KRA)
                                 </h4>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                                    {/* 1. Key Result Area (KRA) */}
+                                    <div className="form-group">
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                                            Key Result Area (KRA) <span style={{ color: '#ef4444' }}>*</span>
+                                        </label>
+                                        <select
+                                            value={formData.category_id}
+                                            onChange={(e) => handleChange('category_id', e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.65rem 0.85rem',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '0.9rem',
+                                                backgroundColor: '#ffffff'
+                                            }}
+                                        >
+                                            <option value="">Select Key Result Area (KRA)...</option>
+                                            {categories.map(c => (
+                                                <option key={c.id} value={c.id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* 2. Performance Indicator */}
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                                             Performance Indicator <span style={{ color: '#ef4444' }}>*</span>
@@ -275,6 +300,7 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                         {errors.name && <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '0.25rem', display: 'block' }}>{errors.name}</span>}
                                     </div>
 
+                                    {/* 3. Description */}
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                                             Description
@@ -297,7 +323,7 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                 </div>
                             </div>
 
-                            {/* Section 2: Metric Type & Logic */}
+                            {/* Section 2: Metric Type & Calculation Logic */}
                             <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1.25rem' }}>
                                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ width: '6px', height: '14px', backgroundColor: '#0284c7', borderRadius: '3px' }}></span>
@@ -305,9 +331,10 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                 </h4>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                                    {/* 4. Performance Type */}
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                                            Performance Indicator Type <span style={{ color: '#ef4444' }}>*</span>
+                                            Performance Type <span style={{ color: '#ef4444' }}>*</span>
                                         </label>
                                         <select
                                             value={formData.kpi_type}
@@ -327,28 +354,7 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                         </select>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                                            Calculation Logic <span style={{ color: '#ef4444' }}>*</span>
-                                        </label>
-                                        <select
-                                            value={formData.calculation_logic}
-                                            onChange={(e) => handleChange('calculation_logic', e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.65rem 0.85rem',
-                                                borderRadius: '8px',
-                                                border: '1px solid #cbd5e1',
-                                                fontSize: '0.9rem',
-                                                backgroundColor: '#ffffff'
-                                            }}
-                                        >
-                                            {calculationLogics.map(logic => (
-                                                <option key={logic.value} value={logic.value}>{logic.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
+                                    {/* 5. Measure Type */}
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                                             Measure Type
@@ -370,22 +376,44 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                             ))}
                                         </select>
                                     </div>
+
+                                    {/* 6. Calculation Logic */}
+                                    <div className="form-group">
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                                            Calculation Logic <span style={{ color: '#ef4444' }}>*</span>
+                                        </label>
+                                        <select
+                                            value={formData.calculation_logic}
+                                            onChange={(e) => handleChange('calculation_logic', e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.65rem 0.85rem',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '0.9rem',
+                                                backgroundColor: '#ffffff'
+                                            }}
+                                        >
+                                            {calculationLogics.map(logic => (
+                                                <option key={logic.value} value={logic.value}>{logic.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Section 3: Unit & Target Configuration */}
+                            {/* Section 3: 7. Target & Unit Selection Tab */}
                             <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1.25rem' }}>
                                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ width: '6px', height: '14px', backgroundColor: '#059669', borderRadius: '3px' }}></span>
-                                    Unit & Target Configuration
+                                    Target & Unit Selection
                                 </h4>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-
-                                    {/* Unit of Measure Selector */}
+                                    {/* Unit Selection */}
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                                            Unit of Measure
+                                            Unit of Measure Tab
                                         </label>
                                         <UnitSelector
                                             kpiType={formData.kpi_type}
@@ -393,14 +421,14 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                             onChange={(newUnit) => handleChange('unit', newUnit)}
                                         />
                                         <small style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', display: 'block' }}>
-                                            Select from presets or choose "Others..." to type a custom unit
+                                            Select unit preset or choose custom unit
                                         </small>
                                     </div>
 
                                     {/* Target Value with Horizontal Unit Badge */}
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                                            Target Value
+                                            Real-Data Target Goal
                                         </label>
                                         <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                             <input
@@ -436,41 +464,38 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                             </div>
                                         </div>
                                         <small style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', display: 'block' }}>
-                                            Single target goal for this metric
+                                            Single real-data target value for this metric
                                         </small>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Section 4: Key Result Area & Ownership */}
+                            {/* Section 4: 8. Ownership & Baseline Configuration */}
                             <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1.25rem' }}>
                                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ width: '6px', height: '14px', backgroundColor: '#7c3aed', borderRadius: '3px' }}></span>
-                                    Key Result Area & Ownership
+                                    Ownership & Additional Settings
                                 </h4>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                                            Key Result Area
+                                            Baseline (Previous Benchmark)
                                         </label>
-                                        <select
-                                            value={formData.category_id}
-                                            onChange={(e) => handleChange('category_id', e.target.value)}
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            value={formData.baseline || ''}
+                                            onChange={(e) => handleChange('baseline', e.target.value)}
+                                            placeholder="e.g., 50.00"
                                             style={{
                                                 width: '100%',
                                                 padding: '0.65rem 0.85rem',
                                                 borderRadius: '8px',
                                                 border: '1px solid #cbd5e1',
-                                                fontSize: '0.9rem',
-                                                backgroundColor: '#ffffff'
+                                                fontSize: '0.9rem'
                                             }}
-                                        >
-                                            <option value="">Select Key Result Area...</option>
-                                            {categories.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
+                                        />
                                     </div>
 
                                     <div className="form-group">
@@ -521,25 +546,6 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                             ))}
                                         </select>
                                     </div>
-                                </div>
-
-                                <div className="form-group" style={{ marginTop: '1rem' }}>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                                        Strategic Objective (Optional)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.strategic_objective}
-                                        onChange={(e) => handleChange('strategic_objective', e.target.value)}
-                                        placeholder="e.g. Expand market coverage and operational performance"
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.65rem 0.85rem',
-                                            borderRadius: '8px',
-                                            border: '1px solid #cbd5e1',
-                                            fontSize: '0.9rem'
-                                        }}
-                                    />
                                 </div>
                             </div>
 

@@ -6,10 +6,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchEscalations,
     fetchMyEscalations,
+    fetchEscalationTargets,
     createEscalation,
     resolveEscalation,
     selectEscalations,
     selectMyEscalations,
+    selectEscalationTargets,
     selectValidationLoading
 } from '../../store/kpi';
 
@@ -18,6 +20,7 @@ const useEscalations = () => {
     
     const escalations = useSelector(selectEscalations);
     const myEscalations = useSelector(selectMyEscalations);
+    const escalationTargets = useSelector(selectEscalationTargets);
     const loading = useSelector(selectValidationLoading);
     
     const loadEscalations = useCallback(() => {
@@ -26,6 +29,10 @@ const useEscalations = () => {
     
     const loadMyEscalations = useCallback(() => {
         dispatch(fetchMyEscalations());
+    }, [dispatch]);
+
+    const loadEscalationTargets = useCallback(() => {
+        dispatch(fetchEscalationTargets());
     }, [dispatch]);
     
     const escalate = useCallback(async (actualId, escalatedToId, reason) => {
@@ -39,17 +46,21 @@ const useEscalations = () => {
     useEffect(() => {
         loadEscalations();
         loadMyEscalations();
-    }, [loadEscalations, loadMyEscalations]);
+        loadEscalationTargets();
+    }, [loadEscalations, loadMyEscalations, loadEscalationTargets]);
     
     return {
         escalations: escalations || [],
         myEscalations: myEscalations || [],
+        escalationTargets: escalationTargets || [],
         loading,
         escalate,
         resolve,
+        loadEscalationTargets,
         refresh: () => {
             loadEscalations();
             loadMyEscalations();
+            loadEscalationTargets();
         },
     };
 };

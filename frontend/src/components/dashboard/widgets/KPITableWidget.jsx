@@ -142,7 +142,7 @@ export const KPITableWidget = ({
                 onClick={() => handleSort('name')}
                 style={{ padding: '12px', textAlign: 'left', cursor: 'pointer' }}
               >
-                KPI Name {getSortIcon('name')}
+                Performance Indicator {getSortIcon('name')}
               </th>
               <th 
                 onClick={() => handleSort('category')}

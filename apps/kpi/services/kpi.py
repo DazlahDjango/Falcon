@@ -84,7 +84,6 @@ class KPICreator:
                 formula=data.get('formula', {}),
                 owner_id=owner_id,
                 department_id=dept_id,
-                strategic_objective=data.get('strategic_objective', ''),
                 metadata=data.get('metadata', {}),
                 is_active=is_active,
                 activation_date=timezone.now().date() if is_active else None,
@@ -153,6 +152,10 @@ class KPIApprovalService:
         kpi = KPI.objects.filter(id=kpi_id, tenant_id=supervisor_user.tenant_id).first()
         if not kpi:
             raise ValidationError("Sub-KPI not found or access denied")
+        if str(getattr(kpi, 'owner_id', '')) == str(supervisor_user.id) or str(getattr(kpi, 'created_by_id', '')) == str(supervisor_user.id):
+            role = str(getattr(supervisor_user, 'role', '')).lower()
+            if role not in ['super_admin', 'superadmin', 'client_admin'] and not getattr(supervisor_user, 'is_superuser', False):
+                raise ValidationError("You cannot approve your own Performance Indicator")
         if kpi.approval_status == 'APPROVED':
             return kpi
 
@@ -305,16 +308,20 @@ class KPIActivator:
 
         return kpi
 
-    def deactivate(self, kpi_id: str, user, reason: str = "") -> KPI:
+    def deactivate(self, kpi_id: str, user, reason: str = "", target_status: str = "INACTIVE") -> KPI:
         kpi = KPI.objects.filter(id=kpi_id, tenant_id=user.tenant_id).first()
         if not kpi:
             raise ValidationError("KPI not found or access denied")
 
-        if not kpi.is_active:
-            return kpi
-
         with transaction.atomic():
-            kpi.deactivate(user)
+            kpi.is_active = False
+            kpi.deactivation_date = timezone.now().date()
+            if target_status and target_status in ['INACTIVE', 'PENDING_APPROVAL', 'REJECTED', 'PENDING']:
+                kpi.approval_status = 'PENDING_APPROVAL' if target_status == 'PENDING' else target_status
+            else:
+                kpi.approval_status = 'INACTIVE'
+            kpi.updated_by = user
+            kpi.save()
 
             KPIHistory.objects.create(
                 tenant_id=kpi.tenant_id,
@@ -322,7 +329,7 @@ class KPIActivator:
                 action='DEACTIVATE',
                 snapshot=self._serialize_kpi(kpi),
                 performed_by=user,
-                reason=reason or "KPI deactivated"
+                reason=reason or f"KPI deactivated (Status set to {kpi.approval_status})"
             )
 
             self._invalidate_caches(kpi.id)
@@ -414,7 +421,7 @@ class KPIImportExport:
         writer.writerow([
             'Code', 'Name', 'Description', 'Type', 'Calculation Logic',
             'Measure Type', 'Unit', 'Decimal Places', 'Target Min', 'Target Max',
-            'Category', 'Owner Email', 'Department', 'Strategic Objective'
+            'Category', 'Owner Email', 'Department'
         ])
 
         for kpi in kpis:
@@ -422,7 +429,7 @@ class KPIImportExport:
                 kpi.code, kpi.name, kpi.description, kpi.kpi_type, kpi.calculation_logic,
                 kpi.measure_type, kpi.unit, kpi.decimal_places, kpi.target_min, kpi.target_max,
                 kpi.category.name if kpi.category else '',
-                kpi.owner.email, kpi.department_id, kpi.strategic_objective
+                kpi.owner.email, kpi.department_id
             ])
 
         return output.getvalue()
@@ -459,7 +466,6 @@ class KPIImportExport:
                         target_min=Decimal(row['Target Min']) if row.get('Target Min') else None,
                         target_max=Decimal(row['Target Max']) if row.get('Target Max') else None,
                         owner_id=user.id,
-                        strategic_objective=row.get('Strategic Objective', ''),
                         created_by=user,
                         updated_by=user
                     )

@@ -5,7 +5,6 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
         target_min: data.target_min || '',
         target_max: data.target_max || '',
         decimal_places: data.decimal_places || 2,
-        strategic_objective: data.strategic_objective || '',
         is_active: data.is_active !== undefined ? data.is_active : true
     });
     
@@ -31,8 +30,8 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
     return (
         <div className="kpi-create-step">
             <div className="step-header">
-                <h3>Configuration & Objective</h3>
-                <p>Set display preferences and strategic objectives for this Performance Indicator</p>
+                <h3>Configuration</h3>
+                <p>Set display preferences for this Performance Indicator</p>
             </div>
             
             <div className="step-form">
@@ -51,17 +50,6 @@ const KPICreateStep2 = ({ data, onNext, onBack, onCancel }) => {
                             <option value={4}>4</option>
                         </select>
                         <small>Number of decimal places for display</small>
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>Strategic Objective</label>
-                        <input
-                            type="text"
-                            value={formData.strategic_objective}
-                            onChange={(e) => handleChange('strategic_objective', e.target.value)}
-                            placeholder="e.g., Increase market share by 15%"
-                        />
-                        <small>Link this Performance Indicator to a strategic goal</small>
                     </div>
                 </div>
                 

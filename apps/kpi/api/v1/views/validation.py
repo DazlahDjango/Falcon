@@ -199,3 +199,9 @@ class EscalationViewSet(BaseKpiViewset):
         )
         serializer = self.get_serializer(escalations, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def targets(self, request):
+        escalator = ValidationEscalator()
+        targets = escalator.get_escalation_targets(request.user)
+        return Response(targets)

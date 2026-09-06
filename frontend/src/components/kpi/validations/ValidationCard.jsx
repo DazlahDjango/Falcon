@@ -3,7 +3,17 @@ import { FiClock, FiUser, FiTarget, FiCheckCircle, FiXCircle } from 'react-icons
 import { HiOutlineCalendar } from 'react-icons/hi';
 import KPIStatusBadge from '../common/KPIStatusBadge';
 
+import useKPIPermissions from '../../../hooks/kpi/useKPIPermissions';
+
 const ValidationCard = ({ validation, onApprove, onReject, onEscalate, canValidate }) => {
+    const { user } = useKPIPermissions();
+    const isOwnSubmission = Boolean(validation && user && (
+        String(validation.user_id) === String(user.id) ||
+        String(validation.user?.id) === String(user.id) ||
+        (validation.user?.email && user.email && validation.user.email.toLowerCase() === user.email.toLowerCase()) ||
+        (validation.user_email && user.email && validation.user_email.toLowerCase() === user.email.toLowerCase())
+    ));
+
     const getStatusClass = () => {
         switch (validation.status?.toLowerCase()) {
             case 'pending': return 'kpi-validation-card-pending';
@@ -48,7 +58,7 @@ const ValidationCard = ({ validation, onApprove, onReject, onEscalate, canValida
                 </div>
             )}
             
-            {validation.status === 'PENDING' && canValidate && (
+            {validation.status === 'PENDING' && canValidate && !isOwnSubmission && (
                 <div className="kpi-validation-actions">
                     <button 
                         className="kpi-validation-approve-btn"

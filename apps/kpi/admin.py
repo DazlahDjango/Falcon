@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.db.models import Count, Q
 from .models import (
     KPICategory,
-    KPI, KPIHistory, KPIWeight, StrategicLinkage, KPIDependency,
+    KPI, KPIHistory, KPIWeight, KPIDependency,
     AnnualTarget, MonthlyPhasing, PhasingLock, TargetHistory,
     MonthlyActual, ActualHistory, ActualAdjustment, Evidence,
     ValidationRecord, ValidationComment, RejectionReason, Escalation,
@@ -68,7 +68,7 @@ class KPICategoryAdmin(TenantAwareAdmin):
 class KPIAdmin(TenantAwareAdmin):
     list_display = ['name', 'kpi_type', 'owner', 'is_active', 'display_status']
     list_filter = ['kpi_type', 'calculation_logic', 'measure_type', 'is_active']
-    search_fields = ['name', 'description', 'strategic_objective']
+    search_fields = ['name', 'description']
     readonly_fields = ['id', 'created_at', 'updated_at']
     raw_id_fields = ['owner', 'category', 'department']
     def display_status(self, obj):
@@ -82,7 +82,6 @@ class KPIAdmin(TenantAwareAdmin):
         ('Target Settings', {'fields': ('unit', 'decimal_places', 'target_min', 'target_max')}),
         ('Formula', {'fields': ('formula',)}),
         ('Ownership', {'fields': ('owner', 'department')}),
-        ('Strategic Alignment', {'fields': ('strategic_objective',)}),
         ('Lifecycle', {'fields': ('is_active', 'activation_date', 'deactivation_date')}),
         ('Metadata', {'fields': ('metadata',)}),
         ('System', {'fields': ('id', 'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by')}),

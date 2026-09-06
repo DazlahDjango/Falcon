@@ -1,6 +1,6 @@
 from .base import BaseKPIModel, TimeStampedModel, SoftDeleteModel
 from .framework import KPICategory
-from .definition import KPI, KPIHistory, KPIWeight, StrategicLinkage, KPIDependency
+from .definition import KPI, KPIHistory, KPIWeight, KPIDependency
 from .target import AnnualTarget, MonthlyPhasing, PhasingLock, TargetHistory
 from .actual import MonthlyActual, ActualHistory, ActualAdjustment, Evidence
 from .validation import ValidationRecord, ValidationComment, RejectionReason, Escalation
@@ -15,7 +15,7 @@ from .notification import NotificationPreference
 __all__ = [
     'BaseKPIModel', 'TimeStampedModel', 'SoftDeleteModel',
     'KPICategory',
-    'KPI', 'KPIHistory', 'KPIWeight', 'StrategicLinkage', 'KPIDependency',
+    'KPI', 'KPIHistory', 'KPIWeight', 'KPIDependency',
     'AnnualTarget', 'MonthlyPhasing', 'PhasingLock', 'TargetHistory',
     'MonthlyActual', 'ActualHistory', 'ActualAdjustment', 'Evidence',
     'ValidationRecord', 'ValidationComment', 'RejectionReason', 'Escalation',

@@ -27,7 +27,6 @@ export const KPI_ROUTES = {
     // KPI Weights & Dependencies
     KPI_WEIGHTS: (kpiId = ':kpiId') => `/kpi/detail/${kpiId}/weights`,
     KPI_DEPENDENCIES: (kpiId = ':kpiId') => `/kpi/detail/${kpiId}/dependencies`,
-    KPI_STRATEGIC_LINKAGES: (kpiId = ':kpiId') => `/kpi/detail/${kpiId}/strategic-linkages`,
 
     // Target Management
     TARGETS: '/kpi/targets',

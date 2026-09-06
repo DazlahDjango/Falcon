@@ -103,9 +103,9 @@ export const activateKPI = createAsyncThunk(
 
 export const deactivateKPI = createAsyncThunk(
   'kpi/deactivateKPI',
-  async ({ id, reason }, { rejectWithValue }) => {
+  async ({ id, reason, target_status }, { rejectWithValue }) => {
     try {
-      const response = await kpiService.deactivateKPI(id, reason);
+      const response = await kpiService.deactivateKPI(id, reason, target_status);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -235,43 +235,6 @@ export const deleteDependency = createAsyncThunk(
   }
 );
 
-// Strategic Linkages
-export const fetchStrategicLinkages = createAsyncThunk(
-  'kpi/fetchStrategicLinkages',
-  async ({ kpiId, params = {} }, { rejectWithValue }) => {
-    try {
-      const response = await kpiService.getStrategicLinkages(kpiId, params);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-export const createStrategicLinkage = createAsyncThunk(
-  'kpi/createStrategicLinkage',
-  async ({ kpiId, data }, { rejectWithValue }) => {
-    try {
-      const response = await kpiService.createStrategicLinkage(kpiId, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-export const deleteStrategicLinkage = createAsyncThunk(
-  'kpi/deleteStrategicLinkage',
-  async (id, { rejectWithValue }) => {
-    try {
-      await kpiService.deleteStrategicLinkage(id);
-      return id;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
 // User Nested (My KPIs)
 export const fetchUserKPIs = createAsyncThunk(
   'kpi/fetchUserKPIs',
@@ -335,9 +298,6 @@ const initialState = {
   
   // Dependencies
   dependencies: [],
-  
-  // Strategic Linkages
-  strategicLinkages: [],
   
   // User nested data
   userKPIs: {},
@@ -544,17 +504,6 @@ const kpiSlice = createSlice({
       })
       .addCase(deleteDependency.fulfilled, (state, action) => {
         state.dependencies = state.dependencies.filter(d => d.id !== action.payload);
-      })
-      
-      // ============ Strategic Linkages ============
-      .addCase(fetchStrategicLinkages.fulfilled, (state, action) => {
-        state.strategicLinkages = action.payload.results || action.payload;
-      })
-      .addCase(createStrategicLinkage.fulfilled, (state, action) => {
-        state.strategicLinkages.push(action.payload);
-      })
-      .addCase(deleteStrategicLinkage.fulfilled, (state, action) => {
-        state.strategicLinkages = state.strategicLinkages.filter(l => l.id !== action.payload);
       })
       
       // ============ User Nested Data ============

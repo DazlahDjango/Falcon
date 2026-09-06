@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiClock, FiCheckCircle, FiXCircle, FiEdit } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiXCircle, FiEdit, FiAlertCircle } from 'react-icons/fi';
 
 const ActualStatusBadge = ({ status }) => {
     const getStatusConfig = () => {
@@ -31,6 +31,13 @@ const ActualStatusBadge = ({ status }) => {
                     text: 'Adjusted', 
                     className: 'adjusted',
                     color: 'var(--kpi-info)'
+                };
+            case 'ESCALATED':
+                return { 
+                    icon: <FiAlertCircle size={12} />, 
+                    text: 'Escalated', 
+                    className: 'escalated',
+                    color: '#8b5cf6'
                 };
             default:
                 return { 

@@ -7,7 +7,6 @@ import KPITargets from './KPITargets';
 import KPIScores from './KPIScores';
 import KPIWeights from './KPIWeights';
 import KPIDependencies from './KPIDependencies';
-import KPIStrategicLinkages from './KPIStrategicLinkages';
 import KPIValidation from './KPIValidation';
 import KPIHistory from './KPIHistory';
 import KPICascadeHierarchy from './KPICascadeHierarchy';
@@ -65,8 +64,8 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
         dispatch(fetchKPI(kpiId));
     };
     
-    const handleDeactivate = async () => {
-        await dispatch(deactivateKPI({ id: kpiId, reason: 'Manual deactivation' })).unwrap();
+    const handleDeactivate = async (targetStatus = 'INACTIVE') => {
+        await dispatch(deactivateKPI({ id: kpiId, reason: 'Manual deactivation', target_status: targetStatus })).unwrap();
         setShowDeactivateConfirm(false);
         dispatch(fetchKPI(kpiId));
     };
@@ -83,7 +82,6 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
         { id: 'scores', label: 'Scores' },
         { id: 'weights', label: 'Weights' },
         { id: 'dependencies', label: 'Dependencies', adminOnly: true },
-        { id: 'linkages', label: 'Strategic Linkages', adminOnly: true },
         { id: 'validation', label: 'Validation', adminOnly: true },
         { id: 'history', label: 'History' },
         { id: 'hierarchy', label: 'Cascade Hierarchy', adminOnly: true }
@@ -113,11 +111,11 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                     {kpi.approval_status === 'PENDING_APPROVAL' && canManageOrApprove && (
                         <button 
                             className="kpi-detail-activate"
-                            style={{ backgroundColor: '#059669', color: '#ffffff', border: 'none' }}
+                            style={{ backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                             onClick={handleApproveKPI}
                         >
                             <FiCheckCircle size={14} />
-                            Approve Performance Indicator
+                            Approve KPI
                         </button>
                     )}
                     {canManageOrApprove && (
@@ -126,9 +124,10 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                                 <button 
                                     className="kpi-detail-deactivate"
                                     onClick={() => setShowDeactivateConfirm(true)}
+                                    style={{ backgroundColor: '#dc2626', color: '#ffffff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                                 >
                                     <FiXCircle size={14} />
-                                    Deactivate
+                                    Deactivate / Inactivate
                                 </button>
                             ) : (
                                 <button 
@@ -173,7 +172,6 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                 {activeTab === 'scores' && <KPIScores kpiId={kpiId} kpi={kpi} />}
                 {activeTab === 'weights' && <KPIWeights kpiId={kpiId} kpi={kpi} />}
                 {activeTab === 'dependencies' && <KPIDependencies kpiId={kpiId} />}
-                {activeTab === 'linkages' && <KPIStrategicLinkages kpiId={kpiId} />}
                 {activeTab === 'validation' && <KPIValidation kpiId={kpiId} />}
                 {activeTab === 'history' && <KPIHistory kpiId={kpiId} />}
                 {activeTab === 'hierarchy' && <KPICascadeHierarchy kpiId={kpiId} kpi={kpi} />}
@@ -189,15 +187,65 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                 onCancel={() => setShowActivateConfirm(false)}
             />
             
-            <KPIConfirmDialog
-                isOpen={showDeactivateConfirm}
-                title="Deactivate Performance Indicator"
-                message={`Are you sure you want to deactivate "${kpi.name}"? Deactivated Performance Indicators won't appear in dashboards.`}
-                confirmText="Deactivate"
-                type="danger"
-                onConfirm={handleDeactivate}
-                onCancel={() => setShowDeactivateConfirm(false)}
-            />
+            {showDeactivateConfirm && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(15, 23, 42, 0.75)', zIndex: 9999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+                }}>
+                    <div style={{
+                        backgroundColor: '#ffffff', borderRadius: '16px', maxWidth: '480px', width: '100%',
+                        padding: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        border: '1px solid #e2e8f0'
+                    }}>
+                        <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.15rem', color: '#0f172a', fontWeight: 600 }}>
+                            Deactivate KPI Status
+                        </h3>
+                        <p style={{ fontSize: '0.875rem', color: '#475569', margin: '0 0 1.25rem' }}>
+                            Choose how to deactivate <strong>"{kpi.name}"</strong>:
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => handleDeactivate('INACTIVE')}
+                                style={{
+                                    padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1',
+                                    backgroundColor: '#f8fafc', color: '#334155', textAlign: 'left', cursor: 'pointer',
+                                    fontWeight: 600, fontSize: '0.875rem'
+                                }}
+                            >
+                                <div style={{ color: '#0f172a' }}>Set Status to Inactive</div>
+                                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400, marginTop: '2px' }}>
+                                    Deactivates the KPI while keeping it marked as approved previously.
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleDeactivate('PENDING_APPROVAL')}
+                                style={{
+                                    padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #fde68a',
+                                    backgroundColor: '#fffbeb', color: '#b45309', textAlign: 'left', cursor: 'pointer',
+                                    fontWeight: 600, fontSize: '0.875rem'
+                                }}
+                            >
+                                <div style={{ color: '#92400e' }}>Revert Status to Pending Approval</div>
+                                <div style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 400, marginTop: '2px' }}>
+                                    Deactivates and returns the KPI to the lead approval queue (if activated accidentally).
+                                </div>
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                                type="button"
+                                onClick={() => setShowDeactivateConfirm(false)}
+                                style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', fontSize: '0.85rem' }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

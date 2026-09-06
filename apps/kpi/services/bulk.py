@@ -47,8 +47,7 @@ class BulkKPICreator:
                         "department_id": item.get('department_id') or getattr(user, 'department_id', None),
                         "owner_id": user.id,
                         "tenant_id": user.tenant_id,
-                        "is_staff_created": True,
-                        "strategic_objective": item.get('strategic_objective', '')
+                        "is_staff_created": True
                     }
 
                     kpi = self.kpi_creator.create(kpi_data, user)

@@ -44,6 +44,7 @@ class ValidationStatus(models.TextChoices):
     APPROVED = 'APPROVED', 'Approved'
     REJECTED = 'REJECTED', 'Rejected'
     ADJUSTED = 'ADJUSTED', 'Adjusted'
+    ESCALATED = 'ESCALATED', 'Escalated'
 
 
 class EscalationStatus(models.TextChoices):
@@ -86,14 +87,6 @@ class DependencyType(models.TextChoices):
     OUTCOME = 'OUTCOME', 'Outcome (affected by)'
     CORRELATED = 'CORRELATED', 'Correlated'
     CONSTRAINT = 'CONSTRAINT', 'Constraint'
-
-
-class LinkageType(models.TextChoices):
-    """Strategic linkage types"""
-    PRIMARY = 'PRIMARY', 'Primary Driver'
-    SECONDARY = 'SECONDARY', 'Secondary Driver'
-    INDICATOR = 'INDICATOR', 'Leading Indicator'
-    LAGGING = 'LAGGING', 'Lagging Indicator'
 
 
 class AggregationLevel(models.TextChoices):

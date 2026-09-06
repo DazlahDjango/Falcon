@@ -51,7 +51,6 @@ class KPI(BaseKPIModel):
     is_active = models.BooleanField(default=True)
     activation_date = models.DateField(null=True, blank=True)
     deactivation_date = models.DateField(null=True, blank=True)
-    strategic_objective = models.CharField(max_length=255, blank=True, help_text="Linked strategic objective")
     metadata = models.JSONField(default=dict, blank=True)
     objects = KPIManager()
     class Meta:
@@ -134,26 +133,6 @@ class KPIWeight(BaseKPIModel):
         if self.weight < 0 or self.weight > 100:
             raise ValidationError("Weight must be between 0 and 100")
         
-class StrategicLinkage(BaseKPIModel):
-    LINKAGE_TYPE = [
-        ('PRIMARY', 'Primary Driver'),
-        ('SECONDARY', 'Secondary Driver'),
-        ('INDICATOR', 'Leading Indicator'),
-        ('LAGGING', 'Lagging Indicator'),
-    ]
-    kpi = models.ForeignKey(KPI, on_delete=models.CASCADE, related_name='strategic_links')
-    strategic_objective = models.CharField(max_length=255)
-    objective_code = models.CharField(max_length=50, blank=True)
-    linkage_type = models.CharField(max_length=20, choices=LINKAGE_TYPE, default='PRIMARY')
-    weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text="Contribution weight")
-    description = models.TextField(blank=True)
-    class Meta:
-        db_table = 'kpi_strategic_linkages'
-        unique_together = [['tenant_id', 'kpi', 'strategic_objective']]
-
-    def __str__(self):
-        return f"{self.kpi.name} - {self.strategic_objective}"
-    
 class KPIDependency(BaseKPIModel):
     DEPENDENCY_TYPE = [
         ('DRIVER', 'Driver (affects)'),

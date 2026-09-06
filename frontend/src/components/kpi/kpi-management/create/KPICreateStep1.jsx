@@ -75,7 +75,7 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     
     const validate = () => {
         const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = 'Performance Indicator name is required';
+        if (!formData.name.trim()) newErrors.name = 'Performance Indicator is required';
         if (!formData.owner_id) newErrors.owner_id = 'Owner is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -100,7 +100,20 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
             
             <div className="step-form">
                 <div className="form-group full-width">
-                    <label>Performance Indicator Name <span className="required">*</span></label>
+                    <label>Key Result Area (KRA)</label>
+                    <select
+                        value={formData.category_id}
+                        onChange={(e) => handleChange('category_id', e.target.value)}
+                    >
+                        <option value="">Select Key Result Area (KRA)</option>
+                        {categories.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="form-group full-width">
+                    <label>Performance Indicator <span className="required">*</span></label>
                     <input
                         type="text"
                         value={formData.name}
@@ -123,7 +136,7 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                 
                 <div className="form-row">
                     <div className="form-group">
-                        <label>Performance Indicator Type <span className="required">*</span></label>
+                        <label>Performance Type <span className="required">*</span></label>
                         <select
                             value={formData.kpi_type}
                             onChange={(e) => handleChange('kpi_type', e.target.value)}
@@ -132,21 +145,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                                 <option key={type.value} value={type.value}>{type.label}</option>
                             ))}
                         </select>
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>Calculation Logic <span className="required">*</span></label>
-                        <select
-                            value={formData.calculation_logic}
-                            onChange={(e) => handleChange('calculation_logic', e.target.value)}
-                        >
-                            {calculationLogics.map(logic => (
-                                <option key={logic.value} value={logic.value}>{logic.label}</option>
-                            ))}
-                        </select>
-                        <small>
-                            {calculationLogics.find(l => l.value === formData.calculation_logic)?.formula}
-                        </small>
                     </div>
                     
                     <div className="form-group">
@@ -161,6 +159,21 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         </select>
                         <small>{measureTypes.find(t => t.value === formData.measure_type)?.desc}</small>
                     </div>
+
+                    <div className="form-group">
+                        <label>Calculation Logic <span className="required">*</span></label>
+                        <select
+                            value={formData.calculation_logic}
+                            onChange={(e) => handleChange('calculation_logic', e.target.value)}
+                        >
+                            {calculationLogics.map(logic => (
+                                <option key={logic.value} value={logic.value}>{logic.label}</option>
+                            ))}
+                        </select>
+                        <small>
+                            {calculationLogics.find(l => l.value === formData.calculation_logic)?.formula}
+                        </small>
+                    </div>
                 </div>
                 
                 <div className="form-row">
@@ -173,21 +186,6 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         />
                     </div>
                     
-                    <div className="form-group">
-                        <label>Key Result Area</label>
-                        <select
-                            value={formData.category_id}
-                            onChange={(e) => handleChange('category_id', e.target.value)}
-                        >
-                            <option value="">Select Key Result Area</option>
-                            {categories.map(c => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                
-                <div className="form-row">
                     <div className="form-group">
                         <label>Owner <span className="required">*</span></label>
                         <select
@@ -204,7 +202,7 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                         </select>
                         {errors.owner_id && <span className="error-text">{errors.owner_id}</span>}
                     </div>
-                    
+
                     <div className="form-group">
                         <label>Department (Optional)</label>
                         <select

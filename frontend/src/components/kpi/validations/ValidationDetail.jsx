@@ -48,7 +48,7 @@ const ValidationDetail = ({ validation, onClose }) => {
                         {validation.notes && (
                             <div className="detail-row">
                                 <FiMessageSquare size={14} />
-                                <span className="label">Notes:</span>
+                                <span className="label">Remarks:</span>
                                 <span className="value">{validation.notes}</span>
                             </div>
                         )}

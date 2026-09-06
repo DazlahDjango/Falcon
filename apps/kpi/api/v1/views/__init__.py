@@ -1,6 +1,6 @@
 from .base import BaseKpiViewset, ReadOnlyKPIViewset, BulkOperationMixin
 from .framework import KPICategoryViewSet
-from .kpi import KPIViewSet, KPIWeightViewSet, StrategicLinkageViewSet, KPIDependencyViewSet
+from .kpi import KPIViewSet, KPIWeightViewSet, KPIDependencyViewSet
 from .target import AnnualTargetViewSet, MonthlyPhasingViewSet
 from .actual import MonthlyActualViewSet, EvidenceViewSet, ActualAdjustmentViewSet
 from .validation import ValidationRecordViewSet, RejectionReasonViewSet, EscalationViewSet
@@ -18,7 +18,7 @@ from .history import KPIHistoryViewSet, ActualHistoryViewSet, TargetHistoryViewS
 __all__ = [
     'BaseKpiViewset', 'ReadOnlyKPIViewset', 'BulkOperationMixin',
     'KPICategoryViewSet',
-    'KPIViewSet', 'KPIWeightViewSet', 'StrategicLinkageViewSet', 'KPIDependencyViewSet',
+    'KPIViewSet', 'KPIWeightViewSet', 'KPIDependencyViewSet',
     'AnnualTargetViewSet', 'MonthlyPhasingViewSet',
     'MonthlyActualViewSet', 'EvidenceViewSet', 'ActualAdjustmentViewSet',
     'ValidationRecordViewSet', 'RejectionReasonViewSet', 'EscalationViewSet',

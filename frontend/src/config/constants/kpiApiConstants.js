@@ -42,7 +42,6 @@ export const KPI_ENDPOINTS = {
     WEIGHTS: (id) => `${API_BASE}/kpis/kpis/${id}/weights/`,
     TARGETS: (id) => `${API_BASE}/kpis/kpis/${id}/targets/`,
     SCORES: (id) => `${API_BASE}/kpis/kpis/${id}/scores/`,
-    STRATEGIC_LINKAGES: (id) => `${API_BASE}/kpis/kpis/${id}/strategic-linkages/`,
     DEPENDENCIES: (id) => `${API_BASE}/kpis/kpis/${id}/dependencies/`,
     QUERY_PARAMS: {
         CATEGORY: 'category',
@@ -192,6 +191,7 @@ export const ESCALATION_ENDPOINTS = {
     CREATE: `${API_BASE}/kpis/escalations/`,
     RESOLVE: (id) => `${API_BASE}/kpis/escalations/${id}/resolve/`,
     MY_ESCALATIONS: `${API_BASE}/kpis/escalations/my_escalations/`,
+    TARGETS: `${API_BASE}/kpis/escalations/targets/`,
     QUERY_PARAMS: { STATUS: 'status', ESCALATED_TO: 'escalated_to' },
 };
 

@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from .views import (
     KPICategoryViewSet,
-    KPIViewSet, KPIWeightViewSet, StrategicLinkageViewSet, KPIDependencyViewSet,
+    KPIViewSet, KPIWeightViewSet, KPIDependencyViewSet,
     AnnualTargetViewSet, MonthlyPhasingViewSet,
     MonthlyActualViewSet, EvidenceViewSet, ActualAdjustmentViewSet,
     ValidationRecordViewSet, RejectionReasonViewSet, EscalationViewSet,
@@ -38,7 +38,6 @@ router.register(r'users', UserViewSet, basename='user')
 
 router.register(r'kpis', KPIViewSet, basename='kpi')
 router.register(r'kpi-weights', KPIWeightViewSet, basename='kpi-weight')
-router.register(r'strategic-linkages', StrategicLinkageViewSet, basename='strategic-linkage')
 router.register(r'kpi-dependencies', KPIDependencyViewSet, basename='kpi-dependency')
 
 router.register(r'targets', AnnualTargetViewSet, basename='target')

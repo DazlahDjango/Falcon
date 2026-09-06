@@ -15,9 +15,9 @@ class BulkTemplateDownloadView(APIView):
         
         if template_type == 'kpi':
             # Headers
-            writer.writerow(['Code', 'Name', 'Description', 'Type', 'Calculation Logic', 'Measure Type', 'Unit', 'Decimal Places', 'Target Min', 'Target Max', 'Strategic Objective'])
+            writer.writerow(['Code', 'Name', 'Description', 'Type', 'Calculation Logic', 'Measure Type', 'Unit', 'Decimal Places', 'Target Min', 'Target Max'])
             # Sample Row
-            writer.writerow(['REV_001', 'Net Sales', 'Net sales revenue generated', 'FINANCIAL', 'HIGHER_IS_BETTER', 'CUMULATIVE', 'USD', '2', '0.00', '1000000.00', 'Grow top-line revenue'])
+            writer.writerow(['REV_001', 'Net Sales', 'Net sales revenue generated', 'FINANCIAL', 'HIGHER_IS_BETTER', 'CUMULATIVE', 'USD', '2', '0.00', '1000000.00'])
         elif template_type == 'target':
             # Headers
             writer.writerow(['kpi_id', 'user_id', 'year', 'target_value', 'notes'])

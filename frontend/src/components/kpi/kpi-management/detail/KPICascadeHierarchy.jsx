@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FiRefreshCw, FiTarget, FiLayers } from 'react-icons/fi';
-import { targetService } from '../../../../services/kpi/target.service';
+import useTargets from '../../../../hooks/kpi/useTargets';
+import useTargetCascade from '../../../../hooks/kpi/useTargetCascade';
 import CascadeHierarchyTree from '../../targets/cascade/CascadeHierarchyTree';
 import KPILoading from '../../common/KPILoading';
 import KPIError from '../../common/KPIError';
@@ -14,27 +15,26 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
     const [loadingTree, setLoadingTree] = useState(false);
     const [error, setError] = useState(null);
 
+    const { refresh: loadTargetsFromHook } = useTargets();
+    const { getTree } = useTargetCascade();
+
     const loadTargets = async () => {
         if (!kpiId) return;
         setLoadingTargets(true);
         setError(null);
         try {
-            const res = await targetService.getTargets({ kpi: kpiId, all: 'true' });
-            console.log('KPICascadeHierarchy loadTargets res:', res);
+            const res = await loadTargetsFromHook({ kpi: kpiId, all: 'true' });
             const raw = res?.data || res;
-            const list = Array.isArray(raw) 
-                ? raw 
-                : (Array.isArray(raw?.results) 
-                    ? raw.results 
+            const list = Array.isArray(raw)
+                ? raw
+                : (Array.isArray(raw?.results)
+                    ? raw.results
                     : (Array.isArray(res?.results) ? res.results : []));
-            
-            // Sort targets descending by target_value and prioritize root org targets
+
             const sortedList = [...list].sort((a, b) => Number(b.target_value || 0) - Number(a.target_value || 0));
-            console.log('KPICascadeHierarchy parsed & sorted targets list:', sortedList);
             setTargets(sortedList);
 
             if (sortedList.length > 0) {
-                // Find true root org target (is_root === true and has child cascades)
                 const mainRootTarget = sortedList.find(t => (t.is_root || t.parent_target_id === null) && (t.cascades_count || 0) > 0)
                     || sortedList.find(t => t.is_root || t.parent_target_id === null)
                     || sortedList.find(t => (t.cascades_count || 0) > 0)
@@ -55,7 +55,7 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
         setLoadingTree(true);
         setError(null);
         try {
-            const res = await targetService.getCascadeTree(targetId);
+            const res = await getTree(targetId);
             console.log('KPICascadeHierarchy getCascadeTree res:', res);
             const data = (res?.data && typeof res.data === 'object' && 'id' in res.data) ? res.data : (res?.id ? res : (res?.data || res));
             console.log('KPICascadeHierarchy parsed tree:', data);
@@ -89,7 +89,7 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
 
     if (targets.length === 0) {
         return (
-            <KPIEmptyState 
+            <KPIEmptyState
                 icon="🌳"
                 title="No Annual Targets Created"
                 description="Set an annual target first under the Targets tab to inspect its structural cascade hierarchy tree."
@@ -102,7 +102,7 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Header & Target Selector Bar */}
-            <div 
+            <div
                 style={{
                     background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                     padding: '20px 24px',
@@ -131,7 +131,7 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600 }}>Root Target:</span>
-                        <select 
+                        <select
                             value={selectedTargetId}
                             onChange={(e) => setSelectedTargetId(e.target.value)}
                             style={{
@@ -158,7 +158,7 @@ const KPICascadeHierarchy = ({ kpiId, kpi }) => {
                         </select>
                     </div>
 
-                    <button 
+                    <button
                         onClick={() => selectedTargetId && loadTree(selectedTargetId)}
                         disabled={loadingTree}
                         style={{

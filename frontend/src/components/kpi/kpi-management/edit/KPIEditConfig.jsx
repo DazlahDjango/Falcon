@@ -110,16 +110,6 @@ const KPIEditConfig = ({ kpi, onSave, onCancel }) => {
                         <option value={4}>4</option>
                     </select>
                 </div>
-                
-                <div className="form-group">
-                    <label>Strategic Objective</label>
-                    <input 
-                        type="text"
-                        value={formData.strategic_objective}
-                        onChange={(e) => handleChange('strategic_objective', e.target.value)}
-                        placeholder="Link to strategic goal"
-                    />
-                </div>
             </div>
             
             <div className="form-group checkbox-group">
