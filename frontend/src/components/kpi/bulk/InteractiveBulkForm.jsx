@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiPlus, FiTrash2, FiSend, FiCheckCircle, FiAlertCircle, FiLayers } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiSend, FiCheckCircle, FiAlertCircle, FiLayers, FiUser, FiFolder } from 'react-icons/fi';
 import { 
     fetchCategories, 
     selectCategories, 
     fetchUserKPIs, 
     selectUserKPIs 
 } from '../../../store/kpi';
+import { selectUser } from '../../../store/accounts/selectors/authSelectors';
+import { fetchMyEmployment } from '../../../store/structure/slice/employmentSlice';
 import { useBulkUpload } from '../../../hooks/kpi';
 import UnitSelector from '../common/UnitSelector';
 import KPILoading from '../common/KPILoading';
@@ -15,10 +17,13 @@ const createEmptyRow = (id, mode) => {
     return {
         id,
         name: '',
+        description: '',
+        category_id: '',
         kpi_type: 'PERCENTAGE',
+        measure_type: 'CUMULATIVE',
+        calculation_logic: 'HIGHER_IS_BETTER',
         unit: '%',
         target_value: '',
-        category_id: '',
         kpi_id: '',
         actual_value: '',
         notes: ''
@@ -28,6 +33,9 @@ const createEmptyRow = (id, mode) => {
 const InteractiveBulkForm = () => {
     const dispatch = useDispatch();
     const { submitKPIsForm, submitActualsForm, submitCombinedForm } = useBulkUpload();
+    const currentUser = useSelector(selectUser);
+    const [userEmployment, setUserEmployment] = useState(null);
+
     const rawCategories = useSelector(selectCategories) || [];
     const categories = Array.isArray(rawCategories)
         ? rawCategories
@@ -59,7 +67,56 @@ const InteractiveBulkForm = () => {
     useEffect(() => {
         dispatch(fetchCategories({ is_active: true }));
         dispatch(fetchUserKPIs({ params: { for_actuals: true } }));
+        dispatch(fetchMyEmployment())
+            .unwrap()
+            .then((empData) => {
+                if (empData) setUserEmployment(empData);
+            })
+            .catch(() => {});
     }, [dispatch]);
+
+    // Dynamically resolve the staff user's exact organizational level and entity name from structure Employment
+    const getUserOrgDetails = () => {
+        const emp = userEmployment?.current_employment || userEmployment;
+        const pos = emp?.position || {};
+
+        const unitObj = pos.unit || emp?.unit;
+        const unitName = emp?.unit_name || pos.unit_name || unitObj?.name || (typeof unitObj === 'string' ? unitObj : null);
+        if (unitName) return { label: 'Unit', name: unitName };
+
+        const sectionObj = pos.section || emp?.section;
+        const sectionName = emp?.section_name || pos.section_name || sectionObj?.name || (typeof sectionObj === 'string' ? sectionObj : null);
+        if (sectionName) return { label: 'Section', name: sectionName };
+
+        const deptObj = pos.department || emp?.department;
+        const deptName = emp?.department_name || pos.department_name || deptObj?.name || (typeof deptObj === 'string' ? deptObj : null);
+        if (deptName) return { label: 'Department', name: deptName };
+
+        const divObj = pos.division || emp?.division;
+        const divName = emp?.division_name || pos.division_name || divObj?.name || (typeof divObj === 'string' ? divObj : null);
+        if (divName) return { label: 'Division', name: divName };
+
+        if (!currentUser) return { label: 'Department / Unit', name: 'Not Assigned' };
+
+        const fallbackUnit = currentUser.unit_name || (typeof currentUser.unit === 'object' ? currentUser.unit?.name : currentUser.unit);
+        if (fallbackUnit) return { label: 'Unit', name: fallbackUnit };
+
+        const fallbackSection = currentUser.section_name || (typeof currentUser.section === 'object' ? currentUser.section?.name : currentUser.section);
+        if (fallbackSection) return { label: 'Section', name: fallbackSection };
+
+        const fallbackDept = currentUser.department_name || (typeof currentUser.department === 'object' ? currentUser.department?.name : currentUser.department);
+        if (fallbackDept) return { label: 'Department', name: fallbackDept };
+
+        const fallbackDiv = currentUser.division_name || (typeof currentUser.division === 'object' ? currentUser.division?.name : currentUser.division);
+        if (fallbackDiv) return { label: 'Division', name: fallbackDiv };
+
+        return { label: currentUser.level_name || 'Department', name: currentUser.department_name || currentUser.department || 'My Organizational Unit' };
+    };
+
+    const userOrg = getUserOrgDetails();
+    const staffOwnerName = currentUser
+        ? (currentUser.full_name || `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email)
+        : 'Logged-in Staff Member';
 
     const handleModeChange = (newMode) => {
         setMode(newMode);
@@ -251,6 +308,30 @@ const InteractiveBulkForm = () => {
                 </div>
             </div>
 
+            {/* Auto-bound Staff Owner & Structure Level Context Banner */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                marginBottom: '1.25rem',
+                fontSize: '0.85rem'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#334155' }}>
+                    <FiUser size={15} style={{ color: '#0284c7' }} />
+                    <span><strong>Submitting As Owner:</strong> {staffOwnerName}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#334155' }}>
+                    <FiFolder size={15} style={{ color: '#6366f1' }} />
+                    <span><strong>{userOrg.label}:</strong> {userOrg.name}</span>
+                </div>
+            </div>
+
             {/* Period Selector (for actuals / combined) */}
             {(mode === 'actual' || mode === 'combined') && (
                 <div style={{
@@ -345,13 +426,16 @@ const InteractiveBulkForm = () => {
 
                                 {(mode === 'kpi' || mode === 'combined') && (
                                     <>
+                                        <th style={{ padding: '0.65rem', minWidth: '160px' }}>Key Result Area (KRA)</th>
                                         <th style={{ padding: '0.65rem', minWidth: '200px' }}>
-                                            Performance Indicator Name <span style={{ color: '#ef4444' }}>*</span>
+                                            Performance Indicator <span style={{ color: '#ef4444' }}>*</span>
                                         </th>
-                                        <th style={{ padding: '0.65rem', minWidth: '150px' }}>Type</th>
-                                        <th style={{ padding: '0.65rem', minWidth: '160px' }}>Unit of Measure</th>
+                                        <th style={{ padding: '0.65rem', minWidth: '160px' }}>Description</th>
+                                        <th style={{ padding: '0.65rem', minWidth: '140px' }}>Performance Type</th>
+                                        <th style={{ padding: '0.65rem', minWidth: '140px' }}>Measure Type</th>
+                                        <th style={{ padding: '0.65rem', minWidth: '150px' }}>Calculation Logic</th>
+                                        <th style={{ padding: '0.65rem', minWidth: '160px' }}>Unit of Measure Tab</th>
                                         <th style={{ padding: '0.65rem', minWidth: '130px' }}>Target Value</th>
-                                        <th style={{ padding: '0.65rem', minWidth: '160px' }}>Key Result Area</th>
                                     </>
                                 )}
 
@@ -363,7 +447,7 @@ const InteractiveBulkForm = () => {
                                         <th style={{ padding: '0.65rem', minWidth: '140px' }}>
                                             Actual Value <span style={{ color: '#ef4444' }}>*</span>
                                         </th>
-                                        <th style={{ padding: '0.65rem', minWidth: '220px' }}>Notes / Comments</th>
+                                        <th style={{ padding: '0.65rem', minWidth: '220px' }}>Remarks</th>
                                     </>
                                 )}
 
@@ -384,7 +468,28 @@ const InteractiveBulkForm = () => {
 
                                     {(mode === 'kpi' || mode === 'combined') && (
                                         <>
-                                            {/* Name */}
+                                            {/* 1. Key Result Area (KRA) */}
+                                            <td style={{ padding: '0.5rem' }}>
+                                                <select
+                                                    value={row.category_id}
+                                                    onChange={(e) => handleRowChange(row.id, 'category_id', e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem 0.65rem',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid #cbd5e1',
+                                                        fontSize: '0.85rem',
+                                                        backgroundColor: '#ffffff'
+                                                    }}
+                                                >
+                                                    <option value="">Select KRA...</option>
+                                                    {categories.map(c => (
+                                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                                    ))}
+                                                </select>
+                                            </td>
+
+                                            {/* 2. Performance Indicator */}
                                             <td style={{ padding: '0.5rem' }}>
                                                 <input
                                                     type="text"
@@ -401,7 +506,24 @@ const InteractiveBulkForm = () => {
                                                 />
                                             </td>
 
-                                            {/* Type */}
+                                            {/* 3. Description */}
+                                            <td style={{ padding: '0.5rem' }}>
+                                                <input
+                                                    type="text"
+                                                    value={row.description}
+                                                    onChange={(e) => handleRowChange(row.id, 'description', e.target.value)}
+                                                    placeholder="Brief description..."
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem 0.65rem',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid #cbd5e1',
+                                                        fontSize: '0.85rem'
+                                                    }}
+                                                />
+                                            </td>
+
+                                            {/* 4. Performance Type */}
                                             <td style={{ padding: '0.5rem' }}>
                                                 <select
                                                     value={row.kpi_type}
@@ -424,7 +546,45 @@ const InteractiveBulkForm = () => {
                                                 </select>
                                             </td>
 
-                                            {/* Unit Selector */}
+                                            {/* 5. Measure Type */}
+                                            <td style={{ padding: '0.5rem' }}>
+                                                <select
+                                                    value={row.measure_type}
+                                                    onChange={(e) => handleRowChange(row.id, 'measure_type', e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem 0.65rem',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid #cbd5e1',
+                                                        fontSize: '0.85rem',
+                                                        backgroundColor: '#ffffff'
+                                                    }}
+                                                >
+                                                    <option value="CUMULATIVE">Cumulative (YTD)</option>
+                                                    <option value="NON_CUMULATIVE">Non-Cumulative</option>
+                                                </select>
+                                            </td>
+
+                                            {/* 6. Calculation Logic */}
+                                            <td style={{ padding: '0.5rem' }}>
+                                                <select
+                                                    value={row.calculation_logic}
+                                                    onChange={(e) => handleRowChange(row.id, 'calculation_logic', e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem 0.65rem',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid #cbd5e1',
+                                                        fontSize: '0.85rem',
+                                                        backgroundColor: '#ffffff'
+                                                    }}
+                                                >
+                                                    <option value="HIGHER_IS_BETTER">Higher is Better</option>
+                                                    <option value="LOWER_IS_BETTER">Lower is Better</option>
+                                                </select>
+                                            </td>
+
+                                            {/* 7. Unit Selector */}
                                             <td style={{ padding: '0.5rem' }}>
                                                 <UnitSelector
                                                     kpiType={row.kpi_type}
@@ -433,7 +593,7 @@ const InteractiveBulkForm = () => {
                                                 />
                                             </td>
 
-                                            {/* Target Value with Horizontal Unit Badge */}
+                                            {/* 7b. Target Value with Horizontal Unit Badge */}
                                             <td style={{ padding: '0.5rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                                     <input
@@ -465,27 +625,6 @@ const InteractiveBulkForm = () => {
                                                         {row.unit || '%'}
                                                     </div>
                                                 </div>
-                                            </td>
-
-                                            {/* Key Result Area */}
-                                            <td style={{ padding: '0.5rem' }}>
-                                                <select
-                                                    value={row.category_id}
-                                                    onChange={(e) => handleRowChange(row.id, 'category_id', e.target.value)}
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '0.5rem 0.65rem',
-                                                        borderRadius: '6px',
-                                                        border: '1px solid #cbd5e1',
-                                                        fontSize: '0.85rem',
-                                                        backgroundColor: '#ffffff'
-                                                    }}
-                                                >
-                                                    <option value="">Select Key Result Area</option>
-                                                    {categories.map(c => (
-                                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                                    ))}
-                                                </select>
                                             </td>
                                         </>
                                     )}
@@ -553,7 +692,7 @@ const InteractiveBulkForm = () => {
                                                     type="text"
                                                     value={row.notes}
                                                     onChange={(e) => handleRowChange(row.id, 'notes', e.target.value)}
-                                                    placeholder="Monthly progress notes..."
+                                                    placeholder="Monthly progress remarks..."
                                                     style={{
                                                         width: '100%',
                                                         padding: '0.5rem 0.65rem',

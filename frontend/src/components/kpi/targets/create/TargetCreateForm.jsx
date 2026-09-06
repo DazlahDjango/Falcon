@@ -117,13 +117,13 @@ const TargetCreateForm = ({ kpis, users, onSubmit, onCancel }) => {
             </div>
             
             <div className="kpi-target-form-group">
-                <label className="kpi-target-form-label">Notes (Optional)</label>
+                <label className="kpi-target-form-label">Remarks (Optional)</label>
                 <textarea 
                     className="kpi-target-form-textarea"
                     value={formData.notes}
                     onChange={(e) => handleChange('notes', e.target.value)}
                     rows="3"
-                    placeholder="Add any additional notes..."
+                    placeholder="Add any additional remarks..."
                 />
             </div>
             

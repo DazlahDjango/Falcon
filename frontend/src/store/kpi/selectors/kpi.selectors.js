@@ -89,7 +89,7 @@ export const selectDependencies = createSelector(
 
 export const selectStrategicLinkages = createSelector(
   [selectKPIState],
-  (kpi) => kpi?.strategicLinkages || []
+  () => []
 );
 
 // User nested selectors
@@ -393,6 +393,11 @@ export const selectEscalations = createSelector(
 export const selectMyEscalations = createSelector(
   [selectValidationState],
   (validation) => validation?.myEscalations || []
+);
+
+export const selectEscalationTargets = createSelector(
+  [selectValidationState],
+  (validation) => validation?.escalationTargets || []
 );
 
 export const selectValidationLoading = createSelector(

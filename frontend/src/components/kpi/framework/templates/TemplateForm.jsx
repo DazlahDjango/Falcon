@@ -168,12 +168,12 @@ const TemplateForm = ({ template, sectors, categories, onSubmit, onCancel }) => 
                         
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Default Performance Indicator Name</label>
+                                <label>Default Performance Indicator</label>
                                 <input 
                                     type="text"
                                     value={formData.kpi_definition.name}
                                     onChange={(e) => updateKpiDefinition('name', e.target.value)}
-                                    placeholder="Name for the created Performance Indicator"
+                                    placeholder="Performance Indicator"
                                 />
                             </div>
                             

@@ -84,7 +84,6 @@ const kpiRoutes = [
     // KPI Weights & Dependencies
     { path: KPI_ROUTES.KPI_WEIGHTS(':kpiId'), element: <KPIDetailPage /> },
     { path: KPI_ROUTES.KPI_DEPENDENCIES(':kpiId'), element: <KPIDetailPage /> },
-    { path: KPI_ROUTES.KPI_STRATEGIC_LINKAGES(':kpiId'), element: <KPIDetailPage /> },
     // Target Management
     { path: KPI_ROUTES.TARGETS, element: <TargetsPage /> },
     { path: KPI_ROUTES.TARGET_PHASING(':targetId'), element: <TargetPhasingPage /> },

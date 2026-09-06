@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useStaffDashboard } from '../../../hooks/dashboard/useStaffDashboard';
+import OrganizationKPITable from '../../../components/kpi/dashboard/OrganizationKPITable';
 import { 
   CheckCircleIcon, 
   ExclamationTriangleIcon, 
@@ -441,6 +442,9 @@ const StaffDashboard = () => {
         </div>
 
       </div>
+
+      {/* Organization KPIs Section */}
+      <OrganizationKPITable limit={5} />
     </div>
   );
 };

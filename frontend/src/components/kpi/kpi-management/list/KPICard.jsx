@@ -79,7 +79,7 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
             {kpi.current_score !== undefined && (
                 <div className="kpi-card-score">
                     <div className="kpi-score-header">
-                        <span>Current Score</span>
+                        <span>Score</span>
                         <TrafficLightIcon status={kpi.traffic_light} />
                     </div>
                     <div className="kpi-score-value" style={{ color: getScoreColor() }}>

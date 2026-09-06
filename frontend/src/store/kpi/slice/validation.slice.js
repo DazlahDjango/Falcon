@@ -102,6 +102,18 @@ export const fetchMyEscalations = createAsyncThunk(
   }
 );
 
+export const fetchEscalationTargets = createAsyncThunk(
+  'validation/fetchEscalationTargets',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await validationService.getEscalationTargets();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 // ============ Initial State ============
 const initialState = {
   validations: [],
@@ -110,6 +122,7 @@ const initialState = {
   rejectionReasons: [],
   escalations: [],
   myEscalations: [],
+  escalationTargets: [],
   
   loading: false,
   submitting: false,
@@ -134,6 +147,7 @@ const validationSlice = createSlice({
     clearEscalations: (state) => {
       state.escalations = [];
       state.myEscalations = [];
+      state.escalationTargets = [];
     },
     clearErrors: (state) => {
       state.error = null;
@@ -189,6 +203,10 @@ const validationSlice = createSlice({
       
       .addCase(fetchMyEscalations.fulfilled, (state, action) => {
         state.myEscalations = action.payload.results || action.payload;
+      })
+      
+      .addCase(fetchEscalationTargets.fulfilled, (state, action) => {
+        state.escalationTargets = action.payload.results || action.payload;
       });
   },
 });

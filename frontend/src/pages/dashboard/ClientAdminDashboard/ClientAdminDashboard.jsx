@@ -2,6 +2,7 @@
 
 import { useAuthContext } from '../../../contexts/accounts/AuthContext';
 import { useClientAdminDashboard } from '../../../hooks/dashboard/useClientAdminDashboard';
+import OrganizationKPITable from '../../../components/kpi/dashboard/OrganizationKPITable';
 import {
   UsersIcon,
   ShieldCheckIcon,
@@ -377,6 +378,9 @@ const ClientAdminDashboard = () => {
         </div>
 
       </div>
+
+      {/* Organization KPIs Section */}
+      <OrganizationKPITable limit={5} />
 
       {/* Bottom 4 Quick Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

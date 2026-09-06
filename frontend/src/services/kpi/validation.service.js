@@ -109,6 +109,13 @@ class ValidationService extends BaseKPIService {
       return response;
     });
   }
+
+  async getEscalationTargets() {
+    return withRetry(async () => {
+      const response = await this.apiClient.get(ESCALATION_ENDPOINTS.TARGETS);
+      return response;
+    });
+  }
 }
 
 export const validationService = new ValidationService();

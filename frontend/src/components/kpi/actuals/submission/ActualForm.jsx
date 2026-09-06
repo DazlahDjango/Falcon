@@ -98,14 +98,14 @@ const ActualForm = ({ data, kpis = [], onChange }) => {
             <div className="kpi-actual-form-group">
                 <label className="kpi-actual-form-label">
                     <FiFileText size={14} />
-                    Notes (Optional)
+                    Remarks (Optional)
                 </label>
                 <textarea 
                     className="kpi-actual-form-textarea"
                     value={data.notes}
                     onChange={(e) => onChange({ notes: e.target.value })}
                     rows="3"
-                    placeholder="Add any additional notes or context..."
+                    placeholder="Add any additional remarks or context..."
                 />
             </div>
         </div>

@@ -115,10 +115,6 @@ def validate_evidence_file(file):
     if file_ext not in allowed_extensions:
         raise ValidationError(_(f"File type not allowed. Allowed: {', '.join(allowed_extensions)}"))
 
-def validate_strategic_objective(objective):
-    if objective and len(objective) > 255:
-        raise ValidationError(_("Strategic objective cannot exceed 255 characters."))
-
 def validate_metadata_schema(metadata, schema=None):
     if not metadata:
         return

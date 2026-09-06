@@ -8,10 +8,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from .base import BaseKpiViewset
 from ..serializers import (
     KPIListSerializer, KPIDetailSerializer, KPIWeightSerializer,
-    StrategicLinkageSerializer, KPIDependencySerializer,
+    KPIDependencySerializer,
     AnnualTargetSerializer, ScoreSerializer
 )
-from ....models import KPI, KPIWeight, StrategicLinkage, KPIDependency
+from ....models import KPI, KPIWeight, KPIDependency
 from ..filters import KPIListFilter, KPIWeightListFilter
 from ....services import KPICreator, KPIUpdater, KPIActivator, KPIValidator, KPIApprovalService
 from ....exceptions import DuplicateKPICodeError
@@ -21,7 +21,7 @@ class KPIViewSet(BaseKpiViewset):
     queryset = KPI.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = KPIListFilter
-    search_fields = ['name', 'description', 'strategic_objective']
+    search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at', 'updated_at']
     ordering = ['name']
 
@@ -93,7 +93,6 @@ class KPIViewSet(BaseKpiViewset):
             'baseline': 'baseline',
             'ownerId': 'owner_id',
             'departmentId': 'department_id',
-            'strategicObjective': 'strategic_objective',
             'isActive': 'is_active',
         }
 
@@ -160,7 +159,8 @@ class KPIViewSet(BaseKpiViewset):
     def deactivate(self, request, pk=None):
         activator = KPIActivator()
         reason = request.data.get('reason', '')
-        kpi = activator.deactivate(str(pk), request.user, reason)
+        target_status = request.data.get('target_status', 'INACTIVE')
+        kpi = activator.deactivate(str(pk), request.user, reason, target_status)
         serializer = KPIDetailSerializer(kpi)
         return Response(serializer.data)
 
@@ -299,16 +299,6 @@ class KPIWeightViewSet(BaseKpiViewset):
                 {'valid': False, 'message': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-
-class StrategicLinkageViewSet(BaseKpiViewset):
-    queryset = StrategicLinkage.objects.all()
-    serializer_class = StrategicLinkageSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['kpi', 'linkage_type', 'strategic_objective']
-    search_fields = ['strategic_objective', 'description']
-    ordering_fields = ['weight', 'created_at']
-    ordering = ['-weight']
 
 
 class KPIDependencyViewSet(BaseKpiViewset):

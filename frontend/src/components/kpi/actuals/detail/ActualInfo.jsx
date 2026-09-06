@@ -93,7 +93,7 @@ const ActualInfo = ({ actual }) => {
             
             {actual.notes && (
                 <div className="kpi-actual-info-notes">
-                    <div className="kpi-actual-info-label">Notes</div>
+                    <div className="kpi-actual-info-label">Remarks</div>
                     <div className="kpi-actual-info-value">{actual.notes}</div>
                 </div>
             )}

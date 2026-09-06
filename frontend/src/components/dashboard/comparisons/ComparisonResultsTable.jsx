@@ -83,7 +83,7 @@ export const ComparisonResultsTable = ({
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-              <th style={{ padding: '12px', textAlign: 'left' }}>KPI Name</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>Performance Indicator</th>
               <th style={{ padding: '12px', textAlign: 'center' }}>Previous</th>
               <th style={{ padding: '12px', textAlign: 'center' }}>Current</th>
               <th style={{ padding: '12px', textAlign: 'center' }}>Change</th>

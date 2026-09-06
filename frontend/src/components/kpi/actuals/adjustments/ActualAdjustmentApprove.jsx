@@ -42,13 +42,13 @@ const ActualAdjustmentApprove = ({ adjustment, onConfirm, onClose }) => {
                     </div>
                     
                     <div className="kpi-adjustment-form-group">
-                        <label>Approval Comment (Optional)</label>
+                        <label>Approval Remarks (Optional)</label>
                         <textarea 
                             className="kpi-adjustment-form-textarea"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             rows="3"
-                            placeholder="Add any notes about this approval..."
+                            placeholder="Add any remarks about this approval..."
                         />
                     </div>
                 </div>

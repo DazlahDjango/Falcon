@@ -2,7 +2,6 @@ import { BaseKPIService, withRetry } from './kpiBase.service';
 import {
   KPI_ENDPOINTS,
   KPI_WEIGHT_ENDPOINTS,
-  STRATEGIC_LINKAGE_ENDPOINTS,
   KPI_DEPENDENCY_ENDPOINTS,
   USER_NESTED_ENDPOINTS,
 } from '../api/endpoints';
@@ -60,10 +59,10 @@ class KPIService extends BaseKPIService {
     });
   }
 
-  async deactivateKPI(id, reason = '') {
+  async deactivateKPI(id, reason = '', target_status = 'INACTIVE') {
     if (!id) throw new Error('KPI ID is required');
     return withRetry(async () => {
-      const response = await this.apiClient.post(KPI_ENDPOINTS.DEACTIVATE(id), { reason });
+      const response = await this.apiClient.post(KPI_ENDPOINTS.DEACTIVATE(id), { reason, target_status });
       return response;
     });
   }
@@ -170,40 +169,6 @@ class KPIService extends BaseKPIService {
         user_id: userId,
         weights,
       });
-      return response;
-    });
-  }
-
-  // ============ Strategic Linkages ============
-  async getStrategicLinkages(kpiId, params = {}) {
-    if (!kpiId) throw new Error('KPI ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.get(KPI_ENDPOINTS.STRATEGIC_LINKAGES(kpiId), { params });
-      return response;
-    });
-  }
-
-  async createStrategicLinkage(kpiId, data) {
-    if (!kpiId) throw new Error('KPI ID is required');
-    if (!data) throw new Error('Linkage data is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.post(STRATEGIC_LINKAGE_ENDPOINTS.CREATE, { ...data, kpi: kpiId });
-      return response;
-    });
-  }
-
-  async updateStrategicLinkage(id, data) {
-    if (!id) throw new Error('Linkage ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.patch(STRATEGIC_LINKAGE_ENDPOINTS.UPDATE(id), data);
-      return response;
-    });
-  }
-
-  async deleteStrategicLinkage(id) {
-    if (!id) throw new Error('Linkage ID is required');
-    return withRetry(async () => {
-      const response = await this.apiClient.delete(STRATEGIC_LINKAGE_ENDPOINTS.DELETE(id));
       return response;
     });
   }

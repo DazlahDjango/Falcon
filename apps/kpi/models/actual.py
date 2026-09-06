@@ -13,6 +13,7 @@ class MonthlyActual(BaseKPIModel):
         ('APPROVED', 'Approved'),
         ('REJECTED', 'Rejected'),
         ('ADJUSTED', 'Adjusted'),
+        ('ESCALATED', 'Escalated'),
     ]
     kpi = models.ForeignKey(KPI, on_delete=models.CASCADE, related_name='actuals')
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='actuals')

@@ -2,7 +2,7 @@ import sys
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
 from apps.kpi.models import (
-    KPICategory, KPI, KPIHistory, KPIWeight, StrategicLinkage, KPIDependency,
+    KPICategory, KPI, KPIHistory, KPIWeight, KPIDependency,
     AnnualTarget, MonthlyPhasing, PhasingLock, TargetHistory,
     MonthlyActual, ActualHistory, ActualAdjustment, Evidence,
     ValidationRecord, ValidationComment, RejectionReason, Escalation,
@@ -82,9 +82,8 @@ class Command(BaseCommand):
             self._delete_model(CascadeMap, tenant_id)
             self._delete_model(AnnualTarget, tenant_id)
 
-            self.stdout.write(self.style.NOTICE("Deleting weights, linkages, and dependencies..."))
+            self.stdout.write(self.style.NOTICE("Deleting weights and dependencies..."))
             self._delete_model(KPIWeight, tenant_id)
-            self._delete_model(StrategicLinkage, tenant_id)
             self._delete_model(KPIDependency, tenant_id)
 
             self.stdout.write(self.style.NOTICE("Deleting scores, trends, and logs..."))

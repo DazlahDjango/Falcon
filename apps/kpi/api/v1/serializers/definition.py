@@ -1,6 +1,6 @@
 # definition.py
 from rest_framework import serializers
-from ....models import KPI, KPIWeight, StrategicLinkage, KPIDependency
+from ....models import KPI, KPIWeight, KPIDependency
 from ....validators import validate_kpi_code, validate_kpi_name
 from .base import TenantAwareSerializer, AuditTrailSerializer
 from .framework import KPICategorySerializer
@@ -25,7 +25,7 @@ class KPIListSerializer(TenantAwareSerializer):
             'category', 'category_name', 'parent_kpi', 'parent_kpi_name',
             'is_staff_created', 'approval_status', 'approval_status_display', 'rejection_reason',
             'owner', 'owner_email', 'department', 'department_name',
-            'is_active', 'strategic_objective', 'created_at', 'updated_at'
+            'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -57,7 +57,7 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
             'parent_kpi', 'parent_kpi_name', 'is_staff_created', 'approval_status', 'approval_status_display',
             'rejection_reason', 'approved_by', 'approved_by_email',
             'owner', 'owner_email', 'owner_name', 'department', 'department_name', 'is_active',
-            'activation_date', 'deactivation_date', 'strategic_objective', 'metadata',
+            'activation_date', 'deactivation_date', 'metadata',
             'weights_count', 'actuals_count', 'scores_count', 'sub_kpis_count',
             'tenant_id', 'created_at', 'updated_at', 'created_by_email', 'updated_by_email'
         ]
@@ -144,20 +144,6 @@ class KPIWeightSerializer(TenantAwareSerializer):
         if effective_from and effective_to and effective_from > effective_to:
             raise serializers.ValidationError("Effective from date cannot be after effective to date")
         return data
-
-
-class StrategicLinkageSerializer(TenantAwareSerializer):
-    linkage_type_display = serializers.CharField(source='get_linkage_type_display', read_only=True)
-    kpi_name = serializers.CharField(source='kpi.name', read_only=True)
-
-    class Meta:
-        model = StrategicLinkage
-        fields = [
-            'id', 'kpi', 'kpi_name', 'strategic_objective', 'objective_code',
-            'linkage_type', 'linkage_type_display', 'weight', 'description',
-            'tenant_id', 'created_at', 'updated_at', 'created_by', 'updated_by'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
 
 class KPIDependencySerializer(TenantAwareSerializer):

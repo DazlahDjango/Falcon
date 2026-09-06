@@ -30,7 +30,7 @@ const KPISummaryTable = ({ summaries, loading, onRowClick }) => {
             <table className="analytics-table">
                 <thead>
                     <tr>
-                        <th>Performance Indicator Name</th>
+                        <th>Performance Indicator</th>
                         <th>Code</th>
                         <th>Period</th>
                         <th>Avg Score</th>

@@ -5,12 +5,15 @@ import ActualAdjustmentApprove from './ActualAdjustmentApprove';
 import KPIEmptyState from '../../common/KPIEmptyState';
 import KPILoading from '../../common/KPILoading';
 
+import useKPIPermissions from '../../../../hooks/kpi/useKPIPermissions';
+
 const ActualAdjustmentList = ({ 
     adjustments, 
     loading, 
     onApprove,
     canApprove 
 }) => {
+    const { user } = useKPIPermissions();
     const [selectedAdjustment, setSelectedAdjustment] = useState(null);
     const [showApproveModal, setShowApproveModal] = useState(false);
 
@@ -52,53 +55,61 @@ const ActualAdjustmentList = ({
             </div>
             
             <div className="kpi-adjustment-items">
-                {adjustments.map(adjustment => (
-                    <div key={adjustment.id} className="kpi-adjustment-item">
-                        <div className="kpi-adjustment-item-header">
-                            <div className="kpi-adjustment-item-title">
-                                {adjustment.kpi_name}
+                {adjustments.map(adjustment => {
+                    const isOwnAdjustment = Boolean(adjustment && user && (
+                        String(adjustment.requested_by_id) === String(user.id) ||
+                        String(adjustment.user_id) === String(user.id) ||
+                        (adjustment.requested_by_email && user.email && adjustment.requested_by_email.toLowerCase() === user.email.toLowerCase())
+                    ));
+
+                    return (
+                        <div key={adjustment.id} className="kpi-adjustment-item">
+                            <div className="kpi-adjustment-item-header">
+                                <div className="kpi-adjustment-item-title">
+                                    {adjustment.kpi_name}
+                                </div>
+                                <div className={`kpi-adjustment-status ${getStatusClass(adjustment.status)}`}>
+                                    {getStatusIcon(adjustment.status)}
+                                    {adjustment.status}
+                                </div>
                             </div>
-                            <div className={`kpi-adjustment-status ${getStatusClass(adjustment.status)}`}>
-                                {getStatusIcon(adjustment.status)}
-                                {adjustment.status}
+                            
+                            <div className="kpi-adjustment-item-details">
+                                <div className="kpi-adjustment-detail">
+                                    <span className="kpi-adjustment-label">Original:</span>
+                                    <span className="kpi-adjustment-value original">{adjustment.original_value}</span>
+                                </div>
+                                <div className="kpi-adjustment-detail">
+                                    <span className="kpi-adjustment-label">Adjusted:</span>
+                                    <span className="kpi-adjustment-value adjusted">{adjustment.adjusted_value}</span>
+                                </div>
+                                <div className="kpi-adjustment-detail">
+                                    <FiUser size={12} />
+                                    <span>{adjustment.requested_by_email}</span>
+                                </div>
                             </div>
+                            
+                            <div className="kpi-adjustment-item-reason">
+                                <strong>Reason:</strong> {adjustment.reason}
+                            </div>
+                            
+                            {canApprove && adjustment.status === 'PENDING' && !isOwnAdjustment && (
+                                <div className="kpi-adjustment-item-actions">
+                                    <button 
+                                        className="kpi-adjustment-approve-btn"
+                                        onClick={() => {
+                                            setSelectedAdjustment(adjustment);
+                                            setShowApproveModal(true);
+                                        }}
+                                    >
+                                        <FiCheckCircle size={14} />
+                                        Approve
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        
-                        <div className="kpi-adjustment-item-details">
-                            <div className="kpi-adjustment-detail">
-                                <span className="kpi-adjustment-label">Original:</span>
-                                <span className="kpi-adjustment-value original">{adjustment.original_value}</span>
-                            </div>
-                            <div className="kpi-adjustment-detail">
-                                <span className="kpi-adjustment-label">Adjusted:</span>
-                                <span className="kpi-adjustment-value adjusted">{adjustment.adjusted_value}</span>
-                            </div>
-                            <div className="kpi-adjustment-detail">
-                                <FiUser size={12} />
-                                <span>{adjustment.requested_by_email}</span>
-                            </div>
-                        </div>
-                        
-                        <div className="kpi-adjustment-item-reason">
-                            <strong>Reason:</strong> {adjustment.reason}
-                        </div>
-                        
-                        {canApprove && adjustment.status === 'PENDING' && (
-                            <div className="kpi-adjustment-item-actions">
-                                <button 
-                                    className="kpi-adjustment-approve-btn"
-                                    onClick={() => {
-                                        setSelectedAdjustment(adjustment);
-                                        setShowApproveModal(true);
-                                    }}
-                                >
-                                    <FiCheckCircle size={14} />
-                                    Approve
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                    );
+                })}
             </div>
             
             {showApproveModal && selectedAdjustment && (

@@ -73,8 +73,6 @@ export const KPI_CLIENT_ADMIN_NAV_GROUPS = {
     { path: KPI_ROUTES.KPI_CREATE, name: 'Define New KPI', icon: FiPlus },
     { path: KPI_ROUTES.ADMIN_CATEGORIES, name: 'Category Tree', icon: FiLayers },
     { path: KPI_ROUTES.TARGETS, name: 'Annual Targets', icon: FiTrendingUp },
-    { path: KPI_ROUTES.TARGET_CASCADE, name: 'Cascade Targets', icon: FiShare2 },
-    { path: KPI_ROUTES.TARGET_CASCADE_RULES, name: 'Cascade Rules', icon: FiSliders },
     { path: KPI_ROUTES.BULK_UPLOAD, name: 'Bulk Uploads', icon: FiUpload },
   ],
   kpi_analytics: [

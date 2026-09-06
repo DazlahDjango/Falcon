@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useManagerDashboard } from '../../../hooks/dashboard/useManagerDashboard';
+import OrganizationKPITable from '../../../components/kpi/dashboard/OrganizationKPITable';
 import { 
   CheckCircleIcon, 
   ExclamationTriangleIcon, 
@@ -505,6 +506,9 @@ const ManagerDashboard = () => {
         </div>
 
       </div>
+
+      {/* Organization KPIs Section */}
+      <OrganizationKPITable limit={5} />
     </div>
   );
 };

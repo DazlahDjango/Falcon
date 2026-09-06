@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useExecutiveDashboard } from '../../../hooks/dashboard/useExecutiveDashboard';
+import OrganizationKPITable from '../../../components/kpi/dashboard/OrganizationKPITable';
 import {
   BuildingOffice2Icon,
   CheckCircleIcon,
@@ -436,6 +437,9 @@ const ExecutiveDashboard = () => {
         </div>
 
       </div>
+
+      {/* Organization KPIs Section */}
+      <OrganizationKPITable limit={5} />
     </div>
   );
 };

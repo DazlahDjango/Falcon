@@ -24,7 +24,7 @@ class ValidationApprover:
 
         self._validate_supervisor_access(supervisor, actual.user_id)
 
-        if actual.status != 'PENDING':
+        if actual.status not in ['PENDING', 'ESCALATED']:
             raise ApprovalError(f"Cannot approve entry with status: {actual.status}")
 
         tenant_id = actual.tenant_id or getattr(supervisor, 'tenant_id', None) or getattr(actual.kpi, 'tenant_id', None)
@@ -68,8 +68,11 @@ class ValidationApprover:
         return results
 
     def _validate_supervisor_access(self, supervisor, user_id: str) -> None:
+        if str(supervisor.id) == str(user_id):
+            raise PermissionDenied("You cannot validate or approve your own submission")
+
         role = str(getattr(supervisor, 'role', '')).lower()
-        if role in ['super_admin', 'superadmin', 'client_admin', 'admin', 'dashboard_champion', 'manager', 'supervisor', 'executive'] or getattr(supervisor, 'is_superuser', False):
+        if role in ['super_admin', 'superadmin', 'client_admin', 'dashboard_champion'] or getattr(supervisor, 'is_superuser', False):
             return
 
         direct_reports = self._get_direct_reports(supervisor.id)
@@ -81,6 +84,26 @@ class ValidationApprover:
             emp = Employment.objects.filter(user_id=user_id, is_current=True, is_active=True).first()
             if emp and emp.effective_manager_user_id and str(emp.effective_manager_user_id) == str(supervisor.id):
                 return
+        except Exception:
+            pass
+
+        try:
+            from apps.structure.services.reporting.chain_service import ChainService
+            tenant_id = getattr(supervisor, 'tenant_id', None)
+            if tenant_id:
+                try:
+                    from apps.tenant.models import OrganizationSchema
+                    from django.db import connection
+                    schema_obj = OrganizationSchema.objects.filter(organization_id=tenant_id).first()
+                    if schema_obj and schema_obj.schema_name:
+                        with connection.cursor() as cursor:
+                            cursor.execute(f'SET search_path TO "{schema_obj.schema_name}", public')
+                except Exception:
+                    pass
+                chain = ChainService().get_chain_of_command(user_id, str(tenant_id), use_cache=False)
+                chain_user_ids = [str(c['user_id']) for c in chain if 'user_id' in c]
+                if str(supervisor.id) in chain_user_ids:
+                    return
         except Exception:
             pass
 
@@ -316,7 +339,7 @@ class ValidationEscalator:
                 reason=reason,
                 status='PENDING'
             )
-            actual.status = 'PENDING'
+            actual.status = 'ESCALATED'
             actual.notes = f"[ESCALATED] {reason}\n{actual.notes}" if actual.notes else f"[ESCALATED] {reason}"
             actual.save()
 
@@ -337,7 +360,59 @@ class ValidationEscalator:
 
         with transaction.atomic():
             escalation.resolve(resolver, resolution)
+            if escalation.actual:
+                escalation.actual.status = 'APPROVED'
+                escalation.actual.save(update_fields=['status'])
             return escalation
+
+    def get_escalation_targets(self, user) -> List[Dict[str, Any]]:
+        targets = []
+        seen_ids = {str(user.id)}
+
+        try:
+            from apps.structure.services.reporting.chain_service import ChainService
+            chain_service = ChainService()
+            chain = chain_service.get_chain_of_command(user.id, user.tenant_id, use_cache=False)
+            for item in chain:
+                u_id = str(item.get('user_id'))
+                if u_id and u_id not in seen_ids:
+                    seen_ids.add(u_id)
+                    targets.append({
+                        'id': u_id,
+                        'name': item.get('user_name') or item.get('user_email') or f"Manager ({item.get('position_title', 'Leader')})",
+                        'email': item.get('user_email', ''),
+                        'role': item.get('position_title') or ('Executive' if item.get('is_executive') else 'Manager'),
+                        'is_direct_manager': len(targets) == 0
+                    })
+        except Exception:
+            pass
+
+        tenant_superiors = User.objects.filter(
+            tenant_id=user.tenant_id,
+            is_active=True
+        ).filter(
+            Q(is_staff=True) | Q(is_superuser=True) |
+            Q(user_roles__role__name__icontains='manager') |
+            Q(user_roles__role__name__icontains='lead') |
+            Q(user_roles__role__name__icontains='executive') |
+            Q(user_roles__role__name__icontains='admin') |
+            Q(user_roles__role__name__icontains='supervisor')
+        ).distinct()
+
+        for sup in tenant_superiors:
+            s_id = str(sup.id)
+            if s_id not in seen_ids:
+                seen_ids.add(s_id)
+                name = f"{sup.first_name} {sup.last_name}".strip() or sup.email
+                targets.append({
+                    'id': s_id,
+                    'name': name,
+                    'email': sup.email,
+                    'role': 'Supervisor / Manager',
+                    'is_direct_manager': False
+                })
+
+        return targets
 
     def _invalidate_caches(self, user_id: str, year: int, month: int) -> None:
         from apps.kpi.utils.cache_keys import safe_delete_pattern

@@ -132,7 +132,6 @@ class Command(BaseCommand):
             'target_max': Decimal('150000000.00'),
             'owner_id': ceo.id,
             'department_id': dept_exec.id if dept_exec else None,
-            'strategic_objective': 'Achieve KES 100,000,000.00 Net Sales Revenue in FY 2026',
             'is_active': True,
         }
 

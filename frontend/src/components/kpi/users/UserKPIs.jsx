@@ -83,7 +83,7 @@ const UserKPIs = ({ userId, onViewKPI }) => {
                         {kpi.current_score !== undefined && (
                             <div className="user-kpi-score-section">
                                 <div className="user-kpi-score-header">
-                                    <span>Current Score</span>
+                                    <span>Score</span>
                                     <TrafficLightIcon status={kpi.traffic_light} />
                                 </div>
                                 <div className="user-kpi-score" style={{ color: getScoreColor(kpi.current_score) }}>

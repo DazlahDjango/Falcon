@@ -471,11 +471,11 @@ const KPITargets = ({ kpiId, kpi }) => {
 
                             <div style={{ marginBottom: '24px' }}>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                                    Notes / Strategic Context (Optional)
+                                    Remarks / Strategic Context (Optional)
                                 </label>
                                 <textarea
                                     rows={3}
-                                    placeholder="Enter strategic context or notes for this annual target..."
+                                    placeholder="Enter strategic context or remarks for this annual target..."
                                     value={formNotes}
                                     onChange={(e) => setFormNotes(e.target.value)}
                                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}

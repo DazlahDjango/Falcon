@@ -31,13 +31,6 @@ const KPIInfo = ({ kpi }) => {
                 <p>{kpi.description || 'No description provided'}</p>
             </div>
             
-            {kpi.strategic_objective && (
-                <div className="info-strategic">
-                    <h4>Strategic Objective</h4>
-                    <p>{kpi.strategic_objective}</p>
-                </div>
-            )}
-            
             <div className="info-meta">
                 <div className="meta-item">
                     <span className="meta-label">Calculation Logic:</span>
