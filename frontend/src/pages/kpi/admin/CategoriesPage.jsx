@@ -14,9 +14,7 @@ const CategoriesPage = () => {
     const error = useSelector(selectFrameworkError);
 
     useEffect(() => {
-        if (isAuthenticated) {
-            dispatch(fetchCategories({ is_active: true }));
-        }
+        dispatch(fetchCategories({ is_active: true }));
     }, [dispatch, isAuthenticated]);
 
     if (!isAuthenticated) {

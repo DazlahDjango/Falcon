@@ -30,13 +30,16 @@ const CategoryList = ({
     }
 
     const categoryTree = buildCategoryTree(categories);
+    const displayTree = categoryTree.length > 0 
+        ? categoryTree 
+        : (Array.isArray(categories) ? categories.map(cat => ({ ...cat, children: [] })) : []);
 
     return (
         <div className="kpi-categories-container">
             <div className="kpi-categories-header">
                 <div>
-                    <h2>Key Result Areas</h2>
-                    <p>Organize Performance Indicators into hierarchical Key Result Areas</p>
+                    <h2>Key Result Areas (KRAs)</h2>
+                    <p>Organize Performance Indicators into strategic Key Result Areas</p>
                 </div>
                 {canManage && (
                     <button className="kpi-categories-add-btn" onClick={() => setShowForm(true)}>
@@ -46,7 +49,7 @@ const CategoryList = ({
                 )}
             </div>
             
-            {categories?.length === 0 ? (
+            {!categories || categories.length === 0 ? (
                 <KPIEmptyState 
                     icon="📁"
                     title="No Key Result Areas Found"
@@ -56,7 +59,7 @@ const CategoryList = ({
                 />
             ) : (
                 <CategoryTree 
-                    categories={categoryTree}
+                    categories={displayTree}
                     onEdit={setEditingCategory}
                     onDelete={onDelete}
                     onMove={onMove}
@@ -98,14 +101,23 @@ const CategoryList = ({
     );
 };
 
-const buildCategoryTree = (categories, parentId = null) => {
+const buildCategoryTree = (categories = [], parentId = null) => {
+    if (!Array.isArray(categories)) return [];
+    
     return categories
-        ?.filter(cat => cat.parent === parentId || (parentId === null && !cat.parent))
+        .filter(cat => {
+            const rawParent = cat.parent;
+            const pId = (typeof rawParent === 'object' && rawParent !== null) ? rawParent.id : rawParent;
+            if (parentId === null) {
+                return !pId;
+            }
+            return String(pId) === String(parentId);
+        })
         .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
         .map(cat => ({
             ...cat,
             children: buildCategoryTree(categories, cat.id)
-        })) || [];
+        }));
 };
 
 export default CategoryList;

@@ -104,8 +104,8 @@ class IsFrameworkAdmin(BasePermission):
         if request.user.is_superuser:
             return True
         
-        role = getattr(request.user, 'role', '')
-        return role in ['super_admin', 'client_admin']
+        role = getattr(request.user, 'role', '').lower()
+        return role in ['super_admin', 'client_admin', 'executive', 'ceo', 'director']
     
     def has_object_permission(self, request, view, obj):
         if hasattr(obj, 'tenant_id') and str(obj.tenant_id) != str(request.user.tenant_id):
@@ -114,8 +114,8 @@ class IsFrameworkAdmin(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         
-        role = getattr(request.user, 'role', '')
-        return role in ['super_admin', 'client_admin']
+        role = getattr(request.user, 'role', '').lower()
+        return role in ['super_admin', 'client_admin', 'executive', 'ceo', 'director']
 
 
 class CanManageFramework(IsFrameworkAdmin):

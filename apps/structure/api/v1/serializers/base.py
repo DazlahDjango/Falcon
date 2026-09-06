@@ -125,11 +125,11 @@ def get_node_staff_members(node):
     node_cls = node.__class__.__name__
 
     if level == 'division' or node_cls == 'Division':
-        qs = Employment.objects.filter(position__division_id=node.id, is_current=True, is_deleted=False)
+        qs = Employment.objects.filter(position__division_id=node.id, position__department_id__isnull=True, is_current=True, is_deleted=False)
     elif level == 'department' or node_cls == 'Department':
-        qs = Employment.objects.filter(position__department_id=node.id, is_current=True, is_deleted=False)
+        qs = Employment.objects.filter(position__department_id=node.id, position__section_id__isnull=True, position__unit_id__isnull=True, is_current=True, is_deleted=False)
     elif level == 'section' or node_cls == 'Section':
-        qs = Employment.objects.filter(position__section_id=node.id, is_current=True, is_deleted=False)
+        qs = Employment.objects.filter(position__section_id=node.id, position__unit_id__isnull=True, is_current=True, is_deleted=False)
     elif level == 'unit' or node_cls == 'Unit':
         qs = Employment.objects.filter(position__unit_id=node.id, is_current=True, is_deleted=False)
     else:

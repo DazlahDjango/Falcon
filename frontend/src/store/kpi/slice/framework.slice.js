@@ -117,7 +117,19 @@ const frameworkSlice = createSlice({
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
         const payload = action.payload;
-        state.categories = Array.isArray(payload) ? payload : (payload?.results || []);
+        if (Array.isArray(payload)) {
+          state.categories = payload;
+        } else if (Array.isArray(payload?.results)) {
+          state.categories = payload.results;
+        } else if (Array.isArray(payload?.data?.results)) {
+          state.categories = payload.data.results;
+        } else if (Array.isArray(payload?.data)) {
+          state.categories = payload.data;
+        } else if (Array.isArray(payload?.categories)) {
+          state.categories = payload.categories;
+        } else {
+          state.categories = [];
+        }
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;

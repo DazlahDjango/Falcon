@@ -41,6 +41,19 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                     {getTrendIcon()}
                 </div>
                 <div className="kpi-card-badges">
+                    {kpi.category_name && (
+                        <span style={{ 
+                            padding: '0.2rem 0.6rem', 
+                            borderRadius: '12px', 
+                            fontSize: '0.72rem', 
+                            fontWeight: 600, 
+                            backgroundColor: '#e0e7ff', 
+                            color: '#3730a3',
+                            border: '1px solid #c7d2fe'
+                        }}>
+                            {kpi.category_name}
+                        </span>
+                    )}
                     <span className="kpi-type-badge">{getKpiTypeLabel(kpi.kpi_type)}</span>
                     {kpi.approval_status === 'PENDING_APPROVAL' ? (
                         <span style={{ padding: '0.25rem 0.5rem', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#b45309' }}>Pending Approval</span>
