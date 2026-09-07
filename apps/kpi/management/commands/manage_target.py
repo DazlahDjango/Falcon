@@ -274,18 +274,23 @@ class Command(BaseCommand):
                 raise CommandError("No annual targets found matching filter to phase.")
 
             self.stdout.write(f"[*] Phasing {len(targets)} targets using '{strategy}' strategy...")
-            phased_count = 0
+            success_count = 0
+            skip_count = 0
             for t in targets:
-                res = phaser.phase_target(
-                    annual_target_id=str(t.id),
-                    strategy=strategy,
-                    strategy_params=strategy_params,
-                    user=actor
-                )
-                phased_count += 1
+                try:
+                    res = phaser.phase_target(
+                        annual_target_id=str(t.id),
+                        strategy=strategy,
+                        strategy_params=strategy_params,
+                        user=actor
+                    )
+                    success_count += 1
+                except Exception as e:
+                    skip_count += 1
+                    self.stdout.write(self.style.WARNING(f"  [SKIPPED] Target for {t.user.email if t.user else t.id}: {e}"))
 
             self.stdout.write(self.style.SUCCESS(
-                f"\n[OK] Successfully PHASED all {phased_count} Annual Targets using '{strategy}' strategy!"
+                f"\n[OK] Completed Monthly Phasing: {success_count} targets successfully phased, {skip_count} skipped/already phased."
             ))
             return
 
