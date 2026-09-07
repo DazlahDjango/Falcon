@@ -5,16 +5,16 @@ import CategoryForm from './CategoryForm';
 import KPILoading from '../../common/KPILoading';
 import KPIEmptyState from '../../common/KPIEmptyState';
 
-const CategoryList = ({ 
-    categories, 
+const CategoryList = ({
+    categories,
     frameworks,
-    loading, 
-    onCreate, 
-    onUpdate, 
+    loading,
+    onCreate,
+    onUpdate,
     onDelete,
     onMove,
     onReorder,
-    canManage 
+    canManage
 }) => {
     const [showForm, setShowForm] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
@@ -30,16 +30,13 @@ const CategoryList = ({
     }
 
     const categoryTree = buildCategoryTree(categories);
-    const displayTree = categoryTree.length > 0 
-        ? categoryTree 
-        : (Array.isArray(categories) ? categories.map(cat => ({ ...cat, children: [] })) : []);
 
     return (
         <div className="kpi-categories-container">
             <div className="kpi-categories-header">
                 <div>
-                    <h2>Key Result Areas (KRAs)</h2>
-                    <p>Organize Performance Indicators into strategic Key Result Areas</p>
+                    <h2>Key Result Areas</h2>
+                    <p>Organize Performance Indicators into hierarchical Key Result Areas</p>
                 </div>
                 {canManage && (
                     <button className="kpi-categories-add-btn" onClick={() => setShowForm(true)}>
@@ -48,9 +45,9 @@ const CategoryList = ({
                     </button>
                 )}
             </div>
-            
-            {!categories || categories.length === 0 ? (
-                <KPIEmptyState 
+
+            {categories?.length === 0 ? (
+                <KPIEmptyState
                     icon="📁"
                     title="No Key Result Areas Found"
                     description="No Key Result Areas have been created yet"
@@ -58,8 +55,8 @@ const CategoryList = ({
                     onAction={canManage ? () => setShowForm(true) : null}
                 />
             ) : (
-                <CategoryTree 
-                    categories={displayTree}
+                <CategoryTree
+                    categories={categoryTree}
                     onEdit={setEditingCategory}
                     onDelete={onDelete}
                     onMove={onMove}
@@ -67,9 +64,9 @@ const CategoryList = ({
                     canManage={canManage}
                 />
             )}
-            
+
             {showForm && (
-                <CategoryForm 
+                <CategoryForm
                     parentCategory={parentCategory}
                     frameworks={frameworks}
                     categories={categories}
@@ -84,9 +81,9 @@ const CategoryList = ({
                     }}
                 />
             )}
-            
+
             {editingCategory && (
-                <CategoryForm 
+                <CategoryForm
                     category={editingCategory}
                     frameworks={frameworks}
                     categories={categories}
@@ -101,23 +98,14 @@ const CategoryList = ({
     );
 };
 
-const buildCategoryTree = (categories = [], parentId = null) => {
-    if (!Array.isArray(categories)) return [];
-    
+const buildCategoryTree = (categories, parentId = null) => {
     return categories
-        .filter(cat => {
-            const rawParent = cat.parent;
-            const pId = (typeof rawParent === 'object' && rawParent !== null) ? rawParent.id : rawParent;
-            if (parentId === null) {
-                return !pId;
-            }
-            return String(pId) === String(parentId);
-        })
+        ?.filter(cat => cat.parent === parentId || (parentId === null && !cat.parent))
         .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
         .map(cat => ({
             ...cat,
             children: buildCategoryTree(categories, cat.id)
-        }));
+        })) || [];
 };
 
 export default CategoryList;

@@ -81,11 +81,11 @@ const initialState = {
   categories: [],
   currentCategory: null,
   categoryTree: [],
-  
+
   loading: false,
   submitting: false,
   error: null,
-  
+
   pagination: {
     page: 1,
     pageSize: 20,
@@ -117,19 +117,7 @@ const frameworkSlice = createSlice({
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
         const payload = action.payload;
-        if (Array.isArray(payload)) {
-          state.categories = payload;
-        } else if (Array.isArray(payload?.results)) {
-          state.categories = payload.results;
-        } else if (Array.isArray(payload?.data?.results)) {
-          state.categories = payload.data.results;
-        } else if (Array.isArray(payload?.data)) {
-          state.categories = payload.data;
-        } else if (Array.isArray(payload?.categories)) {
-          state.categories = payload.categories;
-        } else {
-          state.categories = [];
-        }
+        state.categories = Array.isArray(payload) ? payload : (payload?.results || []);
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;

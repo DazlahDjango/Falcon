@@ -12,7 +12,7 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
             default: return <FiMinus size={14} color="var(--kpi-warning)" />;
         }
     };
-    
+
     const getKpiTypeLabel = (type) => {
         const types = {
             COUNT: 'Count',
@@ -24,7 +24,7 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
         };
         return types[type] || type;
     };
-    
+
     const getScoreColor = () => {
         const score = kpi.current_score || 0;
         if (score >= 90) return 'var(--kpi-success)';
@@ -32,7 +32,7 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
         if (score >= 50) return 'var(--kpi-warning)';
         return 'var(--kpi-danger)';
     };
-    
+
     return (
         <div className="kpi-card" onClick={() => onView(kpi.id)}>
             <div className="kpi-card-header">
@@ -41,19 +41,6 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                     {getTrendIcon()}
                 </div>
                 <div className="kpi-card-badges">
-                    {kpi.category_name && (
-                        <span style={{ 
-                            padding: '0.2rem 0.6rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.72rem', 
-                            fontWeight: 600, 
-                            backgroundColor: '#e0e7ff', 
-                            color: '#3730a3',
-                            border: '1px solid #c7d2fe'
-                        }}>
-                            {kpi.category_name}
-                        </span>
-                    )}
                     <span className="kpi-type-badge">{getKpiTypeLabel(kpi.kpi_type)}</span>
                     {kpi.approval_status === 'PENDING_APPROVAL' ? (
                         <span style={{ padding: '0.25rem 0.5rem', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#b45309' }}>Pending Approval</span>
@@ -62,11 +49,11 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                     )}
                 </div>
             </div>
-            
+
             <div className="kpi-card-description">
                 {kpi.description || 'No description provided'}
             </div>
-            
+
             <div className="kpi-card-stats">
                 <div className="kpi-stat">
                     <FiTarget size={14} />
@@ -88,7 +75,7 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                     <span>Owner: {kpi.owner_email?.split('@')[0] || 'Staff'}</span>
                 </div>
             </div>
-            
+
             {kpi.current_score !== undefined && (
                 <div className="kpi-card-score">
                     <div className="kpi-score-header">
@@ -99,14 +86,14 @@ const KPICard = ({ kpi, onView, onEdit, canManage }) => {
                         {kpi.current_score}%
                     </div>
                     <div className="kpi-score-progress">
-                        <div 
+                        <div
                             className="kpi-score-progress-bar"
                             style={{ width: `${kpi.current_score}%`, background: getScoreColor() }}
                         />
                     </div>
                 </div>
             )}
-            
+
             {canManage && (
                 <div className="kpi-card-actions">
                     <button className="view-btn" onClick={(e) => { e.stopPropagation(); onView(kpi.id); }}>

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiPlus, FiClock, FiTarget, FiLayers } from 'react-icons/fi';
+import { FiPlus, FiClock, FiTarget } from 'react-icons/fi';
 import { KPIList, KPICreate, StaffKPICreateModal, KPIPendingApprovalsModal } from '../../../components/kpi';
 import { useKPIPermissions } from '../../../hooks/kpi';
 import { KpiPaths } from '../../../routes/kpi.routes';
-import { KPI_ROUTES } from '../../../config/constants/kpiRouteConstants';
 
 const KPIsPage = () => {
     const navigate = useNavigate();
@@ -52,27 +51,6 @@ const KPIsPage = () => {
                 marginBottom: '1rem',
                 padding: '0 0.5rem'
             }}>
-                <button
-                    type="button"
-                    onClick={() => navigate(KPI_ROUTES.ADMIN_CATEGORIES)}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.6rem 1.1rem',
-                        borderRadius: '8px',
-                        border: '1px solid #c7d2fe',
-                        backgroundColor: '#eef2ff',
-                        color: '#4338ca',
-                        fontWeight: 600,
-                        fontSize: '0.85rem',
-                        cursor: 'pointer',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                    }}
-                >
-                    <FiLayers size={16} />
-                    <span>Key Result Areas (KRAs)</span>
-                </button>
                 {canApproveKPI && (
                     <button
                         type="button"

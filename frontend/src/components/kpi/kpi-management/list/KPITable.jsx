@@ -12,29 +12,22 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
             default: return <FiMinus size={12} color="var(--kpi-warning)" />;
         }
     };
-    
+
     const getScoreColor = (score) => {
         if (score >= 90) return 'var(--kpi-success)';
         if (score >= 75) return 'var(--kpi-primary)';
         if (score >= 50) return 'var(--kpi-warning)';
         return 'var(--kpi-danger)';
     };
-    
+
     return (
         <div className="kpi-table-container">
             <table className="kpi-table">
                 <thead>
                     <tr>
-<<<<<<< HEAD
-                        <th>Name</th>
-                        <th>Key Result Area (KRA)</th>
-                        <th>Type</th>
-                        <th>Target Range</th>
-=======
                         <th>KRA</th>
                         <th>Performance Indicator</th>
                         <th>Target</th>
->>>>>>> e18a0d5661c4ac60e101dc33baf52df97c453ff4
                         <th>Owner</th>
                         <th>Score</th>
                         <th>Status</th>
@@ -42,48 +35,6 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
                     </tr>
                 </thead>
                 <tbody>
-<<<<<<< HEAD
-                    {kpis.map(kpi => (
-                        <tr key={kpi.id} className="kpi-table-row" onClick={() => onView(kpi.id)}>
-                            <td className="kpi-name-cell">
-                                <div className="kpi-name">{kpi.name}</div>
-                            </td>
-                            <td>
-                                <span style={{ 
-                                    padding: '0.2rem 0.5rem', 
-                                    borderRadius: '8px', 
-                                    fontSize: '0.75rem', 
-                                    fontWeight: 600, 
-                                    backgroundColor: '#f1f5f9', 
-                                    color: '#334155' 
-                                }}>
-                                    {kpi.category_name || '-'}
-                                </span>
-                            </td>
-                            <td>{kpi.kpi_type_display || kpi.kpi_type}</td>
-                            <td>{kpi.target_min} - {kpi.target_max}</td>
-                            <td>{kpi.owner_email?.split('@')[0]}</td>
-                            <td className="kpi-score-cell">
-                                <div className="kpi-score-wrapper">
-                                    <span className="kpi-score-value" style={{ color: getScoreColor(kpi.current_score || 0) }}>
-                                        {kpi.current_score || 0}%
-                                    </span>
-                                    {getTrendIcon(kpi.trend)}
-                                </div>
-                                <div className="kpi-score-bar">
-                                    <div 
-                                        className="kpi-score-bar-fill"
-                                        style={{ width: `${kpi.current_score || 0}%`, background: getScoreColor(kpi.current_score || 0) }}
-                                    />
-                                </div>
-                            </td>
-                            <td>
-                                <div className="kpi-status-wrapper">
-                                    {kpi.approval_status === 'PENDING_APPROVAL' ? (
-                                        <span style={{ padding: '0.2rem 0.5rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#b45309' }}>Pending</span>
-                                    ) : (
-                                        <KPIStatusBadge status={kpi.is_active ? 'active' : 'inactive'} />
-=======
                     {kpis.map(kpi => {
                         const targetDisplay = kpi.target_value != null
                             ? `${kpi.target_value} ${kpi.unit || ''}`.trim()
@@ -110,7 +61,7 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
                                         {getTrendIcon(kpi.trend)}
                                     </div>
                                     <div className="kpi-score-bar">
-                                        <div 
+                                        <div
                                             className="kpi-score-bar-fill"
                                             style={{ width: `${kpi.current_score || 0}%`, background: getScoreColor(kpi.current_score || 0) }}
                                         />
@@ -128,15 +79,14 @@ const KPITable = ({ kpis, onView, onEdit, canManage }) => {
                                 </td>
                                 <td className="kpi-actions-cell">
                                     {canManage && (
-                                        <button 
+                                        <button
                                             className="kpi-edit-btn"
                                             onClick={(e) => { e.stopPropagation(); onEdit(kpi.id); }}
                                         >
                                             <FiEdit size={14} />
                                         </button>
->>>>>>> e18a0d5661c4ac60e101dc33baf52df97c453ff4
                                     )}
-                                    <button 
+                                    <button
                                         className="kpi-view-btn"
                                         onClick={(e) => { e.stopPropagation(); onView(kpi.id); }}
                                     >

@@ -40,6 +40,7 @@ Usage Examples:
     python manage.py manage_target --action unlock-cycle --cycle FY2026
 """
 
+import uuid
 from decimal import Decimal
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, models
@@ -52,6 +53,16 @@ from apps.kpi.models.target import AnnualTarget, MonthlyPhasing, PhasingLock
 from apps.kpi.services.target import TargetSetter, TargetPhaser, TargetLocker, TargetValidator
 
 
+def is_valid_uuid(val):
+    if not val:
+        return False
+    try:
+        uuid.UUID(str(val))
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
+
 class Command(BaseCommand):
     help = 'Manage annual targets, monthly distribution strategies, phasing validation, and performance cycle locks.'
 
@@ -59,13 +70,13 @@ class Command(BaseCommand):
         parser.add_argument(
             '--tenant-id', '-t',
             type=str,
-            default='275adb1f-8e12-46ee-b394-ea42d41b10c9',
-            help='Tenant Organization ID (default: 275adb1f-8e12-46ee-b394-ea42d41b10c9)'
+            default='6102e576-12b5-4347-9bb8-4ddae94b8a94',
+            help='Tenant Organization ID (default: 6102e576-12b5-4347-9bb8-4ddae94b8a94)'
         )
         parser.add_argument(
             '--user-email', '-u',
             type=str,
-            default='emily.clark@globalapex.com',
+            default=None,
             help='Actor user email performing management action'
         )
         parser.add_argument(
@@ -87,6 +98,7 @@ class Command(BaseCommand):
         parser.add_argument('--strategy', type=str, default='equal_split', choices=['equal_split', 'seasonal', 'custom_pattern'], help='Phasing strategy')
         parser.add_argument('--pattern', type=str, default=None, help='Comma-separated 12 weights for custom_pattern (e.g. 1,1,2,2,3,3,4,4,1,1,1,1)')
         parser.add_argument('--cycle', type=str, default='FY2026', help='Performance cycle identifier for locking (e.g. FY2026)')
+        parser.add_argument('--all-targets', action='store_true', default=False, help='Phase all targets for the specified KPI/year')
         parser.add_argument('--notes', type=str, default='', help='Target setting notes')
 
     def set_tenant_schema(self, tenant_id):
@@ -111,11 +123,13 @@ class Command(BaseCommand):
 
         schema_name = self.set_tenant_schema(tenant_id)
 
-        actor = User.objects.filter(email__iexact=user_email, tenant_id=tenant_id).first()
+        if user_email:
+            actor = User.objects.filter(email__iexact=user_email, tenant_id=tenant_id).first()
+        else:
+            actor = User.objects.filter(tenant_id=tenant_id, is_staff=True).first() or User.objects.filter(tenant_id=tenant_id).first()
+
         if not actor:
-            actor = User.objects.filter(tenant_id=tenant_id).first()
-        if not actor:
-            raise CommandError(f"No user found for email '{user_email}' under tenant '{tenant_id}'")
+            raise CommandError(f"No user found under tenant '{tenant_id}'")
 
         self.stdout.write(self.style.MIGRATE_HEADING(f"=== FALCON TARGET & PHASING MANAGEMENT COMMAND ==="))
         self.stdout.write(f"Tenant ID : {tenant_id} (Schema: {schema_name})")
@@ -144,21 +158,24 @@ class Command(BaseCommand):
         targets_qs = AnnualTarget.objects.filter(tenant_id=tenant_id, year=year).select_related('kpi', 'user')
         kpi_filter = options.get('kpi_name')
         if kpi_filter:
-            targets_qs = targets_qs.filter(models.Q(kpi__name__icontains=kpi_filter) | models.Q(kpi__id__icontains=kpi_filter))
+            if is_valid_uuid(kpi_filter):
+                targets_qs = targets_qs.filter(models.Q(kpi__id=kpi_filter) | models.Q(kpi__name__icontains=kpi_filter))
+            else:
+                targets_qs = targets_qs.filter(models.Q(kpi__name__icontains=kpi_filter))
 
         targets = list(targets_qs.order_by('kpi__name'))
         self.stdout.write(self.style.SUCCESS(f"Found {len(targets)} Annual Targets for Year {year}:"))
 
-        fmt = "{:<36} {:<25} {:<25} {:<15} {:<12}"
+        fmt = "{:<36} {:<28} {:<26} {:<18} {:<12}"
         self.stdout.write(self.style.SQL_FIELD(fmt.format("TARGET ID", "KPI NAME", "ASSIGNEE USER", "TARGET VALUE", "PHASED MONTHS")))
-        self.stdout.write("-" * 120)
+        self.stdout.write("-" * 128)
         for t in targets:
             phased_count = t.monthly_phasing.count()
             self.stdout.write(fmt.format(
                 str(t.id),
-                t.kpi.name[:24],
-                t.user.email[:24],
-                f"${t.target_value:,.2f}",
+                t.kpi.name[:27],
+                t.user.email[:25] if t.user else "N/A",
+                f"KES {t.target_value:,.2f}",
                 f"{phased_count}/12"
             ))
 
@@ -172,9 +189,14 @@ class Command(BaseCommand):
         if not assignee:
             raise CommandError(f"Assignee user '{assignee_email}' not found")
 
-        kpi = KPI.objects.filter(tenant_id=tenant_id).filter(
-            models.Q(id=kpi_ref) | models.Q(name__icontains=kpi_ref)
-        ).first()
+        if is_valid_uuid(kpi_ref):
+            kpi = KPI.objects.filter(tenant_id=tenant_id).filter(
+                models.Q(id=kpi_ref) | models.Q(name__icontains=kpi_ref)
+            ).first()
+        else:
+            kpi = KPI.objects.filter(tenant_id=tenant_id).filter(
+                models.Q(name__icontains=kpi_ref)
+            ).first()
 
         if not kpi:
             raise CommandError(f"KPI '{kpi_ref}' not found")
@@ -194,7 +216,7 @@ class Command(BaseCommand):
             f"  - KPI      : {kpi.name}\n"
             f"  - Assignee : {assignee.email}\n"
             f"  - Year     : {target.year}\n"
-            f"  - Value    : ${target.target_value:,.2f}"
+            f"  - Value    : KES {target.target_value:,.2f}"
         ))
 
     def get_target_by_options(self, tenant_id, options):
@@ -208,7 +230,10 @@ class Command(BaseCommand):
         if kpi_ref:
             assignee_email = options.get('assignee_email')
             qs = AnnualTarget.objects.filter(tenant_id=tenant_id, year=options['year']).select_related('kpi', 'user')
-            qs = qs.filter(models.Q(kpi__id=kpi_ref) | models.Q(kpi__name__icontains=kpi_ref))
+            if is_valid_uuid(kpi_ref):
+                qs = qs.filter(models.Q(kpi__id=kpi_ref) | models.Q(kpi__name__icontains=kpi_ref))
+            else:
+                qs = qs.filter(models.Q(kpi__name__icontains=kpi_ref))
             if assignee_email:
                 qs = qs.filter(user__email__iexact=assignee_email)
             target = qs.first()
@@ -219,7 +244,6 @@ class Command(BaseCommand):
 
 
     def action_phase(self, tenant_id, actor, options):
-        target = self.get_target_by_options(tenant_id, options)
         strategy = options['strategy']
         strategy_params = {}
 
@@ -236,6 +260,36 @@ class Command(BaseCommand):
                 raise CommandError("--pattern must contain exactly 12 comma-separated non-negative numbers")
 
         phaser = TargetPhaser()
+
+        if options.get('all_targets'):
+            kpi_ref = options.get('kpi_name')
+            qs = AnnualTarget.objects.filter(tenant_id=tenant_id, year=options['year']).select_related('kpi', 'user')
+            if kpi_ref:
+                if is_valid_uuid(kpi_ref):
+                    qs = qs.filter(models.Q(kpi__id=kpi_ref) | models.Q(kpi__name__icontains=kpi_ref))
+                else:
+                    qs = qs.filter(models.Q(kpi__name__icontains=kpi_ref))
+            targets = list(qs)
+            if not targets:
+                raise CommandError("No annual targets found matching filter to phase.")
+
+            self.stdout.write(f"[*] Phasing {len(targets)} targets using '{strategy}' strategy...")
+            phased_count = 0
+            for t in targets:
+                res = phaser.phase_target(
+                    annual_target_id=str(t.id),
+                    strategy=strategy,
+                    strategy_params=strategy_params,
+                    user=actor
+                )
+                phased_count += 1
+
+            self.stdout.write(self.style.SUCCESS(
+                f"\n[OK] Successfully PHASED all {phased_count} Annual Targets using '{strategy}' strategy!"
+            ))
+            return
+
+        target = self.get_target_by_options(tenant_id, options)
         phasings = phaser.phase_target(
             annual_target_id=str(target.id),
             strategy=strategy,
@@ -244,12 +298,11 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(self.style.SUCCESS(
-            f"Successfully PHASED Annual Target using '{strategy}' strategy ({len(phasings)} months created)!"
+            f"Successfully PHASED Annual Target '{target.kpi.name}' ({target.user.email if target.user else 'Org'}) using '{strategy}' strategy ({len(phasings)} months created)!\n"
+            f"  - Total Annual Target: KES {target.target_value:,.2f}"
         ))
-        for p in phasings[:4]:
-            self.stdout.write(f"  - Month {p.month}: ${p.target_value:,.2f}")
-        if len(phasings) > 4:
-            self.stdout.write(f"  ... and {len(phasings) - 4} more months.")
+        for p in phasings:
+            self.stdout.write(f"  - Month {p.month:02d}: KES {p.target_value:,.2f}")
 
     def action_phasings(self, tenant_id, options):
         target = self.get_target_by_options(tenant_id, options)
@@ -260,13 +313,13 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(self.style.SUCCESS(f"Monthly Phasing Breakdown for Target '{target.kpi.name}' ({target.user.email}, {target.year}):"))
-        fmt = "{:<12} {:<12} {:<18} {:<12}"
+        fmt = "{:<12} {:<12} {:<20} {:<12}"
         self.stdout.write(self.style.SQL_FIELD(fmt.format("MONTH", "MONTH NAME", "TARGET VALUE", "LOCKED STATUS")))
         self.stdout.write("-" * 65)
         month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
         for p in phasings:
             m_name = month_names[p.month - 1] if 1 <= p.month <= 12 else str(p.month)
-            self.stdout.write(fmt.format(f"Month {p.month}", m_name, f"${p.target_value:,.2f}", "LOCKED" if p.is_locked else "Unlocked"))
+            self.stdout.write(fmt.format(f"Month {p.month:02d}", m_name, f"KES {p.target_value:,.2f}", "LOCKED" if p.is_locked else "Unlocked"))
 
     def action_validate(self, tenant_id, options):
         target = self.get_target_by_options(tenant_id, options)
@@ -276,9 +329,9 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"=== TARGET PHASING VALIDATION ==="))
         self.stdout.write(f" Annual Target ID   : {target.id}")
         self.stdout.write(f" KPI Name           : {target.kpi.name}")
-        self.stdout.write(f" Assignee           : {target.user.email}")
-        self.stdout.write(f" Annual Target Value: ${target.target_value:,.2f}")
-        self.stdout.write(f" Total Phased Sum   : ${summary['total']:,.2f}")
+        self.stdout.write(f" Assignee           : {target.user.email if target.user else 'Org'}")
+        self.stdout.write(f" Annual Target Value: KES {target.target_value:,.2f}")
+        self.stdout.write(f" Total Phased Sum   : KES {summary['total']:,.2f}")
         self.stdout.write(f" Validation Passed  : {summary['valid']}")
 
     def action_lock_month(self, tenant_id, actor, options):
