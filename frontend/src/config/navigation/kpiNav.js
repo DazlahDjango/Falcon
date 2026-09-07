@@ -30,7 +30,7 @@ export const KPI_SUPER_ADMIN_NAV_GROUPS = {
     { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiUsers },
     { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiCalendar },
     { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiActivity },
-    { path: KPI_ROUTES.KPI_VALIDATION, name: 'Validations', icon: FiCheckCircle },
+    { path: KPI_ROUTES.VALIDATIONS, name: 'Validations', icon: FiCheckCircle },
     { path: KPI_ROUTES.ESCALATIONS, name: 'Escalations', icon: FiAlertCircle },
     { path: KPI_ROUTES.ACTUAL_ADJUSTMENTS, name: 'Adjustments', icon: FiRotateCcw },
   ],
