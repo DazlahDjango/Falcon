@@ -30,9 +30,14 @@ class KPIViewSet(BaseKpiViewset):
         if not user or not user.is_authenticated:
             return super().get_queryset()
 
-        scope = self.request.query_params.get('scope')
+        query_params = getattr(self.request, 'query_params', getattr(self.request, 'GET', {}))
+        scope = query_params.get('scope')
         if scope == 'my':
-            return super().get_queryset().filter(Q(owner=user) | Q(created_by=user))
+            return super().get_queryset().filter(
+                Q(owner=user) | 
+                Q(created_by=user) | 
+                Q(annual_targets__user=user)
+            ).distinct()
         elif scope == 'team':
             direct_reports = []
             if hasattr(user, 'get_direct_reports'):
@@ -57,12 +62,13 @@ class KPIViewSet(BaseKpiViewset):
                 return super().get_queryset().filter(
                     Q(owner_id__in=direct_reports) | 
                     Q(department_id__in=managed_depts) | 
-                    Q(parent_kpi__owner=user)
-                ).exclude(owner=user)
+                    Q(parent_kpi__owner=user) |
+                    Q(annual_targets__user_id__in=direct_reports)
+                ).exclude(owner=user).distinct()
             else:
                 return super().get_queryset().exclude(owner=user)
 
-        return KPI.objects.for_user_hierarchy(user)
+        return KPI.objects.for_user_hierarchy(user).distinct()
 
     def get_serializer_class(self):
         if self.action == 'list':

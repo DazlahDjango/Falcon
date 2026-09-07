@@ -48,17 +48,28 @@ class KPIManager(SoftDeleteManager):
         if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion', 'executive']:
             return self
 
-        user_kpis = Q(owner=user) | Q(created_by=user)
+        user_kpis = Q(owner=user) | Q(created_by=user) | Q(annual_targets__user=user)
         direct_reports = []
         if hasattr(user, 'get_direct_reports'):
             try:
-                direct_reports = user.get_direct_reports().values_list('id', flat=True)
+                direct_reports = list(user.get_direct_reports().values_list('id', flat=True))
             except Exception:
                 direct_reports = []
-        report_kpis = Q(owner_id__in=direct_reports) if direct_reports else Q()
+        try:
+            from apps.structure.models import Employment
+            emp_reports = list(Employment.objects.filter(
+                position__reports_to__employments__user_id=user.id,
+                is_current=True,
+                is_active=True
+            ).values_list('user_id', flat=True))
+            direct_reports.extend(emp_reports)
+        except Exception:
+            pass
+
+        report_kpis = (Q(owner_id__in=direct_reports) | Q(annual_targets__user_id__in=direct_reports)) if direct_reports else Q()
         managed_depts = getattr(user, 'managed_departments', [])
         dept_kpis = Q(department_id__in=managed_depts) if managed_depts else Q()
-        return self.filter(user_kpis | report_kpis | dept_kpis)
+        return self.filter(user_kpis | report_kpis | dept_kpis).distinct()
 
     def with_recent_actuals(self, year, month):
         from apps.kpi.models import MonthlyActual
