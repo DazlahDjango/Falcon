@@ -53,7 +53,7 @@ const SuperAdminDashboard = debugLazy(
 // ============================================
 const ClientAdminOverview = debugLazy(
   () => import('../pages/dashboard'),
-  'ClientAdminOverview'
+  'ClientAdminDashboard'
 );
 
 
@@ -62,7 +62,7 @@ const ClientAdminOverview = debugLazy(
 // ============================================
 const ExecutiveOverview = debugLazy(
   () => import('../pages/dashboard'),
-  'ExecutiveOverview'
+  'ExecutiveDashboard'
 );
 
 // ============================================
@@ -70,7 +70,7 @@ const ExecutiveOverview = debugLazy(
 // ============================================
 const ManagerOverview = debugLazy(
   () => import('../pages/dashboard'),
-  'ManagerOverview'
+  'ManagerDashboard'
 );
 
 // ============================================
@@ -78,7 +78,7 @@ const ManagerOverview = debugLazy(
 // ============================================
 const StaffOverview = debugLazy(
   () => import('../pages/dashboard'),
-  'StaffOverview'
+  'StaffDashboard'
 );
 
 // ============================================
@@ -86,7 +86,7 @@ const StaffOverview = debugLazy(
 // ============================================
 const ChampionOverview = debugLazy(
   () => import('../pages/dashboard'),
-  'ChampionOverview'
+  'ChampionDashboard'
 );
 
 // ============================================
@@ -94,7 +94,7 @@ const ChampionOverview = debugLazy(
 // ============================================
 const ReadOnlyOverview = debugLazy(
   () => import('../pages/dashboard'),
-  'ReadOnlyOverview'
+  'ReadOnlyDashboard'
 );
 
 // Loading fallback
