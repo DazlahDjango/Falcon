@@ -11,6 +11,7 @@ export { default as ActualList } from './list/ActualList';
 export { default as ActualTable } from './list/ActualTable';
 export { default as ActualFilters } from './list/ActualFilters';
 export { default as ActualStatusBadge } from './list/ActualStatusBadge';
+export { default as ActualMatrixGrid } from './matrix/ActualMatrixGrid';
 
 // Detail
 export { default as ActualDetail } from './detail/ActualDetail';

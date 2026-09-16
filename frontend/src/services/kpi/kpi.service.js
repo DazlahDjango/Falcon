@@ -216,7 +216,9 @@ class KPIService extends BaseKPIService {
 
   // ============ User Nested (My KPIs) ============
   async getUserKPIs(userId, params = {}) {
-    if (!userId) throw new Error('User ID is required');
+    if (!userId) {
+      return this.getKPIs({ scope: 'my', ...params });
+    }
     return withRetry(async () => {
       const response = await this.apiClient.get(USER_NESTED_ENDPOINTS.KPI(userId), { params });
       return response;

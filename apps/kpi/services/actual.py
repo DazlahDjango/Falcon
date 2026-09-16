@@ -30,6 +30,13 @@ class ActualEntry:
         evidence_file=None,
         user=None
     ) -> MonthlyActual:
+        try:
+            year = int(year)
+            month = int(month)
+            actual_value = Decimal(str(actual_value))
+        except (ValueError, TypeError) as e:
+            raise ValidationError(f"Invalid input types for year, month, or actual value: {str(e)}")
+
         validate_year(year)
         validate_month(month)
         validate_non_negative_value(actual_value)
@@ -80,10 +87,23 @@ class ActualEntry:
                 if kpi.approval_status != 'APPROVED':
                     raise ValidationError(f"Cannot submit actual value for Performance Indicator '{kpi.name}' because it is not approved yet (Status: {kpi.approval_status}).")
 
-                if not kpi.is_active:
-                    raise ValidationError(f"Cannot submit actual value for Performance Indicator '{kpi.name}' because it is inactive.")
+                has_permission = False
+                if user:
+                    user_role = str(getattr(user, 'role', '')).lower()
+                    if getattr(user, 'is_superuser', False) or user_role in ['super_admin', 'client_admin', 'executive', 'dashboard_champion', 'hr_admin']:
+                        has_permission = True
+                    elif kpi.owner_id and str(kpi.owner_id) in [str(user.id), str(user_id)]:
+                        has_permission = True
+                    elif kpi.annual_targets.filter(user_id__in=[user.id, user_id]).exists():
+                        has_permission = True
+                    elif getattr(kpi, 'created_by_id', None) and str(kpi.created_by_id) in [str(user.id), str(user_id)]:
+                        has_permission = True
+                    elif hasattr(user, 'get_direct_reports') and user.get_direct_reports().filter(id=user_id).exists():
+                        has_permission = True
+                else:
+                    has_permission = True
 
-                if user and not getattr(user, 'is_superuser', False) and kpi.owner_id and str(kpi.owner_id) != str(user.id) and str(kpi.owner_id) != str(user_id):
+                if not has_permission:
                     raise PermissionDenied(f"You can only submit actual values for Performance Indicators assigned to or created by you.")
 
                 tenant_id = kpi.tenant_id or getattr(user, 'tenant_id', None) or getattr(submitter, 'tenant_id', None)
@@ -129,10 +149,14 @@ class ActualEntry:
             raise EvidenceUploadError(f"Failed to upload evidence: {str(e)}")
 
     def _user_belongs_to_tenant(self, user, kpi_id: str) -> bool:
+        if getattr(user, 'is_superuser', False) or str(getattr(user, 'role', '')).lower() == 'super_admin':
+            return True
         kpi = KPI.objects.filter(id=kpi_id).only('tenant_id').first()
         if not kpi:
             return False
-        return user.tenant_id == kpi.tenant_id
+        if not user.tenant_id or not kpi.tenant_id:
+            return True
+        return str(user.tenant_id) == str(kpi.tenant_id)
 
     def _invalidate_caches(self, kpi_id: str, user_id: str, year: int, month: int) -> None:
         from apps.kpi.utils.cache_keys import safe_delete_pattern

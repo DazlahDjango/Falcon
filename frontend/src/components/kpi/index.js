@@ -62,6 +62,7 @@ export {
     ActualTable,
     ActualFilters,
     ActualStatusBadge,
+    ActualMatrixGrid,
     // Detail
     ActualDetail,
     ActualInfo,

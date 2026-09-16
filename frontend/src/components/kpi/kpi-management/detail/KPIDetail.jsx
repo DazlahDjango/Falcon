@@ -27,9 +27,10 @@ import useKPIPermissions from '../../../../hooks/kpi/useKPIPermissions';
 
 const KPIDetail = ({ kpiId, onBack, onEdit }) => {
     const dispatch = useDispatch();
-    const { user, canManageKPIs, canApproveKPI, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion } = useKPIPermissions();
+    const { user, canManageKPIs, canApproveKPI, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion, permissions } = useKPIPermissions();
     const canSeeAdminTabs = canManageKPIs || isManager || isExecutive || isClientAdmin || isSuperAdmin || isDashboardChampion;
-    const canManageOrApprove = canManageKPIs || canApproveKPI || isManager;
+    const canActivateOrDeactivate = isSuperAdmin || isClientAdmin || isDashboardChampion || permissions?.canActivateKPI;
+    const canApproveThisKPI = isSuperAdmin || isClientAdmin || isDashboardChampion || canApproveKPI;
 
     const [activeTab, setActiveTab] = useState('info');
     const [showActivateConfirm, setShowActivateConfirm] = useState(false);
@@ -47,7 +48,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
         (kpi.user_email && user.email && kpi.user_email.toLowerCase() === user.email.toLowerCase())
     );
     const isPendingOrInactive = kpi && (kpi.approval_status === 'PENDING_APPROVAL' || kpi.approval_status === 'PENDING' || !kpi.is_active);
-    const canEditThisKPI = canManageKPIs || (isOwnerOrCreator && isPendingOrInactive);
+    const canEditThisKPI = (isSuperAdmin || isClientAdmin || isDashboardChampion) || (isOwnerOrCreator && isPendingOrInactive);
     
     useEffect(() => {
         if (kpiId) {
@@ -108,7 +109,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                     Back to List
                 </button>
                 <div className="kpi-detail-actions">
-                    {kpi.approval_status === 'PENDING_APPROVAL' && canManageOrApprove && (
+                    {kpi.approval_status === 'PENDING_APPROVAL' && canApproveThisKPI && (
                         <button 
                             className="kpi-detail-activate"
                             style={{ backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
@@ -118,7 +119,7 @@ const KPIDetail = ({ kpiId, onBack, onEdit }) => {
                             Approve KPI
                         </button>
                     )}
-                    {canManageOrApprove && (
+                    {canActivateOrDeactivate && (
                         <>
                             {kpi.is_active ? (
                                 <button 

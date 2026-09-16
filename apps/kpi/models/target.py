@@ -25,6 +25,25 @@ class AnnualTarget(BaseKPIModel):
 
     def __str__(self):
         return f"{self.kpi.name} - {self.user.email}: {self.target_value} ({self.year})"
+
+    @property
+    def is_approved(self):
+        return bool(self.approved_at or self.approved_by_id)
+
+    @property
+    def is_locked(self):
+        phasings = self.monthly_phasing.all()
+        if phasings.exists():
+            return any(p.is_locked for p in phasings)
+        return False
+
+    @property
+    def status(self):
+        if self.is_locked:
+            return 'LOCKED'
+        if self.is_approved:
+            return 'APPROVED'
+        return 'PENDING'
     
     def clean(self):
         if self.target_value < 0:

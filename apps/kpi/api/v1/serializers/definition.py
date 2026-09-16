@@ -13,8 +13,8 @@ class KPIListSerializer(TenantAwareSerializer):
     approval_status_display = serializers.CharField(source='get_approval_status_display', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True, default=None)
     parent_kpi_name = serializers.CharField(source='parent_kpi.name', read_only=True, default=None)
-    owner_email = serializers.EmailField(source='owner.email', read_only=True, default=None)
-    owner_name = serializers.CharField(source='owner.get_full_name', read_only=True, default=None)
+    owner_email = serializers.SerializerMethodField()
+    owner_name = serializers.SerializerMethodField()
     department_name = serializers.CharField(source='department.name', read_only=True, default=None)
     target_value = serializers.SerializerMethodField()
     current_score = serializers.SerializerMethodField()
@@ -35,6 +35,24 @@ class KPIListSerializer(TenantAwareSerializer):
             'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_owner_name(self, obj):
+        request = self.context.get('request')
+        user = request.user if request and getattr(request, 'user', None) and request.user.is_authenticated else None
+        query_params = getattr(request, 'query_params', getattr(request, 'GET', {})) if request else {}
+        scope = query_params.get('scope') if query_params else None
+        if (scope == 'my' or (request and 'my-kpis' in getattr(request, 'path', ''))) and user:
+            return user.get_full_name() or user.username
+        return obj.owner.get_full_name() if obj.owner else (user.get_full_name() if user else None)
+
+    def get_owner_email(self, obj):
+        request = self.context.get('request')
+        user = request.user if request and getattr(request, 'user', None) and request.user.is_authenticated else None
+        query_params = getattr(request, 'query_params', getattr(request, 'GET', {})) if request else {}
+        scope = query_params.get('scope') if query_params else None
+        if (scope == 'my' or (request and 'my-kpis' in getattr(request, 'path', ''))) and user:
+            return user.email
+        return obj.owner.email if obj.owner else (user.email if user else None)
 
     def get_target_value(self, obj):
         request = self.context.get('request')
@@ -87,8 +105,8 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
     approval_status_display = serializers.CharField(source='get_approval_status_display', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True, default=None)
     parent_kpi_name = serializers.CharField(source='parent_kpi.name', read_only=True, default=None)
-    owner_email = serializers.EmailField(source='owner.email', read_only=True, default=None)
-    owner_name = serializers.CharField(source='owner.get_full_name', read_only=True, default=None)
+    owner_email = serializers.SerializerMethodField()
+    owner_name = serializers.SerializerMethodField()
     approved_by_email = serializers.EmailField(source='approved_by.email', read_only=True, default=None)
     department_name = serializers.CharField(source='department.name', read_only=True, default=None)
     category_detail = KPICategorySerializer(source='category', read_only=True)
@@ -96,6 +114,24 @@ class KPIDetailSerializer(TenantAwareSerializer, AuditTrailSerializer):
     actuals_count = serializers.SerializerMethodField()
     scores_count = serializers.SerializerMethodField()
     sub_kpis_count = serializers.SerializerMethodField()
+
+    def get_owner_name(self, obj):
+        request = self.context.get('request')
+        user = request.user if request and getattr(request, 'user', None) and request.user.is_authenticated else None
+        query_params = getattr(request, 'query_params', getattr(request, 'GET', {})) if request else {}
+        scope = query_params.get('scope') if query_params else None
+        if (scope == 'my' or (request and 'my-kpis' in getattr(request, 'path', ''))) and user:
+            return user.get_full_name() or user.username
+        return obj.owner.get_full_name() if obj.owner else (user.get_full_name() if user else None)
+
+    def get_owner_email(self, obj):
+        request = self.context.get('request')
+        user = request.user if request and getattr(request, 'user', None) and request.user.is_authenticated else None
+        query_params = getattr(request, 'query_params', getattr(request, 'GET', {})) if request else {}
+        scope = query_params.get('scope') if query_params else None
+        if (scope == 'my' or (request and 'my-kpis' in getattr(request, 'path', ''))) and user:
+            return user.email
+        return obj.owner.email if obj.owner else (user.email if user else None)
 
     class Meta:
         model = KPI

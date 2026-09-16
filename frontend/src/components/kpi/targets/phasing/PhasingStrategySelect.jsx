@@ -11,6 +11,18 @@ export const generateMonthlyValues = (annualTarget, strategyId, params = {}) => 
         if (sum !== target) {
             values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
         }
+    } else if (strategyId === 'quarterly_equal') {
+        // 25% per quarter (divided into 3 months per quarter)
+        const monthly = parseFloat((target / 12).toFixed(2));
+        values = Array.from({ length: 12 }, () => monthly);
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
+    } else if (strategyId === 'quarterly_progressive') {
+        // Q1: 15%, Q2: 25%, Q3: 30%, Q4: 30%
+        const qWeights = [0.15 / 3, 0.15 / 3, 0.15 / 3, 0.25 / 3, 0.25 / 3, 0.25 / 3, 0.30 / 3, 0.30 / 3, 0.30 / 3, 0.30 / 3, 0.30 / 3, 0.30 / 3];
+        values = qWeights.map(w => parseFloat((target * w).toFixed(2)));
+        const sum = values.reduce((a, b) => a + b, 0);
+        if (sum !== target) values[11] = parseFloat((values[11] + (target - sum)).toFixed(2));
     } else if (strategyId === 'linear_increasing') {
         const weights = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
         const totalW = 78;
@@ -56,39 +68,39 @@ const PhasingStrategySelect = ({ target, onSelect, onCancel, annualTarget, selec
     const strategies = [
         { 
             id: 'equal_split', 
-            name: 'Equal Split', 
+            name: 'Equal Monthly (1/12th)', 
             icon: <FiBarChart2 size={16} />,
-            description: 'Distribute equally across all months'
+            description: 'Divides annual target evenly across all 12 months'
+        },
+        { 
+            id: 'quarterly_progressive', 
+            name: 'Quarterly Progressive', 
+            icon: <FiTrendingUp size={16} />,
+            description: 'Q1: 15% | Q2: 25% | Q3: 30% | Q4: 30%'
         },
         { 
             id: 'linear_increasing', 
-            name: 'Linear Increasing', 
+            name: 'Growth Ramp-Up', 
             icon: <FiTrendingUp size={16} />,
-            description: 'Gradually increase each month'
-        },
-        { 
-            id: 'linear_decreasing', 
-            name: 'Linear Decreasing', 
-            icon: <FiTrendingDown size={16} />,
-            description: 'Gradually decrease each month'
+            description: 'Gradually increase quota month-by-month'
         },
         { 
             id: 'front_loaded', 
-            name: 'Front Loaded', 
+            name: 'Front Loaded (Q1 Focus)', 
             icon: <FiCalendar size={16} />,
-            description: 'Heavier in Q1, lighter in Q4'
+            description: 'Heavier in Q1 (45%), lighter in Q4'
         },
         { 
             id: 'back_loaded', 
-            name: 'Back Loaded', 
+            name: 'Back Loaded (Q4 Push)', 
             icon: <FiCalendar size={16} />,
-            description: 'Lighter in Q1, heavier in Q4'
+            description: 'Lighter in Q1, heavier in Q4 (45%)'
         },
         { 
             id: 'seasonal', 
             name: 'Seasonal Pattern', 
             icon: <FiCalendar size={16} />,
-            description: 'Follow seasonal trends'
+            description: 'Follow seasonal peak curves'
         }
     ];
 

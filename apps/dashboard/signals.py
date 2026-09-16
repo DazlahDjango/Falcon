@@ -8,20 +8,22 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender='kpi.MonthlyActual')
 def on_kpi_actual_saved(sender, instance, created, **kwargs):
-    from apps.kpi.services import KPIUpdater
     try:
-        calc_service = KPIUpdater(None, instance.tenant_id)
-        new_score = calc_service.update(instance.kpi_id)
+        from apps.kpi.services.calculation import ScoreCalculator
+        calc_service = ScoreCalculator()
+        calc_service.calculate_user(str(instance.user_id), instance.year, instance.month, force=True)
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"dashboard_{instance.tenant_id}_*_*",
-            {
-                'type': 'kpi_update',
-                'kpi_id': str(instance.kpi_id),
-                'new_score': new_score,
-                'timestamp': str(instance.updated_at)
-            }
-        )
+        if channel_layer:
+            group_name = f"dashboard_{str(instance.tenant_id).replace('-', '_')}"
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    'type': 'kpi_update',
+                    'kpi_id': str(instance.kpi_id),
+                    'user_id': str(instance.user_id),
+                    'timestamp': str(instance.updated_at)
+                }
+            )
         cache_pattern = f"dashboard:*:{instance.tenant_id}:*:*"
         _invalidate_cache_pattern(cache_pattern)        
     except Exception as e:
@@ -31,20 +33,22 @@ def on_kpi_actual_saved(sender, instance, created, **kwargs):
 def on_kpi_status_change(sender, instance, created, **kwargs):
     if not created and hasattr(instance, '_previous_status'):
         channel_layer = get_channel_layer()        
-        async_to_sync(channel_layer.group_send)(
-            f"dashboard_{instance.tenant_id}_*_*",
-            {
-                'type': 'dashboard_update',
-                'update_type': 'kpi_status_change',
-                'data': {
-                    'kpi_id': str(instance.id),
-                    'kpi_name': instance.name,
-                    'old_status': instance._previous_status,
-                    'new_status': instance.current_status
-                },
-                'timestamp': str(instance.updated_at)
-            }
-        )
+        if channel_layer:
+            group_name = f"dashboard_{str(instance.tenant_id).replace('-', '_')}"
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    'type': 'dashboard_update',
+                    'update_type': 'kpi_status_change',
+                    'data': {
+                        'kpi_id': str(instance.id),
+                        'kpi_name': instance.name,
+                        'old_status': instance._previous_status,
+                        'new_status': instance.current_status
+                    },
+                    'timestamp': str(instance.updated_at)
+                }
+            )
 
 @receiver(post_save, sender='dashboard.DashboardAlert')
 def on_alert_triggered(sender, instance, created, **kwargs):

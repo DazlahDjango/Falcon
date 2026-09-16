@@ -98,6 +98,8 @@ class CascadeEngine:
                     year=org_target.year,
                     defaults={
                         'target_value': target_value,
+                        'approved_at': timezone.now(),
+                        'approved_by_id': self.user_id or org_target.user_id,
                         'notes': f"Cascaded [{entity_type}:{entity_id}] from target {parent_target_obj.id}"
                     }
                 )

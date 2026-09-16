@@ -1,26 +1,61 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiActivity, FiTarget, FiCheckCircle, FiClock, FiTrendingUp, FiAward } from 'react-icons/fi';
-import { fetchIndividualDashboard, selectIndividualDashboard, selectDashboardLoading } from '../../../../store/kpi';
+import { FiActivity, FiTarget, FiCheckCircle, FiClock, FiTrendingUp, FiAward, FiGrid } from 'react-icons/fi';
+import { 
+    fetchIndividualDashboard, 
+    selectIndividualDashboard, 
+    selectDashboardLoading,
+    fetchActuals,
+    fetchUserKPIs,
+    fetchTargets,
+    selectActuals,
+    selectUserKPIs,
+    selectTargets
+} from '../../../../store/kpi';
+import { useAuthContext } from '../../../../contexts/accounts/AuthContext';
 import MyKPIScores from './MyKPIScores';
 import RecentActivity from './RecentActivity';
 import Achievements from './Achievements';
 import PerformanceTrend from './PerformanceTrend';
+import ActualMatrixGrid from '../../actuals/matrix/ActualMatrixGrid';
 import KPILoading from '../../common/KPILoading';
 
 const IndividualDashboard = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { user: authUser } = useAuthContext();
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     
     const dashboard = useSelector(selectIndividualDashboard);
     const loading = useSelector(selectDashboardLoading);
+    const actuals = useSelector(selectActuals) || [];
+    const userKpis = useSelector(state => selectUserKPIs(authUser?.id)(state)) || [];
+    const targets = useSelector(selectTargets) || [];
     
     useEffect(() => {
         dispatch(fetchIndividualDashboard({ year, month }));
-    }, [dispatch, year, month]);
+        if (authUser?.id) {
+            dispatch(fetchUserKPIs({ userId: authUser.id, params: { for_actuals: true } }));
+            dispatch(fetchActuals({ scope: 'my', year, page_size: 100 }));
+            dispatch(fetchTargets({ user: authUser.id, year, pageSize: 100 }));
+        }
+    }, [dispatch, year, month, authUser?.id]);
+
+    const handleCellClick = (actual) => {
+        if (actual?.id) {
+            navigate(`/kpi/actuals?selected=${actual.id}`);
+        } else {
+            navigate('/kpi/actuals');
+        }
+    };
+
+    const handleAddClick = ({ kpi_id, year: y, month: m }) => {
+        navigate(`/kpi/actuals?submit=true&kpi=${kpi_id}&year=${y}&month=${m}`);
+    };
     
-    if (loading) {
+    if (loading && !dashboard) {
         return <KPILoading text="Loading your dashboard..." />;
     }
     
@@ -75,7 +110,7 @@ const IndividualDashboard = () => {
             <div className="dashboard-header">
                 <div>
                     <h1>Dashboard</h1>
-                    <p>Welcome back! Here's your performance overview</p>
+                    <p>Welcome back! Here's your personal performance overview</p>
                 </div>
                 <div className="period-selector">
                     <select value={year} onChange={(e) => setYear(parseInt(e.target.value))}>
@@ -120,6 +155,20 @@ const IndividualDashboard = () => {
             <div className="dashboard-two-col">
                 <RecentActivity activities={dashboard?.recent_activity} />
                 <Achievements achievements={dashboard?.achievements} />
+            </div>
+
+            {/* Monthly Actuals Matrix Grid */}
+            <div style={{ marginTop: '2rem' }}>
+                <ActualMatrixGrid 
+                    actuals={actuals}
+                    kpis={userKpis}
+                    targets={targets}
+                    selectedYear={year}
+                    onYearChange={setYear}
+                    onCellClick={handleCellClick}
+                    onAddClick={handleAddClick}
+                    loading={loading}
+                />
             </div>
         </div>
     );

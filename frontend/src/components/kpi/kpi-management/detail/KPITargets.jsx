@@ -15,7 +15,7 @@ import CascadeTreeModal from '../../targets/cascade/CascadeTreeModal';
 const KPITargets = ({ kpiId, kpi }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { canManageKPIs, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion } = useKPIPermissions();
+    const { user: authUser, canManageKPIs, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion } = useKPIPermissions();
     const canManageCascades = canManageKPIs || isManager || isExecutive || isClientAdmin || isSuperAdmin || isDashboardChampion;
 
     const { users } = useReferenceData(['users']);
@@ -34,8 +34,28 @@ const KPITargets = ({ kpiId, kpi }) => {
     const [formError, setFormError] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    const targets = useSelector(selectTargets);
+    const rawTargets = useSelector(selectTargets) || [];
     const loading = useSelector(selectTargetLoading);
+
+    // Format and hierarchically organize targets:
+    // If a target's parent is present in the list, keep it under its parent's cascade breakdown
+    const displayedTargets = React.useMemo(() => {
+        if (!Array.isArray(rawTargets) || rawTargets.length === 0) return [];
+        const targetIdSet = new Set(rawTargets.map(t => String(t.id)));
+        
+        // Find top-level targets relative to this list (not a child of another target in this list)
+        let rootTargets = rawTargets.filter(t => !t.parent_target_id || !targetIdSet.has(String(t.parent_target_id)));
+        if (rootTargets.length === 0) rootTargets = rawTargets;
+
+        // Sort so that the current user's target comes first
+        return [...rootTargets].sort((a, b) => {
+            const isASelf = String(a.user) === String(authUser?.id) || a.user_email === authUser?.email;
+            const isBSelf = String(b.user) === String(authUser?.id) || b.user_email === authUser?.email;
+            if (isASelf && !isBSelf) return -1;
+            if (!isASelf && isBSelf) return 1;
+            return (b.target_value || 0) - (a.target_value || 0);
+        });
+    }, [rawTargets, authUser]);
 
     useEffect(() => {
         dispatch(fetchTargets({ kpi: kpiId }));
@@ -126,7 +146,7 @@ const KPITargets = ({ kpiId, kpi }) => {
                         Expand any annual target or click the tree icon to view structural breakdown allocations.
                     </p>
                 </div>
-                {(canManageCascades || targets.length === 0) && (
+                {(canManageCascades || rawTargets.length === 0) && (
                     <button
                         className="add-btn"
                         onClick={openCreateForm}
@@ -150,7 +170,7 @@ const KPITargets = ({ kpiId, kpi }) => {
                 )}
             </div>
 
-            {targets.length === 0 ? (
+            {displayedTargets.length === 0 ? (
                 <KPIEmptyState
                     icon="🎯"
                     title="No Targets"
@@ -173,15 +193,30 @@ const KPITargets = ({ kpiId, kpi }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {targets.map(target => {
+                            {displayedTargets.map(target => {
+                                const isSelf = String(target.user) === String(authUser?.id) || target.user_email === authUser?.email;
                                 const isExpanded = expandedTargets[target.id];
                                 const cascades = target.child_cascades || [];
                                 const cascadesCount = target.cascades_count ?? cascades.length;
-                                const canEditThisTarget = canManageCascades || (!target.is_approved);
+                                const isTargetLocked = Boolean(target.is_locked || target.status === 'LOCKED');
+                                const isTargetApproved = Boolean(target.is_approved || target.status === 'APPROVED' || isTargetLocked);
+                                const isCreatorOrAdmin = isSuperAdmin || isClientAdmin || isDashboardChampion || String(target.created_by) === String(authUser?.id);
+
+                                // Rule: 
+                                // - Approved or Locked targets cannot be edited/deleted by managers or staff.
+                                // - A user cannot edit their own target assigned to them from above.
+                                // - Managers can only edit pending targets they created for subordinates.
+                                const canEditThisTarget = (isSuperAdmin || isClientAdmin || isDashboardChampion)
+                                    ? !isTargetLocked
+                                    : (!isTargetApproved && !isTargetLocked && !isSelf && isCreatorOrAdmin);
+
+                                const canDeleteThisTarget = (isSuperAdmin || isClientAdmin || isDashboardChampion)
+                                    ? !isTargetLocked
+                                    : (!isTargetApproved && !isTargetLocked && !isSelf && isCreatorOrAdmin);
 
                                 return (
                                     <React.Fragment key={target.id}>
-                                        <tr style={{ borderBottom: '1px solid #e2e8f0', background: isExpanded ? '#f1f5f9' : 'transparent' }}>
+                                        <tr style={{ borderBottom: '1px solid #e2e8f0', background: isExpanded ? '#f1f5f9' : (isSelf ? '#f8fafc' : 'transparent') }}>
                                             <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                                                 <button
                                                     onClick={() => toggleExpand(target.id)}
@@ -194,7 +229,12 @@ const KPITargets = ({ kpiId, kpi }) => {
                                             <td style={{ padding: '10px 12px', fontWeight: 500 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                                     <FiUser size={14} color="#3b82f6" />
-                                                    {target.user_full_name || target.user_email || 'Organization Executive'}
+                                                    <span>{target.user_full_name || target.user_email || 'Organization Executive'}</span>
+                                                    {isSelf && (
+                                                        <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: 4, background: '#e0f2fe', color: '#0284c7', fontWeight: 700 }}>
+                                                            You
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td style={{ padding: '10px 12px' }}>{target.year}</td>
@@ -224,9 +264,19 @@ const KPITargets = ({ kpiId, kpi }) => {
                                                 </span>
                                             </td>
                                             <td style={{ padding: '10px 12px' }}>
-                                                <span className={`status-badge ${target.is_approved ? 'approved' : 'pending'}`}>
-                                                    {target.is_approved ? 'Approved' : 'Pending'}
-                                                </span>
+                                                {isTargetLocked ? (
+                                                    <span style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '3px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                        🔒 Locked
+                                                    </span>
+                                                ) : isTargetApproved ? (
+                                                    <span style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', padding: '3px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                        ✓ Approved
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ background: '#fef9c3', color: '#a16207', border: '1px solid #fef08a', padding: '3px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                        Pending
+                                                    </span>
+                                                )}
                                             </td>
                                             <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                                                 {canManageCascades && (
@@ -250,14 +300,14 @@ const KPITargets = ({ kpiId, kpi }) => {
                                                     </>
                                                 )}
                                                 {canEditThisTarget && (
-                                                    <>
-                                                        <button className="edit-btn" onClick={() => openEditForm(target)} style={{ marginRight: 8, cursor: 'pointer' }}>
-                                                            <FiEdit size={14} />
-                                                        </button>
-                                                        <button className="delete-btn" onClick={() => setDeleteTargetId(target.id)} style={{ cursor: 'pointer' }}>
-                                                            <FiTrash2 size={14} />
-                                                        </button>
-                                                    </>
+                                                    <button className="edit-btn" onClick={() => openEditForm(target)} style={{ marginRight: 8, cursor: 'pointer' }}>
+                                                        <FiEdit size={14} />
+                                                    </button>
+                                                )}
+                                                {canDeleteThisTarget && (
+                                                    <button className="delete-btn" onClick={() => setDeleteTargetId(target.id)} style={{ cursor: 'pointer' }}>
+                                                        <FiTrash2 size={14} />
+                                                    </button>
                                                 )}
                                             </td>
                                         </tr>
@@ -267,30 +317,54 @@ const KPITargets = ({ kpiId, kpi }) => {
                                             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1' }}>
                                                 <td colSpan={7} style={{ padding: '12px 16px 16px 48px' }}>
                                                     <div style={{ background: '#ffffff', borderRadius: 6, padding: 12, border: '1px solid #e2e8f0' }}>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: '8px' }}>
                                                             <h5 style={{ margin: 0, color: '#475569', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
                                                                 <FiGitMerge size={14} color="#0284c7" />
                                                                 Cascaded Target Breakdown ({target.year})
                                                             </h5>
-                                                            <button
-                                                                onClick={() => setViewTreeTarget(target)}
-                                                                style={{
-                                                                    display: 'inline-flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '6px',
-                                                                    padding: '4px 10px',
-                                                                    background: '#0284c7',
-                                                                    color: '#ffffff',
-                                                                    border: 'none',
-                                                                    borderRadius: '6px',
-                                                                    fontSize: '0.75rem',
-                                                                    fontWeight: 600,
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                <FolderTree size={14} />
-                                                                View Hierarchy Tree
-                                                            </button>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                {canManageCascades && (
+                                                                    <button
+                                                                        onClick={() => navigate(`/kpi/targets/cascade?targetId=${target.id}`)}
+                                                                        style={{
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '6px',
+                                                                            padding: '4px 10px',
+                                                                            background: '#eff6ff',
+                                                                            color: '#2563eb',
+                                                                            border: '1px solid #bfdbfe',
+                                                                            borderRadius: '6px',
+                                                                            fontSize: '0.75rem',
+                                                                            fontWeight: 600,
+                                                                            cursor: 'pointer'
+                                                                        }}
+                                                                        title="Re-cascade or adjust contribution splits for subordinates"
+                                                                    >
+                                                                        <FiShare2 size={13} />
+                                                                        Re-Cascade / Adjust Split
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => setViewTreeTarget(target)}
+                                                                    style={{
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '6px',
+                                                                        padding: '4px 10px',
+                                                                        background: '#0284c7',
+                                                                        color: '#ffffff',
+                                                                        border: 'none',
+                                                                        borderRadius: '6px',
+                                                                        fontSize: '0.75rem',
+                                                                        fontWeight: 600,
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    <FolderTree size={14} />
+                                                                    View Hierarchy Tree
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         {cascades.length === 0 ? (
                                                             <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic', padding: '6px 0' }}>

@@ -3,13 +3,15 @@ import { DASHBOARD_TYPES } from '../../config/constants/dashboardConstants';
 const ROLE_TO_DASHBOARD = {
   executive: DASHBOARD_TYPES.EXECUTIVE,
   client_admin: DASHBOARD_TYPES.CLIENT_ADMIN,
+  hr_admin: DASHBOARD_TYPES.CHAMPION,
+  hr: DASHBOARD_TYPES.CHAMPION,
+  dashboard_champion: DASHBOARD_TYPES.CHAMPION,
+  champion: DASHBOARD_TYPES.CHAMPION,
   super_admin: DASHBOARD_TYPES.SUPER_ADMIN,
   manager: DASHBOARD_TYPES.MANAGER,
   supervisor: DASHBOARD_TYPES.MANAGER,
   staff: DASHBOARD_TYPES.STAFF,
   employee: DASHBOARD_TYPES.STAFF,
-  dashboard_champion: DASHBOARD_TYPES.CHAMPION,
-  champion: DASHBOARD_TYPES.CHAMPION,
   read_only: DASHBOARD_TYPES.READ_ONLY,
   viewer: DASHBOARD_TYPES.READ_ONLY,
 };

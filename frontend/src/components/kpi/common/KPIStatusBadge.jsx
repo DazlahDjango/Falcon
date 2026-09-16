@@ -10,6 +10,9 @@ const KPIStatusBadge = ({ status, showDot = true, customText = null }) => {
             published: { color: 'green', text: 'Published' },
             archived: { color: 'gray', text: 'Archived' },
             
+            // Target & Phasing Statuses
+            locked: { color: 'gray', text: 'Locked' },
+            
             // Actual Statuses
             pending: { color: 'yellow', text: 'Pending' },
             approved: { color: 'green', text: 'Approved' },

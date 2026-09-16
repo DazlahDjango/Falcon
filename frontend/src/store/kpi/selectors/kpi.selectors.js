@@ -19,7 +19,10 @@ const selectExportState = (state) => (state?.kpi || state?.kpis)?.exports || {};
 // ============ KPI Selectors ============
 export const selectKPIs = createSelector(
   [selectKPIState],
-  (kpi) => kpi?.kpis || []
+  (kpi) => {
+    const raw = kpi?.kpis;
+    return Array.isArray(raw) ? raw : (raw?.results || raw?.data || []);
+  }
 );
 
 export const selectCurrentKPI = createSelector(
@@ -94,8 +97,24 @@ export const selectStrategicLinkages = createSelector(
 
 // User nested selectors
 export const selectUserKPIs = (userId) => createSelector(
-  [selectKPIState],
-  (kpi) => kpi?.userKPIs?.[userId] || []
+  [selectKPIState, (state) => state?.auth?.user?.id],
+  (kpi, authUserId) => {
+    const id = userId || authUserId;
+    let raw = null;
+    if (id && kpi?.userKPIs?.[id]) {
+      raw = kpi.userKPIs[id];
+    } else if (kpi?.userKPIs?.['current']) {
+      raw = kpi.userKPIs['current'];
+    } else {
+      const allLists = Object.values(kpi?.userKPIs || {});
+      if (allLists.length > 0) {
+        raw = allLists[0];
+      } else {
+        raw = kpi?.kpis;
+      }
+    }
+    return Array.isArray(raw) ? raw : (raw?.results || raw?.data || []);
+  }
 );
 
 export const selectUserTargets = (userId) => createSelector(

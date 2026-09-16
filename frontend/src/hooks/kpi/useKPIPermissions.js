@@ -12,7 +12,7 @@ const useKPIPermissions = () => {
     const permissionsData = useMemo(() => {
         const role = user?.role || 'staff';
         const isSuperAdmin = role === 'super_admin' || user?.is_superuser === true;
-        const isClientAdmin = isSuperAdmin || role === 'client_admin';
+        const isClientAdmin = isSuperAdmin || role === 'client_admin' || role === 'hr_admin' || role === 'hr';
         const isExecutive = isClientAdmin || role === 'executive';
         const isDashboardChampion = isClientAdmin || role === 'dashboard_champion';
         const isManager = isClientAdmin || role === 'manager' || role === 'supervisor' || user?.is_manager === true;
@@ -80,7 +80,7 @@ const useKPIPermissions = () => {
             canValidateActuals: isManager || isExecutive || isClientAdmin || isSuperAdmin,
             canApproveActual: isManager || isExecutive || isClientAdmin || isSuperAdmin,
             canRejectActual: isManager || isExecutive || isClientAdmin || isSuperAdmin,
-            canCascadeTargets: isClientAdmin || isSuperAdmin || isDashboardChampion,
+            canCascadeTargets: isClientAdmin || isSuperAdmin || isDashboardChampion || isManager || isExecutive,
             canTriggerCalculations: isClientAdmin || isSuperAdmin || isDashboardChampion,
             canBulkUpload: isAuthenticated,
             canExportData: isClientAdmin || isSuperAdmin || isExecutive || isDashboardChampion || isManager,

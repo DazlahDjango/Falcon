@@ -28,7 +28,7 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
     const canManageOrApprove = canManageKPIs || canApproveKPI || isManager || isExecutive;
     
     const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
-    const scope = new URLSearchParams(location.search).get('scope');
+    const scope = new URLSearchParams(location.search).get('scope') || (location.pathname.includes('my-kpis') ? 'my' : null);
     
     const kpis = useSelector(selectKPIs);
     const loading = useSelector(selectKPILoading);
@@ -57,7 +57,7 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
         });
 
         dispatch(fetchKPIs(params));
-    }, [dispatch, pagination.page, pagination.pageSize, filters]);
+    }, [dispatch, pagination.page, pagination.pageSize, filters, scope]);
     
     useEffect(() => {
         loadKPIs();
@@ -100,8 +100,20 @@ const KPIList = ({ onViewKPI, onCreateKPI, onEditKPI }) => {
         <div className="kpi-list-container">
             <div className="kpi-list-header">
                 <div>
-                    <h2>Performance Indicator Management</h2>
-                    <p>Manage and monitor all Key Performance Indicators</p>
+                    <h2>
+                        {scope === 'team'
+                            ? 'Team Performance Indicators'
+                            : scope === 'my'
+                                ? 'My Performance Indicators'
+                                : 'Performance Indicator Management'}
+                    </h2>
+                    <p>
+                        {scope === 'team'
+                            ? 'Manage and monitor all Performance Indicators assigned across your direct reports'
+                            : scope === 'my'
+                                ? 'Manage and track your personal Performance Indicators'
+                                : 'Manage and monitor all Key Performance Indicators'}
+                    </p>
                 </div>
                 <div className="kpi-list-actions">
                     <div className="kpi-view-toggle">

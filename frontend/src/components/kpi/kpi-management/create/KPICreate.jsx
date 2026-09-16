@@ -21,7 +21,13 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
     const [loading, setLoading] = useState(false);
     const [refLoading, setRefLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-    const [referenceData, setReferenceData] = useState({ users: [], departments: [] });
+    const [referenceData, setReferenceData] = useState({
+        users: [],
+        departments: [],
+        divisions: [],
+        sections: [],
+        units: [],
+    });
 
     const [formData, setFormData] = useState({
         name: '',
@@ -34,7 +40,10 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
         decimal_places: 2,
         category_id: defaultCategoryId,
         owner_id: '',
+        division_id: '',
         department_id: '',
+        section_id: '',
+        unit_id: '',
         strategic_objective: '',
         is_active: true,
         metadata: {}
@@ -48,8 +57,8 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
         const loadRefData = async () => {
             setRefLoading(true);
             try {
-                const result = await dispatch(fetchReferenceData(['users', 'departments'])).unwrap();
-                setReferenceData(result || { users: [], departments: [] });
+                const result = await dispatch(fetchReferenceData(['users', 'departments', 'divisions', 'sections', 'units'])).unwrap();
+                setReferenceData(result || { users: [], departments: [], divisions: [], sections: [], units: [] });
             } catch (err) {
                 console.error('Failed to load reference data:', err);
             } finally {
@@ -98,6 +107,97 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
         }
     };
 
+    const availableDepartments = formData.division_id
+        ? (referenceData.departments || []).filter((d) => !d.division_id || String(d.division_id) === String(formData.division_id))
+        : (referenceData.departments || []);
+
+    const availableSections = formData.department_id
+        ? (referenceData.sections || []).filter((s) => !s.department_id || String(s.department_id) === String(formData.department_id))
+        : (referenceData.sections || []);
+
+    const availableUnits = formData.section_id
+        ? (referenceData.units || []).filter((u) => !u.section_id || String(u.section_id) === String(formData.section_id))
+        : (referenceData.units || []);
+
+    const handleDivisionChange = (newDivId) => {
+        setFormData(prev => {
+            const updated = { ...prev, division_id: newDivId };
+            if (newDivId && prev.department_id) {
+                const dept = (referenceData.departments || []).find((d) => String(d.id) === String(prev.department_id));
+                if (dept && dept.division_id && String(dept.division_id) !== String(newDivId)) {
+                    updated.department_id = '';
+                    updated.section_id = '';
+                    updated.unit_id = '';
+                }
+            }
+            return updated;
+        });
+    };
+
+    const handleDepartmentChange = (newDeptId) => {
+        setFormData(prev => {
+            const updated = { ...prev, department_id: newDeptId };
+            if (newDeptId) {
+                const dept = (referenceData.departments || []).find((d) => String(d.id) === String(newDeptId));
+                if (dept?.division_id && !prev.division_id) {
+                    updated.division_id = String(dept.division_id);
+                }
+                if (prev.section_id) {
+                    const sec = (referenceData.sections || []).find((s) => String(s.id) === String(prev.section_id));
+                    if (sec && sec.department_id && String(sec.department_id) !== String(newDeptId)) {
+                        updated.section_id = '';
+                        updated.unit_id = '';
+                    }
+                }
+            }
+            return updated;
+        });
+    };
+
+    const handleSectionChange = (newSecId) => {
+        setFormData(prev => {
+            const updated = { ...prev, section_id: newSecId };
+            if (newSecId) {
+                const sec = (referenceData.sections || []).find((s) => String(s.id) === String(newSecId));
+                if (sec?.department_id) {
+                    updated.department_id = String(sec.department_id);
+                    const dept = (referenceData.departments || []).find((d) => String(d.id) === String(sec.department_id));
+                    if (dept?.division_id && !prev.division_id) {
+                        updated.division_id = String(dept.division_id);
+                    }
+                }
+                if (prev.unit_id) {
+                    const unit = (referenceData.units || []).find((u) => String(u.id) === String(prev.unit_id));
+                    if (unit && unit.section_id && String(unit.section_id) !== String(newSecId)) {
+                        updated.unit_id = '';
+                    }
+                }
+            }
+            return updated;
+        });
+    };
+
+    const handleUnitChange = (newUnitId) => {
+        setFormData(prev => {
+            const updated = { ...prev, unit_id: newUnitId };
+            if (newUnitId) {
+                const unit = (referenceData.units || []).find((u) => String(u.id) === String(newUnitId));
+                if (unit?.section_id) {
+                    updated.section_id = String(unit.section_id);
+                    const sec = (referenceData.sections || []).find((s) => String(s.id) === String(unit.section_id));
+                    if (sec?.department_id) {
+                        updated.department_id = String(sec.department_id);
+                        const dept = (referenceData.departments || []).find((d) => String(d.id) === String(sec.department_id));
+                        if (dept?.division_id && !prev.division_id) {
+                            updated.division_id = String(dept.division_id);
+                        }
+                    }
+                }
+            }
+            return updated;
+        });
+    };
+
     const validate = () => {
         const newErrors = {};
         if (!formData.name.trim()) newErrors.name = 'Performance Indicator is required';
@@ -119,7 +219,10 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                 target_max: targetVal,
                 // Ensure null optional fields are handled cleanly
                 category_id: formData.category_id || null,
+                division_id: formData.division_id || null,
                 department_id: formData.department_id || null,
+                section_id: formData.section_id || null,
+                unit_id: formData.unit_id || null,
             };
 
             const result = await dispatch(createKPI(completeData)).unwrap();
@@ -526,11 +629,34 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
 
                                     <div className="form-group">
                                         <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                                            Division (Optional)
+                                        </label>
+                                        <select
+                                            value={formData.division_id}
+                                            onChange={(e) => handleDivisionChange(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.65rem 0.85rem',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '0.9rem',
+                                                backgroundColor: '#ffffff'
+                                            }}
+                                        >
+                                            <option value="">Select Division...</option>
+                                            {referenceData.divisions?.map(div => (
+                                                <option key={div.id} value={div.id}>{div.name} {div.code ? `(${div.code})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                                             Department (Optional)
                                         </label>
                                         <select
                                             value={formData.department_id}
-                                            onChange={(e) => handleChange('department_id', e.target.value)}
+                                            onChange={(e) => handleDepartmentChange(e.target.value)}
                                             style={{
                                                 width: '100%',
                                                 padding: '0.65rem 0.85rem',
@@ -541,8 +667,54 @@ const KPICreate = ({ onComplete, onCancel, initialCategoryId }) => {
                                             }}
                                         >
                                             <option value="">Select Department...</option>
-                                            {referenceData.departments?.map(d => (
-                                                <option key={d.id} value={d.id}>{d.name}</option>
+                                            {availableDepartments.map(d => (
+                                                <option key={d.id} value={d.id}>{d.name} {d.code ? `(${d.code})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                                            Section (Optional)
+                                        </label>
+                                        <select
+                                            value={formData.section_id}
+                                            onChange={(e) => handleSectionChange(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.65rem 0.85rem',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '0.9rem',
+                                                backgroundColor: '#ffffff'
+                                            }}
+                                        >
+                                            <option value="">Select Section...</option>
+                                            {availableSections.map(sec => (
+                                                <option key={sec.id} value={sec.id}>{sec.name} {sec.code ? `(${sec.code})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                                            Unit (Optional)
+                                        </label>
+                                        <select
+                                            value={formData.unit_id}
+                                            onChange={(e) => handleUnitChange(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.65rem 0.85rem',
+                                                borderRadius: '8px',
+                                                border: '1px solid #cbd5e1',
+                                                fontSize: '0.9rem',
+                                                backgroundColor: '#ffffff'
+                                            }}
+                                        >
+                                            <option value="">Select Unit...</option>
+                                            {availableUnits.map(unit => (
+                                                <option key={unit.id} value={unit.id}>{unit.name} {unit.code ? `(${unit.code})` : ''}</option>
                                             ))}
                                         </select>
                                     </div>

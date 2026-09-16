@@ -10,20 +10,40 @@ from apps.structure.models import Department
 
 
 def validate_positive_value(value):
-    if value is not None and value <= 0:
-        raise ValidationError(_("Value must be positive."))
+    if value is not None:
+        try:
+            val = Decimal(str(value))
+            if val <= 0:
+                raise ValidationError(_("Value must be positive."))
+        except (ValueError, TypeError):
+            raise ValidationError(_("Value must be a valid positive number."))
 
 def validate_non_negative_value(value):
-    if value is not None and value < 0:
-        raise ValidationError(_("Value cannot be negative."))
+    if value is not None:
+        try:
+            val = Decimal(str(value))
+            if val < 0:
+                raise ValidationError(_("Value cannot be negative."))
+        except (ValueError, TypeError):
+            raise ValidationError(_("Value must be a valid non-negative number."))
 
 def validate_percentage(value):
-    if value is not None and (value < 0 or value > 100):
-        raise ValidationError(_("Percentage must be between 0 and 100."))
+    if value is not None:
+        try:
+            val = Decimal(str(value))
+            if val < 0 or val > 100:
+                raise ValidationError(_("Percentage must be between 0 and 100."))
+        except (ValueError, TypeError):
+            raise ValidationError(_("Percentage must be a valid number between 0 and 100."))
 
 def validate_month(value):
-    if value is not None and (value < 1 or value > 12):
-        raise ValidationError(_("Month must be between 1 and 12."))
+    if value is not None:
+        try:
+            val_int = int(value)
+            if val_int < 1 or val_int > 12:
+                raise ValidationError(_("Month must be between 1 and 12."))
+        except (ValueError, TypeError):
+            raise ValidationError(_("Month must be a valid integer between 1 and 12."))
 
 def validate_year(value):
     current_year = timezone.now().year

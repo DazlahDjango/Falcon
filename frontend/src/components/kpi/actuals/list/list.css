@@ -107,26 +107,50 @@
 }
 
 .kpi-actual-view-btn,
+.kpi-actual-edit-btn,
+.kpi-actual-delete-btn,
 .kpi-actual-validate-btn {
     padding: var(--kpi-space-1) var(--kpi-space-3);
     border-radius: var(--kpi-radius-sm);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
     transition: var(--kpi-transition-base);
     border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .kpi-actual-view-btn {
     background: var(--kpi-gray-100);
     color: var(--kpi-gray-700);
-    display: flex;
-    align-items: center;
-    gap: var(--kpi-space-1);
 }
 
 .kpi-actual-view-btn:hover {
     background: var(--kpi-gray-200);
+}
+
+.kpi-actual-edit-btn {
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+}
+
+.kpi-actual-edit-btn:hover {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.kpi-actual-delete-btn {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.kpi-actual-delete-btn:hover {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
 .kpi-actual-validate-btn {

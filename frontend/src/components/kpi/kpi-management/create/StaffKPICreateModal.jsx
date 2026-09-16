@@ -14,7 +14,13 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
   const serverError = useSelector(selectKPIError);
   const currentUser = useSelector(selectUser);
 
-  const [referenceData, setReferenceData] = useState({ users: [], departments: [] });
+  const [referenceData, setReferenceData] = useState({
+    users: [],
+    departments: [],
+    divisions: [],
+    sections: [],
+    units: [],
+  });
   const [userEmployment, setUserEmployment] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -28,7 +34,10 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
     targetValue: '',
     baseline: '',
     ownerId: '',
+    divisionId: '',
     departmentId: '',
+    sectionId: '',
+    unitId: '',
     decimalPlaces: 2,
     parentKpiId: '',
   });
@@ -41,8 +50,8 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
     }
     const loadRef = async () => {
       try {
-        const res = await dispatch(fetchReferenceData(['users', 'departments'])).unwrap();
-        setReferenceData(res || { users: [], departments: [] });
+        const res = await dispatch(fetchReferenceData(['users', 'departments', 'divisions', 'sections', 'units'])).unwrap();
+        setReferenceData(res || { users: [], departments: [], divisions: [], sections: [], units: [] });
       } catch (err) {
         console.error('Failed to load ref data for staff modal:', err);
       }
@@ -55,103 +64,128 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
       .then((empData) => {
         if (empData) setUserEmployment(empData);
       })
-      .catch((err) => {
+      .catch(() => {
         // Fall back gracefully if employment endpoint is not queried yet
       });
   }, [dispatch, categories.length]);
 
-  // Dynamically resolve the staff user's exact organizational level and entity name from structure Employment
-  const getUserOrgDetails = () => {
-    // 1. Primary source: inspect structure app Employment record
+  // Pre-populate Division, Department, Section, Unit when employment/user data loads
+  useEffect(() => {
     const emp = userEmployment?.current_employment || userEmployment;
     const pos = emp?.position || {};
 
-    const unitObj = pos.unit || emp?.unit;
-    const unitName = emp?.unit_name || pos.unit_name || unitObj?.name || (typeof unitObj === 'string' ? unitObj : null);
-    if (unitName) {
-      return {
-        label: 'Unit',
-        name: unitName,
-        id: emp?.unit_id || pos.unit_id || unitObj?.id || null,
-        type: 'unit'
-      };
-    }
+    const divId = emp?.division_id || pos.division_id || (pos.division && pos.division.id) || currentUser?.division_id || '';
+    const deptId = emp?.department_id || pos.department_id || (pos.department && pos.department.id) || currentUser?.department_id || '';
+    const secId = emp?.section_id || pos.section_id || (pos.section && pos.section.id) || currentUser?.section_id || '';
+    const unitId = emp?.unit_id || pos.unit_id || (pos.unit && pos.unit.id) || currentUser?.unit_id || '';
 
-    const sectionObj = pos.section || emp?.section;
-    const sectionName = emp?.section_name || pos.section_name || sectionObj?.name || (typeof sectionObj === 'string' ? sectionObj : null);
-    if (sectionName) {
-      return {
-        label: 'Section',
-        name: sectionName,
-        id: emp?.section_id || pos.section_id || sectionObj?.id || null,
-        type: 'section'
-      };
-    }
+    setFormData((prev) => ({
+      ...prev,
+      divisionId: prev.divisionId || (divId ? String(divId) : ''),
+      departmentId: prev.departmentId || (deptId ? String(deptId) : ''),
+      sectionId: prev.sectionId || (secId ? String(secId) : ''),
+      unitId: prev.unitId || (unitId ? String(unitId) : ''),
+    }));
+  }, [userEmployment, currentUser]);
 
-    const deptObj = pos.department || emp?.department;
-    const deptName = emp?.department_name || pos.department_name || deptObj?.name || (typeof deptObj === 'string' ? deptObj : null);
-    if (deptName) {
-      return {
-        label: 'Department',
-        name: deptName,
-        id: emp?.department_id || pos.department_id || deptObj?.id || null,
-        type: 'department'
-      };
-    }
+  // Filtered dropdown lists based on cascading selections
+  const availableDepartments = formData.divisionId
+    ? (referenceData.departments || []).filter((d) => !d.division_id || String(d.division_id) === String(formData.divisionId))
+    : (referenceData.departments || []);
 
-    const divObj = pos.division || emp?.division;
-    const divName = emp?.division_name || pos.division_name || divObj?.name || (typeof divObj === 'string' ? divObj : null);
-    if (divName) {
-      return {
-        label: 'Division',
-        name: divName,
-        id: emp?.division_id || pos.division_id || divObj?.id || null,
-        type: 'division'
-      };
-    }
+  const availableSections = formData.departmentId
+    ? (referenceData.sections || []).filter((s) => !s.department_id || String(s.department_id) === String(formData.departmentId))
+    : (referenceData.sections || []);
 
-    // 2. Secondary source: fallback to currentUser profile properties
-    if (!currentUser) {
-      return { label: 'Department / Unit', name: 'Not Assigned', id: null, type: 'department' };
-    }
+  const availableUnits = formData.sectionId
+    ? (referenceData.units || []).filter((u) => !u.section_id || String(u.section_id) === String(formData.sectionId))
+    : (referenceData.units || []);
 
-    const fallbackUnit = currentUser.unit_name || (typeof currentUser.unit === 'object' ? currentUser.unit?.name : currentUser.unit);
-    if (fallbackUnit) return { label: 'Unit', name: fallbackUnit, id: currentUser.unit_id || null, type: 'unit' };
-
-    const fallbackSection = currentUser.section_name || (typeof currentUser.section === 'object' ? currentUser.section?.name : currentUser.section);
-    if (fallbackSection) return { label: 'Section', name: fallbackSection, id: currentUser.section_id || null, type: 'section' };
-
-    const fallbackDept = currentUser.department_name || (typeof currentUser.department === 'object' ? currentUser.department?.name : currentUser.department);
-    if (fallbackDept) return { label: 'Department', name: fallbackDept, id: currentUser.department_id || null, type: 'department' };
-
-    const fallbackDiv = currentUser.division_name || (typeof currentUser.division === 'object' ? currentUser.division?.name : currentUser.division);
-    if (fallbackDiv) return { label: 'Division', name: fallbackDiv, id: currentUser.division_id || null, type: 'division' };
-
-    if (currentUser.department_id && referenceData?.departments?.length) {
-      const matchedDept = referenceData.departments.find(d => String(d.id) === String(currentUser.department_id));
-      if (matchedDept) {
-        return { label: matchedDept.type || 'Department', name: matchedDept.name, id: matchedDept.id, type: 'department' };
+  const handleDivisionChange = (e) => {
+    const newDivId = e.target.value;
+    setFormData((prev) => {
+      const updated = { ...prev, divisionId: newDivId };
+      // If current department is not in new division, clear department, section, and unit
+      if (newDivId && prev.departmentId) {
+        const dept = (referenceData.departments || []).find((d) => String(d.id) === String(prev.departmentId));
+        if (dept && dept.division_id && String(dept.division_id) !== String(newDivId)) {
+          updated.departmentId = '';
+          updated.sectionId = '';
+          updated.unitId = '';
+        }
       }
-    }
-
-    if (currentUser.organizational_unit_name) {
-      return {
-        label: currentUser.level_name || 'Organizational Unit',
-        name: currentUser.organizational_unit_name,
-        id: currentUser.organizational_unit_id || null,
-        type: 'unit'
-      };
-    }
-
-    return {
-      label: currentUser.level_name || 'Department',
-      name: currentUser.department_name || currentUser.department || 'My Organizational Unit',
-      id: currentUser.department_id || null,
-      type: 'department'
-    };
+      return updated;
+    });
   };
 
-  const userOrg = getUserOrgDetails();
+  const handleDepartmentChange = (e) => {
+    const newDeptId = e.target.value;
+    setFormData((prev) => {
+      const updated = { ...prev, departmentId: newDeptId };
+      // Auto-set division if not set
+      if (newDeptId) {
+        const dept = (referenceData.departments || []).find((d) => String(d.id) === String(newDeptId));
+        if (dept?.division_id && !prev.divisionId) {
+          updated.divisionId = String(dept.division_id);
+        }
+        // If current section is not in new department, clear section and unit
+        if (prev.sectionId) {
+          const sec = (referenceData.sections || []).find((s) => String(s.id) === String(prev.sectionId));
+          if (sec && sec.department_id && String(sec.department_id) !== String(newDeptId)) {
+            updated.sectionId = '';
+            updated.unitId = '';
+          }
+        }
+      }
+      return updated;
+    });
+  };
+
+  const handleSectionChange = (e) => {
+    const newSecId = e.target.value;
+    setFormData((prev) => {
+      const updated = { ...prev, sectionId: newSecId };
+      if (newSecId) {
+        const sec = (referenceData.sections || []).find((s) => String(s.id) === String(newSecId));
+        if (sec?.department_id) {
+          updated.departmentId = String(sec.department_id);
+          const dept = (referenceData.departments || []).find((d) => String(d.id) === String(sec.department_id));
+          if (dept?.division_id && !prev.divisionId) {
+            updated.divisionId = String(dept.division_id);
+          }
+        }
+        if (prev.unitId) {
+          const unit = (referenceData.units || []).find((u) => String(u.id) === String(prev.unitId));
+          if (unit && unit.section_id && String(unit.section_id) !== String(newSecId)) {
+            updated.unitId = '';
+          }
+        }
+      }
+      return updated;
+    });
+  };
+
+  const handleUnitChange = (e) => {
+    const newUnitId = e.target.value;
+    setFormData((prev) => {
+      const updated = { ...prev, unitId: newUnitId };
+      if (newUnitId) {
+        const unit = (referenceData.units || []).find((u) => String(u.id) === String(newUnitId));
+        if (unit?.section_id) {
+          updated.sectionId = String(unit.section_id);
+          const sec = (referenceData.sections || []).find((s) => String(s.id) === String(unit.section_id));
+          if (sec?.department_id) {
+            updated.departmentId = String(sec.department_id);
+            const dept = (referenceData.departments || []).find((d) => String(d.id) === String(sec.department_id));
+            if (dept?.division_id && !prev.divisionId) {
+              updated.divisionId = String(dept.division_id);
+            }
+          }
+        }
+      }
+      return updated;
+    });
+  };
 
   const staffOwnerName = currentUser
     ? (currentUser.full_name || `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email)
@@ -192,10 +226,10 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
       baseline: formData.baseline !== '' ? formData.baseline : null,
       targetValue: formData.targetValue !== '' ? formData.targetValue : null,
       ownerId: currentUser?.id || formData.ownerId || null,
-      departmentId: userOrg.type === 'department' ? (userOrg.id || formData.departmentId || null) : (formData.departmentId || null),
-      unitId: userOrg.type === 'unit' ? userOrg.id : null,
-      sectionId: userOrg.type === 'section' ? userOrg.id : null,
-      divisionId: userOrg.type === 'division' ? userOrg.id : null,
+      divisionId: formData.divisionId || null,
+      departmentId: formData.departmentId || null,
+      sectionId: formData.sectionId || null,
+      unitId: formData.unitId || null,
       decimalPlaces: parseInt(formData.decimalPlaces) || 2,
       parentKpiId: formData.parentKpiId || null,
       isStaffCreated: true,
@@ -510,72 +544,172 @@ const StaffKPICreateModal = ({ onComplete, onCancel }) => {
               </div>
             </div>
 
-            {/* 8. Rest of fields: Baseline, Owner, Department */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                  Baseline (Previous Benchmark)
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  name="baseline"
-                  value={formData.baseline}
-                  onChange={handleChange}
-                  placeholder="e.g. 50.00"
-                  style={{
+            {/* 8. Organizational Structure Placement & Ownership */}
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ width: '6px', height: '14px', backgroundColor: '#6366f1', borderRadius: '3px' }}></span>
+                  Organizational Placement & Structure
+                </h4>
+                <span style={{ fontSize: '0.75rem', color: '#6366f1', backgroundColor: '#eef2ff', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                  🏢 Auto-mapped to your profile
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                {/* Division Selector */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                    Division
+                  </label>
+                  <select
+                    name="divisionId"
+                    value={formData.divisionId}
+                    onChange={handleDivisionChange}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem',
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="">Select Division...</option>
+                    {(referenceData.divisions || []).map((div) => (
+                      <option key={div.id} value={div.id}>
+                        {div.name} {div.code ? `(${div.code})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Department Selector */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                    Department
+                  </label>
+                  <select
+                    name="departmentId"
+                    value={formData.departmentId}
+                    onChange={handleDepartmentChange}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem',
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="">Select Department...</option>
+                    {availableDepartments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name} {dept.code ? `(${dept.code})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Section Selector */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                    Section (Optional)
+                  </label>
+                  <select
+                    name="sectionId"
+                    value={formData.sectionId}
+                    onChange={handleSectionChange}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem',
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="">Select Section (optional)...</option>
+                    {availableSections.map((sec) => (
+                      <option key={sec.id} value={sec.id}>
+                        {sec.name} {sec.code ? `(${sec.code})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Unit Selector */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                    Unit (Optional)
+                  </label>
+                  <select
+                    name="unitId"
+                    value={formData.unitId}
+                    onChange={handleUnitChange}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem',
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="">Select Unit (optional)...</option>
+                    {availableUnits.map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.name} {unit.code ? `(${unit.code})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Baseline & KPI Owner */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                    Baseline (Previous Benchmark)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    name="baseline"
+                    value={formData.baseline}
+                    onChange={handleChange}
+                    placeholder="e.g. 50.00"
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                    KPI Owner
+                  </label>
+                  <div style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
                     borderRadius: '8px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '0.9rem'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                  KPI Owner
-                </label>
-                <div style={{
-                  width: '100%',
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#f8fafc',
-                  color: '#0f172a',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  boxSizing: 'border-box'
-                }}>
-                  <FiUser size={15} style={{ color: '#0284c7' }} />
-                  <span>{staffOwnerName}</span>
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                  {userOrg.label}
-                </label>
-                <div style={{
-                  width: '100%',
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#f8fafc',
-                  color: '#0f172a',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  boxSizing: 'border-box'
-                }}>
-                  <FiFolder size={15} style={{ color: '#6366f1' }} />
-                  <span>{userOrg.name}</span>
+                    backgroundColor: '#f8fafc',
+                    color: '#0f172a',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxSizing: 'border-box'
+                  }}>
+                    <FiUser size={15} style={{ color: '#0284c7' }} />
+                    <span>{staffOwnerName}</span>
+                  </div>
                 </div>
               </div>
             </div>

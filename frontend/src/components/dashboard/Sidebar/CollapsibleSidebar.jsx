@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -90,6 +90,7 @@ const GROUP_ICONS = {
   kpi_operations: FiDatabase,
   kpi_performance: FiTrendingUp,
   kpi_reports: FiFileText,
+  kpi_actuals_oversight: FiFileText,
   team_kpi: FiUsers,
   my_kpi: FiUser,
   kpi_views: FiEye,
@@ -194,6 +195,31 @@ const CollapsibleSidebar = ({
     }));
   };
 
+  const location = useLocation();
+
+  const isItemActive = (itemPath, isEnd = false) => {
+    if (!itemPath) return false;
+    const [targetPath, targetSearch] = itemPath.split('?');
+    const pathMatches = isEnd 
+      ? location.pathname === targetPath 
+      : (location.pathname === targetPath || (targetPath !== '/' && location.pathname.startsWith(targetPath)));
+    
+    if (!pathMatches) return false;
+
+    if (targetSearch) {
+      const targetParams = new URLSearchParams(targetSearch);
+      const currentParams = new URLSearchParams(location.search);
+      for (const [key, val] of targetParams.entries()) {
+        if (currentParams.get(key) !== val) return false;
+      }
+      return true;
+    } else if (location.search && targetPath.includes('/kpi/')) {
+      const currentParams = new URLSearchParams(location.search);
+      if (currentParams.has('scope')) return false;
+    }
+    return true;
+  };
+
   const renderNavGroup = (title, items, groupKey) => {
     if (!items?.length) return null;
 
@@ -203,10 +229,7 @@ const CollapsibleSidebar = ({
     const isExpanded = expandedMenus[groupKey];
 
     // Check if any of the sub-items in this group is currently active
-    const currentPath = window.location.pathname;
-    const isAnyActive = items.some(item => {
-      return item.path && (currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path)));
-    });
+    const isAnyActive = items.some(item => isItemActive(item.path, item.end));
 
     const Chevron = isExpanded ? FiChevronUp : FiChevronDown;
     const GroupIcon = GROUP_ICONS[groupKey] || FiGrid;
@@ -221,11 +244,12 @@ const CollapsibleSidebar = ({
           <ul className="ent-nav-group-items-flat" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {items.map((item) => {
               const ItemIcon = item.icon || FiGrid;
+              const active = isItemActive(item.path, item.end);
               return (
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
-                    className={({ isActive }) => `ent-nav-link ${isActive ? 'active' : ''}`}
+                    className={() => `ent-nav-link ${active ? 'active' : ''}`}
                     end={item.end}
                   >
                     <ItemIcon size={20} />
@@ -263,11 +287,12 @@ const CollapsibleSidebar = ({
                   </li>
                 );
               }
+              const active = isItemActive(item.path, item.end);
               return (
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
-                    className={({ isActive }) => `ent-sub-nav-link ${isActive ? 'active' : ''}`}
+                    className={() => `ent-sub-nav-link ${active ? 'active' : ''}`}
                     end={item.end}
                   >
                     <span className="ent-sub-nav-bullet">●</span>

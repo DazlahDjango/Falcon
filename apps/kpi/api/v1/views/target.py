@@ -11,12 +11,17 @@ from ..filters import AnnualTargetListFilter, MonthlyPhasingListFilter
 from ....services import TargetSetter, TargetPhaser, TargetLocker, TargetValidator
 from ....exceptions import PhasingLockedError, DuplicatePhasingError
 
+from ....services.hierarchy_scope import (
+    get_my_targets_queryset, get_team_targets_queryset,
+    get_my_phasing_queryset, get_team_phasing_queryset
+)
+
 class AnnualTargetViewSet(BaseKpiViewset):
     queryset = AnnualTarget.objects.all()
     serializer_class = AnnualTargetSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = AnnualTargetListFilter
-    search_fields = ['kpi__name', 'user__email', 'user__first_name', 'user__last_name']
+    search_fields = ['kpi__name', 'kpi__code', 'user__email']
     ordering_fields = ['year', 'target_value', 'created_at']
     ordering = ['-target_value', '-year']
 
@@ -33,39 +38,23 @@ class AnnualTargetViewSet(BaseKpiViewset):
 
         scope = self.request.query_params.get('scope')
         if scope == 'my':
-            return queryset.filter(user=user)
+            return get_my_targets_queryset(user, queryset)
         elif scope == 'team':
-            direct_reports = []
-            if hasattr(user, 'get_direct_reports'):
-                try:
-                    direct_reports = list(user.get_direct_reports().values_list('id', flat=True))
-                except Exception:
-                    direct_reports = []
-
-            try:
-                from apps.structure.models import Employment
-                emp_reports = list(Employment.objects.filter(
-                    position__reports_to__employments__user_id=user.id,
-                    is_current=True,
-                    is_active=True
-                ).values_list('user_id', flat=True))
-                direct_reports.extend(emp_reports)
-            except Exception:
-                pass
-
-            if direct_reports:
-                return queryset.filter(user_id__in=direct_reports).exclude(user_id=user.id)
-            else:
-                return queryset.exclude(user_id=user.id)
+            return get_team_targets_queryset(user, queryset)
 
         role = str(getattr(user, 'role', '')).lower()
         is_admin_or_champion = role in [
             'super_admin', 'superadmin', 'platform_admin', 
-            'client_admin', 'admin', 'kpi_champion', 'hr_admin'
+            'client_admin', 'admin', 'kpi_champion', 'hr_admin', 'executive'
         ]
 
         if is_admin_or_champion or self.request.query_params.get('all') == 'true':
             return queryset
+
+        if role in ['manager', 'supervisor'] or getattr(user, 'is_manager', False):
+            return get_my_targets_queryset(user, queryset)
+
+        return get_my_targets_queryset(user, queryset)
 
         # Scoping based on organizational structure role / rank
         hierarchy_level = self.request.query_params.get('hierarchy_level') or role
@@ -199,8 +188,25 @@ class MonthlyPhasingViewSet(BaseKpiViewset):
     ordering = ['annual_target', 'month']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.select_related('annual_target__kpi', 'annual_target__user', 'locked_by')
+        queryset = super().get_queryset().select_related('annual_target__kpi', 'annual_target__user', 'locked_by')
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return queryset.none()
+
+        scope = self.request.query_params.get('scope')
+        if scope == 'my':
+            return get_my_phasing_queryset(user, queryset)
+        elif scope == 'team':
+            return get_team_phasing_queryset(user, queryset)
+
+        role = str(getattr(user, 'role', '')).lower()
+        if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion', 'executive']:
+            return queryset
+
+        if role in ['manager', 'supervisor'] or getattr(user, 'is_manager', False):
+            return get_my_phasing_queryset(user, queryset)
+
+        return get_my_phasing_queryset(user, queryset)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()

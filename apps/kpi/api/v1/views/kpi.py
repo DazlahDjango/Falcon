@@ -17,6 +17,8 @@ from ....services import KPICreator, KPIUpdater, KPIActivator, KPIValidator, KPI
 from ....exceptions import DuplicateKPICodeError
 
 
+from ....services.hierarchy_scope import get_my_kpis_queryset, get_team_kpis_queryset
+
 class KPIViewSet(BaseKpiViewset):
     queryset = KPI.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -33,40 +35,18 @@ class KPIViewSet(BaseKpiViewset):
         query_params = getattr(self.request, 'query_params', getattr(self.request, 'GET', {}))
         scope = query_params.get('scope')
         if scope == 'my':
-            return super().get_queryset().filter(
-                Q(owner=user) | 
-                Q(created_by=user) | 
-                Q(annual_targets__user=user)
-            ).distinct()
+            return get_my_kpis_queryset(user, super().get_queryset())
         elif scope == 'team':
-            direct_reports = []
-            if hasattr(user, 'get_direct_reports'):
-                try:
-                    direct_reports = list(user.get_direct_reports().values_list('id', flat=True))
-                except Exception:
-                    direct_reports = []
+            return get_team_kpis_queryset(user, super().get_queryset())
+        elif scope == 'all':
+            return super().get_queryset()
 
-            try:
-                from apps.structure.models import Employment
-                emp_reports = list(Employment.objects.filter(
-                    position__reports_to__employments__user_id=user.id,
-                    is_current=True,
-                    is_active=True
-                ).values_list('user_id', flat=True))
-                direct_reports.extend(emp_reports)
-            except Exception:
-                pass
+        role = str(getattr(user, 'role', '')).lower()
+        if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion', 'executive']:
+            return super().get_queryset()
 
-            managed_depts = getattr(user, 'managed_departments', [])
-            if direct_reports or managed_depts:
-                return super().get_queryset().filter(
-                    Q(owner_id__in=direct_reports) | 
-                    Q(department_id__in=managed_depts) | 
-                    Q(parent_kpi__owner=user) |
-                    Q(annual_targets__user_id__in=direct_reports)
-                ).exclude(owner=user).distinct()
-            else:
-                return super().get_queryset().exclude(owner=user)
+        if role in ['manager', 'supervisor'] or getattr(user, 'is_manager', False):
+            return get_my_kpis_queryset(user, super().get_queryset())
 
         return KPI.objects.for_user_hierarchy(user).distinct()
 

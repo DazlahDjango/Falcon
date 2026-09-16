@@ -98,15 +98,27 @@ const TargetsPage = () => {
         <div className="kpi-page-container">
             <div className="kpi-page-header" style={{ marginBottom: '20px' }}>
                 <div className="kpi-page-title-section">
-                    <h2>Target Management</h2>
-                    <p className="kpi-page-subtitle">Configure annual targets, cascade objectives, and manage splits</p>
+                    <h2>
+                        {scope === 'team'
+                            ? 'Team Target Phasing'
+                            : scope === 'my'
+                                ? 'My Target Phasing'
+                                : 'Target Management'}
+                    </h2>
+                    <p className="kpi-page-subtitle">
+                        {scope === 'team'
+                            ? 'Review and manage annual targets and monthly phasings across your team direct reports'
+                            : scope === 'my'
+                                ? 'Review and manage your personal annual targets and seasonal monthly phasings'
+                                : 'Configure annual targets, cascade objectives, and manage splits'}
+                    </p>
                 </div>
             </div>
 
             <div className="kpi-detail-tabs" style={{ marginBottom: '25px', display: 'flex', borderBottom: '1px solid var(--kpi-gray-200)' }}>
                 <button
                     className={`kpi-detail-tab ${currentTab === 'list' ? 'active' : ''}`}
-                    onClick={() => navigate('/kpi/targets')}
+                    onClick={() => navigate(scope ? `/kpi/targets?scope=${scope}` : '/kpi/targets')}
                     style={{ padding: '12px 24px', background: 'transparent', border: 'none', borderBottom: currentTab === 'list' ? '2px solid var(--kpi-primary)' : 'none', cursor: 'pointer', fontWeight: 600 }}
                 >
                     Annual Targets

@@ -30,7 +30,8 @@ const ActualDetail = ({
     canResubmit
 }) => {
     const dispatch = useDispatch();
-    const { user, canValidateActuals, canManageKPIs, isManager, isExecutive } = useKPIPermissions();
+    const { user, canValidateActuals, canManageKPIs, isManager, isExecutive, isClientAdmin, isSuperAdmin, isDashboardChampion } = useKPIPermissions();
+    const isAdmin = isSuperAdmin || isClientAdmin || isDashboardChampion;
     const { escalate } = useEscalations();
 
     const reduxCurrentActual = useSelector(selectCurrentActual);
@@ -47,7 +48,7 @@ const ActualDetail = ({
         (actual.user_email && user.email && actual.user_email.toLowerCase() === user.email.toLowerCase())
     ));
 
-    const canValidate = (propCanValidate || canValidateActuals || canManageKPIs || isManager || isExecutive) && !isOwnSubmission;
+    const canValidate = (propCanValidate || canValidateActuals || canManageKPIs || isManager || isExecutive || isAdmin) && (!isOwnSubmission || isAdmin);
 
     useEffect(() => {
         if (actualId && (!actual || actual.id !== actualId)) {

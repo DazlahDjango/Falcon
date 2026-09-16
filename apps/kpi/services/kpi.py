@@ -56,12 +56,33 @@ class KPICreator:
         # Auto-derive owner and department from user structure if missing
         owner_id = data.get('owner_id') or user.id
         dept_id = data.get('department_id')
+        division_id = data.get('division_id')
+        section_id = data.get('section_id')
+        unit_id = data.get('unit_id')
+
+        if not dept_id and unit_id:
+            from apps.structure.models import Unit
+            u_obj = Unit.objects.filter(id=unit_id).select_related('section', 'section__department').first()
+            if u_obj and u_obj.section and u_obj.section.department_id:
+                dept_id = str(u_obj.section.department_id)
+        if not dept_id and section_id:
+            from apps.structure.models import Section
+            s_obj = Section.objects.filter(id=section_id).first()
+            if s_obj and s_obj.department_id:
+                dept_id = str(s_obj.department_id)
+
         if not dept_id:
             dept_id = getattr(user, 'department_id', None)
             if not dept_id and hasattr(user, 'employments'):
                 emp = user.employments.filter(is_current=True, is_active=True).first()
                 if emp:
                     dept_id = emp.department_id
+
+        metadata = dict(data.get('metadata') or {})
+        if division_id: metadata['division_id'] = str(division_id)
+        if dept_id: metadata['department_id'] = str(dept_id)
+        if section_id: metadata['section_id'] = str(section_id)
+        if unit_id: metadata['unit_id'] = str(unit_id)
 
         baseline_val = Decimal(str(data['baseline'])) if data.get('baseline') is not None and data['baseline'] != '' else None
         target_val = Decimal(str(data.get('target_value') or data.get('targetValue'))) if (data.get('target_value') is not None or data.get('targetValue') is not None) else None
@@ -84,7 +105,7 @@ class KPICreator:
                 formula=data.get('formula', {}),
                 owner_id=owner_id,
                 department_id=dept_id,
-                metadata=data.get('metadata', {}),
+                metadata=metadata,
                 is_active=is_active,
                 activation_date=timezone.now().date() if is_active else None,
                 created_by=user,
@@ -108,13 +129,27 @@ class KPICreator:
                         'approved_at': timezone.now() if approval_status == 'APPROVED' else None
                     }
                 )
-                phaser = TargetPhaser()
-                phaser.phase_target(
-                    annual_target_id=str(annual_target.id),
-                    strategy='equal_split',
-                    user=user,
-                    overwrite=True
-                )
+                try:
+                    phaser = TargetPhaser()
+                    phaser.phase_target(
+                        annual_target_id=str(annual_target.id),
+                        strategy='equal_split',
+                        user=user,
+                        overwrite=True
+                    )
+                except Exception as ex:
+                    # If phasing is locked for the cycle, generate monthly phasing records directly
+                    monthly_val = round(Decimal(str(target_val)) / Decimal('12'), kpi.decimal_places or 2)
+                    for m in range(1, 13):
+                        MonthlyPhasing.objects.update_or_create(
+                            tenant_id=kpi.tenant_id,
+                            annual_target=annual_target,
+                            month=m,
+                            defaults={
+                                'target_value': monthly_val,
+                                'is_locked': True
+                            }
+                        )
 
             KPIHistory.objects.create(
                 tenant_id=kpi.tenant_id,

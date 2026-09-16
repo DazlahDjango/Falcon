@@ -12,6 +12,9 @@ const TargetCard = ({ target, onClick, onEdit, onDelete, canEdit, canDelete }) =
     const isAhead = progress > 100;
     const isBehind = progress < 85;
 
+    const isLocked = Boolean(target.is_locked || target.status === 'LOCKED');
+    const isApproved = Boolean(target.is_approved || target.status === 'APPROVED' || isLocked);
+
     return (
         <div className="kpi-target-card" onClick={() => onClick?.(target)}>
             <div className="kpi-target-card-header">
@@ -20,7 +23,7 @@ const TargetCard = ({ target, onClick, onEdit, onDelete, canEdit, canDelete }) =
                     <span>{target.kpi_name || target.kpi?.name}</span>
                 </div>
                 <div className="kpi-target-card-actions">
-                    {canEdit && (
+                    {canEdit && !isLocked && (
                         <button 
                             className="kpi-target-card-edit"
                             onClick={(e) => {
@@ -31,7 +34,7 @@ const TargetCard = ({ target, onClick, onEdit, onDelete, canEdit, canDelete }) =
                             <FiEdit size={14} />
                         </button>
                     )}
-                    {canDelete && (
+                    {canDelete && !isLocked && (
                         <button 
                             className="kpi-target-card-delete"
                             onClick={(e) => {
@@ -74,8 +77,12 @@ const TargetCard = ({ target, onClick, onEdit, onDelete, canEdit, canDelete }) =
                     <FiCalendar size={12} />
                     <span>{target.year}</span>
                 </div>
-                {target.is_approved && (
+                {isLocked ? (
+                    <KPIStatusBadge status="locked" customText="Locked" />
+                ) : isApproved ? (
                     <KPIStatusBadge status="approved" customText="Approved" />
+                ) : (
+                    <KPIStatusBadge status="pending" customText="Pending" />
                 )}
             </div>
         </div>

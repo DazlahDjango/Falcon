@@ -13,7 +13,7 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
     
     const categories = useSelector(selectCategories);
     
-    const [referenceData, setReferenceData] = useState({ users: [], departments: [] });
+    const [referenceData, setReferenceData] = useState({ users: [], departments: [], divisions: [], sections: [], units: [] });
     const [refLoading, setRefLoading] = useState(false);
     
     const [formData, setFormData] = useState({
@@ -25,7 +25,10 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         unit: data.unit || '',
         category_id: data.category_id || '',
         owner_id: data.owner_id || '',
+        division_id: data.division_id || '',
         department_id: data.department_id || '',
+        section_id: data.section_id || '',
+        unit_id: data.unit_id || '',
     });
     
     const [errors, setErrors] = useState({});
@@ -36,8 +39,8 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         const loadRefData = async () => {
             setRefLoading(true);
             try {
-                const result = await dispatch(fetchReferenceData(['users', 'departments'])).unwrap();
-                setReferenceData(result);
+                const result = await dispatch(fetchReferenceData(['users', 'departments', 'divisions', 'sections', 'units'])).unwrap();
+                setReferenceData(result || { users: [], departments: [], divisions: [], sections: [], units: [] });
             } catch (err) {
                 console.error('Failed to load reference data:', err);
             } finally {
@@ -66,6 +69,98 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
         { value: 'NON_CUMULATIVE', label: 'Non-Cumulative', desc: 'Period-only values' }
     ];
     
+    // Filtered dropdown lists based on cascading selections
+    const availableDepartments = formData.division_id
+        ? (referenceData.departments || []).filter((d) => !d.division_id || String(d.division_id) === String(formData.division_id))
+        : (referenceData.departments || []);
+
+    const availableSections = formData.department_id
+        ? (referenceData.sections || []).filter((s) => !s.department_id || String(s.department_id) === String(formData.department_id))
+        : (referenceData.sections || []);
+
+    const availableUnits = formData.section_id
+        ? (referenceData.units || []).filter((u) => !u.section_id || String(u.section_id) === String(formData.section_id))
+        : (referenceData.units || []);
+
+    const handleDivisionChange = (newDivId) => {
+        setFormData(prev => {
+            const updated = { ...prev, division_id: newDivId };
+            if (newDivId && prev.department_id) {
+                const dept = (referenceData.departments || []).find((d) => String(d.id) === String(prev.department_id));
+                if (dept && dept.division_id && String(dept.division_id) !== String(newDivId)) {
+                    updated.department_id = '';
+                    updated.section_id = '';
+                    updated.unit_id = '';
+                }
+            }
+            return updated;
+        });
+    };
+
+    const handleDepartmentChange = (newDeptId) => {
+        setFormData(prev => {
+            const updated = { ...prev, department_id: newDeptId };
+            if (newDeptId) {
+                const dept = (referenceData.departments || []).find((d) => String(d.id) === String(newDeptId));
+                if (dept?.division_id && !prev.division_id) {
+                    updated.division_id = String(dept.division_id);
+                }
+                if (prev.section_id) {
+                    const sec = (referenceData.sections || []).find((s) => String(s.id) === String(prev.section_id));
+                    if (sec && sec.department_id && String(sec.department_id) !== String(newDeptId)) {
+                        updated.section_id = '';
+                        updated.unit_id = '';
+                    }
+                }
+            }
+            return updated;
+        });
+    };
+
+    const handleSectionChange = (newSecId) => {
+        setFormData(prev => {
+            const updated = { ...prev, section_id: newSecId };
+            if (newSecId) {
+                const sec = (referenceData.sections || []).find((s) => String(s.id) === String(newSecId));
+                if (sec?.department_id) {
+                    updated.department_id = String(sec.department_id);
+                    const dept = (referenceData.departments || []).find((d) => String(d.id) === String(sec.department_id));
+                    if (dept?.division_id && !prev.division_id) {
+                        updated.division_id = String(dept.division_id);
+                    }
+                }
+                if (prev.unit_id) {
+                    const unit = (referenceData.units || []).find((u) => String(u.id) === String(prev.unit_id));
+                    if (unit && unit.section_id && String(unit.section_id) !== String(newSecId)) {
+                        updated.unit_id = '';
+                    }
+                }
+            }
+            return updated;
+        });
+    };
+
+    const handleUnitChange = (newUnitId) => {
+        setFormData(prev => {
+            const updated = { ...prev, unit_id: newUnitId };
+            if (newUnitId) {
+                const unit = (referenceData.units || []).find((u) => String(u.id) === String(newUnitId));
+                if (unit?.section_id) {
+                    updated.section_id = String(unit.section_id);
+                    const sec = (referenceData.sections || []).find((s) => String(s.id) === String(unit.section_id));
+                    if (sec?.department_id) {
+                        updated.department_id = String(sec.department_id);
+                        const dept = (referenceData.departments || []).find((d) => String(d.id) === String(sec.department_id));
+                        if (dept?.division_id && !prev.division_id) {
+                            updated.division_id = String(dept.division_id);
+                        }
+                    }
+                }
+            }
+            return updated;
+        });
+    };
+
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
@@ -196,22 +291,65 @@ const KPICreateStep1 = ({ data, onNext, onCancel }) => {
                             <option value="">Select Owner</option>
                             {referenceData.users?.map(u => (
                                 <option key={u.id} value={u.id}>
-                                    {u.full_name} ({u.email})
+                                    {u.full_name || u.email} ({u.email})
                                 </option>
                             ))}
                         </select>
                         {errors.owner_id && <span className="error-text">{errors.owner_id}</span>}
+                    </div>
+                </div>
+
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Division (Optional)</label>
+                        <select
+                            value={formData.division_id}
+                            onChange={(e) => handleDivisionChange(e.target.value)}
+                        >
+                            <option value="">Select Division</option>
+                            {referenceData.divisions?.map(div => (
+                                <option key={div.id} value={div.id}>{div.name} {div.code ? `(${div.code})` : ''}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="form-group">
                         <label>Department (Optional)</label>
                         <select
                             value={formData.department_id}
-                            onChange={(e) => handleChange('department_id', e.target.value)}
+                            onChange={(e) => handleDepartmentChange(e.target.value)}
                         >
                             <option value="">Select Department</option>
-                            {referenceData.departments?.map(d => (
-                                <option key={d.id} value={d.id}>{d.name}</option>
+                            {availableDepartments.map(d => (
+                                <option key={d.id} value={d.id}>{d.name} {d.code ? `(${d.code})` : ''}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Section (Optional)</label>
+                        <select
+                            value={formData.section_id}
+                            onChange={(e) => handleSectionChange(e.target.value)}
+                        >
+                            <option value="">Select Section</option>
+                            {availableSections.map(sec => (
+                                <option key={sec.id} value={sec.id}>{sec.name} {sec.code ? `(${sec.code})` : ''}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Unit (Optional)</label>
+                        <select
+                            value={formData.unit_id}
+                            onChange={(e) => handleUnitChange(e.target.value)}
+                        >
+                            <option value="">Select Unit</option>
+                            {availableUnits.map(unit => (
+                                <option key={unit.id} value={unit.id}>{unit.name} {unit.code ? `(${unit.code})` : ''}</option>
                             ))}
                         </select>
                     </div>

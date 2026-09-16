@@ -41,15 +41,16 @@ const InteractiveBulkForm = () => {
         ? rawCategories
         : (rawCategories?.results || rawCategories?.data || []);
 
-    const rawUserKPIs = useSelector(state => selectUserKPIs()(state)) || [];
+    const userId = currentUser?.id;
+    const rawUserKPIs = useSelector(state => selectUserKPIs(userId)(state)) || [];
     const currentUserKPIs = Array.isArray(rawUserKPIs) 
         ? rawUserKPIs 
         : (rawUserKPIs?.results || rawUserKPIs?.data || []);
     
-    // Filter currentUserKPIs so only approved & active Performance Indicators are available for actual submissions
+    // Filter currentUserKPIs so active Performance Indicators are available for actual submissions
     const approvedUserKPIs = currentUserKPIs.filter(k => 
         k.is_active !== false && 
-        k.approval_status === 'APPROVED'
+        (k.approval_status === 'APPROVED' || !k.approval_status)
     );
 
     const now = new Date();
@@ -66,14 +67,18 @@ const InteractiveBulkForm = () => {
 
     useEffect(() => {
         dispatch(fetchCategories({ is_active: true }));
-        dispatch(fetchUserKPIs({ params: { for_actuals: true } }));
+        if (userId) {
+            dispatch(fetchUserKPIs({ userId, params: { for_actuals: true } }));
+        } else {
+            dispatch(fetchUserKPIs({ params: { for_actuals: true } }));
+        }
         dispatch(fetchMyEmployment())
             .unwrap()
             .then((empData) => {
                 if (empData) setUserEmployment(empData);
             })
             .catch(() => {});
-    }, [dispatch]);
+    }, [dispatch, userId]);
 
     // Dynamically resolve the staff user's exact organizational level and entity name from structure Employment
     const getUserOrgDetails = () => {

@@ -18,6 +18,8 @@ from ....services import (
 from ....exceptions import HistoricalDataError, EvidenceUploadError
 
 
+from ....services.hierarchy_scope import get_my_actuals_queryset, get_team_actuals_queryset
+
 class MonthlyActualViewSet(BaseKpiViewset):
     queryset = MonthlyActual.objects.all()
     serializer_class = MonthlyActualSerializer
@@ -33,40 +35,20 @@ class MonthlyActualViewSet(BaseKpiViewset):
         if not user or not user.is_authenticated:
             return qs.none()
 
-        role = str(getattr(user, 'role', '')).lower()
         scope = self.request.query_params.get('scope')
+        if scope == 'my':
+            return get_my_actuals_queryset(user, qs)
+        elif scope == 'team':
+            return get_team_actuals_queryset(user, qs)
 
-        if scope == 'my' or role in ['staff', 'employee']:
-            return qs.filter(user_id=user.id)
-
-        if scope == 'team':
-            direct_reports = []
-            if hasattr(user, 'get_direct_reports'):
-                try:
-                    direct_reports = list(user.get_direct_reports().values_list('id', flat=True))
-                except Exception:
-                    direct_reports = []
-
-            try:
-                from apps.structure.models import Employment
-                emp_reports = list(Employment.objects.filter(
-                    position__reports_to__employments__user_id=user.id,
-                    is_current=True,
-                    is_active=True
-                ).values_list('user_id', flat=True))
-                direct_reports.extend(emp_reports)
-            except Exception:
-                pass
-
-            if direct_reports:
-                return qs.filter(user_id__in=direct_reports).exclude(user_id=user.id)
-            else:
-                return qs.exclude(user_id=user.id)
-
+        role = str(getattr(user, 'role', '')).lower()
         if role in ['super_admin', 'superadmin', 'platform_admin', 'client_admin', 'dashboard_champion', 'executive']:
             return qs
 
-        return qs
+        if role in ['manager', 'supervisor'] or getattr(user, 'is_manager', False):
+            return get_my_actuals_queryset(user, qs)
+
+        return get_my_actuals_queryset(user, qs)
 
     def create(self, request, *args, **kwargs):
         entry_service = ActualEntry()

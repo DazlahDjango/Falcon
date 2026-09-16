@@ -1,27 +1,58 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiUsers, FiTarget, FiCheckCircle, FiClock, FiAlertCircle, FiTrendingUp } from 'react-icons/fi';
-import { fetchManagerDashboard, selectManagerDashboard, selectDashboardLoading } from '../../../../store/kpi';
+import { FiUsers, FiTarget, FiCheckCircle, FiClock, FiAlertCircle, FiTrendingUp, FiGrid } from 'react-icons/fi';
+import { 
+    fetchManagerDashboard, 
+    selectManagerDashboard, 
+    selectDashboardLoading,
+    fetchActuals,
+    fetchKPIs,
+    fetchTargets,
+    selectActuals,
+    selectKPIs,
+    selectTargets
+} from '../../../../store/kpi';
 import TeamPerformance from './TeamPerformance';
 import TeamMembersTable from './TeamMembersTable';
 import StatusDistribution from './StatusDistribution';
 import PendingValidationsCard from './PendingValidationsCard';
 import MissingSubmissionsCard from './MissingSubmissionsCard';
+import ActualMatrixGrid from '../../actuals/matrix/ActualMatrixGrid';
 import KPILoading from '../../common/KPILoading';
 
 const ManagerDashboard = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     
     const dashboard = useSelector(selectManagerDashboard);
     const loading = useSelector(selectDashboardLoading);
+    const actuals = useSelector(selectActuals) || [];
+    const kpis = useSelector(selectKPIs) || [];
+    const targets = useSelector(selectTargets) || [];
     
     useEffect(() => {
         dispatch(fetchManagerDashboard({ year, month }));
+        dispatch(fetchActuals({ scope: 'team', year, page_size: 100 }));
+        dispatch(fetchKPIs({ scope: 'team', page_size: 100 }));
+        dispatch(fetchTargets({ year, pageSize: 200 }));
     }, [dispatch, year, month]);
+
+    const handleCellClick = (actual) => {
+        if (actual?.id) {
+            navigate(`/kpi/actuals?selected=${actual.id}`);
+        } else {
+            navigate('/kpi/actuals');
+        }
+    };
+
+    const handleAddClick = ({ kpi_id, year: y, month: m, user_id }) => {
+        navigate(`/kpi/actuals?submit=true&kpi=${kpi_id}&year=${y}&month=${m}${user_id ? `&user=${user_id}` : ''}`);
+    };
     
-    if (loading) {
+    if (loading && !dashboard) {
         return <KPILoading text="Loading team dashboard..." />;
     }
     
@@ -76,7 +107,7 @@ const ManagerDashboard = () => {
             <div className="dashboard-header">
                 <div>
                     <h1>Team Dashboard</h1>
-                    <p>Monitor your team's performance and pending tasks</p>
+                    <p>Monitor your team's performance, submissions, and validations</p>
                 </div>
                 <div className="period-selector">
                     <select value={year} onChange={(e) => setYear(parseInt(e.target.value))}>
@@ -124,6 +155,20 @@ const ManagerDashboard = () => {
             </div>
             
             <TeamMembersTable members={dashboard?.team_members} />
+
+            {/* Team Monthly Actuals Matrix Grid */}
+            <div style={{ marginTop: '2rem' }}>
+                <ActualMatrixGrid 
+                    actuals={actuals}
+                    kpis={kpis}
+                    targets={targets}
+                    selectedYear={year}
+                    onYearChange={setYear}
+                    onCellClick={handleCellClick}
+                    onAddClick={handleAddClick}
+                    loading={loading}
+                />
+            </div>
         </div>
     );
 };

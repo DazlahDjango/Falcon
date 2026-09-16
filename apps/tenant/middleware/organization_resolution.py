@@ -12,6 +12,11 @@ class OrganizationResolutionMiddleware(MiddlewareMixin):
         if user and user.is_authenticated:
             if getattr(user, 'is_superuser', False) or getattr(user, 'role', None) == 'super_admin':
                 return None
+            if getattr(user, 'tenant_id', None):
+                org_id = str(user.tenant_id)
+                request.organization_id = org_id
+                request.tenant_id = org_id
+                return None
 
         if self._should_skip(request):
             return None

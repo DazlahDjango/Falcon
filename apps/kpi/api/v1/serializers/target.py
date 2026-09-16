@@ -8,7 +8,10 @@ class AnnualTargetSerializer(TenantAwareSerializer):
     user_full_name = serializers.CharField(source='user.get_full_name', read_only=True)
     approved_by_email = serializers.EmailField(source='approved_by.email', read_only=True, default=None)
     is_approved = serializers.BooleanField(read_only=True)
+    is_locked = serializers.BooleanField(read_only=True)
+    status = serializers.CharField(read_only=True)
     monthly_phasing_count = serializers.SerializerMethodField()
+    monthly_phasings = serializers.SerializerMethodField()
     child_cascades = serializers.SerializerMethodField()
     cascades_count = serializers.SerializerMethodField()
     is_root = serializers.SerializerMethodField()
@@ -19,8 +22,8 @@ class AnnualTargetSerializer(TenantAwareSerializer):
         fields = [
             'id', 'kpi', 'kpi_name', 'user', 'user_email',
             'user_full_name', 'year', 'target_value', 'baseline', 'approved_by',
-            'approved_by_email', 'approved_at', 'notes', 'is_approved',
-            'monthly_phasing_count', 'child_cascades', 'cascades_count',
+            'approved_by_email', 'approved_at', 'notes', 'is_approved', 'is_locked', 'status',
+            'monthly_phasing_count', 'monthly_phasings', 'child_cascades', 'cascades_count',
             'is_root', 'parent_target_id',
             'tenant_id', 'created_at', 'updated_at',
             'created_by', 'updated_by'
@@ -29,6 +32,20 @@ class AnnualTargetSerializer(TenantAwareSerializer):
 
     def get_monthly_phasing_count(self, obj):
         return obj.monthly_phasing.count()
+
+    def get_monthly_phasings(self, obj):
+        phasings = obj.monthly_phasing.all().order_by('month')
+        return [
+            {
+                'id': str(p.id),
+                'month': p.month,
+                'target_value': float(p.target_value) if p.target_value is not None else 0.0,
+                'is_locked': p.is_locked,
+                'locked_at': p.locked_at,
+                'locked_by': str(p.locked_by_id) if p.locked_by_id else None
+            }
+            for p in phasings
+        ]
 
     def get_child_cascades(self, obj):
         from .cascade import CascadeMapSerializer

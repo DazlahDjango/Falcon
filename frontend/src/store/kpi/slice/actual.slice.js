@@ -152,6 +152,18 @@ export const createAdjustment = createAsyncThunk(
   }
 );
 
+export const deleteActual = createAsyncThunk(
+  'actual/deleteActual',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await actualService.deleteActual(id);
+      return { id, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 export const approveAdjustment = createAsyncThunk(
   'actual/approveAdjustment',
   async (id, { rejectWithValue }) => {
@@ -163,6 +175,8 @@ export const approveAdjustment = createAsyncThunk(
     }
   }
 );
+
+
 
 // ============ Initial State ============
 const initialState = {
@@ -364,6 +378,15 @@ const actualSlice = createSlice({
         const index = state.actuals.findIndex(a => a.id === action.payload.id);
         if (index !== -1) state.actuals[index] = action.payload;
         if (state.currentActual?.id === action.payload.id) state.currentActual = action.payload;
+      })
+      
+      // ============ Delete Actual ============
+      .addCase(deleteActual.fulfilled, (state, action) => {
+        const id = action.payload?.id || action.meta.arg;
+        state.actuals = state.actuals.filter(a => a.id !== id);
+        if (state.currentActual?.id === id) {
+          state.currentActual = null;
+        }
       })
       
       // ============ Upload Evidence ============

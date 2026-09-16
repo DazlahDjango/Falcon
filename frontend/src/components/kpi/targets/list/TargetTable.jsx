@@ -37,6 +37,9 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, onViewT
                 <tbody>
                     {targets.map(target => {
                         const progress = target.current_value ? (target.current_value / target.target_value) * 100 : 0;
+                        const isLocked = Boolean(target.is_locked || target.status === 'LOCKED');
+                        const isApproved = Boolean(target.is_approved || target.status === 'APPROVED' || isLocked);
+
                         return (
                             <tr
                                 key={target.id}
@@ -73,7 +76,9 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, onViewT
                                     </div>
                                 </td>
                                 <td>
-                                    {target.is_approved ? (
+                                    {isLocked ? (
+                                        <KPIStatusBadge status="locked" customText="Locked" />
+                                    ) : isApproved ? (
                                         <KPIStatusBadge status="approved" customText="Approved" />
                                     ) : (
                                         <KPIStatusBadge status="pending" customText="Pending" />
@@ -114,7 +119,7 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, onViewT
                                             <FiShare2 size={14} />
                                         </button>
                                     )}
-                                    {canEdit && (
+                                    {canEdit && !isLocked && (
                                         <button
                                             className="kpi-target-edit-btn"
                                             onClick={(e) => {
@@ -125,7 +130,7 @@ const TargetTable = ({ targets, onRowClick, onEdit, onDelete, onCascade, onViewT
                                             <FiEdit size={14} />
                                         </button>
                                     )}
-                                    {canDelete && (
+                                    {canDelete && !isLocked && (
                                         <button
                                             className="kpi-target-delete-btn"
                                             onClick={(e) => {

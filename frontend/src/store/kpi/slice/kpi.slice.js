@@ -238,10 +238,16 @@ export const deleteDependency = createAsyncThunk(
 // User Nested (My KPIs)
 export const fetchUserKPIs = createAsyncThunk(
   'kpi/fetchUserKPIs',
-  async ({ userId, params = {} }, { rejectWithValue }) => {
+  async ({ userId, params = {} } = {}, { rejectWithValue, getState }) => {
     try {
-      const response = await kpiService.getUserKPIs(userId, params);
-      return { userId, data: response.data };
+      const state = getState();
+      const resolvedUserId = userId || state.auth?.user?.id;
+      if (!resolvedUserId) {
+        const response = await kpiService.getKPIs({ scope: 'my', ...params });
+        return { userId: 'current', data: response.data };
+      }
+      const response = await kpiService.getUserKPIs(resolvedUserId, params);
+      return { userId: resolvedUserId, data: response.data };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }

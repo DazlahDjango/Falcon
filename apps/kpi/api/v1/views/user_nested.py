@@ -84,9 +84,17 @@ class UserKPIsViewSet(viewsets.ReadOnlyModelViewSet):
         is_active_param = self.request.query_params.get('is_active')
         
         if for_actuals in ['true', '1', True]:
-            qs = KPI.objects.filter(owner_id=user_id, is_active=True, approval_status='APPROVED')
+            # For actual submissions, user can submit against KPIs where they are owner OR have an annual target assigned
+            qs = KPI.objects.filter(
+                Q(annual_targets__user_id=user_id) | Q(owner_id=user_id),
+                is_active=True
+            ).filter(
+                Q(approval_status='APPROVED') | Q(approval_status__isnull=True)
+            ).distinct()
         else:
-            qs = KPI.objects.filter(owner_id=user_id)
+            qs = KPI.objects.filter(
+                Q(owner_id=user_id) | Q(annual_targets__user_id=user_id) | Q(weights__user_id=user_id)
+            ).distinct()
             if is_active_param in ['true', '1', True]:
                 qs = qs.filter(is_active=True)
             elif is_active_param in ['false', '0', False]:

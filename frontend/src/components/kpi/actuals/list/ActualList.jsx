@@ -17,6 +17,8 @@ const ActualList = ({
     onPageSizeChange,
     onRowClick,
     onStatusClick,
+    onEdit,
+    onDelete,
     canValidate
 }) => {
     if (loading && (!actuals || actuals.length === 0)) {
@@ -45,6 +47,8 @@ const ActualList = ({
                 actuals={actuals}
                 onRowClick={onRowClick}
                 onStatusClick={onStatusClick}
+                onEdit={onEdit}
+                onDelete={onDelete}
                 canValidate={canValidate}
             />
             

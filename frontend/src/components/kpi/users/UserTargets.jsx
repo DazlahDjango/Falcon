@@ -75,6 +75,9 @@ const UserTargets = ({ userId, onEditTarget }) => {
                     <tbody>
                         {targets.map(target => {
                             const progress = getProgress(target);
+                            const isLocked = Boolean(target.is_locked || target.status === 'LOCKED');
+                            const isApproved = Boolean(target.is_approved || target.status === 'APPROVED' || isLocked);
+
                             return (
                                 <tr key={target.id}>
                                     <td className="target-kpi-name">{target.kpi_name}</td>
@@ -89,17 +92,19 @@ const UserTargets = ({ userId, onEditTarget }) => {
                                         <span className="progress-percentage">{Number(progress || 0).toFixed(1)}%</span>
                                     </td>
                                     <td>
-                                        <span className={`target-status ${target.is_approved ? 'approved' : 'pending'}`}>
-                                            {target.is_approved ? 'Approved' : 'Pending'}
+                                        <span className={`target-status ${isLocked ? 'locked' : isApproved ? 'approved' : 'pending'}`}>
+                                            {isLocked ? 'Locked' : isApproved ? 'Approved' : 'Pending'}
                                         </span>
                                     </td>
                                     <td>
-                                        <button 
-                                            className="edit-target-btn"
-                                            onClick={() => onEditTarget?.(target)}
-                                        >
-                                            <FiEdit size={14} />
-                                        </button>
+                                        {onEditTarget && !isLocked && (
+                                            <button 
+                                                className="edit-target-btn"
+                                                onClick={() => onEditTarget?.(target)}
+                                            >
+                                                <FiEdit size={14} />
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             );

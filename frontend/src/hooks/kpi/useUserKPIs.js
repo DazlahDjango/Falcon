@@ -5,18 +5,19 @@ import {
     selectUserKPIs,
     selectKPILoading
 } from '../../store/kpi';
+import { useAuthContext } from '../../contexts/accounts/AuthContext';
 
 const useUserKPIs = (userId, params = {}) => {
     const dispatch = useDispatch();
+    const { user } = useAuthContext();
+    const targetUserId = userId || user?.id;
     
-    const kpis = useSelector(state => selectUserKPIs(userId)(state));
+    const kpis = useSelector(state => selectUserKPIs(targetUserId)(state));
     const loading = useSelector(selectKPILoading);
     
     const loadKPIs = useCallback(() => {
-        if (userId) {
-            dispatch(fetchUserKPIs({ userId, params }));
-        }
-    }, [dispatch, userId, params]);
+        dispatch(fetchUserKPIs({ userId: targetUserId, params }));
+    }, [dispatch, targetUserId, params]);
     
     useEffect(() => {
         loadKPIs();

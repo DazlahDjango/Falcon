@@ -62,28 +62,44 @@ export const KPI_SUPER_ADMIN_DEFAULT_EXPANDED = {
 };
 
 // ============================================
-// 2. CLIENT ADMIN KPI NAV GROUPS (Organization Scope)
+// 2. CLIENT ADMIN KPI NAV GROUPS (Organization Scope + Personal Staff Capabilities)
 // ============================================
 export const KPI_CLIENT_ADMIN_NAV_GROUPS = {
   kpi_main: [
-    { path: KPI_ROUTES.DASHBOARD, name: 'KPI Summary', icon: FiPieChart },
+    { path: KPI_ROUTES.DASHBOARD, name: 'Personal KPI View', icon: FiUser },
+    { path: KPI_ROUTES.ADMIN_OVERVIEW, name: 'Organization Overview', icon: FiPieChart },
+  ],
+  my_kpi: [
+    { path: `${KPI_ROUTES.KPI_MY_KPIS}?scope=my`, name: 'My Performance Indicators', icon: FiTarget },
+    { path: KPI_ROUTES.ACTUAL_SUBMIT, name: 'Submit Monthly Actual', icon: FiPlus },
+    { path: `${KPI_ROUTES.ACTUALS}?scope=my`, name: 'My Actual Submissions', icon: FiFileText },
+    { path: `${KPI_ROUTES.TARGETS}?scope=my`, name: 'My Target Phasing', icon: FiCalendar },
+    { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'My Performance Scores', icon: FiAward },
+    { path: KPI_ROUTES.BULK_UPLOAD, name: 'My Bulk Operations', icon: FiLayers },
+    { path: KPI_ROUTES.ACTUAL_ADJUSTMENTS, name: 'Adjustment Requests', icon: FiRotateCcw },
+    { path: KPI_ROUTES.ESCALATIONS, name: 'Dispute Escalations', icon: FiAlertCircle },
   ],
   kpi_management: [
     { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'Organization KPIs', icon: FiTarget },
     { path: KPI_ROUTES.KPI_CREATE, name: 'Define New KPI', icon: FiPlus },
-    { path: KPI_ROUTES.ADMIN_CATEGORIES, name: 'Category Tree', icon: FiLayers },
+    { path: KPI_ROUTES.ADMIN_CATEGORIES, name: 'Category Tree (KRAs)', icon: FiLayers },
     { path: KPI_ROUTES.TARGETS, name: 'Annual Targets', icon: FiTrendingUp },
-    { path: KPI_ROUTES.BULK_UPLOAD, name: 'Bulk Uploads', icon: FiUpload },
+    { path: KPI_ROUTES.TARGET_CASCADE, name: 'Cascade Targets', icon: FiShare2 },
+    { path: KPI_ROUTES.TARGET_CASCADE_RULES, name: 'Cascade Rules', icon: FiSliders },
+    { path: KPI_ROUTES.BULK_UPLOAD, name: 'Bulk Import Wizard', icon: FiUpload },
+  ],
+  kpi_actuals_oversight: [
+    { path: `${KPI_ROUTES.ACTUALS}?scope=all`, name: 'Tenant Actuals Matrix', icon: FiFileText },
+    { path: KPI_ROUTES.VALIDATIONS, name: 'Validation Queue', icon: FiCheckCircle },
   ],
   kpi_analytics: [
     { path: KPI_ROUTES.ORGANIZATION_HEALTH, name: 'Organization Health', icon: FiActivity },
     { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiBarChart2 },
     { path: KPI_ROUTES.ANALYTICS_INSIGHTS, name: 'Analytics Insights', icon: FiTrendingUp },
+    { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alert KPIs', icon: FiAlertCircle },
     { path: KPI_ROUTES.REPORTS, name: 'Reports Center', icon: FiFileText },
   ],
   kpi_operations: [
-    { path: KPI_ROUTES.VALIDATIONS, name: 'Validation Queue', icon: FiCheckCircle },
-    { path: KPI_ROUTES.ESCALATIONS, name: 'Dispute Escalations', icon: FiAlertCircle },
     { path: KPI_ROUTES.CALCULATIONS, name: 'Score Calculations', icon: FiActivity },
     { path: KPI_ROUTES.SYSTEM_SETTINGS, name: 'KPI Subsystem Settings', icon: FiSettings },
     { path: KPI_ROUTES.AUDIT_LOGS, name: 'Audit History', icon: FiFileText },
@@ -92,14 +108,18 @@ export const KPI_CLIENT_ADMIN_NAV_GROUPS = {
 
 export const KPI_CLIENT_ADMIN_GROUP_LABELS = {
   kpi_main: 'Main',
+  my_kpi: '👤 My KPI Performance',
   kpi_management: '🎯 Indicator & Target Management',
+  kpi_actuals_oversight: '📋 Actuals & Validations',
   kpi_analytics: '📊 Strategic Analytics',
   kpi_operations: '⚙️ Operations & Settings',
 };
 
 export const KPI_CLIENT_ADMIN_DEFAULT_EXPANDED = {
   kpi_main: true,
+  my_kpi: true,
   kpi_management: true,
+  kpi_actuals_oversight: false,
   kpi_analytics: true,
   kpi_operations: false,
 };
@@ -110,11 +130,19 @@ export const KPI_CLIENT_ADMIN_DEFAULT_EXPANDED = {
 export const KPI_CHAMPION_NAV_GROUPS = {
   kpi_main: [
     { path: KPI_ROUTES.CHAMPION_DASHBOARD, name: 'Champion Dashboard', icon: FiPieChart, end: true },
-    { path: KPI_ROUTES.DASHBOARD, name: 'Tenant Performance', icon: FiGrid },
+    { path: KPI_ROUTES.DASHBOARD, name: 'Personal View', icon: FiUser },
+  ],
+  my_kpi: [
+    { path: `${KPI_ROUTES.KPI_MY_KPIS}?scope=my`, name: 'My Performance Indicators', icon: FiTarget },
+    { path: KPI_ROUTES.ACTUAL_SUBMIT, name: 'Submit Monthly Actual', icon: FiPlus },
+    { path: `${KPI_ROUTES.ACTUALS}?scope=my`, name: 'My Actual Submissions', icon: FiFileText },
+    { path: `${KPI_ROUTES.TARGETS}?scope=my`, name: 'My Target Phasing', icon: FiCalendar },
+    { path: KPI_ROUTES.SCORE_MY_SCORES, name: 'My Performance Scores', icon: FiAward },
   ],
   kpi_management: [
     { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'Organization KPIs', icon: FiTarget },
-    { path: KPI_ROUTES.KPI_CREATE, name: 'Create Indicator', icon: FiPlus },
+    { path: KPI_ROUTES.KPI_CREATE, name: 'Define New KPI', icon: FiPlus },
+    { path: KPI_ROUTES.ADMIN_CATEGORIES, name: 'Category Tree (KRAs)', icon: FiLayers },
     { path: KPI_ROUTES.TARGETS, name: 'Annual Targets', icon: FiTrendingUp },
     { path: KPI_ROUTES.TARGET_CASCADE, name: 'Cascade Targets', icon: FiShare2 },
     { path: KPI_ROUTES.TARGET_CASCADE_RULES, name: 'Cascade Rules', icon: FiSliders },
@@ -135,6 +163,7 @@ export const KPI_CHAMPION_NAV_GROUPS = {
 
 export const KPI_CHAMPION_GROUP_LABELS = {
   kpi_main: 'Main',
+  my_kpi: '👤 My KPI Performance',
   kpi_management: '🎯 Indicator & Target Management',
   kpi_validations: '✅ Validations & Alerts',
   kpi_analytics: '📈 Compliance & Reporting',
@@ -142,6 +171,7 @@ export const KPI_CHAMPION_GROUP_LABELS = {
 
 export const KPI_CHAMPION_DEFAULT_EXPANDED = {
   kpi_main: true,
+  my_kpi: true,
   kpi_management: true,
   kpi_validations: true,
   kpi_analytics: false,
