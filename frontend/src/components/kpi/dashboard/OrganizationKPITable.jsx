@@ -23,8 +23,9 @@ const OrganizationKPITable = ({ title = "Organization KPIs", limit = 5, showSear
   const [selectedKpiId, setSelectedKpiId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter ONLY organizational level KPIs (non-staff created)
-  const orgKPIs = (kpis || []).filter(kpi => !kpi.is_staff_created && !kpi.is_staff);
+  // Filter ONLY top-level organizational KPIs created at top of org
+  const masterOrgKPIs = (kpis || []).filter(kpi => !kpi.parent_kpi && !kpi.parent_kpi_id && !kpi.is_staff_created && !kpi.is_staff);
+  const orgKPIs = masterOrgKPIs.length > 0 ? masterOrgKPIs : (kpis || []).filter(kpi => !kpi.is_staff_created && !kpi.is_staff);
 
   // Filter by search term and status
   const filteredKPIs = orgKPIs.filter(kpi => {

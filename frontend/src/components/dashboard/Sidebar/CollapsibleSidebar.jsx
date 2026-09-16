@@ -82,7 +82,6 @@ const GROUP_ICONS = {
   kpiAnalytics: FiActivity,
   kpiOperations: FiDatabase,
   kpiDashboards: FiHome,
-  kpi_main: FiHome,
   kpi_admin: FiPieChart,
   kpi_management: FiTarget,
   kpi_analytics: FiActivity,
@@ -93,6 +92,7 @@ const GROUP_ICONS = {
   kpi_actuals_oversight: FiFileText,
   team_kpi: FiUsers,
   my_kpi: FiUser,
+  organization_kpis: FiTarget,
   kpi_views: FiEye,
   structure: BsDiagram3,
   structure_main: FiGrid,
@@ -200,10 +200,10 @@ const CollapsibleSidebar = ({
   const isItemActive = (itemPath, isEnd = false) => {
     if (!itemPath) return false;
     const [targetPath, targetSearch] = itemPath.split('?');
-    const pathMatches = isEnd 
-      ? location.pathname === targetPath 
+    const pathMatches = isEnd
+      ? location.pathname === targetPath
       : (location.pathname === targetPath || (targetPath !== '/' && location.pathname.startsWith(targetPath)));
-    
+
     if (!pathMatches) return false;
 
     if (targetSearch) {

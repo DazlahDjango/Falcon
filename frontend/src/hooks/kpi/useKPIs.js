@@ -2,7 +2,7 @@
  * Hook for managing KPI list
  * Following pattern of billing/usePlans.js
  */
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
     fetchKPIs, 
@@ -20,6 +20,7 @@ import {
 
 const useKPIs = (initialParams = {}) => {
     const dispatch = useDispatch();
+    const initialParamsRef = useRef(initialParams);
     
     const kpis = useSelector(selectKPIs);
     const loading = useSelector(selectKPILoading);
@@ -65,8 +66,8 @@ const useKPIs = (initialParams = {}) => {
     }, [loadKPIs]);
     
     useEffect(() => {
-        loadKPIs(initialParams);
-    }, [loadKPIs, initialParams]);
+        loadKPIs(initialParamsRef.current);
+    }, [loadKPIs]);
     
     return {
         kpis,
