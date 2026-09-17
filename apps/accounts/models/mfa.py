@@ -158,14 +158,16 @@ class MFABackupCode(BaseModel):
     @classmethod
     def hash_code(cls, raw_code, user_email):
         salt = user_email.encode()
-        return hashlib.pbkdf2_hmac('sha256', raw_code.encode(), salt, 100000).hex()
+        cleaned = raw_code.strip().upper().replace(' ', '').replace('-', '')
+        return hashlib.pbkdf2_hmac('sha256', cleaned.encode(), salt, 100000).hex()
     
     @classmethod
     def generate_codes(cls, user, count=10):
         raw_codes = []
         backup_codes = []
+        charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
         for _ in range(count):
-            raw_code = secrets.token_urlsafe(9)[:12]
+            raw_code = ''.join(secrets.choice(charset) for _ in range(10))
             code_hash = cls.hash_code(raw_code, user.email)
             backup_code = cls.objects.create(
                 user=user,

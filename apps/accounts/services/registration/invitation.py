@@ -150,6 +150,7 @@ class InvitationService:
             'department_id': department_id,
             'message': message,
             'created_at': timezone.now().isoformat(),
+            'token': token,
         }
         
         if invited_by:
@@ -180,16 +181,15 @@ class InvitationService:
         return token
     
     def _validate_invitation_token(self, token: str) -> Optional[Dict]:
-        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        token_hash = token if len(token) == 64 else hashlib.sha256(token.encode()).hexdigest()
         
-        # 1. Try cache lookup by hash or raw token
-        inv = cache.get(f'invitation:{token_hash}') or cache.get(f'invitation:{token}')
-        if inv:
-            return inv
+        # 1. Try cache lookup by raw token or hash
+        inv = cache.get(f'invitation:{token}') or cache.get(f'invitation:{token_hash}')
+        if not inv:
+            # 2. Disk persistent fallback lookup
+            store = _load_persistent_store()
+            inv = store.get(token) or store.get(token_hash)
         
-        # 2. Disk persistent fallback lookup
-        store = _load_persistent_store()
-        inv = store.get(token_hash) or store.get(token)
         if inv:
             # Check 7-day expiration
             expires_at_str = inv.get('expires_at')
@@ -209,6 +209,7 @@ class InvitationService:
 
             # Re-populate cache for fast subsequent hits
             cache.set(f'invitation:{token_hash}', inv, timeout=604800)
+            cache.set(f'invitation:{token}', inv, timeout=604800)
             return inv
 
         return None
@@ -270,5 +271,5 @@ class InvitationService:
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
             html_message=html_content,
-            fail_silently=False
+            fail_silently=True
         )

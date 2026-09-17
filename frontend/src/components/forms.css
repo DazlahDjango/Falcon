@@ -27,8 +27,12 @@
     margin-left: 0.25rem;
 }
 
-.input-wrapper {
+.input-wrapper,
+.form-input-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
 
 .form-input {
@@ -60,33 +64,48 @@
     border-color: var(--success-color);
 }
 
-.form-input.has-icon-left {
-    padding-left: 2.25rem;
+.form-input.has-icon-left,
+.input-wrapper > .form-input,
+.input-wrapper > input,
+.form-input-wrapper > .form-input,
+.form-input-wrapper > input {
+    padding-left: 2.75rem;
 }
 
-.form-input.has-icon-right {
-    padding-right: 2.25rem;
+.form-input.has-icon-right,
+.input-wrapper > input[type="password"],
+.form-input-wrapper > input[type="password"] {
+    padding-right: 2.75rem;
 }
 
 .input-icon-left,
-.input-icon-right {
+.input-icon-right,
+.input-wrapper .input-icon,
+.form-input-wrapper .input-icon {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     color: var(--gray-400);
     display: flex;
     align-items: center;
+    justify-content: center;
+    z-index: 2;
 }
 
-.input-icon-left {
-    left: 0.75rem;
+.input-icon-left,
+.input-wrapper .input-icon,
+.form-input-wrapper .input-icon {
+    left: 0.875rem;
+    pointer-events: none;
 }
 
 .input-icon-right {
-    right: 0.75rem;
+    right: 0.875rem;
 }
 
-.password-toggle {
+.password-toggle,
+.input-toggle,
+.toggle-password {
     position: absolute;
     right: 0.75rem;
     top: 50%;

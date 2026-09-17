@@ -44,7 +44,8 @@ class LoginView(APIView):
         if isinstance(result, dict) and result.get('requires_mfa'):
             return Response({
                 'requires_mfa': True,
-                'mfa_token': result.get('mfa_token')
+                'mfa_token': result.get('mfa_token'),
+                'mfa_setup_required': result.get('mfa_setup_required', False)
             }, status=status.HTTP_200_OK)
         
         # ✅ Build response data with proper UUID conversion
@@ -149,14 +150,36 @@ class MFAAuthView(APIView):
         return request.META.get('REMOTE_ADDR', '')
     
 class MFASetupView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AllowAny]
     throttle_classes = [MFARateThrottle]
+
     def post(self, request):
         serializer = MFASetupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         device_name = serializer.validated_data.get('device_name', 'Authenticator')
+        
+        target_user = None
+        if request.user and request.user.is_authenticated:
+            target_user = request.user
+        else:
+            mfa_token = request.data.get('mfa_token') or request.META.get('HTTP_X_MFA_TOKEN')
+            if mfa_token:
+                jwt_service = JWTServices()
+                payload = jwt_service.verify_token(mfa_token)
+                if payload and payload.get('mfa_pending') and payload.get('user_id'):
+                    try:
+                        target_user = User.objects.get(id=payload.get('user_id'), is_active=True)
+                    except User.DoesNotExist:
+                        pass
+        
+        if not target_user:
+            return Response(
+                {'error': 'Authentication or valid MFA token required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
         mfa_service = MFAService()
-        setup_data = mfa_service.setup_totp(request.user, device_name)
+        setup_data = mfa_service.setup_totp(target_user, device_name)
         response_serializer = MFASetupResponseSerializer(setup_data)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
     

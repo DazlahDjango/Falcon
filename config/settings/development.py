@@ -98,6 +98,15 @@ INSTALLED_APPS += [
 
 # PAYSTACK DEV 
 PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", default="sk_test_7400c09c4522e332d65cecc290afee0dda124d03")
+
+# THROTTLING (relaxed in development for local test suites)
+REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'].update({
+    'password_reset': '300/hour',
+    'login': '60/minute',
+    'register': '60/hour',
+    'sensitive': '100/minute',
+})
+
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default="pk_test_3a7cd5da94bc9d3192f198056aff00e379819403")
 # Use ngrok URL for webhook testing
 PAYSTACK_WEBHOOK_BASE_URL = env("BASE_URL", default="https://politely-nebulizer-veal.ngrok-free.dev")

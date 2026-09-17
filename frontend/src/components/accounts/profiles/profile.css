@@ -160,18 +160,26 @@
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .input-icon {
     position: absolute;
-    left: 12px;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     color: #9ca3af;
+    font-size: 18px;
     pointer-events: none;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .form-input {
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px 14px;
     border: 1px solid #d1d5db;
     border-radius: 10px;
     font-size: 14px;
@@ -194,8 +202,37 @@
     cursor: not-allowed;
 }
 
-.input-wrapper .form-input {
-    padding-left: 36px;
+.input-wrapper .form-input,
+.input-wrapper input {
+    padding-left: 44px !important;
+}
+
+.input-wrapper input[type="password"] {
+    padding-right: 44px !important;
+}
+
+.toggle-password,
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: color 0.2s;
+}
+
+.toggle-password:hover,
+.password-toggle:hover {
+    color: #374151;
 }
 
 .input-help {

@@ -1,6 +1,7 @@
 @import './auth/auth.css';
 @import './users/users.css';
 @import './profiles/profiles.css';
+@import './profiles/profile.css';
 @import './mfa/mfa.css';
 @import './roles/roles.css';
 @import './permissions/permissions.css';
@@ -358,50 +359,105 @@
   margin-top: 4px;
 }
 
-.accounts-module .form-row {
+.accounts-module .form-row,
+.modal-form .form-row,
+.form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
 
 @media (max-width: 480px) {
-  .accounts-module .form-row {
+  .accounts-module .form-row,
+  .modal-form .form-row,
+  .form-row {
     grid-template-columns: 1fr;
   }
 }
 
-.accounts-module .form-input-wrapper {
+/* Universal Account & Form Input Wrappers */
+.form-input-wrapper,
+.input-wrapper,
+.accounts-module .form-input-wrapper,
+.accounts-module .input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
-.accounts-module .form-input-wrapper .input-icon {
+.form-input-wrapper .input-icon,
+.input-wrapper .input-icon,
+.accounts-module .form-input-wrapper .input-icon,
+.accounts-module .input-wrapper .input-icon,
+.modal-form .input-icon,
+.input-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #94a3b8;
   font-size: 18px;
   pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.accounts-module .form-input-wrapper .form-input {
-  padding-left: 44px;
+.form-input-wrapper .form-input,
+.form-input-wrapper input,
+.input-wrapper .form-input,
+.input-wrapper input,
+.accounts-module .form-input-wrapper .form-input,
+.accounts-module .input-wrapper .form-input,
+.accounts-module .form-input-wrapper input,
+.accounts-module .input-wrapper input,
+.modal-form .form-input-wrapper .form-input,
+.modal-form .form-input-wrapper input,
+.modal-form .input-wrapper .form-input,
+.modal-form .input-wrapper input {
+  padding-left: 44px !important;
 }
 
-.accounts-module .form-input-wrapper .input-toggle {
+.form-input-wrapper .input-toggle,
+.input-wrapper .input-toggle,
+.input-wrapper .password-toggle,
+.input-wrapper .toggle-password,
+.accounts-module .form-input-wrapper .input-toggle,
+.accounts-module .input-wrapper .input-toggle,
+.modal-form .form-input-wrapper .input-toggle {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #94a3b8;
   cursor: pointer;
   padding: 4px;
   font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
   transition: color 0.2s;
 }
 
+.form-input-wrapper .input-toggle:hover,
+.input-wrapper .input-toggle:hover,
+.input-wrapper .password-toggle:hover,
+.input-wrapper .toggle-password:hover,
 .accounts-module .form-input-wrapper .input-toggle:hover {
   color: #475569;
+}
+
+.form-input-wrapper input[type="password"],
+.input-wrapper input[type="password"],
+.accounts-module .form-input-wrapper input[type="password"],
+.accounts-module .input-wrapper input[type="password"] {
+  padding-right: 44px !important;
 }
 
 .accounts-module .checkbox-label {

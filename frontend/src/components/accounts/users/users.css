@@ -892,6 +892,13 @@
    USER STATUS BADGE
    ============================================ */
 
+.user-status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .user-status-badge {
   display: inline-flex;
   align-items: center;
@@ -900,25 +907,50 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
 .user-status-badge .status-icon {
   font-size: 12px;
+  flex-shrink: 0;
 }
 
 .user-status-badge.active {
   background: #dcfce7;
   color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .user-status-badge.inactive {
   background: #f1f5f9;
-  color: #94a3b8;
+  color: #64748b;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.user-status-badge.verified {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.user-status-badge.unverified {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.user-status-badge.locked {
+  background: #ffe4e6;
+  color: #e11d48;
+  border: 1px solid rgba(225, 29, 72, 0.25);
+  font-weight: 600;
 }
 
 .user-status-badge.warning {
   background: #fef3c7;
   color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .user-status-badge.sm {

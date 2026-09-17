@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FiShield,
   FiSmartphone,
@@ -14,11 +14,16 @@ import {
 import { useMFA } from '../../../hooks/accounts/useMFA';
 import { useAuth } from '../../../hooks/accounts/useAuth';
 import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstants';
+import { setupMFA } from '../../../services/accounts/api/auth';
 
 export const MFASetupWizard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { setupTotp, verifyTotpSetup, isLoading, error, clearMfaError, backupCodes } = useMFA();
+  const location = useLocation();
+  const { user, verifyMfa } = useAuth();
+  const { setupTotp, verifyTotpSetup, isLoading: isHookLoading, error, clearMfaError, backupCodes: hookBackupCodes } = useMFA();
+
+  const mfaToken = location.state?.mfaToken;
+  const userEmail = location.state?.email || user?.email || '';
 
   const [step, setStep] = useState(1);
   const [deviceName, setDeviceName] = useState('Authenticator');
@@ -29,9 +34,13 @@ export const MFASetupWizard = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [formError, setFormError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [codesRevealed, setCodesRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [preLoginBackupCodes, setPreLoginBackupCodes] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRefs = useRef([]);
+
+  const backupCodes = (hookBackupCodes && hookBackupCodes.length > 0) ? hookBackupCodes : preLoginBackupCodes;
+  const isLoading = isHookLoading || isSubmitting;
 
   useEffect(() => {
     if (error) {
@@ -42,17 +51,49 @@ export const MFASetupWizard = () => {
   const handleSetup = async () => {
     setFormError(null);
     clearMfaError();
+    setIsSubmitting(true);
 
-    const result = await setupTotp({ device_name: deviceName });
-
-    if (result.data) {
-      setSecret(result.data.secret);
-      setProvisioningUri(result.data.provisioning_uri);
-      setQrCodeData(result.data.qr_code_data);
-      setDeviceId(result.data.device_id);
-      setStep(2);
-    } else {
-      setFormError(result.error || 'Failed to setup MFA');
+    try {
+      if (mfaToken) {
+        // Pre-login first-time setup
+        const response = await setupMFA({
+          device_name: deviceName,
+          mfa_token: mfaToken,
+        });
+        const data = response.data;
+        if (data) {
+          setSecret(data.secret);
+          setProvisioningUri(data.provisioning_uri);
+          setQrCodeData(data.qr_code_data);
+          setDeviceId(data.device_id);
+          if (data.backup_codes) {
+            setPreLoginBackupCodes(data.backup_codes);
+          }
+          setStep(2);
+        } else {
+          setFormError('Failed to generate MFA setup details');
+        }
+      } else {
+        // Authenticated in-app setup
+        const result = await setupTotp({ device_name: deviceName });
+        if (result.data) {
+          setSecret(result.data.secret);
+          setProvisioningUri(result.data.provisioning_uri);
+          setQrCodeData(result.data.qr_code_data);
+          setDeviceId(result.data.device_id);
+          if (result.data.backup_codes) {
+            setPreLoginBackupCodes(result.data.backup_codes);
+          }
+          setStep(2);
+        } else {
+          setFormError(result.error || 'Failed to setup MFA');
+        }
+      }
+    } catch (err) {
+      console.error('MFA setup error:', err);
+      setFormError(err.response?.data?.error || err.message || 'Failed to setup MFA');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -65,19 +106,42 @@ export const MFASetupWizard = () => {
 
     setFormError(null);
     clearMfaError();
+    setIsSubmitting(true);
 
-    const result = await verifyTotpSetup({
-      otp: code,
-      device_id: deviceId,
-    });
-
-    if (result.success) {
-      setSuccess(true);
-      setStep(3);
-    } else {
-      setFormError(result.error || 'Invalid verification code');
+    try {
+      if (mfaToken) {
+        // Pre-login verification with mfaToken -> logs user in!
+        const result = await verifyMfa(mfaToken, code);
+        if (result.success) {
+          setSuccess(true);
+          setStep(3);
+        } else {
+          setFormError(result.error || 'Invalid verification code');
+          setOtp(['', '', '', '', '', '']);
+          if (inputRefs.current[0]) inputRefs.current[0].focus();
+        }
+      } else {
+        // Authenticated in-app verification
+        const result = await verifyTotpSetup({
+          otp: code,
+          device_id: deviceId,
+        });
+        if (result.success) {
+          setSuccess(true);
+          setStep(3);
+        } else {
+          setFormError(result.error || 'Invalid verification code');
+          setOtp(['', '', '', '', '', '']);
+          if (inputRefs.current[0]) inputRefs.current[0].focus();
+        }
+      }
+    } catch (err) {
+      console.error('MFA verification error:', err);
+      setFormError(err.response?.data?.error || err.message || 'Verification failed');
       setOtp(['', '', '', '', '', '']);
-      inputRefs.current[0].focus();
+      if (inputRefs.current[0]) inputRefs.current[0].focus();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -112,7 +176,7 @@ export const MFASetupWizard = () => {
       [
         `Falcon PMS Backup Codes\n\n` +
         `Generated: ${new Date().toISOString()}\n` +
-        `User: ${user?.email}\n\n` +
+        `User: ${userEmail}\n\n` +
         backupCodes.join('\n') +
         `\n\nKeep these codes safe. Each code can only be used once.`,
       ],
@@ -128,56 +192,34 @@ export const MFASetupWizard = () => {
 
   const handleBack = () => {
     if (step === 1) {
-      navigate(ACCOUNTS_ROUTES.MFA_DEVICES);
-    } else {
-      setStep(step - 1);
+      navigate(mfaToken ? ACCOUNTS_ROUTES.LOGIN : ACCOUNTS_ROUTES.SETTINGS);
+    } else if (step === 2) {
+      setStep(1);
     }
   };
 
-  const handleDone = () => {
-    navigate(ACCOUNTS_ROUTES.MFA_DEVICES);
+  const handleFinish = () => {
+    navigate(ACCOUNTS_ROUTES.DASHBOARD);
   };
 
   const renderStep1 = () => (
     <>
       <div className="mfa-setup-info">
-        <div className="mfa-setup-icon-wrapper">
-          <FiShield className="mfa-setup-icon" />
-        </div>
-        <h2>Set up Two-Factor Authentication</h2>
-        <p>
-          Add an extra layer of security to your account by requiring a
-          verification code from your authenticator app.
-        </p>
-        <ul className="mfa-setup-list">
-          <li>
-            <FiSmartphone />
-            <span>Install an authenticator app like Google Authenticator or Authy</span>
-          </li>
-          <li>
-            <FiKey />
-            <span>Scan the QR code or enter the secret key manually</span>
-          </li>
-          <li>
-            <FiCheck />
-            <span>Enter the 6-digit code from the app to verify</span>
-          </li>
-        </ul>
+        <h2>Choose Device Name</h2>
+        <p>Give this authenticator app a memorable label to easily identify it.</p>
       </div>
 
       <div className="form-group">
-        <label htmlFor="deviceName" className="form-label">
-          Device Name
-        </label>
+        <label className="form-label">Device Name</label>
         <input
-          id="deviceName"
           type="text"
           className="form-input"
-          placeholder="e.g., Google Authenticator"
           value={deviceName}
           onChange={(e) => setDeviceName(e.target.value)}
+          placeholder="e.g. Work Phone, Google Authenticator"
+          disabled={isLoading}
         />
-        <span className="form-hint">Give your device a name for easy identification</span>
+        <span className="form-hint">E.g., Google Authenticator, 1Password, iPhone</span>
       </div>
 
       <div className="mfa-setup-actions">
@@ -187,15 +229,15 @@ export const MFASetupWizard = () => {
         <button
           className="auth-btn primary"
           onClick={handleSetup}
-          disabled={isLoading}
+          disabled={isLoading || !deviceName.trim()}
         >
           {isLoading ? (
             <>
               <span className="spinner-sm" />
-              Generating...
+              Generating QR Code...
             </>
           ) : (
-            'Continue'
+            'Continue to QR Code'
           )}
         </button>
       </div>
@@ -206,7 +248,7 @@ export const MFASetupWizard = () => {
     <>
       <div className="mfa-setup-info">
         <h2>Scan QR Code</h2>
-        <p>Scan the QR code with your authenticator app</p>
+        <p>Scan this QR code in Google Authenticator, Authy, or Microsoft Authenticator.</p>
       </div>
 
       <div className="mfa-qr-container">
@@ -218,20 +260,23 @@ export const MFASetupWizard = () => {
           />
         )}
         <div className="mfa-secret-wrapper">
-          <span className="mfa-secret-label">Secret Key</span>
+          <span className="mfa-secret-label">Manual Secret Key</span>
           <div className="mfa-secret-value">
             <code>{secret}</code>
             <button
               className="mfa-copy-btn"
               onClick={() => {
                 navigator.clipboard.writeText(secret);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
               }}
+              title="Copy Secret"
             >
-              <FiCopy />
+              <FiCopy /> {copied ? 'Copied!' : ''}
             </button>
           </div>
           <span className="mfa-secret-hint">
-            If you can't scan the QR code, enter this key manually in your app
+            If you cannot scan the QR code, enter this key manually into your authenticator app.
           </span>
         </div>
       </div>
@@ -252,18 +297,15 @@ export const MFASetupWizard = () => {
               value={digit}
               onChange={(e) => handleOtpChange(index, e.target.value)}
               onKeyDown={(e) => handleOtpKeyDown(index, e)}
-              disabled={isLoading}
+              disabled={isLoading || success}
               autoFocus={index === 0}
             />
           ))}
         </div>
-        {formError && (
-          <span className="form-error">{formError}</span>
-        )}
       </div>
 
       <div className="mfa-setup-actions">
-        <button className="auth-btn secondary" onClick={handleBack}>
+        <button className="auth-btn secondary" onClick={handleBack} disabled={isLoading}>
           Back
         </button>
         <button
@@ -277,7 +319,9 @@ export const MFASetupWizard = () => {
               Verifying...
             </>
           ) : (
-            'Verify & Continue'
+            <>
+              <FiCheck /> Verify & Activate
+            </>
           )}
         </button>
       </div>
@@ -286,54 +330,38 @@ export const MFASetupWizard = () => {
 
   const renderStep3 = () => (
     <>
-      <div className="mfa-setup-success">
-        <FiCheckCircle className="success-icon" />
+      <div className="mfa-setup-info">
+        <div className="success-icon-wrapper">
+          <FiCheckCircle className="success-icon" />
+        </div>
         <h2>MFA Enabled Successfully!</h2>
-        <p>Your account is now protected with two-factor authentication.</p>
+        <p>Save your backup recovery codes in a safe place. You can use them if you lose access to your phone.</p>
       </div>
 
-      <div className="mfa-backup-codes">
-        <h3>Backup Codes</h3>
-        <p className="backup-codes-info">
-          Save these backup codes in a secure place. Each code can only be used once.
-          You can use them to access your account if you lose your authenticator device.
-        </p>
+      {backupCodes.length > 0 && (
+        <div className="mfa-backup-codes-container">
+          <div className="backup-codes-grid">
+            {backupCodes.map((code, index) => (
+              <div key={index} className="backup-code-item">
+                <code>{code}</code>
+              </div>
+            ))}
+          </div>
 
-        <div className="backup-codes-grid">
-          {backupCodes.map((code, index) => (
-            <div key={index} className="backup-code-item">
-              <span className="backup-code-number">{index + 1}.</span>
-              <code className="backup-code-value">{code}</code>
-            </div>
-          ))}
+          <div className="backup-codes-actions">
+            <button className="auth-btn secondary" onClick={handleCopyCodes}>
+              <FiCopy /> {copied ? 'Copied!' : 'Copy Codes'}
+            </button>
+            <button className="auth-btn secondary" onClick={handleDownloadCodes}>
+              <FiDownload /> Download TXT
+            </button>
+          </div>
         </div>
-
-        <div className="backup-codes-actions">
-          <button
-            className="auth-btn secondary"
-            onClick={handleCopyCodes}
-          >
-            <FiCopy /> {copied ? 'Copied!' : 'Copy Codes'}
-          </button>
-          <button
-            className="auth-btn secondary"
-            onClick={handleDownloadCodes}
-          >
-            <FiDownload /> Download
-          </button>
-        </div>
-
-        <div className="backup-codes-warning">
-          <FiAlertCircle />
-          <span>
-            These codes will only be shown once. Make sure to save them before continuing.
-          </span>
-        </div>
-      </div>
+      )}
 
       <div className="mfa-setup-actions">
-        <button className="auth-btn primary" onClick={handleDone}>
-          Done
+        <button className="auth-btn primary full-width" onClick={handleFinish}>
+          Go to Dashboard
         </button>
       </div>
     </>
@@ -342,26 +370,26 @@ export const MFASetupWizard = () => {
   return (
     <div className="auth-container">
       <div className="auth-card mfa-setup-card">
-        <button className="auth-back-btn" onClick={handleBack}>
-          <FiArrowLeft /> {step === 1 ? 'Back to Security' : 'Back'}
-        </button>
-
-        <div className="mfa-setup-progress">
-          <div className={`progress-step ${step >= 1 ? 'active' : ''}`}>
-            <span className="step-number">1</span>
-            <span className="step-label">Setup</span>
+        <div className="auth-header">
+          <div className="mfa-icon-wrapper">
+            <FiShield className="mfa-icon" />
           </div>
-          <div className={`progress-line ${step >= 2 ? 'active' : ''}`} />
-          <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>
-            <span className="step-number">2</span>
-            <span className="step-label">Verify</span>
-          </div>
-          <div className={`progress-line ${step >= 3 ? 'active' : ''}`} />
-          <div className={`progress-step ${step >= 3 ? 'active' : ''}`}>
-            <span className="step-number">3</span>
-            <span className="step-label">Complete</span>
+          <h1 className="auth-title">Two-Factor Authentication Setup</h1>
+          <div className="wizard-progress">
+            <div className={`step-dot ${step >= 1 ? 'active' : ''}`}>1</div>
+            <div className={`step-line ${step >= 2 ? 'active' : ''}`}></div>
+            <div className={`step-dot ${step >= 2 ? 'active' : ''}`}>2</div>
+            <div className={`step-line ${step >= 3 ? 'active' : ''}`}></div>
+            <div className={`step-dot ${step >= 3 ? 'active' : ''}`}>3</div>
           </div>
         </div>
+
+        {formError && (
+          <div className="auth-alert error">
+            <FiAlertCircle className="alert-icon" />
+            <span>{formError}</span>
+          </div>
+        )}
 
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
@@ -370,4 +398,5 @@ export const MFASetupWizard = () => {
     </div>
   );
 };
+
 export default MFASetupWizard;

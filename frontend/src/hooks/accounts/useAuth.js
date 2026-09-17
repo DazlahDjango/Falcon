@@ -32,6 +32,7 @@ import {
   selectUserFullName,
   selectIsSuperAdmin,
   selectIsVerified,
+  selectMfaSetupRequired,
 } from '../../store/accounts/selectors/authSelectors';
 
 export const useAuth = () => {
@@ -43,6 +44,7 @@ export const useAuth = () => {
   const requiresMfa = useSelector(selectRequiresMfa);
   const mfaToken = useSelector(selectMfaToken);
   const mfaPending = useSelector(selectMfaPending);
+  const mfaSetupRequired = useSelector(selectMfaSetupRequired);
   const isInitialized = useSelector(selectIsInitialized);
   const role = useSelector(selectUserRole);
   const tenantId = useSelector(selectUserTenantId);
@@ -192,6 +194,7 @@ export const useAuth = () => {
       requiresMfa,
       mfaToken,
       mfaPending,
+      mfaSetupRequired,
       isInitialized,
       role,
       tenantId,
@@ -236,6 +239,7 @@ export const useAuth = () => {
       requiresMfa,
       mfaToken,
       mfaPending,
+      mfaSetupRequired,
       isInitialized,
       role,
       tenantId,

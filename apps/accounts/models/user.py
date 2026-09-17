@@ -60,6 +60,12 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     mfa_backup_codes = models.JSONField(_('backup codes'), default=list, blank=True)
     mfa_verified_at = models.DateTimeField(_('MFA verified at'), null=True, blank=True)
     mfa_required = models.BooleanField(_('MFA required'), null=True, blank=True, help_text='Override role-based MFA policy. If set, this takes precedence.')
+    custom_permission_overrides = models.JSONField(
+        _('custom permission overrides'),
+        default=dict,
+        blank=True,
+        help_text=_("Per-user permission overrides: {'granted': [...], 'revoked': [...]}")
+    )
     
     current_session_key = models.CharField(_('current session key'), max_length=300, blank=True, null=True)
     session_expires_at = models.DateTimeField(_('session expires at'), null=True, blank=True)

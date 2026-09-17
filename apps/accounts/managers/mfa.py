@@ -1,6 +1,6 @@
 import uuid
 import logging
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class MFADeviceManager(models.Manager):
         return self.filter(user=user, is_verified=True, is_active=True)
     
     def set_primary_device(self, user, device_id):
-        with models.transaction.atomic():
+        with transaction.atomic():
             self.filter(user=user, is_primary=True).update(is_primary=False)
             self.filter(id=device_id, user=user).update(is_primary=True)
         logger.info(f"Primary MFA device set to {device_id} for user {user.email}")

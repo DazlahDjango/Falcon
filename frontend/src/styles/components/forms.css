@@ -23,27 +23,37 @@
  * Input Wrapper
  * ============================================================================ */
 
-.input-wrapper {
+.input-wrapper,
+.form-input-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
 
 .input-icon-left,
-.input-icon-right {
+.input-icon-right,
+.input-wrapper .input-icon,
+.form-input-wrapper .input-icon {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     color: var(--gray-400);
     display: flex;
     align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.input-icon-left,
+.input-wrapper .input-icon,
+.form-input-wrapper .input-icon {
+    left: var(--spacing-3, 12px);
     pointer-events: none;
 }
 
-.input-icon-left {
-    left: var(--spacing-3);
-}
-
 .input-icon-right {
-    right: var(--spacing-3);
+    right: var(--spacing-3, 12px);
 }
 
 /* ============================================================================
@@ -68,12 +78,18 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.form-input.has-icon-left {
-    padding-left: var(--spacing-8);
+.form-input.has-icon-left,
+.input-wrapper > .form-input,
+.input-wrapper > input,
+.form-input-wrapper > .form-input,
+.form-input-wrapper > input {
+    padding-left: var(--spacing-10, 44px);
 }
 
-.form-input.has-icon-right {
-    padding-right: var(--spacing-8);
+.form-input.has-icon-right,
+.input-wrapper > input[type="password"],
+.form-input-wrapper > input[type="password"] {
+    padding-right: var(--spacing-10, 44px);
 }
 
 .form-input.is-invalid {

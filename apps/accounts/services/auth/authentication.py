@@ -108,16 +108,21 @@ class AuthenticationService:
     
     def verify_mfa(self, user: User, mfa_token: str, otp: str, ip_address: str, user_agent: str, request=None) -> Tuple[Optional[User], Optional[Dict], Optional[str]]:
         try:
-            is_valid, device = self.mfa_service.verify_otp(user, otp)
+            is_valid, device, message = self.mfa_service.verify_otp(
+                user=user, otp=otp, ip_address=ip_address, user_agent=user_agent
+            )
             if not is_valid:
-                self.mfa_service.log_attempt(user, device, ip_address, user_agent, success=False, message='Invalid OTP')
-                return None, None, 'Invalid MFA code.'
-            if device:
-                device.mark_used()
-            self.mfa_service.log_attempt(user, device, ip_address, user_agent, success=True, message='MFA verified')
+                return None, None, message or 'Invalid MFA code.'
+            
+            # Ensure user.mfa_enabled is activated
+            if not user.mfa_enabled:
+                user.mfa_enabled = True
+                user.mfa_verified_at = timezone.now()
+                user.save(update_fields=['mfa_enabled', 'mfa_verified_at'])
+            
             return self._complete_authentication(user, ip_address, user_agent, request, mfa_verified=True)
         except Exception as e:
-            logger.error(f"MFA verification error for {user.email}: {str(e)}")
+            logger.error(f"MFA verification error for {user.email}: {str(e)}", exc_info=True)
             return None, None, 'MFA verification failed'
         
     def _complete_authentication(self, user: User, ip_address: str, user_agent: str, request=None, mfa_verified: bool = False) -> Tuple[User, Dict, Optional[str]]:
@@ -213,14 +218,16 @@ class AuthenticationService:
             return None, 'Token refresh failed'
         
     def _is_rate_limited(self, email: str, ip_address: str, tenant_id: str = None) -> bool:
+        from django.conf import settings
         lockout = AccountsPolicyService.get_lockout_config(tenant_id)
         window = lockout.get('lockout_minutes', 15)
         email_limit = lockout.get('failure_limit', 5)
         ip_limit = lockout.get('ip_failure_limit', 5)
         if LoginAttempt.get_failure_count(email, minutes=window) >= email_limit:
             return True
-        if LoginAttempt.get_ip_failure_count(ip_address, minutes=window) >= ip_limit:
-            return True
+        if not (settings.DEBUG and ip_address in ['127.0.0.1', 'localhost', '::1', '']):
+            if LoginAttempt.get_ip_failure_count(ip_address, minutes=window) >= ip_limit:
+                return True
         return False
     
     def get_session_info(self, user: User) -> Dict:

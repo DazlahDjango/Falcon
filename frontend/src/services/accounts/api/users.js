@@ -60,3 +60,11 @@ export const bulkExportUsers = () => {
 };
 
 export const verifyUser = (id) => request.post(USER_ENDPOINTS.VERIFY(id));
+
+export const getUserPermissions = (userId) => request.get(USER_ENDPOINTS.PERMISSIONS(userId));
+
+export const updateUserPermissions = (userId, data) =>
+  request.post(USER_ENDPOINTS.PERMISSIONS(userId), data);
+
+export const getRoleDefaults = (role) =>
+  request.get(USER_ENDPOINTS.ROLE_DEFAULTS, { params: role ? { role } : {} });

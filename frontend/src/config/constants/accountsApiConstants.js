@@ -79,6 +79,10 @@ export const USER_ENDPOINTS = {
     BULK_IMPORT: `${API_BASE}/users/bulk-import/`,
     BULK_EXPORT: `${API_BASE}/users/bulk-export/`,
     
+    // RBAC Permissions
+    PERMISSIONS: (id) => `${API_BASE}/users/${id}/permissions/`,
+    ROLE_DEFAULTS: `${API_BASE}/users/role-defaults/`,
+    
     // Query Params
     QUERY_PARAMS: {
         SEARCH: 'search',
@@ -221,6 +225,7 @@ export const PERMISSION_ENDPOINTS = {
     DETAIL: (id) => `${API_BASE}/permissions/${id}/`,
     
     // Filtered Lists & Check
+    REGISTRY: `${API_BASE}/permissions/registry/`,
     BY_CATEGORY: (category) => `${API_BASE}/permissions/by-category/${category}/`,
     BY_LEVEL: (level) => `${API_BASE}/permissions/by-level/${level}/`,
     CHECK: `${API_BASE}/permissions/check/`,

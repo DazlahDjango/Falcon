@@ -19,8 +19,7 @@ from apps.accounts.api.v1.filters import UserFilter
 from apps.accounts.api.v1.permissions import IsSuperAdmin
 from apps.accounts.constants import UserRoles
 from apps.accounts.managers import RoleManager, PermissionManager
-from apps.accounts.constants import PREDEFINED_PERMISSIONS_DATA
-from apps.accounts.services import TenantRegistrationService, AuditService, JWTServices, PasswordService
+from apps.accounts.services import TenantRegistrationService, AuditService, JWTServices, PasswordService, RBACService
 from apps.accounts.tasks import send_password_reset_email
 from .base import BaseModelViewset
 logger = logging.getLogger(__name__)
@@ -73,6 +72,46 @@ class AdminUserViewSet(BaseModelViewset):
         send_password_reset_email.delay(str(target_user.id), token)
         return Response({
             'message': f'Password reset email sent to {target_user.email}'
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get', 'post'], url_path='permissions')
+    def permissions(self, request, pk=None):
+        target_user = self.get_object()
+        rbac_service = RBACService()
+        if request.method == 'GET':
+            details = rbac_service.get_user_permission_details(target_user)
+            return Response(details, status=status.HTTP_200_OK)
+        elif request.method == 'POST':
+            granted = request.data.get('granted', [])
+            revoked = request.data.get('revoked', [])
+            if not isinstance(granted, list) or not isinstance(revoked, list):
+                return Response({'error': 'granted and revoked must be arrays of permission codenames.'}, status=status.HTTP_400_BAD_REQUEST)
+            success, message = rbac_service.assign_user_permission_override(
+                user=target_user,
+                granted=granted,
+                revoked=revoked,
+                assigned_by=request.user,
+                request=request
+            )
+            if not success:
+                return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
+            details = rbac_service.get_user_permission_details(target_user)
+            return Response({'message': message, 'details': details}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='role-defaults')
+    def role_defaults(self, request):
+        role_code = request.query_params.get('role')
+        rbac_service = RBACService()
+        from apps.accounts.constants import PREDEFINED_PERMISSIONS_DATA
+        if role_code:
+            defaults = rbac_service.get_role_default_permissions(role_code)
+            return Response({'role': role_code, 'permissions': defaults}, status=status.HTTP_200_OK)
+        all_defaults = {}
+        for role, _ in UserRoles.CHOICES:
+            all_defaults[role] = rbac_service.get_role_default_permissions(role)
+        return Response({
+            'roles': all_defaults,
+            'all_available': PREDEFINED_PERMISSIONS_DATA
         }, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['get'], url_path='stats')

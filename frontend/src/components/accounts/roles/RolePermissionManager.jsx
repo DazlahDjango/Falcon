@@ -10,8 +10,10 @@ import {
 } from 'react-icons/fi';
 import { useRoles } from '../../../hooks/accounts/useRoles';
 import { usePermissions } from '../../../hooks/accounts/usePermissions';
+import { useAuth } from '../../../hooks/accounts/useAuth';
 
 export const RolePermissionManager = ({ roleId, isEditable = true }) => {
+  const { isSuperAdmin } = useAuth();
   const { getRolePermissions, assignPermissions, rolePermissions, isLoading } = useRoles();
   const { getPermissions, permissions, isLoading: permissionsLoading } = usePermissions();
 
@@ -83,9 +85,14 @@ export const RolePermissionManager = ({ roleId, isEditable = true }) => {
     }
   };
 
-  const filteredPermissions = permissions.filter(p =>
-    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.codename?.toLowerCase().includes(searchTerm.toLowerCase())
+  const permList = (Array.isArray(permissions)
+    ? permissions
+    : (permissions?.results || permissions?.data || []))
+    .filter(p => isSuperAdmin || !['config', 'billing', 'tenant'].includes(p?.category));
+
+  const filteredPermissions = permList.filter(p =>
+    p?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p?.codename?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading || permissionsLoading) {

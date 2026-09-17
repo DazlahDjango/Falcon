@@ -70,6 +70,7 @@ class MFAAuthSerializer(BaseSerializer):
     
 class MFASetupSerializer(BaseSerializer):
     device_name = serializers.CharField(required=False, default='Authenticator', max_length=100)
+    mfa_token = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 class MFASetupResponseSerializer(BaseSerializer):
     secret = serializers.CharField()

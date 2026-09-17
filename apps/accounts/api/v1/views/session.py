@@ -33,18 +33,30 @@ class SessionViewSet(BaseReadOnlyViewset):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        if user.is_superuser or user.role == UserRoles.CLIENT_ADMIN:
+        if user.is_superuser or user.role == UserRoles.SUPER_ADMIN:
+            if self.action == 'tenant_active':
+                tenant_id = self.request.query_params.get('tenant_id') or user.tenant_id
+                if tenant_id:
+                    return qs.filter(
+                        tenant_id=tenant_id,
+                        status='active',
+                        expires_at__gt=timezone.now(),
+                    )
+                return qs.filter(
+                    status='active',
+                    expires_at__gt=timezone.now(),
+                )
+            return qs
+        elif user.role == UserRoles.CLIENT_ADMIN:
             if self.action == 'tenant_active':
                 return qs.filter(
                     tenant_id=user.tenant_id,
                     status='active',
                     expires_at__gt=timezone.now(),
                 )
-            if not user.is_superuser:
-                qs = qs.filter(tenant_id=user.tenant_id)
+            return qs.filter(tenant_id=user.tenant_id)
         else:
-            qs = qs.filter(user=user)
-        return qs
+            return qs.filter(user=user)
 
     @action(detail=True, methods=['post'], url_path='terminate')
     def terminate(self, request, pk=None):

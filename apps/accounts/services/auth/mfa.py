@@ -257,6 +257,9 @@ class MFAService:
             for log in logs
         ]
 
+    def get_failure_rate(self, user: User, hours: int = 24) -> float:
+        return MFAAuditLog.objects.get_failure_rate(user_id=user.id, hours=hours)
+
     def generate_totp_secret(self) -> str:
         return pyotp.random_base32()
     

@@ -175,23 +175,39 @@
   color: #1e293b;
 }
 
-.form-input-wrapper {
+.form-input-wrapper,
+.input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
+.form-input-wrapper .input-icon,
+.input-wrapper .input-icon,
 .input-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #94a3b8;
   font-size: 18px;
   pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.form-input-wrapper .form-input,
+.form-input-wrapper input,
+.input-wrapper .form-input,
+.input-wrapper input,
+.auth-form .form-input,
+.auth-card .form-input,
 .form-input {
   width: 100%;
-  padding: 10px 14px 10px 44px;
+  padding: 10px 14px 10px 44px !important;
   font-size: 14px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -199,6 +215,7 @@
   color: #1e293b;
   transition: border-color 0.2s, box-shadow 0.2s;
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -207,11 +224,13 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-input.error {
+.form-input.error,
+.form-input.is-invalid {
   border-color: #dc2626;
 }
 
-.form-input.error:focus {
+.form-input.error:focus,
+.form-input.is-invalid:focus {
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
@@ -224,20 +243,38 @@
   color: #94a3b8;
 }
 
-.form-input-wrapper .input-toggle {
+.form-input-wrapper .input-toggle,
+.input-wrapper .input-toggle,
+.input-wrapper .password-toggle,
+.input-wrapper .toggle-password {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #94a3b8;
   cursor: pointer;
   padding: 4px;
   font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
   transition: color 0.2s;
 }
 
-.form-input-wrapper .input-toggle:hover {
+.form-input-wrapper .input-toggle:hover,
+.input-wrapper .input-toggle:hover,
+.input-wrapper .password-toggle:hover,
+.input-wrapper .toggle-password:hover {
   color: #475569;
+}
+
+.form-input-wrapper input[type="password"],
+.input-wrapper input[type="password"],
+.auth-form input[type="password"] {
+  padding-right: 44px !important;
 }
 
 .form-select {

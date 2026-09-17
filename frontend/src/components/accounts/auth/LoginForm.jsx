@@ -18,7 +18,7 @@ import { clearError } from '../../../store/accounts/slice/authSlice';
 export const LoginForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { login, isLoading, error, isAuthenticated, requiresMfa, mfaToken, clearAuthError } =
+  const { login, isLoading, error, isAuthenticated, requiresMfa, mfaToken, mfaSetupRequired, clearAuthError } =
     useAuth();
 
   const [email, setEmail] = useState('');
@@ -42,11 +42,17 @@ export const LoginForm = () => {
 
   useEffect(() => {
     if (requiresMfa && mfaToken) {
-      navigate(ACCOUNTS_ROUTES.MFA_VERIFY, {
-        state: { mfaToken, email },
-      });
+      if (mfaSetupRequired) {
+        navigate(ACCOUNTS_ROUTES.MFA_SETUP, {
+          state: { mfaToken, email, isMandatorySetup: true },
+        });
+      } else {
+        navigate(ACCOUNTS_ROUTES.MFA_VERIFY, {
+          state: { mfaToken, email, mfaSetupRequired: false },
+        });
+      }
     }
-  }, [requiresMfa, mfaToken, navigate, email]);
+  }, [requiresMfa, mfaToken, mfaSetupRequired, navigate, email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,13 +68,23 @@ export const LoginForm = () => {
     const result = await login({ email, password });
 
     if (result.requiresMfa) {
-      navigate(ACCOUNTS_ROUTES.MFA_VERIFY, {
-        state: { 
-          mfaToken: result.mfaToken, 
-          email,
-          mfaSetupRequired: result.mfa_setup_required || false 
-        },
-      });
+      if (result.mfa_setup_required) {
+        navigate(ACCOUNTS_ROUTES.MFA_SETUP, {
+          state: { 
+            mfaToken: result.mfaToken, 
+            email,
+            isMandatorySetup: true 
+          },
+        });
+      } else {
+        navigate(ACCOUNTS_ROUTES.MFA_VERIFY, {
+          state: { 
+            mfaToken: result.mfaToken, 
+            email,
+            mfaSetupRequired: false 
+          },
+        });
+      }
     } else if (!result.success) {
       setFormError(result.error || 'Login failed. Please try again.');
     }
