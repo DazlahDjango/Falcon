@@ -19,10 +19,10 @@ import { setupMFA } from '../../../services/accounts/api/auth';
 export const MFASetupWizard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, verifyMfa } = useAuth();
+  const { user, verifyMfa, mfaToken: authMfaToken } = useAuth();
   const { setupTotp, verifyTotpSetup, isLoading: isHookLoading, error, clearMfaError, backupCodes: hookBackupCodes } = useMFA();
 
-  const mfaToken = location.state?.mfaToken;
+  const mfaToken = location.state?.mfaToken || authMfaToken;
   const userEmail = location.state?.email || user?.email || '';
 
   const [step, setStep] = useState(1);

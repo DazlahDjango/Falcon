@@ -15,7 +15,7 @@ import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstant
 export const MFAChallenge = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { verifyMfa, isLoading, error, clearAuthError } = useAuth();
+  const { verifyMfa, isLoading, error, clearAuthError, mfaToken: authMfaToken } = useAuth();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [formError, setFormError] = useState(null);
@@ -23,7 +23,7 @@ export const MFAChallenge = () => {
   const [resendCooldown, setResendCooldown] = useState(0);
   const inputRefs = useRef([]);
 
-  const mfaToken = location.state?.mfaToken;
+  const mfaToken = location.state?.mfaToken || authMfaToken;
   const mfaSetupRequired = location.state?.mfaSetupRequired || false;
 
   useEffect(() => {

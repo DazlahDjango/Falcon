@@ -19,9 +19,13 @@ const RoleBasedAppLayout = React.lazy(() => import("../components/dashboard/Layo
 // Auth pages
 const LoginPage = React.lazy(() => import('../pages/accounts/LoginPage'));
 const RegisterPage = React.lazy(() => import('../pages/accounts/RegisterPage'));
+const TenantRegisterPage = React.lazy(() => import('../pages/accounts/TenantRegisterPage'));
 const PasswordResetPage = React.lazy(() => import('../pages/accounts/PasswordResetPage'));
 const PasswordResetConfirmPage = React.lazy(() => import('../pages/accounts/PasswordResetConfirmPage'));
 const AcceptInvitationPage = React.lazy(() => import('../pages/accounts/AcceptInvitationPage'));
+const MFAChallengePage = React.lazy(() => import('../pages/accounts/MFAChallengePage'));
+const MFASetupPage = React.lazy(() => import('../pages/accounts/MFASetupPage'));
+const VerifyEmailPage = React.lazy(() => import('../pages/accounts/VerifyEmailPage'));
 
 // Error pages
 const Unauthorized = React.lazy(() => import('../pages/accounts/Unauthorized'));
@@ -56,9 +60,15 @@ const AppRouter = () => {
                 <Route element={<AuthLayout />}>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/tenant/register" element={<TenantRegisterPage />} />
                     <Route path="/forgot-password" element={<PasswordResetPage />} />
                     <Route path="/reset-password" element={<PasswordResetConfirmPage />} />
                     <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+                    <Route path="/mfa/verify" element={<MFAChallengePage />} />
+                    <Route path="/mfa/setup" element={<MFASetupPage />} />
+                    <Route path="/mfa-verify" element={<MFAChallengePage />} />
+                    <Route path="/mfa-setup" element={<MFASetupPage />} />
+                    <Route path="/verify-email" element={<VerifyEmailPage />} />
                 </Route>
             </Route>
             

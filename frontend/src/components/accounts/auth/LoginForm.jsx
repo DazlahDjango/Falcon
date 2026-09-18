@@ -40,20 +40,6 @@ export const LoginForm = () => {
     }
   }, [error]);
 
-  useEffect(() => {
-    if (requiresMfa && mfaToken) {
-      if (mfaSetupRequired) {
-        navigate(ACCOUNTS_ROUTES.MFA_SETUP, {
-          state: { mfaToken, email, isMandatorySetup: true },
-        });
-      } else {
-        navigate(ACCOUNTS_ROUTES.MFA_VERIFY, {
-          state: { mfaToken, email, mfaSetupRequired: false },
-        });
-      }
-    }
-  }, [requiresMfa, mfaToken, mfaSetupRequired, navigate, email]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
