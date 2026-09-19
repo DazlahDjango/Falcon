@@ -22,6 +22,8 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 
+import HeaderTag from '../../../components/dashboard/HeaderTag';
+
 const ManagerDashboard = () => {
   const {
     loading,
@@ -46,14 +48,6 @@ const ManagerDashboard = () => {
   } = useManagerDashboard({ autoFetch: true });
 
   const [activeTrendIndex, setActiveTrendIndex] = useState(null);
-
-  // Dynamic user information
-  const userName = user?.first_name 
-    ? `${user.first_name} ${user.last_name || ''}`.trim() 
-    : (user?.username || user?.email?.split('@')[0] || 'Manager');
-  const userTitle = user?.job_title || user?.position_title || user?.role || 'Team Lead / Manager';
-  const userDepartment = user?.department_name || user?.department?.name || tenant?.name || 'Department / Unit';
-  const userInitial = userName ? userName[0].toUpperCase() : 'M';
 
   // Overall manager health
   const managerHealthLabel = useMemo(() => {
@@ -99,35 +93,18 @@ const ManagerDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50/60 p-6 space-y-6 text-slate-800 font-sans">
       {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-lg shrink-0 shadow-sm">
-            {userInitial}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              Good Day, {userName}! <span className="inline-block animate-bounce">👋</span>
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {userTitle} • <span className="text-slate-700 font-medium">{userDepartment}</span>
-              <span className={`ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold border ${managerHealthLabel.bg} ${managerHealthLabel.color}`}>
-                Score: {Math.round(managerScore)}% ({managerHealthLabel.text})
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => refreshDashboard()}
-            className="p-2 text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 rounded-lg border border-slate-200 transition flex items-center gap-1.5 text-xs font-semibold"
-            title="Refresh Data"
-          >
-            <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : ''}`} />
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
+      <HeaderTag
+        greetingPrefix="Good Day"
+        roleBadge="Team Lead / Manager"
+        badgeColor="blue"
+        subtitleExtra={
+          <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold border ${managerHealthLabel.bg} ${managerHealthLabel.color}`}>
+            Score: {Math.round(managerScore)}% ({managerHealthLabel.text})
+          </span>
+        }
+        onRefresh={refreshDashboard}
+        loading={loading}
+      />
 
       {/* Top 5 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

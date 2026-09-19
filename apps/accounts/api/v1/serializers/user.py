@@ -81,9 +81,9 @@ class UserCreationSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'email', 'username', 'password', 'password_confirm', 'first_name', 'last_name',
-            'phone', 'role', 'manager', 'department', 'title', 'employee_id', 'joined_at', 'tenant_id'
+            'phone', 'role', 'joined_at', 'tenant_id', 'department', 'title', 'manager', 'employee_id'
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'department', 'title', 'manager', 'employee_id']
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -171,10 +171,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'first_name', 'last_name', 'phone', 'role', 'manager',
-            'department', 'title', 'employee_id', 'joined_at',
-            'is_active', 'is_verified', 'is_onboarded'
+            'first_name', 'last_name', 'phone', 'role', 'joined_at',
+            'is_active', 'is_verified', 'is_onboarded',
+            'department', 'title', 'manager', 'employee_id'
         ]
+        read_only_fields = ['department', 'title', 'manager', 'employee_id']
 
     def validate_role(self, value):
         request = self.context.get('request')

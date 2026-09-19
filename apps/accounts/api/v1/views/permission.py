@@ -26,6 +26,28 @@ class PermissionViewSet(BaseModelViewset):
             return PermissionDetailSerializer
         return PermissionSerializer
     
+    def get_queryset(self):
+        qs = Permission.objects.filter(is_active=True, is_deleted=False)
+        if not qs.exists():
+            from django.contrib.contenttypes.models import ContentType
+            try:
+                content_type = ContentType.objects.get_for_model(Permission)
+                for p in PREDEFINED_PERMISSIONS_DATA:
+                    Permission.objects.get_or_create(
+                        codename=p['codename'],
+                        defaults={
+                            'name': str(p['name']),
+                            'category': p.get('category', 'admin'),
+                            'level': p.get('level', 'tenant'),
+                            'content_type': content_type,
+                            'is_active': True
+                        }
+                    )
+                qs = Permission.objects.filter(is_active=True, is_deleted=False)
+            except Exception:
+                pass
+        return qs
+    
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [IsAuthenticated, IsSuperAdmin]

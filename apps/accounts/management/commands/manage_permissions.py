@@ -143,7 +143,7 @@ class Command(BaseCommand):
                 defaults = [p['codename'] for p in PREDEFINED_PERMISSIONS_DATA]
             else:
                 defaults = rbac.get_role_default_permissions(r_code)
-            self.stdout.write(self.style.MIME(f"\nRole: {r_code.upper()} ({len(defaults)} permissions)"))
+            self.stdout.write(self.style.MIGRATE_HEADING(f"\nRole: {r_code.upper()} ({len(defaults)} permissions)"))
             self.stdout.write("-" * 80)
             formatted_perms = ", ".join(defaults) if defaults else "None"
             self.stdout.write(formatted_perms)

@@ -85,6 +85,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'emergency_contact_name', 'emergency_contact_phone',
             'emergency_contact_relation', 'timezone', 'date_format', 'number_format'
         ]
+        read_only_fields = ['employee_type', 'cost_center', 'title', 'reports_to']
     def validate_avatar(self, value):
         if value and hasattr(value, 'size'):
             max_size = 5 * 1024 * 1024

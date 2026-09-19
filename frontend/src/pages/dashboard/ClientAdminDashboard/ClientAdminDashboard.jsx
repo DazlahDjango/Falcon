@@ -25,6 +25,8 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
+import HeaderTag from '../../../components/dashboard/HeaderTag';
+
 const ClientAdminDashboard = () => {
   const { user: authUser, currentTenant } = useAuthContext();
   const { dashboardData, loading: dashboardLoading, refreshDashboard: refreshDashboardData } = useClientAdminDashboard({ autoRefresh: true });
@@ -197,24 +199,12 @@ const ClientAdminDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50/60 p-6 space-y-6 text-slate-800 font-sans">
       {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-slate-500 text-xs mt-1">Manage your organization and system settings</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-slate-400">Last Updated: Just now</span>
-          <button
-            onClick={handleRefresh}
-            className="p-2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
-            title="Refresh Data"
-          >
-            <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
+      <HeaderTag
+        roleBadge="Client Administrator"
+        badgeColor="blue"
+        onRefresh={handleRefresh}
+        loading={loading}
+      />
 
       {/* Top 6 Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

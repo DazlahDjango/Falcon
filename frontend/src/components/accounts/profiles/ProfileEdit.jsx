@@ -132,8 +132,6 @@ export const ProfileEdit = () => {
       address,
       city,
       country,
-      employee_type,
-      cost_center,
       timezone,
       date_format,
       number_format,
@@ -362,42 +360,40 @@ export const ProfileEdit = () => {
         </div>
 
         <div className="form-section">
-          <h3>Employment Information</h3>
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="employee_type" className="form-label">Employee Type</label>
-              <div className="form-input-wrapper">
-                <FiBriefcase className="input-icon" />
-                <select
-                  id="employee_type"
-                  name="employee_type"
-                  className="form-select"
-                  value={formData.employee_type}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                >
-                  <option value="">Select...</option>
-                  <option value="Full-time">Full-time</option>
-                  <option value="Part-time">Part-time</option>
-                  <option value="Contract">Contract</option>
-                  <option value="Intern">Intern</option>
-                  <option value="Temporary">Temporary</option>
-                </select>
+          <div className="flex items-center justify-between mb-3">
+            <h3>Employment & Organizational Structure</h3>
+            <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+              🔒 Managed via Structure App
+            </span>
+          </div>
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs">
+            <p className="text-[11px] text-slate-500 font-medium">
+              Employment properties, job title, organizational placement, and manager lines are automatically mapped from your active Employment & Position in the Structure App.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-slate-700 pt-1">
+              <div className="p-2.5 bg-white rounded-lg border border-slate-200/80">
+                <span className="block text-[10px] font-bold text-slate-400">Job Title:</span>
+                <span className="font-bold text-slate-900 truncate block mt-0.5">
+                  {currentProfile?.title || (currentProfile?.user?.title) || currentUser?.title || 'Not Mapped'}
+                </span>
               </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="cost_center" className="form-label">Cost Center</label>
-              <div className="form-input-wrapper">
-                <FiBriefcase className="input-icon" />
-                <input
-                  id="cost_center"
-                  name="cost_center"
-                  type="text"
-                  className="form-input"
-                  value={formData.cost_center}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
+              <div className="p-2.5 bg-white rounded-lg border border-slate-200/80">
+                <span className="block text-[10px] font-bold text-slate-400">Structure Level:</span>
+                <span className="font-bold text-slate-900 truncate block mt-0.5">
+                  {(currentProfile?.user?.department) || currentUser?.department || 'Not Mapped'}
+                </span>
+              </div>
+              <div className="p-2.5 bg-white rounded-lg border border-slate-200/80">
+                <span className="block text-[10px] font-bold text-slate-400">Employee Type:</span>
+                <span className="font-bold text-slate-900 truncate block mt-0.5">
+                  {currentProfile?.employee_type || 'Full-time'}
+                </span>
+              </div>
+              <div className="p-2.5 bg-white rounded-lg border border-slate-200/80">
+                <span className="block text-[10px] font-bold text-slate-400">Cost Center:</span>
+                <span className="font-bold text-slate-900 truncate block mt-0.5">
+                  {currentProfile?.cost_center || 'General'}
+                </span>
               </div>
             </div>
           </div>

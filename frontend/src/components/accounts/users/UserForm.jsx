@@ -29,9 +29,6 @@ export const UserForm = ({ user, onClose, onSuccess, createUser: propsCreateUser
     last_name: '',
     role: USER_ROLES.STAFF,
     phone_number: '',
-    department: '',
-    title: '',
-    employee_id: '',
     password: '',
     password_confirm: '',
   });
@@ -50,9 +47,6 @@ export const UserForm = ({ user, onClose, onSuccess, createUser: propsCreateUser
         last_name: user.last_name || '',
         role: user.role || USER_ROLES.STAFF,
         phone_number: user.phone_number || '',
-        department: user.department || '',
-        title: user.title || '',
-        employee_id: user.employee_id || '',
         password: '',
         password_confirm: '',
       });
@@ -69,7 +63,7 @@ export const UserForm = ({ user, onClose, onSuccess, createUser: propsCreateUser
     setSubmitted(true);
     setFormError(null);
 
-    const { email, username, first_name, last_name, role, phone_number, department, title, employee_id, password, password_confirm } = formData;
+    const { email, username, first_name, last_name, role, phone_number, password, password_confirm } = formData;
 
     if (!email || !username || !role) {
       setFormError('Email, username, and role are required');
@@ -98,9 +92,6 @@ export const UserForm = ({ user, onClose, onSuccess, createUser: propsCreateUser
       last_name,
       role,
       phone_number,
-      department,
-      title,
-      employee_id,
     };
 
     if (!isEditing) {
@@ -253,41 +244,6 @@ export const UserForm = ({ user, onClose, onSuccess, createUser: propsCreateUser
             )}
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="department" className="form-label">Department</label>
-              <div className="form-input-wrapper">
-                <FiBriefcase className="input-icon" />
-                <input
-                  id="department"
-                  name="department"
-                  type="text"
-                  className="form-input"
-                  placeholder="Engineering"
-                  value={formData.department}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="title" className="form-label">Job Title</label>
-              <div className="form-input-wrapper">
-                <FiBriefcase className="input-icon" />
-                <input
-                  id="title"
-                  name="title"
-                  type="text"
-                  className="form-input"
-                  placeholder="Software Engineer"
-                  value={formData.title}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-          </div>
-
           <div className="form-group">
             <label htmlFor="phone_number" className="form-label">Phone Number</label>
             <div className="form-input-wrapper">
@@ -305,22 +261,32 @@ export const UserForm = ({ user, onClose, onSuccess, createUser: propsCreateUser
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="employee_id" className="form-label">Employee ID</label>
-            <div className="form-input-wrapper">
-              <FiBriefcase className="input-icon" />
-              <input
-                id="employee_id"
-                name="employee_id"
-                type="text"
-                className="form-input"
-                placeholder="EMP-001"
-                value={formData.employee_id}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
+          {isEditing && (
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs mb-4">
+              <div className="flex items-center justify-between text-slate-700 font-bold border-b border-slate-200 pb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <FiBriefcase className="text-purple-600" /> Structure & Position Metadata
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                  🔒 Managed via Structure App
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-slate-600 pt-1">
+                <div>
+                  <span className="block text-[10px] font-bold text-slate-400">Job Title:</span>
+                  <span className="font-semibold text-slate-900 truncate block">{user.title || 'Not Mapped'}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold text-slate-400">Structure Level:</span>
+                  <span className="font-semibold text-slate-900 truncate block">{user.department || 'Not Mapped'}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold text-slate-400">Employee ID:</span>
+                  <span className="font-semibold text-slate-900 truncate block">{user.employee_id || 'Not Mapped'}</span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {!isEditing && (
             <>

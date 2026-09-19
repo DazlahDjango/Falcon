@@ -565,6 +565,18 @@ ROLE_DEFAULT_PERMISSIONS = {
         'view_kpi', 'view_review', 'view_org_chart',
         'view_individual_dashboard', 'view_reports',
     ],
+
+    # 7. Dashboard Champion
+    'dashboard_champion': [
+        'view_kpi', 'export_kpi_data', 'view_champion_dashboard', 'view_team_dashboard',
+        'view_individual_dashboard', 'view_reports', 'export_report', 'share_reports',
+        'trigger_calculations', 'phase_targets', 'cascade_targets',
+    ],
+    'champion': [
+        'view_kpi', 'export_kpi_data', 'view_champion_dashboard', 'view_team_dashboard',
+        'view_individual_dashboard', 'view_reports', 'export_report', 'share_reports',
+        'trigger_calculations', 'phase_targets', 'cascade_targets',
+    ],
 }
 
 

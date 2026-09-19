@@ -18,6 +18,8 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 
+import HeaderTag from '../../../components/dashboard/HeaderTag';
+
 const ExecutiveDashboard = () => {
   const {
     loading,
@@ -42,14 +44,6 @@ const ExecutiveDashboard = () => {
 
   const [activeTrendIndex, setActiveTrendIndex] = useState(null);
 
-  // Dynamic user details
-  const userName = user?.first_name 
-    ? `${user.first_name} ${user.last_name || ''}`.trim() 
-    : (user?.username || user?.email?.split('@')[0] || 'Executive');
-  const userTitle = user?.job_title || user?.role || 'Executive Leadership';
-  const tenantName = tenant?.name || user?.tenant_name || 'Organization';
-  const userInitial = userName ? userName[0].toUpperCase() : 'E';
-
   // Overall health assessment
   const healthLabel = useMemo(() => {
     if (overallHealth >= 90) return { text: 'Excellent', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' };
@@ -62,7 +56,7 @@ const ExecutiveDashboard = () => {
   const intelligenceSummary = useMemo(() => {
     const parts = [];
     parts.push(`Overall organizational performance is currently at ${Math.round(overallHealth)}% (${healthLabel.text}).`);
-    
+
     if (greenCount > 0 || redCount > 0) {
       parts.push(`${greenCount} KPIs are on track, while ${redCount} require immediate leadership attention.`);
     }
@@ -116,8 +110,8 @@ const ExecutiveDashboard = () => {
     return { pathD: pD, targetPathD: tPD, points: actualPts, targetPoints: tgtPts };
   }, [trendData]);
 
-  const activeTrendPoint = activeTrendIndex !== null && points[activeTrendIndex] 
-    ? points[activeTrendIndex] 
+  const activeTrendPoint = activeTrendIndex !== null && points[activeTrendIndex]
+    ? points[activeTrendIndex]
     : points[points.length - 1];
   const activeTargetPoint = activeTrendIndex !== null && targetPoints[activeTrendIndex]
     ? targetPoints[activeTrendIndex]
@@ -160,36 +154,16 @@ const ExecutiveDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50/60 p-6 space-y-6 text-slate-800 font-sans">
       {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-lg shrink-0 shadow-sm">
-            {userInitial}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              Welcome, {userName} <span className="inline-block animate-bounce">👋</span>
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {userTitle} • <span className="text-slate-700 font-semibold">{tenantName}</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => refreshDashboard()}
-            className="p-2 text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 rounded-lg border border-slate-200 transition flex items-center gap-1.5 text-xs font-semibold"
-            title="Refresh Dashboard Data"
-          >
-            <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : ''}`} />
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
+      <HeaderTag
+        roleBadge="Executive Leadership"
+        badgeColor="indigo"
+        onRefresh={refreshDashboard}
+        loading={loading}
+      />
 
       {/* Top Banner Cards Grid (8 cols Executive Intelligence Summary, 4 cols Strategic Focus) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Executive Intelligence Summary (8 cols) */}
         <div className="lg:col-span-8 bg-blue-50/70 border border-blue-100 p-5 rounded-2xl flex flex-col justify-between space-y-4">
           <div className="flex items-start gap-3">
@@ -399,21 +373,19 @@ const ExecutiveDashboard = () => {
                   return (
                     <div
                       key={dept.department_id || dept.department}
-                      className={`p-2 rounded-xl border text-center flex flex-col justify-between transition hover:shadow-sm ${
-                        isGreen 
-                          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950' 
-                          : isRed 
-                          ? 'bg-rose-50/70 border-rose-200 text-rose-950' 
-                          : 'bg-amber-50/70 border-amber-200 text-amber-950'
-                      }`}
+                      className={`p-2 rounded-xl border text-center flex flex-col justify-between transition hover:shadow-sm ${isGreen
+                          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+                          : isRed
+                            ? 'bg-rose-50/70 border-rose-200 text-rose-950'
+                            : 'bg-amber-50/70 border-amber-200 text-amber-950'
+                        }`}
                     >
                       <p className="text-[10px] font-bold truncate" title={dept.department}>
                         {dept.department}
                       </p>
                       <p className="text-sm font-bold my-1">{Math.round(score)}%</p>
-                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${
-                        isGreen ? 'bg-emerald-200/80 text-emerald-800' : isRed ? 'bg-rose-200/80 text-rose-800' : 'bg-amber-200/80 text-amber-800'
-                      }`}>
+                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${isGreen ? 'bg-emerald-200/80 text-emerald-800' : isRed ? 'bg-rose-200/80 text-rose-800' : 'bg-amber-200/80 text-amber-800'
+                        }`}>
                         {statusText}
                       </span>
                     </div>

@@ -23,13 +23,14 @@ class ProfileService:
     def update_profile(self, user: User, data: Dict[str, Any], request=None) -> Tuple[bool, str]:
         try:
             profile = self.get_profile(user)
+            # Personal & Contact profile fields (excluding structure fields managed via Structure App)
             profile_fields = [
                 'avatar', 'bio', 'date_of_birth', 'alternative_email', 'work_phone',
-                'mobile_phone', 'address', 'city', 'country', 'employee_type',
-                'cost_center', 'title', 'theme', 'dashboard_layout', 'email_frequency',
-                'timezone', 'date_format', 'number_format'
+                'mobile_phone', 'address', 'city', 'country', 'theme', 'dashboard_layout', 'email_frequency',
+                'timezone', 'date_format', 'number_format', 'emergency_contact_name',
+                'emergency_contact_phone', 'emergency_contact_relation'
             ]
-            user_fields = ['first_name', 'last_name', 'phone_number', 'title']
+            user_fields = ['first_name', 'last_name', 'phone_number']
             
             profile_updated_fields = []
             user_updated_fields = []
@@ -42,18 +43,6 @@ class ProfileService:
                 if field in data:
                     setattr(user, field, data[field])
                     user_updated_fields.append(field)
-            if 'reports_to' in data:
-                reports_to_id = data['reports_to']
-                if reports_to_id:
-                    try:
-                        reports_to = User.objects.get(id=reports_to_id, tenant_id=user.tenant_id)
-                        profile.reports_to = reports_to
-                        profile_updated_fields.append('reports_to')
-                    except User.DoesNotExist:
-                        pass
-                else:
-                    profile.reports_to = None
-                    profile_updated_fields.append('reports_to')
 
             if profile_updated_fields:
                 profile.save(update_fields=list(set(profile_updated_fields)))
@@ -255,11 +244,14 @@ class ProfileService:
             ('city', bool(profile.city)),
             ('country', bool(profile.country)),
             ('employee_type', bool(profile.employee_type)),
+            ('cost_center', bool(profile.cost_center)),
+            ('reports_to', profile.reports_to is not None or user.manager is not None),
             ('skills', len(profile.skills or []) > 0),
             ('certifications', len(profile.certifications or []) > 0),
             ('first_name', bool(user.first_name)),
             ('last_name', bool(user.last_name)),
             ('title', bool(profile.title) or bool(user.title)),
+            ('department', bool(user.department)),
         ]
         completed = sum(1 for _, completed in fields_to_check if completed)
         total = len(fields_to_check)

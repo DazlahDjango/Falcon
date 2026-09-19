@@ -32,13 +32,13 @@ export const RolePermissionManager = ({ roleId, isEditable = true }) => {
   const loadData = async () => {
     await Promise.all([
       getRolePermissions(roleId),
-      getPermissions(),
+      getPermissions({ page_size: 500 }),
     ]);
   };
 
   useEffect(() => {
-    if (rolePermissions) {
-      const permIds = rolePermissions.map(p => p.codename || p);
+    if (rolePermissions && Array.isArray(rolePermissions)) {
+      const permIds = rolePermissions.map(p => (typeof p === 'object' ? p.codename : p));
       setSelectedPermissions(permIds);
     }
   }, [rolePermissions]);
