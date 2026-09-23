@@ -11,29 +11,65 @@ class RoleMinimalSerializer(serializers.ModelSerializer):
 
 class RoleListSerializer(DynamicFieldsModelSerializer, AuditSerializer):
     permission_count = serializers.SerializerMethodField()
+    user_count = serializers.SerializerMethodField()
     child_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Role
         fields = [
             'id', 'name', 'code', 'description', 'role_type', 'is_system',
-            'is_assignable', 'order', 'parent', 'permission_count',
+            'is_assignable', 'order', 'parent', 'permission_count', 'user_count',
             'child_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-    
+
     def get_permission_count(self, obj):
-        return obj.permissions.count() if hasattr(obj, 'permissions') else 0
-    
+        if hasattr(obj, 'permissions') and obj.permissions.exists():
+            return obj.permissions.count()
+        from apps.accounts.services import RBACService
+        from apps.accounts.constants import PREDEFINED_PERMISSIONS_DATA
+        if obj.code == 'super_admin':
+            return len(PREDEFINED_PERMISSIONS_DATA)
+        rbac = RBACService()
+        defaults = rbac.get_role_default_permissions(obj.code)
+        return len(defaults) if defaults else 0
+
+    def get_user_count(self, obj):
+        from apps.accounts.models import User
+        request = self.context.get('request')
+        tenant_id = None
+        if request and getattr(request, 'user', None) and not request.user.is_superuser:
+            tenant_id = getattr(request.user, 'tenant_id', None)
+
+        qs = User.objects.filter(is_deleted=False)
+        if tenant_id:
+            qs = qs.filter(tenant_id=tenant_id)
+
+        code_matches = ['champion', 'dashboard_champion'] if obj.code in ['champion', 'dashboard_champion'] else [obj.code]
+        return qs.filter(role__in=code_matches).count()
+
     def get_child_count(self, obj):
         return obj.children.count() if hasattr(obj, 'children') else 0
-    
+
+
 class RoleDetailSerializer(RoleListSerializer):
-    permissions = serializers.SlugRelatedField(many=True, read_only=True, slug_field='codename')
+    permissions = serializers.SerializerMethodField()
     parent_name = serializers.SerializerMethodField()
+
     class Meta(RoleListSerializer.Meta):
         fields = RoleListSerializer.Meta.fields + ['permissions', 'parent_name']
-    
+
+    def get_permissions(self, obj):
+        from apps.accounts.services import RBACService
+        from apps.accounts.constants import PREDEFINED_PERMISSIONS_DATA
+        if obj.code == 'super_admin':
+            return [p['codename'] for p in PREDEFINED_PERMISSIONS_DATA]
+        rbac = RBACService()
+        defaults = rbac.get_role_default_permissions(obj.code)
+        if defaults:
+            return defaults
+        return list(obj.permissions.values_list('codename', flat=True)) if hasattr(obj, 'permissions') else []
+
     def get_parent_name(self, obj):
         if obj.parent:
             return obj.parent.name

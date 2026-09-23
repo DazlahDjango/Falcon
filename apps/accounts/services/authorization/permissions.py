@@ -1,44 +1,30 @@
 import logging
 from typing import List, Dict, Any, Optional
-from django.contrib.auth.models import Permission as DjangoPermission
 from django.contrib.contenttypes.models import ContentType
 from apps.accounts.models import User, Permission as CustomPermission, Role
 from apps.accounts.services.audit.logger import AuditService
+from apps.accounts.services.authorization.rbac import RBACService
+from apps.accounts.constants import PREDEFINED_PERMISSIONS_DATA, UserRoles
+
 logger = logging.getLogger(__name__)
+
 
 class PermissionService:
     def __init__(self):
         self.audit_service = AuditService()
+        self.rbac_service = RBACService()
     
     def get_user_permissions(self, user: User) -> List[str]:
-        permissions = set()
-        if user.is_superuser:
-            return list(CustomPermission.objects.filter(is_active=True).values_list('codename', flat=True))
-        role = Role.objects.filter(code=user.role, is_deleted=False).first()
-        if role:
-            permissions.update(role.get_all_permissions())
-        return list(permissions)
+        """Returns the effective permissions list for the user."""
+        return self.rbac_service.get_user_effective_permissions(user)
     
     def check_permission(self, user: User, permission_codename: str, obj: Any = None) -> bool:
-        if user.is_superuser:
-            return True
-        if obj and hasattr(obj, 'tenant_id') and obj.tenant_id != user.tenant_id:
-            return False
-        perm = CustomPermission.objects.filter(codename=permission_codename, is_active=True).first()
-        if not perm:
-            return False
-        if perm.level == 'global':
-            return user.role == 'super_admin'
-        elif perm.level == 'tenant':
-            return user.role in ['client_admin', 'executive']
-        elif perm.level == 'department':
-            return user.role in ['client_admin', 'executive', 'supervisor']
-        elif perm.level == 'team':
-            return user.role in ['client_admin', 'executive', 'supervisor']
-        elif perm.level == 'self':
-            return True
-        user_perms = self.get_user_permissions(user)
-        return permission_codename in user_perms
+        """Checks if a user has a specific permission taking into account tenant & overrides."""
+        return self.rbac_service.user_has_permission(user, permission_codename, obj)
+    
+    def has_permission(self, user: User, permission_codename: str, obj: Any = None) -> bool:
+        """Alias for check_permission."""
+        return self.check_permission(user, permission_codename, obj)
     
     def create_permission(self, codename: str, name: str, content_type_model: str, category: str, level: str = 'tenant', **kwargs) -> Optional[CustomPermission]:
         try:
@@ -57,35 +43,42 @@ class PermissionService:
             logger.error(f"Permission creation error: {str(e)}")
             return None
     
-    def get_permissions_by_category(self, category: str) -> List[CustomPermission]:
-        return CustomPermission.objects.filter(category=category, is_active=True)
+    def get_permissions_by_category(self, category: str) -> List[Dict[str, Any]]:
+        # Filter from predefined data first, plus any DB custom permissions
+        predefined = [p for p in PREDEFINED_PERMISSIONS_DATA if p.get('category') == category]
+        return predefined
     
-    def get_permissions_by_level(self, level: str) -> List[CustomPermission]:
-        return CustomPermission.objects.filter(level=level, is_active=True)
+    def get_permissions_by_level(self, level: str) -> List[Dict[str, Any]]:
+        predefined = [p for p in PREDEFINED_PERMISSIONS_DATA if p.get('level') == level]
+        return predefined
     
     def get_user_permission_summary(self, user: User) -> Dict[str, Any]:
-        permissions = self.get_user_permissions(user)
+        details = self.rbac_service.get_user_permission_details(user)
         return {
             'user_email': user.email,
             'user_role': user.role,
-            'permission_count': len(permissions),
-            'permission': permissions[:100],
-            'is_superuser': user.is_superuser
+            'permission_count': len(details['effective']),
+            'effective_permissions': details['effective'],
+            'granted_overrides': details['granted'],
+            'revoked_overrides': details['revoked'],
+            'is_superuser': user.is_superuser or user.role == UserRoles.SUPER_ADMIN
         }
     
     def has_module_permissions(self, user: User, module: str) -> bool:
-        module_permissions = {
-            'kpi': ['view_kpi', 'create_kpi', 'edit_kpi', 'delete_kpi'],
-            'reviews': ['view_review', 'create_review', 'approve_review'],
-            'dashboard': ['view_executive_dashboard', 'view_team_dashboard', 'view_individual_dashboard'],
-            'reports': ['export_report'],
-            'users': ['view_user', 'create_user', 'edit_user', 'delete_user'],
-            'settings': ['manage_tenant', 'configure_branding'],
+        category_map = {
+            'kpi': 'kpi',
+            'reviews': 'review',
+            'dashboard': 'report',
+            'reports': 'report',
+            'users': 'user',
+            'settings': 'config',
+            'structure': 'structure',
+            'billing': 'billing',
         }
-        perms = module_permissions.get(module, [])
-        if not perms:
+        category = category_map.get(module)
+        if not category:
             return False
-        for perm in perms:
-            if self.check_permission(user, perm):
-                return True
-        return False
+        
+        module_codenames = [p['codename'] for p in PREDEFINED_PERMISSIONS_DATA if p.get('category') == category]
+        user_perms = set(self.get_user_permissions(user))
+        return bool(user_perms.intersection(set(module_codenames)))

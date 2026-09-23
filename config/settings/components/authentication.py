@@ -129,7 +129,7 @@ REST_FRAMEWORK = {
         'user': '1000/day',
         'login': '5/minute',
         'register': '3/hour',
-        'password_reset': '3/hour',
+        'password_reset': env('THROTTLE_RATE_PASSWORD_RESET', default='100/hour'),
         'email_verification': '2/hour',
         'session_refresh': '10/minute',
         'mfa': '5/minute',

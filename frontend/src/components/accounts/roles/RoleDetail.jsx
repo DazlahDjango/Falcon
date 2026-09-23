@@ -41,7 +41,7 @@ export const RoleDetail = () => {
     if (id) {
       getRole(id);
     }
-    return () => clearSelectedRole();
+    return () => clearSelectedRole?.();
   }, [id, getRole, clearSelectedRole]);
 
   const handleDelete = async () => {

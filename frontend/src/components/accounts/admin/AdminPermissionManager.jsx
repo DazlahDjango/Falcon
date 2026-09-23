@@ -188,13 +188,19 @@ export const AdminPermissionManager = () => {
             onChange={(e) => handleFilterChange({ category: e.target.value })}
           >
             <option value="">All Categories</option>
-            <option value="kpi">KPI</option>
-            <option value="user">User</option>
+            <option value="kpi">KPI Management</option>
+            <option value="review">Reviews & Appraisals</option>
+            <option value="user">User Management</option>
+            <option value="tenant">Tenant</option>
+            <option value="structure">Organization Structure</option>
+            <option value="report">Reports & Dashboards</option>
+            <option value="config">Configuration</option>
+            <option value="billing">Billing & Subscriptions</option>
+            <option value="workflow">Workflows & Approvals</option>
+            <option value="admin">Administration</option>
             <option value="role">Role</option>
             <option value="audit">Audit</option>
             <option value="security">Security</option>
-            <option value="billing">Billing</option>
-            <option value="settings">Settings</option>
           </select>
           <select
             className="filter-select"
@@ -381,14 +387,20 @@ export const AdminPermissionManager = () => {
                 <div className="form-group">
                   <label className="form-label">Category</label>
                   <select className="form-select" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
-                    <option value="">Select</option>
-                    <option value="kpi">KPI</option>
-                    <option value="user">User</option>
+                    <option value="">Select Category</option>
+                    <option value="kpi">KPI Management</option>
+                    <option value="review">Reviews & Appraisals</option>
+                    <option value="user">User Management</option>
+                    <option value="tenant">Tenant</option>
+                    <option value="structure">Organization Structure</option>
+                    <option value="report">Reports & Dashboards</option>
+                    <option value="config">Configuration</option>
+                    <option value="billing">Billing & Subscriptions</option>
+                    <option value="workflow">Workflows & Approvals</option>
+                    <option value="admin">Administration</option>
                     <option value="role">Role</option>
                     <option value="audit">Audit</option>
                     <option value="security">Security</option>
-                    <option value="billing">Billing</option>
-                    <option value="settings">Settings</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -447,14 +459,20 @@ export const AdminPermissionManager = () => {
                 <div className="form-group">
                   <label className="form-label">Category</label>
                   <select className="form-select" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
-                    <option value="">Select</option>
-                    <option value="kpi">KPI</option>
-                    <option value="user">User</option>
+                    <option value="">Select Category</option>
+                    <option value="kpi">KPI Management</option>
+                    <option value="review">Reviews & Appraisals</option>
+                    <option value="user">User Management</option>
+                    <option value="tenant">Tenant</option>
+                    <option value="structure">Organization Structure</option>
+                    <option value="report">Reports & Dashboards</option>
+                    <option value="config">Configuration</option>
+                    <option value="billing">Billing & Subscriptions</option>
+                    <option value="workflow">Workflows & Approvals</option>
+                    <option value="admin">Administration</option>
                     <option value="role">Role</option>
                     <option value="audit">Audit</option>
                     <option value="security">Security</option>
-                    <option value="billing">Billing</option>
-                    <option value="settings">Settings</option>
                   </select>
                 </div>
                 <div className="form-group">

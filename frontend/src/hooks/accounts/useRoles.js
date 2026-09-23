@@ -178,6 +178,7 @@ export const useRoles = () => {
       setFilters,
       setPage,
       clearSelected,
+      clearSelectedRole: clearSelected,
       clearError,
       getRoleById,
       getRoleByCode,

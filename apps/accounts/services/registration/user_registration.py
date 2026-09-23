@@ -83,23 +83,27 @@ class UserRegistrationService:
             return False, 'Unable to send verification email'
         
     def _send_verification_email(self, user: User):
-        token = self._generate_verification_token(user)
-        subject = 'Verify your email'
-        context = {
-            'user': user,
-            'token': token,
-            'verification_url': f"{settings.FRONTEND_URL}/verify-email?token={token}"
-        }
-        html_content = render_to_string('accounts/email/welcome.html', context)
-        text_content = f"Click the link to verify your email: {context['verification_url']}"
-        send_mail(
-            subject=subject,
-            message=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_content,
-            fail_silently=False
-        )
+        try:
+            token = self._generate_verification_token(user)
+            subject = 'Verify your email'
+            context = {
+                'user': user,
+                'token': token,
+                'verification_url': f"{settings.FRONTEND_URL}/verify-email?token={token}",
+                'dashboard_url': f"{settings.FRONTEND_URL}/dashboard"
+            }
+            html_content = render_to_string('accounts/email/welcome.html', context)
+            text_content = f"Click the link to verify your email: {context['verification_url']}"
+            send_mail(
+                subject=subject,
+                message=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_content,
+                fail_silently=True
+            )
+        except Exception as e:
+            logger.warning(f"Could not send verification email to {user.email}: {e}")
     
     def _generate_verification_token(self, user: User):
         import secrets

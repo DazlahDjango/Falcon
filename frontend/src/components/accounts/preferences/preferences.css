@@ -416,17 +416,26 @@
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .branding-input-wrapper .input-icon {
   position: absolute;
-  left: 10px;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #94a3b8;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .branding-input {
   width: 100%;
-  padding: 8px 12px 8px 34px;
+  padding: 8px 12px 8px 44px !important;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 14px;

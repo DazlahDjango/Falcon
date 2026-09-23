@@ -161,10 +161,10 @@ export const {
 } = permissionSlice.actions;
 
 // Selectors with defaults
-export const selectPermissions = (state) => state.permissions || {};
+export const selectPermissions = (state) => state.permissions?.permissions || [];
 export const selectPermissionsList = (state) => state.permissions?.permissions || [];
 export const selectGroupedPermissions = (state) => state.permissions?.groupedPermissions || {};
-export const selectPermissionCategories = (state) => state.permissions?.categories || ['kpi', 'review', 'user', 'tenant', 'report', 'workflow', 'admin'];
+export const selectPermissionCategories = (state) => state.permissions?.categories || ['kpi', 'review', 'user', 'tenant', 'structure', 'report', 'config', 'billing', 'workflow', 'admin'];
 export const selectPermissionsLoading = (state) => state.permissions?.isLoading || false;
 export const selectPermissionsError = (state) => state.permissions?.error || null;
 

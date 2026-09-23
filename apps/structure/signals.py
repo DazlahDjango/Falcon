@@ -230,6 +230,14 @@ def employment_post_save(sender, instance, created, **kwargs):
             new_data={'is_current': instance.is_current, 'is_active': instance.is_active}
         )
     cache_warmer.invalidate_tenant_cache(instance.tenant_id)
+    
+    # Auto-synchronize User and Profile fields with active Employment & Position metadata
+    try:
+        from apps.accounts.services.structure_sync import sync_user_profile_from_employment
+        sync_user_profile_from_employment(instance.user_id)
+    except Exception as e:
+        logger.error(f"Failed to auto-sync User/Profile for user {instance.user_id}: {str(e)}", exc_info=True)
+
 
 
 

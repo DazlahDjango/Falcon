@@ -1,21 +1,87 @@
 import React from 'react';
-import { FiCheckCircle, FiXCircle, FiClock } from 'react-icons/fi';
+import {
+  FiCheckCircle,
+  FiXCircle,
+  FiClock,
+  FiShield,
+  FiLock,
+  FiAlertCircle,
+} from 'react-icons/fi';
 
-export const UserStatusBadge = ({ isActive, isVerified, size = 'sm' }) => {
-  const getStatus = () => {
-    if (!isActive) return { label: 'Inactive', icon: FiXCircle, color: 'inactive' };
-    if (!isVerified) return { label: 'Unverified', icon: FiClock, color: 'warning' };
-    return { label: 'Active', icon: FiCheckCircle, color: 'active' };
-  };
+/**
+ * Single Status Badge for a specific status type (active, verified, locked)
+ */
+export const UserStatusBadge = ({
+  user,
+  isActive,
+  isVerified,
+  isLocked,
+  variant = 'composite', // 'composite' | 'active' | 'verified' | 'locked'
+  size = 'sm',
+}) => {
+  // Normalize boolean values from either props or user object
+  const active = user ? user.is_active !== false : isActive !== false;
+  const verified = user ? user.is_verified === true : isVerified === true;
+  const locked = user
+    ? Boolean(user.locked_until && new Date(user.locked_until) > new Date())
+    : Boolean(isLocked);
 
-  const status = getStatus();
-  const Icon = status.icon;
+  if (variant === 'active') {
+    return (
+      <span className={`user-status-badge ${active ? 'active' : 'inactive'} ${size}`}>
+        {active ? <FiCheckCircle className="status-icon" /> : <FiXCircle className="status-icon" />}
+        {active ? 'Active' : 'Inactive'}
+      </span>
+    );
+  }
 
+  if (variant === 'verified') {
+    return (
+      <span className={`user-status-badge ${verified ? 'verified' : 'unverified'} ${size}`}>
+        {verified ? <FiShield className="status-icon" /> : <FiAlertCircle className="status-icon" />}
+        {verified ? 'Verified' : 'Unverified'}
+      </span>
+    );
+  }
+
+  if (variant === 'locked') {
+    if (!locked) return null;
+    return (
+      <span className={`user-status-badge locked ${size}`}>
+        <FiLock className="status-icon" />
+        Locked
+      </span>
+    );
+  }
+
+  // Composite / Multi-Status Display
   return (
-    <span className={`user-status-badge ${status.color} ${size}`}>
-      <Icon className="status-icon" />
-      {status.label}
-    </span>
+    <div className="user-status-group">
+      <span className={`user-status-badge ${active ? 'active' : 'inactive'} ${size}`}>
+        {active ? <FiCheckCircle className="status-icon" /> : <FiXCircle className="status-icon" />}
+        {active ? 'Active' : 'Inactive'}
+      </span>
+
+      <span className={`user-status-badge ${verified ? 'verified' : 'unverified'} ${size}`}>
+        {verified ? <FiShield className="status-icon" /> : <FiAlertCircle className="status-icon" />}
+        {verified ? 'Verified' : 'Unverified'}
+      </span>
+
+      {locked && (
+        <span className={`user-status-badge locked ${size}`}>
+          <FiLock className="status-icon" />
+          Locked
+        </span>
+      )}
+    </div>
   );
 };
+
+/**
+ * UserStatusGroup renders all active, verification, and lock status tags
+ */
+export const UserStatusGroup = ({ user, size = 'sm' }) => {
+  return <UserStatusBadge user={user} variant="composite" size={size} />;
+};
+
 export default UserStatusBadge;

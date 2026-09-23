@@ -39,8 +39,13 @@ class PasswordService:
         from apps.accounts.services.auth.session import SessionService
         curr_session = getattr(request, 'session_key', None) if request else None
         SessionService().terminate_all_sessions(user, except_session_id=curr_session)
-        # Flush Redis refresh token blacklist keys for user
-        cache.delete_pattern(f"user_jwt_tokens:{user.id}:*")
+        # Flush Redis refresh token blacklist keys for user if supported by cache backend
+        try:
+            delete_pattern = getattr(cache, 'delete_pattern', None)
+            if callable(delete_pattern):
+                delete_pattern(f"user_jwt_tokens:{user.id}:*")
+        except Exception:
+            pass
         self.audit_service.log(
             user=user, action='password.changed', action_type='update',
             request=request, severity='info'
@@ -69,6 +74,8 @@ class PasswordService:
         is_valid, errors = self.validate_password(new_password, user)
         if not is_valid:
             return False, errors[0]
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        cache.delete(f'password_reset:{token_hash}')
         self._record_password_history(user)
         user.set_password(new_password)
         user.password_last_changed = timezone.now()

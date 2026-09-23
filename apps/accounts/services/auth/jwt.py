@@ -55,22 +55,27 @@ class JWTServices:
         return str(refresh)
     
     def verify_token(self, token: str, token_type: str = 'access') -> Optional[Dict]:
-        """Verify and decode JWT token - FIXED for KeyError: 0 issue"""
+        """Verify and decode JWT token - safely handles access, refresh, and mfa tokens"""
         if not token:
             logger.debug("Empty token provided")
             return None
         
         try:
             if token_type == 'access':
-                access = AccessToken(token)
-                jti = access.get('jti')
-                
-                if jti and self.is_blacklisted(jti):
-                    logger.debug(f"Token {jti} is blacklisted")
-                    return None
-                
-                # Convert to dict safely
-                return access.payload
+                try:
+                    access = AccessToken(token)
+                    jti = access.get('jti')
+                    if jti and self.is_blacklisted(jti):
+                        logger.debug(f"Token {jti} is blacklisted")
+                        return None
+                    return access.payload
+                except Exception:
+                    # Fallback for mfa_token or refresh token
+                    refresh = RefreshToken(token)
+                    jti = refresh.get('jti')
+                    if jti and self.is_blacklisted(jti):
+                        return None
+                    return refresh.payload
             
             else:  # refresh token
                 refresh = RefreshToken(token)
@@ -79,9 +84,6 @@ class JWTServices:
                 if jti and self.is_blacklisted(jti):
                     logger.debug(f"Refresh token {jti} is blacklisted")
                     return None
-                
-                if refresh.get('mfa_pending'):
-                    return refresh.payload
                 
                 return refresh.payload
                 

@@ -15,7 +15,7 @@ import {
   FiBriefcase,
   FiPhone,
   FiKey,
-  FiMoreVertical,
+  FiCheck,
 } from 'react-icons/fi';
 import { useUsers } from '../../../hooks/accounts/useUsers';
 import { useAuth } from '../../../hooks/accounts/useAuth';
@@ -26,6 +26,7 @@ import { UserForm } from './UserForm';
 import { UserTeamView } from './UserTeamView';
 import { UserReportingChain } from './UserReportingChain';
 import { ACCOUNTS_ROUTES } from '../../../config/constants/accountsRouteConstants';
+import { impersonateUser } from '../../../services/accounts/api/admin';
 
 export const UserDetail = () => {
   const { id } = useParams();
@@ -39,6 +40,8 @@ export const UserDetail = () => {
     activateUser,
     deactivateUser,
     unlockUser,
+    verifyUser,
+    deleteUser,
     clearSelectedUser,
     clearError,
   } = useUsers();
@@ -79,6 +82,18 @@ export const UserDetail = () => {
     }
   };
 
+  const handleVerify = async () => {
+    setActionLoading(true);
+    try {
+      await verifyUser(user.id);
+      await getUser(user.id);
+    } catch (err) {
+      console.error('Failed to verify user:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleUnlock = async () => {
     setActionLoading(true);
     try {
@@ -86,6 +101,31 @@ export const UserDetail = () => {
       await getUser(user.id);
     } catch (err) {
       console.error('Failed to unlock user:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleImpersonate = async () => {
+    if (!confirm(`Are you sure you want to impersonate ${user.email}?`)) return;
+    setActionLoading(true);
+    try {
+      const response = await impersonateUser(user.id);
+      const tokens = response.data?.tokens;
+      if (tokens?.access) {
+        const currentToken = localStorage.getItem('access_token');
+        if (currentToken) {
+          sessionStorage.setItem('impersonator_original_token', currentToken);
+        }
+        localStorage.setItem('access_token', tokens.access);
+        if (tokens.refresh) {
+          localStorage.setItem('refresh_token', tokens.refresh);
+        }
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Impersonation failed:', err);
+      alert('Impersonation failed: ' + (err.response?.data?.error || err.message));
     } finally {
       setActionLoading(false);
     }
@@ -135,8 +175,8 @@ export const UserDetail = () => {
     );
   }
 
-  const canManage = isAdmin() || isSuperAdmin;
-  const isLocked = user.locked_until !== null && user.locked_until !== undefined;
+  const canManage = (isAdmin && isAdmin()) || isSuperAdmin;
+  const isLocked = Boolean(user.locked_until && new Date(user.locked_until) > new Date());
   const isActive = user.is_active !== false;
 
   return (
@@ -147,11 +187,21 @@ export const UserDetail = () => {
         </button>
         {canManage && (
           <div className="user-detail-actions">
+            {/* Unlock if locked */}
             {isLocked && (
               <button className="btn-secondary" onClick={handleUnlock} disabled={actionLoading}>
                 <FiUnlock /> Unlock
               </button>
             )}
+
+            {/* Verification action */}
+            {!user.is_verified && (
+              <button className="btn-secondary" onClick={handleVerify} disabled={actionLoading}>
+                <FiCheck /> Verify Identity
+              </button>
+            )}
+
+            {/* Activation toggle */}
             {isActive ? (
               <button className="btn-danger" onClick={handleDeactivate} disabled={actionLoading}>
                 <FiUserX /> Deactivate
@@ -161,6 +211,14 @@ export const UserDetail = () => {
                 <FiUserCheck /> Activate
               </button>
             )}
+
+            {/* Impersonate for Super Admin */}
+            {isSuperAdmin && (
+              <button className="btn-secondary" onClick={handleImpersonate} disabled={actionLoading}>
+                <FiShield /> Impersonate
+              </button>
+            )}
+
             <button className="btn-primary" onClick={() => setShowEditModal(true)}>
               <FiEdit /> Edit
             </button>
@@ -182,8 +240,7 @@ export const UserDetail = () => {
               <FiMail /> {user.email}
             </span>
             <UserRoleBadge role={user.role} />
-            <UserStatusBadge isActive={isActive} isVerified={user.is_verified === true} />
-            {isLocked && <span className="status-badge locked">Locked</span>}
+            <UserStatusBadge user={user} variant="composite" />
           </div>
           <div className="profile-details">
             <span><FiBriefcase /> {user.department || 'No Department'}</span>
@@ -230,16 +287,24 @@ export const UserDetail = () => {
                 <span>{user.email}</span>
               </div>
               <div className="info-item">
+                <label>First Name</label>
+                <span>{user.first_name || '-'}</span>
+              </div>
+              <div className="info-item">
+                <label>Last Name</label>
+                <span>{user.last_name || '-'}</span>
+              </div>
+              <div className="info-item">
                 <label>Role</label>
-                <span><UserRoleBadge role={user.role} /></span>
+                <UserRoleBadge role={user.role} />
               </div>
               <div className="info-item">
                 <label>Status</label>
-                <span><UserStatusBadge isActive={isActive} isVerified={user.is_verified === true} /></span>
+                <UserStatusBadge user={user} variant="composite" />
               </div>
               <div className="info-item">
-                <label>MFA</label>
-                <span>{user.mfa_enabled ? 'Enabled' : 'Disabled'}</span>
+                <label>MFA Status</label>
+                <span>{user.mfa_enabled ? '✓ Enabled' : '— Disabled'}</span>
               </div>
               <div className="info-item">
                 <label>Department</label>
@@ -250,29 +315,17 @@ export const UserDetail = () => {
                 <span>{user.title || '-'}</span>
               </div>
               <div className="info-item">
+                <label>Phone Number</label>
+                <span>{user.phone_number || '-'}</span>
+              </div>
+              <div className="info-item">
                 <label>Employee ID</label>
                 <span>{user.employee_id || '-'}</span>
               </div>
               <div className="info-item">
-                <label>Phone</label>
-                <span>{user.phone_number || '-'}</span>
-              </div>
-              <div className="info-item">
-                <label>Joined</label>
+                <label>Joined Date</label>
                 <span>{new Date(user.created_at).toLocaleString()}</span>
               </div>
-              {user.last_login && (
-                <div className="info-item">
-                  <label>Last Login</label>
-                  <span>{new Date(user.last_login).toLocaleString()}</span>
-                </div>
-              )}
-              {user.locked_until && (
-                <div className="info-item">
-                  <label>Locked Until</label>
-                  <span>{new Date(user.locked_until).toLocaleString()}</span>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -291,14 +344,24 @@ export const UserDetail = () => {
       </div>
 
       {showEditModal && (
-        <UserForm
-          user={user}
-          onClose={() => setShowEditModal(false)}
-          onSuccess={() => {
-            setShowEditModal(false);
-            getUser(user.id);
-          }}
-        />
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit User</h2>
+              <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                &times;
+              </button>
+            </div>
+            <UserForm
+              user={user}
+              onSuccess={() => {
+                setShowEditModal(false);
+                getUser(user.id);
+              }}
+              onCancel={() => setShowEditModal(false)}
+            />
+          </div>
+        </div>
       )}
 
       {showDeleteConfirm && (
@@ -306,19 +369,27 @@ export const UserDetail = () => {
           <div className="modal-content confirm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Delete User</h2>
-              <button className="modal-close" onClick={() => setShowDeleteConfirm(false)}>
-                <FiX />
+              <button className="close-btn" onClick={() => setShowDeleteConfirm(false)}>
+                &times;
               </button>
             </div>
             <div className="modal-body">
-              <p>Are you sure you want to delete <strong>{user.full_name || user.email}</strong>?</p>
-              <p className="text-muted">This action cannot be undone.</p>
+              <p>Are you sure you want to delete user <strong>{user.email}</strong>?</p>
+              <p className="warning-text">This action will soft-delete the user account.</p>
             </div>
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)}>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={actionLoading}
+              >
                 Cancel
               </button>
-              <button className="btn-danger" onClick={handleDelete} disabled={actionLoading}>
+              <button
+                className="btn-danger"
+                onClick={handleDelete}
+                disabled={actionLoading}
+              >
                 {actionLoading ? 'Deleting...' : 'Delete User'}
               </button>
             </div>
@@ -328,4 +399,5 @@ export const UserDetail = () => {
     </div>
   );
 };
+
 export default UserDetail;

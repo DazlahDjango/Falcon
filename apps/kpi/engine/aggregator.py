@@ -412,24 +412,35 @@ class HierarchyAggregator:
         # Get user's own score
         user_score = self.aggregate_for_user(user_id, year, month)
         
-        # Get direct reports
-        direct_reports = []
+        # Get direct reports and managed team members
+        from apps.accounts.models import User
+        from apps.kpi.services.hierarchy_scope import get_direct_report_ids
+        
+        user = User.objects.filter(id=user_id).first()
+        report_ids = get_direct_report_ids(user) if user else []
+        
         reports_data = []
-        for report in direct_reports:
-            report_score = self.aggregate_for_user(report.employee_id, year, month)
-            reports_data.append({
-                'user_id': str(report.employee.id),
-                'name': report.employee.get_full_name() if hasattr(report.employee, 'get_full_name') else str(report.employee.id),
-                'score': report_score,
-                'traffic_light': self._get_traffic_light(report_score)
-            })
+        if report_ids:
+            reports = User.objects.filter(id__in=report_ids, is_active=True)
+            for report in reports:
+                report_score = self.aggregate_for_user(str(report.id), year, month)
+                name = report.get_full_name() if hasattr(report, 'get_full_name') and report.get_full_name() else f"{report.first_name} {report.last_name}".strip() or report.username or str(report.id)
+                reports_data.append({
+                    'user_id': str(report.id),
+                    'name': name,
+                    'score': float(report_score),
+                    'traffic_light': self._get_traffic_light(report_score)
+                })
+
+        avg_score = float(sum(r['score'] for r in reports_data) / len(reports_data)) if reports_data else float(user_score)
+
         return {
             'user_id': user_id,
-            'user_score': user_score,
+            'user_score': float(user_score),
             'user_traffic_light': self._get_traffic_light(user_score),
             'direct_reports': reports_data,
-            'team_count': len(reports_data),  # Keeping as team_count for compatibility
-            'avg_team_score': sum(r['score'] for r in reports_data) / len(reports_data) if reports_data else 0
+            'team_count': len(reports_data),
+            'avg_team_score': round(avg_score, 1)
         }
     
     def get_full_org_hierarchy(self, tenant_id: str, year: int, month: int) -> Dict:

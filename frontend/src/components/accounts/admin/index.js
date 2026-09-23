@@ -5,3 +5,4 @@ export { default as AdminPermissionManager } from './AdminPermissionManager';
 export { default as AdminTenantManager } from './AdminTenantManager';
 export { default as AdminSystemSettings } from './AdminSystemSettings';
 export { default as AdminMFAManager } from './AdminMFAManager';
+export { UserPermissionModal } from './UserPermissionModal';

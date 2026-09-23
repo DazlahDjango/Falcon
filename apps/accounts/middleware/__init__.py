@@ -5,9 +5,10 @@ from django.utils.deprecation import MiddlewareMixin
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import resolve
-from .models import UserSession, AuditLog
-from .services import JWTServices, AuditService
-from .constants import CacheKeys
+from apps.accounts.models import UserSession, AuditLog
+from apps.accounts.services import JWTServices, AuditService
+from apps.accounts.constants import CacheKeys
+from .rbac_middleware import TenantRBACMiddleware
 
 logger = logging.getLogger(__name__)
 jwt_service = JWTServices()
@@ -30,8 +31,6 @@ class SessionMiddleware(MiddlewareMixin):
                 UserSession.objects.filter(id=session_id).update(last_activity=timezone.now())
                 cache.set(cache_key, True, timeout=300)
         elif hasattr(request, 'user') and request.user.is_authenticated:
-            # ✅ FIXED: Indentation was incorrect - this block should run when no session_id found
-            # Create session for authenticated users without one
             try:
                 session = UserSession.objects.create(
                     user=request.user,
@@ -95,7 +94,6 @@ class AuditMiddleware(MiddlewareMixin):
         if hasattr(request, 'user') and request.user and request.user.is_authenticated:
             self._log_request(request, response)
         elif hasattr(request, 'current_tenant_id'):
-            # Log even for unauthenticated requests that have tenant context
             self._log_anonymous_request(request, response)
         
         return response
@@ -105,14 +103,13 @@ class AuditMiddleware(MiddlewareMixin):
             '/api/v1/health',
             '/static/',
             '/media/',
-            '/admin/jsi18n/',  # Skip admin JS
+            '/admin/jsi18n/',
             '/ws/',
         ]
         return any(path.startswith(p) for p in skip_paths)
     
     def _log_request(self, request, response):
         try:
-            # Skip auditing successful GET requests to eliminate DB overhead
             if request.method == 'GET' and response.status_code < 400:
                 return
 
@@ -135,10 +132,8 @@ class AuditMiddleware(MiddlewareMixin):
             logger.error(f"[AuditMiddleware] Audit logging failed: {str(e)}")
     
     def _log_anonymous_request(self, request, response):
-        """Log anonymous requests with tenant context."""
         try:
             duration = (timezone.now() - request._request_start_time).total_seconds()
-            # Don't log anonymous requests too heavily - just log warnings for 4xx/5xx
             if response.status_code >= 400:
                 logger.warning(
                     f"[Audit] Anonymous {request.method} {request.path} "
@@ -167,18 +162,15 @@ class SecurityMiddleware(MiddlewareMixin):
         return None
     
     def process_response(self, request, response):
-        # Security headers
         response['X-Content-Type-Options'] = 'nosniff'
         response['X-Frame-Options'] = 'DENY'
         response['X-XSS-Protection'] = '1; mode=block'
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Content-Security-Policy'] = "default-src 'self'"  # ✅ Added CSP
+        response['Content-Security-Policy'] = "default-src 'self'"
         
-        # HSTS for HTTPS only
         if request.is_secure():
             response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
         
-        # Prevent MIME type sniffing
         response['X-Content-Type-Options'] = 'nosniff'
         
         return response
@@ -196,7 +188,6 @@ class SecurityMiddleware(MiddlewareMixin):
     def _is_rate_limited(self, request):
         ip = self._get_client_ip(request)
         
-        # Rate limit by IP
         cache_key = f'rate_limit:ip:{ip}'
         ip_attempts = cache.get(cache_key, 0)
         
@@ -206,11 +197,10 @@ class SecurityMiddleware(MiddlewareMixin):
         
         cache.set(cache_key, ip_attempts + 1, timeout=60)
         
-        # Also rate limit by user if authenticated
         if hasattr(request, 'user') and request.user and request.user.is_authenticated:
             user_cache_key = f'rate_limit:user:{request.user.id}'
             user_attempts = cache.get(user_cache_key, 0)
-            if user_attempts >= 20:  # Higher limit for authenticated users
+            if user_attempts >= 20:
                 return True
             cache.set(user_cache_key, user_attempts + 1, timeout=60)
         
@@ -221,3 +211,11 @@ class SecurityMiddleware(MiddlewareMixin):
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR', '')
+
+
+__all__ = [
+    'SessionMiddleware',
+    'AuditMiddleware',
+    'SecurityMiddleware',
+    'TenantRBACMiddleware',
+]

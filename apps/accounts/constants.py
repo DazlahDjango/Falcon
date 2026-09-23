@@ -335,6 +335,58 @@ SYSTEM_ROLES_DATA = [
 
 
 # ============================================================================
+# Permission Categories
+# ============================================================================
+
+class PermissionCategories:
+    """Permission category constants."""
+    KPI = 'kpi'
+    REVIEW = 'review'
+    USER = 'user'
+    TENANT = 'tenant'
+    STRUCTURE = 'structure'
+    CONFIG = 'config'
+    BILLING = 'billing'
+    REPORT = 'report'
+    WORKFLOW = 'workflow'
+    ADMIN = 'admin'
+    
+    CHOICES = [
+        (KPI, _('KPI Management')),
+        (REVIEW, _('Performance Review')),
+        (USER, _('User Management')),
+        (TENANT, _('Tenant Management')),
+        (STRUCTURE, _('Organizational Structure')),
+        (CONFIG, _('System Configuration')),
+        (BILLING, _('Billing & Subscriptions')),
+        (REPORT, _('Reports & Analytics')),
+        (WORKFLOW, _('Workflow')),
+        (ADMIN, _('Administration')),
+    ]
+
+
+# ============================================================================
+# Permission Levels
+# ============================================================================
+
+class PermissionLevels:
+    """Permission level constants."""
+    GLOBAL = 'global'
+    TENANT = 'tenant'
+    DEPARTMENT = 'department'
+    TEAM = 'team'
+    SELF = 'self'
+    
+    CHOICES = [
+        (GLOBAL, _('Global')),
+        (TENANT, _('Tenant')),
+        (DEPARTMENT, _('Department')),
+        (TEAM, _('Team')),
+        (SELF, _('Self')),
+    ]
+
+
+# ============================================================================
 # Predefined Permissions Data
 # ============================================================================
 
@@ -344,43 +396,188 @@ PREDEFINED_PERMISSIONS_DATA = [
     {'codename': 'create_kpi', 'name': _('Create KPI'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
     {'codename': 'edit_kpi', 'name': _('Edit KPI'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
     {'codename': 'delete_kpi', 'name': _('Delete KPI'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
+    {'codename': 'create_target', 'name': _('Create Target'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TEAM},
+    {'codename': 'update_target', 'name': _('Update Target'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TEAM},
+    {'codename': 'create_actual', 'name': _('Create Actual Entry'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.SELF},
+    {'codename': 'update_actual', 'name': _('Update Actual Entry'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.SELF},
     {'codename': 'validate_kpi_entry', 'name': _('Validate KPI Entry'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TEAM},
     {'codename': 'approve_kpi_change', 'name': _('Approve KPI Change'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
     {'codename': 'cascade_targets', 'name': _('Cascade Targets'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
     {'codename': 'phase_targets', 'name': _('Phase Targets'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
+    {'codename': 'trigger_calculations', 'name': _('Trigger Calculations'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
+    {'codename': 'export_kpi_data', 'name': _('Export KPI Data'), 'category': PermissionCategories.KPI, 'level': PermissionLevels.TENANT},
     
-    # Review Permissions
-    {'codename': 'view_review', 'name': _('View Review'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TENANT},
-    {'codename': 'create_review', 'name': _('Create Review'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TEAM},
+    # Review & Appraisal Permissions
+    {'codename': 'view_review', 'name': _('View Reviews'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TENANT},
+    {'codename': 'create_review_cycle', 'name': _('Create Review Cycle'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TENANT},
+    {'codename': 'conduct_review', 'name': _('Conduct Appraisal Review'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TEAM},
     {'codename': 'submit_self_assessment', 'name': _('Submit Self Assessment'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.SELF},
     {'codename': 'approve_review', 'name': _('Approve Review'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TEAM},
+    {'codename': 'manage_calibration', 'name': _('Manage Calibration'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TENANT},
+    {'codename': 'submit_feedback', 'name': _('Submit 360 Feedback'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.SELF},
     {'codename': 'initiate_pip', 'name': _('Initiate PIP'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TEAM},
     {'codename': 'view_pip', 'name': _('View PIP'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TENANT},
+    {'codename': 'manage_pip', 'name': _('Manage PIP Progression'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TEAM},
+    {'codename': 'view_review_analytics', 'name': _('View Review Analytics'), 'category': PermissionCategories.REVIEW, 'level': PermissionLevels.TENANT},
     
-    # User Permissions
-    {'codename': 'view_user', 'name': _('View User'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
+    # User & Access Permissions
+    {'codename': 'view_user', 'name': _('View User Profiles'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
     {'codename': 'create_user', 'name': _('Create User'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
     {'codename': 'edit_user', 'name': _('Edit User'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
     {'codename': 'delete_user', 'name': _('Delete User'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
     {'codename': 'assign_role', 'name': _('Assign Role'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
     {'codename': 'manage_team', 'name': _('Manage Team'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TEAM},
+    {'codename': 'impersonate_user', 'name': _('Impersonate User'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
+    {'codename': 'force_password_reset', 'name': _('Force Password Reset'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
+    {'codename': 'manage_mfa', 'name': _('Manage MFA Policies'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
+    {'codename': 'view_audit_logs', 'name': _('View Audit Logs'), 'category': PermissionCategories.USER, 'level': PermissionLevels.TENANT},
     
-    # Dashboard Permissions
-    {'codename': 'view_executive_dashboard', 'name': _('View Executive Dashboard'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
-    {'codename': 'view_team_dashboard', 'name': _('View Team Dashboard'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TEAM},
+    # Organizational Structure Permissions
+    {'codename': 'view_organization', 'name': _('View Organization Details'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    {'codename': 'manage_organization', 'name': _('Manage Organization Settings'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    {'codename': 'view_org_chart', 'name': _('View Org Chart'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    {'codename': 'manage_department', 'name': _('Manage Departments'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    {'codename': 'manage_unit', 'name': _('Manage Units'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    {'codename': 'manage_positions', 'name': _('Manage Positions & Grades'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    {'codename': 'manage_reporting_lines', 'name': _('Manage Reporting Lines'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    {'codename': 'export_org_chart', 'name': _('Export Org Chart'), 'category': PermissionCategories.STRUCTURE, 'level': PermissionLevels.TENANT},
+    
+    # Dashboards & Reports Permissions
+    {'codename': 'view_executive_dashboard', 'name': _('View Executive Strategic Dashboard'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
+    {'codename': 'view_team_dashboard', 'name': _('View Team Operations Dashboard'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TEAM},
     {'codename': 'view_individual_dashboard', 'name': _('View Individual Dashboard'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.SELF},
-    {'codename': 'export_report', 'name': _('Export Report'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
+    {'codename': 'view_champion_dashboard', 'name': _('View Champion Performance Dashboard'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
+    {'codename': 'view_admin_overview', 'name': _('View Admin Overview Dashboard'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
+    {'codename': 'create_report', 'name': _('Create Report Template'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
+    {'codename': 'view_reports', 'name': _('View Analytics Reports'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
+    {'codename': 'export_report', 'name': _('Export Report Documents'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
+    {'codename': 'share_reports', 'name': _('Share Reports'), 'category': PermissionCategories.REPORT, 'level': PermissionLevels.TENANT},
     
-    # Tenant Permissions
-    {'codename': 'manage_tenant', 'name': _('Manage Tenant'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.GLOBAL},
-    {'codename': 'view_billing', 'name': _('View Billing'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.TENANT},
-    {'codename': 'configure_branding', 'name': _('Configure Branding'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.TENANT},
-    {'codename': 'manage_subscription', 'name': _('Manage Subscription'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.TENANT},
+    # Tenant Management Permissions (System / Super Admin Only)
+    {'codename': 'view_tenant', 'name': _('View Tenants'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'create_tenant', 'name': _('Create Tenant'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_tenant', 'name': _('Manage Tenant Settings'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'delete_tenant', 'name': _('Delete Tenant'), 'category': PermissionCategories.TENANT, 'level': PermissionLevels.GLOBAL},
+
+    # Configuration & System Management Permissions (System / Super Admin Only)
+    {'codename': 'view_configs', 'name': _('View System Configurations'), 'category': PermissionCategories.CONFIG, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_configs', 'name': _('Manage System Configurations'), 'category': PermissionCategories.CONFIG, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_backups', 'name': _('Manage Database Backups'), 'category': PermissionCategories.CONFIG, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_maintenance', 'name': _('Manage Maintenance Mode'), 'category': PermissionCategories.CONFIG, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_quotas', 'name': _('Manage Resource Quotas'), 'category': PermissionCategories.CONFIG, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_dr', 'name': _('Manage Disaster Recovery'), 'category': PermissionCategories.CONFIG, 'level': PermissionLevels.GLOBAL},
+    
+    # Billing & Subscription Permissions (System / Super Admin Only)
+    {'codename': 'view_billing', 'name': _('View Billing & Invoices'), 'category': PermissionCategories.BILLING, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_subscription', 'name': _('Manage Plan Subscription'), 'category': PermissionCategories.BILLING, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'manage_payment_methods', 'name': _('Manage Payment Methods'), 'category': PermissionCategories.BILLING, 'level': PermissionLevels.GLOBAL},
+    {'codename': 'process_payments', 'name': _('Process Billing Payments'), 'category': PermissionCategories.BILLING, 'level': PermissionLevels.GLOBAL},
     
     # Workflow Permissions
-    {'codename': 'approve_workflow', 'name': _('Approve Workflow'), 'category': PermissionCategories.WORKFLOW, 'level': PermissionLevels.TEAM},
-    {'codename': 'escalate_workflow', 'name': _('Escalate Workflow'), 'category': PermissionCategories.WORKFLOW, 'level': PermissionLevels.TENANT},
+    {'codename': 'approve_workflow', 'name': _('Approve Workflow Requests'), 'category': PermissionCategories.WORKFLOW, 'level': PermissionLevels.TEAM},
+    {'codename': 'escalate_workflow', 'name': _('Escalate Workflow Requests'), 'category': PermissionCategories.WORKFLOW, 'level': PermissionLevels.TENANT},
 ]
+
+# Categories restricted exclusively to Super Admin
+SYSTEM_RESTRICTED_CATEGORIES = [
+    PermissionCategories.CONFIG,
+    PermissionCategories.BILLING,
+    PermissionCategories.TENANT,
+]
+
+# Categories assignable by Tenant / Client Admins to tenant users
+TENANT_ASSIGNABLE_CATEGORIES = [
+    PermissionCategories.KPI,
+    PermissionCategories.REVIEW,
+    PermissionCategories.USER,
+    PermissionCategories.STRUCTURE,
+    PermissionCategories.REPORT,
+    PermissionCategories.WORKFLOW,
+]
+
+
+# ============================================================================
+# Role Default Permissions (Tenant Level)
+# ============================================================================
+
+ROLE_DEFAULT_PERMISSIONS = {
+    # 1. Client Admin (Full Tenant Business Apps Access)
+    UserRoles.CLIENT_ADMIN: [
+        'view_kpi', 'create_kpi', 'edit_kpi', 'delete_kpi', 'create_target', 'update_target',
+        'create_actual', 'update_actual', 'validate_kpi_entry', 'approve_kpi_change', 'cascade_targets',
+        'phase_targets', 'trigger_calculations', 'export_kpi_data',
+        'view_review', 'create_review_cycle', 'conduct_review', 'submit_self_assessment', 'approve_review',
+        'manage_calibration', 'submit_feedback', 'initiate_pip', 'view_pip', 'manage_pip', 'view_review_analytics',
+        'view_user', 'create_user', 'edit_user', 'delete_user', 'assign_role', 'manage_team',
+        'impersonate_user', 'force_password_reset', 'manage_mfa', 'view_audit_logs',
+        'view_organization', 'manage_organization', 'view_org_chart', 'manage_department', 'manage_unit',
+        'manage_positions', 'manage_reporting_lines', 'export_org_chart',
+        'view_executive_dashboard', 'view_team_dashboard', 'view_individual_dashboard',
+        'view_champion_dashboard', 'view_admin_overview', 'create_report', 'view_reports', 'export_report', 'share_reports',
+        'approve_workflow', 'escalate_workflow',
+    ],
+
+    # 2. HR Admin (Reviews, Calibrations, PIPs, Structure & People Management)
+    UserRoles.HR_ADMIN: [
+        'view_kpi', 'export_kpi_data',
+        'view_review', 'create_review_cycle', 'conduct_review', 'submit_self_assessment', 'approve_review',
+        'manage_calibration', 'submit_feedback', 'initiate_pip', 'view_pip', 'manage_pip', 'view_review_analytics',
+        'view_user', 'create_user', 'edit_user', 'assign_role', 'manage_team', 'force_password_reset',
+        'view_organization', 'view_org_chart', 'manage_department', 'manage_unit', 'manage_positions',
+        'manage_reporting_lines', 'export_org_chart',
+        'view_executive_dashboard', 'view_team_dashboard', 'view_individual_dashboard', 'view_reports', 'export_report',
+        'approve_workflow',
+    ],
+
+    # 3. Executive (Strategic Dashboards, Approvals, Company View)
+    UserRoles.EXECUTIVE: [
+        'view_kpi', 'approve_kpi_change', 'cascade_targets', 'export_kpi_data',
+        'view_review', 'approve_review', 'view_pip', 'view_review_analytics',
+        'view_user', 'manage_team',
+        'view_organization', 'view_org_chart', 'export_org_chart',
+        'view_executive_dashboard', 'view_team_dashboard', 'view_individual_dashboard',
+        'view_reports', 'export_report', 'share_reports',
+        'approve_workflow', 'escalate_workflow',
+    ],
+
+    # 4. Supervisor (Team Operations, Appraisals, Validations)
+    UserRoles.SUPERVISOR: [
+        'view_kpi', 'create_target', 'update_target', 'create_actual', 'update_actual',
+        'validate_kpi_entry', 'cascade_targets', 'export_kpi_data',
+        'view_review', 'conduct_review', 'submit_self_assessment', 'approve_review',
+        'submit_feedback', 'initiate_pip', 'manage_pip',
+        'view_user', 'manage_team',
+        'view_org_chart',
+        'view_team_dashboard', 'view_individual_dashboard', 'view_reports', 'export_report',
+        'approve_workflow',
+    ],
+
+    # 5. Staff (Individual Data Entry, Self-Appraisal)
+    UserRoles.STAFF: [
+        'view_kpi', 'create_actual', 'update_actual',
+        'submit_self_assessment', 'submit_feedback',
+        'view_org_chart',
+        'view_individual_dashboard',
+    ],
+
+    # 6. Read Only (Viewing Only)
+    UserRoles.READ_ONLY: [
+        'view_kpi', 'view_review', 'view_org_chart',
+        'view_individual_dashboard', 'view_reports',
+    ],
+
+    # 7. Dashboard Champion
+    'dashboard_champion': [
+        'view_kpi', 'export_kpi_data', 'view_champion_dashboard', 'view_team_dashboard',
+        'view_individual_dashboard', 'view_reports', 'export_report', 'share_reports',
+        'trigger_calculations', 'phase_targets', 'cascade_targets',
+    ],
+    'champion': [
+        'view_kpi', 'export_kpi_data', 'view_champion_dashboard', 'view_team_dashboard',
+        'view_individual_dashboard', 'view_reports', 'export_report', 'share_reports',
+        'trigger_calculations', 'phase_targets', 'cascade_targets',
+    ],
+}
 
 
 # ============================================================================

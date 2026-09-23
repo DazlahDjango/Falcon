@@ -20,10 +20,7 @@ export const UserCard = ({ user, onClick }) => {
       <div className="user-card-header">
         <UserAvatar user={user} size="lg" />
         <div className="user-card-status">
-          <UserStatusBadge
-            isActive={user.is_active !== false}
-            isVerified={user.is_verified === true}
-          />
+          <UserStatusBadge user={user} variant="composite" />
         </div>
       </div>
 

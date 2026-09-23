@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class UserViewSet(BaseModelViewset):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_deleted=False)
     filterset_class = UserFilter
     search_fields = ['email', 'username', 'first_name', 'last_name', 'employee_id']
     ordering_fields = ['email', 'created_at', 'last_login', 'first_name', 'last_name', 'role']
@@ -58,6 +58,13 @@ class UserViewSet(BaseModelViewset):
             self.permission_classes = [IsAuthenticated, CanAccessUser]
         elif self.action == 'assign_role':
             self.permission_classes = [IsAuthenticated, CanAssignRole]
+        elif self.action == 'permissions':
+            if self.request.method == 'GET':
+                self.permission_classes = [IsAuthenticated, CanAccessUser]
+            else:
+                self.permission_classes = [IsAuthenticated, CanManageUser]
+        elif self.action == 'role_defaults':
+            self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
@@ -106,6 +113,58 @@ class UserViewSet(BaseModelViewset):
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': message}, status=status.HTTP_200_OK)
     
+    @action(detail=True, methods=['get', 'post'], url_path='permissions')
+    def permissions(self, request, pk=None):
+        user = self.get_object()
+        rbac_service = RBACService()
+        if request.method == 'GET':
+            details = rbac_service.get_user_permission_details(user, viewer=request.user)
+            return Response(details, status=status.HTTP_200_OK)
+        elif request.method == 'POST':
+            granted = request.data.get('granted_overrides') if 'granted_overrides' in request.data else request.data.get('granted', [])
+            revoked = request.data.get('revoked_overrides') if 'revoked_overrides' in request.data else request.data.get('revoked', [])
+            if not isinstance(granted, list) or not isinstance(revoked, list):
+                return Response({'error': 'granted and revoked must be lists of permission codenames.'}, status=status.HTTP_400_BAD_REQUEST)
+            success, message = rbac_service.assign_user_permission_override(
+                user=user,
+                granted=granted,
+                revoked=revoked,
+                assigned_by=request.user,
+                request=request
+            )
+            if not success:
+                return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
+            details = rbac_service.get_user_permission_details(user, viewer=request.user)
+            return Response({
+                'message': message,
+                'details': details,
+                'data': {
+                    'granted_overrides': details['granted'],
+                    'revoked_overrides': details['revoked'],
+                    'effective_permissions': details['effective'],
+                    'effective_permissions_count': len(details['effective']),
+                    'role_defaults': details['role_defaults']
+                }
+            }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='role-defaults')
+    def role_defaults(self, request):
+        role_code = request.query_params.get('role')
+        rbac_service = RBACService()
+        from apps.accounts.constants import UserRoles
+        available_perms = rbac_service.get_assignable_permissions(request.user)
+        if role_code:
+            defaults = rbac_service.get_role_default_permissions(role_code)
+            return Response({'role': role_code, 'permissions': defaults}, status=status.HTTP_200_OK)
+        all_defaults = {}
+        for role, _ in UserRoles.CHOICES:
+            all_defaults[role] = rbac_service.get_role_default_permissions(role)
+        return Response({
+            'roles': all_defaults,
+            'role_defaults': all_defaults,
+            'all_available': available_perms
+        }, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['post'], url_path='activate')
     def activate(self, request, pk=None):
         user = self.get_object()

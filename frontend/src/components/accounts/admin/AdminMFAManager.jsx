@@ -139,7 +139,6 @@ export const AdminMFAManager = () => {
   });
 
   const roleOptions = [
-    { value: 'super_admin', label: 'Super Admin' },
     { value: 'client_admin', label: 'Client Admin' },
     { value: 'executive', label: 'Executive' },
     { value: 'supervisor', label: 'Supervisor' },

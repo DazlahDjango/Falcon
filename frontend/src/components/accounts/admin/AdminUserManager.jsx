@@ -13,12 +13,14 @@ import {
   FiEdit,
   FiTrash2,
   FiMoreVertical,
+  FiKey,
 } from 'react-icons/fi';
 import { useAdmin } from '../../../hooks/accounts/useAdmin';
 import { UserForm } from '../users/UserForm';
 import { UserStatusBadge } from '../users/UserStatusBadge';
 import { UserRoleBadge } from '../users/UserRoleBadge';
 import { UserAvatar } from '../common/UserAvatar';
+import { UserPermissionModal } from './UserPermissionModal';
 
 export const AdminUserManager = () => {
   const {
@@ -51,6 +53,7 @@ export const AdminUserManager = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedOrgId, setSelectedOrgId] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -472,6 +475,9 @@ export const AdminUserManager = () => {
                         <button onClick={() => setSelectedUser(user) || setShowEditModal(true)}>
                           <FiEdit /> Edit
                         </button>
+                        <button onClick={() => { setSelectedUser(user); setShowPermissionModal(true); setActiveMenu(null); }}>
+                          <FiKey /> Permissions & Overrides
+                        </button>
                         {user.is_active !== false ? (
                           <button onClick={() => handleDeactivate(user.id)}>
                             <FiUserX /> Deactivate
@@ -573,6 +579,21 @@ export const AdminUserManager = () => {
           }}
           updateUser={updateUser}
           isLoading={isUpdating}
+        />
+      )}
+
+      {showPermissionModal && selectedUser && (
+        <UserPermissionModal
+          user={selectedUser}
+          onClose={() => {
+            setShowPermissionModal(false);
+            setSelectedUser(null);
+          }}
+          onSuccess={() => {
+            setShowPermissionModal(false);
+            setSelectedUser(null);
+            loadUsers();
+          }}
         />
       )}
 
