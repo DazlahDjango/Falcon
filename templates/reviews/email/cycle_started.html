@@ -1,0 +1,30 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Review Cycle Started - Falcon PMS{% endblock %}
+{% block header %}Review Cycle Started{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ employee.first_name|default:employee.username }},</h2>
+
+<p>The <strong>{{ cycle.name }}</strong> performance appraisal cycle has officially started.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Cycle Timeline & Milestones</h3>
+    <p style="margin: 4px 0;"><strong>Self-Assessment Deadline:</strong> {{ cycle.self_assessment_deadline }}</p>
+    <p style="margin: 4px 0;"><strong>Manager Review Deadline:</strong> {{ cycle.supervisor_review_deadline }}</p>
+    <p style="margin: 4px 0;"><strong>Cycle End Date:</strong> {{ cycle.end_date }}</p>
+</div>
+
+<p>Please log in to the portal to review your goals, KPI metrics, and complete your qualitative self-assessment before the deadline.</p>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/self-assessment/' }}" class="button">Start Self-Assessment</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

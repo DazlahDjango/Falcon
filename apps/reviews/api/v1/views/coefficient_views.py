@@ -18,15 +18,8 @@ class CoefficientViewSet(BaseReviewViewSet):
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
-        tenant = getattr(self.request.user, 'tenant', None)
         tenant_id = getattr(self.request.user, 'tenant_id', None)
-        if not tenant and not tenant_id:
-            from apps.tenant.models import Organization
-            tenant = Organization.objects.first()
-        if tenant:
-            serializer.save(tenant=tenant, created_by=self.request.user)
-        else:
-            serializer.save(tenant_id=tenant_id, created_by=self.request.user)
+        serializer.save(tenant_id=tenant_id, created_by=self.request.user)
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         coeff = self.get_object()

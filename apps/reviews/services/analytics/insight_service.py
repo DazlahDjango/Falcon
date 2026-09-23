@@ -24,7 +24,7 @@ class InsightService(BaseReviewService):
         Generate company-level insights.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
         
         Returns:
             list: Insight objects
@@ -76,7 +76,7 @@ class InsightService(BaseReviewService):
         total_ratings = company_data.get('total_ratings', 1)
         promotion_rate = (promotions / total_ratings) * 100 if total_ratings > 0 else 0
         
-        if promotion_rate < 10:
+        if 0 < promotion_rate < 10:
             insights.append({
                 'type': InsightType.WARNING,
                 'title': 'Low Promotion Rate',
@@ -106,7 +106,7 @@ class InsightService(BaseReviewService):
         Generate department-level insights.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
         
         Returns:
             list: Insight objects
@@ -149,16 +149,17 @@ class InsightService(BaseReviewService):
         Generate skill gap insights from competency data.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
         
         Returns:
             list: Insight objects
         """
         insights = []
+        tid = getattr(tenant, 'id', tenant)
         
         # Get competency ratings
         ratings = CompetencyRating.objects.filter(
-            competency__tenant=tenant,
+            tenant_id=tid,
             raw_score__isnull=False
         ).select_related('competency')
         
@@ -168,7 +169,7 @@ class InsightService(BaseReviewService):
         # Calculate average per competency
         competency_scores = {}
         for rating in ratings:
-            comp_name = rating.competency.name
+            comp_name = rating.competency.name if rating.competency else 'General'
             if comp_name not in competency_scores:
                 competency_scores[comp_name] = []
             competency_scores[comp_name].append(float(rating.raw_score))
@@ -196,7 +197,7 @@ class InsightService(BaseReviewService):
                 'recommendation': 'Provide targeted training in these areas.',
                 'priority': 'high',
                 'created_at': timezone.now().isoformat(),
-                'data': {'weakest': weakest, 'strongest': strongest}
+                'data': {'weakest': dict(weakest), 'strongest': dict(strongest)}
             })
         
         if strongest:
@@ -218,12 +219,13 @@ class InsightService(BaseReviewService):
         Get all insights for a tenant.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
         
         Returns:
             dict: Categorized insights
         """
-        cache_key = f'reviews:analytics:insights:{tenant.id}'
+        tid = getattr(tenant, 'id', tenant)
+        cache_key = f'reviews:analytics:insights:{tid}'
         
         # Try cache
         from django.core.cache import cache

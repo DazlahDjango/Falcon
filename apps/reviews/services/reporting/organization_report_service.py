@@ -22,23 +22,24 @@ class OrganizationReportService(BaseReviewService):
         """
         Get strategic performance summary for the whole organization in a review cycle.
         """
+        tid = getattr(tenant, 'id', tenant)
         try:
-            cycle = ReviewCycle.objects.get(id=cycle_id, tenant=tenant)
+            cycle = ReviewCycle.objects.get(id=cycle_id, tenant_id=tid)
         except ReviewCycle.DoesNotExist:
             return {'error': 'Review cycle not found'}
 
         # 1. Total Employees & Stage Completion (Compliance)
-        total_employees = cycle.get_participating_employees().count()
+        total_employees = cycle.get_participating_employees().count() if hasattr(cycle, 'get_participating_employees') else 0
 
-        self_assessments = SelfAssessment.objects.filter(review_cycle=cycle, tenant=tenant)
+        self_assessments = SelfAssessment.objects.filter(review_cycle=cycle, tenant_id=tid)
         self_completed = self_assessments.filter(status='submitted').count()
         self_completion_rate = round((self_completed / total_employees) * 100, 1) if total_employees > 0 else 0.0
 
-        supervisor_reviews = SupervisorReview.objects.filter(review_cycle=cycle, tenant=tenant)
+        supervisor_reviews = SupervisorReview.objects.filter(review_cycle=cycle, tenant_id=tid)
         sup_completed = supervisor_reviews.filter(status='approved').count()
         sup_completion_rate = round((sup_completed / total_employees) * 100, 1) if total_employees > 0 else 0.0
 
-        final_ratings = FinalRating.objects.filter(review_cycle=cycle, tenant=tenant)
+        final_ratings = FinalRating.objects.filter(review_cycle=cycle, tenant_id=tid)
         locked_ratings = final_ratings.filter(status='locked')
         locked_count = locked_ratings.count()
         overall_completion_rate = round((locked_count / total_employees) * 100, 1) if total_employees > 0 else 0.0
@@ -77,7 +78,7 @@ class OrganizationReportService(BaseReviewService):
         comp_ratings = CompetencyRating.objects.filter(
             supervisor_review__review_cycle=cycle,
             raw_score__isnull=False,
-            tenant=tenant
+            tenant_id=tid
         ).select_related('competency')
         
         strongest_competencies = []
@@ -138,7 +139,7 @@ class OrganizationReportService(BaseReviewService):
 
         # What to Remove/Address: Attrition Risks & Underperformance Remediation
         # Fetch flight risk predictions using PredictiveService
-        high_risk_response = PredictiveService.get_high_risk_employees(tenant)
+        high_risk_response = PredictiveService.get_high_risk_employees(tid)
         high_risk_list = high_risk_response.get('employees', [])
         
         # Cross-reference high-performers with high/critical flight risk
@@ -155,7 +156,7 @@ class OrganizationReportService(BaseReviewService):
                     'factors': r_emp['risk_factors']
                 })
 
-        active_pips_count = PIP.objects.filter(tenant=tenant, status='active').count()
+        active_pips_count = PIP.objects.filter(tenant_id=tid, status='active').count()
 
         what_to_remove = []
         if high_performers_at_risk:

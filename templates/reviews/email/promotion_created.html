@@ -1,0 +1,29 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Promotion Recommendation Created - Falcon PMS{% endblock %}
+{% block header %}Promotion Recommendation{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello HR Admin,</h2>
+
+<p>A promotion recommendation has been submitted for <strong>{{ promotion.employee.get_full_name }}</strong>.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Recommendation Details</h3>
+    <p style="margin: 4px 0;"><strong>Employee:</strong> {{ promotion.employee.get_full_name }}</p>
+    <p style="margin: 4px 0;"><strong>Recommended Role:</strong> {{ promotion.proposed_title|default:promotion.recommended_role }}</p>
+    <p style="margin: 4px 0;"><strong>Proposed Level:</strong> {{ promotion.proposed_level }}</p>
+    <p style="margin: 4px 0;"><strong>Recommended By:</strong> {{ promotion.recommended_by.get_full_name }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/promotions/' }}" class="button">Review Recommendation</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

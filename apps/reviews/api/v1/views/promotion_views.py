@@ -22,11 +22,14 @@ class PromotionRecommendationViewSet(BaseReviewViewSet):
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     def perform_create(self, serializer):
-        serializer.save(tenant_id=self.request.user.tenant_id, recommended_by=self.request.user)
+        tid = getattr(self.request.user, 'tenant_id', None)
+        from apps.tenant.models import Organization
+        tenant_obj = Organization.objects.filter(id=tid).first() if tid else None
+        serializer.save(tenant_id=tid, tenant=tenant_obj, recommended_by=self.request.user)
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         promotion = self.get_object()
-        if promotion.status != 'pending':
+        if promotion.status not in ['pending', 'on_hold']:
             return Response({'error': f'Cannot approve with status: {promotion.status}'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = PromotionApproveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

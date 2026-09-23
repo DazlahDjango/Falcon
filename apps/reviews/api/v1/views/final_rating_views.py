@@ -14,6 +14,56 @@ from apps.reviews.api.v1.permissions.base_permissions import IsAuthenticated, Is
 
 class FinalRatingViewSet(BaseReviewViewSet):
     queryset = FinalRating.objects.all()
+
+    def get_queryset(self):
+        qs = super().get_queryset().select_related('employee', 'review_cycle', 'supervisor_review', 'rating_scale')
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return qs.none()
+
+        params = self.request.query_params
+        scope = params.get('scope')
+        is_team = params.get('is_team') in ['true', 'True', True, 1, '1'] or self.action == 'team'
+        cycle_id = params.get('cycle_id') or params.get('review_cycle')
+
+        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
+            if scope == 'my':
+                qs = qs.filter(employee=user)
+        elif user.role == UserRoles.EXECUTIVE:
+            if scope == 'my':
+                qs = qs.filter(employee=user)
+            elif is_team:
+                direct_reports = getattr(user, 'direct_reports', None)
+                if direct_reports and hasattr(direct_reports, 'all') and direct_reports.all().exists():
+                    qs = qs.filter(employee__in=direct_reports.all())
+                else:
+                    qs = qs.none()
+        elif user.role == UserRoles.SUPERVISOR:
+            if scope == 'my':
+                qs = qs.filter(employee=user)
+            elif is_team:
+                direct_reports = getattr(user, 'direct_reports', None)
+                if direct_reports and hasattr(direct_reports, 'all') and direct_reports.all().exists():
+                    qs = qs.filter(employee__in=direct_reports.all())
+                else:
+                    qs = qs.none()
+            else:
+                direct_reports = getattr(user, 'direct_reports', None)
+                if direct_reports and hasattr(direct_reports, 'all') and direct_reports.all().exists():
+                    qs = qs.filter(models.Q(employee=user) | models.Q(employee__in=direct_reports.all()))
+                else:
+                    qs = qs.filter(employee=user)
+        else:
+            qs = qs.filter(employee=user)
+
+        if cycle_id:
+            qs = qs.filter(review_cycle_id=cycle_id)
+        status_param = params.get('status')
+        if status_param and status_param != 'all':
+            qs = qs.filter(status=status_param)
+
+        return qs
+
     def get_serializer_class(self):
         if self.action == 'list':
             return FinalRatingListSerializer
@@ -21,9 +71,9 @@ class FinalRatingViewSet(BaseReviewViewSet):
             return FinalRatingDetailSerializer
         return FinalRatingSerializer
     def get_permissions(self):
-        if self.action in ['approve', 'lock', 'calibrate', 'recalibrate', 'force_lock']:
+        if self.action in ['approve', 'lock', 'calibrate', 'recalibrate', 'force_lock', 'force_lock_hyphen']:
             self.permission_classes = [IsAdminOnly]
-        elif self.action == 'generate_pip':
+        elif self.action in ['generate_pip', 'generate_pip_hyphen']:
             self.permission_classes = [IsSupervisorOrAdmin]
         else:
             self.permission_classes = [IsAuthenticated]
@@ -56,6 +106,10 @@ class FinalRatingViewSet(BaseReviewViewSet):
         if rating.promotion_recommended:
             PromotionService.create_from_final_rating(rating.id)
         return Response(self.get_serializer(rating).data)
+    @action(detail=True, methods=['post'], url_path='force-lock')
+    def force_lock_hyphen(self, request, pk=None):
+        return self.force_lock(request, pk)
+
     @action(detail=True, methods=['post'])
     def force_lock(self, request, pk=None):
         rating = self.get_object()
@@ -91,6 +145,10 @@ class FinalRatingViewSet(BaseReviewViewSet):
         rating.status = 'pending'
         rating.save()
         return Response(self.get_serializer(rating).data)
+    @action(detail=True, methods=['post'], url_path='generate-pip')
+    def generate_pip_hyphen(self, request, pk=None):
+        return self.generate_pip(request, pk)
+
     @action(detail=True, methods=['post'])
     def generate_pip(self, request, pk=None):
         rating = self.get_object()
@@ -101,6 +159,10 @@ class FinalRatingViewSet(BaseReviewViewSet):
             return Response({'error': 'PIP could not be generated'}, status=status.HTTP_400_BAD_REQUEST)
         from apps.reviews.api.v1.serializers import PIPSerializer
         return Response(PIPSerializer(pip).data, status=status.HTTP_201_CREATED)
+    @action(detail=True, methods=['post'], url_path='generate-promotion')
+    def generate_promotion_hyphen(self, request, pk=None):
+        return self.generate_promotion(request, pk)
+
     @action(detail=True, methods=['post'])
     def generate_promotion(self, request, pk=None):
         rating = self.get_object()
@@ -111,9 +173,16 @@ class FinalRatingViewSet(BaseReviewViewSet):
         return Response(PromotionRecommendationSerializer(promotion).data, status=status.HTTP_201_CREATED)
     @action(detail=False, methods=['get'])
     def my(self, request):
-        cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status__in=['completed', 'archived']).order_by('-end_date').first()
-        if not cycle:
-            cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status='submitted').order_by('-end_date').first()
+        cycle_id = request.query_params.get('cycle_id')
+        if cycle_id:
+            try:
+                cycle = ReviewCycle.objects.get(id=cycle_id)
+            except ReviewCycle.DoesNotExist:
+                cycle = None
+        else:
+            cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status__in=['completed', 'archived', 'submitted', 'active']).order_by('-end_date').first()
+            if not cycle:
+                cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id).order_by('-end_date').first()
         if not cycle:
             return Response({'message': 'No review cycle found'}, status=status.HTTP_200_OK)
         rating = self.get_queryset().filter(review_cycle=cycle, employee=request.user).first()

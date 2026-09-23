@@ -136,6 +136,12 @@ class ScoreAggregator:
     def aggregate_user(self, user_id: str, year: int, month: int, force: bool = False) -> Decimal:
         return self.aggregator.aggregate_for_user(user_id, year, month, force)
 
+    def aggregate_teams(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
+        return self.aggregator.aggregate_for_units(tenant_id, year, month, force)
+
+    def aggregate_departments(self, tenant_id: str, year: int, month: int, force: bool = False) -> Dict:
+        return self.aggregator.aggregate_for_departments(tenant_id, year, month, force)
+
     def aggregate_team(self, team_id: str, year: int, month: int, force: bool = False) -> Decimal:
         from apps.structure.models import Unit, Employment
 

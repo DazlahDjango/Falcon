@@ -5,6 +5,7 @@ MODELS ONLY - No business logic
 """
 
 from django.db import models
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -34,6 +35,8 @@ class PromotionRecommendation(ReviewBaseModel):
     tenant = models.ForeignKey(
         'tenant.Organization',
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name='promotion_recommendations'
     )
     
@@ -52,6 +55,8 @@ class PromotionRecommendation(ReviewBaseModel):
     final_rating = models.ForeignKey(
         'reviews.FinalRating',
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name='promotion_recommendations'
     )
     
@@ -143,18 +148,19 @@ class PromotionRecommendation(ReviewBaseModel):
         ]
     
     def __str__(self):
-        return f"Promotion: {self.employee.email} → {self.recommended_role}"
-    
+        return f"Promotion: {self.employee.email} -> {self.recommended_role}"
+
     def clean(self):
         """Basic validation"""
         super().clean()
         
-        if self.target_promotion_date and self.target_promotion_date < self.recommended_date:
+        rec_date = self.recommended_date or timezone.now().date()
+        if self.target_promotion_date and self.target_promotion_date < rec_date:
             raise ValidationError({
                 'target_promotion_date': 'Target date must be after recommendation date'
             })
         
-        if self.actual_promotion_date and self.actual_promotion_date < self.recommended_date:
+        if self.actual_promotion_date and self.actual_promotion_date < rec_date:
             raise ValidationError({
                 'actual_promotion_date': 'Actual date must be after recommendation date'
             })

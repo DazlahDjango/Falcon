@@ -41,54 +41,50 @@ class FinalRatingService extends BaseReviewsService {
   }
 
   async getMy() {
-    const response = await this.apiClient.get('/final-ratings/my/');
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('my/')));
+    return this.unwrap(response);
   }
 
   async getTeam() {
-    const response = await this.apiClient.get('/final-ratings/team/');
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('team/')));
+    return this.unwrap(response);
   }
 
   async getDistribution(cycleId) {
-    const response = await this.apiClient.get('/final-ratings/distribution/', {
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('distribution/'), {
       params: { cycle_id: cycleId },
-    });
-    return response.data;
+    }));
+    return this.unwrap(response);
   }
 
   async getStats(cycleId) {
-    const response = await this.apiClient.get('/final-ratings/stats/', {
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('stats/'), {
       params: { cycle_id: cycleId },
-    });
-    return response.data;
+    }));
+    return this.unwrap(response);
   }
 
   async exportRatings(cycleId, format = 'csv', includeDetails = false) {
-    const response = await this.apiClient.post('/final-ratings/export/', {
+    const response = await this.withRetry(() => this.apiClient.post(this.getEndpoint('export/'), {
       cycle_id: cycleId,
       format,
       include_details: includeDetails,
-    });
-    return response.data;
+    }));
+    return this.unwrap(response);
   }
 
   async getForCycle(cycleId) {
-    const response = await this.apiClient.get(`/cycles/${cycleId}/final-ratings/`);
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(`for-cycle/${cycleId}/`)));
+    return this.unwrap(response);
   }
 
   async getCycleRating(cycleId, ratingId) {
-    const response = await this.apiClient.get(`/cycles/${cycleId}/final-ratings/${ratingId}/`);
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint(`${ratingId}/`)));
+    return this.unwrap(response);
   }
 
   async approveCycleRating(cycleId, ratingId, notes = '') {
-    const response = await this.apiClient.post(`/cycles/${cycleId}/final-ratings/${ratingId}/approve/`, {
-      approve: true,
-      notes,
-    });
-    return response.data;
+    return this.action(ratingId, 'approve', { approve: true, notes });
   }
 }
 

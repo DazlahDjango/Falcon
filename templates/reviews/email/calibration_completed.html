@@ -1,0 +1,27 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Calibration Session Completed - Falcon PMS{% endblock %}
+{% block header %}Calibration Session Concluded{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello Committee Member,</h2>
+
+<p>The calibration session <strong>{{ session.name }}</strong> has concluded and rating adjustments have been saved.</p>
+
+<div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #047857;">Session Status</h3>
+    <p style="margin: 4px 0;"><strong>Session:</strong> {{ session.name }}</p>
+    <p style="margin: 4px 0;"><strong>Status:</strong> Completed & Calibrated</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/calibration/' }}" class="button">View Calibration Summary</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

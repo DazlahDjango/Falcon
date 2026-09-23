@@ -118,11 +118,14 @@ const TemplateCard = ({ template }) => {
 
       {template.included_sections && template.included_sections.length > 0 && (
         <div className="template-card-sections">
-          {template.included_sections.slice(0, 3).map((section, index) => (
-            <span key={index} className="template-card-section">
-              {section}
-            </span>
-          ))}
+          {template.included_sections.slice(0, 3).map((section, index) => {
+            const secName = typeof section === 'object' && section !== null ? (section.name || section.value || '') : String(section);
+            return (
+              <span key={index} className="template-card-section">
+                {secName}
+              </span>
+            );
+          })}
           {template.included_sections.length > 3 && (
             <span className="template-card-section-more">
               +{template.included_sections.length - 3}

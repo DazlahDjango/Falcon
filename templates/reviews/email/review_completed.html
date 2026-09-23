@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Review Completed - Falcon PMS{% endblock %}
+{% block header %}Manager Evaluation Completed{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ review.employee.first_name|default:review.employee.username }},</h2>
+
+<p>Your manager has completed your performance appraisal evaluation for <strong>{{ review.review_cycle.name }}</strong>.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #10b981; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #047857;">Review Status</h3>
+    <p style="margin: 4px 0;"><strong>Cycle:</strong> {{ review.review_cycle.name }}</p>
+    <p style="margin: 4px 0;"><strong>Evaluated By:</strong> {{ review.supervisor.get_full_name }}</p>
+    <p style="margin: 4px 0;"><strong>Status:</strong> {{ review.status|title }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/summary/' }}" class="button">View Review Summary</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

@@ -116,7 +116,8 @@ class CanViewPredictions(BasePermission):
     Allow access to predictions (flight risk) for:
     - Super Admin
     - Client Admin
-    - HR / HR Admin only (sensitive data)
+    - Executive
+    - HR / HR Admin
     """
     
     def has_permission(self, request, view):
@@ -126,6 +127,7 @@ class CanViewPredictions(BasePermission):
         allowed_roles = [
             UserRoles.SUPER_ADMIN,
             UserRoles.CLIENT_ADMIN,
+            UserRoles.EXECUTIVE,
             UserRoles.HR_ADMIN,
             'admin', 'hr', 'hr_admin'
         ]

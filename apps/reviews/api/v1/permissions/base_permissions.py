@@ -37,13 +37,13 @@ class IsAdminOrManager(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.MANAGER]
+        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN, UserRoles.SUPERVISOR]
 
 class IsAdminOnly(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]
+        return request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN, UserRoles.EXECUTIVE]
 
 class IsSupervisorOrAdmin(BasePermission):
     def has_permission(self, request, view):
@@ -51,5 +51,17 @@ class IsSupervisorOrAdmin(BasePermission):
             return False
         return (
             request.user.is_superuser or
-            request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN, UserRoles.EXECUTIVE, UserRoles.SUPERVISOR, UserRoles.MANAGER]
+            request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN, UserRoles.EXECUTIVE, UserRoles.SUPERVISOR]
         )
+
+class IsAuthorOrAdmin(BasePermission):
+    message = _('You must be the author or an administrator')
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+    def has_object_permission(self, request, view, obj):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
+            return True
+        author_id = getattr(obj, 'author_id', None) or getattr(obj, 'created_by_id', None)
+        return author_id and str(author_id) == str(request.user.id)

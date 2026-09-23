@@ -425,6 +425,24 @@ class NotificationService(BaseReviewService):
         )
 
     @staticmethod
+    def notify_feedback_requested(feedback_request):
+        """
+        Notify reviewer that 360-degree feedback has been requested.
+        """
+        try:
+            NotificationService._send_notification(
+                user=feedback_request.reviewer,
+                notification_type='feedback_requested',
+                title="360° Feedback Requested",
+                message=f"You have been requested to provide 360-degree feedback for {feedback_request.subject.get_full_name()} for {feedback_request.review_cycle.name}.",
+                link=f"/reviews/feedback/{feedback_request.id}/",
+                email_template='reviews/email/feedback_requested.html',
+                email_context={'feedback_request': feedback_request}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send feedback requested notification: {e}")
+
+    @staticmethod
     def notify_feedback_reminder(feedback_request):
         """
         Notify reviewer that a 360 feedback request is awaiting their input.

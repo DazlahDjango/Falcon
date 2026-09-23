@@ -24,6 +24,7 @@ class CalibrationReportService(BaseReviewService):
                 before_scores.append(float(first_adjustment.before_score))
                 after_scores.append(float(first_adjustment.after_score))
         avg_before = sum(before_scores) / len(before_scores) if before_scores else 0
+        avg_after = sum(after_scores) / len(after_scores) if after_scores else 0
         inc_count = sum(1 for adj in adjustments if adj.after_score > adj.before_score)
         dec_count = sum(1 for adj in adjustments if adj.after_score < adj.before_score)
         no_change_count = sum(1 for adj in adjustments if adj.after_score == adj.before_score)

@@ -1,0 +1,30 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}360 Feedback Request Reminder - Falcon PMS{% endblock %}
+{% block header %}Pending 360&deg; Feedback Request{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ feedback_request.reviewer.first_name|default:feedback_request.reviewer.username }},</h2>
+
+<p>You have a pending 360-degree peer feedback request for <strong>{{ feedback_request.subject.get_full_name }}</strong>.</p>
+
+<div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #b45309;">Feedback Request Details</h3>
+    <p style="margin: 4px 0;"><strong>Colleague:</strong> {{ feedback_request.subject.get_full_name }} ({{ feedback_request.subject.email }})</p>
+    <p style="margin: 4px 0;"><strong>Relationship:</strong> {{ feedback_request.relationship|title }}</p>
+    <p style="margin: 4px 0;"><strong>Due Date:</strong> {{ feedback_request.due_date|default:"Upcoming" }}</p>
+</div>
+
+<p>Your honest, constructive insights are crucial in supporting your colleague's professional growth and objective review calibration.</p>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/feedback/' }}" class="button">Provide 360 Feedback</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

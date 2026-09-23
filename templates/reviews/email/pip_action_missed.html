@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}PIP Action Missed Deadline - Falcon PMS{% endblock %}
+{% block header %}PIP Action Item Overdue{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ action.pip.owner.first_name|default:action.pip.owner.username }},</h2>
+
+<p>A developmental action item under the Performance Improvement Plan for <strong>{{ action.pip.employee.get_full_name }}</strong> has passed its due date without completion.</p>
+
+<div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #991b1b;">Overdue Action Item</h3>
+    <p style="margin: 4px 0;"><strong>Action:</strong> {{ action.title }}</p>
+    <p style="margin: 4px 0;"><strong>Due Date:</strong> {{ action.due_date }}</p>
+    <p style="margin: 4px 0;"><strong>Current Status:</strong> {{ action.status|title }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/pip/' }}" class="button">Update PIP Action</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

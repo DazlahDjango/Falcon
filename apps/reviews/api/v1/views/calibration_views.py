@@ -132,7 +132,7 @@ class CalibrationSessionViewSet(BaseReviewViewSet):
                 return Response({'cycle_id': None, 'cycle_name': None, 'outliers': [], 'count': 0}, status=status.HTTP_200_OK)
         outliers = OutlierDetector.find_outliers(cycle)
         return Response({'cycle_id': str(cycle.id), 'cycle_name': cycle.name, 'outliers': outliers, 'count': len(outliers)})
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='calibration-recommendations')
     def calibration_recommendations(self, request):
         cycle_id = request.query_params.get('cycle_id')
         if cycle_id:
@@ -146,6 +146,10 @@ class CalibrationSessionViewSet(BaseReviewViewSet):
                 return Response({'cycle_id': None, 'cycle_name': None, 'recommendations': []}, status=status.HTTP_200_OK)
         recommendations = OutlierDetector.get_calibration_recommendations(cycle)
         return Response({'cycle_id': str(cycle.id), 'cycle_name': cycle.name, 'recommendations': recommendations})
+
+    @action(detail=False, methods=['get'], url_path='recommendations')
+    def recommendations_alias(self, request):
+        return self.calibration_recommendations(request)
 
 class CalibrationRatingViewSet(BaseReadOnlyReviewViewSet):
     queryset = CalibrationRating.objects.all()

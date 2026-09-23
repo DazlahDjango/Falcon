@@ -91,6 +91,7 @@ def update_traffic_light_task(self, score_id: str) -> Optional[Dict]:
         tl, created = TrafficLight.objects.update_or_create(
             score=score,
             defaults={
+                'tenant_id': score.tenant_id or tenant_id,
                 'status': traffic['status'],
                 'score_value': score.score,
                 'green_threshold': traffic['green_threshold'],
@@ -136,3 +137,38 @@ def update_aggregated_scores_task(self, tenant_id: str, year: int, month: int) -
         raise self.retry(exc=e)
     finally:
         clear_current_tenant_id()
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=30)
+def rollup_cascaded_actuals_task(
+    self,
+    tenant_id: Optional[str],
+    kpi_id: str,
+    year: int,
+    month: int,
+    trigger_user_id: Optional[str] = None
+) -> Dict:
+    from apps.kpi.services.cascade_rollup import CascadeRollupService
+    from apps.tenant.context import set_current_tenant_id, clear_current_tenant_id
+
+    if tenant_id:
+        set_current_tenant_id(tenant_id)
+
+    logger.info(f"Rolling up cascaded actuals for KPI {kpi_id}, period {year}-{month:02d}, trigger_user={trigger_user_id}")
+    try:
+        service = CascadeRollupService()
+        result = service.rollup_kpi_cascades(
+            tenant_id=tenant_id,
+            kpi_id=kpi_id,
+            year=year,
+            month=month,
+            trigger_user_id=trigger_user_id
+        )
+        logger.info(f"Cascade rollup complete: {result.get('updated_targets_count', 0)} targets updated")
+        return result
+    except Exception as e:
+        logger.exception(f"Cascade rollup failed for KPI {kpi_id}: {e}")
+        raise self.retry(exc=e)
+    finally:
+        if tenant_id:
+            clear_current_tenant_id()

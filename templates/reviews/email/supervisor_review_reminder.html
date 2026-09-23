@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Supervisor Review Reminder - Falcon PMS{% endblock %}
+{% block header %}Manager Review Pending{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ review.supervisor.first_name|default:review.supervisor.username }},</h2>
+
+<p>This is a reminder that the manager evaluation for <strong>{{ review.employee.get_full_name }}</strong> is pending completion for <strong>{{ review.review_cycle.name }}</strong>.</p>
+
+<div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #b45309;">Review Deadline</h3>
+    <p style="margin: 4px 0;"><strong>Employee:</strong> {{ review.employee.get_full_name }}</p>
+    <p style="margin: 4px 0;"><strong>Deadline:</strong> {{ review.review_cycle.supervisor_review_deadline }}</p>
+    <p style="margin: 4px 0;"><strong>Status:</strong> {{ review.status|title }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/supervisor-review/' }}" class="button">Complete Review Now</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

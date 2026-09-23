@@ -15,6 +15,7 @@ class IsSuperAdminOrReadOnly(BasePermission):
             return request.user.is_superuser or request.user.role in (
                 UserRoles.SUPER_ADMIN,
                 UserRoles.CLIENT_ADMIN,
+                UserRoles.HR_ADMIN,
             )
         return request.user.is_superuser or request.user.role == UserRoles.SUPER_ADMIN
 

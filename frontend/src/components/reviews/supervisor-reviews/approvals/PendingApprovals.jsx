@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, Eye, User, Calendar, Filter, Search } from 'lucide-react';
-import { useSupervisorReview } from '../../../../hooks/reviews';
+import { useSupervisorReview, useReviewsWebSocket } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewEmptyState, ReviewPagination, ReviewSearchBar, ReviewStatusBadge } from '../../common';
 import ApprovalActions from './ApprovalActions';
 
 const PendingApprovals = () => {
   const navigate = useNavigate();
-  const { pendingApprovals, loading, error, fetchPendingApprovals, approve, reject, canManage } = useSupervisorReview();
+  const { pendingApprovals, loading, error, fetchPendingApprovals, approve, reject, requestChanges, canManage } = useSupervisorReview();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReview, setSelectedReview] = useState(null);
   const [showActions, setShowActions] = useState(false);
@@ -16,6 +16,14 @@ const PendingApprovals = () => {
   useEffect(() => {
     fetchPendingApprovals();
   }, [fetchPendingApprovals]);
+
+  useReviewsWebSocket({
+    channel: 'notifications',
+    onMessage: (msg) => {
+      console.log('[PendingApprovals] Real-time WS message received:', msg);
+      fetchPendingApprovals();
+    },
+  });
 
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);

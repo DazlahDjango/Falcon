@@ -1,5 +1,5 @@
-// src/components/reviews/feedback/FeedbackResponseForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useRatingScales } from '../../../hooks/reviews';
 import './feedback.css';
 
 const FeedbackResponseForm = ({ 
@@ -8,6 +8,7 @@ const FeedbackResponseForm = ({
     onCancel, 
     isLoading = false 
 }) => {
+    const { defaultScale, activeScales = [] } = useRatingScales();
     const [formData, setFormData] = useState({
         overall_rating: '',
         strengths: '',
@@ -19,13 +20,22 @@ const FeedbackResponseForm = ({
 
     const [errors, setErrors] = useState({});
 
-    const ratingOptions = [
-        { value: 5, label: 'Excellent' },
-        { value: 4, label: 'Very Good' },
-        { value: 3, label: 'Good' },
-        { value: 2, label: 'Fair' },
-        { value: 1, label: 'Poor' },
-    ];
+    const activeScale = useMemo(() => {
+        return defaultScale || (activeScales && activeScales.length > 0 ? activeScales[0] : null);
+    }, [defaultScale, activeScales]);
+
+    const ratingOptions = useMemo(() => {
+        if (activeScale && Array.isArray(activeScale.levels) && activeScale.levels.length > 0) {
+            return activeScale.levels;
+        }
+        return [
+            { value: 5, label: 'Excellent' },
+            { value: 4, label: 'Very Good' },
+            { value: 3, label: 'Good' },
+            { value: 2, label: 'Fair' },
+            { value: 1, label: 'Poor' },
+        ];
+    }, [activeScale]);
 
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -67,15 +77,15 @@ const FeedbackResponseForm = ({
             </div>
 
             <div className="form-group">
-                <label className="form-label required">Overall Rating</label>
-                <div className="rating-scale">
+                <label className="form-label required">Overall Rating ({activeScale?.name || 'Rating Scale'})</label>
+                <div className="rating-scale" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {ratingOptions.map(option => (
-                        <label key={option.value} className={`rating-option ${formData.overall_rating === option.value ? 'selected' : ''}`}>
+                        <label key={option.value} className={`rating-option ${Number(formData.overall_rating) === Number(option.value) ? 'selected' : ''}`} style={{ cursor: 'pointer' }}>
                             <input
                                 type="radio"
                                 name="overall_rating"
                                 value={option.value}
-                                checked={formData.overall_rating === option.value}
+                                checked={Number(formData.overall_rating) === Number(option.value)}
                                 onChange={(e) => handleChange('overall_rating', parseInt(e.target.value))}
                                 style={{ display: 'none' }}
                             />

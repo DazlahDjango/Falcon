@@ -41,6 +41,13 @@ class SelfAssessment(ReviewBaseModel, ReviewStatusMixin):
     def manager(self):
         return self.employee.manager if hasattr(self.employee, 'manager') else None
     @property
+    def competency_ratings(self):
+        from django.contrib.contenttypes.models import ContentType
+        from .competency_rating import CompetencyRating
+        ct = ContentType.objects.get_for_model(self.__class__)
+        return CompetencyRating.objects.filter(content_type=ct, object_id=str(self.id))
+
+    @property
     def competency_ratings_count(self):
         return self.competency_ratings.count()
     @property

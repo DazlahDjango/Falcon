@@ -35,20 +35,23 @@ class PredictiveService(BaseReviewService):
         # Factor 1: No promotion for 2+ years
         last_promotion = PromotionRecommendation.objects.filter(
             employee=employee,
-            status='completed'
-        ).order_by('-actual_promotion_date').first()
+            status__in=['approved', 'completed']
+        ).order_by('-actual_promotion_date', '-created_at').first()
         
-        if last_promotion:
+        if last_promotion and last_promotion.actual_promotion_date:
             years_since_promotion = (timezone.now().date() - last_promotion.actual_promotion_date).days / 365
             if years_since_promotion >= AnalyticsThresholds.FLIGHT_RISK_YEARS:
                 risk_score += 30
                 risk_factors.append(f'No promotion for {int(years_since_promotion)} years')
         else:
             # Never promoted
-            years_employed = (timezone.now().date() - employee.date_joined.date()).days / 365 if employee.date_joined else 0
-            if years_employed >= 2:
-                risk_score += 25
-                risk_factors.append(f'Never promoted in {int(years_employed)} years')
+            joined = getattr(employee, 'joined_at', None) or getattr(employee, 'date_joined', None)
+            if joined:
+                join_date = joined.date() if hasattr(joined, 'date') else joined
+                years_employed = (timezone.now().date() - join_date).days / 365
+                if years_employed >= 2:
+                    risk_score += 25
+                    risk_factors.append(f'Never promoted in {int(years_employed)} years')
         
         # Factor 2: Declining performance trend
         last_3_ratings = FinalRating.objects.filter(
@@ -57,14 +60,14 @@ class PredictiveService(BaseReviewService):
         ).order_by('-created_at')[:3]
         
         if last_3_ratings.count() >= 2:
-            scores = [r.final_score for r in last_3_ratings]
+            scores = [float(r.final_score) for r in last_3_ratings]
             if scores[0] < scores[-1]:  # Most recent lower than oldest
                 decline = scores[-1] - scores[0]
-                risk_score += min(25, decline)
+                risk_score += int(min(25, decline))
                 risk_factors.append(f'Performance declined by {decline:.1f}% over last 2 cycles')
         
         # Factor 3: Active PIP
-        active_pip = PIP.objects.filter(employee=employee, status='active').exists()
+        active_pip = PIP.objects.filter(employee=employee, status__in=['draft', 'submitted', 'active']).exists()
         if active_pip:
             risk_score += 35
             risk_factors.append('Currently on active PIP')
@@ -75,7 +78,7 @@ class PredictiveService(BaseReviewService):
             subject=employee
         ).order_by('-created_at').first()
         
-        if feedback and feedback.overall_avg_rating and feedback.overall_avg_rating < 3.0:
+        if feedback and feedback.overall_avg_rating and float(feedback.overall_avg_rating) < 3.0:
             risk_score += 20
             risk_factors.append(f'Low peer feedback rating: {feedback.overall_avg_rating}/5')
         
@@ -135,24 +138,25 @@ class PredictiveService(BaseReviewService):
         Get all high-risk employees for a tenant.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
             limit: Maximum number of employees to return
         
         Returns:
             list: High-risk employees with details
         """
         from apps.accounts.models import User
+        tid = getattr(tenant, 'id', tenant)
         
         employees = User.objects.filter(
-            tenant=tenant,
+            tenant_id=tid,
             is_active=True,
-            role__in=['staff', 'manager']
+            role__in=['staff', 'supervisor', 'manager']
         )
         
         high_risk = []
         for employee in employees:
             risk = PredictiveService.calculate_flight_risk(employee)
-            if risk['risk_level'] in [RiskLevel.HIGH, RiskLevel.MEDIUM]:
+            if risk['risk_level'] in [RiskLevel.HIGH, RiskLevel.MEDIUM, RiskLevel.LOW]:
                 high_risk.append(risk)
         
         # Sort by risk score descending
@@ -182,7 +186,7 @@ class PredictiveService(BaseReviewService):
         factors = []
         
         # Check if manager changed recently
-        current_manager = employee.manager
+        current_manager = getattr(employee, 'manager', None)
         old_reviews = SupervisorReview.objects.filter(
             employee=employee,
             supervisor__isnull=False
@@ -195,17 +199,13 @@ class PredictiveService(BaseReviewService):
                 factors.append('Recent manager change (high risk period)')
         
         # Check if employee is new (less than 6 months)
-        if employee.date_joined:
-            days_employed = (timezone.now().date() - employee.date_joined.date()).days
+        joined = getattr(employee, 'joined_at', None) or getattr(employee, 'date_joined', None)
+        if joined:
+            join_date = joined.date() if hasattr(joined, 'date') else joined
+            days_employed = (timezone.now().date() - join_date).days
             if days_employed < 180:
                 risk_score += 20
                 factors.append(f'New employee ({days_employed} days) - still in onboarding')
-        
-        # Check if employee missed training
-        # This would integrate with training app - placeholder
-        # if employee.has_missing_training:
-        #     risk_score += 15
-        #     factors.append('Missing required training')
         
         # Determine risk level
         if risk_score >= 50:

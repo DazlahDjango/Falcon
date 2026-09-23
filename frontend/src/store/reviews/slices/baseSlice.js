@@ -12,6 +12,7 @@ export const createCrudSlice = (name, service, options = {}) => {
     listParams = {},
     transformResponse = (data) => data,
     extraReducers = {},
+    reducers = {},
   } = options;
 
   // Async Thunks
@@ -110,6 +111,7 @@ export const createCrudSlice = (name, service, options = {}) => {
     name,
     initialState,
     reducers: {
+      ...reducers,
       resetState: (state) => {
         Object.assign(state, initialState);
       },

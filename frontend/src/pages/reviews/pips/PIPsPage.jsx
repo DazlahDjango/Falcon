@@ -1,6 +1,6 @@
 // src/pages/reviews/pips/PIPsPage.jsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useReviewsPermissions } from '../../../hooks/reviews';
 import { PIPList } from '../../../components/reviews/pips';
@@ -8,7 +8,17 @@ import { ReviewBreadcrumbs } from '../../../components/reviews/common';
 
 const PIPsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { canViewPIPs } = useReviewsPermissions();
+
+  const isMyView = location.pathname.includes('/my');
+  const isTeamView = location.pathname.includes('/team');
+
+  const pageTitle = isMyView
+    ? 'My Improvement Plan'
+    : isTeamView
+    ? 'Team Improvement Plans'
+    : 'Performance Improvement Plans';
 
   if (!canViewPIPs) {
     return (
@@ -30,16 +40,17 @@ const PIPsPage = () => {
         </button>
         <ReviewBreadcrumbs
           items={[
-            { label: 'PIPs', path: '/reviews/pips', isActive: true },
+            { label: 'Reviews', path: '/reviews' },
+            { label: pageTitle, path: location.pathname, isActive: true },
           ]}
         />
         <h1 className="pips-page-title">
           <AlertTriangle size={24} />
-          Performance Improvement Plans
+          {pageTitle}
         </h1>
       </div>
 
-      <PIPList />
+      <PIPList isMyView={isMyView} isTeamView={isTeamView} />
     </div>
   );
 };

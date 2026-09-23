@@ -11,8 +11,24 @@ class ReviewCommentSerializer(BaseTenantSerializer):
     parent_comment_id = serializers.UUIDField(source='parent_comment.id', read_only=True)
     resolved_by_name = serializers.CharField(source='resolved_by.get_full_name', read_only=True)
     replies_count = serializers.SerializerMethodField()
+
     def get_replies_count(self, obj):
         return obj.replies.filter(is_deleted=False).count()
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        ct = data.get('content_type')
+        if isinstance(ct, str) and not ct.isdigit():
+            model_name = ct.split('.')[-1].replace('_', '').lower()
+            try:
+                ct_obj = ContentType.objects.get(app_label='reviews', model=model_name)
+                data['content_type'] = ct_obj.id
+            except ContentType.DoesNotExist:
+                pass
+        if data.get('visibility') == 'shared':
+            data['visibility'] = 'public'
+        return super().to_internal_value(data)
+
     class Meta:
         model = ReviewComment
         fields = [
@@ -30,8 +46,7 @@ class ReviewCommentCreateSerializer(ReviewCommentSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at', 'author', 'edited_at', 'resolved_at']
 
 class ReviewCommentResolveSerializer(serializers.Serializer):
-    resolve = serializers.BooleanField(required=True)
+    resolve = serializers.BooleanField(required=False, default=True)
+    resolution_notes = serializers.CharField(required=False, allow_blank=True)
     def validate(self, data):
-        if not data.get('resolve'):
-            raise serializers.ValidationError("Must confirm to resolve")
         return data

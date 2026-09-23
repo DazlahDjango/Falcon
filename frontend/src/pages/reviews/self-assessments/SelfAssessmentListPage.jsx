@@ -24,6 +24,18 @@ const SelfAssessmentListPage = () => {
     );
   }
 
+  const getPageTitle = () => {
+    if (isTeamView) return 'Team Self-Assessments';
+    if (isAdmin) return 'Self-Assessment Records';
+    return 'My Self-Assessment History';
+  };
+
+  const getPageDescription = () => {
+    if (isTeamView) return 'Review self-assessment submissions, draft progress, and reflections for your team.';
+    if (isAdmin) return 'Company-wide master archive and searchable records of all employee self-evaluations.';
+    return 'View and manage all your past and current self-evaluations and performance submissions.';
+  };
+
   return (
     <div className="self-assessment-list-page">
       <div className="self-assessment-list-page-header">
@@ -34,8 +46,8 @@ const SelfAssessmentListPage = () => {
         <ReviewBreadcrumbs
           items={[
             {
-              label: isTeamView ? 'Team Self-Assessments' : 'Self-Assessment Records',
-              path: isTeamView ? '/reviews/self-assessment/team' : '/reviews/self-assessments',
+              label: getPageTitle(),
+              path: isTeamView ? '/reviews/self-assessment/team' : '/reviews/self-assessment',
               isActive: true,
             },
           ]}
@@ -43,12 +55,10 @@ const SelfAssessmentListPage = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
           <h1 className="self-assessment-list-page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
             {isTeamView ? <Users size={24} style={{ color: '#2563eb' }} /> : <List size={24} style={{ color: '#2563eb' }} />}
-            {isTeamView ? 'Team Self-Assessments' : 'Self-Assessment Records'}
+            {getPageTitle()}
           </h1>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-            {isTeamView
-              ? 'Review self-assessment submissions, draft progress, and reflections for your team.'
-              : 'Company-wide master archive and searchable records of all employee self-evaluations.'}
+            {getPageDescription()}
           </p>
         </div>
       </div>

@@ -373,7 +373,7 @@ class HierarchyAggregator:
         """Get all member IDs for a unit."""
         from apps.structure.models import Employment
         employments = Employment.objects.filter(
-            unit_id=unit_id,
+            position__unit_id=unit_id,
             is_current=True,
             is_active=True,
             is_deleted=False
@@ -393,8 +393,9 @@ class HierarchyAggregator:
     
     def _get_department_unit_ids(self, department_id: str) -> List[str]:
         """Get all unit IDs for a department."""
+        from django.db.models import Q
         units = Unit.objects.filter(
-            department_id=department_id,
+            Q(section__department_id=department_id) | Q(parent_id=department_id),
             is_active=True,
             is_deleted=False
         )

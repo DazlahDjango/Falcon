@@ -1,0 +1,30 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Self Assessment Ready for Review - Falcon PMS{% endblock %}
+{% block header %}Review Ready for Evaluation{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ supervisor.first_name|default:supervisor.username }},</h2>
+
+<p><strong>{{ assessment.employee.get_full_name }}</strong> has submitted their self-assessment for the <strong>{{ assessment.review_cycle.name }}</strong> appraisal cycle.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Employee Submission Summary</h3>
+    <p style="margin: 4px 0;"><strong>Employee:</strong> {{ assessment.employee.get_full_name }} ({{ assessment.employee.email }})</p>
+    <p style="margin: 4px 0;"><strong>Submitted At:</strong> {{ assessment.submitted_at|default:"Recently" }}</p>
+    <p style="margin: 4px 0;"><strong>Manager Review Deadline:</strong> {{ assessment.review_cycle.supervisor_review_deadline }}</p>
+</div>
+
+<p>Please log in to review the submitted self-ratings, evaluate competency behaviors, KPI deliverables, and provide managerial feedback.</p>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/supervisor-review/' }}" class="button">Conduct Manager Review</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

@@ -1,7 +1,6 @@
-// src/components/reviews/self-assessments/form/SelfAssessmentForm.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Save, Send, Clock, AlertCircle, CheckCircle, Eye, Edit3 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Save, Send, Clock, AlertCircle, CheckCircle, Eye, Edit3, Trash2 } from 'lucide-react';
 import { useSelfAssessment, useCycles } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewStatusBadge } from '../../common';
 import SelfAssessmentCompetencyRating from './SelfAssessmentCompetencyRating';
@@ -12,7 +11,8 @@ import SelfAssessmentHelpGuide from './SelfAssessmentHelpGuide';
 
 const SelfAssessmentForm = () => {
   const navigate = useNavigate();
-  const { mySelfAssessment, loading, error, fetchMy, submit, saveDraft, resetToDraft } = useSelfAssessment();
+  const { id: paramId } = useParams();
+  const { mySelfAssessment, selected, loading, error, clearErrors, fetchMy, fetchOne, submit, saveDraft, resetToDraft, remove } = useSelfAssessment();
   const { data: allCycles = [], activeCycle, fetchActiveCycle, fetchAll: fetchAllCycles } = useCycles();
   const [formData, setFormData] = useState({
     overall_comment: '',
@@ -33,62 +33,89 @@ const SelfAssessmentForm = () => {
   const [isViewingDetails, setIsViewingDetails] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState('');
   const [showGuide, setShowGuide] = useState(true);
+  const isDataLoadedRef = useRef(false);
+  const lastLoadedIdRef = useRef(null);
 
-  const effectiveCycle = activeCycle || (mySelfAssessment?.review_cycle ? {
-    id: mySelfAssessment.review_cycle,
-    name: mySelfAssessment.review_cycle_name,
-    self_assessment_deadline: mySelfAssessment.self_assessment_deadline || mySelfAssessment.review_cycle_deadline,
+  const activeAssessment = (paramId && selected && (String(selected.id) === String(paramId))) 
+    ? selected 
+    : mySelfAssessment;
+
+  const effectiveCycle = activeCycle || (activeAssessment?.review_cycle ? {
+    id: activeAssessment.review_cycle,
+    name: activeAssessment.review_cycle_name,
+    self_assessment_deadline: activeAssessment.self_assessment_deadline || activeAssessment.review_cycle_deadline,
     allow_self_assessment_edit: true,
   } : (allCycles || []).find(c => c.status === 'submitted' || c.status === 'active') || null);
 
-  const isSubmitted = mySelfAssessment?.status === 'submitted';
-  const isDraft = mySelfAssessment?.status === 'draft' || !mySelfAssessment;
+  const isSubmitted = activeAssessment?.status === 'submitted';
+  const isDraft = activeAssessment?.status === 'draft' || !activeAssessment;
   const canEdit = isDraft || isEditing || (effectiveCycle ? effectiveCycle.allow_self_assessment_edit : false);
 
   useEffect(() => {
-    fetchMy();
-    if (fetchActiveCycle) {
-      fetchActiveCycle();
-    }
-    if (fetchAllCycles) {
-      fetchAllCycles();
-    }
-  }, [fetchMy, fetchActiveCycle, fetchAllCycles]);
+    const initData = async () => {
+      try {
+        if (clearErrors) clearErrors();
+        if (paramId) {
+          await fetchOne(paramId);
+        } else {
+          await fetchMy();
+        }
+      } catch (err) {
+        console.warn('Initial self-assessment fetch failed:', err);
+      }
+      try {
+        if (fetchActiveCycle) await fetchActiveCycle();
+      } catch (err) {
+        console.warn('Initial active cycle fetch failed:', err);
+      }
+      try {
+        if (fetchAllCycles) await fetchAllCycles();
+      } catch (err) {
+        console.warn('Initial cycle list fetch failed:', err);
+      }
+    };
+    initData();
+  }, [paramId, fetchOne, fetchMy, fetchActiveCycle, fetchAllCycles, clearErrors]);
 
   useEffect(() => {
-    if (mySelfAssessment) {
+    if (activeAssessment && activeAssessment.id && (!isDataLoadedRef.current || lastLoadedIdRef.current !== activeAssessment.id)) {
+      lastLoadedIdRef.current = activeAssessment.id;
       setFormData({
-        overall_comment: mySelfAssessment.overall_comment || '',
-        strengths: mySelfAssessment.strengths || '',
-        areas_for_improvement: mySelfAssessment.areas_for_improvement || '',
-        career_aspirations: mySelfAssessment.career_aspirations || '',
-        challenges_faced: mySelfAssessment.challenges_faced || '',
-        achievements: mySelfAssessment.achievements || '',
-        training_completed: mySelfAssessment.training_completed || '',
-        training_requested: mySelfAssessment.training_requested || '',
-        goals_achieved: mySelfAssessment.goals_achieved || '',
-        goals_for_next_period: mySelfAssessment.goals_for_next_period || '',
-        competency_ratings: mySelfAssessment.competency_ratings || [],
+        overall_comment: activeAssessment.overall_comment || '',
+        strengths: activeAssessment.strengths || '',
+        areas_for_improvement: activeAssessment.areas_for_improvement || '',
+        career_aspirations: activeAssessment.career_aspirations || '',
+        challenges_faced: activeAssessment.challenges_faced || '',
+        achievements: activeAssessment.achievements || '',
+        training_completed: activeAssessment.training_completed || '',
+        training_requested: activeAssessment.training_requested || '',
+        goals_achieved: activeAssessment.goals_achieved || '',
+        goals_for_next_period: activeAssessment.goals_for_next_period || '',
+        competency_ratings: activeAssessment.competency_ratings || [],
       });
+      // Mark as loaded so autosave only triggers on subsequent user changes
+      setTimeout(() => {
+        isDataLoadedRef.current = true;
+      }, 500);
     }
-  }, [mySelfAssessment]);
+  }, [activeAssessment]);
 
   // Debounced autosave effect
   useEffect(() => {
-    if (!canEdit || !mySelfAssessment?.id || isSubmitted) return;
+    if (!canEdit || !activeAssessment?.id || isSubmitted || !isDataLoadedRef.current) return;
 
     const hasChanges = 
-      formData.overall_comment !== (mySelfAssessment.overall_comment || '') ||
-      formData.strengths !== (mySelfAssessment.strengths || '') ||
-      formData.areas_for_improvement !== (mySelfAssessment.areas_for_improvement || '') ||
-      formData.career_aspirations !== (mySelfAssessment.career_aspirations || '') ||
-      formData.challenges_faced !== (mySelfAssessment.challenges_faced || '') ||
-      formData.achievements !== (mySelfAssessment.achievements || '') ||
-      formData.training_completed !== (mySelfAssessment.training_completed || '') ||
-      formData.training_requested !== (mySelfAssessment.training_requested || '') ||
-      formData.goals_achieved !== (mySelfAssessment.goals_achieved || '') ||
-      formData.goals_for_next_period !== (mySelfAssessment.goals_for_next_period || '') ||
-      JSON.stringify(formData.competency_ratings) !== JSON.stringify(mySelfAssessment.competency_ratings || []);
+      formData.overall_comment !== (activeAssessment.overall_comment || '') ||
+      formData.strengths !== (activeAssessment.strengths || '') ||
+      formData.areas_for_improvement !== (activeAssessment.areas_for_improvement || '') ||
+      formData.career_aspirations !== (activeAssessment.career_aspirations || '') ||
+      formData.challenges_faced !== (activeAssessment.challenges_faced || '') ||
+      formData.achievements !== (activeAssessment.achievements || '') ||
+      formData.training_completed !== (activeAssessment.training_completed || '') ||
+      formData.training_requested !== (activeAssessment.training_requested || '') ||
+      formData.goals_achieved !== (activeAssessment.goals_achieved || '') ||
+      formData.goals_for_next_period !== (activeAssessment.goals_for_next_period || '') ||
+      JSON.stringify(formData.competency_ratings) !== JSON.stringify(activeAssessment.competency_ratings || []);
 
     if (!hasChanges) return;
 
@@ -96,7 +123,7 @@ const SelfAssessmentForm = () => {
 
     const timer = setTimeout(async () => {
       try {
-        await saveDraft(mySelfAssessment.id, formData);
+        await saveDraft(activeAssessment.id, formData);
         const now = new Date();
         const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         setAutosaveStatus(`Draft saved at ${timeString}`);
@@ -107,7 +134,7 @@ const SelfAssessmentForm = () => {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [formData, mySelfAssessment, saveDraft, canEdit, isSubmitted]);
+  }, [formData, activeAssessment, saveDraft, canEdit, isSubmitted]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -120,8 +147,8 @@ const SelfAssessmentForm = () => {
   const handleSaveDraft = async () => {
     setIsSaving(true);
     try {
-      if (mySelfAssessment?.id) {
-        await saveDraft(mySelfAssessment.id, formData);
+      if (activeAssessment?.id) {
+        await saveDraft(activeAssessment.id, formData);
         const now = new Date();
         const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         setAutosaveStatus(`Draft saved at ${timeString}`);
@@ -136,15 +163,19 @@ const SelfAssessmentForm = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      let targetId = mySelfAssessment?.id;
+      let targetId = activeAssessment?.id;
       if (!targetId) {
-        const fresh = await fetchMy();
+        const fresh = paramId ? await fetchOne(paramId) : await fetchMy();
         targetId = fresh?.id || fresh?.payload?.id;
       }
       if (targetId) {
         await saveDraft(targetId, formData);
         await submit(targetId);
-        await fetchMy();
+        if (paramId) {
+          await fetchOne(paramId);
+        } else {
+          await fetchMy();
+        }
         setIsEditing(false);
         setIsViewingDetails(false);
         alert('🎉 Your self-assessment has been successfully submitted!');
@@ -157,18 +188,49 @@ const SelfAssessmentForm = () => {
     }
   };
 
-  const handleReset = async () => {
-    if (window.confirm('Are you sure you want to reset this assessment to draft?')) {
-      await resetToDraft(mySelfAssessment.id);
-      setIsEditing(true);
-      setIsViewingDetails(false);
-      fetchMy();
+  const handleDelete = async () => {
+    const targetId = paramId || activeAssessment?.id;
+    if (!targetId) return;
+    if (window.confirm('Are you sure you want to permanently delete this self-assessment draft? All entered responses will be removed.')) {
+      try {
+        await remove(targetId);
+        alert('Self-assessment draft deleted successfully.');
+        navigate('/reviews/self-assessments');
+      } catch (err) {
+        alert('Failed to delete: ' + (err.response?.data?.error || err.message || 'Permission denied'));
+      }
     }
   };
 
-  if (loading && !mySelfAssessment) return <ReviewLoading size="lg" text="Loading self assessment..." />;
-  if (error) return <ReviewError error={error} onRetry={fetchMy} />;
-  if (!effectiveCycle && !mySelfAssessment) {
+  const handleReset = async () => {
+    if (window.confirm('Are you sure you want to reset this assessment to draft?')) {
+      if (activeAssessment?.id) {
+        await resetToDraft(activeAssessment.id);
+        setIsEditing(true);
+        setIsViewingDetails(false);
+        if (paramId) {
+          fetchOne(paramId);
+        } else {
+          fetchMy();
+        }
+      }
+    }
+  };
+
+  const handleRetry = async () => {
+    if (clearErrors) clearErrors();
+    try {
+      await fetchMy();
+      if (fetchActiveCycle) await fetchActiveCycle();
+      if (fetchAllCycles) await fetchAllCycles();
+    } catch (e) {
+      console.error('Retry failed:', e);
+    }
+  };
+
+  if (loading && (!mySelfAssessment || !mySelfAssessment.id)) return <ReviewLoading size="lg" text="Loading self assessment..." />;
+  if (error && (!mySelfAssessment || !mySelfAssessment.id)) return <ReviewError error={error} onRetry={handleRetry} />;
+  if (!effectiveCycle && (!mySelfAssessment || !mySelfAssessment.id)) {
     return (
       <div className="self-assessment-no-cycle">
         <AlertCircle size={48} />
@@ -187,6 +249,7 @@ const SelfAssessmentForm = () => {
           onEdit={() => { setIsViewingDetails(false); setIsEditing(true); }} 
           onBack={() => setIsViewingDetails(false)}
           onReset={handleReset} 
+          onDelete={handleDelete}
         />
       );
     }
@@ -318,6 +381,18 @@ const SelfAssessmentForm = () => {
                 <Send size={18} />
                 {isSubmitting ? 'Submitting...' : (isEditing ? 'Save & Submit' : 'Submit')}
               </button>
+              {activeAssessment?.id && (
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={handleDelete}
+                  style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600, fontSize: '13px', marginLeft: '4px' }}
+                  title="Delete this draft self-assessment"
+                >
+                  <Trash2 size={16} />
+                  Delete Draft
+                </button>
+              )}
             </>
           )}
         </div>

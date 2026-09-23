@@ -1,8 +1,7 @@
-// src/components/reviews/feedback/requests/FeedbackRequestList.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Eye, Mail, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { useFeedback } from '../../../../hooks/reviews';
+import { Plus, Search, Filter, Eye, Mail, Clock, CheckCircle, XCircle, Edit3 } from 'lucide-react';
+import { useFeedback, useReviewsPermissions } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewEmptyState, ReviewPagination, ReviewSearchBar, ReviewStatusBadge } from '../../common';
 import FeedbackRequestFilters from './FeedbackRequestFilters';
 import PendingRequests from './PendingRequests';
@@ -10,17 +9,22 @@ import OverdueRequests from './OverdueRequests';
 
 const FeedbackRequestList = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useReviewsPermissions();
   const { requestData, requestLoading, requestError, fetchRequests, pagination, setPagination, filters, setFilters, clearFilters, canManage } = useFeedback();
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
+  const loadRequests = useCallback(() => {
     fetchRequests({
       page: pagination.currentPage,
       page_size: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.currentPage, pagination.pageSize, filters]);
+  }, [fetchRequests, pagination.currentPage, pagination.pageSize, filters]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
 
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
@@ -46,6 +50,11 @@ const FeedbackRequestList = () => {
 
   const handleCreate = () => {
     navigate('/reviews/feedback/requests/create');
+  };
+
+  const handleRespond = (e, requestId) => {
+    e.stopPropagation();
+    navigate(`/reviews/feedback/respond/${requestId}`);
   };
 
   const handleView = (id) => {
@@ -167,17 +176,30 @@ const FeedbackRequestList = () => {
                       )}
                     </div>
 
-                    <div className="feedback-request-card-footer">
+                    <div className="feedback-request-card-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                       <span className="feedback-request-card-date">
                         Due: {new Date(request.due_date).toLocaleDateString()}
                       </span>
-                      <button
-                        className="feedback-request-card-btn"
-                        onClick={(e) => { e.stopPropagation(); handleView(request.id); }}
-                      >
-                        <Eye size={16} />
-                        View
-                      </button>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          className="feedback-request-card-btn"
+                          onClick={(e) => { e.stopPropagation(); handleView(request.id); }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                        >
+                          <Eye size={14} />
+                          View
+                        </button>
+                        <button
+                          type="button"
+                          className="feedback-request-card-btn"
+                          onClick={(e) => handleRespond(e, request.id)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#2563eb', color: '#ffffff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                        >
+                          <Edit3 size={14} />
+                          {request.has_response || request.status === 'completed' ? 'Edit' : 'Provide Feedback'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

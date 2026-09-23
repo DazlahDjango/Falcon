@@ -248,6 +248,13 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
             from django.core.exceptions import ValidationError
             raise ValidationError({'tenant_id': _("Tenant ID is required for non-superadmin users.")})
 
+    @property
+    def tenant(self):
+        if not self.tenant_id:
+            return None
+        from apps.tenant.models import Organization
+        return Organization.objects.filter(id=self.tenant_id).first()
+
     def save(self, *args, **kwargs):
         from django.conf import settings
         anon_name = getattr(settings, 'ANONYMOUS_USER_NAME', 'AnonymousUser')

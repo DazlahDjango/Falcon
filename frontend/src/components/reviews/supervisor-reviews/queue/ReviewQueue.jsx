@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Clock, Users, AlertCircle } from 'lucide-react';
-import { useSupervisorReview } from '../../../../hooks/reviews';
+import { useSupervisorReview, useReviewsWebSocket, useReviewsPermissions } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewEmptyState, ReviewSearchBar } from '../../common';
 import ReviewQueueItem from './ReviewQueueItem';
 import ReviewQueueFilters from './ReviewQueueFilters';
@@ -10,6 +10,8 @@ import ReviewQueueFilters from './ReviewQueueFilters';
 const ReviewQueue = () => {
   const navigate = useNavigate();
   const { myQueue, loading, error, fetchQueue } = useSupervisorReview();
+  const { isAdmin, isHrAdmin, isClientAdmin } = useReviewsPermissions();
+  const isOrgAdmin = isAdmin || isHrAdmin || isClientAdmin;
   const [searchTerm, setSearchTerm] = useState('');
   const [localFilters, setLocalFilters] = useState({
     status: '',
@@ -21,6 +23,14 @@ const ReviewQueue = () => {
     fetchQueue();
   }, [fetchQueue]);
 
+  useReviewsWebSocket({
+    channel: 'notifications',
+    onMessage: (msg) => {
+      console.log('[ReviewQueue] Real-time WS message received:', msg);
+      fetchQueue();
+    },
+  });
+
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
   }, []);
@@ -29,8 +39,14 @@ const ReviewQueue = () => {
     setLocalFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const handleViewReview = useCallback((id) => {
-    navigate(`/reviews/supervisor-reviews/${id}`);
+  const handleViewReview = useCallback((review) => {
+    const id = typeof review === 'object' ? review.id : review;
+    const isDraft = typeof review === 'object' ? review.status === 'draft' : false;
+    if (isDraft) {
+      navigate(`/reviews/supervisor-reviews/${id}/edit`);
+    } else {
+      navigate(`/reviews/supervisor-reviews/${id}`);
+    }
   }, [navigate]);
 
   const queueList = Array.isArray(myQueue) ? myQueue : (myQueue?.results || []);
@@ -75,7 +91,9 @@ const ReviewQueue = () => {
     <div className="review-queue">
       <div className="review-queue-header">
         <div className="review-queue-title-section">
-          <h1 className="review-queue-title">Review Queue</h1>
+          <h1 className="review-queue-title">
+            {isOrgAdmin ? 'Organization Appraisal Queue' : 'Team Review Queue'}
+          </h1>
           <span className="review-queue-count">{filteredQueue.length} pending reviews</span>
         </div>
       </div>

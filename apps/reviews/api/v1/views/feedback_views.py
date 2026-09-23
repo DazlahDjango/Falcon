@@ -18,11 +18,21 @@ class FeedbackRequestViewSet(BaseReviewViewSet):
     def get_permissions(self):
         if self.action == 'create':
             self.permission_classes = [IsSupervisorOrAdmin]
-        elif self.action in ['update', 'partial_update', 'destroy', 'remind', 'cancel']:
+        elif self.action in ['update', 'partial_update', 'remind', 'cancel']:
             self.permission_classes = [IsAdminOnly]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
+    def destroy(self, request, *args, **kwargs):
+        req = self.get_object()
+        is_admin = request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]
+        is_owner = req.requested_by_id == request.user.id or req.reviewer_id == request.user.id
+        if not (is_admin or (is_owner and req.status == 'draft')):
+            return Response({'error': 'Permission denied. Only admins, the requestor, or the assigned reviewer can delete a draft 360 feedback request.'}, status=status.HTTP_403_FORBIDDEN)
+        if hasattr(req, 'response') and req.response:
+            req.response.delete()
+        req.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
     def perform_create(self, serializer):
         serializer.save(requested_by=self.request.user, tenant_id=self.request.user.tenant_id)
     @action(detail=True, methods=['post'])
@@ -56,7 +66,7 @@ class FeedbackRequestViewSet(BaseReviewViewSet):
         from apps.accounts.models import User
         try:
             subject = User.objects.get(id=subject_id)
-            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != subject.manager:
+            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN] and request.user != subject.manager:
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             requests = self.get_queryset().filter(subject=subject)
             return Response(self.get_serializer(requests, many=True).data)
@@ -70,6 +80,10 @@ class FeedbackRequestViewSet(BaseReviewViewSet):
             return Response(self.get_serializer(requests, many=True).data)
         except ReviewCycle.DoesNotExist:
             return Response({'error': 'Cycle not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=['post'], url_path='bulk-create')
+    def bulk_create_hyphen(self, request):
+        return self.bulk_create(request)
+
     @action(detail=False, methods=['post'])
     def bulk_create(self, request):
         reviewers = request.data.get('reviewers', [])
@@ -126,7 +140,7 @@ class FeedbackResponseViewSet(BaseReviewViewSet):
     def for_request(self, request, request_id=None):
         try:
             feedback_request = FeedbackRequest.objects.get(id=request_id)
-            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != feedback_request.reviewer and request.user != feedback_request.subject.manager:
+            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN] and request.user != feedback_request.reviewer and request.user != feedback_request.subject.manager:
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             response = self.get_queryset().filter(feedback_request=feedback_request).first()
             return Response(self.get_serializer(response).data if response else {'message': 'No response yet'})
@@ -137,7 +151,7 @@ class FeedbackResponseViewSet(BaseReviewViewSet):
         from apps.accounts.models import User
         try:
             subject = User.objects.get(id=subject_id)
-            is_hr = request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]
+            is_hr = request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]
             responses = self.get_queryset().filter(feedback_request__subject=subject).select_related('feedback_request')
             if not is_hr:
                 anonymized = [{'reviewer_type': r.feedback_request.get_reviewer_type_display(), 'overall_rating': r.overall_rating, 'strengths': r.strengths, 'areas_for_improvement': r.areas_for_improvement, 'suggestions': r.suggestions} for r in responses]

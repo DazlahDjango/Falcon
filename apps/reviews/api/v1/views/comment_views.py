@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from apps.reviews.models import ReviewComment
 from apps.reviews.api.v1.serializers import ReviewCommentSerializer, ReviewCommentCreateSerializer, ReviewCommentResolveSerializer
 from .base_views import BaseReviewViewSet
+from apps.reviews.api.v1.permissions import IsAuthorOrAdmin
 from apps.accounts.constants import UserRoles
 
 class ReviewCommentViewSet(BaseReviewViewSet):
@@ -13,8 +14,8 @@ class ReviewCommentViewSet(BaseReviewViewSet):
     def get_serializer_class(self):
         return ReviewCommentCreateSerializer if self.action == 'create' else ReviewCommentSerializer
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy', 'resolve']:
-            self.permission_classes = [lambda: self.request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] or self.request.user.id == self.get_object().author_id]
+        if self.action in ['update', 'partial_update', 'destroy', 'resolve', 'unresolve', 'edit']:
+            self.permission_classes = [IsAuthorOrAdmin]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, tenant_id=self.request.user.tenant_id)
@@ -43,7 +44,7 @@ class ReviewCommentViewSet(BaseReviewViewSet):
     @action(detail=True, methods=['post'])
     def edit(self, request, pk=None):
         comment = self.get_object()
-        if comment.author_id != request.user.id and request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN]:
+        if str(comment.author_id) != str(request.user.id) and request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         new_comment = request.data.get('comment')
         if not new_comment:
@@ -61,7 +62,14 @@ class ReviewCommentViewSet(BaseReviewViewSet):
         object_id = request.query_params.get('object_id')
         if not content_type_id or not object_id:
             return Response({'error': 'content_type and object_id required'}, status=status.HTTP_400_BAD_REQUEST)
-        comments = self.get_queryset().filter(content_type_id=content_type_id, object_id=object_id, parent_comment__isnull=True)
+        if isinstance(content_type_id, str) and not content_type_id.isdigit():
+            model_name = content_type_id.split('.')[-1].replace('_', '').lower()
+            try:
+                ct = ContentType.objects.get(app_label='reviews', model=model_name)
+                content_type_id = ct.id
+            except ContentType.DoesNotExist:
+                pass
+        comments = self.get_queryset().filter(content_type_id=content_type_id, object_id=str(object_id), parent_comment__isnull=True)
         return Response(self.get_serializer(comments, many=True).data)
     @action(detail=False, methods=['get'], url_path='replies/(?P<parent_id>[^/.]+)')
     def replies(self, request, parent_id=None):

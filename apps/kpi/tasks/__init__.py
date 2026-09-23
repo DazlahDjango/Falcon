@@ -2,7 +2,8 @@ from .calculations import (
     calculate_kpi_score_task,
     calculate_period_scores_task,
     update_traffic_light_task,
-    update_aggregated_scores_task
+    update_aggregated_scores_task,
+    rollup_cascaded_actuals_task
 )
 from .notifications import (
     send_validation_notification_task,
@@ -50,6 +51,7 @@ __all__ = [
     'calculate_period_scores_task',
     'update_traffic_light_task',
     'update_aggregated_scores_task',
+    'rollup_cascaded_actuals_task',
 
     # Notifications
     'send_validation_notification_task',

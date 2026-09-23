@@ -11,11 +11,16 @@ class SupervisorReview(ReviewBaseModel, ReviewStatusMixin):
         DEMOTE = 'demote', 'Demote'
         TERMINATE = 'terminate', 'Terminate'
         NOT_RECOMMENDED = 'not_recommended', 'Not Recommended'
+        EXCEEDS_EXPECTATIONS = 'exceeds_expectations', 'Exceeds Expectations'
+        MEETS_EXPECTATIONS = 'meets_expectations', 'Meets Expectations'
+        NEEDS_IMPROVEMENT = 'needs_improvement', 'Needs Improvement'
+        OUTSTANDING = 'outstanding', 'Outstanding'
     class BonusRecommendation(models.TextChoices):
         EXCEPTIONAL = 'exceptional', 'Exceptional Bonus'
         STANDARD = 'standard', 'Standard Bonus'
         REDUCED = 'reduced', 'Reduced Bonus'
         NONE = 'none', 'No Bonus'
+        MERIT = 'merit', 'Merit Bonus'
     review_cycle = models.ForeignKey('reviews.ReviewCycle', on_delete=models.CASCADE, related_name='supervisor_reviews')
     employee = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='supervisor_reviews_as_employee')
     supervisor = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='supervisor_reviews_as_manager')
@@ -81,6 +86,13 @@ class SupervisorReview(ReviewBaseModel, ReviewStatusMixin):
         if self.override_kpi_score is not None:
             return float(self.override_kpi_score)
         return None
+    @property
+    def competency_ratings(self):
+        from django.contrib.contenttypes.models import ContentType
+        from .competency_rating import CompetencyRating
+        ct = ContentType.objects.get_for_model(self.__class__)
+        return CompetencyRating.objects.filter(content_type=ct, object_id=str(self.id))
+
     @property
     def competency_ratings_count(self):
         return self.competency_ratings.count()

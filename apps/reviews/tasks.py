@@ -1,6 +1,9 @@
 from celery import shared_task
 from django.utils import timezone
-from .models import ReviewCycle, PIP, PIPAction, SelfAssessment, CompetencyRating, FinalRating, FeedbackRequest, CalibrationSession
+from .models import (
+    ReviewCycle, PIP, PIPAction, SelfAssessment, SupervisorReview,
+    CompetencyRating, FinalRating, FeedbackRequest, CalibrationSession
+)
 from .services.tasks.retry import reviews_shared_task
 from .services.cycle.cycle_service import CycleService
 from .services.pip.pip_generator import PIPGenerator
@@ -353,6 +356,25 @@ def detect_rating_inflation():
 def calculate_manager_consistency():
     return {'status': 'ok'}
 
+@shared_task
+def refresh_analytics_cache(tenant_id):
+    from .services.analytics.analytics_service import AnalyticsService
+    from django.core.cache import cache
+    AnalyticsService.get_company_analytics(tenant_id)
+    AnalyticsService.get_department_analytics(tenant_id)
+    AnalyticsService.get_manager_analytics(tenant_id)
+    return {'status': 'completed', 'tenant_id': str(tenant_id)}
+
+@shared_task
+def generate_daily_insights(tenant_id):
+    from .services.analytics.insight_service import InsightService
+    return {'insights': InsightService.get_all_insights(tenant_id)}
+
+@shared_task
+def refresh_predictions(tenant_id):
+    from .services.analytics.predictive_service import PredictiveService
+    return {'predictions': PredictiveService.get_high_risk_employees(tenant_id)}
+
 @shared_task(name='apps.reviews.tasks.health_check')
 def health_check():
-    return reviews_health_check()
+    return {'status': 'healthy'}

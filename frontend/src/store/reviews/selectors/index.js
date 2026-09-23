@@ -161,11 +161,29 @@ export const selectSelfAssessmentStats = (state) => selectSelfAssessmentsState(s
 export const selectMySelfAssessment = createSelector(
   [selectSelectedSelfAssessment, selectAllSelfAssessments, (state) => state.auth?.user?.id],
   (selected, assessments, userId) => {
-    if (selected) return selected;
-    if (userId && assessments.length > 0) {
-      return assessments.find((item) => String(item.employee) === String(userId)) || null;
+    if (!userId) return null;
+
+    // Helper to safely extract employee id
+    const getEmpId = (item) => {
+      if (!item) return null;
+      if (typeof item.employee === 'object' && item.employee !== null) {
+        return item.employee.id || item.employee.uuid;
+      }
+      return item.employee_id || item.employee;
+    };
+
+    // If selectedItem matches the logged-in user, use it
+    if (selected && String(getEmpId(selected)) === String(userId)) {
+      return selected;
     }
-    return assessments[0] || null;
+
+    // Otherwise, find the record belonging to this user from the list
+    if (Array.isArray(assessments) && assessments.length > 0) {
+      const match = assessments.find((item) => String(getEmpId(item)) === String(userId));
+      if (match) return match;
+    }
+
+    return null;
   }
 );
 
@@ -226,6 +244,17 @@ export const selectReviewsByEmployee = createSelector(
   [selectAllSupervisorReviews, (state, employeeId) => employeeId],
   (reviews, employeeId) => reviews.filter((item) => item.employee === employeeId)
 );
+
+export const selectSupervisorReviewsPagination = (state) =>
+  selectSupervisorReviewsState(state)?.pagination ?? {
+    currentPage: 1,
+    pageSize: 20,
+    totalItems: 0,
+    totalPages: 0,
+  };
+
+export const selectSupervisorReviewsFilters = (state) =>
+  selectSupervisorReviewsState(state)?.filters ?? {};
 
 // ========== Final Rating Selectors ==========
 export const selectFinalRatingsState = (state) => state.reviews?.finalRatings;

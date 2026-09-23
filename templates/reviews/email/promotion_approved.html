@@ -1,0 +1,30 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Promotion Approved - Falcon PMS{% endblock %}
+{% block header %}Congratulations! Promotion Approved 🎉{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ promotion.employee.first_name|default:promotion.employee.username }},</h2>
+
+<p>We are delighted to inform you that your promotion to <strong>{{ promotion.proposed_title|default:promotion.recommended_role }}</strong> has been officially approved!</p>
+
+<div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #047857;">Promotion Confirmation</h3>
+    <p style="margin: 4px 0;"><strong>New Role / Title:</strong> {{ promotion.proposed_title|default:promotion.recommended_role }}</p>
+    <p style="margin: 4px 0;"><strong>Effective Date:</strong> {{ promotion.effective_date|default:"Immediate" }}</p>
+    <p style="margin: 4px 0;"><strong>Status:</strong> Approved</p>
+</div>
+
+<p>Thank you for your continuous dedication, excellence, and valuable impact at Falcon Technologies.</p>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/promotions/' }}" class="button">View Promotion Letter</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

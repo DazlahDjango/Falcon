@@ -100,6 +100,10 @@ class ReviewPermissionMiddleware(MiddlewareMixin):
         """Check if user can access self-assessment"""
         from apps.reviews.models import SelfAssessment, ReviewCycle
         
+        # Admin/HR have full access
+        if user.is_superuser or user.role in ['admin', 'super_admin', 'client_admin', 'hr_admin', 'hr', 'executive']:
+            return True
+
         # Employee can access their own
         if assessment_id:
             try:
@@ -110,7 +114,7 @@ class ReviewPermissionMiddleware(MiddlewareMixin):
                 pass
         
         # Manager can access their team's
-        if user.role in ['manager', 'admin', 'executive', 'hr']:
+        if user.role in ['manager', 'supervisor', 'executive', 'admin', 'client_admin', 'hr_admin', 'hr']:
             if cycle_id:
                 try:
                     cycle = ReviewCycle.objects.get(id=cycle_id)
@@ -118,16 +122,16 @@ class ReviewPermissionMiddleware(MiddlewareMixin):
                 except ReviewCycle.DoesNotExist:
                     pass
         
-        # Admin/HR have full access
-        if user.role in ['admin', 'super_admin', 'hr']:
-            return True
-        
         return False
     
     def _can_access_supervisor_review(self, user, review_id, cycle_id):
         """Check if user can access supervisor review"""
         from apps.reviews.models import SupervisorReview, ReviewCycle
         
+        # Admin/HR have full access
+        if user.is_superuser or user.role in ['admin', 'super_admin', 'client_admin', 'hr_admin', 'hr', 'executive']:
+            return True
+
         # The supervisor themselves can access
         if review_id:
             try:
@@ -147,7 +151,7 @@ class ReviewPermissionMiddleware(MiddlewareMixin):
                 pass
         
         # Manager can access their team's reviews
-        if user.role in ['manager', 'admin', 'executive', 'hr']:
+        if user.role in ['manager', 'supervisor', 'executive', 'admin', 'client_admin', 'hr_admin', 'hr']:
             if cycle_id:
                 try:
                     cycle = ReviewCycle.objects.get(id=cycle_id)
@@ -155,16 +159,15 @@ class ReviewPermissionMiddleware(MiddlewareMixin):
                 except ReviewCycle.DoesNotExist:
                     pass
         
-        # Admin/HR have full access
-        if user.role in ['admin', 'super_admin', 'hr']:
-            return True
-        
         return False
     
     def _can_access_calibration(self, user, session_id):
         """Check if user can access calibration session using CalibrationService"""
+        if user.is_superuser or user.role in ['admin', 'super_admin', 'client_admin', 'hr_admin', 'hr', 'executive']:
+            return True
+
         if not session_id:
-            return user.role in ['admin', 'super_admin', 'hr']
+            return False
         
         try:
             session = CalibrationService.get_session(session_id)
@@ -179,10 +182,6 @@ class ReviewPermissionMiddleware(MiddlewareMixin):
             if session.participants.filter(id=user.id).exists():
                 return True
             
-            # Admin/HR can access
-            if user.role in ['admin', 'super_admin', 'hr']:
-                return True
-            
         except Exception:
             pass
         
@@ -190,24 +189,23 @@ class ReviewPermissionMiddleware(MiddlewareMixin):
     
     def _can_access_pip(self, user, pip_id):
         """Check if user can access PIP using PIPService"""
+        if user.is_superuser or user.role in ['admin', 'super_admin', 'client_admin', 'hr_admin', 'hr', 'executive']:
+            return True
+
         if not pip_id:
-            return user.role in ['admin', 'super_admin', 'hr', 'manager']
+            return user.role in ['manager', 'supervisor']
         
         try:
             pip = PIPService.get_pip(pip_id)
             if not pip:
                 return False
             
-            # Employee can access their own PIP
+            # Employee can access their own
             if pip.employee_id == user.id:
                 return True
             
-            # Owner (manager) can access
-            if pip.owner_id == user.id:
-                return True
-            
-            # Admin/HR can access
-            if user.role in ['admin', 'super_admin', 'hr']:
+            # Supervisor can access
+            if pip.supervisor_id == user.id:
                 return True
             
         except Exception:

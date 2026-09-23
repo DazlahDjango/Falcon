@@ -38,6 +38,7 @@ class ReviewComment(ReviewBaseModel):
     
     class Visibility(models.TextChoices):
         PUBLIC = 'public', 'Visible to All'
+        SHARED = 'shared', 'Shared'
         MANAGER_ONLY = 'manager', 'Manager Only'
         HR_ONLY = 'hr', 'HR Only'
         PRIVATE = 'private', 'Private (Only Author)'
@@ -48,16 +49,6 @@ class ReviewComment(ReviewBaseModel):
         on_delete=models.CASCADE,
         limit_choices_to={
             'app_label': 'reviews',
-            'model__in': [
-                'selfassessment',
-                'supervisorreview',
-                'finalrating',
-                'pip',
-                'pipaction',
-                'pipreview',
-                'calibrationrating',
-                'feedbackrequest',
-            ]
         }
     )
     object_id = models.CharField(max_length=36)  # UUID length

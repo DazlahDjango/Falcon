@@ -10,25 +10,32 @@ const SupervisorReviewList = () => {
   const { data, loading, error, fetchAll, pagination, setPagination, filters, setFilters } = useSupervisorReview();
   const [searchTerm, setSearchTerm] = useState('');
 
+  const paginationSafe = pagination || {
+    currentPage: 1,
+    pageSize: 20,
+    totalItems: data?.length || 0,
+    totalPages: Math.ceil((data?.length || 0) / 20) || 1,
+  };
+
   useEffect(() => {
     fetchAll({
-      page: pagination.currentPage,
-      page_size: pagination.pageSize,
+      page: paginationSafe.currentPage,
+      page_size: paginationSafe.pageSize,
       ...filters,
     });
-  }, [pagination.currentPage, pagination.pageSize, filters]);
+  }, [paginationSafe.currentPage, paginationSafe.pageSize, filters, fetchAll]);
 
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
-    setFilters({ search: term });
+    if (setFilters) setFilters({ search: term });
   }, [setFilters]);
 
   const handlePageChange = useCallback((page) => {
-    setPagination({ currentPage: page });
+    if (setPagination) setPagination({ currentPage: page });
   }, [setPagination]);
 
   const handlePageSizeChange = useCallback((size) => {
-    setPagination({ pageSize: size, currentPage: 1 });
+    if (setPagination) setPagination({ pageSize: size, currentPage: 1 });
   }, [setPagination]);
 
   const handleView = (id) => {
@@ -43,7 +50,7 @@ const SupervisorReviewList = () => {
       <div className="supervisor-review-list-header">
         <div className="supervisor-review-list-title-section">
           <h1 className="supervisor-review-list-title">Supervisor Reviews</h1>
-          <span className="supervisor-review-list-count">{pagination.totalItems} reviews</span>
+          <span className="supervisor-review-list-count">{paginationSafe.totalItems || data?.length || 0} reviews</span>
         </div>
       </div>
 
@@ -111,10 +118,10 @@ const SupervisorReviewList = () => {
           </div>
 
           <ReviewPagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            pageSize={pagination.pageSize}
-            totalItems={pagination.totalItems}
+            currentPage={paginationSafe.currentPage}
+            totalPages={paginationSafe.totalPages}
+            pageSize={paginationSafe.pageSize}
+            totalItems={paginationSafe.totalItems}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
           />

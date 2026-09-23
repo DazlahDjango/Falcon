@@ -1,24 +1,46 @@
-// src/components/reviews/final-ratings/list/FinalRatingList.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Grid, List, TrendingUp, Award, AlertCircle } from 'lucide-react';
-import { useFinalRating } from '../../../../hooks/reviews';
+import { useFinalRating, useReviewsPermissions } from '../../../../hooks/reviews';
+import { useAuthContext } from '../../../../contexts/accounts/AuthContext';
 import { ReviewLoading, ReviewError, ReviewEmptyState, ReviewPagination, ReviewSearchBar, ReviewStatusBadge } from '../../common';
 import FinalRatingTable from './FinalRatingTable';
 import FinalRatingFilters from './FinalRatingFilters';
 
-const FinalRatingList = () => {
+const FinalRatingList = ({ isTeamView = false }) => {
   const navigate = useNavigate();
-  const { data, loading, error, fetchAll, pagination, setPagination, filters, setFilters, clearFilters } = useFinalRating();
+  const { user } = useAuthContext();
+  const { isAdmin, isHrAdmin, isSupervisor, isExecutive } = useReviewsPermissions();
+  const { data = [], loading, error, clearErrors, fetchAll, pagination, setPagination, filters, setFilters, clearFilters } = useFinalRating();
   const [viewMode, setViewMode] = useState('table');
 
+  const isStaffOnly = !isAdmin && !isHrAdmin && !isExecutive && !isTeamView && !isSupervisor;
+
   useEffect(() => {
+    if (clearErrors) clearErrors();
     fetchAll({
       page: pagination.currentPage,
       page_size: pagination.pageSize,
+      ...(isStaffOnly ? { scope: 'my' } : {}),
+      ...(isTeamView ? { is_team: true } : {}),
       ...filters,
     });
-  }, [pagination.currentPage, pagination.pageSize, filters]);
+  }, [pagination.currentPage, pagination.pageSize, filters, isStaffOnly, isTeamView, fetchAll, clearErrors]);
+
+  const displayData = useMemo(() => {
+    if (!Array.isArray(data)) return [];
+    if (isStaffOnly && (user?.id || user?.email)) {
+      return data.filter((item) => {
+        const empId = typeof item.employee === 'object' && item.employee !== null
+          ? (item.employee.id || item.employee.uuid)
+          : (item.employee_id || item.employee);
+        const idMatch = Boolean(empId && user?.id && String(empId).toLowerCase() === String(user.id).toLowerCase());
+        const emailMatch = Boolean(item.employee_email && user?.email && item.employee_email.toLowerCase() === user.email.toLowerCase());
+        return idMatch || emailMatch;
+      });
+    }
+    return data;
+  }, [data, isStaffOnly, user?.id, user?.email]);
 
   const handleSearch = useCallback((searchTerm) => {
     setFilters({ search: searchTerm });
@@ -44,8 +66,22 @@ const FinalRatingList = () => {
     navigate(`/reviews/final-ratings/${id}`);
   };
 
-  if (loading && !data.length) return <ReviewLoading size="lg" text="Loading final ratings..." />;
-  if (error) return <ReviewError error={error} onRetry={() => fetchAll()} />;
+  if (loading && !displayData.length) return <ReviewLoading size="lg" text="Loading final ratings..." />;
+  if (error && !displayData.length) return (
+    <ReviewError
+      error={error}
+      onRetry={() => {
+        if (clearErrors) clearErrors();
+        fetchAll({
+          page: pagination.currentPage,
+          page_size: pagination.pageSize,
+          ...(isStaffOnly ? { scope: 'my' } : {}),
+          ...(isTeamView ? { is_team: true } : {}),
+          ...filters,
+        });
+      }}
+    />
+  );
 
   return (
     <div className="final-rating-list">
@@ -76,15 +112,15 @@ const FinalRatingList = () => {
         <FinalRatingFilters onFilterChange={handleFilterChange} onClearAll={handleClearFilters} />
       </div>
 
-      {data.length === 0 ? (
+      {displayData.length === 0 ? (
         <ReviewEmptyState
-          title="No Final Ratings Found"
-          description="No final ratings are available."
+          title={isTeamView ? "No Team Final Ratings Found" : isStaffOnly ? "No Final Ratings Yet" : "No Final Ratings Found"}
+          description={isTeamView ? "No team members have locked final ratings for this cycle yet." : isStaffOnly ? "Your final rating has not been published or locked yet for this cycle." : "No final rating records match the current criteria."}
           icon="⭐"
         />
       ) : (
         <>
-          <FinalRatingTable data={data} onView={handleView} />
+          <FinalRatingTable data={displayData} onView={handleView} />
           <ReviewPagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}

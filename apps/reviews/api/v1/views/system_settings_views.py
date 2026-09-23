@@ -2,14 +2,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.api.v1.permissions.policy import IsSuperAdminOrReadOnly
-from apps.accounts.api.v1.permissions import IsSuperAdmin
+from apps.reviews.api.v1.permissions import IsAdminOnly, IsAdminOrReadOnly
 from apps.reviews.api.v1.serializers.system_settings import ReviewsSystemSettingsSerializer
 from apps.reviews.services.settings import ReviewsSettingsService
 
 
 class ReviewsSystemSettingsView(APIView):
-    permission_classes = [IsSuperAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     throttle_classes = []
 
     def get(self, request):
@@ -27,7 +26,7 @@ class ReviewsSystemSettingsView(APIView):
 
 
 class ReviewsSystemSettingsResetView(APIView):
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsAdminOnly]
     throttle_classes = []
 
     def post(self, request):

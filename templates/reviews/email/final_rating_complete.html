@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Final Rating Available - Falcon PMS{% endblock %}
+{% block header %}Final Performance Rating Released{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ final_rating.employee.first_name|default:final_rating.employee.username }},</h2>
+
+<p>The final calibrated performance appraisal rating for <strong>{{ final_rating.review_cycle.name }}</strong> has been officially published.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Final Score & Rating Summary</h3>
+    <p style="margin: 4px 0;"><strong>Final Overall Score:</strong> {{ final_rating.final_score }}%</p>
+    <p style="margin: 4px 0;"><strong>Performance Tier:</strong> <span {% if final_rating.final_rating_color %}style="font-weight: 600; color: {{ final_rating.final_rating_color }};"{% else %}style="font-weight: 600; color: #2563eb;"{% endif %}>{{ final_rating.final_rating_label }}</span></p>
+    <p style="margin: 4px 0;"><strong>Status:</strong> {{ final_rating.status|title }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/final-rating/' }}" class="button">View Complete Scorecard</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

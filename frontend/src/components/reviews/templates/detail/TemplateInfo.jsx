@@ -91,11 +91,16 @@ const TemplateInfo = ({ template }) => {
         <div className="template-info-section">
           <h4 className="template-info-section-title">Custom Sections</h4>
           <div className="template-info-custom-sections">
-            {template.custom_sections.map((section, index) => (
-              <span key={index} className="template-info-custom-section">
-                {section}
-              </span>
-            ))}
+            {template.custom_sections.map((section, index) => {
+              const secName = typeof section === 'object' && section !== null ? (section.name || section.title || JSON.stringify(section)) : String(section);
+              const secHelp = typeof section === 'object' && section !== null ? section.help_text : null;
+              return (
+                <span key={index} className="template-info-custom-section" title={secHelp || undefined}>
+                  {secName}
+                  {secHelp && <small style={{ display: 'block', fontSize: '11px', opacity: 0.8 }}>{secHelp}</small>}
+                </span>
+              );
+            })}
           </div>
         </div>
       )}
@@ -104,9 +109,10 @@ const TemplateInfo = ({ template }) => {
         <div className="template-info-section">
           <h4 className="template-info-section-title">Section Order</h4>
           <ol className="template-info-section-order">
-            {template.section_order.map((section, index) => (
-              <li key={index}>{section}</li>
-            ))}
+            {template.section_order.map((section, index) => {
+              const secName = typeof section === 'object' && section !== null ? (section.name || section.title || JSON.stringify(section)) : String(section);
+              return <li key={index}>{secName}</li>;
+            })}
           </ol>
         </div>
       )}

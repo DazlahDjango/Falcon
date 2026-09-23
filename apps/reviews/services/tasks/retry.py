@@ -3,8 +3,10 @@
 from celery import shared_task
 
 
-def reviews_shared_task(**kwargs):
-    """Decorator: autoretry with exponential backoff for stability tasks."""
+def reviews_shared_task(*args, **kwargs):
+    """Decorator: autoretry with exponential backoff for stability tasks.
+    Supports both @reviews_shared_task and @reviews_shared_task(...) syntax.
+    """
     defaults = {
         'bind': True,
         'autoretry_for': (Exception,),
@@ -13,5 +15,9 @@ def reviews_shared_task(**kwargs):
         'max_retries': 5,
         'retry_jitter': True,
     }
+    if args and callable(args[0]):
+        fn = args[0]
+        return shared_task(**defaults)(fn)
     defaults.update(kwargs)
     return shared_task(**defaults)
+

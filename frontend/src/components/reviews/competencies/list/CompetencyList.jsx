@@ -1,7 +1,7 @@
 // src/components/reviews/competencies/list/CompetencyList.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Grid, List, Filter } from 'lucide-react';
+import { Plus, Search, Grid, List, Filter, RefreshCw } from 'lucide-react';
 import { useCompetencies } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewEmptyState, ReviewPagination, ReviewSearchBar, ReviewStatusBadge } from '../../common';
 import CompetencyCard from './CompetencyCard';
@@ -13,13 +13,17 @@ const CompetencyList = () => {
   const { data, loading, error, fetchAll, pagination, setPagination, filters, setFilters, clearFilters, canManage } = useCompetencies();
   const [viewMode, setViewMode] = useState('grid');
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     fetchAll({
       page: pagination.currentPage,
       page_size: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.currentPage, pagination.pageSize, filters]);
+  }, [fetchAll, pagination.currentPage, pagination.pageSize, filters]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleSearch = useCallback((searchTerm) => {
     setFilters({ search: searchTerm });
@@ -46,7 +50,7 @@ const CompetencyList = () => {
   };
 
   if (loading && !data.length) return <ReviewLoading size="lg" text="Loading competencies..." />;
-  if (error) return <ReviewError error={error} onRetry={() => fetchAll()} />;
+  if (error) return <ReviewError error={error} onRetry={() => loadData()} />;
 
   return (
     <div className="competency-list">
@@ -56,6 +60,16 @@ const CompetencyList = () => {
           <span className="competency-list-count">{pagination.totalItems} competencies</span>
         </div>
         <div className="competency-list-actions">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={loadData}
+            title="Refresh Competencies"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <RefreshCw size={16} />
+            Refresh
+          </button>
           <div className="competency-list-view-toggle">
             <button
               className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}

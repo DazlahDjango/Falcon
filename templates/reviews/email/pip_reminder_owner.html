@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}PIP Deadline Approaching - Falcon PMS{% endblock %}
+{% block header %}Team PIP Deadline Notice{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ pip.owner.first_name|default:pip.owner.username }},</h2>
+
+<p>The Performance Improvement Plan for <strong>{{ pip.employee.get_full_name }}</strong> will conclude in <strong>{{ days_remaining }} days</strong>.</p>
+
+<div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #b45309;">Review Preparation</h3>
+    <p style="margin: 4px 0;"><strong>Employee:</strong> {{ pip.employee.get_full_name }}</p>
+    <p style="margin: 4px 0;"><strong>End Date:</strong> {{ pip.end_date }}</p>
+    <p style="margin: 4px 0;">Please prepare the final PIP performance outcome assessment.</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/pip/' }}" class="button">View PIP Actions</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

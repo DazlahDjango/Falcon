@@ -70,10 +70,19 @@ class KPIListSerializer(TenantAwareSerializer):
     def get_current_score(self, obj):
         request = self.context.get('request')
         user = request.user if request and getattr(request, 'user', None) and request.user.is_authenticated else None
-        if user:
+        query_params = getattr(request, 'query_params', getattr(request, 'GET', {})) if request else {}
+        scope = query_params.get('scope') if query_params else None
+
+        if (scope == 'my' or (request and 'my-kpis' in getattr(request, 'path', ''))) and user:
             score = obj.scores.filter(user=user).order_by('-year', '-month').first()
             if score and score.score is not None:
                 return float(score.score)
+
+        if obj.owner_id:
+            owner_score = obj.scores.filter(user_id=obj.owner_id).order_by('-year', '-month').first()
+            if owner_score and owner_score.score is not None:
+                return float(owner_score.score)
+
         latest_score = obj.scores.order_by('-year', '-month').first()
         return float(latest_score.score) if latest_score and latest_score.score is not None else 0.0
 

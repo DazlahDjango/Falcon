@@ -36,7 +36,7 @@ class AdminDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsTenantMember]
     throttle_classes = []
     def get(self, request):
-        if request.user.role not in [UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
+        if request.user.role not in [UserRoles.HR_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.SUPER_ADMIN]:
             return Response({'error': 'Permission denied. Admin role required.'}, status=403)
         dashboard = AdminDashboardService.get_dashboard(request.user.tenant_id)
         return Response(dashboard)

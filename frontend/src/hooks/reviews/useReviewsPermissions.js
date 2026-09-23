@@ -17,15 +17,57 @@ const useReviewsPermissions = () => {
         console.log('  user.is_superuser:', user?.is_superuser);
         console.log('  isAuthenticated:', isAuthenticated);
 
-        const role = user?.role || 'staff';
+        const rawRole = (typeof user?.role === 'string' ? user.role : (user?.role?.name || user?.role?.code || user?.user_role || '')) || '';
+        const role = rawRole.toLowerCase().trim();
+        const roleName = (user?.role_name || '').toLowerCase().trim();
+        const email = (user?.email || '').toLowerCase().trim();
+
         // If user has is_superuser set, treat as super admin regardless of role
-        const isSuperAdmin = user?.is_superuser || role === 'super_admin' || role === 'superadmin';
-        const isClientAdmin = isSuperAdmin || role === 'client_admin';
-        const isHrAdmin = isClientAdmin || role === 'hr_admin' || role === 'hr' || role === 'dashboard_champion';
+        const isSuperAdmin = Boolean(
+            user?.is_superuser || 
+            role === 'super_admin' || 
+            role === 'superadmin' || 
+            roleName.includes('super')
+        );
+        const isClientAdmin = Boolean(
+            isSuperAdmin || 
+            role === 'client_admin' || 
+            role === 'admin' || 
+            roleName.includes('client admin') ||
+            roleName.includes('administrator')
+        );
+        const isHrAdmin = Boolean(
+            isClientAdmin || 
+            role === 'hr_admin' || 
+            role === 'hr' || 
+            role === 'hradmin' ||
+            role === 'dashboard_champion' || 
+            role === 'champion' ||
+            roleName.includes('hr') || 
+            roleName.includes('human resources') ||
+            roleName.includes('champion') ||
+            email.includes('hr')
+        );
         const isDashboardChampion = isHrAdmin;
-        const isExecutive = isClientAdmin || role === 'executive';
-        const isSupervisor = isClientAdmin || isHrAdmin || role === 'supervisor' || (user?.get_direct_reports?.length > 0);
-        const isStaff = role === 'staff' || isSuperAdmin;
+        const isExecutive = Boolean(
+            isClientAdmin || 
+            role === 'executive' || 
+            role === 'ceo' ||
+            role === 'c_suite' ||
+            roleName.includes('executive') ||
+            roleName.includes('ceo') ||
+            roleName.includes('chief executive')
+        );
+        const isSupervisor = Boolean(
+            isClientAdmin || 
+            isHrAdmin || 
+            role === 'supervisor' || 
+            role === 'manager' ||
+            roleName.includes('supervisor') || 
+            roleName.includes('manager') || 
+            (Array.isArray(user?.get_direct_reports) && user.get_direct_reports.length > 0)
+        );
+        const isStaff = Boolean(role === 'staff' || isSuperAdmin);
 
         // Reviews-specific permissions
         let permissions = {
@@ -87,10 +129,10 @@ const useReviewsPermissions = () => {
             canDeleteCompetency: isHrAdmin || isClientAdmin || isSuperAdmin,
             canDeleteCompetencyCategory: isHrAdmin || isClientAdmin || isSuperAdmin,
             canDeleteCycle: isHrAdmin || isClientAdmin || isSuperAdmin,
-            canDeleteSelfAssessment: isSuperAdmin,
+            canDeleteSelfAssessment: isAuthenticated,
             canDeleteSupervisorReview: isHrAdmin || isClientAdmin || isSuperAdmin,
             canDeletePIP: isHrAdmin || isClientAdmin || isSuperAdmin,
-            canDeleteFeedbackRequest: isHrAdmin || isClientAdmin || isSuperAdmin,
+            canDeleteFeedbackRequest: isAuthenticated,
             canDeleteCalibrationSession: isHrAdmin || isClientAdmin || isSuperAdmin,
             canDeletePromotion: isHrAdmin || isClientAdmin || isSuperAdmin,
             canDeleteTemplate: isHrAdmin || isClientAdmin || isSuperAdmin,
@@ -125,6 +167,7 @@ const useReviewsPermissions = () => {
             canGeneratePIPFromRating: isHrAdmin || isClientAdmin || isSuperAdmin,
 
             // ========== Special Permissions ==========
+            canManageCycles: isSuperAdmin || isClientAdmin || isHrAdmin || isExecutive,
             canManageAllReviews: isSuperAdmin || isHrAdmin,
             canViewAllEmployees: isSuperAdmin || isClientAdmin || isHrAdmin,
             canViewAllCycles: isSuperAdmin || isClientAdmin || isHrAdmin,
@@ -187,9 +230,9 @@ const useReviewsPermissions = () => {
             can: (permission) => permissions[permission] || false,
 
             // ========== Role Checks ==========
-            isReviewer: isSupervisor || isExecutive || isClientAdmin || isSuperAdmin,
-            isAdmin: isClientAdmin || isSuperAdmin,
-            hasManagerAccess: isSupervisor || isExecutive || isClientAdmin || isSuperAdmin,
+            isReviewer: isSupervisor || isExecutive || isHrAdmin || isClientAdmin || isSuperAdmin,
+            isAdmin: isHrAdmin || isClientAdmin || isSuperAdmin,
+            hasManagerAccess: isSupervisor || isExecutive || isHrAdmin || isClientAdmin || isSuperAdmin,
         };
     }, [user, isAuthenticated]);
 

@@ -52,14 +52,24 @@ class ReviewSummaryService(BaseReviewService):
             subject=employee
         ).first()
         
+        # Get employee position and department safely
+        pos = getattr(employee, 'position', None)
+        dept = getattr(employee, 'department', None)
+        pos_title = getattr(pos, 'title', None) if pos else None
+        if not pos_title and pos:
+            pos_title = getattr(pos, 'name', str(pos))
+        dept_name = getattr(dept, 'name', None) if dept else None
+        if not dept_name and dept:
+            dept_name = getattr(dept, 'title', str(dept))
+
         # Build summary
         summary = {
             'employee': {
-                'id': employee.id,
+                'id': str(employee.id),
                 'name': employee.get_full_name(),
                 'email': employee.email,
-                'position': employee.position.title if hasattr(employee, 'position') else None,
-                'department': employee.department.name if hasattr(employee, 'department') else None,
+                'position': pos_title,
+                'department': dept_name,
             },
             'review_cycle': {
                 'id': review_cycle.id,
@@ -84,6 +94,7 @@ class ReviewSummaryService(BaseReviewService):
         if not assessment:
             return None
         
+        avg_rating = getattr(assessment, 'average_rating', getattr(assessment, 'avg_competency_rating', None))
         return {
             'status': assessment.status,
             'submitted_at': assessment.submitted_at.isoformat() if assessment.submitted_at else None,
@@ -92,7 +103,7 @@ class ReviewSummaryService(BaseReviewService):
             'areas_for_improvement': assessment.areas_for_improvement,
             'career_aspirations': assessment.career_aspirations,
             'achievements': assessment.achievements,
-            'avg_competency_rating': float(assessment.avg_competency_rating) if assessment.avg_competency_rating else None,
+            'avg_competency_rating': float(avg_rating) if avg_rating is not None else None,
         }
     
     @staticmethod
@@ -101,20 +112,22 @@ class ReviewSummaryService(BaseReviewService):
         if not review:
             return None
         
+        sup = getattr(review, 'supervisor', None)
+        avg_rating = getattr(review, 'average_competency_rating', getattr(review, 'avg_competency_rating', None))
         return {
             'status': review.status,
             'submitted_at': review.submitted_at.isoformat() if review.submitted_at else None,
             'supervisor': {
-                'name': review.supervisor.get_full_name(),
-                'email': review.supervisor.email,
-            },
+                'name': sup.get_full_name() if sup else None,
+                'email': sup.email if sup else None,
+            } if sup else None,
             'overall_comment': review.overall_comment,
             'strengths_observed': review.strengths_observed,
             'development_areas': review.development_areas,
-            'recommendation': review.get_recommendation_display(),
+            'recommendation': review.get_recommendation_display() if hasattr(review, 'get_recommendation_display') else getattr(review, 'recommendation', None),
             'promotion_readiness': review.promotion_readiness,
-            'bonus_recommendation': review.get_bonus_recommendation_display(),
-            'avg_competency_rating': float(review.avg_competency_rating) if review.avg_competency_rating else None,
+            'bonus_recommendation': review.get_bonus_recommendation_display() if hasattr(review, 'get_bonus_recommendation_display') else getattr(review, 'bonus_recommendation', None),
+            'avg_competency_rating': float(avg_rating) if avg_rating is not None else None,
         }
     
     @staticmethod
@@ -124,19 +137,19 @@ class ReviewSummaryService(BaseReviewService):
             return None
         
         return {
-            'status': rating.get_status_display(),
-            'final_score': float(rating.final_score) if rating.final_score else None,
+            'status': rating.get_status_display() if hasattr(rating, 'get_status_display') else getattr(rating, 'status', None),
+            'final_score': float(rating.final_score) if rating.final_score is not None else None,
             'final_rating_label': rating.final_rating_label,
             'final_rating_color': rating.final_rating_color,
-            'kpi_score': float(rating.kpi_score) if rating.kpi_score else None,
-            'competency_score': float(rating.competency_score) if rating.competency_score else None,
-            'raw_total_score': float(rating.raw_total_score) if rating.raw_total_score else None,
-            'coefficient_applied': float(rating.coefficient_applied) if rating.coefficient_applied else None,
-            'adjusted_score': float(rating.adjusted_score) if rating.adjusted_score else None,
+            'kpi_score': float(rating.kpi_score) if rating.kpi_score is not None else None,
+            'competency_score': float(rating.competency_score) if rating.competency_score is not None else None,
+            'raw_total_score': float(rating.raw_total_score) if rating.raw_total_score is not None else None,
+            'coefficient_applied': float(rating.coefficient_applied) if rating.coefficient_applied is not None else None,
+            'adjusted_score': float(rating.adjusted_score) if rating.adjusted_score is not None else None,
             'promotion_recommended': rating.promotion_recommended,
             'pip_recommended': rating.pip_recommended,
-            'approved_by': rating.approved_by.email if rating.approved_by else None,
-            'approved_at': rating.approved_at.isoformat() if rating.approved_at else None,
+            'approved_by': rating.approved_by.email if getattr(rating, 'approved_by', None) else None,
+            'approved_at': rating.approved_at.isoformat() if getattr(rating, 'approved_at', None) else None,
         }
     
     @staticmethod
@@ -162,19 +175,25 @@ class ReviewSummaryService(BaseReviewService):
         if not self_assessment or not supervisor_review:
             return None
         
+        from django.contrib.contenttypes.models import ContentType
+        sa_ct = ContentType.objects.get_for_model(SelfAssessment)
+        sr_ct = ContentType.objects.get_for_model(SupervisorReview)
+
         self_ratings = CompetencyRating.objects.filter(
-            self_assessment=self_assessment,
+            content_type=sa_ct,
+            object_id=str(self_assessment.id),
             raw_score__isnull=False
         ).select_related('competency')
         
         supervisor_ratings = CompetencyRating.objects.filter(
-            supervisor_review=supervisor_review,
+            content_type=sr_ct,
+            object_id=str(supervisor_review.id),
             raw_score__isnull=False
         ).select_related('competency')
         
         # Map ratings by competency
-        self_dict = {r.competency.name: float(r.raw_score) for r in self_ratings}
-        supervisor_dict = {r.competency.name: float(r.raw_score) for r in supervisor_ratings}
+        self_dict = {r.competency.name: float(r.raw_score) for r in self_ratings if r.competency}
+        supervisor_dict = {r.competency.name: float(r.raw_score) for r in supervisor_ratings if r.competency}
         
         comparison = []
         all_competencies = set(self_dict.keys()) | set(supervisor_dict.keys())
@@ -250,6 +269,7 @@ class ReviewSummaryService(BaseReviewService):
         
         team_summary = {
             'manager': {
+                'id': str(manager.id),
                 'name': manager.get_full_name(),
                 'email': manager.email,
             },
@@ -258,6 +278,9 @@ class ReviewSummaryService(BaseReviewService):
                 'name': review_cycle.name,
             },
             'total_employees': direct_reports.count(),
+            'team_stats': {
+                'total_direct_reports': direct_reports.count(),
+            },
             'employees': [],
             'aggregate_stats': {
                 'avg_kpi_score': 0,

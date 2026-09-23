@@ -28,7 +28,12 @@ class FinalRatingSerializer(BaseTenantSerializer):
 
 class FinalRatingListSerializer(FinalRatingSerializer):
     class Meta(FinalRatingSerializer.Meta):
-        fields = ['id', 'employee_name', 'employee_email', 'review_cycle_name', 'final_score', 'final_rating_label', 'final_rating_color', 'status', 'status_display', 'promotion_recommended', 'pip_recommended']
+        fields = [
+            'id', 'employee', 'employee_name', 'employee_email',
+            'review_cycle', 'review_cycle_name', 'final_score',
+            'final_rating_label', 'final_rating_color', 'status',
+            'status_display', 'promotion_recommended', 'pip_recommended'
+        ]
 
 class FinalRatingDetailSerializer(FinalRatingSerializer):
     score_breakdown = serializers.SerializerMethodField()
@@ -71,7 +76,7 @@ class FinalRatingCalibrateSerializer(serializers.Serializer):
         return value
 
 class FinalRatingExportSerializer(serializers.Serializer):
-    cycle_id = serializers.UUIDField(required=True)
+    cycle_id = serializers.CharField(required=True)
     format = serializers.ChoiceField(choices=['csv', 'excel', 'pdf'], default='csv')
     include_details = serializers.BooleanField(default=False)
     def validate_cycle_id(self, value):

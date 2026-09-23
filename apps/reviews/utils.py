@@ -724,43 +724,72 @@ def calculate_standard_deviation(scores):
     return round(math.sqrt(variance), 2)
 
 
+def get_date_range_for_period(period, end_date=None):
+    """
+    Get start and end date for a specified analytics period.
+    """
+    if not end_date:
+        end_date = timezone.now().date()
+    p = str(period).lower()
+    if p == 'daily':
+        start_date = end_date - timedelta(days=1)
+    elif p == 'weekly':
+        start_date = end_date - timedelta(days=7)
+    elif p == 'quarterly':
+        start_date = end_date - timedelta(days=90)
+    elif p == 'yearly':
+        start_date = end_date - timedelta(days=365)
+    else:  # monthly
+        start_date = end_date - timedelta(days=30)
+    return start_date, end_date
+
+
+def calculate_percentage_change(current, previous):
+    """
+    Calculate percentage change between current and previous values.
+    """
+    if not previous or float(previous) == 0.0:
+        return 0.0
+    return round(((float(current) - float(previous)) / float(previous)) * 100, 2)
+
+
 def get_rating_distribution(ratings):
     """
-    Aggregate score counts and percentages sorted by rating label.
+    Aggregate score counts and percentages for standard performance rating bands.
     
     Args:
         ratings: Queryset or iterable of FinalRating objects
         
     Returns:
-        dict: Grouped label counts, percentages, and colors
+        dict: Grouped label counts and percentages matching RatingDistributionSerializer
     """
-    from django.db.models import Count
-    
-    total = ratings.count() if hasattr(ratings, 'count') else len(ratings)
-    if total == 0:
-        return {}
-        
-    result = {}
-    if hasattr(ratings, 'values'):
-        dist = ratings.values('final_rating_label', 'final_rating_color').annotate(count=Count('id'))
-        for item in dist:
-            label = item.get('final_rating_label') or 'Not Rated'
-            color = item.get('final_rating_color') or 'gray'
-            count = item['count']
-            result[label] = {
-                'count': count,
-                'percentage': round((count / total) * 100, 1),
-                'color': color
-            }
-    else:
+    scores = []
+    if hasattr(ratings, 'values_list'):
+        scores = [float(s) for s in ratings.values_list('final_score', flat=True) if s is not None]
+    elif hasattr(ratings, '__iter__'):
         for r in ratings:
-            label = getattr(r, 'final_rating_label', 'Not Rated') or 'Not Rated'
-            color = getattr(r, 'final_rating_color', 'gray') or 'gray'
-            if label not in result:
-                result[label] = {'count': 0, 'percentage': 0.0, 'color': color}
-            result[label]['count'] += 1
-            
-        for label in result:
-            result[label]['percentage'] = round((result[label]['count'] / total) * 100, 1)
-            
-    return result
+            score = getattr(r, 'final_score', None)
+            if score is not None:
+                scores.append(float(score))
+    
+    total = len(scores)
+    
+    outstanding = sum(1 for s in scores if s >= 90)
+    exceeds = sum(1 for s in scores if 80 <= s < 90)
+    meets = sum(1 for s in scores if 70 <= s < 80)
+    needs_work = sum(1 for s in scores if 60 <= s < 70)
+    unsatisfactory = sum(1 for s in scores if s < 60)
+    
+    return {
+        'outstanding': outstanding,
+        'exceeds': exceeds,
+        'meets': meets,
+        'needs_work': needs_work,
+        'unsatisfactory': unsatisfactory,
+        'outstanding_percent': round((outstanding / total) * 100, 1) if total > 0 else 0.0,
+        'exceeds_percent': round((exceeds / total) * 100, 1) if total > 0 else 0.0,
+        'meets_percent': round((meets / total) * 100, 1) if total > 0 else 0.0,
+        'needs_work_percent': round((needs_work / total) * 100, 1) if total > 0 else 0.0,
+        'unsatisfactory_percent': round((unsatisfactory / total) * 100, 1) if total > 0 else 0.0,
+    }
+
