@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: falcon-ingress
+  namespace: falcon-pms
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+    - hosts:
+        - app.falconpms.com
+        - api.falconpms.com
+      secretName: falcon-tls-cert
+  rules:
+    - host: app.falconpms.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: falcon-frontend-service
+                port:
+                  number: 80
+    - host: api.falconpms.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: falcon-backend-service
+                port:
+                  number: 8000

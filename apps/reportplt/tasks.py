@@ -135,6 +135,7 @@ def run_all_due_schedules():
 
 @shared_task
 def retry_failed_schedules():
+    from django.db import models
     from apps.reportplt.models import ReportSchedule
     failed_schedules = ReportSchedule.objects.filter(
         is_active=True,

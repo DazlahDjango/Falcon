@@ -188,7 +188,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             }
         })
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_path='provisioning-status')
     def provisioning_status(self, request, pk=None):
         """Returns step-level provisioning progress from org.metadata."""
         service = OrganizationService()

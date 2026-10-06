@@ -4,10 +4,15 @@ from collections import defaultdict
 from django.db.models import Avg, Sum, Count, Min, Max
 from datetime import datetime
 
+
 class DataAggregator:
     def __init__(self):
         self.groupings = {}
         self.calculations = {}
+
+    # ------------------------------------------------------------------
+    # KPI
+    # ------------------------------------------------------------------
 
     def aggregate_kpi_data(self, data: Dict) -> Dict[str, Any]:
         kpis = data.get('kpis', [])
@@ -127,6 +132,10 @@ class DataAggregator:
             }
         }
 
+    # ------------------------------------------------------------------
+    # Configs
+    # ------------------------------------------------------------------
+
     def aggregate_configs_data(self, data: Dict) -> Dict[str, Any]:
         summary = data.get('summary', {})
         backup_summary = data.get('backup', {}).get('summary', {})
@@ -134,7 +143,7 @@ class DataAggregator:
         health_summary = data.get('health', {}).get('summary', {})
         maintenance_summary = data.get('maintenance', {}).get('summary', {})
         security_summary = data.get('security', {}).get('summary', {})
-        
+
         combined_summary = {
             **summary,
             'backup_success_rate': backup_summary.get('success_rate', 0.0),
@@ -152,6 +161,10 @@ class DataAggregator:
             **data,
             'summary': combined_summary
         }
+
+    # ------------------------------------------------------------------
+    # Tenant
+    # ------------------------------------------------------------------
 
     def aggregate_tenant_data(self, data: Dict) -> Dict[str, Any]:
         summary = data.get('summary', {})
@@ -177,26 +190,48 @@ class DataAggregator:
             'summary': combined_summary
         }
 
+    # ------------------------------------------------------------------
+    # KPI engine (unified)
+    # ------------------------------------------------------------------
+
     def aggregate_kpi_engine_data(self, data: Dict) -> Dict[str, Any]:
-        summary = data.get('summary', {})
-        indiv_summary = data.get('individual', {}).get('summary', {})
-        dept_summary = data.get('departmental', {}).get('summary', {})
-        cascade_summary = data.get('cascade', {}).get('summary', {})
-        red_summary = data.get('red_alerts', {}).get('summary', {})
-        comp_summary = data.get('compliance', {}).get('summary', {})
+        """
+        Composes the KPI unified payload into a top-level summary. Tolerates
+        both `summary` and `metrics` keys on the sub-payloads so it works with
+        extractors that emit either shape.
+        """
+        summary = data.get('summary', {}) or {}
+        indiv = data.get('individual', {}) or {}
+        dept = data.get('departmental', {}) or {}
+        cascade = data.get('cascade', {}) or {}
+        red = data.get('red_alerts', {}) or {}
+        comp = data.get('compliance', {}) or {}
+
+        indiv_summary = indiv.get('summary') or indiv.get('metrics') or {}
+        dept_summary = dept.get('summary') or dept.get('metrics') or {}
+        cascade_summary = cascade.get('summary') or cascade.get('metrics') or {}
+        red_summary = red.get('summary') or red.get('metrics') or {}
+        comp_summary = comp.get('summary') or comp.get('metrics') or {}
 
         combined_summary = {
             **summary,
-            'average_organization_score': indiv_summary.get('average_organization_score', 0.0),
-            'total_departments': dept_summary.get('total_departments', 0),
+            'average_organization_score': indiv_summary.get('average_organization_score',
+                                            indiv_summary.get('average_individual_score', 0.0)),
+            'total_departments': dept_summary.get('total_departments',
+                                                 dept_summary.get('total_monitored_departments', 0)),
             'total_cascade_mappings': cascade_summary.get('total_cascade_mappings', 0),
             'total_red_alerts': red_summary.get('total_red_alerts', 0),
-            'approval_rate': comp_summary.get('approval_rate', 0.0),
+            'approval_rate': comp_summary.get('approval_rate',
+                                              comp_summary.get('validation_approval_rate', 0.0)),
         }
         return {
             **data,
             'summary': combined_summary
         }
+
+    # ------------------------------------------------------------------
+    # Structure
+    # ------------------------------------------------------------------
 
     def aggregate_structure_data(self, data: Dict) -> Dict[str, Any]:
         summary = data.get('summary', {})
@@ -204,40 +239,31 @@ class DataAggregator:
         span_summary = data.get('span_of_control', {}).get('summary', {})
         interim_summary = data.get('interim_delegation', {}).get('summary', {})
         cost_summary = data.get('cost_center_allocation', {}).get('summary', {})
+        sec_summary = data.get('security_sensitivity', {}).get('summary', {})
 
         combined_summary = {
             **summary,
-            'total_divisions': chart_summary.get('total_divisions', 0),
-            'total_departments': chart_summary.get('total_departments', 0),
-            'total_active_employees': chart_summary.get('total_active_employees', 0),
-            'total_managers': span_summary.get('total_managers', 0),
-            'overloaded_managers_count': span_summary.get('overloaded_managers_count', 0),
-            'active_interim_assignments': interim_summary.get('total_active_interim_assignments', 0),
-            'total_budget_allocated': cost_summary.get('total_budget_allocated', 0.0),
+            'total_divisions': chart_summary.get('total_divisions', summary.get('total_divisions', 0)),
+            'total_departments': chart_summary.get('total_departments', summary.get('total_departments', 0)),
+            'total_active_employees': chart_summary.get('total_active_employees', summary.get('total_active_employees', 0)),
+            'total_managers': span_summary.get('total_managers', summary.get('total_managers', 0)),
+            'overloaded_managers_count': span_summary.get('overloaded_managers_count', summary.get('overloaded_managers_count', 0)),
+            'active_interim_assignments': interim_summary.get(
+                'total_active_interim_assignments',
+                summary.get('total_active_interim_assignments', 0)
+            ),
+            'total_budget_allocated': cost_summary.get('total_budget_allocated', summary.get('total_budget_allocated', 0.0)),
         }
+        if 'sensitivity_breakdown' in sec_summary:
+            combined_summary['sensitivity_breakdown'] = sec_summary['sensitivity_breakdown']
         return {
             **data,
             'summary': combined_summary
         }
 
-    def aggregate_generic_data(self, data: Dict) -> Dict[str, Any]:
-        if data.get('source') == 'configs':
-            return self.aggregate_configs_data(data)
-        if data.get('source') == 'tenant' or 'lifecycle' in data:
-            return self.aggregate_tenant_data(data)
-        if data.get('source') == 'kpi' or 'individual' in data:
-            return self.aggregate_kpi_engine_data(data)
-        if data.get('source') == 'structure' or 'org_chart' in data:
-            return self.aggregate_structure_data(data)
-        if data.get('source') == 'accounts' or 'user_directory' in data:
-            return self.aggregate_accounts_data(data)
-        if data.get('source') == 'billing' or 'subscription_summary' in data:
-            return self.aggregate_billing_data(data)
-        if data.get('source') == 'reviews' or 'individual_summary' in data:
-            return self.aggregate_reviews_data(data)
-        if 'kpis' in data:
-            return self.aggregate_kpi_data(data)
-        return data
+    # ------------------------------------------------------------------
+    # Accounts
+    # ------------------------------------------------------------------
 
     def aggregate_accounts_data(self, data: Dict) -> Dict[str, Any]:
         summary = data.get('summary', {})
@@ -276,6 +302,10 @@ class DataAggregator:
             **data,
             'summary': aggregated_summary,
         }
+
+    # ------------------------------------------------------------------
+    # Billing
+    # ------------------------------------------------------------------
 
     def aggregate_billing_data(self, data: Dict) -> Dict[str, Any]:
         summary = data.get('summary', {})
@@ -316,22 +346,56 @@ class DataAggregator:
             'summary': aggregated_summary,
         }
 
-    def aggregate_reviews_data(self, data: Dict) -> Dict[str, Any]:
-        summary = data.get('summary', {})
-        comp_summary = data.get('cycle_compliance', {}).get('summary', {})
-        perf_summary = data.get('organization_performance', {}).get('summary', {})
-        cal_summary = data.get('calibration_impact', {}).get('summary', {})
-        pip_summary = data.get('pip_tracker', {}).get('summary', {})
+    # ------------------------------------------------------------------
+    # Reviews
+    # ------------------------------------------------------------------
 
-        completion_pct = comp_summary.get('overall_completion_rate_pct', 0.0)
-        perf_score = perf_summary.get('avg_overall_score', 0.0)
-        pip_recovery_pct = pip_summary.get('pip_success_rate_pct', 0.0)
+    def aggregate_reviews_data(self, data: Dict) -> Dict[str, Any]:
+        """
+        Compose the reviews payload's five sub-sections into a top-level
+        summary. Tolerates both `summary` and `metrics` keys because
+        sub-extractors and the unified extractor may emit either.
+
+        Also preserves sub-section payloads in the returned dict (they're
+        already there via **data) so downstream renderers can read them.
+        """
+        summary = data.get('summary', {}) or {}
+
+        comp = data.get('cycle_compliance', {}) or {}
+        perf = data.get('organization_performance', {}) or {}
+        cal = data.get('calibration_impact', {}) or {}
+        pip = data.get('pip_tracker', {}) or {}
+        ind = data.get('individual_summary', {}) or {}
+
+        comp_summary = comp.get('summary') or comp.get('metrics') or {}
+        perf_summary = perf.get('summary') or perf.get('metrics') or {}
+        cal_summary = cal.get('summary') or cal.get('metrics') or {}
+        pip_summary = pip.get('summary') or pip.get('metrics') or {}
+        ind_summary = ind.get('summary') or ind.get('metrics') or {}
+
+        completion_pct = (
+            comp_summary.get('overall_completion_rate_pct')
+            or comp_summary.get('overall_completion_rate')
+            or 0.0
+        )
+        perf_score = (
+            perf_summary.get('avg_overall_score')
+            or perf_summary.get('average_individual_score')
+            or perf_summary.get('avg_score')
+            or 0.0
+        )
+        pip_success_pct = (
+            pip_summary.get('pip_success_rate_pct')
+            or pip_summary.get('pip_success_rate')
+            or 0.0
+        )
+        active_pips = pip_summary.get('active_pips', 0) or 0
 
         talent_health_score = round(
             (completion_pct * 0.30) +
             (perf_score * 0.30) +
-            (pip_recovery_pct * 0.20) +
-            (max(0, 100 - pip_summary.get('active_pips', 0) * 5) * 0.20),
+            (pip_success_pct * 0.20) +
+            (max(0, 100 - active_pips * 5) * 0.20),
             2
         )
 
@@ -342,15 +406,70 @@ class DataAggregator:
             'avg_overall_score': perf_score,
             'avg_kpi_score': perf_summary.get('avg_kpi_score', 0.0),
             'avg_competency_score': perf_summary.get('avg_competency_score', 0.0),
-            'active_pips_count': pip_summary.get('active_pips', 0),
-            'pip_success_rate_pct': pip_recovery_pct,
+            'std_dev': perf_summary.get('std_dev', 0.0),
+            'total_evaluated_employees': (
+                ind_summary.get('total_evaluated_employees')
+                or perf_summary.get('total_rated_employees')
+                or comp_summary.get('total_participants')
+                or 0
+            ),
+            'total_participants': comp_summary.get('total_participants', 0),
+            'active_pips_count': active_pips,
+            'active_pips': active_pips,
+            'pip_success_rate_pct': pip_success_pct,
+            'total_pips': pip_summary.get('total_pips', 0),
             'calibration_adjustments_count': cal_summary.get('total_adjustments_made', 0),
+            'calibration_sessions_count': cal_summary.get('total_calibration_sessions', 0),
+            'outlier_count': cal_summary.get('outlier_count', 0),
+            'promotion_ready_count': ind_summary.get('promotion_ready_count', 0),
+            'pip_flagged_count': ind_summary.get('pip_flagged_count', 0),
         }
 
         return {
             **data,
             'summary': aggregated_summary,
         }
+
+    # ------------------------------------------------------------------
+    # Generic dispatch
+    # ------------------------------------------------------------------
+
+    def aggregate_generic_data(self, data: Dict) -> Dict[str, Any]:
+        """
+        Route to the correct domain aggregator based on `source` or the
+        presence of a domain-specific marker key. Order matters: check
+        reviews BEFORE kpi because reviews payloads also contain a
+        synthetic 'kpis' list on some paths.
+        """
+        if data.get('source') == 'configs':
+            return self.aggregate_configs_data(data)
+        if data.get('source') == 'tenant' or 'lifecycle' in data:
+            return self.aggregate_tenant_data(data)
+        if data.get('source') == 'reviews' or any(
+            k in data for k in (
+                'individual_summary',
+                'cycle_compliance',
+                'organization_performance',
+                'calibration_impact',
+                'pip_tracker',
+            )
+        ):
+            return self.aggregate_reviews_data(data)
+        if data.get('source') == 'kpi' or 'individual' in data:
+            return self.aggregate_kpi_engine_data(data)
+        if data.get('source') == 'structure' or 'org_chart' in data:
+            return self.aggregate_structure_data(data)
+        if data.get('source') == 'accounts' or 'user_directory' in data:
+            return self.aggregate_accounts_data(data)
+        if data.get('source') == 'billing' or 'subscription_summary' in data:
+            return self.aggregate_billing_data(data)
+        if 'kpis' in data:
+            return self.aggregate_kpi_data(data)
+        return data
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
 
     def _group_by(self, items: List[Dict], key: str) -> Dict[str, Any]:
         grouped = defaultdict(list)

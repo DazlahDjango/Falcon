@@ -134,16 +134,21 @@ class ChainService:
         all_reports = {emp.id: emp for emp in solid_reports + interim_reports}
         return list(all_reports.values())
     
-    def get_all_reports(self, user_id: UUID, tenant_id: UUID) -> List[Employment]:
+    def get_all_reports(self, user_id: UUID, tenant_id: UUID, visited: Optional[set] = None) -> List[Employment]:
+        if visited is None:
+            visited = set()
+        user_id_str = str(user_id)
+        if user_id_str in visited:
+            return []
+        visited.add(user_id_str)
+        
         direct_reports = self.get_direct_reports(user_id, tenant_id)
         all_reports = list(direct_reports)
-        seen_user_ids = {str(user_id)}
         
         for report in direct_reports:
             report_user_id_str = str(report.user_id)
-            if report_user_id_str not in seen_user_ids:
-                seen_user_ids.add(report_user_id_str)
-                all_reports.extend(self.get_all_reports(report_user_id_str, tenant_id))
+            if report_user_id_str not in visited:
+                all_reports.extend(self.get_all_reports(report_user_id_str, tenant_id, visited))
         return all_reports
     
     def get_reporting_depth(self, user_id: UUID, tenant_id: UUID) -> int:

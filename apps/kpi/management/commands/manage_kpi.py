@@ -242,7 +242,7 @@ class Command(BaseCommand):
             raise CommandError(f"KPI '{kpi_ref}' not found")
 
         service = KPIApprovalService()
-        approved_kpi = service.approve_sub_kpi(kpi.id, approver_user, notes=options['notes'])
+        approved_kpi = service.approve_sub_kpi(kpi.id, approver_user)
         self.stdout.write(self.style.SUCCESS(
             f"Successfully APPROVED Sub-KPI '{approved_kpi.name}'!\n"
             f"  - Approval Status: {approved_kpi.approval_status}\n"

@@ -40,10 +40,10 @@ def provision_organization(self, organization_id):
         from celery import chain
         # Trigger modular step execution pipeline
         chain(
-            create_schema_step_task.s(organization_id),
-            apply_migrations_step_task.s(organization_id),
-            seed_initial_data_step_task.s(organization_id),
-            notify_provisioning_complete_task.s(organization_id)
+            create_schema_step_task.si(organization_id),
+            apply_migrations_step_task.si(organization_id),
+            seed_initial_data_step_task.si(organization_id),
+            notify_provisioning_complete_task.si(organization_id)
         ).apply_async(link_error=rollback_provisioning_task.s(organization_id))
         logger.info("Organization %s provisioning chain dispatched", organization_id)
         return True

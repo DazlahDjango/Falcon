@@ -23,6 +23,9 @@ def rate_limit(rate: str = '10/min', key_prefix: str = 'rate_limit', scope: str 
     def decorator(func: Callable):
         @wraps(func)
         def wrapper(self, request, *args, **kwargs):
+            if hasattr(request, 'user') and request.user.is_authenticated:
+                if getattr(request.user, 'role', None) == 'super_admin' or getattr(request.user, 'is_superuser', False):
+                    return func(self, request, *args, **kwargs)
             cache_key = _build_rate_limit_key(key_prefix, request, scope)
             limit, period = _parse_rate(rate)
             count = cache.get(cache_key, 0)

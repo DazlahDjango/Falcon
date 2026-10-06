@@ -33,23 +33,25 @@ def _looks_like_uuid(value: str) -> bool:
         return False
 
 
-def department_name_map(tenant_id: str, department_ids: List[str]) -> Dict[str, str]:
+def department_name_map(tenant_id: Optional[str], department_ids: List[str]) -> Dict[str, str]:
     if not department_ids:
         return {}
     ids = [d for d in department_ids if d]
     if not ids:
         return {}
+    qs = Department.objects.filter(
+        id__in=ids,
+        is_active=True
+    )
+    if tenant_id:
+        qs = qs.filter(tenant_id=tenant_id)
     return {
         str(d.id): d.name
-        for d in Department.objects.filter(
-            tenant_id=tenant_id,
-            id__in=ids,
-            is_active=True
-        ).only('id', 'name')
+        for d in qs.only('id', 'name')
     }
 
 
-def resolve_department_name(tenant_id: str, department_id: Optional[str], fallback: str = '') -> str:
+def resolve_department_name(tenant_id: Optional[str], department_id: Optional[str], fallback: str = '') -> str:
     if not department_id:
         return fallback or 'Unassigned'
     name = department_name_map(tenant_id, [department_id]).get(str(department_id))
@@ -60,7 +62,7 @@ def resolve_department_name(tenant_id: str, department_id: Optional[str], fallba
     return 'Unassigned'
 
 
-def enrich_department_rollup_row(tenant_id: str, row: Dict[str, Any]) -> Dict[str, Any]:
+def enrich_department_rollup_row(tenant_id: Optional[str], row: Dict[str, Any]) -> Dict[str, Any]:
     dept_id = row.get('department_id')
     name = row.get('department_name', '')
     if not name or _looks_like_uuid(name):
@@ -69,21 +71,22 @@ def enrich_department_rollup_row(tenant_id: str, row: Dict[str, Any]) -> Dict[st
 
 
 def compute_department_rollups_live(
-    tenant_id: str,
+    tenant_id: Optional[str],
     year: int,
     month: int,
 ) -> List[Dict[str, Any]]:
-    cache_key = f"{CACHE_PREFIX}:dept_rollups_live:{tenant_id}:{year}:{month}"
+    cache_key = f"{CACHE_PREFIX}:dept_rollups_live:{tenant_id or 'global'}:{year}:{month}"
     cached = cache.get(cache_key)
     if cached:
         return cached
 
     base_qs = Score.objects.filter(
-        tenant_id=tenant_id,
         year=year,
         month=month,
         kpi__department_id__isnull=False,
     )
+    if tenant_id:
+        base_qs = base_qs.filter(tenant_id=tenant_id)
 
     dept_ids = list(base_qs.values_list('kpi__department_id', flat=True).distinct())
     if not dept_ids:
@@ -113,7 +116,7 @@ def compute_department_rollups_live(
         rollup = {
             'department_id': str(dept_id),
             'department_name': names.get(str(dept_id), 'Unknown Department'),
-            'tenant_id': tenant_id,
+            'tenant_id': str(tenant_id or ''),
             'year': year,
             'month': month,
             'overall_score': round(float(overall), 2),
@@ -130,17 +133,17 @@ def compute_department_rollups_live(
 
 
 def get_department_rollups(
-    tenant_id: str,
+    tenant_id: Optional[str],
     year: int,
     month: int,
     prefer_mv: bool = True
 ) -> List[Dict[str, Any]]:
-    cache_key = f"{CACHE_PREFIX}:dept_rollups:{tenant_id}:{year}:{month}"
+    cache_key = f"{CACHE_PREFIX}:dept_rollups:{tenant_id or 'global'}:{year}:{month}"
     cached = cache.get(cache_key)
     if cached:
         return cached
 
-    if prefer_mv:
+    if prefer_mv and tenant_id:
         try:
             mv_data = list(DepartmentRollup.objects.filter(
                 tenant_id=tenant_id,
@@ -159,25 +162,26 @@ def get_department_rollups(
 
 
 def compute_organization_health_live(
-    tenant_id: str,
+    tenant_id: Optional[str],
     year: int,
     month: int,
 ) -> Dict[str, Any]:
-    cache_key = f"{CACHE_PREFIX}:org_health_live:{tenant_id}:{year}:{month}"
+    cache_key = f"{CACHE_PREFIX}:org_health_live:{tenant_id or 'global'}:{year}:{month}"
     cached = cache.get(cache_key)
     if cached:
         return cached
 
     scores = Score.objects.filter(
-        tenant_id=tenant_id,
         year=year,
         month=month
     ).prefetch_related('traffic_lights')
+    if tenant_id:
+        scores = scores.filter(tenant_id=tenant_id)
 
     total_kpis = scores.count()
     if total_kpis == 0:
         result = {
-            'tenant_id': str(tenant_id),
+            'tenant_id': str(tenant_id or ''),
             'year': year,
             'month': month,
             'overall_health_score': 0.0,
@@ -193,18 +197,21 @@ def compute_organization_health_live(
         return result
 
     avg_score = scores.aggregate(avg=Avg('score'))['avg'] or 0
-    red_kpis = TrafficLight.objects.filter(
-        score__tenant_id=tenant_id,
+    red_qs = TrafficLight.objects.filter(
         score__year=year,
         score__month=month,
         status='RED'
-    ).count()
+    )
+    if tenant_id:
+        red_qs = red_qs.filter(score__tenant_id=tenant_id)
+    red_kpis = red_qs.count()
 
     actuals = MonthlyActual.objects.filter(
-        tenant_id=tenant_id,
         year=year,
         month=month
     )
+    if tenant_id:
+        actuals = actuals.filter(tenant_id=tenant_id)
     total_expected = actuals.count()
     validated = actuals.filter(status='APPROVED').count()
     validation_rate = (validated / total_expected * 100) if total_expected > 0 else 100
@@ -220,7 +227,7 @@ def compute_organization_health_live(
         risk_level = 'HIGH'
 
     result = {
-        'tenant_id': str(tenant_id),
+        'tenant_id': str(tenant_id or ''),
         'year': year,
         'month': month,
         'overall_health_score': round(overall_score, 2),

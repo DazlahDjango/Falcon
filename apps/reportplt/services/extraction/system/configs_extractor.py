@@ -142,12 +142,12 @@ class ConfigsDRExtractor:
                 'id': str(p.id),
                 'name': p.name,
                 'app_name': p.app.name if p.app else 'System',
-                'target_rpo_minutes': p.target_rpo_minutes,
-                'target_rto_minutes': p.target_rto_minutes,
+                'target_rpo_minutes': getattr(p, 'rpo_target_minutes', getattr(p, 'target_rpo_minutes', 0)),
+                'target_rto_minutes': getattr(p, 'rto_target_minutes', getattr(p, 'target_rto_minutes', 0)),
                 'status': p.status,
                 'last_tested_at': p.last_tested_at.isoformat() if p.last_tested_at else None,
                 'version': p.version,
-                'approved_by_super_admin': p.approved_by_super_admin,
+                'approved_by_super_admin': bool(getattr(p, 'approved_by', getattr(p, 'approved_by_super_admin', False))),
             })
 
         execution_list = []
@@ -214,7 +214,7 @@ class ConfigsHealthExtractor:
                 'response_time_ms': check.response_time_ms if check else 0,
                 'error_rate_percent': check.error_rate_percent if check else 0.0,
                 'consecutive_failures': check.consecutive_failures if check else 0,
-                'last_checked_at': check.last_checked_at.isoformat() if check and check.last_checked_at else None,
+                'last_checked_at': (getattr(check, 'last_checked_at', getattr(check, 'created_at', None)) or timezone.now()).isoformat() if check else None,
             })
 
         return {

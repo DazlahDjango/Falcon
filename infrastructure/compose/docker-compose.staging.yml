@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  backend:
+    restart: unless-stopped
+    environment:
+      DJANGO_DEBUG: "False"
+
+  postgres:
+    restart: unless-stopped
+
+  redis:
+    restart: unless-stopped

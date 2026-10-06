@@ -76,14 +76,9 @@ class ProvisioningService:
 
     def apply_migrations_step(self, organization_id):
         org = Organization.objects.get(id=organization_id)
-        self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40, "Running database migrations...")
-        self.migration_service.sync_tenant_migrations(org.id)
-        pending_migrations = self.migration_service.get_pending_migrations(org.id)
-        total_migrations = pending_migrations.count()
-        for idx, migration in enumerate(pending_migrations, 1):
-            msg = f"Applying migration {idx}/{total_migrations}: {migration.app_name}.{migration.migration_name}"
-            self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40 + int((idx / max(total_migrations, 1)) * 25), msg)
-            self.migration_service.apply_migration(org.id, migration.app_name, migration.migration_name)
+        self._update_progress(org, 'MIGRATING', 'Applying Migrations', 40, "Running database migrations in single pass...")
+        self.migration_service.apply_all_pending_migrations(org.id)
+        self._update_progress(org, 'MIGRATING', 'Applying Migrations', 65, "Database migrations applied successfully.")
         
         # Post-migration Schema Audit Check
         schema_name = org.schema_name
@@ -372,7 +367,7 @@ class ProvisioningService:
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@falconpms.com'),
                 recipient_list=[email],
                 html_message=html_content,
-                fail_silently=False
+                fail_silently=True
             )
             self.logger.info(f"Welcome email sent successfully to {email}")
         except Exception as e:

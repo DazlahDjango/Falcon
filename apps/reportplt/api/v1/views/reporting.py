@@ -72,6 +72,7 @@ class ReportingViewSet(BaseViewSet):
             params=params
         )
         if result.get('status') == 'success':
+            from django.core.exceptions import ValidationError
             from apps.reportplt.models import ReportExport
             from apps.reportplt.models import Report
             try:
@@ -90,7 +91,7 @@ class ReportingViewSet(BaseViewSet):
                     'export_id': str(export.id),
                     'download_url': request.build_absolute_uri(f"/api/v1/exports/{export.id}/download/")
                 }, status=status.HTTP_200_OK)
-            except Report.DoesNotExist:
+            except (Report.DoesNotExist, ValueError, ValidationError):
                 pass
             return Response(result, status=status.HTTP_200_OK)
         return Response(result, status=status.HTTP_400_BAD_REQUEST)

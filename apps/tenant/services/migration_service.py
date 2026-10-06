@@ -72,7 +72,7 @@ class MigrationService:
             executor = MigrationExecutor(connection)
             executor.loader.build_graph()
             
-            org_apps = ['kpi', 'dashboard', 'reviews', 'structure', 'reportplt', 'tasks_module']
+            org_apps = ['kpi', 'dashboard', 'reviews', 'structure', 'reportplt']
             org_nodes = {key: node for key, node in executor.loader.graph.node_map.items() if key[0] in org_apps}
             
             # Simple topological sort
@@ -323,12 +323,80 @@ class MigrationService:
     def apply_all_pending_migrations(self, organization_id, user=None, fake=False):
         """
         Scans, synchronizes, and applies all pending tenant app migrations
-        topologically for the given organization.
+        in a fast single pass for the given organization.
         """
-        self.sync_tenant_migrations(organization_id)
-        pending_list = list(self.get_pending_migrations(organization_id))
-        applied = []
-        for record in pending_list:
-            res = self.apply_migration(organization_id, record.app_name, record.migration_name, user=user, fake=fake)
-            applied.append(res)
-        return applied
+        schema_name = self._get_schema_name(organization_id)
+        lock_id = hash(str(organization_id)) % 2**31
+
+        from apps.tenant.services.router_service import OrganizationDatabaseRouter
+        from django.db.backends.signals import connection_created
+
+        has_orig = hasattr(OrganizationDatabaseRouter._thread_local, 'is_tenant_migration')
+        orig_val = getattr(OrganizationDatabaseRouter._thread_local, 'is_tenant_migration', False)
+        OrganizationDatabaseRouter._thread_local.is_tenant_migration = True
+
+        start_time = time.time()
+        try:
+            with transaction.atomic():
+                with connection.cursor() as cursor:
+                    # Acquire advisory lock
+                    cursor.execute(f"SELECT pg_advisory_xact_lock({lock_id})")
+
+                    # Validate schema exists
+                    cursor.execute("SELECT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = %s)", [schema_name])
+                    if not cursor.fetchone()[0]:
+                        raise MigrationError(f"Schema {schema_name} does not exist")
+
+                    cursor.execute(f'SET search_path TO "{schema_name}", public')
+                    cursor.execute(f"""
+                        CREATE TABLE IF NOT EXISTS "{schema_name}".django_migrations (
+                            id bigserial PRIMARY KEY,
+                            app varchar(255) NOT NULL,
+                            name varchar(255) NOT NULL,
+                            applied timestamptz NOT NULL
+                        )
+                    """)
+
+            org_apps = ['structure', 'kpi', 'reviews', 'dashboard', 'reportplt']
+            def set_search_path_callback(sender, connection, **kwargs):
+                with connection.cursor() as cursor:
+                    cursor.execute(f'SET search_path TO "{schema_name}", public')
+
+            connection_created.connect(set_search_path_callback)
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(f'SET search_path TO "{schema_name}", public')
+                for app_name in org_apps:
+                    try:
+                        if fake:
+                            call_command('migrate', app_name, interactive=False, fake=True)
+                        else:
+                            call_command('migrate', app_name, interactive=False)
+                    except Exception as app_err:
+                        self.logger.warning(f"Migrate for tenant app '{app_name}' skipped: {app_err}")
+            finally:
+                connection_created.disconnect(set_search_path_callback)
+
+            # Reset search path back to public for global db operations
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO "public"')
+
+            # Synchronize OrganizationMigration records in global DB with tenant schema's django_migrations
+            synced_records = self.sync_tenant_migrations(organization_id)
+            execution_time = int((time.time() - start_time) * 1000)
+            self.logger.info(
+                f"Single-pass batch migration completed for org {organization_id} in {execution_time}ms (fake={fake})"
+            )
+            return synced_records.filter(status='COMPLETED')
+
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            self.logger.error(f"Single-pass batch migration failed for org {organization_id}: {str(e)}\n{error_trace}")
+            raise MigrationError(f"Single-pass batch migration failed: {str(e)}")
+        finally:
+            if has_orig:
+                OrganizationDatabaseRouter._thread_local.is_tenant_migration = orig_val
+            else:
+                if hasattr(OrganizationDatabaseRouter._thread_local, 'is_tenant_migration'):
+                    delattr(OrganizationDatabaseRouter._thread_local, 'is_tenant_migration')

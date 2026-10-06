@@ -1,0 +1,11 @@
+global:
+  environment: staging
+
+backend:
+  replicaCount: 1
+
+celeryWorker:
+  replicaCount: 1
+
+frontend:
+  replicaCount: 1

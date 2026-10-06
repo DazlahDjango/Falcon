@@ -117,41 +117,17 @@ class WidgetDataFetcher:
             raise WidgetDataError(f"Failed to fetch review data: {str(e)}")
 
     def _fetch_task_data(self, widget: ReportWidget) -> Dict:
-        try:
-            from apps.tasks_module.models import Task
-        except ImportError:
-            raise WidgetDataError("Tasks module is not installed or available.")
-        try:
-            tasks = Task.objects.filter(tenant_id=widget.tenant_id)
-            if widget.filters.get('status'):
-                tasks = tasks.filter(status=widget.filters['status'])
-            if widget.filters.get('priority'):
-                tasks = tasks.filter(priority=widget.filters['priority'])
-            tasks = tasks[:widget.limit or 100]
-            task_data = []
-            for task in tasks:
-                task_data.append({
-                    'id': str(task.id),
-                    'title': task.title,
-                    'status': task.status,
-                    'priority': task.priority,
-                    'assigned_to': task.assigned_to.get_full_name() if task.assigned_to else None,
-                    'due_date': task.due_date.isoformat() if task.due_date else None,
-                    'progress': task.progress
-                })
-            return {
-                'items': task_data,
-                'total': len(task_data),
-                'by_status': self._group_by(task_data, 'status'),
-                'by_priority': self._group_by(task_data, 'priority')
-            }
-        except Exception as e:
-            raise WidgetDataError(f"Failed to fetch task data: {str(e)}")
+        return {
+            'items': [],
+            'total': 0,
+            'by_status': {},
+            'by_priority': {}
+        }
 
     def _fetch_pip_data(self, widget: ReportWidget) -> Dict:
-        from apps.reviews.models import PerformanceImprovementPlan
+        from apps.reviews.models import PIP
         try:
-            pips = PerformanceImprovementPlan.objects.filter(tenant_id=widget.tenant_id)
+            pips = PIP.objects.filter(tenant_id=widget.tenant_id)
             if widget.filters.get('status'):
                 pips = pips.filter(status=widget.filters['status'])
             pips = pips[:widget.limit or 50]
@@ -159,20 +135,21 @@ class WidgetDataFetcher:
             for pip in pips:
                 pip_data.append({
                     'employee': pip.employee.get_full_name() if pip.employee else None,
-                    'manager': pip.manager.get_full_name() if pip.manager else None,
+                    'manager': pip.owner.get_full_name() if pip.owner else None,
                     'status': pip.status,
                     'start_date': pip.start_date.isoformat() if pip.start_date else None,
                     'end_date': pip.end_date.isoformat() if pip.end_date else None,
-                    'improvement_areas': pip.improvement_areas
+                    'title': pip.title,
+                    'outcome': pip.outcome,
                 })
             total = len(pip_data)
-            completed = sum(1 for p in pip_data if p['status'] == 'Completed')
+            completed = sum(1 for p in pip_data if p['status'] in ['completed', 'successful'])
             return {
                 'items': pip_data,
                 'total': total,
-                'active': sum(1 for p in pip_data if p['status'] == 'Active'),
+                'active': sum(1 for p in pip_data if p['status'] in ['active', 'extended']),
                 'completed': completed,
-                'failed': sum(1 for p in pip_data if p['status'] == 'Failed'),
+                'failed': sum(1 for p in pip_data if p['status'] in ['failed', 'cancelled']),
                 'success_rate': (completed / total * 100) if total > 0 else 0
             }
         except Exception as e:

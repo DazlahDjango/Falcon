@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: falcon-frontend
+  namespace: falcon-pms
+  labels:
+    app.kubernetes.io/name: falcon-frontend
+    app.kubernetes.io/component: ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: falcon-frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: falcon-frontend
+        app.kubernetes.io/component: ui
+    spec:
+      containers:
+        - name: frontend
+          image: falconpms/frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

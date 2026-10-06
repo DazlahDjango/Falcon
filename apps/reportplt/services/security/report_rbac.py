@@ -16,13 +16,15 @@ class ReportRBAC:
             return True
         if not self._same_tenant(report):
             return False
-        if report.is_public:
+        if getattr(report, 'is_public', False):
             return True
-        if report.owner_id == self.user.id:
+        if getattr(report, 'owner_id', None) == self.user.id or getattr(report, 'created_by_id', None) == self.user.id:
             return True
-        if self.user.role in report.allowed_roles:
+        if self.user.role == 'client_admin':
             return True
-        if self.user.department and self.user.department in report.allowed_departments:
+        if self.user.role in getattr(report, 'allowed_roles', []):
+            return True
+        if self.user.department and self.user.department in getattr(report, 'allowed_departments', []):
             return True
         if self._has_shared_access(report):
             return True
@@ -51,7 +53,7 @@ class ReportRBAC:
             return True
         if not self._same_tenant(report):
             return False
-        if report.owner_id == self.user.id:
+        if getattr(report, 'owner_id', None) == self.user.id or getattr(report, 'created_by_id', None) == self.user.id:
             return True
         if self.user.role == 'client_admin':
             return True
@@ -64,7 +66,7 @@ class ReportRBAC:
             return True
         if not self._same_tenant(report):
             return False
-        if report.owner_id == self.user.id:
+        if getattr(report, 'owner_id', None) == self.user.id or getattr(report, 'created_by_id', None) == self.user.id:
             return True
         if self.user.role == 'client_admin':
             return True

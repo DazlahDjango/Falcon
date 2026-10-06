@@ -110,7 +110,7 @@ class ExportCreateSerializer(serializers.Serializer):
     """
     Create serializer for ReportExport.
     """
-    report_id = serializers.UUIDField(required=True)
+    report_id = serializers.CharField(required=True, help_text="Report UUID or prebuilt report_type identifier")
     format = serializers.ChoiceField(choices=ReportFormat.CHOICES, required=True)
     params = serializers.DictField(required=False, default=dict)
     password = serializers.CharField(required=False, allow_blank=True)
@@ -120,15 +120,17 @@ class ExportCreateSerializer(serializers.Serializer):
     def validate(self, attrs):
         request = self.context.get('request')
         if request:
+            from django.core.exceptions import ValidationError
             from apps.reportplt.models import Report
             from apps.reportplt.services.security.report_rbac import ReportRBAC
             try:
-                report = Report.objects.get(id=attrs.get('report_id'))
-                rbac = ReportRBAC(request.user)
-                if not rbac.can_export_report(report, attrs.get('format')):
-                    raise serializers.ValidationError("You do not have permission to export this report")
-            except Report.DoesNotExist:
-                raise serializers.ValidationError({"report_id": "Report not found"})
+                report = Report.objects.filter(id=attrs.get('report_id')).first()
+                if report:
+                    rbac = ReportRBAC(request.user)
+                    if not rbac.can_export_report(report, attrs.get('format')):
+                        raise serializers.ValidationError("You do not have permission to export this report")
+            except (Report.DoesNotExist, ValueError, ValidationError):
+                pass
         return attrs
 
 class ExportDownloadSerializer(serializers.Serializer):

@@ -116,8 +116,11 @@ class ReportCreateSerializer(ReportBaseSerializer):
     
     def create(self, validated_data):
         request = self.context.get('request')
-        validated_data['tenant_id'] = request.tenant_id if request else None
-        validated_data['created_by'] = request.user if request else None
+        user = getattr(request, 'user', None) if request else None
+        tenant_id = getattr(request, 'tenant_id', None) or (user.tenant_id if user else None)
+        validated_data['tenant_id'] = tenant_id
+        validated_data['created_by'] = user
+        validated_data['owner'] = user
         validated_data['status'] = ReportStatus.DRAFT
         validated_data['version'] = 1
         return super().create(validated_data)

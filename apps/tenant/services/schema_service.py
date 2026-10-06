@@ -33,14 +33,9 @@ class SchemaService:
                 cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema.schema_name}"')
                 cursor.execute(f'GRANT ALL ON SCHEMA "{schema.schema_name}" TO CURRENT_USER')
 
-            # Auto-apply all pending tenant migrations for this organization schema
-            from apps.tenant.services import MigrationService
-            migration_service = MigrationService()
-            migration_service.apply_all_pending_migrations(schema.organization_id)
-
             schema.mark_active()
             self.update_schema_stats(schema.id)
-            self.logger.info(f"Provisioned schema & migrated tables: {schema.schema_name}")
+            self.logger.info(f"Provisioned schema & updated stats: {schema.schema_name}")
             return schema
         except Exception as e:
             schema.mark_failed(str(e))

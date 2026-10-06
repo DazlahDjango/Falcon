@@ -25,6 +25,8 @@ class ReportType:
     TENANT_DOMAIN_SSL = 'tenant_domain_ssl'
     TENANT_BACKUP_AUDIT = 'tenant_backup_audit'
     TENANT_EXECUTIVE_SUMMARY = 'tenant_executive_summary'
+    TENANT_PLATFORM = 'tenant_platform'
+    CONFIGS_SYSTEM = 'configs_system'
     KPI_INDIVIDUAL_SCORECARD = 'kpi_individual_scorecard'
     KPI_DEPARTMENTAL_HEATMAP = 'kpi_departmental_heatmap'
     KPI_CASCADE_TREE = 'kpi_cascade_tree'
@@ -82,6 +84,8 @@ class ReportType:
         (TENANT_DOMAIN_SSL, _('Tenant Domain & SSL Compliance Report')),
         (TENANT_BACKUP_AUDIT, _('Tenant Data Backup Audit Report')),
         (TENANT_EXECUTIVE_SUMMARY, _('Tenant Multi-Tenant Executive Summary')),
+        (TENANT_PLATFORM, _('Unified Tenant Platform Overview')),
+        (CONFIGS_SYSTEM, _('Master System Configuration & Backup Summary')),
         (KPI_INDIVIDUAL_SCORECARD, _('Individual KPI Performance Scorecard')),
         (KPI_DEPARTMENTAL_HEATMAP, _('Departmental KPI Rollup & Heatmap')),
         (KPI_CASCADE_TREE, _('Chain of Command Target Cascading Tree')),

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: falcon-celery-service
+  namespace: falcon-pms
+  labels:
+    app.kubernetes.io/name: falcon-celery-worker
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5555
+      targetPort: 5555
+      name: flower
+  selector:
+    app.kubernetes.io/name: falcon-celery-worker

@@ -1,4 +1,5 @@
 # apps/reportplt/api/v1/throttles/export.py
+import json
 from typing import Optional
 from django.core.cache import cache
 from django.utils import timezone
@@ -9,10 +10,12 @@ class ReportExportThrottle(SimpleRateThrottle):
     Rate limit for report export endpoints.
     """
     scope = 'report_export'
-    rate = '20/hour'
+    rate = '100/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:
+            if getattr(request.user, 'role', None) == 'super_admin' or getattr(request.user, 'is_superuser', False):
+                return None
             return f"export:{str(request.user.id)}"
         return None
 

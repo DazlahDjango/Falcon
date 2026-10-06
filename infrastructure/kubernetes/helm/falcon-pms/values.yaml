@@ -1,0 +1,42 @@
+global:
+  environment: production
+  domain: falconpms.com
+
+backend:
+  replicaCount: 2
+  image:
+    repository: falconpms/backend
+    tag: latest
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1536Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+celeryWorker:
+  replicaCount: 2
+  image:
+    repository: falconpms/celery
+    tag: latest
+    pullPolicy: Always
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: falconpms/frontend
+    tag: latest
+    pullPolicy: Always
+
+postgresql:
+  enabled: true
+  host: falcon-pgbouncer
+  port: 6432
+  database: fasc_db
+
+redis:
+  enabled: true
+  host: falcon-redis
+  port: 6379

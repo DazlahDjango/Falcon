@@ -12,10 +12,12 @@ class ReportGenerationThrottle(SimpleRateThrottle):
     Rate limit for report generation endpoints.
     """
     scope = 'report_generation'
-    rate = '5/hour'
+    rate = '100/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:
+            if getattr(request.user, 'role', None) == 'super_admin' or getattr(request.user, 'is_superuser', False):
+                return None
             return f"gen:{str(request.user.id)}"
         return None
 

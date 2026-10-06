@@ -1,4 +1,4 @@
-﻿# apps/reportplt/services/extraction/production/accounts_extractor.py
+# apps/reportplt/services/extraction/production/accounts_extractor.py
 import logging
 from typing import Dict, Any, List, Optional
 from django.db.models import Count, Q
@@ -38,7 +38,7 @@ class AccountsUserDirectoryExtractor:
         never_logged_in = qs.filter(last_login__isnull=True).count()
 
         user_rows = []
-        for u in qs.select_related('manager').order_by('-created_at')[:200]:
+        for u in qs.select_related('manager').order_by('role', 'first_name', 'email')[:200]:
             joined = None
             if hasattr(u, 'joined_at') and u.joined_at:
                 joined = u.joined_at.isoformat()
@@ -83,7 +83,7 @@ class AccountsLoginSecurityExtractor:
     def extract(self):
         days = int(self.filters.get('days', 30))
         cutoff = timezone.now() - timedelta(days=days)
-        qs = LoginAttempt.objects.filter(timestamp__gte=cutoff)
+        qs = LoginAttempt.objects.filter(attempted_at__gte=cutoff)
         if self.tenant_id:
             qs = qs.filter(tenant_id=self.tenant_id)
 
@@ -96,10 +96,10 @@ class AccountsLoginSecurityExtractor:
         suspicious_ips = list(qs.filter(result__in=['failure', 'locked']).values('ip_address').annotate(count=Count('id')).order_by('-count')[:10])
 
         recent_rows = []
-        for a in qs.select_related('user').order_by('-timestamp')[:100]:
+        for a in qs.select_related('user').order_by('-attempted_at')[:100]:
             recent_rows.append({
                 'identifier': a.user.email if a.user else a.identifier,
-                'timestamp': a.timestamp.isoformat(),
+                'timestamp': a.attempted_at.isoformat() if a.attempted_at else None,
                 'ip_address': a.ip_address or '',
                 'user_agent': (a.user_agent[:80] if a.user_agent else ''),
                 'result': a.result,
@@ -408,7 +408,7 @@ class AccountsSecurityAnomaliesExtractor:
         days = int(self.filters.get('days', 30))
         cutoff = timezone.now() - timedelta(days=days)
         audit_qs = AuditLog.objects.filter(timestamp__gte=cutoff)
-        login_qs = LoginAttempt.objects.filter(timestamp__gte=cutoff)
+        login_qs = LoginAttempt.objects.filter(attempted_at__gte=cutoff)
         if self.tenant_id:
             audit_qs = audit_qs.filter(tenant_id=self.tenant_id)
             login_qs = login_qs.filter(tenant_id=self.tenant_id)

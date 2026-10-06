@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: falcon-network-policy
+  namespace: falcon-pms
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: falcon-backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: falcon-frontend
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: falcon-postgres
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: falcon-redis

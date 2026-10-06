@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.testing
+    command: pytest

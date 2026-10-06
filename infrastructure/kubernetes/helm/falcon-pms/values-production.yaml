@@ -1,0 +1,15 @@
+global:
+  environment: production
+
+backend:
+  replicaCount: 4
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 3072Mi
+
+celeryWorker:
+  replicaCount: 4
+
+frontend:
+  replicaCount: 3
