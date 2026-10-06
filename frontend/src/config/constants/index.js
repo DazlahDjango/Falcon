@@ -410,6 +410,7 @@ export const API_ENDPOINTS = {
 export const ROLES = {
     SUPER_ADMIN: 'super_admin',
     CLIENT_ADMIN: 'client_admin',
+    HR_ADMIN: 'hr_admin',
     EXECUTIVE: 'executive',
     SUPERVISOR: 'supervisor',
     DASHBOARD_CHAMPION: 'dashboard_champion',
@@ -420,6 +421,7 @@ export const ROLES = {
 export const ROLE_HIERARCHY = {
     [ROLES.SUPER_ADMIN]: 0,
     [ROLES.CLIENT_ADMIN]: 1,
+    [ROLES.HR_ADMIN]: 1,
     [ROLES.EXECUTIVE]: 2,
     [ROLES.SUPERVISOR]: 3,
     [ROLES.DASHBOARD_CHAMPION]: 3,
@@ -430,6 +432,7 @@ export const ROLE_HIERARCHY = {
 export const ROLE_DISPLAY_NAMES = {
     [ROLES.SUPER_ADMIN]: 'Super Admin',
     [ROLES.CLIENT_ADMIN]: 'Organization Admin',
+    [ROLES.HR_ADMIN]: 'HR Admin',
     [ROLES.EXECUTIVE]: 'Executive',
     [ROLES.SUPERVISOR]: 'Supervisor',
     [ROLES.DASHBOARD_CHAMPION]: 'Dashboard Champion',

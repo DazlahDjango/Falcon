@@ -32,7 +32,7 @@ class ReportViewSet(BaseActionViewSet):
         try:
             employee = User.objects.get(id=employee_id)
             cycle = ReviewCycle.objects.get(id=cycle_id)
-            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != employee.manager:
+            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN, UserRoles.EXECUTIVE] and request.user != employee.manager:
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             summary = ReviewSummaryService.get_employee_summary(employee, cycle)
             return Response(summary)
@@ -50,7 +50,7 @@ class ReportViewSet(BaseActionViewSet):
         try:
             manager = User.objects.get(id=manager_id)
             cycle = ReviewCycle.objects.get(id=cycle_id)
-            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN] and request.user != manager:
+            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN, UserRoles.EXECUTIVE] and request.user != manager:
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             summary = ReviewSummaryService.get_team_summary(manager, cycle)
             return Response(summary)

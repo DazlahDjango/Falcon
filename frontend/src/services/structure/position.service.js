@@ -17,8 +17,8 @@ class PositionService extends BaseStructureService {
     return this.unwrap(response);
   }
 
-  async getStats() {
-    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.STATS));
+  async getStats(params = {}) {
+    const response = await withRetry(() => this.apiClient.get(POSITION_ENDPOINTS.STATS, { params }));
     return this.unwrap(response);
   }
 

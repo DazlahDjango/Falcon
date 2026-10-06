@@ -8,9 +8,9 @@ import { ReviewBreadcrumbs } from '../../../components/reviews/common';
 
 const PendingApprovalsPage = () => {
   const navigate = useNavigate();
-  const { canApproveSupervisorReview, isAdmin } = useReviewsPermissions();
+  const { canApproveSupervisorReview, canViewSupervisorReview, isSupervisor, isExecutive, isHrAdmin, isAdmin } = useReviewsPermissions();
 
-  if (!canApproveSupervisorReview && !isAdmin) {
+  if (!canApproveSupervisorReview && !isAdmin && !isSupervisor && !isExecutive && !isHrAdmin && !canViewSupervisorReview) {
     return (
       <div className="pending-approvals-page">
         <div className="pending-approvals-page-unauthorized">

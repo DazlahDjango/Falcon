@@ -7,11 +7,16 @@ import { useCycles } from '../../../../hooks/reviews';
 
 const CycleTable = ({ data }) => {
   const navigate = useNavigate();
-  const { deleteCycle, canManage } = useCycles();
+  const { deleteCycle, canManage, fetchAll } = useCycles();
 
   const handleDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      await deleteCycle(id);
+      try {
+        await deleteCycle(id);
+        if (fetchAll) fetchAll();
+      } catch (err) {
+        alert('Failed to delete review cycle: ' + (err.response?.data?.error || err.message || 'Permission denied'));
+      }
     }
   };
 

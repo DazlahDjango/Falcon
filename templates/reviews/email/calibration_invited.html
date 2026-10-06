@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Calibration Session Invitation - Falcon PMS{% endblock %}
+{% block header %}Calibration Committee Invitation{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello Committee Member,</h2>
+
+<p>You have been invited to participate in the performance appraisal calibration session: <strong>{{ session.name }}</strong>.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Session Details</h3>
+    <p style="margin: 4px 0;"><strong>Session:</strong> {{ session.name }}</p>
+    <p style="margin: 4px 0;"><strong>Scheduled Date:</strong> {{ session.scheduled_date }}</p>
+    <p style="margin: 4px 0;"><strong>Review Cycle:</strong> {{ session.review_cycle.name }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/calibration/' }}" class="button">Access Calibration Portal</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

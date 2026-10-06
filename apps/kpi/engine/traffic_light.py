@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Dict, List
+from typing import Dict, List, Any
 from django.utils import timezone
 from datetime import timedelta, datetime
 import logging
@@ -10,10 +10,16 @@ class TrafficLightEvaluator:
     def __init__(self, green_threshold: Decimal = Decimal('90'), yellow_threshold: Decimal = Decimal('50')):
         self.green_threshold = green_threshold
         self.yellow_threshold = yellow_threshold
-    def evaluate(self, score: Decimal) -> Dict[str, str]:
-        if score >= self.green_threshold:
+    def evaluate(self, score) -> Dict[str, Any]:
+        score_val = getattr(score, 'score', score)
+        if not isinstance(score_val, Decimal):
+            try:
+                score_val = Decimal(str(score_val))
+            except Exception:
+                score_val = Decimal('0')
+        if score_val >= self.green_threshold:
             status = 'GREEN'
-        elif score >= self.yellow_threshold:
+        elif score_val >= self.yellow_threshold:
             status = 'YELLOW'
         else:
             status = 'RED'

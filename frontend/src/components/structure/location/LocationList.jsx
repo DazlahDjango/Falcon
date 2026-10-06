@@ -233,7 +233,8 @@ export const LocationList = () => {
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
-        searchPlaceholder="Search locations..."
+        onSearch={handleSearch}
+        searchPlaceholder="Search locations by code, name, city or country..."
       >
         <div className="filter-group">
           <label>Status</label>
@@ -281,13 +282,6 @@ export const LocationList = () => {
           </select>
         </div>
       </StructureFilters>
-
-      <StructureSearchBar
-        value={searchTerm}
-        onChange={handleSearch}
-        placeholder="Search by code, name, city or country..."
-        debounce={400}
-      />
 
       <StructureTable hideEmptyState={true}
         columns={COLUMNS}

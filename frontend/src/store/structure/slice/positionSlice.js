@@ -51,9 +51,9 @@ export const fetchVacantPositions = createAsyncThunk(
 
 export const fetchPositionStats = createAsyncThunk(
   'positions/fetchStats',
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const response = await positionService.getStats();
+      const response = await positionService.getStats(params);
       return response;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch position stats');

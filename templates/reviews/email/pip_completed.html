@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}PIP Evaluation Completed - Falcon PMS{% endblock %}
+{% block header %}PIP Outcome Concluded{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ pip.employee.first_name|default:pip.employee.username }},</h2>
+
+<p>Your Performance Improvement Plan has <strong>{{ outcome_text }}</strong>.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Final Assessment</h3>
+    <p style="margin: 4px 0;"><strong>Plan Title:</strong> {{ pip.title }}</p>
+    <p style="margin: 4px 0;"><strong>Outcome:</strong> {{ pip.outcome|title }}</p>
+    <p style="margin: 4px 0;"><strong>Completed Date:</strong> {{ pip.completed_at|default:"Today" }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/pip/' }}" class="button">View Concluded Plan</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

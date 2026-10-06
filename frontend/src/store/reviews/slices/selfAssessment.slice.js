@@ -7,27 +7,34 @@ const selfAssessmentSlice = createCrudSlice('selfAssessments', selfAssessmentSer
   initialState: {
     stats: null,
   },
-});
-
-// Add custom reducers
-const customReducers = {
-  setStats: (state, action) => {
-    state.stats = action.payload;
+  reducers: {
+    setStats: (state, action) => {
+      state.stats = action.payload;
+    },
+    setError: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
   },
-};
-
-// Add custom reducers to the slice
-Object.assign(selfAssessmentSlice.actions, customReducers);
+});
 
 // ===== Custom thunks =====
 export const submitSelfAssessment = (idOrObj) => async (dispatch) => {
   try {
+    dispatch(selfAssessmentSlice.actions.clearErrors());
+    dispatch(selfAssessmentSlice.actions.setLoading(true));
     const id = typeof idOrObj === 'object' && idOrObj !== null ? idOrObj.id : idOrObj;
     const response = await selfAssessmentService.submit(id);
     dispatch(selfAssessmentSlice.actions.updateItem(response));
     dispatch(selfAssessmentSlice.actions.selectItem(response));
+    dispatch(selfAssessmentSlice.actions.setLoading(false));
     return response;
   } catch (error) {
+    const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to submit self assessment';
+    dispatch(selfAssessmentSlice.actions.setError(errorMsg));
     throw error;
   }
 };
@@ -47,11 +54,15 @@ export const saveSelfAssessmentDraft = (idOrObj, maybeData) => async (dispatch) 
 
 export const resetSelfAssessmentToDraft = (idOrObj) => async (dispatch) => {
   try {
+    dispatch(selfAssessmentSlice.actions.clearErrors());
     const id = typeof idOrObj === 'object' && idOrObj !== null ? idOrObj.id : idOrObj;
     const response = await selfAssessmentService.resetToDraft(id);
     dispatch(selfAssessmentSlice.actions.updateItem(response));
+    dispatch(selfAssessmentSlice.actions.selectItem(response));
     return response;
   } catch (error) {
+    const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to reset self assessment';
+    dispatch(selfAssessmentSlice.actions.setError(errorMsg));
     throw error;
   }
 };
@@ -78,10 +89,21 @@ export const restoreSelfAssessment = (id) => async (dispatch) => {
 
 export const fetchMySelfAssessment = () => async (dispatch) => {
   try {
+    dispatch(selfAssessmentSlice.actions.clearErrors());
+    dispatch(selfAssessmentSlice.actions.setLoading(true));
     const response = await selfAssessmentService.getMy();
-    dispatch(selfAssessmentSlice.actions.selectItem(response));
+    if (response && response.id) {
+      dispatch(selfAssessmentSlice.actions.selectItem(response));
+    } else if (response && response.message) {
+      dispatch(selfAssessmentSlice.actions.clearSelected());
+    } else if (response) {
+      dispatch(selfAssessmentSlice.actions.selectItem(response));
+    }
+    dispatch(selfAssessmentSlice.actions.setLoading(false));
     return response;
   } catch (error) {
+    const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch self assessment';
+    dispatch(selfAssessmentSlice.actions.setError(errorMsg));
     throw error;
   }
 };
@@ -98,6 +120,7 @@ export const fetchSelfAssessmentStats = (cycleId) => async (dispatch) => {
 
 // ===== ADD THIS: Export reset action =====
 export const resetSelfAssessmentState = selfAssessmentSlice.actions.resetState;
+export const clearSelfAssessmentErrors = selfAssessmentSlice.actions.clearErrors;
 
 // ===== Exports =====
 export const selfAssessmentReducer = selfAssessmentSlice.slice.reducer;

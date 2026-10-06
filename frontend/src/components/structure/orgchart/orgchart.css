@@ -1141,12 +1141,31 @@
     padding: 16px;
   }
 
-  .org-tree-node {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
   .org-tree-node .tree-node-right {
     margin-left: 32px;
   }
 }
+
+/* ============================================
+   VISUAL TREE CANVAS STYLES
+   ============================================ */
+.visual-tree-node:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.visual-tree-node.highlighted-node {
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}

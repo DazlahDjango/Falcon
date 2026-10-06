@@ -26,6 +26,8 @@ const BulkImportPage = React.lazy(() => import('../pages/accounts/BulkImportPage
 // ============ Profile Pages ============
 const ProfilePage = React.lazy(() => import('../pages/accounts/ProfilePage'));
 const ProfileEditPage = React.lazy(() => import('../pages/accounts/ProfileEditPage'));
+const MyTeam = React.lazy(() => import('../components/structure/reporting/MyTeam'));
+const ReportingChain = React.lazy(() => import('../components/structure/reporting/ReportingChain'));
 
 // ============ MFA Pages ============
 const MFADevicesPage = React.lazy(() => import('../pages/accounts/MFADevicesPage'));
@@ -144,6 +146,14 @@ const accountsRoutes = [
     {
         path: '/me',
         element: <ProfilePage />,
+    },
+    {
+        path: ACCOUNTS_ROUTES.MY_TEAM,
+        element: <MyTeam />,
+    },
+    {
+        path: ACCOUNTS_ROUTES.MY_REPORTING_CHAIN,
+        element: <ReportingChain />,
     },
 
     // ============ MFA ============

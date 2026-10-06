@@ -8,36 +8,65 @@ import NotificationItem from './NotificationItem';
 
 const NotificationList = () => {
   const navigate = useNavigate();
-  const { data, loading, error, fetchAll, markAllAsRead, pagination, setPagination, unreadCount, canManage } = useReviewsNotifications();
+  const {
+    data = [],
+    loading,
+    error,
+    fetchAll,
+    markAllAsRead,
+    pagination,
+    setPagination,
+    unreadCount = 0,
+    canManage,
+  } = useReviewsNotifications();
+
+  const paginationSafe = pagination ?? {
+    currentPage: 1,
+    pageSize: 20,
+    totalItems: data.length,
+    totalPages: 1,
+  };
 
   useEffect(() => {
-    fetchAll({
-      page: pagination.currentPage,
-      page_size: pagination.pageSize,
-    });
-  }, [pagination.currentPage, pagination.pageSize, fetchAll]);
+    if (canManage && typeof fetchAll === 'function') {
+      fetchAll({
+        page: paginationSafe.currentPage,
+        page_size: paginationSafe.pageSize,
+      });
+    }
+  }, [paginationSafe.currentPage, paginationSafe.pageSize, fetchAll, canManage]);
 
   const handleMarkAllRead = async () => {
-    await markAllAsRead();
-    fetchAll({
-      page: pagination.currentPage,
-      page_size: pagination.pageSize,
-    });
+    if (typeof markAllAsRead === 'function') {
+      await markAllAsRead();
+    }
+    if (typeof fetchAll === 'function') {
+      fetchAll({
+        page: paginationSafe.currentPage,
+        page_size: paginationSafe.pageSize,
+      });
+    }
   };
 
   const handleRefresh = () => {
-    fetchAll({
-      page: pagination.currentPage,
-      page_size: pagination.pageSize,
-    });
+    if (typeof fetchAll === 'function') {
+      fetchAll({
+        page: paginationSafe.currentPage,
+        page_size: paginationSafe.pageSize,
+      });
+    }
   };
 
   const handlePageChange = useCallback((page) => {
-    setPagination({ currentPage: page });
+    if (typeof setPagination === 'function') {
+      setPagination({ currentPage: page });
+    }
   }, [setPagination]);
 
   const handlePageSizeChange = useCallback((size) => {
-    setPagination({ pageSize: size, currentPage: 1 });
+    if (typeof setPagination === 'function') {
+      setPagination({ pageSize: size, currentPage: 1 });
+    }
   }, [setPagination]);
 
   if (!canManage) {
@@ -60,7 +89,7 @@ const NotificationList = () => {
         <div className="notification-list-title-section">
           <h1 className="notification-list-title">Notifications</h1>
           <span className="notification-list-count">
-            {pagination.totalItems} notifications
+            {paginationSafe.totalItems ?? data.length} notifications
             {unreadCount > 0 && ` (${unreadCount} unread)`}
           </span>
         </div>
@@ -71,7 +100,7 @@ const NotificationList = () => {
               Mark All Read
             </button>
           )}
-          <button className="notification-list-refresh" onClick={handleRefresh}>
+          <button className="notification-list-refresh" onClick={handleRefresh} title="Refresh notifications">
             <RefreshCw size={18} />
           </button>
         </div>
@@ -91,10 +120,10 @@ const NotificationList = () => {
             ))}
           </div>
           <ReviewPagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            pageSize={pagination.pageSize}
-            totalItems={pagination.totalItems}
+            currentPage={paginationSafe.currentPage}
+            totalPages={paginationSafe.totalPages}
+            pageSize={paginationSafe.pageSize}
+            totalItems={paginationSafe.totalItems}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
           />

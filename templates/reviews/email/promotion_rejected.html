@@ -1,0 +1,25 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Promotion Recommendation Update - Falcon PMS{% endblock %}
+{% block header %}Promotion Recommendation Update{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ promotion.employee.first_name|default:promotion.employee.username }},</h2>
+
+<p>Your promotion recommendation has undergone executive review.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #6b7280; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #374151;">Review Status</h3>
+    <p style="margin: 4px 0;"><strong>Proposed Role:</strong> {{ promotion.proposed_title|default:promotion.recommended_role }}</p>
+    <p style="margin: 4px 0;"><strong>Feedback / Reason:</strong> {{ reason|default:"Recommendation was not approved for the current evaluation cycle." }}</p>
+</div>
+
+<p class="text-muted">Please reach out to your manager or HR business partner for constructive guidance and developmental roadmap alignment.</p>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

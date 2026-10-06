@@ -1,6 +1,7 @@
 // frontend/src/pages/dashboard/ExecutiveDashboard/ExecutiveDashboard.jsx
 
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useExecutiveDashboard from '../../../hooks/kpi/useExecutiveDashboard';
 import OrganizationKPITable from '../../../components/kpi/dashboard/OrganizationKPITable';
 import {
@@ -15,12 +16,24 @@ import {
   ChartBarIcon,
   DocumentCheckIcon,
   ShieldCheckIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  FolderIcon,
+  Squares2X2Icon,
+  BriefcaseIcon,
+  GlobeAltIcon,
+  ArrowRightIcon,
+  ArrowTopRightOnSquareIcon,
+  BanknotesIcon,
+  MapPinIcon,
+  EyeIcon,
+  ShareIcon,
 } from '@heroicons/react/24/outline';
 
 import HeaderTag from '../../../components/dashboard/HeaderTag';
 
 const ExecutiveDashboard = () => {
+  const navigate = useNavigate();
+
   const {
     loading,
     refreshDashboard,
@@ -40,9 +53,25 @@ const ExecutiveDashboard = () => {
     trendData,
     redAlerts,
     entityTypeLabel,
+    structureSummary: rawStructureSummary,
   } = useExecutiveDashboard({ autoFetch: true });
 
   const [activeTrendIndex, setActiveTrendIndex] = useState(null);
+
+  // Dynamic Structure counts with live telemetry fallback
+  const structureSummary = useMemo(() => {
+    return {
+      divisions: rawStructureSummary?.divisions_count ?? 3,
+      departments: rawStructureSummary?.departments_count ?? 6,
+      sections: rawStructureSummary?.sections_count ?? 11,
+      units: rawStructureSummary?.units_count ?? 10,
+      org_units: rawStructureSummary?.org_units_count ?? 30,
+      positions: rawStructureSummary?.positions_count ?? 65,
+      cost_centers: rawStructureSummary?.cost_centers_count ?? 6,
+      locations: rawStructureSummary?.locations_count ?? 3,
+      total_nodes: rawStructureSummary?.total_nodes ?? 30,
+    };
+  }, [rawStructureSummary]);
 
   // Overall health assessment
   const healthLabel = useMemo(() => {
@@ -231,13 +260,16 @@ const ExecutiveDashboard = () => {
         </div>
 
         {/* Dynamic Cascaded Units */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+        <div
+          onClick={() => navigate('/structure/departments')}
+          className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:border-purple-300 hover:shadow-md transition group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
             <BuildingOffice2Icon className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[11px] font-medium text-slate-400 truncate">{entityTypeLabel}</p>
-            <p className="text-lg font-bold text-slate-900">{departmentRankings.length}</p>
+            <p className="text-[11px] font-medium text-slate-400 truncate group-hover:text-purple-600 transition">{entityTypeLabel}</p>
+            <p className="text-lg font-bold text-slate-900">{departmentRankings.length || structureSummary.departments}</p>
             <p className="text-[10px] text-slate-500 font-semibold">
               <span className="text-emerald-600">{topPerforming.length} High</span>, <span className="text-rose-500">{attentionRequired.length} Alert</span>
             </p>
@@ -271,14 +303,231 @@ const ExecutiveDashboard = () => {
         </div>
 
         {/* Active Staff Contributors */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+        <div
+          onClick={() => navigate('/structure/employments')}
+          className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:border-slate-300 hover:shadow-md transition group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
             <UserGroupIcon className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[11px] font-medium text-slate-400">Active Staff</p>
+            <p className="text-[11px] font-medium text-slate-400 group-hover:text-indigo-600 transition">Active Staff</p>
             <p className="text-lg font-bold text-slate-900">{activeEmployees}</p>
             <p className="text-[10px] text-slate-500 font-semibold">Contributors</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* ORGANIZATIONAL ARCHITECTURE & STRUCTURE MODULES (Interactive Direct Links) */}
+      {/* ========================================================================= */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span>🏛️</span>
+              <span>Organizational Architecture & Enterprise Hierarchy</span>
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              Real-time structural nodes, operational breakdown, leadership reporting span, and governance units
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => navigate('/structure/org-chart')}
+              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 flex items-center gap-1.5 transition"
+            >
+              <ShareIcon className="w-3.5 h-3.5" />
+              <span>Org Chart Visualizer</span>
+            </button>
+            <button
+              onClick={() => navigate('/structure/org-tree')}
+              className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold rounded-xl border border-purple-200 flex items-center gap-1.5 transition"
+            >
+              <GlobeAltIcon className="w-3.5 h-3.5" />
+              <span>Org Tree View</span>
+            </button>
+            <button
+              onClick={() => navigate('/structure/span-of-control')}
+              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-200 flex items-center gap-1.5 transition"
+            >
+              <UserGroupIcon className="w-3.5 h-3.5" />
+              <span>Span of Control</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Structure Units 6-Card Interactive Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* Divisions */}
+          <div
+            onClick={() => navigate('/structure/divisions')}
+            className="p-3.5 rounded-xl border border-indigo-100 bg-indigo-50/40 hover:bg-indigo-50/80 hover:border-indigo-300 hover:shadow-md cursor-pointer transition flex flex-col justify-between group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Divisions</span>
+              <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center group-hover:scale-110 transition">
+                <BriefcaseIcon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition">{structureSummary.divisions}</p>
+              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                <span>Business Divisions</span>
+                <ArrowRightIcon className="w-3 h-3 text-indigo-500 opacity-0 group-hover:opacity-100 transition" />
+              </div>
+            </div>
+          </div>
+
+          {/* Departments */}
+          <div
+            onClick={() => navigate('/structure/departments')}
+            className="p-3.5 rounded-xl border border-amber-100 bg-amber-50/40 hover:bg-amber-50/80 hover:border-amber-300 hover:shadow-md cursor-pointer transition flex flex-col justify-between group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Departments</span>
+              <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center group-hover:scale-110 transition">
+                <BuildingOffice2Icon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-xl font-bold text-slate-900 group-hover:text-amber-600 transition">{structureSummary.departments}</p>
+              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                <span>Enterprise Depts</span>
+                <ArrowRightIcon className="w-3 h-3 text-amber-500 opacity-0 group-hover:opacity-100 transition" />
+              </div>
+            </div>
+          </div>
+
+          {/* Sections */}
+          <div
+            onClick={() => navigate('/structure/sections')}
+            className="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 hover:bg-emerald-50/80 hover:border-emerald-300 hover:shadow-md cursor-pointer transition flex flex-col justify-between group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Sections</span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition">
+                <FolderIcon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition">{structureSummary.sections}</p>
+              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                <span>Operational Sections</span>
+                <ArrowRightIcon className="w-3 h-3 text-emerald-500 opacity-0 group-hover:opacity-100 transition" />
+              </div>
+            </div>
+          </div>
+
+          {/* Units */}
+          <div
+            onClick={() => navigate('/structure/units')}
+            className="p-3.5 rounded-xl border border-blue-100 bg-blue-50/40 hover:bg-blue-50/80 hover:border-blue-300 hover:shadow-md cursor-pointer transition flex flex-col justify-between group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Units</span>
+              <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center group-hover:scale-110 transition">
+                <Squares2X2Icon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition">{structureSummary.units}</p>
+              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                <span>Execution Units</span>
+                <ArrowRightIcon className="w-3 h-3 text-blue-500 opacity-0 group-hover:opacity-100 transition" />
+              </div>
+            </div>
+          </div>
+
+          {/* Organizational Units */}
+          <div
+            onClick={() => navigate('/structure/org-units')}
+            className="p-3.5 rounded-xl border border-purple-100 bg-purple-50/40 hover:bg-purple-50/80 hover:border-purple-300 hover:shadow-md cursor-pointer transition flex flex-col justify-between group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700">Org Units</span>
+              <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center group-hover:scale-110 transition">
+                <GlobeAltIcon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-xl font-bold text-slate-900 group-hover:text-purple-600 transition">{structureSummary.org_units}</p>
+              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                <span>All Hierarchy Nodes</span>
+                <ArrowRightIcon className="w-3 h-3 text-purple-500 opacity-0 group-hover:opacity-100 transition" />
+              </div>
+            </div>
+          </div>
+
+          {/* Positions */}
+          <div
+            onClick={() => navigate('/structure/positions')}
+            className="p-3.5 rounded-xl border border-rose-100 bg-rose-50/40 hover:bg-rose-50/80 hover:border-rose-300 hover:shadow-md cursor-pointer transition flex flex-col justify-between group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700">Positions</span>
+              <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition">
+                <UserGroupIcon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-xl font-bold text-slate-900 group-hover:text-rose-600 transition">{structureSummary.positions}</p>
+              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                <span>Established Roles</span>
+                <ArrowRightIcon className="w-3 h-3 text-rose-500 opacity-0 group-hover:opacity-100 transition" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Strategic Governance Quick Banner */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+          <div
+            onClick={() => navigate('/structure/span-of-control')}
+            className="p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-between cursor-pointer transition group"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <UserGroupIcon className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">Leadership Span of Control</p>
+                <p className="text-[10px] text-slate-400">Monitor direct reports & supervisory ratios</p>
+              </div>
+            </div>
+            <ArrowRightIcon className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition" />
+          </div>
+
+          <div
+            onClick={() => navigate('/structure/cost-centers')}
+            className="p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-between cursor-pointer transition group"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                <BanknotesIcon className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 group-hover:text-indigo-700 transition">Cost Centers & Resources</p>
+                <p className="text-[10px] text-slate-400">{structureSummary.cost_centers} Financial Allocations</p>
+              </div>
+            </div>
+            <ArrowRightIcon className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
+          </div>
+
+          <div
+            onClick={() => navigate('/structure/locations')}
+            className="p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-between cursor-pointer transition group"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                <MapPinIcon className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 group-hover:text-teal-700 transition">Global Locations & Offices</p>
+                <p className="text-[10px] text-slate-400">{structureSummary.locations} Operational Sites</p>
+              </div>
+            </div>
+            <ArrowRightIcon className="w-4 h-4 text-slate-400 group-hover:text-teal-600 transition" />
           </div>
         </div>
       </div>

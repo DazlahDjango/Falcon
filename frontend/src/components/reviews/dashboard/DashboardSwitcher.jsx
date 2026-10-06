@@ -8,10 +8,10 @@ import './DashboardSwitcher.css';
 const DashboardSwitcher = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isSuperAdmin, isClientAdmin } = useReviewsPermissions();
+  const { isSuperAdmin, isClientAdmin, isHrAdmin } = useReviewsPermissions();
 
-  // Switcher is only visible to super admin and client admin
-  const isAdmin = isSuperAdmin || isClientAdmin;
+  // Switcher is visible to super admin, client admin, and HR admin
+  const isAdmin = isSuperAdmin || isClientAdmin || isHrAdmin;
   if (!isAdmin) return null;
 
   const currentPath = location.pathname;

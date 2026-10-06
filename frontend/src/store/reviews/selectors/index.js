@@ -161,11 +161,29 @@ export const selectSelfAssessmentStats = (state) => selectSelfAssessmentsState(s
 export const selectMySelfAssessment = createSelector(
   [selectSelectedSelfAssessment, selectAllSelfAssessments, (state) => state.auth?.user?.id],
   (selected, assessments, userId) => {
-    if (selected) return selected;
-    if (userId && assessments.length > 0) {
-      return assessments.find((item) => String(item.employee) === String(userId)) || null;
+    if (!userId) return null;
+
+    // Helper to safely extract employee id
+    const getEmpId = (item) => {
+      if (!item) return null;
+      if (typeof item.employee === 'object' && item.employee !== null) {
+        return item.employee.id || item.employee.uuid;
+      }
+      return item.employee_id || item.employee;
+    };
+
+    // If selectedItem matches the logged-in user, use it
+    if (selected && String(getEmpId(selected)) === String(userId)) {
+      return selected;
     }
-    return assessments[0] || null;
+
+    // Otherwise, find the record belonging to this user from the list
+    if (Array.isArray(assessments) && assessments.length > 0) {
+      const match = assessments.find((item) => String(getEmpId(item)) === String(userId));
+      if (match) return match;
+    }
+
+    return null;
   }
 );
 
@@ -226,6 +244,17 @@ export const selectReviewsByEmployee = createSelector(
   [selectAllSupervisorReviews, (state, employeeId) => employeeId],
   (reviews, employeeId) => reviews.filter((item) => item.employee === employeeId)
 );
+
+export const selectSupervisorReviewsPagination = (state) =>
+  selectSupervisorReviewsState(state)?.pagination ?? {
+    currentPage: 1,
+    pageSize: 20,
+    totalItems: 0,
+    totalPages: 0,
+  };
+
+export const selectSupervisorReviewsFilters = (state) =>
+  selectSupervisorReviewsState(state)?.filters ?? {};
 
 // ========== Final Rating Selectors ==========
 export const selectFinalRatingsState = (state) => state.reviews?.finalRatings;
@@ -720,19 +749,22 @@ export const selectAuditLogById = (state, id) =>
 export const selectSelectedAuditLog = (state) => selectAuditLogsState(state)?.selectedItem;
 export const selectAuditLogsLoading = (state) => selectAuditLogsState(state)?.loading;
 export const selectAuditLogsError = (state) => selectAuditLogsState(state)?.error;
-export const selectAuditLogsPagination = (state) => selectAuditLogsState(state)?.pagination;
-export const selectAuditLogsForObject = (state) => selectAuditLogsState(state)?.objectLogs;
-export const selectAuditLogsForUser = (state) => selectAuditLogsState(state)?.userLogs;
+export const selectAuditLogsPagination = (state) => selectAuditLogsState(state)?.pagination ?? DEFAULT_PAGINATION;
+export const selectAuditLogsFilters = (state) => selectAuditLogsState(state)?.filters ?? DEFAULT_EMPTY_OBJECT;
+export const selectAuditLogsForObject = (state) => selectAuditLogsState(state)?.objectLogs ?? DEFAULT_EMPTY_ARRAY;
+export const selectAuditLogsForUser = (state) => selectAuditLogsState(state)?.userLogs ?? DEFAULT_EMPTY_ARRAY;
 
 // ========== Notification Selectors ==========
 export const selectNotificationsState = (state) => state.reviews?.notifications;
-export const selectAllNotifications = (state) => selectNotificationsState(state)?.items ?? [];
+export const selectAllNotifications = (state) => selectNotificationsState(state)?.items ?? DEFAULT_EMPTY_ARRAY;
 export const selectNotificationById = (state, id) =>
   selectAllNotifications(state).find((item) => item.id === id);
 export const selectSelectedNotification = (state) => selectNotificationsState(state)?.selectedItem;
-export const selectNotificationsLoading = (state) => selectNotificationsState(state)?.loading;
-export const selectNotificationsError = (state) => selectNotificationsState(state)?.error;
-export const selectUnreadNotificationCount = (state) => selectNotificationsState(state)?.unreadCount;
+export const selectNotificationsLoading = (state) => selectNotificationsState(state)?.loading ?? false;
+export const selectNotificationsError = (state) => selectNotificationsState(state)?.error ?? null;
+export const selectNotificationsPagination = (state) => selectNotificationsState(state)?.pagination ?? DEFAULT_PAGINATION;
+export const selectNotificationsFilters = (state) => selectNotificationsState(state)?.filters ?? DEFAULT_EMPTY_OBJECT;
+export const selectUnreadNotificationCount = (state) => selectNotificationsState(state)?.unreadCount ?? 0;
 
 export const selectUnreadNotifications = createSelector(
   [selectAllNotifications],

@@ -9,9 +9,10 @@ export const useStructurePermissions = () => {
 
         const isSuperAdmin = role === 'super_admin' || user?.is_superuser === true;
         const isClientAdmin = isSuperAdmin || role === 'client_admin';
-        const isExecutive = isClientAdmin || role === 'executive';
-        const isDashboardChampion = isClientAdmin || isExecutive || role === 'dashboard_champion';
-        const isSupervisor = isDashboardChampion || role === 'supervisor';
+        const isHRAdmin = isClientAdmin || role === 'hr_admin' || role === 'hr';
+        const isExecutive = isHRAdmin || role === 'executive';
+        const isDashboardChampion = isExecutive || role === 'dashboard_champion' || role === 'champion';
+        const isSupervisor = isDashboardChampion || role === 'supervisor' || role === 'manager';
         const isTeamLead = isSupervisor || role === 'team_lead';
         const isStaff = isTeamLead || role === 'staff';
         const isReadOnly = isStaff || role === 'read_only';
@@ -19,27 +20,27 @@ export const useStructurePermissions = () => {
         const permissions = {
             canViewStructureDashboard: isAuthenticated,
             canViewDepartments: isAuthenticated,
-            canManageDepartments: isClientAdmin || isSupervisor,
+            canManageDepartments: isClientAdmin || isHRAdmin || isSupervisor,
             canViewTeams: isAuthenticated,
-            canManageTeams: isClientAdmin || isSupervisor,
-            canViewPositions: isClientAdmin || isSupervisor || isDashboardChampion || isExecutive,
-            canManagePositions: isClientAdmin,
+            canManageTeams: isClientAdmin || isHRAdmin || isSupervisor,
+            canViewPositions: isClientAdmin || isHRAdmin || isSupervisor || isDashboardChampion || isExecutive,
+            canManagePositions: isClientAdmin || isHRAdmin,
             canViewEmployments: isAuthenticated,
             canViewOwnEmployment: isAuthenticated,
-            canManageEmployments: isClientAdmin || isSupervisor,
+            canManageEmployments: isClientAdmin || isHRAdmin || isSupervisor,
             canViewReportingLines: isAuthenticated,
-            canManageReportingLines: isClientAdmin || isSupervisor,
-            canViewCostCenters: isClientAdmin || isSupervisor || isExecutive,
-            canManageCostCenters: isClientAdmin,
+            canManageReportingLines: isClientAdmin || isHRAdmin || isSupervisor,
+            canViewCostCenters: isClientAdmin || isHRAdmin || isSupervisor || isExecutive,
+            canManageCostCenters: isClientAdmin || isHRAdmin,
             canViewLocations: isAuthenticated,
-            canManageLocations: isClientAdmin || isSupervisor,
+            canManageLocations: isClientAdmin || isHRAdmin || isSupervisor,
             canViewOrgChart: isAuthenticated,
-            canViewDepartmentTrees: isClientAdmin || isSupervisor || isDashboardChampion || isExecutive,
+            canViewDepartmentTrees: isClientAdmin || isHRAdmin || isSupervisor || isDashboardChampion || isExecutive,
             canViewTeamHierarchies: isAuthenticated,
-            canViewHierarchyVersions: isClientAdmin || isSupervisor,
-            canManageHierarchyVersions: isClientAdmin,
-            canViewStructureSettings: isClientAdmin,
-            canManageStructureSettings: isClientAdmin,
+            canViewHierarchyVersions: isClientAdmin || isHRAdmin || isSupervisor,
+            canManageHierarchyVersions: isClientAdmin || isHRAdmin,
+            canViewStructureSettings: isClientAdmin || isHRAdmin,
+            canManageStructureSettings: isClientAdmin || isHRAdmin,
         };
 
         return {
@@ -48,6 +49,7 @@ export const useStructurePermissions = () => {
             isAuthenticated,
             isSuperAdmin,
             isClientAdmin,
+            isHRAdmin,
             isExecutive,
             isDashboardChampion,
             isSupervisor,

@@ -342,6 +342,8 @@ export const ORG_CHART_ENDPOINTS = {
     VISIO: `${API_BASE}/structure/org-charts/visio/`,
     TREE: `${API_BASE}/structure/org-charts/tree/`,
     PREVIEW: `${API_BASE}/structure/org-charts/preview/`,
+    PEOPLE_TREE: `${API_BASE}/structure/org-charts/people-tree/`,
+
     QUERY_PARAMS: {
         FORMAT: 'format',
         ENTITY: 'entity',

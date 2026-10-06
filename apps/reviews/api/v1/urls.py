@@ -41,6 +41,7 @@ from .views import (
     ReviewCommentViewSet,
     PromotionRecommendationViewSet,
     ReviewTemplateViewSet,
+    NotificationViewSet,
 )
 
 # ========== MAIN ROUTER ==========
@@ -64,11 +65,13 @@ router.register(r'feedback-responses', FeedbackResponseViewSet, basename='feedba
 router.register(r'feedback-summaries', FeedbackSummaryViewSet, basename='feedback-summary')
 router.register(r'calibration-sessions', CalibrationSessionViewSet, basename='calibration-session')
 router.register(r'calibration-ratings', CalibrationRatingViewSet, basename='calibration-rating')
+router.register(r'calibration-comments', CalibrationCommentViewSet, basename='calibration-comment')
 router.register(r'reports', ReportViewSet, basename='report')
 router.register(r'coefficients', CoefficientViewSet, basename='coefficient')
 router.register(r'comments', ReviewCommentViewSet, basename='comment')
 router.register(r'promotions', PromotionRecommendationViewSet, basename='promotion')
 router.register(r'templates', ReviewTemplateViewSet, basename='template')
+router.register(r'notifications', NotificationViewSet, basename='notification')
 
 # ========== NESTED ROUTERS ==========
 

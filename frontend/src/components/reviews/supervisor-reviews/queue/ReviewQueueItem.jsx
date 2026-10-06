@@ -10,7 +10,7 @@ const ReviewQueueItem = ({ review, onView }) => {
     : null;
 
   return (
-    <div className="review-queue-item" onClick={() => onView(review.id)}>
+    <div className="review-queue-item" onClick={() => onView(review)}>
       <div className="review-queue-item-left">
         <div className="review-queue-item-avatar">
           {review.employee_name?.charAt(0) || 'E'}
@@ -49,8 +49,11 @@ const ReviewQueueItem = ({ review, onView }) => {
             Self Assessment Done
           </span>
         )}
-        <button className="review-queue-item-view" onClick={(e) => { e.stopPropagation(); onView(review.id); }}>
-          Review
+        <button
+          className={`review-queue-item-view ${review.status === 'draft' ? 'appraise-btn' : ''}`}
+          onClick={(e) => { e.stopPropagation(); onView(review); }}
+        >
+          {review.status === 'draft' ? 'Start Appraisal' : 'View Review'}
           <ChevronRight size={16} />
         </button>
       </div>

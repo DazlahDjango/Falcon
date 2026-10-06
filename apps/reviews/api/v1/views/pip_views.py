@@ -15,6 +15,59 @@ from apps.accounts.constants import UserRoles
 
 class PIPViewSet(BaseReviewViewSet):
     queryset = PIP.objects.all()
+
+    def get_queryset(self):
+        qs = super().get_queryset().select_related('employee', 'owner', 'review_cycle', 'final_rating')
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return qs.none()
+
+        params = getattr(self.request, 'query_params', getattr(self.request, 'GET', {}))
+        scope = params.get('scope')
+        is_team = params.get('is_team') in ['true', 'True', True, 1, '1']
+        cycle_id = params.get('cycle_id') or params.get('review_cycle')
+        status_param = params.get('status')
+        severity_param = params.get('severity')
+
+        if user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
+            if scope == 'my':
+                qs = qs.filter(employee=user)
+        elif user.role == UserRoles.EXECUTIVE:
+            if scope == 'my':
+                qs = qs.filter(employee=user)
+            elif is_team:
+                direct_reports = getattr(user, 'direct_reports', None)
+                if direct_reports and hasattr(direct_reports, 'all') and direct_reports.all().exists():
+                    qs = qs.filter(models.Q(owner=user) | models.Q(employee__in=direct_reports.all()))
+                else:
+                    qs = qs.filter(owner=user)
+        elif user.role == UserRoles.SUPERVISOR:
+            if scope == 'my':
+                qs = qs.filter(employee=user)
+            elif is_team:
+                direct_reports = getattr(user, 'direct_reports', None)
+                if direct_reports and hasattr(direct_reports, 'all') and direct_reports.all().exists():
+                    qs = qs.filter(models.Q(owner=user) | models.Q(employee__in=direct_reports.all()))
+                else:
+                    qs = qs.filter(owner=user)
+            else:
+                direct_reports = getattr(user, 'direct_reports', None)
+                if direct_reports and hasattr(direct_reports, 'all') and direct_reports.all().exists():
+                    qs = qs.filter(models.Q(employee=user) | models.Q(owner=user) | models.Q(employee__in=direct_reports.all()))
+                else:
+                    qs = qs.filter(models.Q(employee=user) | models.Q(owner=user))
+        else:
+            qs = qs.filter(employee=user)
+
+        if cycle_id:
+            qs = qs.filter(review_cycle_id=cycle_id)
+        if status_param and status_param != 'all':
+            qs = qs.filter(status=status_param)
+        if severity_param and severity_param != 'all':
+            qs = qs.filter(severity=severity_param)
+
+        return qs
+
     def get_serializer_class(self):
         if self.action == 'list':
             return PIPListSerializer
@@ -30,7 +83,10 @@ class PIPViewSet(BaseReviewViewSet):
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
-        serializer.save(tenant_id=self.request.user.tenant_id)
+        tid = getattr(self.request.user, 'tenant_id', None)
+        from apps.tenant.models import Organization
+        tenant_obj = Organization.objects.filter(id=tid).first() if tid else None
+        serializer.save(tenant_id=tid, tenant=tenant_obj)
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         pip = self.get_object()
@@ -54,7 +110,7 @@ class PIPViewSet(BaseReviewViewSet):
     @action(detail=True, methods=['post'])
     def extend(self, request, pk=None):
         pip = self.get_object()
-        if pip.status not in ['draft', 'submitted']:
+        if pip.status not in ['draft', 'submitted', 'active', 'in_progress']:
             return Response({'error': f'Cannot extend with status: {pip.status}'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = PIPExtendSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -65,16 +121,18 @@ class PIPViewSet(BaseReviewViewSet):
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
         pip = self.get_object()
-        if pip.status not in ['draft', 'submitted']:
+        if pip.status not in ['draft', 'submitted', 'active', 'in_progress', 'approved', 'completed']:
             return Response({'error': f'Cannot complete with status: {pip.status}'}, status=status.HTTP_400_BAD_REQUEST)
-        outcome = request.data.get('outcome')
+        outcome = request.data.get('outcome', pip.outcome or 'successful')
         notes = request.data.get('notes', '')
         if outcome not in ['successful', 'failed', 'extended', 'terminated', 'resigned']:
             return Response({'error': 'outcome must be successful, failed, extended, terminated, or resigned'}, status=status.HTTP_400_BAD_REQUEST)
         pip.status = 'completed'
         pip.outcome = outcome
-        pip.outcome_notes = notes
-        pip.completed_at = timezone.now()
+        if notes:
+            pip.outcome_notes = notes
+        if not pip.completed_at:
+            pip.completed_at = timezone.now()
         pip.save()
         return Response(self.get_serializer(pip).data)
     @action(detail=True, methods=['post'])
@@ -90,6 +148,10 @@ class PIPViewSet(BaseReviewViewSet):
         pip = self.get_object()
         progress = PIPTracker.get_pip_progress(pip.id)
         return Response(progress)
+    @action(detail=True, methods=['post'], url_path='add-action')
+    def add_action_hyphen(self, request, pk=None):
+        return self.add_action(request, pk)
+
     @action(detail=True, methods=['post'])
     def add_action(self, request, pk=None):
         pip = self.get_object()
@@ -128,6 +190,10 @@ class PIPViewSet(BaseReviewViewSet):
             return Response(PIPActionSerializer(action).data)
         except PIPAction.DoesNotExist:
             return Response({'error': 'Action not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=True, methods=['post'], url_path='add-review')
+    def add_review_hyphen(self, request, pk=None):
+        return self.add_review(request, pk)
+
     @action(detail=True, methods=['post'])
     def add_review(self, request, pk=None):
         pip = self.get_object()
@@ -186,6 +252,10 @@ class PIPViewSet(BaseReviewViewSet):
             return Response({'error': 'Tenant not found'}, status=status.HTTP_404_NOT_FOUND)
         report = PIPReportService.get_organization_pip_summary(tenant)
         return Response(report)
+    @action(detail=True, methods=['get'], url_path='full-report')
+    def full_report_hyphen(self, request, pk=None):
+        return self.full_report(request, pk)
+
     @action(detail=True, methods=['get'])
     def full_report(self, request, pk=None):
         pip = self.get_object()

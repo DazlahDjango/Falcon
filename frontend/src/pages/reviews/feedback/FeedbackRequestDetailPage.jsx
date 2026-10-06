@@ -1,8 +1,9 @@
 // src/pages/reviews/feedback/FeedbackRequestDetailPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, CheckCircle, Clock, User, Calendar, Shield, MessageSquare, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle, Clock, User, Calendar, Shield, MessageSquare, AlertCircle, Edit3, PenTool } from 'lucide-react';
 import { useFeedback } from '../../../hooks/reviews';
+import { useAuth } from '../../../hooks/accounts';
 import { ReviewBreadcrumbs, ReviewLoading, ReviewError, ReviewStatusBadge } from '../../../components/reviews/common';
 import FeedbackResponseView from '../../../components/reviews/feedback/responses/FeedbackResponseView';
 import { REVIEW_ROUTES } from '../../../config/constants/reviewRouteConstants';
@@ -10,6 +11,7 @@ import { REVIEW_ROUTES } from '../../../config/constants/reviewRouteConstants';
 const FeedbackRequestDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { 
     selectedRequest, 
     loading, 
@@ -35,15 +37,21 @@ const FeedbackRequestDetailPage = () => {
       if (selectedRequest && (selectedRequest.has_response || selectedRequest.status === 'submitted' || selectedRequest.status === 'completed')) {
         setResponseLoading(true);
         try {
-          const res = await fetchResponseForRequest(selectedRequest.id);
-          if (res && !res.message) {
+          const actionResult = await fetchResponseForRequest(selectedRequest.id);
+          const res = actionResult?.payload || actionResult;
+          if (res && !res.message && !res.error && (res.id || res.overall_rating !== undefined || res.strengths)) {
             setResponse(res);
+          } else {
+            setResponse(null);
           }
         } catch (err) {
           console.error('Failed to load feedback response:', err);
+          setResponse(null);
         } finally {
           setResponseLoading(false);
         }
+      } else {
+        setResponse(null);
       }
     };
 
@@ -83,6 +91,11 @@ const FeedbackRequestDetailPage = () => {
   }
 
   const req = selectedRequest || {};
+  const isReviewer = user && (user.id === req.reviewer || user.email === req.reviewer_email);
+  const isRequesterOrAdmin = user && (
+    user.id === req.requested_by || 
+    ['super_admin', 'client_admin', 'hr_admin'].includes(user.role)
+  );
 
   return (
     <div className="feedback-request-detail-page" style={{ padding: '1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
@@ -157,7 +170,32 @@ const FeedbackRequestDetailPage = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <ReviewStatusBadge status={req.status || 'draft'} />
-            {req.status === 'draft' && (
+            
+            {/* Reviewer Action: Provide/Submit Feedback */}
+            {req.status === 'draft' && isReviewer && (
+              <button
+                onClick={() => navigate(REVIEW_ROUTES.FEEDBACK_RESPOND(req.id))}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.5rem 1rem',
+                  background: '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(37,99,235,0.2)'
+                }}
+              >
+                <Edit3 size={15} /> Provide Feedback
+              </button>
+            )}
+
+            {/* Admin / Requester Actions: Remind & Cancel */}
+            {req.status === 'draft' && isRequesterOrAdmin && !isReviewer && (
               <>
                 <button
                   onClick={handleRemind}
@@ -252,6 +290,41 @@ const FeedbackRequestDetailPage = () => {
           <ReviewLoading size="md" text="Loading response details..." />
         ) : response ? (
           <FeedbackResponseView response={response} />
+        ) : isReviewer ? (
+          <div style={{
+            padding: '2.5rem 1.5rem',
+            textAlign: 'center',
+            background: '#f8fafc',
+            borderRadius: '8px',
+            border: '1px dashed #93c5fd'
+          }}>
+            <PenTool size={36} color="#2563eb" style={{ margin: '0 auto 0.75rem' }} />
+            <h4 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#1e3a8a', marginBottom: '0.4rem' }}>
+              Your Feedback is Requested
+            </h4>
+            <p style={{ color: '#475569', fontSize: '0.875rem', maxWidth: '480px', margin: '0 auto 1.25rem' }}>
+              You have been requested to provide 360° feedback for <strong>{req.subject_name || req.subject_email}</strong>. Please complete the assessment before {req.due_date ? new Date(req.due_date).toLocaleDateString() : 'the deadline'}.
+            </p>
+            <button
+              onClick={() => navigate(REVIEW_ROUTES.FEEDBACK_RESPOND(req.id))}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.6rem 1.4rem',
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(37,99,235,0.2)'
+              }}
+            >
+              <Edit3 size={16} /> Provide Feedback Now
+            </button>
+          </div>
         ) : (
           <div style={{
             padding: '2.5rem 1.5rem',
@@ -263,7 +336,7 @@ const FeedbackRequestDetailPage = () => {
             <Clock size={36} color="#94a3b8" style={{ margin: '0 auto 0.75rem' }} />
             <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#334155', marginBottom: '0.25rem' }}>Awaiting Feedback Submission</h4>
             <p style={{ color: '#64748b', fontSize: '0.875rem', maxWidth: '450px', margin: '0 auto' }}>
-              The reviewer ({req.reviewer_name}) has not submitted their feedback yet. They have until {req.due_date || 'the deadline'} to complete it.
+              The reviewer ({req.reviewer_name}) has not submitted their feedback yet. They have until {req.due_date ? new Date(req.due_date).toLocaleDateString() : 'the deadline'} to complete it.
             </p>
           </div>
         )}

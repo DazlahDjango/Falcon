@@ -146,7 +146,7 @@ const competencyInitialState = {
   error: null,
   pagination: {
     currentPage: 1,
-    pageSize: 20,
+    pageSize: 50,
     totalItems: 0,
     totalPages: 0,
   },

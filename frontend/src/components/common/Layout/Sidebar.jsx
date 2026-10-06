@@ -28,6 +28,7 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
         tenantSpecific: true,
         billing: true,
         reviews: true,
+        kpi: true,
         config: true,
     });
     const { tenantId: paramTenantId } = useParams();

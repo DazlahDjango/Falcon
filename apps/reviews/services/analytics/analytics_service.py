@@ -34,13 +34,14 @@ class AnalyticsService(BaseReviewService):
         Get company-wide performance analytics.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
             period: Time period for analytics
         
         Returns:
             dict: Company analytics data
         """
-        cache_key = AnalyticsCacheKeys.COMPANY_METRICS.format(tenant_id=tenant.id)
+        tid = getattr(tenant, 'id', tenant)
+        cache_key = AnalyticsCacheKeys.COMPANY_METRICS.format(tenant_id=tid)
         cached_data = cache.get(cache_key)
         if cached_data:
             return cached_data
@@ -49,20 +50,20 @@ class AnalyticsService(BaseReviewService):
         end_date = timezone.now().date()
         start_date, _ = get_date_range_for_period(period, end_date)
         
-        # Get completed cycles in period
+        # Get cycles in period
         cycles = ReviewCycle.objects.filter(
-            tenant=tenant,
-            status='completed',
+            tenant_id=tid,
             end_date__gte=start_date,
             end_date__lte=end_date
         )
         
         # Get final ratings in period
         ratings = FinalRating.objects.filter(
-            tenant=tenant,
-            review_cycle__in=cycles,
+            tenant_id=tid,
             final_score__isnull=False
         )
+        if cycles.exists():
+            ratings = ratings.filter(review_cycle__in=cycles)
         
         # Basic metrics
         total_ratings = ratings.count()
@@ -73,16 +74,19 @@ class AnalyticsService(BaseReviewService):
         prev_start_date, _ = get_date_range_for_period(period, prev_end_date)
         
         prev_cycles = ReviewCycle.objects.filter(
-            tenant=tenant,
-            status='completed',
+            tenant_id=tid,
             end_date__gte=prev_start_date,
             end_date__lte=prev_end_date
         )
         prev_ratings = FinalRating.objects.filter(
-            tenant=tenant,
-            review_cycle__in=prev_cycles,
+            tenant_id=tid,
             final_score__isnull=False
         )
+        if prev_cycles.exists():
+            prev_ratings = prev_ratings.filter(review_cycle__in=prev_cycles)
+        else:
+            prev_ratings = prev_ratings.none()
+            
         prev_average = prev_ratings.aggregate(avg=Avg('final_score'))['avg'] or 0
         
         # Rating distribution
@@ -93,24 +97,22 @@ class AnalyticsService(BaseReviewService):
         
         # Promotion and PIP metrics
         promotions = PromotionRecommendation.objects.filter(
-            tenant=tenant,
-            created_at__date__gte=start_date,
+            tenant_id=tid,
             status='approved'
         ).count()
         
         active_pips = PIP.objects.filter(
-            tenant=tenant,
-            status='active'
+            tenant_id=tid,
+            status__in=['draft', 'submitted', 'active']
         ).count()
         
         completed_pips = PIP.objects.filter(
-            tenant=tenant,
-            status='completed',
-            completed_at__date__gte=start_date
+            tenant_id=tid,
+            status='completed'
         ).count()
         
         # Calculate change percentages
-        score_change = average_score - prev_average
+        score_change = float(average_score) - float(prev_average)
         score_change_percent = calculate_percentage_change(average_score, prev_average)
         
         result = {
@@ -128,7 +130,7 @@ class AnalyticsService(BaseReviewService):
             'promotions_count': promotions,
             'active_pips': active_pips,
             'completed_pips': completed_pips,
-            'pip_success_rate': round((completed_pips / active_pips) * 100, 1) if active_pips > 0 else 0,
+            'pip_success_rate': round((completed_pips / active_pips) * 100, 1) if active_pips > 0 else 0.0,
         }
         
         # Cache for 1 hour
@@ -142,13 +144,14 @@ class AnalyticsService(BaseReviewService):
         Calculate company performance trend over time.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
             period: Period type
             months: Number of months to look back
         
         Returns:
             dict: Trend data with monthly scores
         """
+        tid = getattr(tenant, 'id', tenant)
         end_date = timezone.now().date()
         start_date = end_date - timedelta(days=30 * months)
         
@@ -165,17 +168,19 @@ class AnalyticsService(BaseReviewService):
             
             # Get cycles ending in this month
             cycles = ReviewCycle.objects.filter(
-                tenant=tenant,
-                status='completed',
+                tenant_id=tid,
                 end_date__gte=month_start,
                 end_date__lte=month_end
             )
             
             ratings = FinalRating.objects.filter(
-                tenant=tenant,
-                review_cycle__in=cycles,
+                tenant_id=tid,
                 final_score__isnull=False
             )
+            if cycles.exists():
+                ratings = ratings.filter(review_cycle__in=cycles)
+            else:
+                ratings = ratings.filter(created_at__date__gte=month_start, created_at__date__lte=month_end)
             
             avg_score = ratings.aggregate(avg=Avg('final_score'))['avg'] or 0
             
@@ -192,7 +197,7 @@ class AnalyticsService(BaseReviewService):
                 current_date = current_date.replace(month=current_date.month + 1, day=1)
         
         scores = [m['score'] for m in monthly_data if m['score'] > 0]
-        trend_direction = calculate_trend(scores) if scores else {'direction': 'stable', 'change_percent': 0}
+        trend_direction = calculate_trend(scores) if scores else {'direction': 'stable', 'change_percent': 0.0}
         
         return {
             'data': monthly_data,
@@ -206,16 +211,18 @@ class AnalyticsService(BaseReviewService):
         Get department-level analytics.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
             department_id: Optional specific department ID
             period: Time period
         
         Returns:
             dict: Department analytics data
         """
-        from apps.structure.models import Department
+        from apps.structure.models import Department, Employment
+        from apps.accounts.models import User
         
-        cache_key = AnalyticsCacheKeys.DEPARTMENT_METRICS.format(tenant_id=tenant.id, dept_id=department_id or 'all')
+        tid = getattr(tenant, 'id', tenant)
+        cache_key = AnalyticsCacheKeys.DEPARTMENT_METRICS.format(tenant_id=tid, dept_id=department_id or 'all')
         cached_data = cache.get(cache_key)
         if cached_data:
             return cached_data
@@ -224,7 +231,7 @@ class AnalyticsService(BaseReviewService):
         end_date = timezone.now().date()
         start_date, _ = get_date_range_for_period(period, end_date)
         
-        departments = Department.objects.filter(tenant=tenant)
+        departments = Department.objects.filter(tenant_id=tid, is_deleted=False)
         if department_id:
             departments = departments.filter(id=department_id)
         
@@ -232,21 +239,27 @@ class AnalyticsService(BaseReviewService):
         all_scores = []
         
         for dept in departments:
-            # Get employees in department
-            employees = dept.users.filter(is_active=True)
-            if not employees.exists():
-                continue
+            # Get employees in department via Employment or User direct match
+            user_ids = list(Employment.objects.filter(
+                tenant_id=tid,
+                position__department=dept,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            ).values_list('user_id', flat=True))
+            
+            employees = User.objects.filter(
+                Q(id__in=user_ids) | Q(department=dept.name) | Q(department=str(dept.id)),
+                tenant_id=tid,
+                is_active=True
+            )
             
             # Get final ratings for these employees
             ratings = FinalRating.objects.filter(
-                tenant=tenant,
+                tenant_id=tid,
                 employee__in=employees,
-                review_cycle__status='completed',
                 final_score__isnull=False
             )
-            
-            if not ratings.exists():
-                continue
             
             avg_score = ratings.aggregate(avg=Avg('final_score'))['avg'] or 0
             scores_list = [float(r.final_score) for r in ratings if r.final_score]
@@ -259,15 +272,14 @@ class AnalyticsService(BaseReviewService):
                 'ratings_count': ratings.count(),
                 'std_dev': calculate_standard_deviation(scores_list),
                 'promotions': PromotionRecommendation.objects.filter(
-                    tenant=tenant,
+                    tenant_id=tid,
                     employee__in=employees,
-                    created_at__date__gte=start_date,
                     status='approved'
                 ).count(),
                 'pips': PIP.objects.filter(
-                    tenant=tenant,
+                    tenant_id=tid,
                     employee__in=employees,
-                    status='active'
+                    status__in=['draft', 'submitted', 'active']
                 ).count(),
             })
             all_scores.extend(scores_list)
@@ -278,7 +290,7 @@ class AnalyticsService(BaseReviewService):
         result = {
             'period': period,
             'total_departments': len(dept_analytics),
-            'company_average': round(sum(all_scores) / len(all_scores), 2) if all_scores else 0,
+            'company_average': round(sum(all_scores) / len(all_scores), 2) if all_scores else 0.0,
             'best_performing_department': dept_analytics[0] if dept_analytics else None,
             'worst_performing_department': dept_analytics[-1] if dept_analytics else None,
             'departments': dept_analytics
@@ -294,13 +306,14 @@ class AnalyticsService(BaseReviewService):
         Get manager effectiveness analytics.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
             period: Time period
         
         Returns:
             dict: Manager analytics data
         """
-        cache_key = AnalyticsCacheKeys.MANAGER_METRICS.format(tenant_id=tenant.id, manager_id='all')
+        tid = getattr(tenant, 'id', tenant)
+        cache_key = AnalyticsCacheKeys.MANAGER_METRICS.format(tenant_id=tid, manager_id='all')
         cached_data = cache.get(cache_key)
         if cached_data:
             return cached_data
@@ -309,18 +322,17 @@ class AnalyticsService(BaseReviewService):
         end_date = timezone.now().date()
         start_date, _ = get_date_range_for_period(period, end_date)
         
-        # Get all managers (users who have direct reports)
         from apps.accounts.models import User
         
         managers = User.objects.filter(
-            tenant=tenant,
-            role__in=['manager', 'executive', 'admin', 'hr'],
+            tenant_id=tid,
+            role__in=['supervisor', 'executive', 'client_admin', 'hr_admin', 'super_admin'],
             is_active=True
         )
         
         # Get company average for comparison
         company_avg = FinalRating.objects.filter(
-            tenant=tenant,
+            tenant_id=tid,
             final_score__isnull=False
         ).aggregate(avg=Avg('final_score'))['avg'] or 0
         
@@ -328,26 +340,22 @@ class AnalyticsService(BaseReviewService):
         
         for manager in managers:
             # Get direct reports
-            direct_reports = manager.direct_reports.all()
+            direct_reports = manager.direct_reports.filter(is_active=True)
             if not direct_reports.exists():
                 continue
             
             # Get ratings for direct reports
             ratings = FinalRating.objects.filter(
-                tenant=tenant,
+                tenant_id=tid,
                 employee__in=direct_reports,
-                review_cycle__status='completed',
                 final_score__isnull=False
             )
-            
-            if not ratings.exists():
-                continue
             
             avg_score = ratings.aggregate(avg=Avg('final_score'))['avg'] or 0
             
             # Calculate rating inflation/deflation
             inflation = float(avg_score) - float(company_avg)
-            inflation_percent = (inflation / float(company_avg)) * 100 if company_avg > 0 else 0
+            inflation_percent = (inflation / float(company_avg)) * 100 if float(company_avg) > 0 else 0.0
             
             manager_analytics.append({
                 'id': str(manager.id),
@@ -361,12 +369,10 @@ class AnalyticsService(BaseReviewService):
                 'rating_deflated': inflation_percent < -AnalyticsThresholds.RATING_DEFLATION,
                 'timely_reviews': SupervisorReview.objects.filter(
                     supervisor=manager,
-                    review_cycle__status='completed',
                     submitted_at__isnull=False
                 ).count(),
                 'late_reviews': SupervisorReview.objects.filter(
                     supervisor=manager,
-                    review_cycle__status='completed',
                     submitted_at__isnull=False,
                     submitted_at__date__gt=models.F('review_cycle__supervisor_review_deadline')
                 ).count(),
@@ -400,7 +406,7 @@ class AnalyticsService(BaseReviewService):
         Refresh analytics snapshot for a tenant.
         
         Args:
-            tenant: Client object
+            tenant: Client object or UUID
             snapshot_type: 'company', 'departments', or 'managers'
         
         Returns:
@@ -408,24 +414,20 @@ class AnalyticsService(BaseReviewService):
         """
         from ...models import AnalyticsSnapshot
         
+        tid = getattr(tenant, 'id', tenant)
         snapshot_date = timezone.now().date()
         
         if snapshot_type == 'company':
             company_data = AnalyticsService.get_company_analytics(tenant)
             
             snapshot, created = AnalyticsSnapshot.objects.update_or_create(
-                tenant=tenant,
+                tenant_id=tid,
                 snapshot_type='company',
-                snapshot_date=snapshot_date,
+                period='daily',
                 defaults={
-                    'total_employees': company_data.get('total_ratings', 0),
-                    'average_score': company_data.get('average_score'),
-                    'score_change': company_data.get('score_change'),
-                    'percentage_change': company_data.get('score_change_percent'),
+                    'company_average_score': company_data.get('average_score'),
+                    'total_reviews_completed': company_data.get('total_ratings', 0),
                     'rating_distribution': company_data.get('rating_distribution'),
-                    'promotions_count': company_data.get('promotions_count', 0),
-                    'pips_created': company_data.get('active_pips', 0),
-                    'pips_completed': company_data.get('completed_pips', 0),
                 }
             )
         
@@ -434,13 +436,11 @@ class AnalyticsService(BaseReviewService):
             
             for dept in dept_data.get('departments', []):
                 AnalyticsSnapshot.objects.update_or_create(
-                    tenant=tenant,
+                    tenant_id=tid,
                     snapshot_type='department',
                     department_id=dept['id'],
-                    snapshot_date=snapshot_date,
+                    period='daily',
                     defaults={
-                        'total_employees': dept.get('employee_count', 0),
-                        'average_score': dept.get('average_score'),
                         'team_average_score': dept.get('average_score'),
                         'total_reviews_completed': dept.get('ratings_count', 0),
                     }
@@ -452,14 +452,12 @@ class AnalyticsService(BaseReviewService):
             
             for mgr in manager_data.get('all_managers', []):
                 AnalyticsSnapshot.objects.update_or_create(
-                    tenant=tenant,
+                    tenant_id=tid,
                     snapshot_type='manager',
                     manager_id=mgr['id'],
-                    snapshot_date=snapshot_date,
+                    period='daily',
                     defaults={
-                        'team_size': mgr.get('team_size', 0),
-                        'average_score': mgr.get('average_rating'),
-                        'rating_inflation_score': mgr.get('inflation'),
+                        'team_average_score': mgr.get('average_rating'),
                         'total_reviews_completed': mgr.get('timely_reviews', 0),
                     }
                 )

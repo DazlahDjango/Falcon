@@ -1,7 +1,7 @@
 // src/components/reviews/feedback/requests/PendingRequests.jsx
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Eye, Mail, User, Calendar } from 'lucide-react';
+import { Clock, Eye, Mail, User, Calendar, Edit3 } from 'lucide-react';
 import { useFeedback } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewEmptyState } from '../../common';
 
@@ -65,12 +65,21 @@ const PendingRequests = () => {
                 )}
               </div>
             </div>
-            <div className="pending-request-item-actions">
+            <div className="pending-request-item-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               <button
                 className="pending-request-item-btn"
                 onClick={(e) => { e.stopPropagation(); handleView(request.id); }}
+                title="View Request"
+                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', cursor: 'pointer' }}
               >
-                <Eye size={16} />
+                <Eye size={15} color="#475569" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); navigate(`/reviews/feedback/respond/${request.id}`); }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#2563eb', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+              >
+                <Edit3 size={13} /> Provide Feedback
               </button>
             </div>
           </div>

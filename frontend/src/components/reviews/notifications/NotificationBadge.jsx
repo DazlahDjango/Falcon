@@ -6,15 +6,16 @@ import { useReviewsNotifications } from '../../../hooks/reviews';
 
 const NotificationBadge = ({ onClick, showLabel = false }) => {
   const navigate = useNavigate();
-  const { unreadCount, fetchUnreadCount, canManage } = useReviewsNotifications();
+  const { unreadCount = 0, fetchUnreadCount, getUnreadCount, canManage } = useReviewsNotifications();
+  const loadCount = fetchUnreadCount || getUnreadCount;
 
   useEffect(() => {
-    if (canManage) {
-      fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 30000);
+    if (canManage && typeof loadCount === 'function') {
+      loadCount();
+      const interval = setInterval(loadCount, 30000);
       return () => clearInterval(interval);
     }
-  }, [canManage, fetchUnreadCount]);
+  }, [canManage, loadCount]);
 
   const handleClick = () => {
     if (onClick) {

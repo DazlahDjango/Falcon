@@ -19,11 +19,15 @@ class RatingScaleViewSet(BaseReviewViewSet):
             return RatingScaleCreateUpdateSerializer
         return RatingScaleSerializer
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy', 'set_default', 'activate', 'deactivate']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'set_default', 'set_default_hyphen', 'activate', 'deactivate']:
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(tenant_id=self.request.user.tenant_id, created_by=self.request.user)
+    @action(detail=True, methods=['post'], url_path='set-default')
+    def set_default_hyphen(self, request, pk=None):
+        return self.set_default(request, pk)
+
     @action(detail=True, methods=['post'])
     def set_default(self, request, pk=None):
         scale = self.get_object()
@@ -31,12 +35,14 @@ class RatingScaleViewSet(BaseReviewViewSet):
         scale.is_default = True
         scale.save()
         return Response(self.get_serializer(scale).data)
+
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         scale = self.get_object()
         scale.is_active = True
         scale.save()
         return Response(self.get_serializer(scale).data)
+
     @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
         scale = self.get_object()
@@ -45,6 +51,7 @@ class RatingScaleViewSet(BaseReviewViewSet):
         scale.is_active = False
         scale.save()
         return Response(self.get_serializer(scale).data)
+
     @action(detail=False, methods=['get'])
     def default(self, request):
         scale = RatingScale.objects.filter(tenant_id=request.user.tenant_id, is_default=True, is_active=True).first()
@@ -53,6 +60,7 @@ class RatingScaleViewSet(BaseReviewViewSet):
         if not scale:
             return Response({}, status=status.HTTP_200_OK)
         return Response(self.get_serializer(scale).data)
+
     @action(detail=False, methods=['post'])
     def convert(self, request):
         serializer = ConvertScoreSerializer(data=request.data)
@@ -64,6 +72,11 @@ class RatingScaleViewSet(BaseReviewViewSet):
             return Response({'result': result, 'rating_scale': scale.name})
         except RatingScale.DoesNotExist:
             return Response({'error': 'Rating scale not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'], url_path='active-scales')
+    def active_scales_hyphen(self, request):
+        return self.active_scales(request)
+
     @action(detail=False, methods=['get'])
     def active_scales(self, request):
         scales = self.get_queryset().filter(is_active=True)

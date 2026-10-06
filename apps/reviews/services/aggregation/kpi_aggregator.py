@@ -19,13 +19,21 @@ class KPIAggregator(BaseReviewService):
                     current = current.replace(year=current.year + 1, month=1)
                 else:
                     current = current.replace(month=current.month + 1)
-            qs = Score.objects.filter(user_id=employee.id, tenant_id=tenant_id if tenant_id else None)
+            filter_kwargs = {'user_id': employee.id}
+            if tenant_id:
+                filter_kwargs['tenant_id'] = tenant_id
+            qs = Score.objects.filter(**filter_kwargs)
+
             month_q = Q()
             for year, month in months:
                 month_q |= Q(year=year, month=month)
             qs = qs.filter(month_q)
             agg = qs.aggregate(avg=Avg('score'))
             val = agg.get('avg')
+            if val is None and end_date:
+                ytd_qs = Score.objects.filter(**filter_kwargs).filter(year=end_date.year, month__lte=end_date.month)
+                agg = ytd_qs.aggregate(avg=Avg('score'))
+                val = agg.get('avg')
             return float(val) if val is not None else None
         except Exception as e:
             logger.error(f"Error getting KPI score for employee {employee.id}: {e}")

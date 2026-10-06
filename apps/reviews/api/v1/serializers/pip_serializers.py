@@ -113,7 +113,13 @@ class PIPSerializer(BaseTenantSerializer):
 
 class PIPListSerializer(PIPSerializer):
     class Meta(PIPSerializer.Meta):
-        fields = ['id', 'title', 'employee_name', 'employee_email', 'severity', 'severity_display', 'status', 'status_display', 'start_date', 'end_date', 'days_remaining', 'completion_percentage', 'is_overdue', 'outcome_display']
+        fields = [
+            'id', 'title', 'employee', 'employee_name', 'employee_email',
+            'owner', 'owner_name', 'review_cycle', 'review_cycle_name',
+            'severity', 'severity_display', 'status', 'status_display',
+            'start_date', 'end_date', 'days_remaining', 'completion_percentage',
+            'is_overdue', 'outcome_display'
+        ]
 
 class PIPDetailSerializer(PIPSerializer):
     actions = PIPActionSerializer(many=True, read_only=True)

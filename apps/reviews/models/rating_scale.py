@@ -68,14 +68,32 @@ class RatingScale(ReviewBaseModel):
             level = self.get_level_by_percentage(percentage)
             return level['label'] if level else None
         return None
+    def _default_color_for_label(self, label, percentage=None):
+        if not label and percentage is None:
+            return '#6b7280'
+        lbl = (label or '').lower()
+        if 'outstanding' in lbl or 'strongly agree' in lbl or (percentage is not None and percentage >= 90):
+            return '#10b981'
+        if 'exceeds' in lbl or 'agree' in lbl or (percentage is not None and percentage >= 75):
+            return '#10b981'
+        if 'meets' in lbl or (percentage is not None and percentage >= 60):
+            return '#3b82f6'
+        if 'needs' in lbl or (percentage is not None and percentage >= 40):
+            return '#f59e0b'
+        return '#ef4444'
+
     def get_color(self, value=None, percentage=None):
+        level = None
         if value is not None:
             level = self.get_level_by_value(value)
-            return level.get('color', '#95a5a6') if level else '#95a5a6'
-        if percentage is not None:
+        elif percentage is not None:
             level = self.get_level_by_percentage(percentage)
-            return level.get('color', '#95a5a6') if level else '#95a5a6'
-        return '#95a5a6'
+        
+        if level:
+            if level.get('color'):
+                return level['color']
+            return self._default_color_for_label(level.get('label'), percentage)
+        return self._default_color_for_label(None, percentage)
     def normalize_score(self, raw_score):
         if raw_score is None:
             return None

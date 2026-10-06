@@ -69,9 +69,10 @@ export const useClientAdminDashboard = (options = {}) => {
     }
   }, []);
 
-  const dashboardData = wsDashboardData || fetchedData;
-  const loading = wsLoading && restLoading;
-  const error = wsError || restError;
+  const hasValidWsData = wsDashboardData && (wsDashboardData.summary_cards || wsDashboardData.user_overview || wsDashboardData.users_by_role);
+  const dashboardData = hasValidWsData ? wsDashboardData : fetchedData;
+  const loading = wsLoading && restLoading && !dashboardData;
+  const error = wsError && restError;
 
   const fetchCompliance = useCallback(async () => {
     try {

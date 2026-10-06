@@ -1,17 +1,41 @@
 import reviewsWebSocketService from '../../../services/reviews/websocket.service';
+import {
+  fetchMyReviewQueue,
+  fetchPendingApprovals as fetchPendingApprovalsThunk,
+  fetchSupervisorReviews,
+} from '../slices/supervisorReview.slice';
+import { fetchSelfAssessments } from '../slices/selfAssessment.slice';
+import { fetchFinalRatings } from '../slices/finalRating.slice';
+import { fetchCycles } from '../slices/cycle.slice';
 
 const WS_EVENT_HANDLERS = {
   'review_submitted': (store, payload) => {
     store.dispatch({ type: 'cycle/setProgress', payload: payload.progress });
+    store.dispatch(fetchMyReviewQueue());
+    store.dispatch(fetchPendingApprovalsThunk());
+    store.dispatch(fetchSelfAssessments());
+    store.dispatch(fetchSupervisorReviews());
   },
   'review_approved': (store, payload) => {
     store.dispatch({ type: 'finalRating/selectItem', payload });
+    store.dispatch(fetchMyReviewQueue());
+    store.dispatch(fetchPendingApprovalsThunk());
+    store.dispatch(fetchSupervisorReviews());
+    store.dispatch(fetchFinalRatings());
   },
   'review_completed': (store, payload) => {
     store.dispatch({ type: 'cycle/setProgress', payload: payload.progress });
+    store.dispatch(fetchMyReviewQueue());
+    store.dispatch(fetchPendingApprovalsThunk());
+    store.dispatch(fetchSupervisorReviews());
+    store.dispatch(fetchFinalRatings());
   },
   'review_rejected': (store, payload) => {
     store.dispatch({ type: 'cycle/setProgress', payload: payload.progress });
+    store.dispatch(fetchMyReviewQueue());
+    store.dispatch(fetchPendingApprovalsThunk());
+    store.dispatch(fetchSelfAssessments());
+    store.dispatch(fetchSupervisorReviews());
   },
   'calibration_adjustment': (store, payload) => {
     store.dispatch({ type: 'calibrationSessions/updateItem', payload });
@@ -21,6 +45,8 @@ const WS_EVENT_HANDLERS = {
   },
   'notification': (store, payload) => {
     store.dispatch({ type: 'notification/websocketNotification', payload });
+    store.dispatch(fetchMyReviewQueue());
+    store.dispatch(fetchPendingApprovalsThunk());
   },
   'dashboard_metrics': (store, payload) => {
     store.dispatch({ type: 'dashboard/setMetrics', payload });

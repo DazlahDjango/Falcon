@@ -11,7 +11,7 @@ class ReviewTemplateViewSet(BaseReviewViewSet):
     def get_serializer_class(self):
         return ReviewTemplateListSerializer if self.action == 'list' else ReviewTemplateSerializer
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy', 'set_default', 'activate', 'deactivate', 'duplicate']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'set_default', 'set_default_hyphen', 'activate', 'deactivate', 'duplicate']:
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
@@ -25,6 +25,10 @@ class ReviewTemplateViewSet(BaseReviewViewSet):
                 from apps.tenant.models import Organization
                 tenant = Organization.objects.first()
         serializer.save(tenant=tenant, created_by=self.request.user)
+    @action(detail=True, methods=['post'], url_path='set-default')
+    def set_default_hyphen(self, request, pk=None):
+        return self.set_default(request, pk)
+
     @action(detail=True, methods=['post'])
     def set_default(self, request, pk=None):
         template = self.get_object()

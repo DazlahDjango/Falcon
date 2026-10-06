@@ -26,9 +26,25 @@ class FinalRatingSerializer(BaseTenantSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'approved_at']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        scale = getattr(instance, 'rating_scale', None)
+        final_score = instance.final_score
+        if final_score is not None and scale:
+            level = scale.get_level_by_percentage(float(final_score))
+            if level:
+                data['final_rating_label'] = level.get('label', data.get('final_rating_label'))
+            data['final_rating_color'] = scale.get_color(percentage=float(final_score))
+        return data
+
 class FinalRatingListSerializer(FinalRatingSerializer):
     class Meta(FinalRatingSerializer.Meta):
-        fields = ['id', 'employee_name', 'employee_email', 'review_cycle_name', 'final_score', 'final_rating_label', 'final_rating_color', 'status', 'status_display', 'promotion_recommended', 'pip_recommended']
+        fields = [
+            'id', 'employee', 'employee_name', 'employee_email',
+            'review_cycle', 'review_cycle_name', 'final_score',
+            'final_rating_label', 'final_rating_color', 'status',
+            'status_display', 'promotion_recommended', 'pip_recommended'
+        ]
 
 class FinalRatingDetailSerializer(FinalRatingSerializer):
     score_breakdown = serializers.SerializerMethodField()
@@ -71,7 +87,7 @@ class FinalRatingCalibrateSerializer(serializers.Serializer):
         return value
 
 class FinalRatingExportSerializer(serializers.Serializer):
-    cycle_id = serializers.UUIDField(required=True)
+    cycle_id = serializers.CharField(required=True)
     format = serializers.ChoiceField(choices=['csv', 'excel', 'pdf'], default='csv')
     include_details = serializers.BooleanField(default=False)
     def validate_cycle_id(self, value):

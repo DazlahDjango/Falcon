@@ -155,22 +155,36 @@ class CalculationOrchestrator:
         ).filter(
             Q(effective_to__isnull=True) | Q(effective_to__gte=effective_date)
         ).select_related('kpi')
-        return [
-            {'kpi': weight.kpi, 'weight': weight.weight}
-            for weight in weights
-            if weight.kpi.is_active
-        ]
+        if weights.exists():
+            return [
+                {'kpi': weight.kpi, 'weight': weight.weight}
+                for weight in weights
+                if weight.kpi.is_active
+            ]
+        # Fallback: discover active KPIs assigned via AnnualTarget
+        from apps.kpi.models.target import AnnualTarget
+        targets = AnnualTarget.objects.filter(
+            user_id=user_id,
+            year=year,
+            kpi__is_active=True
+        ).select_related('kpi')
+        count = targets.count()
+        if count > 0:
+            equal_weight = round(100.0 / count, 2)
+            return [{'kpi': t.kpi, 'weight': equal_weight} for t in targets]
+        return []
     
     def _get_target_for_period(self, kpi: KPI, user_id: str, year: int, month: int) -> Optional[MonthlyPhasing]:
         try:
-            return MonthlyPhasing.objects.select_related('annual_target').get(
+            # Check locked phasing first, then any phasing for this target
+            phasing = MonthlyPhasing.objects.select_related('annual_target').filter(
                 annual_target__kpi=kpi,
                 annual_target__user_id=user_id,
                 annual_target__year=year,
-                month=month,
-                is_locked=True
-            )
-        except MonthlyPhasing.DoesNotExist:
+                month=month
+            ).order_by('-is_locked').first()
+            return phasing
+        except Exception:
             logger.debug(f"No target found for {kpi.id} user {user_id} period {year}-{month}")
             return None
     

@@ -35,6 +35,11 @@ class ValidationApprover:
                 actual.save(update_fields=['tenant_id'])
 
             actual.approve(supervisor, comment)
+            try:
+                from .cascade_rollup import CascadeRollupService
+                CascadeRollupService().rollup_actual(actual)
+            except Exception as e:
+                pass
             self._invalidate_caches(actual.user_id, actual.year, actual.month)
             return actual
 
@@ -60,6 +65,11 @@ class ValidationApprover:
                         status='APPROVED',
                         validated_by=supervisor
                     )
+                    try:
+                        from .cascade_rollup import CascadeRollupService
+                        CascadeRollupService().rollup_actual(actual)
+                    except Exception:
+                        pass
                     results['approved'].append(str(actual.id))
                     self._invalidate_caches(actual.user_id, actual.year, actual.month)
                 except Exception as e:

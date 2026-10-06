@@ -1,0 +1,28 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}PIP Created for Team Member - Falcon PMS{% endblock %}
+{% block header %}PIP Created - Manager Notice{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ pip.owner.first_name|default:pip.owner.username }},</h2>
+
+<p>A Performance Improvement Plan (PIP) has been established for your team member <strong>{{ pip.employee.get_full_name }}</strong>.</p>
+
+<div style="background-color: #f3f4f6; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #1e40af;">Plan Details</h3>
+    <p style="margin: 4px 0;"><strong>Employee:</strong> {{ pip.employee.get_full_name }}</p>
+    <p style="margin: 4px 0;"><strong>Duration:</strong> {{ pip.start_date }} to {{ pip.end_date }}</p>
+    <p style="margin: 4px 0;"><strong>Action Items:</strong> Please ensure initial check-in meetings are scheduled.</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/pip/' }}" class="button">Manage Team PIP</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

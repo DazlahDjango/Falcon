@@ -8,11 +8,13 @@ export const accountsApiClient = createAccountsClient();
 export const configApiClient = createApiClient({
   module: 'config', basePath: '/config', responseStyle: 'envelope',
   circuitBreaker: true, forbiddenMessage: 'You do not have permission to access this Config resource',
+  attachTenantHeader: true,
 });
 
 export const dashboardApiClient = createApiClient({
   module: 'dashboard', basePath: '/dashboard', responseStyle: 'envelope',
   circuitBreaker: true, forbiddenMessage: 'You do not have permission to access this dashboard',
+  attachTenantHeader: true,
 });
 
 export const billingApiClient = createApiClient({
@@ -24,11 +26,13 @@ export const billingApiClient = createApiClient({
 export const structureApiClient = createApiClient({
   module: 'structure', basePath: '/structure', responseStyle: 'envelope',
   circuitBreaker: true, forbiddenMessage: 'You do not have permission to access this structure resource',
+  attachTenantHeader: true,
 });
 
 export const reviewsApiClient = createApiClient({
   module: 'reviews', basePath: '/reviews', responseStyle: 'raw',
   circuitBreaker: false,
+  attachTenantHeader: true,
   beforeRequest: async (config) => {
     const cycleId = typeof localStorage !== 'undefined' ? localStorage.getItem('current_cycle_id') : null;
     if (cycleId) { config.headers = config.headers || {}; config.headers['X-Review-Cycle-ID'] = cycleId; }

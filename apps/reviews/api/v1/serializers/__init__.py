@@ -46,6 +46,12 @@ from .coefficient_serializers import CoefficientSerializer, CoefficientListSeria
 from .promotion_serializers import PromotionRecommendationSerializer, PromotionRecommendationListSerializer, PromotionApproveSerializer, PromotionRejectSerializer
 from .comment_serializers import ReviewCommentSerializer, ReviewCommentCreateSerializer, ReviewCommentResolveSerializer
 from .system_settings import ReviewsSystemSettingsSerializer
+from .dashboard_serializers import (
+    StaffDashboardSerializer, StaffEmployeeSerializer, StaffReviewCycleSerializer,
+    StaffSelfAssessmentStatusSerializer, StaffSupervisorReviewStatusSerializer,
+    StaffFinalRatingStatusSerializer, StaffPendingFeedbackSerializer,
+    StaffFeedbackTaskSerializer, StaffPIPSerializer, StaffDeadlineSerializer,
+)
 
 __all__ = [
     'BaseReviewSerializer', 'BaseTenantSerializer', 'BaseStatusSerializer', 'DateRangeSerializer', 'ScoreSerializer',
@@ -62,4 +68,8 @@ __all__ = [
     'PromotionRecommendationSerializer', 'PromotionRecommendationListSerializer', 'PromotionApproveSerializer', 'PromotionRejectSerializer',
     'ReviewCommentSerializer', 'ReviewCommentCreateSerializer', 'ReviewCommentResolveSerializer',
     'ReviewsSystemSettingsSerializer',
-]
+    'StaffDashboardSerializer', 'StaffEmployeeSerializer', 'StaffReviewCycleSerializer',
+    'StaffSelfAssessmentStatusSerializer', 'StaffSupervisorReviewStatusSerializer',
+    'StaffFinalRatingStatusSerializer', 'StaffPendingFeedbackSerializer',
+    'StaffFeedbackTaskSerializer', 'StaffPIPSerializer', 'StaffDeadlineSerializer',
+]

@@ -16,8 +16,8 @@ export const useEmployees = () => {
   const employmentsLoading = useSelector(selectEmploymentsLoading);
 
   useEffect(() => {
-    if (!users.length) {
-      dispatch(fetchUsers({ pageSize: 200 }));
+    if (!users.length || users.length < 50) {
+      dispatch(fetchUsers({ page: 1, pageSize: 500 }));
     }
     if (!employments.length) {
       dispatch(fetchEmployments({ filters: { is_current: 'true', is_active: 'true' } }));

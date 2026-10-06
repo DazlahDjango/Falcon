@@ -241,8 +241,11 @@ export const DASHBOARD_NAV_ITEMS = {
 export const getDashboardRoutesByRole = (role) => {
   switch (role) {
     case 'executive':
+    case 'ceo':
+    case 'c_suite':
       return DASHBOARD_ROUTES.EXECUTIVE
     case 'client_admin':
+    case 'admin':
       return DASHBOARD_ROUTES.CLIENT_ADMIN
     case 'super_admin':
       return DASHBOARD_ROUTES.SUPER_ADMIN
@@ -250,8 +253,12 @@ export const getDashboardRoutesByRole = (role) => {
     case 'supervisor':
       return DASHBOARD_ROUTES.MANAGER
     case 'staff':
+    case 'employee':
       return DASHBOARD_ROUTES.STAFF
     case 'dashboard_champion':
+    case 'champion':
+    case 'hr_admin':
+    case 'hr':
       return DASHBOARD_ROUTES.CHAMPION
     case 'read_only':
       return DASHBOARD_ROUTES.READ_ONLY
@@ -263,8 +270,11 @@ export const getDashboardRoutesByRole = (role) => {
 export const getNavItemsByRole = (role) => {
   switch (role) {
     case 'executive':
+    case 'ceo':
+    case 'c_suite':
       return DASHBOARD_NAV_ITEMS.EXECUTIVE
     case 'client_admin':
+    case 'admin':
       return DASHBOARD_NAV_ITEMS.CLIENT_ADMIN
     case 'super_admin':
       return DASHBOARD_NAV_ITEMS.SUPER_ADMIN
@@ -272,8 +282,12 @@ export const getNavItemsByRole = (role) => {
     case 'supervisor':
       return DASHBOARD_NAV_ITEMS.MANAGER
     case 'staff':
+    case 'employee':
       return DASHBOARD_NAV_ITEMS.STAFF
     case 'dashboard_champion':
+    case 'champion':
+    case 'hr_admin':
+    case 'hr':
       return DASHBOARD_NAV_ITEMS.CHAMPION
     case 'read_only':
       return DASHBOARD_NAV_ITEMS.READ_ONLY

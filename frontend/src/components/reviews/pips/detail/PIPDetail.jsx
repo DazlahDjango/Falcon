@@ -49,9 +49,9 @@ const PIPDetail = () => {
   return (
     <div className="pip-detail">
       <div className="pip-detail-header">
-        <button className="pip-detail-back" onClick={() => navigate('/reviews/pips')}>
+        <button className="pip-detail-back" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
-          Back to PIPs
+          Back
         </button>
         <div className="pip-detail-actions">
           <button className="pip-detail-refresh" onClick={handleRefresh}>
@@ -108,7 +108,7 @@ const PIPDetail = () => {
           <div className="pip-detail-main">
             <PIPInfo pip={selected} />
             <PIPProgress pipId={id} />
-            <PIPActionsList pipId={id} />
+            <PIPActionsList pipId={id} pip={selected} />
           </div>
           <div className="pip-detail-sidebar">
             <PIPActions pip={selected} onAction={handleRefresh} />

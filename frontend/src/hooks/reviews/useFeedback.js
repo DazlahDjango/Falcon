@@ -27,6 +27,7 @@ import {
   remindFeedbackRequest,
   cancelFeedbackRequest,
   bulkCreateFeedbackRequests,
+  autoAssignFeedbackRequests,
   fetchPendingFeedbackRequests,
   fetchOverdueFeedbackRequests,
   resetRequestState,
@@ -151,6 +152,16 @@ const useFeedback = () => {
       }));
     },
     [dispatch, permissions.canCreateFeedbackRequest]
+  );
+
+  const autoAssign = useCallback(
+    (data) => {
+      if (!permissions.canCreateFeedbackRequest && !permissions.canManageFeedback) {
+        throw new Error('You do not have permission to auto-assign feedback requests');
+      }
+      return dispatch(autoAssignFeedbackRequests(data));
+    },
+    [dispatch, permissions.canCreateFeedbackRequest, permissions.canManageFeedback]
   );
 
   const fetchPending = useCallback(
@@ -293,6 +304,7 @@ const useFeedback = () => {
     cancel: cancelRequest,
     cancelRequest,
     bulkCreate,
+    autoAssign,
     fetchPending,
     fetchOverdue,
     resetRequests,

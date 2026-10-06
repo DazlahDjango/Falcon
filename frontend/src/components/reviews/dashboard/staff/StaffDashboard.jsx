@@ -55,7 +55,12 @@ const StaffDashboard = () => {
 
       <div className="dashboard-grid">
         <div className="staff-dashboard-main">
-          <StaffOverview employee={staff.employee} />
+          <StaffOverview 
+            employee={staff.employee} 
+            selfAssessment={staff.self_assessment}
+            supervisorReview={staff.supervisor_review}
+            finalRating={staff.final_rating}
+          />
           <StaffDeadlines deadlines={staff.upcoming_deadlines} />
           <StaffFeedbackSummary summary={staff.pending_feedback_requests} />
           <StaffFeedbackTasks tasks={staff.feedback_tasks_to_write} />

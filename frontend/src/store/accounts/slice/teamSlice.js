@@ -22,7 +22,7 @@ export const fetchTeamMemberById = createAsyncThunk(
     'team/fetchMemberById',
     async (userId, { rejectWithValue }) => {
         try {
-            const response = await usersApi.getTeam(userId);
+            const response = await usersApi.getUserTeam(userId);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to fetch team member');
@@ -34,7 +34,7 @@ export const fetchReportingChain = createAsyncThunk(
     'team/fetchReportingChain',
     async (userId, { rejectWithValue }) => {
         try {
-            const response = await usersApi.getReportingChain(userId);
+            const response = await usersApi.getUserReportingChain(userId);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || 'Failed to fetch reporting chain');
@@ -174,7 +174,7 @@ const teamSlice = createSlice({
             })
             .addCase(fetchTeamMembers.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.teamMembers = action.payload.results || action.payload || [];
+                state.teamMembers = action.payload?.team || action.payload?.results || action.payload?.data || (Array.isArray(action.payload) ? action.payload : []);
             })
             .addCase(fetchTeamMembers.rejected, (state, action) => {
                 state.isLoading = false;

@@ -1,7 +1,7 @@
 // src/components/reviews/supervisor-reviews/form/SupervisorReviewForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Save, Send, User, Calendar, FileText, AlertCircle } from 'lucide-react';
+import { Save, Send, User, Calendar, FileText, AlertCircle, Target, TrendingUp } from 'lucide-react';
 import { useSupervisorReview, useSelfAssessment } from '../../../../hooks/reviews';
 import { ReviewLoading, ReviewError, ReviewStatusBadge } from '../../common';
 import SupervisorReviewCompetencyRating from './SupervisorReviewCompetencyRating';
@@ -9,7 +9,8 @@ import SupervisorReviewComment from './SupervisorReviewComment';
 import SupervisorReviewActions from './SupervisorReviewActions';
 
 const SupervisorReviewForm = () => {
-  const { employeeId } = useParams();
+  const { employeeId, id } = useParams();
+  const targetId = employeeId || id;
   const navigate = useNavigate();
   const { 
     selected, 
@@ -49,11 +50,11 @@ const SupervisorReviewForm = () => {
   const [showComparison, setShowComparison] = useState(false);
 
   useEffect(() => {
-    if (employeeId) {
-      fetchOne(employeeId);
-      compare(employeeId);
+    if (targetId) {
+      fetchOne(targetId);
+      compare(targetId);
     }
-  }, [employeeId, fetchOne, compare]);
+  }, [targetId, fetchOne, compare]);
 
   useEffect(() => {
     if (selected) {
@@ -90,10 +91,14 @@ const SupervisorReviewForm = () => {
   const handleSaveDraft = async () => {
     setIsSaving(true);
     try {
-      if (selected) {
-        await update(selected.id, formData);
+      if (selected?.id) {
+        if (saveDraft) {
+          await saveDraft(selected.id, formData);
+        } else {
+          await update(selected.id, formData);
+        }
       } else {
-        await create({ ...formData, employee: employeeId });
+        await create({ ...formData, employee: targetId });
       }
     } finally {
       setIsSaving(false);
@@ -105,10 +110,14 @@ const SupervisorReviewForm = () => {
     try {
       let reviewId = selected?.id;
       if (!reviewId) {
-        const created = await create({ ...formData, employee: employeeId });
+        const created = await create({ ...formData, employee: targetId });
         reviewId = created.id;
       } else {
-        await update(selected.id, formData);
+        if (saveDraft) {
+          await saveDraft(selected.id, formData);
+        } else {
+          await update(selected.id, formData);
+        }
       }
       await submit(reviewId);
       navigate('/reviews/supervisor-reviews/queue');
@@ -120,7 +129,7 @@ const SupervisorReviewForm = () => {
   };
 
   if (loading) return <ReviewLoading size="lg" text="Loading review..." />;
-  if (error) return <ReviewError error={error} onRetry={() => fetchOne(employeeId)} />;
+  if (error) return <ReviewError error={error} onRetry={() => fetchOne(targetId)} />;
 
   const isSubmitted = selected?.status === 'submitted';
   const isApproved = selected?.status === 'approved';
@@ -203,6 +212,50 @@ const SupervisorReviewForm = () => {
       <div className="supervisor-review-form-content">
         <div className="supervisor-review-form-grid">
           <div className="supervisor-review-form-main">
+            {/* KPI Performance Section (Read-Only from KPI Subsystem) */}
+            <div className="supervisor-review-kpi-card" style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '16px 20px',
+              marginBottom: '24px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Target size={20} style={{ color: '#3b82f6' }} />
+                  <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b' }}>
+                    KPI System Achievement (Read-Only)
+                  </span>
+                </div>
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  background: selected?.calculated_kpi_score >= 80 ? '#dcfce7' : selected?.calculated_kpi_score >= 60 ? '#fef9c3' : '#fee2e2',
+                  color: selected?.calculated_kpi_score >= 80 ? '#166534' : selected?.calculated_kpi_score >= 60 ? '#854d0e' : '#991b1b',
+                }}>
+                  {selected?.calculated_kpi_score != null ? `${selected.calculated_kpi_score}% Performance` : 'No KPI Score Recorded'}
+                </span>
+              </div>
+              <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#64748b' }}>
+                Quantitative targets and actuals are managed exclusively in the <strong>KPI Subsystem</strong>. The approved average score rolls up here into the review cycle.
+              </p>
+              {selected?.override_kpi_score != null && (
+                <div style={{
+                  fontSize: '13px',
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  color: '#1d4ed8',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  marginTop: '8px'
+                }}>
+                  <strong>Supervisor KPI Override:</strong> {selected.override_kpi_score}% (Reason: {selected.override_reason || 'N/A'})
+                </div>
+              )}
+            </div>
+
             <SupervisorReviewCompetencyRating
               ratings={formData.competency_ratings}
               onChange={handleCompetencyRatingChange}

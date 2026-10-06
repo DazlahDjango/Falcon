@@ -27,6 +27,18 @@ class ReportingChainSerializer(serializers.Serializer):
     direct_report_count = serializers.IntegerField()
     management_level = serializers.IntegerField()
 
+class DirectReportItemSerializer(serializers.Serializer):
+    user_id = serializers.UUIDField()
+    name = serializers.CharField(required=False, allow_null=True)
+    email = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    position_title = serializers.CharField(required=False, allow_null=True)
+    position_code = serializers.CharField(required=False, allow_null=True)
+    department_name = serializers.CharField(required=False, allow_null=True)
+    is_manager = serializers.BooleanField(default=False)
+    is_executive = serializers.BooleanField(default=False)
+    direct_reports_count = serializers.IntegerField(default=0)
+    total_reports_count = serializers.IntegerField(default=0)
+
 class SpanOfControlSerializer(serializers.Serializer):
     manager_user_id = serializers.UUIDField()
     manager_name = serializers.CharField(required=False, allow_null=True)
@@ -37,6 +49,7 @@ class SpanOfControlSerializer(serializers.Serializer):
     total_reports = serializers.IntegerField()
     is_healthy = serializers.BooleanField()
     warning = serializers.BooleanField()
+    direct_reports_list = DirectReportItemSerializer(many=True, required=False, default=[])
 
 class OrganizationSpanReportSerializer(serializers.Serializer):
     managers = SpanOfControlSerializer(many=True)

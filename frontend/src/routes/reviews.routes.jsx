@@ -155,12 +155,22 @@ const reviewsRoutes = [
     // ============ Self Assessment Routes ============
     { path: REVIEW_ROUTES.SELF_ASSESSMENT_FORM, element: <SelfAssessmentPage /> },
     { path: '/reviews/self-assessments/form', element: <SelfAssessmentPage /> },
+    { path: '/reviews/self-assessment/form', element: <SelfAssessmentPage /> },
+    { path: '/reviews/self-assessments/:id/edit', element: <SelfAssessmentPage /> },
+    { path: '/reviews/self-assessment/:id/edit', element: <SelfAssessmentPage /> },
+    { path: '/reviews/self-assessments/edit/:id', element: <SelfAssessmentPage /> },
+    { path: '/reviews/self-assessment/edit/:id', element: <SelfAssessmentPage /> },
+    { path: '/reviews/self-assessments/edit', element: <SelfAssessmentPage /> },
+    { path: '/reviews/self-assessment/edit', element: <SelfAssessmentPage /> },
     { path: REVIEW_ROUTES.SELF_ASSESSMENT_LIST, element: <SelfAssessmentListPage /> },
     { path: '/reviews/self-assessment', element: <SelfAssessmentListPage /> },
+    { path: '/reviews/self-assessments', element: <SelfAssessmentListPage /> },
     { path: REVIEW_ROUTES.SELF_ASSESSMENT_TEAM, element: <SelfAssessmentListPage /> },
     { path: '/reviews/self-assessments/team', element: <SelfAssessmentListPage /> },
+    { path: '/reviews/self-assessment/team', element: <SelfAssessmentListPage /> },
     { path: REVIEW_ROUTES.SELF_ASSESSMENT_VIEW(':id'), element: <SelfAssessmentViewPage /> },
     { path: '/reviews/self-assessments/:id', element: <SelfAssessmentViewPage /> },
+    { path: '/reviews/self-assessment/:id', element: <SelfAssessmentViewPage /> },
 
     // ============ Supervisor Review Routes ============
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_QUEUE, element: <ReviewQueuePage /> },
@@ -168,21 +178,31 @@ const reviewsRoutes = [
     { path: '/reviews/review-queue', element: <ReviewQueuePage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_FORM(':employeeId'), element: <SupervisorReviewFormPage /> },
     { path: '/reviews/supervisor-reviews/:employeeId/form', element: <SupervisorReviewFormPage /> },
+    { path: '/reviews/supervisor-reviews/:employeeId/edit', element: <SupervisorReviewFormPage /> },
+    { path: '/reviews/supervisor-reviews/:id/edit', element: <SupervisorReviewFormPage /> },
+    { path: '/reviews/supervisor-review/:employeeId/form', element: <SupervisorReviewFormPage /> },
+    { path: '/reviews/supervisor-review/:employeeId/edit', element: <SupervisorReviewFormPage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_VIEW(':id'), element: <SupervisorReviewDetailPage /> },
     { path: '/reviews/supervisor-reviews/:id', element: <SupervisorReviewDetailPage /> },
+    { path: '/reviews/supervisor-review/:id', element: <SupervisorReviewDetailPage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_PENDING_APPROVALS, element: <PendingApprovalsPage /> },
     { path: '/reviews/supervisor-reviews/pending-approvals', element: <PendingApprovalsPage /> },
     { path: REVIEW_ROUTES.SUPERVISOR_REVIEW_LIST, element: <SupervisorReviewListPage /> },
     { path: '/reviews/supervisor-reviews', element: <SupervisorReviewListPage /> },
+    { path: '/reviews/supervisor-review', element: <SupervisorReviewListPage /> },
 
     // ============ Final Rating Routes ============
     { path: REVIEW_ROUTES.FINAL_RATINGS_LIST, element: <FinalRatingsPage /> },
+    { path: REVIEW_ROUTES.FINAL_RATINGS_MY, element: <FinalRatingsPage /> },
+    { path: REVIEW_ROUTES.FINAL_RATINGS_TEAM, element: <FinalRatingsPage /> },
     { path: REVIEW_ROUTES.FINAL_RATINGS_DETAIL(':id'), element: <FinalRatingDetailPage /> },
     { path: REVIEW_ROUTES.RATING_DISTRIBUTION, element: <RatingDistributionPage /> },
     { path: REVIEW_ROUTES.FINAL_RATINGS_STATS, element: <FinalRatingStatsPage /> },
 
     // ============ PIP Routes ============
     { path: REVIEW_ROUTES.PIPS_LIST, element: <PIPsPage /> },
+    { path: REVIEW_ROUTES.PIPS_MY, element: <PIPsPage /> },
+    { path: REVIEW_ROUTES.PIPS_TEAM, element: <PIPsPage /> },
     { path: REVIEW_ROUTES.PIPS_CREATE, element: <PIPCreatePage /> },
     { path: REVIEW_ROUTES.PIPS_DETAIL(':id'), element: <PIPDetailPage /> },
     { path: REVIEW_ROUTES.PIPS_EDIT(':id'), element: <PIPEditPage /> },
@@ -201,6 +221,7 @@ const reviewsRoutes = [
     { path: REVIEW_ROUTES.FEEDBACK_REQUEST_CREATE, element: <FeedbackRequestCreatePage /> },
     { path: REVIEW_ROUTES.FEEDBACK_RESPOND(':requestId'), element: <FeedbackResponsePage /> },
     { path: REVIEW_ROUTES.FEEDBACK_SUMMARY, element: <FeedbackSummaryPage /> },
+    { path: REVIEW_ROUTES.FEEDBACK_SUMMARY_MY, element: <FeedbackSummaryPage /> },
 
     // ============ Calibration Routes ============
     { path: REVIEW_ROUTES.CALIBRATION, element: <CalibrationSessionsPage /> },

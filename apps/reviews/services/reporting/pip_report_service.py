@@ -1,8 +1,32 @@
 from django.utils import timezone
 from django.db.models import Count, Q, Avg
+from datetime import date, datetime, timedelta
 
 from ...models import PIP, PIPAction, PIPReview
 from ..base_service import BaseReviewService
+
+
+def _to_date(val):
+    if not val:
+        return None
+    if isinstance(val, date) and not isinstance(val, datetime):
+        return val
+    if isinstance(val, datetime):
+        return val.date()
+    if isinstance(val, str):
+        try:
+            return date.fromisoformat(val.split('T')[0])
+        except Exception:
+            return None
+    return None
+
+
+def _to_iso(val):
+    if not val:
+        return None
+    if hasattr(val, 'isoformat'):
+        return val.isoformat()
+    return str(val)
 
 
 class PIPReportService(BaseReviewService):
@@ -35,9 +59,12 @@ class PIPReportService(BaseReviewService):
         
         # Calculate progress
         today = timezone.now().date()
-        total_days = (pip.end_date - pip.start_date).days
-        elapsed_days = (today - pip.start_date).days if today > pip.start_date else 0
-        remaining_days = (pip.end_date - today).days if today < pip.end_date else 0
+        s_date = _to_date(pip.start_date) or today
+        e_date = _to_date(pip.end_date) or (today + timedelta(days=30))
+        
+        total_days = max(1, (e_date - s_date).days)
+        elapsed_days = (today - s_date).days if today > s_date else 0
+        remaining_days = max(0, (e_date - today).days) if today < e_date else 0
         
         return {
             'pip': {
@@ -45,19 +72,19 @@ class PIPReportService(BaseReviewService):
                 'title': pip.title,
                 'severity': pip.get_severity_display(),
                 'status': pip.get_status_display(),
-                'start_date': pip.start_date.isoformat(),
-                'end_date': pip.end_date.isoformat(),
-                'extended_to_date': pip.extended_to_date.isoformat() if pip.extended_to_date else None,
+                'start_date': _to_iso(pip.start_date),
+                'end_date': _to_iso(pip.end_date),
+                'extended_to_date': _to_iso(pip.extended_to_date),
             },
             'employee': {
-                'id': pip.employee.id,
+                'id': str(pip.employee.id),
                 'name': pip.employee.get_full_name(),
                 'email': pip.employee.email,
-                'position': pip.employee.position.title if hasattr(pip.employee, 'position') else None,
-                'department': pip.employee.department.name if hasattr(pip.employee, 'department') else None,
+                'position': getattr(getattr(pip.employee, 'position', None), 'title', str(getattr(pip.employee, 'position', '') or '')) or None,
+                'department': getattr(getattr(pip.employee, 'department', None), 'name', str(getattr(pip.employee, 'department', '') or '')) or None,
             },
             'owner': {
-                'id': pip.owner.id,
+                'id': str(pip.owner.id),
                 'name': pip.owner.get_full_name(),
                 'email': pip.owner.email,
             },
@@ -77,9 +104,9 @@ class PIPReportService(BaseReviewService):
                     {
                         'title': action.title,
                         'priority': action.get_priority_display(),
-                        'due_date': action.due_date.isoformat(),
+                        'due_date': _to_iso(action.due_date),
                         'status': action.get_status_display(),
-                        'completed_at': action.completed_at.isoformat() if action.completed_at else None,
+                        'completed_at': _to_iso(action.completed_at),
                         'requires_evidence': action.requires_evidence,
                         'has_evidence': bool(action.evidence),
                     }
@@ -88,7 +115,7 @@ class PIPReportService(BaseReviewService):
             },
             'reviews': [
                 {
-                    'date': review.review_date.isoformat(),
+                    'date': _to_iso(review.review_date),
                     'rating': review.get_rating_display(),
                     'summary': review.summary,
                     'accomplishments': review.accomplishments,
@@ -110,7 +137,7 @@ class PIPReportService(BaseReviewService):
             'outcome': {
                 'result': pip.get_outcome_display() if pip.outcome else 'In Progress',
                 'notes': pip.outcome_notes,
-                'completed_at': pip.completed_at.isoformat() if pip.completed_at else None,
+                'completed_at': _to_iso(pip.completed_at),
             }
         }
     
@@ -120,13 +147,14 @@ class PIPReportService(BaseReviewService):
         Get summary of all PIPs in an organization.
         
         Args:
-            tenant: Client instance
+            tenant: Client instance or UUID
             status: Optional status filter
         
         Returns:
             dict: Organization PIP summary
         """
-        queryset = PIP.objects.filter(tenant_id=tenant.id)
+        tid = getattr(tenant, 'id', tenant)
+        queryset = PIP.objects.filter(tenant_id=tid)
         
         if status:
             queryset = queryset.filter(status=status)
@@ -144,7 +172,7 @@ class PIPReportService(BaseReviewService):
         # Count by department
         department_counts = {}
         for pip in queryset.select_related('employee'):
-            dept_name = pip.employee.department if pip.employee.department else 'No Department'
+            dept_name = str(pip.employee.department) if pip.employee.department else 'No Department'
             department_counts[dept_name] = department_counts.get(dept_name, 0) + 1
         
         # Count by outcome
@@ -158,7 +186,7 @@ class PIPReportService(BaseReviewService):
         }
         
         # Active PIPs summary (draft or submitted)
-        active_pips = queryset.filter(status__in=['draft', 'submitted'])
+        active_pips = queryset.filter(status__in=['draft', 'submitted', 'active'])
         active_count = active_pips.count()
         
         # Overdue PIPs
@@ -166,11 +194,10 @@ class PIPReportService(BaseReviewService):
         overdue_pips = active_pips.filter(end_date__lt=today).count()
         
         # PIPs ending soon (within 14 days)
-        from datetime import timedelta
         soon_date = today + timedelta(days=14)
         ending_soon = active_pips.filter(end_date__lte=soon_date, end_date__gte=today).count()
         
-        # Average completion rate for successful PIPs: count completed actions / total actions per pip
+        # Average completion rate for successful PIPs
         successful_pips = queryset.filter(outcome='successful')
         avg_completion_rate = 0
         if successful_pips.exists():
@@ -207,8 +234,7 @@ class PIPReportService(BaseReviewService):
             dict: Manager's PIP report
         """
         pips = PIP.objects.filter(owner=manager)
-        
-        active_pips = pips.filter(status='active')
+        active_pips = pips.filter(status__in=['draft', 'submitted', 'active'])
         
         return {
             'manager': {
@@ -230,9 +256,9 @@ class PIPReportService(BaseReviewService):
                     'employee': pip.employee.get_full_name(),
                     'title': pip.title,
                     'severity': pip.get_severity_display(),
-                    'start_date': pip.start_date.isoformat(),
-                    'end_date': pip.end_date.isoformat(),
-                    'days_remaining': (pip.end_date - timezone.now().date()).days,
+                    'start_date': _to_iso(pip.start_date),
+                    'end_date': _to_iso(pip.end_date),
+                    'days_remaining': (pip.end_date - timezone.now().date()).days if pip.end_date else 0,
                     'actions_completed': pip.actions.filter(status='completed').count(),
                     'total_actions': pip.actions.count(),
                 }
@@ -246,14 +272,13 @@ class PIPReportService(BaseReviewService):
         Get PIP trends over time.
         
         Args:
-            tenant: Client instance
+            tenant: Client instance or UUID
             months: Number of months to look back
         
         Returns:
             dict: Monthly trend data
         """
-        from datetime import timedelta
-        
+        tid = getattr(tenant, 'id', tenant)
         today = timezone.now().date()
         trends = []
         
@@ -262,7 +287,7 @@ class PIPReportService(BaseReviewService):
             month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
             
             month_pips = PIP.objects.filter(
-                tenant_id=tenant.id,
+                tenant_id=tid,
                 created_at__date__gte=month_start,
                 created_at__date__lte=month_end
             )

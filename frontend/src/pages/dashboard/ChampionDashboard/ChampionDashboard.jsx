@@ -1,6 +1,5 @@
-// frontend/src/pages/dashboard/ChampionDashboard/ChampionDashboard.jsx
-
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useChampionDashboard from '../../../hooks/kpi/useChampionDashboard';
 import OrganizationKPITable from '../../../components/kpi/dashboard/OrganizationKPITable';
 import {
@@ -13,12 +12,17 @@ import {
   ShieldCheckIcon,
   UserGroupIcon,
   AdjustmentsHorizontalIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  ArrowTopRightOnSquareIcon,
+  ClipboardDocumentCheckIcon,
+  AcademicCapIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 
 import HeaderTag from '../../../components/dashboard/HeaderTag';
 
 const ChampionDashboard = () => {
+  const navigate = useNavigate();
   const {
     loading,
     refreshDashboard,
@@ -40,11 +44,14 @@ const ChampionDashboard = () => {
     return { text: 'Low Submissions', color: 'text-rose-600', bg: 'bg-rose-50 border-rose-200' };
   }, [organizationSubmissionRate]);
 
+  const isHrRole = user?.role === 'hr_admin' || user?.role === 'hr' || (user?.role_name || '').toLowerCase().includes('hr');
+  const roleBadgeText = isHrRole ? 'HR Admin' : 'Dashboard Champion';
+
   return (
     <div className="min-h-screen bg-slate-50/60 p-6 space-y-6 text-slate-800 font-sans">
       {/* Header Banner */}
       <HeaderTag 
-        roleBadge="KPI Champion" 
+        roleBadge={roleBadgeText} 
         badgeColor="purple" 
         onRefresh={refreshDashboard} 
         loading={loading} 
@@ -282,23 +289,76 @@ const ChampionDashboard = () => {
 
           {/* Quick Governance Actions */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold text-slate-900">Governance Actions</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-900">Governance & Reviews Hub</h3>
+              <span className="text-[10px] text-purple-600 font-semibold">HR Admin</span>
+            </div>
             <div className="grid grid-cols-2 gap-2 text-center text-[10px] font-semibold">
               <button 
-                onClick={() => refreshDashboard()}
-                className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition flex flex-col items-center gap-1 border border-purple-100"
-              >
-                <AdjustmentsHorizontalIcon className="w-4 h-4 text-purple-600" />
-                <span>Audit Actuals</span>
-              </button>
-              <button 
-                onClick={() => refreshDashboard()}
+                onClick={() => navigate('/reviews/self-assessments/team')}
                 className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition flex flex-col items-center gap-1 border border-blue-100"
               >
                 <UserGroupIcon className="w-4 h-4 text-blue-600" />
-                <span>Notify Leads</span>
+                <span>Team Assessments</span>
+              </button>
+              <button 
+                onClick={() => navigate('/reviews/dashboard/admin')}
+                className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition flex flex-col items-center gap-1 border border-purple-100"
+              >
+                <AcademicCapIcon className="w-4 h-4 text-purple-600" />
+                <span>Reviews Admin</span>
+              </button>
+              <button 
+                onClick={() => navigate('/reviews/calibration')}
+                className="p-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition flex flex-col items-center gap-1 border border-indigo-100"
+              >
+                <AdjustmentsHorizontalIcon className="w-4 h-4 text-indigo-600" />
+                <span>Calibration</span>
+              </button>
+              <button 
+                onClick={() => navigate('/reviews/pips')}
+                className="p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl transition flex flex-col items-center gap-1 border border-rose-100"
+              >
+                <ShieldCheckIcon className="w-4 h-4 text-rose-600" />
+                <span>PIP Oversight</span>
               </button>
             </div>
+          </div>
+
+          {/* Personal Performance Status */}
+          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 p-5 rounded-2xl border border-slate-800 text-white shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserIcon className="w-4 h-4 text-purple-400" />
+                <h3 className="text-xs font-bold text-slate-100">My Performance</h3>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                95.0% Outstanding
+              </span>
+            </div>
+            
+            <p className="text-[11px] text-slate-300">
+              Your annual appraisal is fully submitted and approved with supervisor Robert Martin.
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 text-[10px] pt-1">
+              <div className="bg-white/10 rounded-lg p-2 border border-white/5">
+                <span className="text-slate-400 block">KPI Score</span>
+                <span className="text-xs font-bold text-emerald-400">100.0%</span>
+              </div>
+              <div className="bg-white/10 rounded-lg p-2 border border-white/5">
+                <span className="text-slate-400 block">Competency</span>
+                <span className="text-xs font-bold text-blue-400">87.5%</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate('/reviews/dashboard/staff')}
+              className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <span>View My Appraisal & Rating</span>
+              <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           {/* Escalations Stream */}

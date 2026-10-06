@@ -381,6 +381,20 @@ class TargetCascader:
             }
             children_keys.setdefault(parent, []).append(ikey)
 
+        # Fetch approved actuals for all users for this KPI and year
+        from apps.kpi.models import MonthlyActual
+        approved_actuals_qs = MonthlyActual.objects.filter(
+            tenant_id=tenant_id,
+            kpi_id=org_target.kpi_id,
+            year=org_target.year,
+            status='APPROVED'
+        ).values('user_id').annotate(total_actual=Sum('actual_value'))
+
+        user_achieved_map = {
+            str(a['user_id']): float(a['total_actual'] or 0.0)
+            for a in approved_actuals_qs
+        }
+
         assembled = set()
 
         def assemble(key):
@@ -399,6 +413,37 @@ class TargetCascader:
                 kids.append(assemble(ck))
             kids.sort(key=lambda n: (LEVEL_RANK.get(n.get('level'), 99), (n.get('name') or '').lower()))
             node['children'] = kids
+
+            # Calculate rolled up achieved value & progress
+            target_val = float(node.get('target_value') or 0.0)
+            node_uid = node.get('user_id')
+            direct_actual = user_achieved_map.get(str(node_uid), 0.0) if node_uid else 0.0
+
+            if kids:
+                children_achieved = sum(float(k.get('achieved_value', 0.0)) for k in kids)
+                achieved_val = children_achieved if children_achieved > 0 else direct_actual
+            else:
+                achieved_val = direct_actual
+
+            achieved_val = round(achieved_val, 2)
+            node['achieved_value'] = achieved_val
+            node['actual_value'] = achieved_val
+
+            calc_logic = getattr(org_target.kpi, 'calculation_logic', 'HIGHER_IS_BETTER')
+            node['calculation_logic'] = calc_logic
+
+            if target_val > 0:
+                if calc_logic == 'LOWER_IS_BETTER':
+                    ach_pct = round((target_val / achieved_val * 100), 2) if achieved_val > 0 else 100.0
+                else:
+                    ach_pct = round((achieved_val / target_val * 100), 2)
+            else:
+                ach_pct = 100.0 if achieved_val >= 0 else 0.0
+
+            node['achievement_percentage'] = ach_pct
+            node['score'] = ach_pct
+            node['status'] = 'GREEN' if ach_pct >= 90 else ('YELLOW' if ach_pct >= 50 else 'RED')
+
             return node
 
         tree = assemble('org')

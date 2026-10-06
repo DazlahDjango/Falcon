@@ -67,7 +67,7 @@ class ConvertScoreSerializer(serializers.Serializer):
     """
     Serializer for score conversion.
     """
-    rating_scale_id = serializers.UUIDField()
+    rating_scale_id = serializers.CharField()
     score = serializers.DecimalField(max_digits=5, decimal_places=2)
     from_type = serializers.ChoiceField(choices=['raw', 'percentage'])
     to_type = serializers.ChoiceField(choices=['raw', 'percentage', 'label'])

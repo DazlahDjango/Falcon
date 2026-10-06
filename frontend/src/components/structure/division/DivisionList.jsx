@@ -4,7 +4,6 @@ import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiLayers, FiUsers, FiActi
 import { useDivisions, useStructurePermissions } from '../../../hooks/structure';
 import {
   StructureTable,
-  StructureSearchBar,
   StructureFilters,
   StructurePagination,
   StructureStatusBadge,
@@ -245,7 +244,7 @@ export const DivisionList = () => {
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
-        searchPlaceholder="Search divisions..."
+        searchPlaceholder="Search divisions by code, name, or description..."
       >
         <div className="filter-group">
           <label>Status</label>
@@ -259,13 +258,6 @@ export const DivisionList = () => {
           </select>
         </div>
       </StructureFilters>
-
-      <StructureSearchBar
-        value={searchTerm}
-        onChange={handleSearch}
-        placeholder="Search by code or name..."
-        debounce={400}
-      />
 
       <StructureTable
         columns={COLUMNS}

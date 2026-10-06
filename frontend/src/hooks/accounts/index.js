@@ -14,4 +14,5 @@ export { useSystemSettings } from './useSystemSettings';
 export { usePagination } from './usePagination';
 export { useEmployees } from './useEmployees';
 export { useReports } from './useReports';
+export { useTeam } from './useTeam';
 

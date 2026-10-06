@@ -4,9 +4,9 @@ import { Navigate } from 'react-router-dom';
 import { useReviewsPermissions } from '../../../hooks/reviews';
 
 const ReviewsDashboardRedirect = () => {
-  const { isSuperAdmin, isClientAdmin, isExecutive, isSupervisor } = useReviewsPermissions();
+  const { isSuperAdmin, isClientAdmin, isHrAdmin, isExecutive, isSupervisor } = useReviewsPermissions();
 
-  if (isSuperAdmin || isClientAdmin) {
+  if (isSuperAdmin || isClientAdmin || isHrAdmin) {
     return <Navigate to="/reviews/dashboard/admin" replace />;
   }
   if (isExecutive) {

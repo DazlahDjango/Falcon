@@ -168,7 +168,7 @@ def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
     invalidate_user_dashboards(str(instance.user_id))
     
     try:
-        from .tasks import calculate_kpi_score_task, send_validation_notification_task, send_red_alert_check_task
+        from .tasks import calculate_kpi_score_task, send_validation_notification_task, send_red_alert_check_task, rollup_cascaded_actuals_task
         from .services.realtime import KPIEventBroadcaster
         
         if instance.status == 'APPROVED':
@@ -177,6 +177,13 @@ def monthly_actual_post_save_handler(sender, instance, created, **kwargs):
                 year=instance.year,
                 month=instance.month,
                 force=True
+            ))
+            transaction.on_commit(lambda: rollup_cascaded_actuals_task.delay(
+                tenant_id=str(instance.tenant_id) if instance.tenant_id else None,
+                kpi_id=str(instance.kpi_id),
+                year=instance.year,
+                month=instance.month,
+                trigger_user_id=str(instance.user_id)
             ))
             transaction.on_commit(lambda: send_red_alert_check_task.delay(
                 tenant_id=str(instance.tenant_id),
@@ -295,6 +302,17 @@ def score_post_save_handler(sender, instance, created, **kwargs):
                 period=f'{instance.year}-{instance.month:02d}',
                 manager_id=_manager_user_id_for_employee(instance.user_id),
             )
+            
+            # Automatically recalculate open Final Ratings in Reviews app
+            try:
+                from apps.reviews.services.sync.dependency_sync import ReviewsDependencySyncService
+                ReviewsDependencySyncService.on_kpi_score_changed(
+                    tenant_id=str(instance.tenant_id),
+                    user_id=str(instance.user_id),
+                    recalculate_final_ratings=True,
+                )
+            except Exception as re_sync_err:
+                logger.debug(f"Reviews dependency sync on score save skipped: {re_sync_err}")
         except ImportError:
             pass
 

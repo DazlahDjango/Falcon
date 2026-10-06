@@ -162,6 +162,7 @@ const GROUP_ICONS = {
   reports_schedules: FiClock,
   reports_builder: FiSliders,
   reports_export: FiDownload,
+  reports_my: FiUser,
   self_service: FiUser,
   directory_reports: FiBarChart2,
   views: FiEye,

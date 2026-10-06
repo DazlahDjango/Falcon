@@ -10,6 +10,8 @@ import {
   selectSupervisorReviewStats,
   selectMyReviewQueue,
   selectPendingApprovals,
+  selectSupervisorReviewsPagination,
+  selectSupervisorReviewsFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchSupervisorReviews,
@@ -29,6 +31,7 @@ import {
   fetchPendingApprovals as fetchPendingApprovalsThunk,
   fetchSupervisorReviewStats,
   resetSupervisorReviewState,
+  supervisorReviewActions,
 } from '../../store/reviews/slices/supervisorReview.slice';
 import { useReviewsPermissions } from './';
 
@@ -45,10 +48,27 @@ const useSupervisorReview = () => {
   const stats = useSelector(selectSupervisorReviewStats);
   const myQueue = useSelector(selectMyReviewQueue);
   const pendingApprovals = useSelector(selectPendingApprovals);
+  const pagination = useSelector(selectSupervisorReviewsPagination);
+  const filters = useSelector(selectSupervisorReviewsFilters);
 
   // Actions
   const fetchAll = useCallback(
     (params) => dispatch(fetchSupervisorReviews(params)),
+    [dispatch]
+  );
+
+  const setPagination = useCallback(
+    (payload) => dispatch(supervisorReviewActions.setPagination(payload)),
+    [dispatch]
+  );
+
+  const setFilters = useCallback(
+    (payload) => dispatch(supervisorReviewActions.setFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(supervisorReviewActions.clearFilters()),
     [dispatch]
   );
 
@@ -205,6 +225,8 @@ const useSupervisorReview = () => {
     stats,
     myQueue,
     pendingApprovals,
+    pagination,
+    filters,
 
     // CRUD Operations
     fetchAll,
@@ -227,6 +249,9 @@ const useSupervisorReview = () => {
     fetchPendingApprovals,
     getStats,
     reset,
+    setPagination,
+    setFilters,
+    clearFilters,
 
     // Permissions
     canManage,

@@ -103,7 +103,9 @@ urlpatterns = [
     path('', include(employments_router.urls)),
     
     # Custom endpoints
-    path('me/', EmploymentViewSet.as_view({'get': 'get_current_employments'}), name='my-employment'),
+    path('me/', EmploymentViewSet.as_view({'get': 'get_my_employment'}), name='my-employment'),
+    path('my-chain/', ReportingLineViewSet.as_view({'get': 'my_chain'}), name='my-chain'),
+    path('my-team/', ReportingLineViewSet.as_view({'get': 'my_team'}), name='my-team'),
 
     path('search/', OrganizationalUnitViewSet.as_view({'get': 'list'}), name='structure-search'),
 ]

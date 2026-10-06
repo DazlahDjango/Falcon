@@ -15,16 +15,21 @@ class CompetencyCategoryViewSet(BaseReviewViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'activate', 'deactivate']:
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
+    def create(self, request, *args, **kwargs):
+        tenant_id = getattr(request.user, 'tenant_id', None)
+        name = request.data.get('name')
+        if name and tenant_id:
+            existing = CompetencyCategory.objects.filter(tenant_id=tenant_id, name=name).first()
+            if existing:
+                serializer = self.get_serializer(existing, data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
-        tenant = getattr(self.request.user, 'tenant', None)
         tenant_id = getattr(self.request.user, 'tenant_id', None)
-        if not tenant and not tenant_id:
-            from apps.tenant.models import Organization
-            tenant = Organization.objects.first()
-        if tenant:
-            serializer.save(tenant=tenant)
-        else:
-            serializer.save(tenant_id=tenant_id)
+        serializer.save(tenant_id=tenant_id)
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         category = self.get_object()
@@ -44,23 +49,28 @@ class CompetencyCategoryViewSet(BaseReviewViewSet):
         return Response(CompetencyListSerializer(competencies, many=True).data)
 
 class CompetencyViewSet(BaseReviewViewSet):
-    queryset = Competency.objects.all()
+    queryset = Competency.objects.select_related('tenant', 'category', 'rating_scale').all()
     def get_serializer_class(self):
         return CompetencyListSerializer if self.action == 'list' else CompetencySerializer
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'activate', 'deactivate']:
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
+    def create(self, request, *args, **kwargs):
+        tenant_id = getattr(request.user, 'tenant_id', None)
+        name = request.data.get('name')
+        if name and tenant_id:
+            existing = Competency.objects.filter(tenant_id=tenant_id, name=name).first()
+            if existing:
+                serializer = self.get_serializer(existing, data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
-        tenant = getattr(self.request.user, 'tenant', None)
         tenant_id = getattr(self.request.user, 'tenant_id', None)
-        if not tenant and not tenant_id:
-            from apps.tenant.models import Organization
-            tenant = Organization.objects.first()
-        if tenant:
-            serializer.save(tenant=tenant)
-        else:
-            serializer.save(tenant_id=tenant_id)
+        serializer.save(tenant_id=tenant_id)
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         competency = self.get_object()
@@ -117,6 +127,10 @@ class CompetencyRatingViewSet(BaseReadOnlyReviewViewSet):
             return Response(self.get_serializer(ratings, many=True).data)
         except SupervisorReview.DoesNotExist:
             return Response({'error': 'Supervisor review not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=['post'], url_path='bulk-create')
+    def bulk_create_hyphen(self, request):
+        return self.bulk_create(request)
+
     @action(detail=False, methods=['post'])
     def bulk_create(self, request):
         serializer = CompetencyRatingBulkSerializer(data=request.data)
@@ -137,7 +151,17 @@ class CompetencyRatingViewSet(BaseReadOnlyReviewViewSet):
         ct = ContentType.objects.get_for_model(parent)
         CompetencyRating.objects.filter(content_type=ct, object_id=str(parent_id)).delete()
         created = []
+        tenant_id = getattr(parent, 'tenant_id', None) or getattr(request.user, 'tenant_id', None)
         for rating_data in serializer.validated_data.get('ratings', []):
-            rating = CompetencyRating.objects.create(content_type=ct, object_id=str(parent_id), competency_id=rating_data.get('competency'), raw_score=rating_data.get('raw_score'), comment=rating_data.get('comment', ''))
+            comp = rating_data.get('competency')
+            comp_obj = comp if isinstance(comp, Competency) else Competency.objects.filter(id=comp).first()
+            rating = CompetencyRating.objects.create(
+                tenant_id=tenant_id,
+                content_type=ct,
+                object_id=str(parent_id),
+                competency=comp_obj,
+                raw_score=rating_data.get('raw_score'),
+                comment=rating_data.get('comment', ''),
+            )
             created.append(rating)
         return Response(self.get_serializer(created, many=True).data, status=status.HTTP_201_CREATED)

@@ -26,6 +26,7 @@ import {
   fetchMySelfAssessment,
   fetchSelfAssessmentStats,
   resetSelfAssessmentState,
+  selfAssessmentActions,
 } from '../../store/reviews/slices/selfAssessment.slice';
 import { useReviewsPermissions } from './';
 
@@ -63,6 +64,11 @@ const useSelfAssessment = () => {
 
   const clearFilters = useCallback(
     () => dispatch(selfAssessmentActions.clearFilters()),
+    [dispatch]
+  );
+
+  const clearErrors = useCallback(
+    () => dispatch(selfAssessmentActions.clearErrors()),
     [dispatch]
   );
 
@@ -225,6 +231,7 @@ const useSelfAssessment = () => {
     canSubmit,
 
     // Utilities
+    clearErrors,
     pagination,
     filters,
     setPagination,

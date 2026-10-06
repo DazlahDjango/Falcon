@@ -189,6 +189,31 @@ class ExecutiveDashboard:
 
         history = self._get_health_history(tenant_id, year, month, months_back=6)
 
+        structure_summary = {}
+        try:
+            from apps.structure.models import Division, Department, Section, Unit, OrganizationalUnit, Position, CostCenter, Location
+            div_count = Division.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            dept_count = Department.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            sec_count = Section.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            unit_count = Unit.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            org_unit_count = OrganizationalUnit.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            pos_count = Position.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            cc_count = CostCenter.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            loc_count = Location.objects.filter(tenant_id=tenant_id, is_active=True).count()
+            structure_summary = {
+                'divisions_count': div_count,
+                'departments_count': dept_count,
+                'sections_count': sec_count,
+                'units_count': unit_count,
+                'org_units_count': org_unit_count,
+                'positions_count': pos_count,
+                'cost_centers_count': cc_count,
+                'locations_count': loc_count,
+                'total_nodes': div_count + dept_count + sec_count + unit_count + org_unit_count
+            }
+        except Exception as e:
+            logger.warning(f"Could not compute structure summary for executive: {e}")
+
         dashboard = {
             'tenant_id': tenant_id,
             'period': f"{year}-{month:02d}",
@@ -204,6 +229,7 @@ class ExecutiveDashboard:
             'yellow_count': yellow_count,
             'red_count': red_count,
             'active_employees': health.get('active_employees', 0),
+            'structure_summary': structure_summary,
             'risk_indicators': {
                 'risk_level': health.get('risk_level', 'MEDIUM'),
                 'data_source': health.get('source', 'live')
@@ -282,25 +308,34 @@ class ChampionDashboard:
         return dashboard
 
     def _get_department_compliance(self, tenant_id: str, year: int, month: int, rollups: List[Dict]) -> List[Dict]:
-        from apps.accounts.models import User
-
         compliance = []
         for dept in rollups[:20]:
             dept_id = dept.get('department_id')
             if not dept_id:
                 continue
 
-            members = User.objects.filter(department_id=dept_id, tenant_id=tenant_id, is_active=True)
-            total = members.count()
+            owner_ids = list(
+                KPI.objects.filter(
+                    tenant_id=tenant_id,
+                    department_id=dept_id,
+                    is_active=True
+                ).values_list('owner_id', flat=True).distinct()
+            )
+            total = len(owner_ids)
+            if total == 0:
+                total = dept.get('employee_count', 0)
 
             if total == 0:
                 continue
 
-            submitted = MonthlyActual.objects.filter(
-                user_id__in=list(members.values_list('id', flat=True)),
-                year=year,
-                month=month
-            ).values('user_id').distinct().count()
+            if owner_ids:
+                submitted = MonthlyActual.objects.filter(
+                    user_id__in=owner_ids,
+                    year=year,
+                    month=month
+                ).values('user_id').distinct().count()
+            else:
+                submitted = 0
 
             compliance.append({
                 'department': dept.get('department_name', 'Unknown'),

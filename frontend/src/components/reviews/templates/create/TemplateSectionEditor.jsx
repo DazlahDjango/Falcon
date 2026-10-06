@@ -8,20 +8,26 @@ const TemplateSectionEditor = ({ sections = [], requiredSections = [], onChange 
   const availableSections = [
     { value: 'overall_comment', label: 'Overall Comment' },
     { value: 'performance_summary', label: 'Performance Summary' },
-    { value: 'strengths', label: 'Strengths' },
+    { value: 'strengths', label: 'Strengths & Core Capabilities' },
     { value: 'strengths_observed', label: 'Strengths Observed' },
+    { value: 'weaknesses', label: 'Areas for Improvement & Development' },
     { value: 'areas_for_improvement', label: 'Areas for Improvement' },
     { value: 'development_areas', label: 'Development Areas' },
+    { value: 'career', label: 'Career Aspirations & Growth' },
     { value: 'career_aspirations', label: 'Career Aspirations' },
+    { value: 'challenges', label: 'Challenges Faced' },
     { value: 'challenges_faced', label: 'Challenges Faced' },
-    { value: 'achievements', label: 'Achievements' },
+    { value: 'achievements', label: 'Key Achievements & Deliverables' },
     { value: 'achievements_recognized', label: 'Achievements Recognized' },
     { value: 'career_progression_notes', label: 'Career Progression Notes' },
+    { value: 'training', label: 'Training & Development' },
     { value: 'training_completed', label: 'Training Completed' },
     { value: 'training_requested', label: 'Training Requested' },
     { value: 'training_recommendations', label: 'Training Recommendations' },
+    { value: 'goals', label: 'Goals & Objectives' },
     { value: 'goals_achieved', label: 'Goals Achieved' },
     { value: 'goals_for_next_period', label: 'Goals for Next Period' },
+    { value: 'feedback', label: 'Additional 360 / Feedback' },
     { value: 'recommendation', label: 'Recommendation' },
     { value: 'promotion_readiness', label: 'Promotion Readiness' },
     { value: 'bonus_recommendation', label: 'Bonus Recommendation' },
@@ -31,17 +37,23 @@ const TemplateSectionEditor = ({ sections = [], requiredSections = [], onChange 
   const [customSectionName, setCustomSectionName] = useState('');
   const [isNewRequired, setIsNewRequired] = useState(true);
 
+  const getSectionKey = (sec) => {
+    if (!sec) return '';
+    if (typeof sec === 'object') return sec.name || sec.value || sec.title || '';
+    return String(sec);
+  };
+
   const addSection = () => {
     const sectionToAdd = isCustomMode ? customSectionName.trim() : newSection.trim();
     if (!sectionToAdd) return;
-    if (sections.includes(sectionToAdd)) {
+    if (sections.some(s => getSectionKey(s) === sectionToAdd)) {
       alert('This section is already added.');
       return;
     }
     const updated = [...sections, sectionToAdd];
     const updatedRequired = isNewRequired
-      ? (requiredSections.includes(sectionToAdd) ? requiredSections : [...requiredSections, sectionToAdd])
-      : requiredSections.filter((s) => s !== sectionToAdd);
+      ? (requiredSections.some(r => getSectionKey(r) === sectionToAdd) ? requiredSections : [...requiredSections, sectionToAdd])
+      : requiredSections.filter((s) => getSectionKey(s) !== sectionToAdd);
     onChange(updated, updatedRequired);
     if (isCustomMode) {
       setCustomSectionName('');
@@ -51,15 +63,18 @@ const TemplateSectionEditor = ({ sections = [], requiredSections = [], onChange 
   };
 
   const removeSection = (index) => {
+    const targetKey = getSectionKey(sections[index]);
     const updated = sections.filter((_, i) => i !== index);
-    const updatedRequired = requiredSections.filter((s) => s !== sections[index]);
+    const updatedRequired = requiredSections.filter((s) => getSectionKey(s) !== targetKey);
     onChange(updated, updatedRequired);
   };
 
   const toggleRequired = (section) => {
-    const updatedRequired = requiredSections.includes(section)
-      ? requiredSections.filter((s) => s !== section)
-      : [...requiredSections, section];
+    const secKey = getSectionKey(section);
+    const isReq = requiredSections.some(r => getSectionKey(r) === secKey);
+    const updatedRequired = isReq
+      ? requiredSections.filter((s) => getSectionKey(s) !== secKey)
+      : [...requiredSections, secKey];
     onChange(sections, updatedRequired);
   };
 
@@ -155,8 +170,9 @@ const TemplateSectionEditor = ({ sections = [], requiredSections = [], onChange 
       ) : (
         <div className="template-section-editor-list">
           {sections.map((section, index) => {
-            const label = availableSections.find(s => s.value === section)?.label || section;
-            const isRequired = requiredSections.includes(section);
+            const secKey = getSectionKey(section);
+            const label = availableSections.find(s => s.value === secKey)?.label || (typeof section === 'object' && section !== null ? (section.name || section.label || secKey) : secKey);
+            const isRequired = requiredSections.some(r => getSectionKey(r) === secKey);
 
             return (
               <div key={index} className="template-section-editor-item">

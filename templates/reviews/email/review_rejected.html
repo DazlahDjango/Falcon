@@ -1,0 +1,26 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Review Needs Revision - Falcon PMS{% endblock %}
+{% block header %}Review Requires Revision{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ review.employee.first_name|default:review.employee.username }},</h2>
+
+<p>Your appraisal submission for <strong>{{ review.review_cycle.name }}</strong> requires review and revision.</p>
+
+<div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #991b1b;">Reason for Revision</h3>
+    <p style="margin: 4px 0;">{{ reason|default:"Please review comments and update your submission." }}</p>
+</div>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/self-assessment/' }}" class="button">Edit Assessment</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

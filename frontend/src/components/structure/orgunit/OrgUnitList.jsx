@@ -4,7 +4,6 @@ import { FiLayers, FiActivity, FiRefreshCw } from 'react-icons/fi';
 import { useOrganizationalUnits, useStructureReferenceData } from '../../../hooks/structure';
 import {
   StructureTable,
-  StructureSearchBar,
   StructureFilters,
   StructureStatusBadge,
   StructureLoading,
@@ -115,22 +114,16 @@ export const OrgUnitList = () => {
   }, [fetchAll, page, pageSize, searchTerm, filters]);
 
   const summaryStats = useMemo(() => {
-    if (stats) {
-      return [
-        { label: 'Total Units', value: stats.total || totalCount || 0, icon: FiLayers },
-        { label: 'Divisions', value: stats.by_level?.division || 0, icon: FiLayers },
-        { label: 'Departments', value: stats.by_level?.department || 0, icon: FiLayers },
-        { label: 'Active', value: stats.active || items?.filter(i => i.is_active).length || 0, icon: FiActivity },
-      ];
-    }
-    
-    // Fallback if stats endpoint fails
-    const itemsArray = Array.isArray(items) ? items : [];
-    const activeCount = itemsArray.filter((item) => item.is_active).length;
-    
+    const total = stats?.total_units || stats?.total || totalCount || (items?.length || 0);
+    const divisions = stats?.by_level?.division || items?.filter(i => i.level === 'division').length || 0;
+    const departments = stats?.by_level?.department || items?.filter(i => i.level === 'department').length || 0;
+    const active = items?.filter(i => i.is_active).length || total;
+
     return [
-      { label: 'Total Units', value: totalCount || 0, icon: FiLayers },
-      { label: 'Active', value: activeCount, icon: FiActivity }
+      { label: 'Total Units', value: total, icon: FiLayers },
+      { label: 'Divisions', value: divisions, icon: FiLayers },
+      { label: 'Departments', value: departments, icon: FiLayers },
+      { label: 'Active', value: active, icon: FiActivity },
     ];
   }, [items, totalCount, stats]);
 
@@ -200,7 +193,7 @@ export const OrgUnitList = () => {
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
-        searchPlaceholder="Search all units..."
+        searchPlaceholder="Search all units by code or name..."
       >
         <div className="filter-group">
           <label>Type</label>
@@ -239,13 +232,6 @@ export const OrgUnitList = () => {
           </select>
         </div>
       </StructureFilters>
-
-      <StructureSearchBar
-        value={searchTerm}
-        onChange={handleSearch}
-        placeholder="Search by code or name..."
-        debounce={400}
-      />
 
       <StructureTable hideEmptyState={true}
         columns={COLUMNS}

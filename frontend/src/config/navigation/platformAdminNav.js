@@ -378,4 +378,5 @@ export default {
   isBillingRouteActive,
   isReviewsRouteActive,
   isReportsRouteActive,
+  isConfigRouteActive,
 };

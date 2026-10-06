@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2, Users, Briefcase, AlertTriangle,
   CheckCircle, GitBranch, ChevronRight, MapPin, DollarSign,
-  History, Layers
+  History, Layers, Eye
 } from 'lucide-react';
 import {
   DepartmentBreakdown,
@@ -17,6 +17,8 @@ import {
 import { DepartmentCard } from '../../components/structure/department';
 import { UnitCard } from '../../components/structure/unit';
 import { EmploymentCard } from '../../components/structure/employment';
+import { ExecutiveStructureOverview } from '../../components/structure/dashboard';
+import { useAuthContext } from '../../contexts/accounts/AuthContext';
 import {
   useStructureDashboard,
   useDepartments,
@@ -27,6 +29,14 @@ import { STRUCTURE_ROUTES } from '../../config/constants/structureRouteConstants
 
 export const StructurePage = () => {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
+
+  const isExecutiveUser = useMemo(() => {
+    const role = user?.role?.toLowerCase() || '';
+    return role === 'executive' || role === 'ceo' || role === 'c_level' || role === 'board';
+  }, [user]);
+
+  const [activeView, setActiveView] = useState(() => isExecutiveUser ? 'executive' : 'operations');
 
   const { overview, health, trends, isLoading: dashboardLoading, error: dashboardError } = useStructureDashboard({
     autoFetch: true,
@@ -113,26 +123,59 @@ export const StructurePage = () => {
 
   return (
     <div className="p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Structure Dashboard</h1>
-          <p className="text-gray-500 mt-1">Organizational health and performance metrics</p>
+      {/* Top View Switcher */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-100/90 p-1.5 rounded-2xl mb-6 border border-slate-200">
+        <div className="flex items-center gap-1 w-full sm:w-auto">
+          <button
+            onClick={() => setActiveView('executive')}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+              activeView === 'executive'
+                ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/80'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span>👔 Executive Command (30s Overview)</span>
+          </button>
+          <button
+            onClick={() => setActiveView('operations')}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+              activeView === 'operations'
+                ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/80'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span>🛠️ Detailed Analytics & Nodes</span>
+          </button>
         </div>
-        <div className="flex gap-2 mt-4 sm:mt-0">
-          <button
-            onClick={() => navigate(STRUCTURE_ROUTES.ORG_CHARTS)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1"
-          >
-            <GitBranch size={14} /> View Org Chart
-          </button>
-          <button
-            onClick={() => navigate(STRUCTURE_ROUTES.HIERARCHY)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1"
-          >
-            <History size={14} /> Version History
-          </button>
+        <div className="text-[11px] text-slate-500 font-medium px-3 hidden md:block">
+          {activeView === 'executive' ? 'Strategic Capacity, Succession & Leadership Oversight' : 'Operational Distributions & Node Explorer'}
         </div>
       </div>
+
+      {activeView === 'executive' ? (
+        <ExecutiveStructureOverview />
+      ) : (
+        <>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Structure Operations Dashboard</h1>
+              <p className="text-gray-500 mt-1">Detailed organizational health and node telemetry</p>
+            </div>
+            <div className="flex gap-2 mt-4 sm:mt-0">
+              <button
+                onClick={() => navigate(STRUCTURE_ROUTES.ORG_CHARTS)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1"
+              >
+                <GitBranch size={14} /> View Org Chart
+              </button>
+              <button
+                onClick={() => navigate(STRUCTURE_ROUTES.HIERARCHY)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1"
+              >
+                <History size={14} /> Version History
+              </button>
+            </div>
+          </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         <div className="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center justify-center">
@@ -336,6 +379,8 @@ export const StructurePage = () => {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

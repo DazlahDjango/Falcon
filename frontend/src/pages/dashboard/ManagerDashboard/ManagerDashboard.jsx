@@ -1,6 +1,5 @@
-// frontend/src/pages/dashboard/ManagerDashboard/ManagerDashboard.jsx
-
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useManagerDashboard from '../../../hooks/kpi/useManagerDashboard';
 import OrganizationKPITable from '../../../components/kpi/dashboard/OrganizationKPITable';
 import { 
@@ -19,15 +18,36 @@ import {
   EyeIcon, 
   ArrowPathIcon,
   ShieldCheckIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  BuildingOffice2Icon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 
+import {
+  FiUsers,
+  FiUser,
+  FiBriefcase,
+  FiGitBranch,
+  FiLayers,
+  FiShield,
+  FiCheckCircle,
+  FiPieChart,
+  FiArrowRight,
+} from 'react-icons/fi';
+import { HiOutlineBuildingOffice } from 'react-icons/hi2';
+
 import HeaderTag from '../../../components/dashboard/HeaderTag';
+import { employmentService } from '../../../services/structure/employment.service';
+import { reportingLineService } from '../../../services/structure/reportingLine.service';
+import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 
 const ManagerDashboard = () => {
+  const navigate = useNavigate();
+
+  // KPI Dashboard data
   const {
-    loading,
-    refreshDashboard,
+    loading: kpiLoading,
+    refreshDashboard: refreshKpi,
     user,
     tenant,
     managerScore,
@@ -48,6 +68,95 @@ const ManagerDashboard = () => {
   } = useManagerDashboard({ autoFetch: true });
 
   const [activeTrendIndex, setActiveTrendIndex] = useState(null);
+
+  // Structure Data
+  const [employment, setEmployment] = useState(null);
+  const [structureTeam, setStructureTeam] = useState([]);
+  const [reportingChain, setReportingChain] = useState([]);
+  const [spanData, setSpanData] = useState(null);
+  const [structureLoading, setStructureLoading] = useState(true);
+
+  const fetchStructureData = useCallback(async () => {
+    setStructureLoading(true);
+    try {
+      const [empRes, teamRes, chainRes] = await Promise.all([
+        employmentService.getMyEmployment().catch(e => {
+          console.warn('[ManagerDashboard] Employment fetch error:', e);
+          return null;
+        }),
+        reportingLineService.getMyTeam().catch(e => {
+          console.warn('[ManagerDashboard] Team fetch error:', e);
+          return [];
+        }),
+        reportingLineService.getMyChain().catch(e => {
+          console.warn('[ManagerDashboard] Chain fetch error:', e);
+          return [];
+        }),
+      ]);
+
+      if (empRes) {
+        const rawEmp = empRes?.data || empRes;
+        const currentEmp = rawEmp?.current_employment || rawEmp;
+        setEmployment(currentEmp);
+
+        // Fetch manager span of control if user_id is available
+        const uid = currentEmp?.user_id || user?.id;
+        if (uid) {
+          try {
+            const spanRes = await reportingLineService.getSpanOfControl(uid);
+            setSpanData(spanRes?.data || spanRes);
+          } catch (e) {
+            console.warn('[ManagerDashboard] Span fetch error:', e);
+          }
+        }
+      }
+
+      const teamList = Array.isArray(teamRes) ? teamRes : (teamRes?.data || teamRes?.results || []);
+      setStructureTeam(teamList);
+
+      const chainList = Array.isArray(chainRes) ? chainRes : (chainRes?.data || chainRes?.chain || []);
+      setReportingChain(chainList);
+    } catch (err) {
+      console.error('Failed to load manager structure data:', err);
+    } finally {
+      setStructureLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    fetchStructureData();
+  }, [fetchStructureData]);
+
+  const refreshAll = useCallback(() => {
+    refreshKpi();
+    fetchStructureData();
+  }, [refreshKpi, fetchStructureData]);
+
+  // Manager supervisor and direct reports breakdown
+  const { supervisor, directReports } = useMemo(() => {
+    let sup = null;
+    const reports = [];
+    const currentUid = String(user?.id || employment?.user_id || '');
+    const directManagerId = reportingChain?.[0]?.user_id ? String(reportingChain[0].user_id) : null;
+
+    structureTeam.forEach(m => {
+      const memberUid = String(m.user_id || m.id || '');
+      const isSelf = memberUid === currentUid;
+      if (isSelf) return;
+
+      if (directManagerId && memberUid === directManagerId) {
+        sup = m;
+      } else {
+        reports.push(m);
+      }
+    });
+
+    if (!sup && reportingChain && reportingChain.length > 0) {
+      sup = reportingChain[0];
+    }
+
+    return { supervisor: sup, directReports: reports };
+  }, [structureTeam, user, employment, reportingChain]);
 
   // Overall manager health
   const managerHealthLabel = useMemo(() => {
@@ -90,11 +199,43 @@ const ManagerDashboard = () => {
     ? trendPoints[activeTrendIndex] 
     : trendPoints[trendPoints.length - 1];
 
+  // Combined team members with Structure details
+  const enrichedTeamMembers = useMemo(() => {
+    const structMap = new Map();
+    structureTeam.forEach(st => {
+      const uid = String(st.user_id || st.id || '');
+      if (uid) structMap.set(uid, st);
+    });
+
+    if (teamMembers.length > 0) {
+      return teamMembers.map(m => {
+        const uid = String(m.user_id || m.id || '');
+        const st = structMap.get(uid);
+        return {
+          ...m,
+          position_title: st?.position_title || m.position_title || m.position || 'Team Member',
+          department_name: st?.department_name || m.department_name || employment?.department_name || '',
+          job_code: st?.position_code || m.job_code || '',
+        };
+      });
+    }
+
+    return directReports.map(m => ({
+      user_id: m.user_id,
+      name: m.user_name || 'Team Member',
+      email: m.user_email || '',
+      position_title: m.position_title || 'Team Member',
+      department_name: m.department_name || '',
+      score: 85,
+      status: 'GREEN',
+    }));
+  }, [teamMembers, structureTeam, directReports, employment]);
+
   return (
     <div className="min-h-screen bg-slate-50/60 p-6 space-y-6 text-slate-800 font-sans">
       {/* Header Banner */}
       <HeaderTag
-        greetingPrefix="Good Day"
+        greetingPrefix="Welcome back"
         roleBadge="Team Lead / Manager"
         badgeColor="blue"
         subtitleExtra={
@@ -102,21 +243,135 @@ const ManagerDashboard = () => {
             Score: {Math.round(managerScore)}% ({managerHealthLabel.text})
           </span>
         }
-        onRefresh={refreshDashboard}
-        loading={loading}
+        onRefresh={refreshAll}
+        loading={kpiLoading || structureLoading}
       />
+
+      {/* 👤 Role & Organization Structure Snapshot Hero Card */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+        {/* Subtle decorative background glow */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 uppercase tracking-wider">
+                {employment?.position_title || 'Engineering Management / Lead'}
+              </span>
+              {employment?.position_code && (
+                <span className="text-xs text-slate-400 font-mono bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                  {employment.position_code}
+                </span>
+              )}
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                {employment?.fte_allocation ? `● Active Full-Time (${parseFloat(employment.fte_allocation).toFixed(1)} FTE)` : '● Active Full-Time (1.0 FTE)'}
+              </span>
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                ★ People Manager & Lead
+              </span>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                {user?.first_name ? `${user.first_name} ${user.last_name}` : (employment?.user_name || 'Team Lead / Manager')}
+              </h2>
+              <p className="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1">
+                  <BuildingOffice2Icon className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <strong>{employment?.department_name || 'Software Engineering Department'}</strong>
+                </span>
+                {employment?.division_name && (
+                  <span className="text-slate-400">
+                    • {employment.division_name}
+                  </span>
+                )}
+                {employment?.unit_name && (
+                  <span className="text-slate-400">
+                    • {employment.unit_name}
+                  </span>
+                )}
+              </p>
+            </div>
+
+            {/* Supervisor & Team Span Pill */}
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-1">
+              <div className="flex items-center gap-2 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/60">
+                <FiShield className="text-emerald-400 shrink-0" size={14} />
+                <span>
+                  Reports to: <strong className="text-white">{supervisor?.user_name || supervisor?.name || (reportingChain?.[0]?.user_name || 'Executive Leadership')}</strong>
+                  {(supervisor?.position_title || reportingChain?.[0]?.position_title || reportingChain?.[0]?.position) && (
+                    <span className="text-slate-400 ml-1">
+                      ({supervisor?.position_title || reportingChain?.[0]?.position_title || reportingChain?.[0]?.position})
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/60">
+                <FiUsers className="text-blue-400 shrink-0" size={14} />
+                <span>
+                  Span: <strong className="text-white">{spanData?.direct_reports ?? (directReports.length || teamSize)} Direct</strong>
+                  {(spanData?.total_reports || structureTeam.length) > 0 && (
+                    <span className="text-slate-400 ml-1">({spanData?.total_reports || structureTeam.length} In Hierarchy)</span>
+                  )}
+                </span>
+              </div>
+
+              {spanData?.is_healthy !== undefined && (
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
+                  spanData.is_healthy ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${spanData.is_healthy ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                  <span>{spanData.is_healthy ? 'Healthy Span' : 'Span Warning'}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Structure Navigation Buttons */}
+          <div className="flex flex-wrap lg:flex-col gap-2 shrink-0">
+            <button
+              onClick={() => navigate(STRUCTURE_ROUTES.MY_TEAM)}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <FiUsers size={14} /> My Team Members
+            </button>
+            <button
+              onClick={() => navigate(STRUCTURE_ROUTES.MY_CHAIN)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center justify-center gap-2"
+            >
+              <FiGitBranch size={14} /> My Reporting Chain
+            </button>
+            <button
+              onClick={() => navigate(STRUCTURE_ROUTES.ORG_CHART_TREE)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center justify-center gap-2"
+            >
+              <FiLayers size={14} /> Department Org Tree
+            </button>
+            <button
+              onClick={() => navigate(STRUCTURE_ROUTES.ORGANIZATION_SPAN)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center justify-center gap-2"
+            >
+              <FiPieChart size={14} /> Span of Control
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Top 5 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Team Performance */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+        <div 
+          onClick={() => navigate(STRUCTURE_ROUTES.MY_TEAM)}
+          className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:border-blue-300 transition group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
             <UserGroupIcon className="w-6 h-6" />
           </div>
           <div>
             <p className="text-[11px] font-medium text-slate-400">Team Performance</p>
             <p className="text-lg font-bold text-slate-900">{Math.round(teamAvgScore)}%</p>
-            <p className="text-[10px] text-slate-400 font-semibold">{teamSize} Direct / Led Members</p>
+            <p className="text-[10px] text-blue-600 font-semibold">{spanData?.direct_reports ?? (directReports.length || teamSize)} Direct Subordinates</p>
           </div>
         </div>
 
@@ -177,7 +432,7 @@ const ManagerDashboard = () => {
           <div>
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-slate-900">Team Members Performance Trajectory</h2>
-              <span className="text-[10px] text-slate-400 font-medium">{teamSize} Evaluated</span>
+              <span className="text-[10px] text-slate-400 font-medium">{enrichedTeamMembers.length} Evaluated</span>
             </div>
             <div className="flex items-center gap-4 text-[11px] text-slate-500 mt-2">
               <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-600 inline-block"></span> Member Scores</span>
@@ -328,33 +583,40 @@ const ManagerDashboard = () => {
 
       </div>
 
-      {/* Team Overview Table Card */}
+      {/* Team Overview Table Card with Real-time Structure metadata */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               Direct & Led Team Overview
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                {teamMembers.length} Members
+                {enrichedTeamMembers.length} Members
               </span>
             </h2>
-            <p className="text-xs text-slate-500">Live reporting lines and team performance indicators</p>
+            <p className="text-xs text-slate-500">Live reporting lines, organizational roles, and target performance</p>
           </div>
+          <button
+            onClick={() => navigate(STRUCTURE_ROUTES.MY_TEAM)}
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          >
+            Manage Team Squad <ChevronRightIcon className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         <div className="overflow-x-auto">
-          {teamMembers.length > 0 ? (
+          {enrichedTeamMembers.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-100 text-xs text-slate-400 font-medium">
                   <th className="py-2.5 px-3">Team Member</th>
+                  <th className="py-2.5 px-3">Position & Unit</th>
                   <th className="py-2.5 px-3">Score</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3">Performance Bar</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {teamMembers.map((member, idx) => {
+                {enrichedTeamMembers.map((member, idx) => {
                   const score = Number(member.score) || 0;
                   const isGreen = member.status === 'GREEN' || score >= 90;
                   const isRed = member.status === 'RED' || score < 70;
@@ -365,7 +627,7 @@ const ManagerDashboard = () => {
                     <tr key={member.user_id || idx} className="hover:bg-slate-50/80 transition">
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0 border border-slate-200">
+                          <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-700 font-bold flex items-center justify-center text-xs shrink-0 border border-blue-200">
                             {initial}
                           </div>
                           <div>
@@ -373,6 +635,13 @@ const ManagerDashboard = () => {
                             {member.email && <span className="text-[10px] text-slate-400">{member.email}</span>}
                           </div>
                         </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <p className="font-semibold text-slate-800 text-xs">{member.position_title || 'Staff Position'}</p>
+                        <p className="text-[10px] text-slate-400">
+                          {member.department_name || employment?.department_name || 'Engineering'}
+                          {member.job_code && ` • ${member.job_code}`}
+                        </p>
                       </td>
                       <td className="py-3 px-3 font-bold text-slate-900 text-xs">
                         {Math.round(score)}%
@@ -405,7 +674,7 @@ const ManagerDashboard = () => {
         </div>
       </div>
 
-      {/* Bottom Grid (My KPIs Overview, Submission Health, Quick Actions, Team Alerts) */}
+      {/* Bottom Grid (My KPIs Overview, Submission Health, Leadership Chain, Team Alerts) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {/* My KPIs Overview */}
@@ -466,29 +735,41 @@ const ManagerDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          <h3 className="text-xs font-bold text-slate-900">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-2 text-center text-[10px] font-semibold">
-            <button 
-              onClick={() => refreshDashboard()}
-              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition flex flex-col items-center gap-1 border border-blue-100"
-            >
-              <CheckIcon className="w-4 h-4 text-blue-600" />
-              <span>Review Submissions</span>
-            </button>
-            <button className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition flex flex-col items-center gap-1 border border-emerald-100">
-              <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-emerald-600" />
-              <span>Provide Feedback</span>
-            </button>
-            <button className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition flex flex-col items-center gap-1 border border-purple-100">
-              <PlusIcon className="w-4 h-4 text-purple-600" />
-              <span>Cascade Target</span>
-            </button>
-            <button className="p-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition flex flex-col items-center gap-1 border border-amber-100">
-              <UserGroupIcon className="w-4 h-4 text-amber-600" />
-              <span>Team Alignment</span>
-            </button>
+        {/* 🌿 Upward Leadership Chain */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-bold text-slate-900">Leadership Chain</h3>
+              <button
+                onClick={() => navigate(STRUCTURE_ROUTES.MY_CHAIN)}
+                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5"
+              >
+                Inspect <ChevronRightIcon className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {reportingChain && reportingChain.length > 0 ? (
+                reportingChain.map((node, index) => (
+                  <div key={index} className="p-2 rounded-xl bg-indigo-50/40 border border-indigo-100 flex items-center gap-2 text-[11px]">
+                    <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900 truncate">{node.user_name || node.name || 'Executive'}</p>
+                      <p className="text-[10px] text-slate-500 truncate">{node.position_title || node.position}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-400">Reports directly to Executive Leadership</p>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100 text-[10px] text-slate-400 flex items-center justify-between">
+            <span>Reporting Hierarchy</span>
+            <span className="font-semibold text-indigo-600">{reportingChain.length} Levels</span>
           </div>
         </div>
 

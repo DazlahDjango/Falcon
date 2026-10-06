@@ -18,8 +18,62 @@ class OrgChartViewSet(BaseStructureReadOnlyViewSet):
             self.throttle_classes = [HierarchyReadThrottle]
         return super().get_throttles()
     
+    @action(detail=False, methods=['get'], url_path='people-tree')
+    def people_tree(self, request):
+        tenant_id = getattr(request.user, 'tenant_id', None) or '6102e576-12b5-4347-9bb8-4ddae94b8a94'
+        from apps.structure.models import Employment
+        from apps.accounts.models import User
+
+        employments = list(Employment.objects.filter(
+            tenant_id=tenant_id,
+            is_current=True,
+            is_active=True,
+            is_deleted=False
+        ).select_related('position', 'position__reports_to', 'position__department', 'position__division', 'position__section'))
+
+        user_ids = [e.user_id for e in employments]
+        users_map = {u.id: u for u in User.objects.filter(id__in=user_ids)}
+        pos_to_emp = {e.position_id: e for e in employments if e.position_id}
+
+        children_map = {}
+        root_emps = []
+
+        for emp in employments:
+            reports_to_pos_id = emp.position.reports_to_id if emp.position else None
+            parent_emp = pos_to_emp.get(reports_to_pos_id) if reports_to_pos_id else None
+            if parent_emp and parent_emp.id != emp.id:
+                children_map.setdefault(parent_emp.id, []).append(emp)
+            else:
+                root_emps.append(emp)
+
+        def build_node(emp):
+            user = users_map.get(emp.user_id)
+            children = children_map.get(emp.id, [])
+            return {
+                'id': str(emp.id),
+                'user_id': str(emp.user_id),
+                'name': user.get_full_name() if user else str(emp.user_id),
+                'email': user.email if user else '',
+                'position': emp.position.title if emp.position else 'No Position',
+                'position_code': emp.position.job_code if emp.position else '',
+                'department': emp.position.department.name if emp.position and emp.position.department else '',
+                'department_code': emp.position.department.code if emp.position and emp.position.department else '',
+                'division': emp.position.division.name if emp.position and emp.position.division else '',
+                'division_code': emp.position.division.code if emp.position and emp.position.division else '',
+                'section': emp.position.section.name if emp.position and emp.position.section else '',
+                'is_manager': emp.is_manager or len(children) > 0,
+                'is_executive': emp.is_executive,
+                'level': 'executive' if emp.is_executive else 'manager' if (emp.is_manager or len(children) > 0) else 'staff',
+                'direct_reports_count': len(children),
+                'children': [build_node(c) for c in children]
+            }
+
+        tree_nodes = [build_node(r) for r in root_emps]
+        return Response({'results': tree_nodes, 'count': len(tree_nodes)})
+
     @action(detail=False, methods=['get'], url_path='json')
     def export_json(self, request):
+
         from apps.structure.services.export.org_chart_generator import OrgChartGeneratorService
         from apps.structure.services.export.json_exporter import JSONExporterService
         tenant_id = request.user.tenant_id

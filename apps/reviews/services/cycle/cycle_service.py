@@ -10,10 +10,11 @@ class CycleService(BaseReviewService):
     @BaseReviewService.atomic_operation
     def activate_cycle(cycle_id):
         cycle = ReviewCycle.objects.get(id=cycle_id)
-        if cycle.status != 'draft':
+        if cycle.status not in ['draft', 'submitted']:
             raise ValidationError(f"Cannot activate cycle with status: {cycle.status}")
-        if cycle.start_date > timezone.now().date():
-            raise ValidationError(f"Cannot activate cycle before start date: {cycle.start_date}")
+        today = timezone.now().date()
+        if cycle.start_date > today:
+            cycle.start_date = today
         cycle.status = 'submitted'
         cycle.save()
         CycleService.create_self_assessments_for_cycle(cycle)
@@ -90,18 +91,34 @@ class CycleService(BaseReviewService):
     @staticmethod
     def get_active_cycle_for_employee(employee):
         today = timezone.now().date()
-        # 1. Try finding cycle covering today that is not completed/archived/cancelled
+        # 0. Check if employee already has a self-assessment in an active/submitted cycle
+        existing_sa = SelfAssessment.objects.filter(
+            employee=employee,
+            review_cycle__tenant_id=employee.tenant_id
+        ).exclude(review_cycle__status__in=['completed', 'cancelled', 'archived', 'draft']).order_by('-review_cycle__start_date', '-created_at').first()
+        if existing_sa:
+            return existing_sa.review_cycle
+
+        # 1. Prioritize active/submitted cycles covering today
         cycle = ReviewCycle.objects.filter(
             tenant_id=employee.tenant_id,
+            status='submitted',
             start_date__lte=today,
             end_date__gte=today
-        ).exclude(status__in=['completed', 'cancelled', 'archived']).first()
+        ).order_by('-start_date', '-created_at').first()
+
+        # 2. Fallback to any active submitted cycle
+        if not cycle:
+            cycle = ReviewCycle.objects.filter(
+                tenant_id=employee.tenant_id,
+                status='submitted'
+            ).order_by('-start_date', '-created_at').first()
         
-        # 2. If no strict date match, fallback to the latest open cycle
+        # 3. Last fallback to non-archived cycle
         if not cycle:
             cycle = ReviewCycle.objects.filter(
                 tenant_id=employee.tenant_id
-            ).exclude(status__in=['completed', 'cancelled', 'archived']).order_by('-start_date').first()
+            ).exclude(status__in=['completed', 'cancelled', 'archived']).order_by('-start_date', '-created_at').first()
             
         return cycle
     @staticmethod

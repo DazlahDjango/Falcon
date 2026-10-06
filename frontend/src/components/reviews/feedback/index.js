@@ -5,6 +5,7 @@ export { default as FeedbackRequestForm } from './requests/FeedbackRequestForm';
 export { default as FeedbackRequestFilters } from './requests/FeedbackRequestFilters';
 export { default as PendingRequests } from './requests/PendingRequests';
 export { default as OverdueRequests } from './requests/OverdueRequests';
+export { default as AutoAssignFeedbackModal } from './requests/AutoAssignFeedbackModal';
 
 export { default as FeedbackResponseForm } from './responses/FeedbackResponseForm';
 export { default as FeedbackResponseView } from './responses/FeedbackResponseView';

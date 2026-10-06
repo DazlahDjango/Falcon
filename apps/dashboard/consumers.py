@@ -14,6 +14,8 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         self.tenant_id = None
         self.dashboard_type = None
         self.room_group_name = None
+        self.tenant_dashboard_room = None
+        self.tenant_room = None
         user = self.scope.get('user')
         
         if not user or not user.is_authenticated:
@@ -31,21 +33,23 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             return
         
         self.room_group_name = f"dashboard_{self.tenant_id}_{self.user_id}_{self.dashboard_type}"
+        self.tenant_dashboard_room = f"dashboard_{self.tenant_id}_{self.dashboard_type}"
+        self.tenant_room = f"dashboard_{self.tenant_id}"
         
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.channel_layer.group_add(self.tenant_dashboard_room, self.channel_name)
+        await self.channel_layer.group_add(self.tenant_room, self.channel_name)
         
         await self.accept()
         await self.send_initial_data()
     
     async def disconnect(self, close_code):
         if self.room_group_name:
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if self.tenant_dashboard_room:
+            await self.channel_layer.group_discard(self.tenant_dashboard_room, self.channel_name)
+        if self.tenant_room:
+            await self.channel_layer.group_discard(self.tenant_room, self.channel_name)
     
     async def receive(self, text_data):
         try:
@@ -84,11 +88,14 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         }))
     
     async def dashboard_update(self, event):
+        data = event.get('data')
+        if not data:
+            data = await self._get_dashboard_data()
         await self.send(text_data=json.dumps({
             'type': 'update',
-            'update_type': event.get('update_type'),
-            'data': event.get('data'),
-            'timestamp': event.get('timestamp')
+            'update_type': event.get('update_type', 'general'),
+            'data': data,
+            'timestamp': event.get('timestamp', timezone.now().isoformat())
         }))
     
     async def kpi_update(self, event):
@@ -97,7 +104,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             'kpi_id': event.get('kpi_id'),
             'new_score': event.get('new_score'),
             'new_status': event.get('new_status'),
-            'timestamp': event.get('timestamp')
+            'timestamp': event.get('timestamp', timezone.now().isoformat())
         }))
     
     @database_sync_to_async
@@ -105,10 +112,10 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         if user.is_superuser or getattr(user, 'role', '') == 'super_admin':
             return True
         role_access_map = {
-            'executive': ['executive_admin', 'super_admin', 'client_admin'],
+            'executive': ['executive', 'executive_admin', 'super_admin', 'client_admin'],
             'client_admin': ['client_admin', 'super_admin'],
-            'manager': ['manager', 'client_admin', 'super_admin'],
-            'staff': ['staff', 'manager', 'client_admin', 'super_admin'],
+            'manager': ['manager', 'supervisor', 'client_admin', 'super_admin'],
+            'staff': ['staff', 'manager', 'supervisor', 'client_admin', 'super_admin'],
             'champion': ['champion', 'client_admin', 'super_admin'],
             'read_only': ['read_only', 'executive_admin', 'client_admin', 'super_admin'],
         }
@@ -117,6 +124,44 @@ class DashboardConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _get_dashboard_data(self):
+        user = self.scope.get('user')
+        if not user:
+            return {'status': 'active', 'type': self.dashboard_type}
+        
+        tenant_id = self.tenant_id or getattr(user, 'tenant_id', None)
+        
+        try:
+            if self.dashboard_type == 'client_admin':
+                from apps.dashboard.services.client_admin_service import ClientAdminDashboardService
+                service = ClientAdminDashboardService(user, tenant_id)
+                return service.get_dashboard_data()
+            elif self.dashboard_type == 'executive':
+                from apps.dashboard.services.executive_service import ExecutiveDashboardService
+                service = ExecutiveDashboardService(user, tenant_id)
+                return service.get_dashboard_data()
+            elif self.dashboard_type == 'manager':
+                from apps.dashboard.services.manager_service import ManagerService
+                service = ManagerService(user, tenant_id)
+                return service.get_dashboard_data()
+            elif self.dashboard_type == 'staff':
+                from apps.dashboard.services.staff_service import StaffService
+                service = StaffService(user, tenant_id)
+                return service.get_dashboard_data()
+            elif self.dashboard_type == 'champion':
+                from apps.dashboard.services.champion_service import ChampionService
+                service = ChampionService(user, tenant_id)
+                return service.get_dashboard_data()
+            elif self.dashboard_type == 'read_only':
+                from apps.dashboard.services.read_only_service import ReadOnlyService
+                service = ReadOnlyService(user, tenant_id)
+                return service.get_dashboard_data()
+            elif self.dashboard_type == 'super_admin':
+                from apps.dashboard.services.super_admin_service import SuperAdminDashboardService
+                service = SuperAdminDashboardService(user, tenant_id)
+                return service.get_dashboard_data()
+        except Exception as e:
+            logger.error(f"Error fetching dashboard data for {self.dashboard_type}: {e}", exc_info=True)
+            
         return {'status': 'active', 'type': self.dashboard_type}
 
 

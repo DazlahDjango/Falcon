@@ -32,6 +32,7 @@ import {
   fetchFinalRatingDistribution,
   fetchFinalRatingStats,
   resetFinalRatingState,
+  clearErrors as clearFinalRatingErrors,
   setFilters as setFinalRatingFilters,
   clearFilters as clearFinalRatingFilters,
   setPagination as setFinalRatingPagination,
@@ -179,6 +180,11 @@ const useFinalRating = () => {
     [dispatch]
   );
 
+  const clearErrors = useCallback(
+    () => dispatch(clearFinalRatingErrors()),
+    [dispatch]
+  );
+
   const reset = useCallback(
     () => dispatch(resetFinalRatingState()),
     [dispatch]
@@ -230,6 +236,7 @@ const useFinalRating = () => {
     getDistribution,
     getStats,
     reset,
+    clearErrors,
     filters,
     pagination,
     setFilters,

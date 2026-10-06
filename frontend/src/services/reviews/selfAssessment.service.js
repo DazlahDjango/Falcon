@@ -29,30 +29,30 @@ class SelfAssessmentService extends BaseReviewsService {
   }
 
   async getMy() {
-    const response = await this.apiClient.get('/self-assessments/my/');
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('my/')));
+    return this.unwrap(response);
   }
 
   async getTeam() {
-    const response = await this.apiClient.get('/self-assessments/team/');
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('team/')));
+    return this.unwrap(response);
   }
 
   async getPending() {
-    const response = await this.apiClient.get('/self-assessments/pending/');
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('pending/')));
+    return this.unwrap(response);
   }
 
   async getSubmitted() {
-    const response = await this.apiClient.get('/self-assessments/submitted/');
-    return response.data;
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('submitted/')));
+    return this.unwrap(response);
   }
 
   async getStats(cycleId) {
-    const response = await this.apiClient.get('/self-assessments/stats/', {
+    const response = await this.withRetry(() => this.apiClient.get(this.getEndpoint('stats/'), {
       params: { cycle_id: cycleId },
-    });
-    return response.data;
+    }));
+    return this.unwrap(response);
   }
 
   async getForCycle(cycleId) {

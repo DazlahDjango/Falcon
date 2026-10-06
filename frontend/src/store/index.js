@@ -76,10 +76,10 @@ const persistConfig = {
         'subscription',
         'tenantDomain',
         'tenantBackup',
-        'reviews',
         'structure'
     ],
     blacklist: [
+        'reviews',
         'ui',
         'notifications',
         'audit',
@@ -110,6 +110,12 @@ const persistConfig = {
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const appReducer = (state, action) => {
+    if (action.type === 'persist/REHYDRATE') {
+        if (action.payload && action.payload.reviews) {
+            const { reviews, ...restPayload } = action.payload;
+            action.payload = restPayload;
+        }
+    }
     const newState = persistedReducer(state, action);
     return newState;
 };

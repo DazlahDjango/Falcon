@@ -1,14 +1,15 @@
 // src/components/reviews/pips/detail/PIPActionsList.jsx
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { selectAllPIPActions } from '../../../../store/reviews/selectors';
+import { selectAllPIPActions, selectPIPActionsForPIP } from '../../../../store/reviews/selectors';
 import { usePIPActions } from '../../../../hooks/reviews';
 import { ReviewLoading } from '../../common';
 import { CheckCircle, Clock, XCircle, AlertCircle, Plus, Eye, Check, RefreshCw } from 'lucide-react';
 
-const PIPActionsList = ({ pipId }) => {
+const PIPActionsList = ({ pipId, pip = null }) => {
   const { fetchForPIP, complete, verify, canManage } = usePIPActions();
-  const actions = useSelector((state) => selectAllPIPActions(state));
+  const allActions = useSelector((state) => selectAllPIPActions(state)) ?? [];
+  const pipSpecificActions = useSelector((state) => selectPIPActionsForPIP(state)) ?? [];
   const [loading, setLoading] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
 
@@ -64,9 +65,15 @@ const PIPActionsList = ({ pipId }) => {
     }
   };
 
-  if (!actions) return <ReviewLoading size="sm" text="Loading actions..." />;
+  const combined = pipSpecificActions.length > 0
+    ? pipSpecificActions
+    : allActions.length > 0
+      ? allActions
+      : Array.isArray(pip?.actions)
+        ? pip.actions
+        : [];
 
-  const pipActions = actions.filter((a) => a.pip === pipId);
+  const pipActions = combined.filter((a) => !pipId || String(a.pip || a.pip_id || pipId) === String(pipId));
 
   return (
     <div className="pip-actions-list">

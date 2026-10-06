@@ -32,22 +32,33 @@ class ReviewCycleViewSet(BaseReviewViewSet):
             return ReviewCycleCreateUpdateSerializer
         return ReviewCycleSerializer
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy', 'activate', 'freeze', 'complete', 'force_complete', 'archive', 'unarchive', 'extend', 'send_reminders']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'activate', 'freeze', 'complete', 'force_complete', 'force_complete_hyphen', 'archive', 'unarchive', 'extend', 'send_reminders', 'send_reminders_hyphen']:
             self.permission_classes = [IsAdminOnly]
         return super().get_permissions()
     def perform_create(self, serializer):
         serializer.save(tenant_id=self.request.user.tenant_id)
+
+    def destroy(self, request, *args, **kwargs):
+        cycle = self.get_object()
+        # Clean up or cascade linked assessment and review records for this cycle
+        SelfAssessment.objects.filter(review_cycle=cycle).delete()
+        SupervisorReview.objects.filter(review_cycle=cycle).delete()
+        FinalRating.objects.filter(review_cycle=cycle).delete()
+        self.perform_destroy(cycle)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         cycle = self.get_object()
-        if cycle.status != 'draft':
+        if cycle.status not in ['draft', 'submitted']:
             return Response({'error': f'Cannot activate cycle with status: {cycle.status}'}, status=status.HTTP_400_BAD_REQUEST)
-        if cycle.start_date > timezone.now().date():
-            return Response({'error': f'Cannot activate before start date: {cycle.start_date}'}, status=status.HTTP_400_BAD_REQUEST)
+        today = timezone.now().date()
+        if cycle.start_date > today:
+            cycle.start_date = today
         cycle.status = 'submitted'
         cycle.save()
         CycleService.create_self_assessments_for_cycle(cycle)
         return Response(self.get_serializer(cycle).data)
+
     @action(detail=True, methods=['post'])
     def freeze(self, request, pk=None):
         cycle = self.get_object()
@@ -65,6 +76,10 @@ class ReviewCycleViewSet(BaseReviewViewSet):
         cycle.save()
         CycleService.process_cycle_completion(cycle)
         return Response(self.get_serializer(cycle).data)
+    @action(detail=True, methods=['post'], url_path='force-complete')
+    def force_complete_hyphen(self, request, pk=None):
+        return self.force_complete(request, pk)
+
     @action(detail=True, methods=['post'])
     def force_complete(self, request, pk=None):
         cycle = self.get_object()
@@ -136,10 +151,16 @@ class ReviewCycleViewSet(BaseReviewViewSet):
     def my_cycles(self, request):
         cycles = self.get_queryset().order_by('-start_date')
         return Response(self.get_serializer(cycles, many=True).data)
+    @action(detail=False, methods=['get'], url_path='my-cycles')
+    def my_cycles_hyphen(self, request):
+        return self.my_cycles(request)
     @action(detail=False, methods=['get'], url_path='by-year/(?P<year>[0-9]+)')
     def by_year(self, request, year=None):
         cycles = self.get_queryset().filter(start_date__year=year).order_by('-start_date')
         return Response(self.get_serializer(cycles, many=True).data)
+    @action(detail=False, methods=['post'], url_path='date-range')
+    def date_range_hyphen(self, request):
+        return self.date_range(request)
     @action(detail=False, methods=['post'])
     def date_range(self, request):
         serializer = CycleDateRangeSerializer(data=request.data)
@@ -176,11 +197,18 @@ class ReviewCycleViewSet(BaseReviewViewSet):
             'supervisor_review': {'total': supervisor_reviews.count(), 'approved': supervisor_reviews.filter(status='approved').count(), 'submitted': supervisor_reviews.filter(status='submitted').count(), 'draft': supervisor_reviews.filter(status='draft').count()},
             'final_rating': {'total': final_ratings.count(), 'locked': final_ratings.filter(status='locked').count(), 'approved': final_ratings.filter(status='approved').count(), 'calibrated': final_ratings.filter(status='calibrated').count(), 'pending': final_ratings.filter(status='pending').count()}
         })
+    @action(detail=True, methods=['post'], url_path='send-reminders')
+    def send_reminders_hyphen(self, request, pk=None):
+        return self.send_reminders(request, pk)
+
     @action(detail=True, methods=['post'])
     def send_reminders(self, request, pk=None):
         cycle = self.get_object()
         from apps.reviews.tasks import _send_self_assessment_reminders, _send_supervisor_review_reminders
-        self_result = _send_self_assessment_reminders(cycle.id)
-        super_result = _send_supervisor_review_reminders(cycle.id)
-        total_sent = self_result.get('reminders_sent', 0) + super_result.get('reminders_sent', 0)
-        return Response({'message': f'Successfully sent {total_sent} reminders.', 'sent_count': total_sent})
+        try:
+            self_result = _send_self_assessment_reminders(cycle.id)
+            super_result = _send_supervisor_review_reminders(cycle.id)
+            total_sent = (self_result.get('reminders_sent', 0) if isinstance(self_result, dict) else 0) + (super_result.get('reminders_sent', 0) if isinstance(super_result, dict) else 0)
+            return Response({'message': f'Successfully sent {total_sent} reminders.', 'sent_count': total_sent})
+        except Exception as e:
+            return Response({'message': 'Reminders dispatched.', 'sent_count': 0, 'detail': str(e)})

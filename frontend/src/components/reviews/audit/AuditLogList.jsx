@@ -9,39 +9,56 @@ import AuditLogFilters from './AuditLogFilters';
 
 const AuditLogList = () => {
   const navigate = useNavigate();
-  const { data, loading, error, fetchAll, pagination, setPagination, filters, setFilters, clearFilters, canView } = useReviewsAuditLogs();
+  const { data = [], loading, error, fetchAll, pagination, setPagination, filters = {}, setFilters, clearFilters, canView } = useReviewsAuditLogs();
   const [searchTerm, setSearchTerm] = useState('');
 
+  const paginationSafe = pagination ?? {
+    currentPage: 1,
+    pageSize: 20,
+    totalItems: data.length,
+    totalPages: 1,
+  };
+
   useEffect(() => {
-    if (canView) {
+    if (canView && typeof fetchAll === 'function') {
       fetchAll({
-        page: pagination.currentPage,
-        page_size: pagination.pageSize,
+        page: paginationSafe.currentPage,
+        page_size: paginationSafe.pageSize,
         ...filters,
       });
     }
-  }, [pagination.currentPage, pagination.pageSize, filters, canView, fetchAll]);
+  }, [paginationSafe.currentPage, paginationSafe.pageSize, filters, canView, fetchAll]);
 
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
-    setFilters({ search: term });
+    if (typeof setFilters === 'function') {
+      setFilters({ search: term });
+    }
   }, [setFilters]);
 
   const handleFilterChange = useCallback((key, value) => {
-    setFilters({ [key]: value });
+    if (typeof setFilters === 'function') {
+      setFilters({ [key]: value });
+    }
   }, [setFilters]);
 
   const handleClearFilters = useCallback(() => {
-    clearFilters();
+    if (typeof clearFilters === 'function') {
+      clearFilters();
+    }
     setSearchTerm('');
   }, [clearFilters]);
 
   const handlePageChange = useCallback((page) => {
-    setPagination({ currentPage: page });
+    if (typeof setPagination === 'function') {
+      setPagination({ currentPage: page });
+    }
   }, [setPagination]);
 
   const handlePageSizeChange = useCallback((size) => {
-    setPagination({ pageSize: size, currentPage: 1 });
+    if (typeof setPagination === 'function') {
+      setPagination({ pageSize: size, currentPage: 1 });
+    }
   }, [setPagination]);
 
   const handleView = (id) => {
@@ -49,11 +66,13 @@ const AuditLogList = () => {
   };
 
   const handleRefresh = () => {
-    fetchAll({
-      page: pagination.currentPage,
-      page_size: pagination.pageSize,
-      ...filters,
-    });
+    if (typeof fetchAll === 'function') {
+      fetchAll({
+        page: paginationSafe.currentPage,
+        page_size: paginationSafe.pageSize,
+        ...filters,
+      });
+    }
   };
 
   if (!canView) {
@@ -75,7 +94,7 @@ const AuditLogList = () => {
       <div className="audit-log-list-header">
         <div className="audit-log-list-title-section">
           <h1 className="audit-log-list-title">Audit Logs</h1>
-          <span className="audit-log-list-count">{pagination.totalItems} entries</span>
+          <span className="audit-log-list-count">{paginationSafe.totalItems ?? data.length} entries</span>
         </div>
         <button className="audit-log-list-refresh" onClick={handleRefresh}>
           <RefreshCw size={18} />
@@ -102,10 +121,10 @@ const AuditLogList = () => {
         <>
           <AuditLogTable data={data} onView={handleView} />
           <ReviewPagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            pageSize={pagination.pageSize}
-            totalItems={pagination.totalItems}
+            currentPage={paginationSafe.currentPage}
+            totalPages={paginationSafe.totalPages}
+            pageSize={paginationSafe.pageSize}
+            totalItems={paginationSafe.totalItems}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
           />

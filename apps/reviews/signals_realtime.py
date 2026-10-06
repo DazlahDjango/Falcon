@@ -51,8 +51,13 @@ def _connect_cross_app_signals():
         pass
     try:
         from apps.kpi.models.calculation import Score
+        from apps.kpi.models.actual import MonthlyActual
         @receiver(post_save, sender=Score)
         def kpi_score_changed(sender, instance, **kwargs):
+            ReviewsDependencySyncService.on_kpi_score_changed(instance.tenant_id, str(instance.user_id), recalculate_final_ratings=True)
+
+        @receiver(post_save, sender=MonthlyActual)
+        def monthly_actual_changed(sender, instance, **kwargs):
             ReviewsDependencySyncService.on_kpi_score_changed(instance.tenant_id, str(instance.user_id), recalculate_final_ratings=True)
     except ImportError:
         pass

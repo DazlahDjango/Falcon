@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   FiArrowLeft,
   FiRefreshCw,
@@ -9,6 +9,7 @@ import {
   FiSearch,
 } from 'react-icons/fi';
 import { useReportingLines } from '../../../hooks/structure';
+import { useAuthContext } from '../../../contexts/accounts/AuthContext';
 import {
   StructureLoading,
   StructureStatusBadge,
@@ -18,9 +19,17 @@ import UserSelector from '../../accounts/users/UserSelector';
 import { STRUCTURE_ROUTES } from '../../../config/constants/structureRouteConstants';
 import './reporting.css';
 
+import { useStructurePermissions } from '../../../hooks/structure';
+
 export const ReportingChain = () => {
   const navigate = useNavigate();
-  const [userId, setUserId] = useState('');
+  const { userId: routeUserId, id: routeId } = useParams();
+  const { user: authUser } = useAuthContext();
+  const { isClientAdmin, isSuperAdmin } = useStructurePermissions();
+  const canSelectOthers = isClientAdmin || isSuperAdmin;
+  const effectiveUserId = routeUserId || routeId || authUser?.id || '';
+
+  const [userId, setUserId] = useState(effectiveUserId);
   const [chainData, setChainData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -39,7 +48,7 @@ export const ReportingChain = () => {
     try {
       const resultAction = await fetchChain(value);
       const data = resultAction?.payload?.data || resultAction?.payload || resultAction?.data || resultAction;
-      setChainData(data);
+      setChainData(Array.isArray(data) ? data : (data?.chain || data?.results || null));
     } catch (err) {
       setError(err?.displayMessage || err?.message || 'Failed to fetch reporting chain');
       setChainData(null);
@@ -48,6 +57,13 @@ export const ReportingChain = () => {
     }
   }, [fetchChain]);
 
+  useEffect(() => {
+    if (effectiveUserId) {
+      setUserId(effectiveUserId);
+      handleSelectUser(effectiveUserId);
+    }
+  }, [effectiveUserId, handleSelectUser]);
+
   const handleRefresh = useCallback(() => {
     if (userId) {
       handleSelectUser(userId);
@@ -55,7 +71,11 @@ export const ReportingChain = () => {
   }, [userId, handleSelectUser]);
 
   const handleBack = useCallback(() => {
-    navigate(STRUCTURE_ROUTES.REPORTING_LINES);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(STRUCTURE_ROUTES.MY_TEAM);
+    }
   }, [navigate]);
 
   const renderChainNode = (node, index, isLast) => {
@@ -110,22 +130,27 @@ export const ReportingChain = () => {
           <FiArrowLeft size={18} />
           Back
         </button>
-        <h1 style={{ margin: 0 }}>Reporting Chain of Command</h1>
+        <h1 style={{ margin: 0 }}>
+          {canSelectOthers && routeUserId ? 'Reporting Chain of Command' : 'My Upward Reporting Chain (To CEO)'}
+        </h1>
       </div>
 
-      <div className="reporting-chain-search" style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
-        <div style={{ flex: 1, maxWidth: '400px' }}>
-          <UserSelector
-            value={userId}
-            onChange={handleSelectUser}
-            placeholder="Select staff member to view chain of command..."
-            className="w-full"
-          />
+      {canSelectOthers && (
+        <div className="reporting-chain-search" style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+          <div style={{ flex: 1, maxWidth: '400px' }}>
+            <UserSelector
+              value={userId}
+              onChange={handleSelectUser}
+              placeholder="Select staff member to view chain of command..."
+              className="w-full"
+            />
+          </div>
+          <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
+            <FiRefreshCw size={16} />
+          </button>
         </div>
-        <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
-          <FiRefreshCw size={16} />
-        </button>
-      </div>
+      )}
+
 
       {error && (
         <div className="reporting-chain-error" style={{ padding: '12px 16px', backgroundColor: '#fef2f2', color: '#b91c1c', borderRadius: '6px', marginBottom: '16px' }}>

@@ -7,6 +7,7 @@
 export const ROLES = {
     SUPER_ADMIN: 'super_admin',
     CLIENT_ADMIN: 'client_admin',
+    HR_ADMIN: 'hr_admin',
     EXECUTIVE: 'executive',
     SUPERVISOR: 'supervisor',
     DASHBOARD_CHAMPION: 'dashboard_champion',
@@ -17,6 +18,7 @@ export const ROLES = {
 export const ROLE_HIERARCHY = {
     [ROLES.SUPER_ADMIN]: 0,
     [ROLES.CLIENT_ADMIN]: 1,
+    [ROLES.HR_ADMIN]: 1,
     [ROLES.EXECUTIVE]: 2,
     [ROLES.SUPERVISOR]: 3,
     [ROLES.DASHBOARD_CHAMPION]: 3,  // Same level as Supervisor
@@ -27,6 +29,7 @@ export const ROLE_HIERARCHY = {
 export const ROLE_DISPLAY_NAMES = {
     [ROLES.SUPER_ADMIN]: 'Super Admin',
     [ROLES.CLIENT_ADMIN]: 'Organization Admin',
+    [ROLES.HR_ADMIN]: 'HR Admin',
     [ROLES.EXECUTIVE]: 'Executive',
     [ROLES.SUPERVISOR]: 'Supervisor',
     [ROLES.DASHBOARD_CHAMPION]: 'Dashboard Champion',
@@ -188,6 +191,20 @@ export const ROLE_PERMISSIONS = {
         PERMISSIONS.VIEW_AUDIT_LOGS,
     ],
     [ROLES.CLIENT_ADMIN]: [
+        ...ROLE_PERMISSIONS[ROLES.EXECUTIVE],
+        PERMISSIONS.CREATE_USER,
+        PERMISSIONS.EDIT_USER,
+        PERMISSIONS.DELETE_USER,
+        PERMISSIONS.ASSIGN_ROLE,
+        PERMISSIONS.MANAGE_ORGANISATION,
+        PERMISSIONS.CONFIGURE_BRANDING,
+        PERMISSIONS.MANAGE_SUBSCRIPTION,
+        PERMISSIONS.VIEW_BILLING,
+        PERMISSIONS.MANAGE_TEAM,
+        PERMISSIONS.CREATE_REPORT,
+        PERMISSIONS.SCHEDULE_REPORT,
+    ],
+    [ROLES.HR_ADMIN]: [
         ...ROLE_PERMISSIONS[ROLES.EXECUTIVE],
         PERMISSIONS.CREATE_USER,
         PERMISSIONS.EDIT_USER,

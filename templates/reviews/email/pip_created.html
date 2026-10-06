@@ -1,0 +1,31 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Performance Improvement Plan - Falcon PMS{% endblock %}
+{% block header %}Performance Improvement Plan{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 0; color: #111827;">Hello {{ pip.employee.first_name|default:pip.employee.username }},</h2>
+
+<p>A Performance Improvement Plan (PIP) has been formulated for you in accordance with organizational performance guidelines.</p>
+
+<div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 4px; margin: 20px 0;">
+    <h3 style="margin-top: 0; color: #b45309;">PIP Overview</h3>
+    <p style="margin: 4px 0;"><strong>Title:</strong> {{ pip.title }}</p>
+    <p style="margin: 4px 0;"><strong>Start Date:</strong> {{ pip.start_date }}</p>
+    <p style="margin: 4px 0;"><strong>End Date:</strong> {{ pip.end_date }}</p>
+    <p style="margin: 4px 0;"><strong>Supervising Manager:</strong> {{ pip.owner.get_full_name }}</p>
+</div>
+
+<p>Please review the required milestones and development action items in the portal.</p>
+
+<div style="text-align: center; margin: 24px 0;">
+    <a href="{{ link|default:'/reviews/pip/' }}" class="button">View PIP Details</a>
+</div>
+
+<div class="divider"></div>
+
+<p class="text-muted">
+    Best regards,<br>
+    Human Resources Team - Falcon PMS
+</p>
+{% endblock %}

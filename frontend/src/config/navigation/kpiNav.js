@@ -3,13 +3,15 @@
  * Navigation Configuration - KPI Subsystem Scoped
  * Dedicated module defining all role-specific navigation items for the KPI app.
  * Supporting Super Admin, Client Admin, KPI Champion, Executive, Manager/Supervisor, Staff, and Read-Only.
+ * Note: Main dashboard link is excluded as it is handled by the root dashboard navigation.
+ * Generic reporting is excluded and handled by the reporting subsystem.
  */
 import {
-  FiDownload, FiCalendar, FiPieChart, FiTarget, FiActivity,
+  FiCalendar, FiPieChart, FiTarget, FiActivity,
   FiFileText, FiCheckCircle, FiAlertCircle, FiUpload, FiSettings,
   FiLayers, FiBarChart2, FiGrid, FiUsers, FiPlus,
-  FiClock, FiShield, FiEye, FiTrendingUp,
-  FiRotateCcw, FiShare2, FiSliders, FiAward
+  FiClock, FiTrendingUp, FiRotateCcw, FiShare2, FiSliders, FiAward,
+  FiEye,
 } from 'react-icons/fi';
 
 import { KPI_ROUTES } from '../constants/kpiRouteConstants';
@@ -24,7 +26,6 @@ export const KPI_SUPER_ADMIN_NAV_GROUPS = {
     { path: KPI_ROUTES.REFERENCE_DATA, name: 'Reference Data', icon: FiUsers },
     { path: KPI_ROUTES.AUDIT_LOGS, name: 'KPI Audit Logs', icon: FiFileText },
     { path: KPI_ROUTES.KPI_MANAGEMENT, name: 'Organization KPIs', icon: FiTarget },
-    { path: KPI_ROUTES.KPI_MY_KPIS, name: 'My KPIs', icon: FiUsers },
     { path: KPI_ROUTES.TARGETS, name: 'Targets', icon: FiCalendar },
     { path: KPI_ROUTES.ACTUALS, name: 'Actuals', icon: FiActivity },
     { path: KPI_ROUTES.VALIDATIONS, name: 'Validations', icon: FiCheckCircle },
@@ -41,7 +42,6 @@ export const KPI_SUPER_ADMIN_NAV_GROUPS = {
     { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alerts', icon: FiAlertCircle },
     { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiPieChart },
     { path: KPI_ROUTES.ORGANIZATION_HEALTH, name: 'Organization Health', icon: FiActivity },
-    { path: KPI_ROUTES.KPI_REPORTS, name: 'Reports', icon: FiDownload },
     { path: KPI_ROUTES.KPI_HEATMAP, name: 'Heatmap', icon: FiGrid },
   ],
 };
@@ -112,7 +112,6 @@ export const KPI_CHAMPION_NAV_GROUPS = {
     { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiBarChart2 },
     { path: KPI_ROUTES.ANALYTICS_INSIGHTS, name: 'Analytics Insights', icon: FiTrendingUp },
     { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alert KPIs', icon: FiAlertCircle },
-    { path: KPI_ROUTES.REPORTS, name: 'Reports Center', icon: FiFileText },
   ],
   kpi_operations: [
     { path: KPI_ROUTES.CALCULATIONS, name: 'Score Calculations', icon: FiActivity },
@@ -138,7 +137,7 @@ export const KPI_CHAMPION_DEFAULT_EXPANDED = {
 };
 
 // ============================================
-// 4. EXECUTIVE KPI NAV GROUPS (Strategic Governance & Executive Operations - Same as Champion)
+// 4. EXECUTIVE KPI NAV GROUPS (Strategic Governance & Executive Operations)
 // ============================================
 export const KPI_EXECUTIVE_NAV_GROUPS = {
   organization_kpis: [
@@ -169,7 +168,6 @@ export const KPI_EXECUTIVE_NAV_GROUPS = {
     { path: KPI_ROUTES.AGGREGATED_SCORES, name: 'Aggregated Scores', icon: FiBarChart2 },
     { path: KPI_ROUTES.ANALYTICS_INSIGHTS, name: 'Analytics Insights', icon: FiTrendingUp },
     { path: KPI_ROUTES.SCORE_RED_ALERTS, name: 'Red Alert KPIs', icon: FiAlertCircle },
-    { path: KPI_ROUTES.REPORTS, name: 'Reports Center', icon: FiFileText },
   ],
   kpi_operations: [
     { path: KPI_ROUTES.CALCULATIONS, name: 'Score Calculations', icon: FiActivity },

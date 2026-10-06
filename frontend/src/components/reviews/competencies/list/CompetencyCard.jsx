@@ -165,7 +165,7 @@ const CompetencyCard = ({ competency }) => {
 
       <div className="competency-card-footer">
         <span className="competency-card-updated">
-          Updated {new Date(competency.updated_at).toLocaleDateString()}
+          {competency.updated_at ? `Updated ${new Date(competency.updated_at).toLocaleDateString()}` : 'Active'}
         </span>
       </div>
     </div>

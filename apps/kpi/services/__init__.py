@@ -4,6 +4,7 @@ from .actual import ActualEntry, ActualSubmitter, ActualBatchUpload, ActualEvide
 from .validation import ValidationApprover, ValidationRejecter, ValidationResubmission, ValidationEscalator, BatchValidator
 from .calculation import ScoreCalculator, ScoreAggregator, CalculationScheduler, IdempotentCalculator, ErrorHandler
 from .cascade import TargetCascader, CascadeMapper, CascadeNotifier, CascadeRollback
+from .cascade_rollup import CascadeRollupService
 from .dashboard import IndividualDashboard, ManagerDashboard, ExecutiveDashboard, ChampionDashboard, RealtimeDashboard
 from .notifications import NotificationTrigger, RedAlertService, MissingDataReminder, PendingValidationAlert, ThresholdBreachService
 from .audit import AuditLogger, AuditReporter, ComplianceChecker
@@ -19,7 +20,7 @@ __all__ = [
     'ActualEntry', 'ActualSubmitter', 'ActualBatchUpload', 'ActualEvidence', 'ActualAdjustmentService',
     'ValidationApprover', 'ValidationRejecter', 'ValidationResubmission', 'ValidationEscalator', 'BatchValidator',
     'ScoreCalculator', 'ScoreAggregator', 'CalculationScheduler', 'IdempotentCalculator', 'ErrorHandler',
-    'TargetCascader', 'CascadeMapper', 'CascadeNotifier', 'CascadeRollback',
+    'TargetCascader', 'CascadeMapper', 'CascadeNotifier', 'CascadeRollback', 'CascadeRollupService',
     'IndividualDashboard', 'ManagerDashboard', 'ExecutiveDashboard', 'ChampionDashboard', 'RealtimeDashboard',
     'NotificationTrigger', 'RedAlertService', 'MissingDataReminder', 'PendingValidationAlert', 'ThresholdBreachService',
     'AuditLogger', 'AuditReporter', 'ComplianceChecker',

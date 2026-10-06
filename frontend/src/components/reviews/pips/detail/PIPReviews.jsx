@@ -7,7 +7,7 @@ import { ReviewLoading, ReviewStatusBadge } from '../../common';
 import { Calendar, User, FileText, Plus, X } from 'lucide-react';
 
 const PIPReviews = ({ pipId }) => {
-  const reviews = useSelector((state) => selectPIPReviewsForPIP(state));
+  const reviews = useSelector((state) => selectPIPReviewsForPIP(state)) ?? [];
   const { addReview, canManage } = usePIP();
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
