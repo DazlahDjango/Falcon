@@ -30,6 +30,10 @@ class KPIAggregator(BaseReviewService):
             qs = qs.filter(month_q)
             agg = qs.aggregate(avg=Avg('score'))
             val = agg.get('avg')
+            if val is None and end_date:
+                ytd_qs = Score.objects.filter(**filter_kwargs).filter(year=end_date.year, month__lte=end_date.month)
+                agg = ytd_qs.aggregate(avg=Avg('score'))
+                val = agg.get('avg')
             return float(val) if val is not None else None
         except Exception as e:
             logger.error(f"Error getting KPI score for employee {employee.id}: {e}")

@@ -71,9 +71,9 @@ class FinalRatingViewSet(BaseReviewViewSet):
             return FinalRatingDetailSerializer
         return FinalRatingSerializer
     def get_permissions(self):
-        if self.action in ['approve', 'lock', 'calibrate', 'recalibrate', 'force_lock', 'force_lock_hyphen']:
+        if self.action in ['approve', 'lock', 'calibrate', 'force_lock', 'force_lock_hyphen']:
             self.permission_classes = [IsAdminOnly]
-        elif self.action in ['generate_pip', 'generate_pip_hyphen']:
+        elif self.action in ['recalculate', 'recalibrate', 'generate_pip', 'generate_pip_hyphen']:
             self.permission_classes = [IsSupervisorOrAdmin]
         else:
             self.permission_classes = [IsAuthenticated]
@@ -90,6 +90,11 @@ class FinalRatingViewSet(BaseReviewViewSet):
         rating.approved_at = timezone.now()
         if request.data.get('notes'):
             rating.notes = request.data['notes']
+        if rating.final_score is not None and rating.rating_scale:
+            rating_level = rating.rating_scale.get_level_by_percentage(float(rating.final_score))
+            if rating_level:
+                rating.final_rating_label = rating_level.get('label', '')
+                rating.final_rating_color = rating_level.get('color', 'gray')
         rating.save()
         return Response(self.get_serializer(rating).data)
     @action(detail=True, methods=['post'])
@@ -128,6 +133,11 @@ class FinalRatingViewSet(BaseReviewViewSet):
         rating.calibration_adjustment = rating.final_score - old_score if old_score else 0
         rating.calibration_adjustment_reason = serializer.validated_data['reason']
         rating.status = 'calibrated'
+        if rating.rating_scale:
+            rating_level = rating.rating_scale.get_level_by_percentage(float(rating.final_score))
+            if rating_level:
+                rating.final_rating_label = rating_level.get('label', '')
+                rating.final_rating_color = rating_level.get('color', 'gray')
         rating.save()
         return Response(self.get_serializer(rating).data)
     @action(detail=True, methods=['post'])
@@ -136,14 +146,13 @@ class FinalRatingViewSet(BaseReviewViewSet):
         rating.calibration_adjustment = None
         rating.calibration_adjustment_reason = ''
         rating.status = 'pending'
+        rating = FinalRatingService.recalculate_kpi_component(rating.id)
         rating.save()
         return Response(self.get_serializer(rating).data)
     @action(detail=True, methods=['post'])
     def recalculate(self, request, pk=None):
         rating = self.get_object()
         rating = FinalRatingService.recalculate_kpi_component(rating.id)
-        rating.status = 'pending'
-        rating.save()
         return Response(self.get_serializer(rating).data)
     @action(detail=True, methods=['post'], url_path='generate-pip')
     def generate_pip_hyphen(self, request, pk=None):

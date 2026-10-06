@@ -9,6 +9,8 @@ import {
   selectUnreadNotificationCount,
   selectUnreadNotifications,
   selectReadNotifications,
+  selectNotificationsPagination,
+  selectNotificationsFilters,
 } from '../../store/reviews/selectors';
 import {
   fetchNotifications,
@@ -18,21 +20,35 @@ import {
   deleteNotification,
   fetchUnreadCount,
   resetNotificationState,
+  notificationActions,
 } from '../../store/reviews/slices/notification.slice';
 import { useReviewsPermissions } from './';
+
+const DEFAULT_PAGINATION = {
+  currentPage: 1,
+  pageSize: 20,
+  totalItems: 0,
+  totalPages: 0,
+};
 
 const useReviewsNotifications = () => {
   const dispatch = useDispatch();
   const permissions = useReviewsPermissions();
 
   // Selectors
-  const data = useSelector(selectAllNotifications);
+  const data = useSelector(selectAllNotifications) || [];
   const loading = useSelector(selectNotificationsLoading);
   const error = useSelector(selectNotificationsError);
   const selected = useSelector(selectSelectedNotification);
   const unreadCount = useSelector(selectUnreadNotificationCount);
   const unreadNotifications = useSelector(selectUnreadNotifications);
   const readNotifications = useSelector(selectReadNotifications);
+  const rawPagination = useSelector(selectNotificationsPagination);
+  const filters = useSelector(selectNotificationsFilters) || {};
+
+  const pagination = useMemo(() => {
+    return rawPagination ?? DEFAULT_PAGINATION;
+  }, [rawPagination]);
 
   // Actions
   const fetchAll = useCallback(
@@ -95,6 +111,21 @@ const useReviewsNotifications = () => {
     [dispatch, permissions.canManageNotifications]
   );
 
+  const setPagination = useCallback(
+    (payload) => dispatch(notificationActions.setPagination(payload)),
+    [dispatch]
+  );
+
+  const setFilters = useCallback(
+    (payload) => dispatch(notificationActions.setFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(notificationActions.clearFilters()),
+    [dispatch]
+  );
+
   const reset = useCallback(
     () => dispatch(resetNotificationState()),
     [dispatch]
@@ -112,9 +143,11 @@ const useReviewsNotifications = () => {
     loading,
     error,
     selected,
-    unreadCount,
+    unreadCount: unreadCount ?? 0,
     unreadNotifications,
     readNotifications,
+    pagination,
+    filters,
 
     // Actions
     fetchAll,
@@ -123,6 +156,10 @@ const useReviewsNotifications = () => {
     markAllAsRead,
     remove,
     getUnreadCount,
+    fetchUnreadCount: getUnreadCount,
+    setPagination,
+    setFilters,
+    clearFilters,
     reset,
 
     // Permissions
@@ -131,7 +168,7 @@ const useReviewsNotifications = () => {
     // Utilities
     isEmpty: data.length === 0,
     totalCount: data.length,
-    hasUnread: unreadCount > 0,
+    hasUnread: (unreadCount ?? 0) > 0,
     getById: (id) => data.find((item) => item.id === id),
   };
 };

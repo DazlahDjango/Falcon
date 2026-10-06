@@ -41,6 +41,7 @@ from .views import (
     ReviewCommentViewSet,
     PromotionRecommendationViewSet,
     ReviewTemplateViewSet,
+    NotificationViewSet,
 )
 
 # ========== MAIN ROUTER ==========
@@ -70,6 +71,7 @@ router.register(r'coefficients', CoefficientViewSet, basename='coefficient')
 router.register(r'comments', ReviewCommentViewSet, basename='comment')
 router.register(r'promotions', PromotionRecommendationViewSet, basename='promotion')
 router.register(r'templates', ReviewTemplateViewSet, basename='template')
+router.register(r'notifications', NotificationViewSet, basename='notification')
 
 # ========== NESTED ROUTERS ==========
 

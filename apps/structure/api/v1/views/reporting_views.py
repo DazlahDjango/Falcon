@@ -23,7 +23,7 @@ class ReportingLineViewSet(viewsets.ViewSet):
             tenant_id = '6102e576-12b5-4347-9bb8-4ddae94b8a94'
         return tenant_id
 
-    def get_span_data_dict(self, manager_employment):
+    def get_span_data_dict(self, manager_employment, include_reports_list=True):
         tenant_id = manager_employment.tenant_id
         from apps.accounts.models import User
         user = User.objects.filter(id=manager_employment.user_id).first()
@@ -37,6 +37,35 @@ class ReportingLineViewSet(viewsets.ViewSet):
         total_reports_count = len(all_reports)
         indirect_reports_count = max(0, total_reports_count - direct_reports_count)
         
+        direct_reports_list = []
+        if include_reports_list and direct_reports:
+            report_user_ids = [d.user_id for d in direct_reports if d.user_id]
+            users_map = {u.id: u for u in User.objects.filter(id__in=report_user_ids)}
+            for d in direct_reports:
+                du = users_map.get(d.user_id)
+                d_name = du.get_full_name() if du else str(d.user_id)
+                d_email = du.email if du else ''
+                d_pos_title = d.position.title if d.position else 'Team Member'
+                d_pos_code = d.position.job_code if d.position else ''
+                d_dept_name = d.position.department.name if (d.position and d.position.department) else ''
+                
+                # Check subordinate counts for this direct report
+                d_sub_directs = len(self.chain_service.get_direct_reports(d.user_id, tenant_id)) if (d.is_manager or d.is_executive) else 0
+                d_sub_total = len(self.chain_service.get_all_reports(d.user_id, tenant_id)) if (d.is_manager or d.is_executive) else 0
+                
+                direct_reports_list.append({
+                    'user_id': d.user_id,
+                    'name': d_name,
+                    'email': d_email,
+                    'position_title': d_pos_title,
+                    'position_code': d_pos_code,
+                    'department_name': d_dept_name,
+                    'is_manager': d.is_manager,
+                    'is_executive': d.is_executive,
+                    'direct_reports_count': d_sub_directs,
+                    'total_reports_count': d_sub_total,
+                })
+
         return {
             'manager_user_id': manager_employment.user_id,
             'manager_name': user_name,
@@ -46,7 +75,8 @@ class ReportingLineViewSet(viewsets.ViewSet):
             'indirect_reports': indirect_reports_count,
             'total_reports': total_reports_count,
             'is_healthy': direct_reports_count <= 15,
-            'warning': direct_reports_count > 15
+            'warning': direct_reports_count > 15,
+            'direct_reports_list': direct_reports_list
         }
 
     def list(self, request):
@@ -98,6 +128,26 @@ class ReportingLineViewSet(viewsets.ViewSet):
         tenant_id = self._get_tenant_id(request)
         chain = self.chain_service.get_chain_of_command(user_id, tenant_id)
         return Response(chain)
+
+    @action(detail=False, methods=['get'], url_path='my-chain')
+    def my_chain(self, request):
+        tenant_id = self._get_tenant_id(request)
+        user_id = getattr(request.user, 'id', None)
+        if not user_id:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        chain = self.chain_service.get_chain_of_command(user_id, tenant_id)
+        return Response(chain)
+
+    @action(detail=False, methods=['get'], url_path='my-team')
+    def my_team(self, request):
+        tenant_id = self._get_tenant_id(request)
+        user_id = getattr(request.user, 'id', None)
+        if not user_id:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        team = self.chain_service.get_department_team_and_peers(user_id, tenant_id)
+        from apps.structure.api.v1.serializers.employment import EmploymentSerializer
+        serializer = EmploymentSerializer(team, many=True, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='by-manager/(?P<user_id>[0-9a-f-]+)')
     def by_manager(self, request, user_id=None):

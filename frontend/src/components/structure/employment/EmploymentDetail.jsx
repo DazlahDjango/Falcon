@@ -13,7 +13,7 @@ import {
   FiGitBranch,
   FiRepeat,
 } from 'react-icons/fi';
-import { useEmployments } from '../../../hooks/structure';
+import { useEmployments, useStructurePermissions } from '../../../hooks/structure';
 import {
   StructureLoading,
   StructureEmptyState,
@@ -26,13 +26,18 @@ import './employment.css';
 export const EmploymentDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { isClientAdmin } = useStructurePermissions();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Edit, Delete, and Transfer are strictly restricted to Client Admin / Super Admin managing an employee record
+  const canManageEmployment = isClientAdmin && Boolean(id);
 
   const {
     currentItem,
     isLoading,
     error,
     fetchById,
+    fetchMy,
     remove,
     clearError,
   } = useEmployments({ autoFetch: false });
@@ -40,8 +45,10 @@ export const EmploymentDetail = () => {
   useEffect(() => {
     if (id) {
       fetchById(id);
+    } else {
+      fetchMy();
     }
-  }, [id, fetchById]);
+  }, [id, fetchById, fetchMy]);
 
   const handleBack = useCallback(() => {
     navigate(STRUCTURE_ROUTES.EMPLOYMENTS);
@@ -179,21 +186,27 @@ export const EmploymentDetail = () => {
               <span className="hidden-sm">View Chain</span>
             </button>
           )}
-          <button onClick={handleTransfer} className="btn btn-secondary" title="Transfer Employee">
-            <FiRepeat size={16} />
-            <span className="hidden-sm">Transfer</span>
-          </button>
+          {canManageEmployment && (
+            <button onClick={handleTransfer} className="btn btn-secondary" title="Transfer Employee">
+              <FiRepeat size={16} />
+              <span className="hidden-sm">Transfer</span>
+            </button>
+          )}
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
             <FiRefreshCw size={16} />
           </button>
-          <button onClick={handleEdit} className="btn btn-primary">
-            <FiEdit size={16} />
-            Edit
-          </button>
-          <button onClick={handleDeleteClick} className="btn btn-danger">
-            <FiTrash2 size={16} />
-            Delete
-          </button>
+          {canManageEmployment && (
+            <>
+              <button onClick={handleEdit} className="btn btn-primary">
+                <FiEdit size={16} />
+                Edit
+              </button>
+              <button onClick={handleDeleteClick} className="btn btn-danger">
+                <FiTrash2 size={16} />
+                Delete
+              </button>
+            </>
+          )}
         </div>
       </div>
 

@@ -66,12 +66,13 @@ class SummaryService(BaseReviewService):
                 all_ratings.append(float(response.overall_rating))
             
             # Collect strengths (simple frequency counting)
+            from apps.reviews.services.security.field_encryption import ReviewFieldEncryptionService
             if response.strengths:
-                common_strengths.append(response.strengths)
+                common_strengths.append(ReviewFieldEncryptionService.decrypt(response.strengths))
             
             # Collect improvements
             if response.areas_for_improvement:
-                common_improvements.append(response.areas_for_improvement)
+                common_improvements.append(ReviewFieldEncryptionService.decrypt(response.areas_for_improvement))
         
         # Calculate averages
         avg_manager = round(sum(type_ratings['manager']) / len(type_ratings['manager']), 1) if type_ratings['manager'] else None
@@ -111,15 +112,16 @@ class SummaryService(BaseReviewService):
         Returns:
             list: Anonymized response dictionaries
         """
+        from apps.reviews.services.security.field_encryption import ReviewFieldEncryptionService
         anonymized = []
         
         for response in responses:
             anonymized.append({
-                'reviewer_type': response.feedback_request.reviewer_type,
+                'reviewer_type': response.feedback_request.get_reviewer_type_display() if hasattr(response.feedback_request, 'get_reviewer_type_display') else response.feedback_request.reviewer_type,
                 'overall_rating': float(response.overall_rating) if response.overall_rating else None,
-                'strengths': response.strengths,
-                'areas_for_improvement': response.areas_for_improvement,
-                'suggestions': response.suggestions
+                'strengths': ReviewFieldEncryptionService.decrypt(response.strengths),
+                'areas_for_improvement': ReviewFieldEncryptionService.decrypt(response.areas_for_improvement),
+                'suggestions': ReviewFieldEncryptionService.decrypt(response.suggestions)
             })
         
         return anonymized

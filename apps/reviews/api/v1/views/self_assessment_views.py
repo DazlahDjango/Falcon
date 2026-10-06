@@ -36,43 +36,36 @@ class SelfAssessmentViewSet(BaseReviewViewSet):
                     reports_qs = direct_reports.all()
                 else:
                     from apps.accounts.models import User
-                    reports_qs = User.objects.filter(models.Q(manager=user) | models.Q(supervisor=user))
+                    reports_qs = User.objects.filter(manager=user)
                 if reports_qs.exists():
-                    qs = qs.filter(employee__in=reports_qs)
+                    qs = qs.filter(employee__in=reports_qs).exclude(employee=user)
                 else:
                     qs = qs.none()
             else:
                 qs = qs.filter(employee=user)
-        # 3. Admins / HR Admin (HR Admin sees organization-wide records, or personal if scope == 'my')
+        # 3. Admins / HR Admin (HR Admin sees all employee assessments across company except their own in team view)
         elif user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
             if scope == 'my':
                 qs = qs.filter(employee=user)
-            # Default or team view for HR / Admin shows company-wide submitted assessments
-        # 4. Executive / CEO (Direct reports or company oversight)
+            elif is_team or scope == 'team':
+                qs = qs.exclude(employee=user)
+            # Default or master list for HR / Admin shows company-wide assessments
+        # 4. Executive / CEO (Direct reports or company oversight except own)
         elif user.role == UserRoles.EXECUTIVE:
             if scope == 'my':
                 qs = qs.filter(employee=user)
             elif is_team or scope == 'team':
                 direct_reports = getattr(user, 'direct_reports', None)
-                if direct_reports and hasattr(direct_reports, 'all'):
-                    reports_qs = direct_reports.all()
+                if direct_reports and hasattr(direct_reports, 'all') and direct_reports.exists():
+                    qs = qs.filter(employee__in=direct_reports.all()).exclude(employee=user)
                 else:
-                    from apps.accounts.models import User
-                    reports_qs = User.objects.filter(models.Q(manager=user) | models.Q(supervisor=user))
-                if reports_qs.exists():
-                    qs = qs.filter(employee__in=reports_qs)
-                else:
-                    qs = qs.none()
+                    qs = qs.exclude(employee=user)
         else:
             qs = qs.filter(employee=user)
 
         status_param = params.get('status')
         if status_param and status_param != 'all':
             qs = qs.filter(status=status_param)
-        elif self.action == 'list' and (is_team or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN, UserRoles.EXECUTIVE]):
-            # When admins/managers view team or tenant-wide records, exclude draft records
-            if user.role != UserRoles.STAFF and scope != 'my' and not (not is_team and user.role == UserRoles.SUPERVISOR):
-                qs = qs.exclude(status='draft')
 
         return qs
 

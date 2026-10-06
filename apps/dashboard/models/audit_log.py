@@ -1,8 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from .base import BaseDashboardModel
+from apps.dashboard.managers.audit_manager import DashboardAccessLogManager
 
 class DashboardAccessLog(BaseDashboardModel):
+    objects = DashboardAccessLogManager()
     ACTION_VIEW = 'view'
     ACTION_EXPORT = 'export'
     ACTION_DRILL_DOWN = 'drill_down'

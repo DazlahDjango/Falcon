@@ -4,7 +4,6 @@
  * Dedicated module defining all role-specific navigation items for the Accounts app.
  */
 import {
-  FiHome,
   FiUsers,
   FiUserCheck,
   FiUserX,
@@ -22,15 +21,12 @@ import {
   FiCode,
   FiServer,
   FiSettings,
-  FiBriefcase,
-  FiGrid,
   FiPlus,
-  FiGlobe,
-  FiLink,
+  FiEye,
+  FiHome,
+  FiGrid,
   FiGitBranch,
   FiLayers,
-  FiEye,
-  FiTrendingUp,
 } from 'react-icons/fi';
 import { MdBusiness } from 'react-icons/md';
 
@@ -38,7 +34,7 @@ import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { ACCOUNTS_ROUTES } from '../constants/accountsRouteConstants';
 
 // ============================================
-// 1. SUPER ADMIN ACCOUNTS NAV GROUPS
+// 1. SUPER ADMIN ACCOUNTS NAV GROUPS (Platform Scope)
 // ============================================
 export const ACCOUNTS_SUPER_ADMIN_NAV_GROUPS = {
   main: [

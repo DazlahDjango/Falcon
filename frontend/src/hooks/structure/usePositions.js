@@ -59,8 +59,8 @@ export const usePositions = (options = {}) => {
         return dispatch(fetchVacantPositions());
     }, [dispatch]);
 
-    const fetchStats = useCallback(() => {
-        return dispatch(fetchPositionStats());
+    const fetchStats = useCallback((statsParams) => {
+        return dispatch(fetchPositionStats(statsParams));
     }, [dispatch]);
 
     const fetchIncumbents = useCallback((id) => {

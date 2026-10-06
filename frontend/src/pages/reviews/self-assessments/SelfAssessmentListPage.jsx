@@ -61,6 +61,54 @@ const SelfAssessmentListPage = () => {
             {getPageDescription()}
           </p>
         </div>
+
+        {/* Manager/Supervisor View Switcher Tabs */}
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+          <button
+            type="button"
+            onClick={() => navigate('/reviews/self-assessment/team')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: 'none',
+              background: isTeamView ? '#eff6ff' : 'transparent',
+              color: isTeamView ? '#2563eb' : '#64748b',
+              borderBottom: isTeamView ? '2px solid #2563eb' : '2px solid transparent',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Users size={16} />
+            Team Assessments
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/reviews/self-assessment')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: 'none',
+              background: !isTeamView ? '#eff6ff' : 'transparent',
+              color: !isTeamView ? '#2563eb' : '#64748b',
+              borderBottom: !isTeamView ? '2px solid #2563eb' : '2px solid transparent',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <List size={16} />
+            My Assessment
+          </button>
+        </div>
       </div>
 
       <SelfAssessmentList isTeamView={isTeamView} />

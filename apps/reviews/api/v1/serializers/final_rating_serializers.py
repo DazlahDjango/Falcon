@@ -26,6 +26,17 @@ class FinalRatingSerializer(BaseTenantSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'approved_at']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        scale = getattr(instance, 'rating_scale', None)
+        final_score = instance.final_score
+        if final_score is not None and scale:
+            level = scale.get_level_by_percentage(float(final_score))
+            if level:
+                data['final_rating_label'] = level.get('label', data.get('final_rating_label'))
+            data['final_rating_color'] = scale.get_color(percentage=float(final_score))
+        return data
+
 class FinalRatingListSerializer(FinalRatingSerializer):
     class Meta(FinalRatingSerializer.Meta):
         fields = [

@@ -117,6 +117,20 @@ class PositionViewSet(BaseStructureViewSet):
         from apps.structure.models.employment import Employment
         
         positions_qs = Position.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        department_id = request.query_params.get('department')
+        division_id = request.query_params.get('division')
+        unit_id = request.query_params.get('unit')
+        reports_to_id = request.query_params.get('reports_to_id') or request.query_params.get('reports_to')
+        
+        if department_id:
+            positions_qs = positions_qs.filter(department_id=department_id)
+        if division_id:
+            positions_qs = positions_qs.filter(division_id=division_id)
+        if unit_id:
+            positions_qs = positions_qs.filter(unit_id=unit_id)
+        if reports_to_id:
+            positions_qs = positions_qs.filter(reports_to_id=reports_to_id)
+            
         total = positions_qs.count()
         
         occupied_pos_ids = set(

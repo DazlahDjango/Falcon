@@ -18,6 +18,11 @@ const LoadingFallback = () => (
   </div>
 );
 const init = () => {
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('falcon_reviews_store_v') !== '2') {
+    persistor.purge().then(() => {
+      localStorage.setItem('falcon_reviews_store_v', '2');
+    }).catch(() => {});
+  }
   const rootElement = document.getElementById('root');
   if (!rootElement) {
     console.error('Root element not found');

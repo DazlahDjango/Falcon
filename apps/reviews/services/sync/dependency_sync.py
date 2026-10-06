@@ -66,8 +66,7 @@ class ReviewsDependencySyncService:
             from apps.reviews.services.assessment.final_rating_service import FinalRatingService
             qs = FinalRating.objects.filter(
                 tenant_id=tenant_id,
-                status__in=['draft', 'submitted', 'under_review'],
-            )
+            ).exclude(status='locked')
             if user_id:
                 qs = qs.filter(employee_id=user_id)
             for fr in qs[:50]:

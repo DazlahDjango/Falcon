@@ -226,7 +226,8 @@ export const CostCenterList = () => {
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
-        searchPlaceholder="Search cost centers..."
+        onSearch={handleSearch}
+        searchPlaceholder="Search cost centers by code or name..."
       >
         <div className="filter-group">
           <label>Status</label>
@@ -265,13 +266,6 @@ export const CostCenterList = () => {
           </select>
         </div>
       </StructureFilters>
-
-      <StructureSearchBar
-        value={searchTerm}
-        onChange={handleSearch}
-        placeholder="Search by code or name..."
-        debounce={400}
-      />
 
       <StructureTable hideEmptyState={true}
         columns={COLUMNS}

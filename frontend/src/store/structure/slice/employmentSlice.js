@@ -194,6 +194,19 @@ const employmentSlice = createSlice({
       .addCase(fetchCurrentEmployments.fulfilled, (state, action) => {
         state.currentEmployments = action.payload.employments || action.payload;
       })
+      .addCase(fetchMyEmployment.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyEmployment.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const data = action.payload.data || action.payload;
+        state.currentItem = data.current_employment || data;
+      })
+      .addCase(fetchMyEmployment.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = typeof action.payload === 'string' ? action.payload : (action.payload?.message || action.payload?.detail || action.error?.message || 'An error occurred');
+      })
       .addCase(fetchEmploymentStats.fulfilled, (state, action) => {
         state.stats = action.payload;
       })

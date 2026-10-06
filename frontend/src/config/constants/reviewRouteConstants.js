@@ -52,6 +52,8 @@ export const REVIEW_ROUTES = {
   
   // Supervisor Reviews
   SUPERVISOR_REVIEW: '/reviews/supervisor-review',
+  SUPERVISOR_REVIEWS: '/reviews/supervisor-reviews',
+  SUPERVISOR_REVIEW_LIST: '/reviews/supervisor-reviews',
   SUPERVISOR_REVIEW_FORM: (employeeId) => `/reviews/supervisor-review/${employeeId}/form`,
   SUPERVISOR_REVIEW_VIEW: (id) => `/reviews/supervisor-review/${id}`,
   SUPERVISOR_REVIEW_QUEUE: '/reviews/supervisor-review/queue',

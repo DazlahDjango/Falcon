@@ -99,6 +99,17 @@ export const bulkCreateFeedbackRequests = createAsyncThunk(
   }
 );
 
+export const autoAssignFeedbackRequests = createAsyncThunk(
+  'feedbackRequests/autoAssign',
+  async (data, { rejectWithValue }) => {
+    try {
+      return await feedbackRequestService.autoAssign(data);
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 export const fetchPendingFeedbackRequests = createAsyncThunk(
   'feedbackRequests/fetchPending',
   async (_, { rejectWithValue }) => {

@@ -108,7 +108,7 @@ const PIPDetail = () => {
           <div className="pip-detail-main">
             <PIPInfo pip={selected} />
             <PIPProgress pipId={id} />
-            <PIPActionsList pipId={id} />
+            <PIPActionsList pipId={id} pip={selected} />
           </div>
           <div className="pip-detail-sidebar">
             <PIPActions pip={selected} onAction={handleRefresh} />

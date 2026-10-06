@@ -12,15 +12,20 @@ const FeedbackResponseView = ({ response }) => {
   }
 
   const renderStars = (rating) => {
+    const numRating = Math.round(Number(rating) || 0);
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
         size={20}
-        fill={i < rating ? '#f59e0b' : 'none'}
-        color={i < rating ? '#f59e0b' : '#d1d5db'}
+        fill={i < numRating ? '#f59e0b' : 'none'}
+        color={i < numRating ? '#f59e0b' : '#d1d5db'}
       />
     ));
   };
+
+  const formattedDate = response.submitted_at
+    ? new Date(response.submitted_at).toLocaleDateString()
+    : (response.created_at ? new Date(response.created_at).toLocaleDateString() : 'Recently');
 
   return (
     <div className="feedback-response-view">
@@ -28,11 +33,11 @@ const FeedbackResponseView = ({ response }) => {
         <div className="feedback-response-view-meta">
           <span className="feedback-response-view-reviewer">
             <User size={16} />
-            {response.reviewer_name}
+            {response.reviewer_name || 'Reviewer'}
           </span>
           <span className="feedback-response-view-date">
             <Calendar size={16} />
-            {new Date(response.submitted_at).toLocaleDateString()}
+            {formattedDate}
           </span>
           {response.is_anonymous_response && (
             <span className="feedback-response-view-anonymous">
@@ -41,7 +46,7 @@ const FeedbackResponseView = ({ response }) => {
             </span>
           )}
         </div>
-        {response.overall_rating && (
+        {response.overall_rating !== undefined && response.overall_rating !== null && (
           <div className="feedback-response-view-rating">
             {renderStars(response.overall_rating)}
             <span className="feedback-response-view-rating-value">

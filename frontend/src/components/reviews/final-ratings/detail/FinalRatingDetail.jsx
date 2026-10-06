@@ -93,14 +93,30 @@ const FinalRatingDetail = () => {
                 size="lg"
               />
             </div>
-            <div className="final-rating-detail-score-info">
-              <div className="final-rating-detail-score-label">
-                {selected.final_rating_label || 'Not Rated'}
-              </div>
-              <div className="final-rating-detail-score-value">
-                {selected.final_score !== null ? `${selected.final_score}%` : '—'}
-              </div>
-            </div>
+            {(() => {
+              const score = parseFloat(selected.final_score);
+              let label = selected.final_rating_label || 'Not Rated';
+              let color = selected.final_rating_color || '#10b981';
+              if (!isNaN(score)) {
+                if (score >= 70 && (!selected.final_rating_label || selected.final_rating_label.toLowerCase().includes('unsatisfactory'))) {
+                  label = score >= 90 ? 'Outstanding' : score >= 75 ? 'Exceeds Expectations' : 'Meets Expectations';
+                  color = score >= 75 ? '#10b981' : '#2563eb';
+                } else if (score < 50 && (!selected.final_rating_label || selected.final_rating_label.toLowerCase().includes('outstanding') || selected.final_rating_label.toLowerCase().includes('exceeds'))) {
+                  label = 'Unsatisfactory';
+                  color = '#ef4444';
+                }
+              }
+              return (
+                <div className="final-rating-detail-score-info">
+                  <div className="final-rating-detail-score-label" style={{ color }}>
+                    {label}
+                  </div>
+                  <div className="final-rating-detail-score-value">
+                    {selected.final_score !== null && selected.final_score !== undefined ? `${selected.final_score}%` : '—'}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

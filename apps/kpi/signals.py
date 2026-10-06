@@ -302,6 +302,17 @@ def score_post_save_handler(sender, instance, created, **kwargs):
                 period=f'{instance.year}-{instance.month:02d}',
                 manager_id=_manager_user_id_for_employee(instance.user_id),
             )
+            
+            # Automatically recalculate open Final Ratings in Reviews app
+            try:
+                from apps.reviews.services.sync.dependency_sync import ReviewsDependencySyncService
+                ReviewsDependencySyncService.on_kpi_score_changed(
+                    tenant_id=str(instance.tenant_id),
+                    user_id=str(instance.user_id),
+                    recalculate_final_ratings=True,
+                )
+            except Exception as re_sync_err:
+                logger.debug(f"Reviews dependency sync on score save skipped: {re_sync_err}")
         except ImportError:
             pass
 

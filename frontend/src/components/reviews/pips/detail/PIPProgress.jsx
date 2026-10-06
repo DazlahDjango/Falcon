@@ -79,10 +79,10 @@ const PIPProgress = ({ pipId }) => {
         ))}
       </div>
 
-      {progress.needs_attention && (
+      {progress.needs_attention && Number(progress.missed_actions) > 0 && (
         <div className="pip-progress-attention">
           <AlertCircle size={16} />
-          <span>This PIP needs attention. {progress.missed_actions || 0} missed actions.</span>
+          <span>This PIP needs attention. {progress.missed_actions} missed actions.</span>
         </div>
       )}
 

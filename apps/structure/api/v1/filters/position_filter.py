@@ -13,6 +13,7 @@ class PositionFilter(filters.FilterSet):
     level_lte = filters.NumberFilter(field_name='level', lookup_expr='lte')
     level_range = filters.RangeFilter(field_name='level')
     reports_to_id = filters.UUIDFilter()
+    reports_to = filters.UUIDFilter(field_name='reports_to_id')
     reports_to_code = filters.CharFilter(field_name='reports_to__job_code', lookup_expr='iexact')
     has_reports_to = filters.BooleanFilter(field_name='reports_to', lookup_expr='isnull', exclude=True)
     is_single_incumbent = filters.BooleanFilter()
@@ -21,6 +22,12 @@ class PositionFilter(filters.FilterSet):
     current_incumbents_count_min = filters.NumberFilter(field_name='current_incumbents_count', lookup_expr='gte')
     current_incumbents_count_max = filters.NumberFilter(field_name='current_incumbents_count', lookup_expr='lte')
     is_active = filters.BooleanFilter()
+    department = filters.UUIDFilter(field_name='department_id')
+    department_id = filters.UUIDFilter(field_name='department_id')
+    division = filters.UUIDFilter(field_name='division_id')
+    division_id = filters.UUIDFilter(field_name='division_id')
+    unit = filters.UUIDFilter(field_name='unit_id')
+    unit_id = filters.UUIDFilter(field_name='unit_id')
     
     def filter_vacant(self, queryset, name, value):
         if value:

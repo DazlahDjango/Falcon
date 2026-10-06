@@ -145,6 +145,62 @@ class ChainService:
                 seen_user_ids.add(report_user_id_str)
                 all_reports.extend(self.get_all_reports(report_user_id_str, tenant_id))
         return all_reports
+
+    def get_department_team_and_peers(self, user_id: UUID, tenant_id: UUID) -> List[Employment]:
+        """
+        Get the immediate direct team and supervisor (people who report directly to the same supervisor, excluding lower sub-units/sections).
+        """
+        emp = Employment.objects.filter(
+            user_id=user_id,
+            tenant_id=tenant_id,
+            is_current=True,
+            is_active=True,
+            is_deleted=False
+        ).select_related('position', 'position__reports_to', 'position__department', 'position__division').first()
+        
+        if not emp or not emp.position:
+            return []
+        
+        supervisor_pos = emp.position.reports_to
+        employments = []
+        
+        if supervisor_pos:
+            # 1. Include supervisor
+            supervisor_emp = Employment.objects.filter(
+                position=supervisor_pos,
+                tenant_id=tenant_id,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            ).select_related('position', 'position__department', 'position__division').first()
+            if supervisor_emp:
+                employments.append(supervisor_emp)
+                
+            # 2. Get immediate direct peers reporting to the same supervisor
+            direct_peers = list(Employment.objects.filter(
+                position__reports_to=supervisor_pos,
+                tenant_id=tenant_id,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            ).select_related('position', 'position__department', 'position__division'))
+            
+            for peer in direct_peers:
+                if peer not in employments:
+                    employments.append(peer)
+        else:
+            # Top-level executive: direct reports + self
+            employments.append(emp)
+            direct_reports = list(Employment.objects.filter(
+                position__reports_to=emp.position,
+                tenant_id=tenant_id,
+                is_current=True,
+                is_active=True,
+                is_deleted=False
+            ).select_related('position', 'position__department', 'position__division'))
+            employments.extend(direct_reports)
+
+        return employments
     
     def get_reporting_depth(self, user_id: UUID, tenant_id: UUID) -> int:
         chain = self.get_chain_of_command(user_id, tenant_id)

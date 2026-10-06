@@ -71,6 +71,7 @@ class ExecutiveDashboardSerializer(serializers.Serializer):
     active_employees = serializers.IntegerField()
     risk_indicators = serializers.DictField(required=False, default=dict)
     organization_health = serializers.DictField(required=False, default=dict)
+    structure_summary = serializers.DictField(required=False, default=dict)
 
 
 class DepartmentComplianceSerializer(serializers.Serializer):

@@ -90,6 +90,7 @@ const useExecutiveDashboard = (options = {}) => {
     const redCount = Number(dashboard?.red_count) || 0;
     const trendData = Array.isArray(dashboard?.trend_data) ? dashboard.trend_data : [];
     const riskIndicators = dashboard?.risk_indicators || {};
+    const structureSummary = dashboard?.structure_summary || {};
 
     return {
         dashboard,
@@ -115,6 +116,7 @@ const useExecutiveDashboard = (options = {}) => {
         attentionRequired,
         trendData,
         riskIndicators,
+        structureSummary,
         redAlerts: Array.isArray(redAlerts) ? redAlerts : [],
         entityTypeLabel,
     };

@@ -74,6 +74,32 @@ class EmploymentViewSet(BaseStructureViewSet):
             'count': employments.count()
         })
     
+    @action(detail=False, methods=['get'], url_path='me')
+    def get_my_employment(self, request):
+        tenant_id = self._get_tenant_id(request)
+        user_id = getattr(request.user, 'id', None)
+        if not user_id:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        employments = Employment.objects.filter(
+            user_id=user_id,
+            tenant_id=tenant_id,
+            is_deleted=False
+        ).select_related('position', 'position__division', 'position__department', 'position__section', 'position__unit').order_by('-effective_from')
+        serializer = EmploymentDetailSerializer(employments, many=True, context={'request': request})
+        current = employments.filter(is_current=True, is_active=True).first()
+        if not current:
+            current = employments.first()
+        current_data = EmploymentDetailSerializer(current, context={'request': request}).data if current else None
+        response_data = {
+            'user_id': str(user_id),
+            'employment_history': serializer.data,
+            'history_count': employments.count(),
+            'current_employment': current_data,
+        }
+        if current_data:
+            response_data.update(current_data)
+        return Response(response_data)
+
     @action(detail=False, methods=['get'], url_path='by-user/(?P<user_id>[0-9a-f-]+)')
     def get_by_user(self, request, user_id=None):
         tenant_id = self._get_tenant_id(request)
@@ -95,6 +121,7 @@ class EmploymentViewSet(BaseStructureViewSet):
     @transaction.atomic
     def transfer_employee(self, request):
         user_id = request.data.get('user_id')
+        new_position_id = request.data.get('position_id')
         new_unit_id = request.data.get('unit_id')
         new_section_id = request.data.get('section_id')
         new_department_id = request.data.get('department_id')
@@ -112,6 +139,28 @@ class EmploymentViewSet(BaseStructureViewSet):
         ).first()
         if not current_employment:
             return Response({'error': 'No current employment found for user'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Resolve position and hierarchy
+        final_position_id = current_employment.position_id
+        final_division_id = current_employment.division_id
+        final_department_id = new_department_id if new_department_id else current_employment.department_id
+        final_section_id = new_section_id if new_section_id else current_employment.section_id
+        final_unit_id = new_unit_id if new_unit_id else current_employment.unit_id
+
+        if new_position_id:
+            from apps.structure.models.position import Position
+            pos = Position.objects.filter(id=new_position_id, tenant_id=tenant_id).first()
+            if pos:
+                final_position_id = pos.id
+                if pos.division_id:
+                    final_division_id = pos.division_id
+                if pos.department_id and not new_department_id:
+                    final_department_id = pos.department_id
+                if pos.section_id and not new_section_id:
+                    final_section_id = pos.section_id
+                if pos.unit_id and not new_unit_id:
+                    final_unit_id = pos.unit_id
+
         # End current employment
         current_employment.is_current = False
         current_employment.effective_to = effective_date
@@ -121,11 +170,11 @@ class EmploymentViewSet(BaseStructureViewSet):
         new_employment = Employment.objects.create(
             tenant_id=tenant_id,
             user_id=user_id,
-            position_id=current_employment.position_id,
-            division_id=new_department_id if new_department_id else current_employment.division_id,
-            department_id=new_department_id if new_department_id else current_employment.department_id,
-            section_id=new_section_id if new_section_id else current_employment.section_id,
-            unit_id=new_unit_id if new_unit_id else current_employment.unit_id,
+            position_id=final_position_id,
+            division_id=final_division_id,
+            department_id=final_department_id,
+            section_id=final_section_id,
+            unit_id=final_unit_id,
             employment_type=current_employment.employment_type,
             effective_from=effective_date,
             is_current=True,

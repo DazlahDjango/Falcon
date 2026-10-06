@@ -52,6 +52,7 @@ const ReportingLineList = lazyLoad(() => import('../components/structure/reporti
 const ReportingLineForm = lazyLoad(() => import('../components/structure/reporting/ReportingLineForm'), 'ReportingLineForm');
 const ReportingChain = lazyLoad(() => import('../components/structure/reporting/ReportingChain'), 'ReportingChain');
 const SpanOfControl = lazyLoad(() => import('../components/structure/reporting/SpanOfControl'), 'SpanOfControl');
+const MyTeam = lazyLoad(() => import('../components/structure/reporting/MyTeam'), 'MyTeam');
 
 // Interim Pages
 const InterimAssignmentList = lazyLoad(() => import('../components/structure/interim/InterimAssignmentList'), 'InterimAssignmentList');
@@ -178,8 +179,8 @@ const structureRoutes = [
     { path: STRUCTURE_ROUTES.REPORTING_CHAIN(), element: withSuspense(ReportingChain) },
     { path: STRUCTURE_ROUTES.SPAN_OF_CONTROL(), element: withSuspense(SpanOfControl) },
     { path: STRUCTURE_ROUTES.REPORTING_LINE_DETAIL(), element: withSuspense(ReportingLineList) },
-    { path: STRUCTURE_ROUTES.REPORTING_LINE_EDIT(), element: withSuspense(ReportingLineForm) },
     { path: STRUCTURE_ROUTES.MY_CHAIN, element: withSuspense(ReportingChain) },
+    { path: STRUCTURE_ROUTES.MY_TEAM, element: withSuspense(MyTeam) },
     { path: STRUCTURE_ROUTES.ORGANIZATION_SPAN, element: withSuspense(SpanOfControl) },
     
     // Interim

@@ -22,9 +22,19 @@ class FeedbackRequestSerializer(BaseTenantSerializer):
         return obj.subject.email if obj.subject else None
 
     def get_reviewer_name(self, obj):
+        request = self.context.get('request')
+        is_subject = request and request.user and str(request.user.id) == str(obj.subject_id)
+        # If the viewer is the subject and feedback is anonymous, strictly mask the identity
+        if obj.is_anonymous and is_subject:
+            return f"Anonymous {obj.get_reviewer_type_display()}" if obj.reviewer_type else "Anonymous Reviewer"
         return obj.reviewer.get_full_name() if obj.reviewer else None
 
     def get_reviewer_email(self, obj):
+        request = self.context.get('request')
+        is_subject = request and request.user and str(request.user.id) == str(obj.subject_id)
+        # If the viewer is the subject and feedback is anonymous, mask the email
+        if obj.is_anonymous and is_subject:
+            return "anonymous@feedback.internal"
         return obj.reviewer.email if obj.reviewer else None
 
     def get_requested_by_name(self, obj):
@@ -65,8 +75,15 @@ class FeedbackResponseSerializer(BaseTenantSerializer):
     is_anonymous_response = serializers.BooleanField(source='is_anonymous', read_only=True)
 
     def get_reviewer_name(self, obj):
-        if obj.is_anonymous:
-            return "Anonymous"
+        request = self.context.get('request')
+        is_subject = request and request.user and obj.feedback_request and str(request.user.id) == str(obj.feedback_request.subject_id)
+        # If the viewer is the subject, always mask the reviewer when anonymous
+        if obj.is_anonymous and is_subject:
+            return f"Anonymous {obj.feedback_request.get_reviewer_type_display()}" if obj.feedback_request and obj.feedback_request.reviewer_type else "Anonymous Reviewer"
+        if obj.is_anonymous and request and not (request.user.role in ['super_admin', 'client_admin']):
+            if obj.feedback_request and str(request.user.id) == str(obj.feedback_request.reviewer_id):
+                return obj.feedback_request.reviewer.get_full_name()
+            return f"Anonymous {obj.feedback_request.get_reviewer_type_display()}" if obj.feedback_request and obj.feedback_request.reviewer_type else "Anonymous"
         return obj.feedback_request.reviewer.get_full_name() if obj.feedback_request and obj.feedback_request.reviewer else None
 
     def get_reviewer_type(self, obj):
@@ -87,6 +104,18 @@ class FeedbackResponseSerializer(BaseTenantSerializer):
             'is_anonymous_response', 'integrity_checksum', 'submitted_at', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'integrity_checksum']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        text_fields = [
+            'strengths', 'areas_for_improvement', 'specific_examples',
+            'suggestions', 'additional_comments'
+        ]
+        from apps.reviews.services.security.field_encryption import ReviewFieldEncryptionService
+        for f in text_fields:
+            if ret.get(f):
+                ret[f] = ReviewFieldEncryptionService.decrypt(ret[f])
+        return ret
 
 class FeedbackResponseSubmitSerializer(serializers.Serializer):
     overall_rating = serializers.DecimalField(max_digits=3, decimal_places=1, required=False)
@@ -128,9 +157,60 @@ class FeedbackSummarySerializer(BaseTenantSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'shared_at']
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        from apps.reviews.services.security.field_encryption import ReviewFieldEncryptionService
+
+        def _decrypt_item(val):
+            if isinstance(val, str):
+                return ReviewFieldEncryptionService.decrypt(val)
+            elif isinstance(val, list):
+                return [_decrypt_item(x) for x in val]
+            elif isinstance(val, dict):
+                return {k: _decrypt_item(v) for k, v in val.items()}
+            return val
+
+        if ret.get('common_strengths'):
+            ret['common_strengths'] = _decrypt_item(ret['common_strengths'])
+        if ret.get('common_improvements'):
+            ret['common_improvements'] = _decrypt_item(ret['common_improvements'])
+        if ret.get('anonymized_responses'):
+            ret['anonymized_responses'] = _decrypt_item(ret['anonymized_responses'])
+        return ret
+
 class FeedbackSummaryShareSerializer(serializers.Serializer):
     share = serializers.BooleanField(required=True)
     def validate(self, data):
         if not data.get('share'):
             raise serializers.ValidationError("Must confirm to share")
+        return data
+
+class FeedbackAutoAssignSerializer(serializers.Serializer):
+    STRATEGY_CHOICES = [
+        ('intra_department', 'Intra-Department (All members in department review each other)'),
+        ('all_departments', 'All Departments (Intra-department for every department in organization)'),
+        ('cross_department', 'Cross-Department (Department A reviews Department B)'),
+        ('organization_wide', 'Organization-Wide (All-to-all or sampled peer review)'),
+        ('reporting_line', 'Reporting Line (Upward, Downward, and Team Peer reviews)'),
+    ]
+
+    cycle_id = serializers.IntegerField(required=True)
+    strategy = serializers.ChoiceField(choices=STRATEGY_CHOICES, default='intra_department')
+    department = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    source_department = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    target_department = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    bidirectional = serializers.BooleanField(default=True)
+    manager_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    sample_size = serializers.IntegerField(required=False, allow_null=True, min_value=1)
+    due_date = serializers.DateField(required=False, allow_null=True)
+    is_anonymous = serializers.BooleanField(default=True)
+    is_required = serializers.BooleanField(default=False)
+    dry_run = serializers.BooleanField(default=False)
+
+    def validate(self, data):
+        strategy = data.get('strategy')
+        if strategy == 'intra_department' and not data.get('department'):
+            raise serializers.ValidationError({"department": "Department is required for intra-department strategy."})
+        if strategy == 'cross_department' and (not data.get('source_department') or not data.get('target_department')):
+            raise serializers.ValidationError({"cross_department": "Both source_department and target_department are required."})
         return data

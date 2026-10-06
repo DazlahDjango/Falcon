@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiUsers } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiEye, FiRefreshCw, FiUsers, FiBriefcase, FiLayers, FiGlobe } from 'react-icons/fi';
 import { usePositions, useStructurePermissions } from '../../../hooks/structure';
+import useAppAuth from '../../../hooks/dashboard/useAppAuth';
+import { employmentService } from '../../../services/structure/employment.service';
 import {
   StructureTable,
-  StructureSearchBar,
   StructureFilters,
   StructurePagination,
   StructureStatusBadge,
@@ -99,54 +100,30 @@ const COLUMNS = [
     width: '180px',
     render: (item) => (
       <div>
-        <div style={{ fontSize: '13px', color: 'var(--text-primary, #1e293b)' }}>{item.department_name || item.division_name || '-'}</div>
-        {item.unit_name && <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)' }}>📂 {item.unit_name}</div>}
+        <div style={{ fontSize: '13px', color: 'var(--text-primary, #1e293b)' }}>{item.department_name || '-'}</div>
+        {item.unit_name && (
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary, #64748b)' }}>📁 {item.unit_name}</div>
+        )}
       </div>
     ),
   },
   {
-    key: 'is_vacant',
+    key: 'status',
     header: 'Status',
-    width: '110px',
-    render: (item) => {
-      const isVacant = item.is_vacant !== undefined ? item.is_vacant : item.current_incumbents_count === 0;
-      return (
-        <StructureStatusBadge
-          status={isVacant ? 'inactive' : 'active'}
-          customLabel={isVacant ? 'Vacant' : 'Occupied'}
-        />
-      );
-    },
+    width: '100px',
+    render: (item) => (
+      <StructureStatusBadge
+        status={item.is_active ? (item.is_vacant ? 'pending' : 'active') : 'inactive'}
+        customLabel={item.is_active ? (item.is_vacant ? 'Vacant' : 'Occupied') : 'Inactive'}
+        size="sm"
+      />
+    ),
   },
   {
-    key: 'actions_occupancy',
+    key: 'action',
     header: 'Action',
-    width: '130px',
+    width: '100px',
     render: (item) => {
-      const isVacant = item.is_vacant !== undefined ? item.is_vacant : item.current_incumbents_count === 0;
-      if (isVacant) {
-        return (
-          <a
-            href={`${STRUCTURE_ROUTES.EMPLOYMENT_CREATE}?position_id=${item.id}`}
-            className="btn btn-primary btn-sm"
-            style={{ 
-              backgroundColor: '#4f46e5', 
-              color: '#fff', 
-              padding: '4px 10px', 
-              borderRadius: '4px', 
-              fontSize: '12px', 
-              fontWeight: 600,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FiPlus size={12} /> Assign User
-          </a>
-        );
-      }
       return (
         <a 
           href={`${STRUCTURE_ROUTES.EMPLOYMENTS}?position=${item.id}`} 
@@ -162,11 +139,28 @@ const COLUMNS = [
 
 export const PositionList = () => {
   const navigate = useNavigate();
-  const { permissions } = useStructurePermissions();
+  const { user } = useAppAuth();
+  const { isSuperAdmin, isClientAdmin, isExecutive, role, permissions } = useStructurePermissions();
   const canManage = permissions?.canManagePositions;
+
+  // Audit scope for admins vs manager unit scope
+  const isOrgAdmin = useMemo(() => {
+    return Boolean(
+      isSuperAdmin || 
+      isClientAdmin || 
+      isExecutive || 
+      role === 'hr_admin' || 
+      user?.role === 'hr_admin' ||
+      user?.is_superuser
+    );
+  }, [isSuperAdmin, isClientAdmin, isExecutive, role, user]);
+
+  const [scopeTab, setScopeTab] = useState(!isOrgAdmin ? 'direct' : 'all');
+  const [managerPosId, setManagerPosId] = useState(null);
+  const [managerDept, setManagerDept] = useState(null);
+  const [isInitialReady, setIsInitialReady] = useState(isOrgAdmin);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [pageSize, setPageSize] = useState(25);
   const [filters, setFilters] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -183,29 +177,88 @@ export const PositionList = () => {
     clearError,
   } = usePositions({ autoFetch: false });
 
+  // On mount, if user is a Manager (not whole-org admin), fetch their employment details
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    if (!isOrgAdmin) {
+      employmentService.getMyEmployment()
+        .then(res => {
+          const emp = res?.data?.current_employment || res?.data || res;
+          if (emp?.position_id) {
+            setManagerPosId(emp.position_id);
+          }
+          if (emp?.department_id) {
+            setManagerDept({
+              id: emp.department_id,
+              name: emp.department_name || 'Software Engineering Department',
+            });
+          }
+          if (emp?.position_id) {
+            setScopeTab('direct');
+            setFilters(prev => ({ ...prev, reports_to_id: emp.position_id }));
+          } else if (emp?.department_id) {
+            setScopeTab('department');
+            setFilters(prev => ({ ...prev, department: emp.department_id }));
+          }
+          setIsInitialReady(true);
+        })
+        .catch(err => {
+          console.warn('[PositionList] Employment fetch error:', err);
+          setIsInitialReady(true);
+        });
+    } else {
+      setScopeTab('all');
+      setIsInitialReady(true);
+    }
+  }, [isOrgAdmin]);
 
+  // Tab switcher handler
+  const handleScopeChange = useCallback((newScope) => {
+    setScopeTab(newScope);
+    setPage(1);
+    setFilters(prev => {
+      const updated = { ...prev };
+      delete updated.reports_to_id;
+      delete updated.reports_to;
+      delete updated.department;
+      if (newScope === 'direct' && managerPosId) {
+        updated.reports_to_id = managerPosId;
+      } else if (newScope === 'department' && managerDept?.id) {
+        updated.department = managerDept.id;
+      }
+      return updated;
+    });
+  }, [managerPosId, managerDept]);
+
+  // Fetch stats when filters change or ready
   useEffect(() => {
+    if (!isInitialReady) return;
+    const statsParams = {};
+    if (filters.reports_to_id) statsParams.reports_to_id = filters.reports_to_id;
+    if (filters.department) statsParams.department = filters.department;
+    fetchStats(statsParams);
+  }, [fetchStats, isInitialReady, filters.reports_to_id, filters.department]);
+
+  // Fetch list items
+  useEffect(() => {
+    if (!isInitialReady) return;
     const params = {
       page,
       page_size: pageSize,
-      search: searchTerm,
       ...filters,
     };
     fetchAll(params);
-  }, [fetchAll, page, pageSize, searchTerm, filters]);
-
-  const handleSearch = useCallback((value) => {
-    setSearchTerm(value);
-    setPage(1);
-  }, []);
+  }, [fetchAll, page, pageSize, filters, isInitialReady]);
 
   const handleFilterChange = useCallback((newFilters) => {
-    setFilters(newFilters);
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters,
+      // preserve active tab scope
+      ...(scopeTab === 'direct' && managerPosId ? { reports_to_id: managerPosId } : {}),
+      ...(scopeTab === 'department' && managerDept?.id ? { department: managerDept.id } : {}),
+    }));
     setPage(1);
-  }, []);
+  }, [scopeTab, managerPosId, managerDept]);
 
   const handlePageChange = useCallback((newPage) => {
     setPage(newPage);
@@ -238,14 +291,17 @@ export const PositionList = () => {
       const params = {
         page,
         page_size: pageSize,
-        search: searchTerm,
         ...filters,
       };
       fetchAll(params);
+      const statsParams = {};
+      if (filters.reports_to_id) statsParams.reports_to_id = filters.reports_to_id;
+      if (filters.department) statsParams.department = filters.department;
+      fetchStats(statsParams);
     } catch (err) {
       console.error('Delete failed:', err);
     }
-  }, [deleteTarget, remove, fetchAll, page, pageSize, searchTerm, filters]);
+  }, [deleteTarget, remove, fetchAll, fetchStats, page, pageSize, filters]);
 
   const handleDeleteCancel = useCallback(() => {
     setShowDeleteConfirm(false);
@@ -257,15 +313,35 @@ export const PositionList = () => {
   }, [navigate]);
 
   const handleRefresh = useCallback(() => {
-    fetchStats();
+    const statsParams = {};
+    if (filters.reports_to_id) statsParams.reports_to_id = filters.reports_to_id;
+    if (filters.department) statsParams.department = filters.department;
+    fetchStats(statsParams);
+
     const params = {
       page,
       page_size: pageSize,
-      search: searchTerm,
       ...filters,
     };
     fetchAll(params);
-  }, [fetchAll, fetchStats, page, pageSize, searchTerm, filters]);
+  }, [fetchAll, fetchStats, page, pageSize, filters]);
+
+  // Compute unit metrics for manager view
+  const unitStats = useMemo(() => {
+    if (stats && (stats.total_positions !== undefined)) {
+      return stats;
+    }
+    const total = items.length || totalCount || 0;
+    const vacant = items.filter(p => !p.primary_occupant && (!p.occupants || p.occupants.length === 0)).length;
+    const occupied = total - vacant;
+    const rate = total > 0 ? Math.round((occupied / total) * 100) : 100;
+    return {
+      total_positions: total,
+      vacant_positions: vacant,
+      occupied_positions: occupied,
+      occupancy_rate: rate,
+    };
+  }, [stats, items, totalCount]);
 
   if (error) {
     return (
@@ -280,19 +356,43 @@ export const PositionList = () => {
 
   const paginationProps = {
     currentPage: page,
-    totalPages: Math.ceil(totalCount / pageSize),
+    totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
     pageSize,
     totalItems: totalCount,
     onPageChange: handlePageChange,
     onPageSizeChange: handlePageSizeChange,
   };
 
+  const isPageLoading = isLoading || !isInitialReady;
+
+  // Title generation
+  const pageTitle = useMemo(() => {
+    if (isOrgAdmin) return 'Positions Catalog';
+    if (scopeTab === 'direct') return 'My Direct Reporting Positions';
+    return managerDept?.name ? `${managerDept.name} Positions` : 'Department Unit Positions';
+  }, [isOrgAdmin, scopeTab, managerDept]);
+
+  const cardScopeTitle = useMemo(() => {
+    if (isOrgAdmin) return 'Total Positions';
+    if (scopeTab === 'direct') return 'Direct Positions';
+    return 'Unit Positions';
+  }, [isOrgAdmin, scopeTab]);
+
+  const cardScopeDesc = useMemo(() => {
+    if (isOrgAdmin) return 'Defined in organization';
+    if (scopeTab === 'direct') return 'Reporting directly to your role';
+    return managerDept?.name ? `Defined in ${managerDept.name}` : 'Defined in department';
+  }, [isOrgAdmin, scopeTab, managerDept]);
+
   return (
     <div className="position-list-container">
       <div className="position-list-header">
         <div className="header-left">
-          <h1>Positions</h1>
-          <span className="header-count">{totalCount} total</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiBriefcase className="text-blue-600" size={24} />
+            <h1>{pageTitle}</h1>
+          </div>
+          <span className="header-count">{totalCount} {totalCount === 1 ? 'position' : 'positions'}</span>
         </div>
         <div className="header-right">
           <button onClick={handleRefresh} className="btn btn-secondary" title="Refresh">
@@ -307,33 +407,71 @@ export const PositionList = () => {
         </div>
       </div>
 
+      {/* Scope Switcher Tabs for Managers */}
+      {!isOrgAdmin && (
+        <div className="position-scope-tabs">
+          <button 
+            type="button"
+            className={`scope-tab-btn ${scopeTab === 'direct' ? 'active' : ''}`}
+            onClick={() => handleScopeChange('direct')}
+          >
+            <FiUsers size={15} />
+            <span>Direct Reports</span>
+            {scopeTab === 'direct' && <span className="tab-pill-badge">{totalCount}</span>}
+          </button>
+          <button 
+            type="button"
+            className={`scope-tab-btn ${scopeTab === 'department' ? 'active' : ''}`}
+            onClick={() => handleScopeChange('department')}
+          >
+            <FiLayers size={15} />
+            <span>Entire Department</span>
+            {scopeTab === 'department' && <span className="tab-pill-badge">{totalCount}</span>}
+          </button>
+        </div>
+      )}
+
+      {/* Scope Switcher Tabs for Org Admins */}
+      {isOrgAdmin && (
+        <div className="position-scope-tabs">
+          <button 
+            type="button"
+            className={`scope-tab-btn ${scopeTab === 'all' ? 'active' : ''}`}
+            onClick={() => handleScopeChange('all')}
+          >
+            <FiGlobe size={15} />
+            <span>All Organization</span>
+          </button>
+        </div>
+      )}
+
       <StructureSummaryCards
-        loading={!stats && isLoading}
+        loading={isPageLoading && items.length === 0}
         items={[
           {
-            title: 'Total Positions',
-            value: stats?.total_positions || 0,
+            title: cardScopeTitle,
+            value: unitStats?.total_positions || 0,
             variant: 'default',
-            description: 'Defined in structure'
+            description: cardScopeDesc
           },
           {
             title: 'Vacant Positions',
-            value: stats?.vacant_positions || 0,
-            variant: 'warning',
-            description: 'Require candidates'
+            value: unitStats?.vacant_positions || 0,
+            variant: unitStats?.vacant_positions > 0 ? 'warning' : 'default',
+            description: 'Open positions requiring hiring'
           },
           {
             title: 'Occupied Positions',
-            value: stats?.occupied_positions || 0,
+            value: unitStats?.occupied_positions || 0,
             variant: 'success',
-            description: 'Currently filled'
+            description: 'Currently filled roles'
           },
           {
             title: 'Occupancy Rate',
-            value: stats?.occupancy_rate || 0,
+            value: unitStats?.occupancy_rate || 0,
             suffix: '%',
             variant: 'default',
-            description: 'Total fulfillment'
+            description: 'Position staffing fulfillment'
           }
         ]}
       />
@@ -341,7 +479,7 @@ export const PositionList = () => {
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
-        searchPlaceholder="Search positions..."
+        searchPlaceholder={scopeTab === 'direct' ? "Search direct reporting positions..." : "Search positions by code, title, or occupant..."}
       >
         <div className="filter-group">
           <label>Status</label>
@@ -349,7 +487,7 @@ export const PositionList = () => {
             value={filters.is_vacant || ''}
             onChange={(e) => handleFilterChange({ ...filters, is_vacant: e.target.value })}
           >
-            <option value="">All</option>
+            <option value="">All Statuses</option>
             <option value="true">Vacant</option>
             <option value="false">Occupied</option>
           </select>
@@ -363,47 +501,22 @@ export const PositionList = () => {
             onChange={(e) => handleFilterChange({ ...filters, grade: e.target.value })}
           />
         </div>
-        <div className="filter-group">
-          <label>Level Range</label>
-          <div className="range-inputs">
-            <input
-              type="number"
-              placeholder="Min"
-              value={filters.level_min || ''}
-              onChange={(e) => handleFilterChange({ ...filters, level_min: e.target.value })}
-            />
-            <span>to</span>
-            <input
-              type="number"
-              placeholder="Max"
-              value={filters.level_max || ''}
-              onChange={(e) => handleFilterChange({ ...filters, level_max: e.target.value })}
-            />
-          </div>
-        </div>
       </StructureFilters>
 
-      <StructureSearchBar
-        value={searchTerm}
-        onChange={handleSearch}
-        placeholder="Search by job code or title..."
-        debounce={400}
-      />
-
-      <StructureTable hideEmptyState={true}
+      <StructureTable
+        hideEmptyState={true}
         columns={COLUMNS}
         data={items}
-        loading={isLoading}
+        loading={isPageLoading}
+        actions={false}
         onView={handleView}
-        onEdit={canManage ? handleEdit : undefined}
-        onDelete={canManage ? handleDeleteClick : undefined}
         pagination={paginationProps}
       />
 
-      {!isLoading && items.length === 0 && (
+      {!isPageLoading && items.length === 0 && (
         <StructureEmptyState
           title="No Positions Found"
-          description="Create your first position to start defining roles in your organization."
+          description={scopeTab === 'direct' ? "No direct reporting positions found for your role." : "No position records found matching the criteria in your department unit."}
           actionLabel={canManage ? "Create Position" : undefined}
           onAction={canManage ? handleCreate : undefined}
         />

@@ -146,6 +146,8 @@ const usePIPActions = () => {
     verify,
     reopen,
     getForPIP,
+    fetchForPIP: getForPIP,
+    fetchPIPActionsForPIP: getForPIP,
     reset,
 
     // Permissions

@@ -74,9 +74,8 @@ export const InterimAssignmentForm = () => {
 
   const reportingTypes = [
     { value: 'interim', label: 'Interim' },
-    { value: 'dotted', label: 'Dotted Line' },
-    { value: 'functional', label: 'Functional' },
-    { value: 'project', label: 'Project' },
+    { value: 'acting', label: 'Acting' },
+    { value: 'solid', label: 'Solid Line' },
   ];
 
   // Show loading while fetching interim assignment or employments
@@ -129,7 +128,7 @@ export const InterimAssignmentForm = () => {
       >
         <div className="form-group">
           <label htmlFor="employee_id">
-            Employee <span className="required">*</span>
+            Covered Employee <span className="required">*</span>
           </label>
           <select
             id="employee_id"
@@ -139,23 +138,23 @@ export const InterimAssignmentForm = () => {
             required
             disabled={isSubmitting || isLoadingEmployments}
           >
-            <option value="">Select employee</option>
+            <option value="">Select employee...</option>
             {employments && employments.length > 0 ? (
               employments.map((employment) => (
                 <option key={employment.id} value={employment.id}>
-                  {employment.user_name || employment.user_id} • {employment.position?.title || employment.position_id}
+                  {employment.user_name || employment.user_id} • {employment.position_title || 'Position'} {employment.department_name ? `(${employment.department_name})` : ''}
                 </option>
               ))
             ) : (
               <option value="" disabled>No employees available</option>
             )}
           </select>
-          <span className="form-hint">The employment ID of the employee receiving interim management</span>
+          <span className="form-hint">The employee receiving interim management</span>
         </div>
 
         <div className="form-group">
           <label htmlFor="interim_manager_id">
-            Interim Manager <span className="required">*</span>
+            Acting / Interim Manager <span className="required">*</span>
           </label>
           <select
             id="interim_manager_id"
@@ -165,18 +164,18 @@ export const InterimAssignmentForm = () => {
             required
             disabled={isSubmitting || isLoadingEmployments}
           >
-            <option value="">Select interim manager</option>
+            <option value="">Select interim manager...</option>
             {employments && employments.length > 0 ? (
               employments.map((employment) => (
                 <option key={employment.id} value={employment.id}>
-                  {employment.user_name || employment.user_id} • {employment.position?.title || employment.position_id}
+                  {employment.user_name || employment.user_id} • {employment.position_title || 'Position'} {employment.department_name ? `(${employment.department_name})` : ''}
                 </option>
               ))
             ) : (
               <option value="" disabled>No employees available</option>
             )}
           </select>
-          <span className="form-hint">The employment ID of the interim manager</span>
+          <span className="form-hint">The acting supervisor taking over interim management</span>
         </div>
 
         <div className="form-group">

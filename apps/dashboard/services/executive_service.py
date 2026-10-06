@@ -40,8 +40,34 @@ class ExecutiveDashboardService(BaseDashboardService):
 
         dept_heatmap = self._get_department_heatmap()
 
+        structure_summary = {}
+        try:
+            from apps.structure.models import Division, Department, Section, Unit, OrganizationalUnit, Position, CostCenter, Location
+            div_count = Division.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            dept_count = Department.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            sec_count = Section.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            unit_count = Unit.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            org_unit_count = OrganizationalUnit.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            pos_count = Position.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            cc_count = CostCenter.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            loc_count = Location.objects.filter(tenant_id=self.tenant_id, is_active=True).count()
+            structure_summary = {
+                'divisions_count': div_count,
+                'departments_count': dept_count,
+                'sections_count': sec_count,
+                'units_count': unit_count,
+                'org_units_count': org_unit_count,
+                'positions_count': pos_count,
+                'cost_centers_count': cc_count,
+                'locations_count': loc_count,
+                'total_nodes': div_count + dept_count + sec_count + unit_count + org_unit_count
+            }
+        except Exception:
+            pass
+
         dashboard_data = {
             'dashboard_type': 'executive',
+            'structure_summary': structure_summary,
             'executive_info': {
                 'id': str(executive.id),
                 'name': executive.get_full_name() or 'Dr. John Smith',

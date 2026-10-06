@@ -111,7 +111,7 @@ const PIPActions = ({ pip, onAction }) => {
 
   return (
     <div className="pip-actions">
-      <h3 className="pip-actions-title">Actions</h3>
+      <h3 className="pip-actions-title">Supervisor Controls</h3>
       <div className="pip-actions-list">
         {visibleActions.map((action) => (
           <button
@@ -125,7 +125,7 @@ const PIPActions = ({ pip, onAction }) => {
           </button>
         ))}
         {visibleActions.length === 0 && (
-          <p className="pip-actions-empty">No actions available</p>
+          <p className="pip-actions-empty">No supervisor actions required at this stage.</p>
         )}
       </div>
 

@@ -314,7 +314,10 @@ const pipActionSlice = createSlice({
       })
       .addCase(fetchPIPActionsForPIP.fulfilled, (state, action) => {
         state.loading = false;
-        state.pipActions = action.payload;
+        const payload = action.payload;
+        const list = Array.isArray(payload) ? payload : payload?.results || [];
+        state.pipActions = list;
+        state.items = list;
       })
       .addCase(fetchPIPActionsForPIP.rejected, (state, action) => {
         state.loading = false;

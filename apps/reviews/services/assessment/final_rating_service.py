@@ -24,7 +24,8 @@ class FinalRatingService(BaseReviewService):
         else:
             final_rating.kpi_score = KPIAggregator.get_kpi_score_for_period(employee=review.employee, start_date=review.review_cycle.kpi_start_date or review.review_cycle.start_date, end_date=review.review_cycle.kpi_end_date or review.review_cycle.end_date)
         final_rating.competency_score = CompetencyAggregator.calculate_competency_percentage_score(parent_object=review, rating_scale=review.review_cycle.rating_scale)
-        final_rating.raw_total_score = ScoreCalculator.calculate_weighted_score(kpi_score=final_rating.kpi_score, competency_score=final_rating.competency_score, mission_score=None, task_score=None, weights={'kpi': review.review_cycle.kpi_weight, 'competency': review.review_cycle.competency_weight, 'mission': 0, 'task': 0})
+        weights = FinalRatingService.get_role_weights(review.employee, review.review_cycle)
+        final_rating.raw_total_score = ScoreCalculator.calculate_weighted_score(kpi_score=final_rating.kpi_score, competency_score=final_rating.competency_score, mission_score=None, task_score=None, weights=weights)
         final_rating = CoefficientApplicator.apply_coefficient_to_rating(final_rating)
         final_rating.final_score = final_rating.adjusted_score if final_rating.adjusted_score is not None else final_rating.raw_total_score
         if final_rating.final_score is not None and final_rating.rating_scale:
@@ -35,6 +36,23 @@ class FinalRatingService(BaseReviewService):
         final_rating.save()
         return final_rating
     @staticmethod
+    def get_role_weights(employee, review_cycle):
+        is_lead_or_manager = False
+        if employee:
+            role = getattr(employee, 'role', '')
+            if role in ['supervisor', 'manager', 'executive', 'super_admin', 'client_admin', 'hr_admin']:
+                is_lead_or_manager = True
+            elif hasattr(employee, 'direct_reports') and employee.direct_reports.exists():
+                is_lead_or_manager = True
+        if is_lead_or_manager:
+            return {'kpi': 60.0, 'competency': 40.0, 'mission': 0, 'task': 0}
+        return {
+            'kpi': float(review_cycle.kpi_weight),
+            'competency': float(review_cycle.competency_weight),
+            'mission': float(getattr(review_cycle, 'mission_weight', 0) or 0),
+            'task': float(getattr(review_cycle, 'task_weight', 0) or 0)
+        }
+    @staticmethod
     @BaseReviewService.atomic_operation
     def recalculate_kpi_component(final_rating_id):
         final_rating = FinalRating.objects.select_related('review_cycle', 'employee', 'supervisor_review').get(id=final_rating_id)
@@ -44,10 +62,21 @@ class FinalRatingService(BaseReviewService):
             final_rating.kpi_score = review.override_kpi_score
         else:
             final_rating.kpi_score = KPIAggregator.get_kpi_score_for_period(employee=final_rating.employee, start_date=cycle.kpi_start_date or cycle.start_date, end_date=cycle.kpi_end_date or cycle.end_date)
-        if review:
-            final_rating.raw_total_score = ScoreCalculator.calculate_weighted_score(kpi_score=final_rating.kpi_score, competency_score=final_rating.competency_score, mission_score=None, task_score=None, weights={'kpi': cycle.kpi_weight, 'competency': cycle.competency_weight, 'mission': 0, 'task': 0})
-            final_rating = CoefficientApplicator.apply_coefficient_to_rating(final_rating)
-            final_rating.final_score = final_rating.adjusted_score or final_rating.raw_total_score
+        weights = FinalRatingService.get_role_weights(final_rating.employee, cycle)
+        final_rating.raw_total_score = ScoreCalculator.calculate_weighted_score(
+            kpi_score=final_rating.kpi_score,
+            competency_score=final_rating.competency_score,
+            mission_score=None,
+            task_score=None,
+            weights=weights
+        )
+        final_rating = CoefficientApplicator.apply_coefficient_to_rating(final_rating)
+        final_rating.final_score = final_rating.adjusted_score if final_rating.adjusted_score is not None else final_rating.raw_total_score
+        if final_rating.final_score is not None and final_rating.rating_scale:
+            rating_level = final_rating.rating_scale.get_level_by_percentage(float(final_rating.final_score))
+            if rating_level:
+                final_rating.final_rating_label = rating_level.get('label', '')
+                final_rating.final_rating_color = rating_level.get('color', 'gray')
         final_rating.save()
         return final_rating
     @staticmethod

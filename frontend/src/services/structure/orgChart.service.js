@@ -31,7 +31,13 @@ class OrgChartService extends BaseStructureService {
     return this.unwrap(response);
   }
 
+  async getPeopleTree() {
+    const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.PEOPLE_TREE));
+    return this.unwrap(response);
+  }
+
   async getTreeView(includeInactive = false) {
+
     const response = await withRetry(() => this.apiClient.get(ORG_CHART_ENDPOINTS.TREE, { params: { include_inactive: includeInactive } }));
     const unwrapped = this.unwrap(response);
     return unwrapped?.tree || unwrapped;

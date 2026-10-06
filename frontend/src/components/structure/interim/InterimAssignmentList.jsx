@@ -269,7 +269,8 @@ export const InterimAssignmentList = () => {
       <StructureFilters
         filters={filters}
         onFilterChange={handleFilterChange}
-        searchPlaceholder="Search interim assignments..."
+        onSearch={handleSearch}
+        searchPlaceholder="Search interim assignments by employee or manager..."
       >
         <div className="filter-group">
           <label>Status</label>
@@ -288,21 +289,13 @@ export const InterimAssignmentList = () => {
             value={filters.reporting_type || ''}
             onChange={(e) => handleFilterChange({ ...filters, reporting_type: e.target.value })}
           >
-            <option value="">All</option>
+            <option value="">All Types</option>
             <option value="interim">Interim</option>
-            <option value="dotted">Dotted</option>
-            <option value="functional">Functional</option>
-            <option value="project">Project</option>
+            <option value="acting">Acting</option>
+            <option value="solid">Solid Line</option>
           </select>
         </div>
       </StructureFilters>
-
-      <StructureSearchBar
-        value={searchTerm}
-        onChange={handleSearch}
-        placeholder="Search by employee or manager ID..."
-        debounce={400}
-      />
 
       <StructureTable hideEmptyState={true}
         columns={COLUMNS}

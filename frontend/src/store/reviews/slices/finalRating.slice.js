@@ -9,7 +9,7 @@ export const fetchFinalRatings = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await finalRatingService.list(params);
-      return response.results || response;
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -230,11 +230,20 @@ const finalRatingSlice = createSlice({
       })
       .addCase(fetchFinalRatings.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = Array.isArray(action.payload) ? action.payload : action.payload.results || [];
-        state.pagination.totalItems = action.payload.count || state.items.length;
-        state.pagination.totalPages = Math.ceil(
-          (action.payload.count || state.items.length) / state.pagination.pageSize
-        );
+        const payload = action.payload;
+        if (Array.isArray(payload)) {
+          state.items = payload;
+          state.pagination.totalItems = payload.length;
+        } else if (payload && Array.isArray(payload.results)) {
+          state.items = payload.results;
+          state.pagination.totalItems = payload.count !== undefined ? payload.count : payload.results.length;
+        } else {
+          state.items = [];
+          state.pagination.totalItems = 0;
+        }
+        state.pagination.totalPages = Math.max(1, Math.ceil(
+          state.pagination.totalItems / state.pagination.pageSize
+        ));
       })
       .addCase(fetchFinalRatings.rejected, (state, action) => {
         state.loading = false;

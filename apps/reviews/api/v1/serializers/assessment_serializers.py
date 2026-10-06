@@ -8,9 +8,43 @@ class SelfAssessmentSerializer(BaseTenantSerializer, BaseStatusSerializer):
     employee_name = serializers.CharField(source='employee.get_full_name', read_only=True)
     employee_email = serializers.EmailField(source='employee.email', read_only=True)
     review_cycle_name = serializers.CharField(source='review_cycle.name', read_only=True)
+    department_name = serializers.SerializerMethodField()
+    position_title = serializers.SerializerMethodField()
+    manager_name = serializers.SerializerMethodField()
     is_late = serializers.SerializerMethodField()
     days_remaining = serializers.SerializerMethodField()
     kpi_score = serializers.SerializerMethodField()
+
+    def get_department_name(self, obj):
+        if not obj.employee:
+            return 'General'
+        try:
+            from apps.structure.models import Employment
+            emp = Employment.objects.filter(user_id=obj.employee.id, is_current=True, is_active=True).select_related('position__department').first()
+            if emp and emp.position and emp.position.department:
+                return emp.position.department.name
+        except Exception:
+            pass
+        if hasattr(obj.employee, 'department') and obj.employee.department:
+            return str(obj.employee.department)
+        return 'General'
+
+    def get_position_title(self, obj):
+        if not obj.employee:
+            return 'Staff'
+        try:
+            from apps.structure.models import Employment
+            emp = Employment.objects.filter(user_id=obj.employee.id, is_current=True, is_active=True).select_related('position').first()
+            if emp and emp.position and emp.position.title:
+                return emp.position.title
+        except Exception:
+            pass
+        return getattr(obj.employee, 'title', None) or obj.employee.get_role_display()
+
+    def get_manager_name(self, obj):
+        if obj.employee and obj.employee.manager:
+            return obj.employee.manager.get_full_name()
+        return None
 
     def get_is_late(self, obj):
         if obj.submitted_at:
@@ -36,14 +70,15 @@ class SelfAssessmentSerializer(BaseTenantSerializer, BaseStatusSerializer):
         model = SelfAssessment
         fields = [
             'id', 'review_cycle', 'review_cycle_name', 'employee',
-            'employee_name', 'employee_email', 'status', 'status_display',
+            'employee_name', 'employee_email', 'department_name', 'position_title',
+            'manager_name', 'status', 'status_display',
             'submitted_at', 'overall_comment', 'strengths', 'areas_for_improvement',
             'career_aspirations', 'challenges_faced', 'achievements',
             'training_completed', 'training_requested', 'goals_achieved',
             'goals_for_next_period', 'integrity_checksum', 'is_late', 'days_remaining',
             'kpi_score', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'integrity_checksum', 'kpi_score']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'integrity_checksum', 'kpi_score', 'department_name', 'position_title', 'manager_name']
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -81,6 +116,34 @@ class SupervisorReviewSerializer(BaseTenantSerializer, BaseStatusSerializer):
     has_self_assessment = serializers.BooleanField(read_only=True)
     calculated_kpi_score = serializers.SerializerMethodField()
     effective_kpi_score = serializers.SerializerMethodField()
+    department_name = serializers.SerializerMethodField()
+    position_title = serializers.SerializerMethodField()
+
+    def get_department_name(self, obj):
+        if not obj.employee:
+            return 'General'
+        try:
+            from apps.structure.models import Employment
+            emp = Employment.objects.filter(user_id=obj.employee.id, is_current=True, is_active=True).select_related('position__department').first()
+            if emp and emp.position and emp.position.department:
+                return emp.position.department.name
+        except Exception:
+            pass
+        if hasattr(obj.employee, 'department') and obj.employee.department:
+            return str(obj.employee.department)
+        return 'General'
+
+    def get_position_title(self, obj):
+        if not obj.employee:
+            return 'Staff'
+        try:
+            from apps.structure.models import Employment
+            emp = Employment.objects.filter(user_id=obj.employee.id, is_current=True, is_active=True).select_related('position').first()
+            if emp and emp.position and emp.position.title:
+                return emp.position.title
+        except Exception:
+            pass
+        return getattr(obj.employee, 'title', None) or obj.employee.get_role_display()
 
     def get_calculated_kpi_score(self, obj):
         if not obj.review_cycle or not obj.employee:
@@ -99,7 +162,8 @@ class SupervisorReviewSerializer(BaseTenantSerializer, BaseStatusSerializer):
         model = SupervisorReview
         fields = [
             'id', 'review_cycle', 'review_cycle_name', 'employee', 'employee_name',
-            'employee_email', 'supervisor', 'supervisor_name', 'self_assessment',
+            'employee_email', 'department_name', 'position_title',
+            'supervisor', 'supervisor_name', 'self_assessment',
             'has_self_assessment', 'status', 'status_display', 'submitted_at',
             'reviewed_at', 'overall_comment', 'performance_summary', 'strengths_observed',
             'development_areas', 'achievements_recognized', 'career_progression_notes',
@@ -110,7 +174,7 @@ class SupervisorReviewSerializer(BaseTenantSerializer, BaseStatusSerializer):
             'calculated_kpi_score', 'effective_kpi_score',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'reviewed_at', 'calculated_kpi_score', 'effective_kpi_score']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'submitted_at', 'reviewed_at', 'calculated_kpi_score', 'effective_kpi_score', 'department_name', 'position_title']
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

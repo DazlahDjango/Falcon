@@ -11,18 +11,48 @@ from .base_views import BaseReviewViewSet, BaseReadOnlyReviewViewSet
 from apps.accounts.constants import UserRoles
 from apps.reviews.api.v1.permissions.base_permissions import IsAuthenticated, IsAdminOnly, IsSupervisorOrAdmin
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from apps.reviews.api.v1.filters.feedback_filters import FeedbackRequestFilter, FeedbackResponseFilter, FeedbackSummaryFilter
+
+
 class FeedbackRequestViewSet(BaseReviewViewSet):
     queryset = FeedbackRequest.objects.all()
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = FeedbackRequestFilter
+    search_fields = [
+        'subject__first_name', 'subject__last_name', 'subject__email',
+        'reviewer__first_name', 'reviewer__last_name', 'reviewer__email',
+        'review_cycle__name',
+    ]
+    ordering_fields = ['created_at', 'due_date', 'status', 'reviewer_type']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        if not (user.is_superuser or user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]):
+            if user.role == UserRoles.SUPERVISOR:
+                direct_reports = user.direct_reports.values_list('id', flat=True)
+                queryset = queryset.filter(
+                    models.Q(reviewer=user) | models.Q(subject_id__in=direct_reports) | models.Q(requested_by=user)
+                )
+            else:
+                queryset = queryset.filter(reviewer=user)
+        return queryset.select_related('subject', 'reviewer', 'review_cycle', 'requested_by')
+
     def get_serializer_class(self):
         return FeedbackRequestCreateSerializer if self.action == 'create' else FeedbackRequestSerializer
+
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ['create', 'bulk_create', 'bulk_create_hyphen', 'auto_assign']:
             self.permission_classes = [IsSupervisorOrAdmin]
         elif self.action in ['update', 'partial_update', 'remind', 'cancel']:
             self.permission_classes = [IsAdminOnly]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
+
     def destroy(self, request, *args, **kwargs):
         req = self.get_object()
         is_admin = request.user.is_superuser or request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]
@@ -107,12 +137,61 @@ class FeedbackRequestViewSet(BaseReviewViewSet):
         except (User.DoesNotExist, ReviewCycle.DoesNotExist) as e:
             return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=False, methods=['post'], url_path='auto-assign')
+    def auto_assign(self, request):
+        from apps.reviews.api.v1.serializers.feedback_serializers import FeedbackAutoAssignSerializer
+        from apps.reviews.services.feedback.assignment_engine import FeedbackAssignmentEngine
+        
+        serializer = FeedbackAutoAssignSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            result = FeedbackAssignmentEngine.generate_assignments(
+                cycle_id=data['cycle_id'],
+                strategy=data['strategy'],
+                tenant_id=request.user.tenant_id,
+                requested_by=request.user,
+                department=data.get('department'),
+                source_department=data.get('source_department'),
+                target_department=data.get('target_department'),
+                bidirectional=data.get('bidirectional', True),
+                manager_id=data.get('manager_id'),
+                sample_size=data.get('sample_size'),
+                due_date=data.get('due_date'),
+                is_anonymous=data.get('is_anonymous', True),
+                is_required=data.get('is_required', False),
+                dry_run=data.get('dry_run', False)
+            )
+            return Response(result, status=status.HTTP_200_OK if data.get('dry_run') else status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class FeedbackResponseViewSet(BaseReviewViewSet):
     queryset = FeedbackResponse.objects.all()
     serializer_class = FeedbackResponseSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_class = FeedbackResponseFilter
+    ordering_fields = ['created_at', 'overall_rating', 'submitted_at']
+    ordering = ['-created_at']
+
     def get_permissions(self):
         self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return queryset.none()
+        if hasattr(user, 'role') and user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]:
+            return queryset
+        return queryset.filter(
+            models.Q(feedback_request__reviewer=user) |
+            models.Q(feedback_request__subject=user) |
+            models.Q(feedback_request__subject__manager=user)
+        )
+
     @action(detail=False, methods=['post'], url_path='submit/(?P<request_id>[^/.]+)')
     def submit(self, request, request_id=None):
         try:
@@ -136,14 +215,22 @@ class FeedbackResponseViewSet(BaseReviewViewSet):
             return Response(self.get_serializer(response).data, status=status.HTTP_201_CREATED)
         except FeedbackRequest.DoesNotExist:
             return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
+
     @action(detail=False, methods=['get'], url_path='for-request/(?P<request_id>[^/.]+)')
     def for_request(self, request, request_id=None):
         try:
             feedback_request = FeedbackRequest.objects.get(id=request_id)
-            if request.user.role not in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN] and request.user != feedback_request.reviewer and request.user != feedback_request.subject.manager:
+            user = request.user
+            is_admin = hasattr(user, 'role') and user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.HR_ADMIN]
+            is_reviewer = feedback_request.reviewer_id == user.id
+            is_subject = feedback_request.subject_id == user.id
+            is_manager = feedback_request.subject and feedback_request.subject.manager_id == user.id
+            if not (is_admin or is_reviewer or is_subject or is_manager):
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
-            response = self.get_queryset().filter(feedback_request=feedback_request).first()
-            return Response(self.get_serializer(response).data if response else {'message': 'No response yet'})
+            response = FeedbackResponse.objects.filter(feedback_request=feedback_request).first()
+            if not response:
+                return Response({'message': 'No response yet'}, status=status.HTTP_200_OK)
+            return Response(self.get_serializer(response).data)
         except FeedbackRequest.DoesNotExist:
             return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
     @action(detail=False, methods=['get'], url_path='for-subject/(?P<subject_id>[^/.]+)')
@@ -163,19 +250,29 @@ class FeedbackResponseViewSet(BaseReviewViewSet):
 class FeedbackSummaryViewSet(BaseReadOnlyReviewViewSet):
     queryset = FeedbackSummary.objects.all()
     serializer_class = FeedbackSummarySerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_class = FeedbackSummaryFilter
+    ordering_fields = ['created_at', 'overall_avg_rating', 'total_responses']
+    ordering = ['-created_at']
+
     def get_permissions(self):
         if self.action == 'share':
             self.permission_classes = [IsAdminOnly]
         else:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
+
     @action(detail=False, methods=['get'])
     def my(self, request):
-        cycle = ReviewCycle.objects.filter(tenant_id=request.user.tenant_id, status__in=['completed', 'archived']).order_by('-end_date').first()
-        if not cycle:
-            return Response({'message': 'No completed cycle found'}, status=status.HTTP_200_OK)
-        summary = self.get_queryset().filter(review_cycle=cycle, subject=request.user).first()
-        return Response(self.get_serializer(summary).data if summary else {'message': 'No summary available'})
+        cycle_id = request.query_params.get('cycle_id')
+        queryset = self.get_queryset().filter(subject=request.user)
+        if cycle_id:
+            summary = queryset.filter(review_cycle_id=cycle_id).first()
+        else:
+            summary = queryset.order_by('-created_at').first()
+        if not summary:
+            return Response({'message': 'No summary available'}, status=status.HTTP_200_OK)
+        return Response(self.get_serializer(summary).data)
     @action(detail=False, methods=['get'], url_path='for-cycle/(?P<cycle_id>[^/.]+)')
     def for_cycle(self, request, cycle_id=None):
         try:

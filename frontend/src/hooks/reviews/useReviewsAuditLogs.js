@@ -7,6 +7,7 @@ import {
   selectAuditLogsError,
   selectSelectedAuditLog,
   selectAuditLogsPagination,
+  selectAuditLogsFilters,
   selectAuditLogsForObject,
   selectAuditLogsForUser,
 } from '../../store/reviews/selectors';
@@ -16,21 +17,34 @@ import {
   fetchAuditLogsForObject,
   fetchAuditLogsForUser,
   resetAuditLogState,
+  auditLogActions,
 } from '../../store/reviews/slices/auditLog.slice';
 import { useReviewsPermissions } from './';
+
+const DEFAULT_PAGINATION = {
+  currentPage: 1,
+  pageSize: 20,
+  totalItems: 0,
+  totalPages: 0,
+};
 
 const useReviewsAuditLogs = () => {
   const dispatch = useDispatch();
   const permissions = useReviewsPermissions();
 
   // Selectors
-  const data = useSelector(selectAllAuditLogs);
+  const data = useSelector(selectAllAuditLogs) || [];
   const loading = useSelector(selectAuditLogsLoading);
   const error = useSelector(selectAuditLogsError);
   const selected = useSelector(selectSelectedAuditLog);
-  const pagination = useSelector(selectAuditLogsPagination);
-  const objectLogs = useSelector(selectAuditLogsForObject);
-  const userLogs = useSelector(selectAuditLogsForUser);
+  const rawPagination = useSelector(selectAuditLogsPagination);
+  const filters = useSelector(selectAuditLogsFilters) || {};
+  const objectLogs = useSelector(selectAuditLogsForObject) || [];
+  const userLogs = useSelector(selectAuditLogsForUser) || [];
+
+  const pagination = useMemo(() => {
+    return rawPagination ?? DEFAULT_PAGINATION;
+  }, [rawPagination]);
 
   // Actions
   const fetchAll = useCallback(
@@ -73,6 +87,21 @@ const useReviewsAuditLogs = () => {
     [dispatch, permissions.canViewAuditLogs]
   );
 
+  const setPagination = useCallback(
+    (payload) => dispatch(auditLogActions.setPagination(payload)),
+    [dispatch]
+  );
+
+  const setFilters = useCallback(
+    (payload) => dispatch(auditLogActions.setFilters(payload)),
+    [dispatch]
+  );
+
+  const clearFilters = useCallback(
+    () => dispatch(auditLogActions.clearFilters()),
+    [dispatch]
+  );
+
   const reset = useCallback(
     () => dispatch(resetAuditLogState()),
     [dispatch]
@@ -91,6 +120,7 @@ const useReviewsAuditLogs = () => {
     error,
     selected,
     pagination,
+    filters,
     objectLogs,
     userLogs,
 
@@ -99,6 +129,9 @@ const useReviewsAuditLogs = () => {
     fetchOne,
     getForObject,
     getForUser,
+    setPagination,
+    setFilters,
+    clearFilters,
     reset,
 
     // Permissions

@@ -346,12 +346,24 @@ class UserViewSet(BaseModelViewset):
     
     @action(detail=False, methods=['get'], url_path='me/team')
     def my_team(self, request):
-        """Get current user's team members"""
+        """Get current user's team members and department peers"""
         user = request.user
         team = user.get_team_members()
+        if not team:
+            try:
+                from apps.structure.services.reporting.chain_service import ChainService
+                employments = ChainService().get_department_team_and_peers(user.id, user.tenant_id)
+                user_ids = [e.user_id for e in employments if e.user_id != user.id]
+                from apps.accounts.models.user import User
+                team = list(User.objects.filter(id__in=user_ids, is_deleted=False))
+                if user.manager_id:
+                    team.sort(key=lambda u: (u.id != user.manager_id, u.first_name))
+            except Exception:
+                pass
         serializer = UserListSerializer(team, many=True, context={'request': request})
+        manager = user.manager if user.manager else user
         return Response({
-            'manager': UserMinimalSerializer(user).data,
+            'manager': UserMinimalSerializer(manager).data,
             'team_count': len(team),
             'team': serializer.data
         }, status=status.HTTP_200_OK)

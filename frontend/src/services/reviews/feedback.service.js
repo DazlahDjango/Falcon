@@ -27,6 +27,11 @@ class FeedbackRequestService extends BaseReviewsService {
     return response.data;
   }
 
+  async autoAssign(data) {
+    const response = await this.apiClient.post('/feedback-requests/auto-assign/', data);
+    return response.data;
+  }
+
   async getPending() {
     const response = await this.apiClient.get('/feedback-requests/pending/');
     return response.data;

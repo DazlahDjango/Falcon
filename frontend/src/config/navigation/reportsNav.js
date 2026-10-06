@@ -3,6 +3,7 @@
  * Navigation Configuration - Reporting Subsystem Scoped
  * Dedicated module defining all role-specific navigation items for the Reporting app.
  * Supporting Super Admin, Client Admin, Executive, Manager/Supervisor, Staff, Champion, and Read-Only.
+ * Excludes generic dashboard "main" items to maintain a single root dashboard link.
  */
 import {
   FiFileText,
@@ -20,24 +21,16 @@ import {
   FiSliders,
   FiSettings,
   FiEye,
-  FiHome,
   FiUser,
-  FiUsers,
-  FiCheckCircle,
   FiAlertTriangle,
 } from 'react-icons/fi';
 
-import { DASHBOARD_ROUTES } from '../constants/dashboardRouteConstants';
 import { REPORT_ROUTES } from '../constants/reportRouteConstants';
 
 // ============================================
 // 1. SUPER ADMIN REPORT NAV GROUPS (Platform Scope)
 // ============================================
 export const REPORTS_SUPER_ADMIN_NAV_GROUPS = {
-  reports_main: [
-    { path: DASHBOARD_ROUTES.SUPER_ADMIN.OVERVIEW, name: 'Platform Overview', icon: FiHome, end: true },
-    { path: REPORT_ROUTES.ADMIN_OVERVIEW, name: 'Report Platform Admin', icon: FiFileText },
-  ],
   reports_studio: [
     { path: REPORT_ROUTES.REPORTS, name: 'All Reports', icon: FiFileText },
     { path: REPORT_ROUTES.REPORT_CREATE, name: 'Create Report', icon: FiPlus },
@@ -64,7 +57,6 @@ export const REPORTS_SUPER_ADMIN_NAV_GROUPS = {
 };
 
 export const REPORTS_SUPER_ADMIN_GROUP_LABELS = {
-  reports_main: '📊 Reporting Main',
   reports_studio: '📝 Report Studio & Templates',
   reports_dashboards: '🖥️ Dashboards & Widgets',
   reports_automation: '⚡ Automation & Exports',
@@ -72,7 +64,6 @@ export const REPORTS_SUPER_ADMIN_GROUP_LABELS = {
 };
 
 export const REPORTS_SUPER_ADMIN_DEFAULT_EXPANDED = {
-  reports_main: true,
   reports_studio: true,
   reports_dashboards: false,
   reports_automation: false,
@@ -83,11 +74,8 @@ export const REPORTS_SUPER_ADMIN_DEFAULT_EXPANDED = {
 // 2. CLIENT ADMIN REPORT NAV GROUPS (Organization Scope)
 // ============================================
 export const REPORTS_CLIENT_ADMIN_NAV_GROUPS = {
-  reports_main: [
-    { path: DASHBOARD_ROUTES.CLIENT_ADMIN.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
-    { path: REPORT_ROUTES.DASHBOARDS, name: 'Organization Dashboards', icon: FiGrid },
-  ],
   reports_management: [
+    { path: REPORT_ROUTES.DASHBOARDS, name: 'Organization Dashboards', icon: FiGrid },
     { path: REPORT_ROUTES.REPORTS, name: 'Reports Directory', icon: FiFileText },
     { path: REPORT_ROUTES.REPORT_CREATE, name: 'Define New Report', icon: FiPlus },
     { path: REPORT_ROUTES.MY_REPORTS, name: 'My Saved Reports', icon: FiUser },
@@ -111,7 +99,6 @@ export const REPORTS_CLIENT_ADMIN_NAV_GROUPS = {
 };
 
 export const REPORTS_CLIENT_ADMIN_GROUP_LABELS = {
-  reports_main: '📊 Reporting',
   reports_management: '📋 Report Management',
   reports_templates: '📑 Templates Gallery',
   reports_automation: '⏱️ Schedules & Delivery',
@@ -119,7 +106,6 @@ export const REPORTS_CLIENT_ADMIN_GROUP_LABELS = {
 };
 
 export const REPORTS_CLIENT_ADMIN_DEFAULT_EXPANDED = {
-  reports_main: true,
   reports_management: true,
   reports_templates: false,
   reports_automation: false,
@@ -130,11 +116,8 @@ export const REPORTS_CLIENT_ADMIN_DEFAULT_EXPANDED = {
 // 3. EXECUTIVE REPORT NAV GROUPS (Executive Scope)
 // ============================================
 export const REPORTS_EXECUTIVE_NAV_GROUPS = {
-  reports_main: [
-    { path: DASHBOARD_ROUTES.EXECUTIVE.OVERVIEW, name: 'Executive Home', icon: FiHome, end: true },
-    { path: REPORT_ROUTES.DASHBOARDS, name: 'Executive Dashboards', icon: FiGrid },
-  ],
   reports_view: [
+    { path: REPORT_ROUTES.DASHBOARDS, name: 'Executive Dashboards', icon: FiGrid },
     { path: REPORT_ROUTES.REPORTS, name: 'Reports Directory', icon: FiFileText },
     { path: REPORT_ROUTES.PUBLIC_REPORTS, name: 'Published Reports', icon: FiEye },
     { path: REPORT_ROUTES.SHARED_WITH_ME, name: 'Shared with Me', icon: FiShare2 },
@@ -151,14 +134,12 @@ export const REPORTS_EXECUTIVE_NAV_GROUPS = {
 };
 
 export const REPORTS_EXECUTIVE_GROUP_LABELS = {
-  reports_main: '📊 Executive Reporting',
   reports_view: '👁️ Reports Directory',
   reports_analytics: '📈 Analytics & Insights',
   reports_export: '📥 Exports',
 };
 
 export const REPORTS_EXECUTIVE_DEFAULT_EXPANDED = {
-  reports_main: true,
   reports_view: true,
   reports_analytics: false,
   reports_export: false,
@@ -168,11 +149,8 @@ export const REPORTS_EXECUTIVE_DEFAULT_EXPANDED = {
 // 4. MANAGER REPORT NAV GROUPS (Manager/Supervisor Scope)
 // ============================================
 export const REPORTS_MANAGER_NAV_GROUPS = {
-  reports_main: [
-    { path: DASHBOARD_ROUTES.MANAGER.OVERVIEW, name: 'Manager Home', icon: FiHome, end: true },
-    { path: REPORT_ROUTES.DASHBOARDS, name: 'Team Dashboards', icon: FiGrid },
-  ],
   reports_management: [
+    { path: REPORT_ROUTES.DASHBOARDS, name: 'Team Dashboards', icon: FiGrid },
     { path: REPORT_ROUTES.REPORTS, name: 'Team Reports', icon: FiFileText },
     { path: REPORT_ROUTES.REPORT_CREATE, name: 'Create Team Report', icon: FiPlus },
     { path: REPORT_ROUTES.MY_REPORTS, name: 'My Reports', icon: FiUser },
@@ -189,14 +167,12 @@ export const REPORTS_MANAGER_NAV_GROUPS = {
 };
 
 export const REPORTS_MANAGER_GROUP_LABELS = {
-  reports_main: '📊 Reporting',
   reports_management: '📋 Team Reports',
   reports_schedules: '⏱️ Schedules & Exports',
   reports_analytics: '📈 Team Analytics',
 };
 
 export const REPORTS_MANAGER_DEFAULT_EXPANDED = {
-  reports_main: true,
   reports_management: true,
   reports_schedules: false,
   reports_analytics: false,
@@ -206,11 +182,8 @@ export const REPORTS_MANAGER_DEFAULT_EXPANDED = {
 // 5. CHAMPION REPORT NAV GROUPS (Champion Scope)
 // ============================================
 export const REPORTS_CHAMPION_NAV_GROUPS = {
-  reports_main: [
-    { path: DASHBOARD_ROUTES.CHAMPION.OVERVIEW, name: 'Champion Home', icon: FiHome, end: true },
-    { path: REPORT_ROUTES.DASHBOARDS, name: 'Reporting Dashboards', icon: FiGrid },
-  ],
   reports_builder: [
+    { path: REPORT_ROUTES.DASHBOARDS, name: 'Reporting Dashboards', icon: FiGrid },
     { path: REPORT_ROUTES.REPORTS, name: 'Reports Directory', icon: FiFileText },
     { path: REPORT_ROUTES.REPORT_CREATE, name: 'Report Studio', icon: FiPlus },
     { path: REPORT_ROUTES.TEMPLATES, name: 'Template Library', icon: FiCopy },
@@ -230,14 +203,12 @@ export const REPORTS_CHAMPION_NAV_GROUPS = {
 };
 
 export const REPORTS_CHAMPION_GROUP_LABELS = {
-  reports_main: '📊 Reporting',
   reports_builder: '🛠️ Report & Template Studio',
   reports_automation: '⚡ Automation & Exports',
   reports_analytics: '📈 Analytics',
 };
 
 export const REPORTS_CHAMPION_DEFAULT_EXPANDED = {
-  reports_main: true,
   reports_builder: true,
   reports_automation: false,
   reports_analytics: false,
@@ -247,8 +218,7 @@ export const REPORTS_CHAMPION_DEFAULT_EXPANDED = {
 // 6. STAFF REPORT NAV GROUPS (Individual Contributor Scope)
 // ============================================
 export const REPORTS_STAFF_NAV_GROUPS = {
-  reports_main: [
-    { path: DASHBOARD_ROUTES.STAFF.OVERVIEW, name: 'Staff Home', icon: FiHome, end: true },
+  reports_my: [
     { path: REPORT_ROUTES.MY_DASHBOARDS, name: 'My Dashboard', icon: FiGrid },
     { path: REPORT_ROUTES.MY_REPORTS, name: 'My Reports', icon: FiUser },
   ],
@@ -260,12 +230,12 @@ export const REPORTS_STAFF_NAV_GROUPS = {
 };
 
 export const REPORTS_STAFF_GROUP_LABELS = {
-  reports_main: '📊 My Reports',
+  reports_my: '📊 My Reports',
   reports_view: '👁️ Browse & Shared',
 };
 
 export const REPORTS_STAFF_DEFAULT_EXPANDED = {
-  reports_main: true,
+  reports_my: true,
   reports_view: true,
 };
 
@@ -273,11 +243,8 @@ export const REPORTS_STAFF_DEFAULT_EXPANDED = {
 // 7. READ-ONLY REPORT NAV GROUPS (Viewer/Auditor Scope)
 // ============================================
 export const REPORTS_READ_ONLY_NAV_GROUPS = {
-  reports_main: [
-    { path: DASHBOARD_ROUTES.READ_ONLY.OVERVIEW, name: 'Overview', icon: FiHome, end: true },
-    { path: REPORT_ROUTES.DASHBOARDS, name: 'Dashboards View', icon: FiGrid },
-  ],
   reports_view: [
+    { path: REPORT_ROUTES.DASHBOARDS, name: 'Dashboards View', icon: FiGrid },
     { path: REPORT_ROUTES.REPORTS, name: 'Reports Directory', icon: FiFileText },
     { path: REPORT_ROUTES.PUBLIC_REPORTS, name: 'Public Reports', icon: FiEye },
     { path: REPORT_ROUTES.SHARED_WITH_ME, name: 'Shared Reports', icon: FiShare2 },
@@ -286,12 +253,10 @@ export const REPORTS_READ_ONLY_NAV_GROUPS = {
 };
 
 export const REPORTS_READ_ONLY_GROUP_LABELS = {
-  reports_main: '📊 Reports View',
-  reports_view: '👁️ Shared & Public',
+  reports_view: '👁️ Shared & Public Reports',
 };
 
 export const REPORTS_READ_ONLY_DEFAULT_EXPANDED = {
-  reports_main: true,
   reports_view: true,
 };
 

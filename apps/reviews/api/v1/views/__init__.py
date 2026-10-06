@@ -17,6 +17,8 @@ from .dashboard_views import StaffDashboardView, SupervisorDashboardView, Execut
 from .health_views import ReviewsHealthView, ReviewsDashboardMetricsView
 from .reference_data_views import ReviewsReferenceDataView
 from .system_settings_views import ReviewsSystemSettingsView, ReviewsSystemSettingsResetView
+from .notification_views import NotificationViewSet
+
 __all__ = [
     'BaseReviewViewSet', 'BaseReadOnlyReviewViewSet', 'BaseActionViewSet',
     'RatingScaleViewSet',
@@ -33,6 +35,7 @@ __all__ = [
     'ReviewCommentViewSet',
     'PromotionRecommendationViewSet',
     'ReviewTemplateViewSet',
+    'NotificationViewSet',
     'StaffDashboardView', 'SupervisorDashboardView', 'ExecutiveDashboardView', 'AdminDashboardView',
     'ReviewsHealthView', 'ReviewsDashboardMetricsView', 'ReviewsReferenceDataView',
     'ReviewsSystemSettingsView', 'ReviewsSystemSettingsResetView',

@@ -564,3 +564,36 @@ def get_default_filters_for_role(role: str, dashboard_type: str) -> Dict:
         defaults['aggregate_by'] = 'department'
     
     return defaults
+
+
+def broadcast_dashboard_update(tenant_id: str, dashboard_type: str = None, user_id: str = None, data: Dict = None, update_type: str = 'general'):
+    """
+    Broadcast a real-time update event to connected dashboard WebSockets.
+    """
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        channel_layer = get_channel_layer()
+        if not channel_layer:
+            return
+            
+        payload = {
+            'type': 'dashboard_update',
+            'update_type': update_type,
+            'data': data,
+            'timestamp': timezone.now().isoformat()
+        }
+        
+        if user_id and dashboard_type:
+            room = f"dashboard_{tenant_id}_{user_id}_{dashboard_type}"
+            async_to_sync(channel_layer.group_send)(room, payload)
+        
+        if dashboard_type:
+            tenant_dash_room = f"dashboard_{tenant_id}_{dashboard_type}"
+            async_to_sync(channel_layer.group_send)(tenant_dash_room, payload)
+            
+        tenant_room = f"dashboard_{tenant_id}"
+        async_to_sync(channel_layer.group_send)(tenant_room, payload)
+    except Exception as e:
+        logger.warning(f"Failed to broadcast dashboard update: {e}")

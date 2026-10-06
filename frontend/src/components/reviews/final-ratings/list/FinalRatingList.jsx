@@ -7,29 +7,29 @@ import { ReviewLoading, ReviewError, ReviewEmptyState, ReviewPagination, ReviewS
 import FinalRatingTable from './FinalRatingTable';
 import FinalRatingFilters from './FinalRatingFilters';
 
-const FinalRatingList = ({ isTeamView = false }) => {
+const FinalRatingList = ({ isMyView = false, isTeamView = false }) => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
   const { isAdmin, isHrAdmin, isSupervisor, isExecutive } = useReviewsPermissions();
   const { data = [], loading, error, clearErrors, fetchAll, pagination, setPagination, filters, setFilters, clearFilters } = useFinalRating();
   const [viewMode, setViewMode] = useState('table');
 
-  const isStaffOnly = !isAdmin && !isHrAdmin && !isExecutive && !isTeamView && !isSupervisor;
+  const shouldFilterMyOnly = isMyView || (!isAdmin && !isHrAdmin && !isExecutive && !isTeamView && !isSupervisor);
 
   useEffect(() => {
     if (clearErrors) clearErrors();
     fetchAll({
       page: pagination.currentPage,
       page_size: pagination.pageSize,
-      ...(isStaffOnly ? { scope: 'my' } : {}),
-      ...(isTeamView ? { is_team: true } : {}),
+      ...(shouldFilterMyOnly ? { scope: 'my' } : {}),
+      ...(isTeamView ? { is_team: true, scope: 'team' } : {}),
       ...filters,
     });
-  }, [pagination.currentPage, pagination.pageSize, filters, isStaffOnly, isTeamView, fetchAll, clearErrors]);
+  }, [pagination.currentPage, pagination.pageSize, filters, shouldFilterMyOnly, isTeamView, fetchAll, clearErrors]);
 
   const displayData = useMemo(() => {
     if (!Array.isArray(data)) return [];
-    if (isStaffOnly && (user?.id || user?.email)) {
+    if (shouldFilterMyOnly && (user?.id || user?.email)) {
       return data.filter((item) => {
         const empId = typeof item.employee === 'object' && item.employee !== null
           ? (item.employee.id || item.employee.uuid)
@@ -40,7 +40,7 @@ const FinalRatingList = ({ isTeamView = false }) => {
       });
     }
     return data;
-  }, [data, isStaffOnly, user?.id, user?.email]);
+  }, [data, shouldFilterMyOnly, user?.id, user?.email]);
 
   const handleSearch = useCallback((searchTerm) => {
     setFilters({ search: searchTerm });
@@ -75,8 +75,8 @@ const FinalRatingList = ({ isTeamView = false }) => {
         fetchAll({
           page: pagination.currentPage,
           page_size: pagination.pageSize,
-          ...(isStaffOnly ? { scope: 'my' } : {}),
-          ...(isTeamView ? { is_team: true } : {}),
+          ...(shouldFilterMyOnly ? { scope: 'my' } : {}),
+          ...(isTeamView ? { is_team: true, scope: 'team' } : {}),
           ...filters,
         });
       }}
@@ -114,8 +114,8 @@ const FinalRatingList = ({ isTeamView = false }) => {
 
       {displayData.length === 0 ? (
         <ReviewEmptyState
-          title={isTeamView ? "No Team Final Ratings Found" : isStaffOnly ? "No Final Ratings Yet" : "No Final Ratings Found"}
-          description={isTeamView ? "No team members have locked final ratings for this cycle yet." : isStaffOnly ? "Your final rating has not been published or locked yet for this cycle." : "No final rating records match the current criteria."}
+          title={isTeamView ? "No Team Final Ratings Found" : shouldFilterMyOnly ? "No Final Rating Published Yet" : "No Final Ratings Found"}
+          description={isTeamView ? "No team members have locked final ratings for this cycle yet." : shouldFilterMyOnly ? "Your final rating has not been published or locked yet for this cycle." : "No final rating records match the current criteria."}
           icon="⭐"
         />
       ) : (
