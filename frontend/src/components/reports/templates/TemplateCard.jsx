@@ -31,17 +31,14 @@ export const TemplateCard = ({
     } = template || {};
 
     const getTypeIcon = (type) => REPORT_TYPE_ICONS[type] || '📄';
-    const getTypeLabel = (type) => REPORT_TYPE_LABELS[type] || type;
+    const getTypeLabel = (type) => template?.template_type_display || REPORT_TYPE_LABELS[type] || type || 'Custom Template';
 
-    const getSectorLabel = (sector) => {
-        const labels = {
-            commercial: 'Commercial',
-            ngo: 'NGO',
-            public: 'Public',
-            consulting: 'Consulting',
-            all: 'All Sectors',
-        };
-        return labels[sector] || sector;
+    const getSectorLabel = (sec) => {
+        if (template?.sector_display) return template.sector_display;
+        if (typeof sec === 'object' && sec) {
+            return sec.name ? `${sec.name}${sec.sector_type ? ` (${sec.sector_type})` : ''}` : sec.code || 'All Sectors';
+        }
+        return sec || 'All Sectors';
     };
 
     const formatDate = (date) => {

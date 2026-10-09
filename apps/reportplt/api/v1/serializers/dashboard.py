@@ -56,7 +56,7 @@ class DashboardDetailSerializer(DashboardBaseSerializer):
     Detailed serializer for ReportDashboard.
     """
     owner_name = serializers.SerializerMethodField()
-    widgets = WidgetListSerializer(source='widgets.filter', many=True, read_only=True)
+    widgets = serializers.SerializerMethodField()
     
     class Meta(DashboardBaseSerializer.Meta):
         fields = DashboardBaseSerializer.Meta.fields + ['owner_name', 'widgets']
@@ -65,6 +65,10 @@ class DashboardDetailSerializer(DashboardBaseSerializer):
         if obj.owner:
             return obj.owner.get_full_name()
         return None
+        
+    def get_widgets(self, obj):
+        active_widgets = obj.widgets.filter(is_active=True, is_deleted=False)
+        return WidgetListSerializer(active_widgets, many=True, context=self.context).data
 
 class DashboardCreateSerializer(DashboardBaseSerializer):
     """
@@ -79,9 +83,15 @@ class DashboardCreateSerializer(DashboardBaseSerializer):
     
     def create(self, validated_data):
         request = self.context.get('request')
-        validated_data['tenant_id'] = request.tenant_id if request else None
-        validated_data['created_by'] = request.user if request else None
-        validated_data['owner'] = request.user if request else None
+        user = getattr(request, 'user', None)
+        if user and not getattr(user, 'is_authenticated', False):
+            user = None
+        tenant_id = getattr(request, 'tenant_id', None)
+        if not tenant_id and user:
+            tenant_id = getattr(user, 'tenant_id', None)
+        validated_data['tenant_id'] = tenant_id
+        validated_data['created_by'] = user
+        validated_data['owner'] = user
         return super().create(validated_data)
 
 class DashboardUpdateSerializer(DashboardBaseSerializer):

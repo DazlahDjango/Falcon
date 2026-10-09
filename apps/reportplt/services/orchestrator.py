@@ -72,6 +72,15 @@ logger = logging.getLogger(__name__)
 
 class ReportEngineService:
     EXTRACTORS = {
+        'kpi': KPIDataExtractor,
+        'departmental': KPIDepartmentalHeatmapExtractor,
+        'executive': UnifiedPerformanceExtractor,
+        'compliance': KPIValidationComplianceExtractor,
+        'trend': KPIDataExtractor,
+        'comparative': KPIDataExtractor,
+        'mission': StructureUnifiedExtractor,
+        'pip': ReviewsPIPTrackerExtractor,
+        'custom': UnifiedPerformanceExtractor,
         'kpi_performance': KPIUnifiedExtractor,
         'reviews_summary': ReviewsDataExtractor,
         'unified_performance_360': UnifiedPerformanceExtractor,
@@ -118,6 +127,7 @@ class ReportEngineService:
         'accounts_executive_summary': AccountsUnifiedExtractor,
         'billing_subscription_summary': BillingSubscriptionSummaryExtractor,
         'billing_revenue_financial': BillingRevenueFinancialExtractor,
+        'billing_payment_transactions': BillingPaymentTransactionsExtractor,
         'billing_usage_quota_audit': BillingUsageQuotaAuditExtractor,
         'billing_dunning_recovery': BillingDunningRecoveryExtractor,
         'billing_executive_summary': BillingUnifiedExtractor,

@@ -1,6 +1,6 @@
-from apps.reportplt.managers.base import ReportingBaseManager
+from .base import SoftDeleteManager
 
-class ReportTemplateManager(ReportingBaseManager):
+class ReportTemplateManager(SoftDeleteManager):
     def by_category(self, category):
         return self.not_deleted().filter(category=category)
 

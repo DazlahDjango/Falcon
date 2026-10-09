@@ -236,7 +236,7 @@ class ReportGenerator:
             filters.update(params)
         tenant_id = self._resolve_tenant_id(report, filters)
         rtype = getattr(report, 'report_type', '')
-        if rtype == 'backup_audit':
+        if rtype in ['backup_audit', 'tenant_quota']:
             return ConfigsBackupExtractor(tenant_id=tenant_id, filters=filters).extract()
         elif rtype == 'dr_compliance':
             return ConfigsDRExtractor(tenant_id=tenant_id, filters=filters).extract()
@@ -244,7 +244,7 @@ class ReportGenerator:
             return ConfigsHealthExtractor(tenant_id=tenant_id, filters=filters).extract()
         elif rtype == 'maintenance_audit':
             return ConfigsMaintenanceExtractor(tenant_id=tenant_id, filters=filters).extract()
-        elif rtype == 'kms_security':
+        elif rtype in ['kms_security', 'system_audit', 'risk_matrix']:
             return ConfigsSecurityExtractor(tenant_id=tenant_id, filters=filters).extract()
         return ConfigsUnifiedExtractor(tenant_id=tenant_id, filters=filters).extract()
 
@@ -360,8 +360,22 @@ class ReportGenerator:
         if params:
             filters.update(params)
         tenant_id = self._resolve_tenant_id(report, filters)
-        extractor = BillingUnifiedExtractor(tenant_id=tenant_id, filters=filters)
-        return extractor.extract()
+        rtype = getattr(report, 'report_type', '')
+        if rtype == 'billing_subscription_summary':
+            res = BillingSubscriptionSummaryExtractor(tenant_id=tenant_id, filters=filters).extract()
+        elif rtype == 'billing_revenue_financial':
+            res = BillingRevenueFinancialExtractor(tenant_id=tenant_id, filters=filters).extract()
+        elif rtype == 'billing_payment_transactions':
+            res = BillingPaymentTransactionsExtractor(tenant_id=tenant_id, filters=filters).extract()
+        elif rtype == 'billing_usage_quota_audit':
+            res = BillingUsageQuotaAuditExtractor(tenant_id=tenant_id, filters=filters).extract()
+        elif rtype == 'billing_dunning_recovery':
+            res = BillingDunningRecoveryExtractor(tenant_id=tenant_id, filters=filters).extract()
+        else:
+            res = BillingUnifiedExtractor(tenant_id=tenant_id, filters=filters).extract()
+        if isinstance(res, dict):
+            res['source'] = 'billing'
+        return res
 
     # ------------------------------------------------------------------
     # Reviews — per-type dispatch
@@ -604,6 +618,12 @@ class ReportGenerator:
             'status': 'completed',
             'row_count': self._compute_row_count(data, merged_tables),
         }
+        for sub_sec in (
+            'individual_summary', 'cycle_compliance', 'organization_performance',
+            'calibration_impact', 'pip_tracker',
+        ):
+            if sub_sec in data:
+                result[sub_sec] = data[sub_sec]
         if report.include_executive_summary:
             result['executive_summary'] = self._generate_executive_summary(data)
         return result

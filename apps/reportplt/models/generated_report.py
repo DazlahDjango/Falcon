@@ -1,11 +1,11 @@
 import uuid
 from django.db import models, transaction
 from django.utils import timezone
-from apps.reportplt.models.base import ReportingBaseModel
+from .base import BaseModel
 from apps.reportplt.constants import ReportCategory, ExportFormat, GenerationStatus, DataSensitivityLevel
 from apps.reportplt.managers.generated_report import GeneratedReportManager
 
-class GeneratedReport(ReportingBaseModel):
+class GeneratedReport(BaseModel):
     template = models.ForeignKey('reportplt.ReportTemplate', on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_reports')
     title = models.CharField(max_length=255)
     report_type = models.CharField(max_length=100, db_index=True)

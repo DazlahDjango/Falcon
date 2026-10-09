@@ -249,5 +249,25 @@ python manage.py manage_permissions purge-cache --email user@example.com
 # Invalidate permissions cache system-wide for all users
 python manage.py manage_permissions purge-cache --all
 
+4. Login Attempts Management 
 
+python manage.py manage_login_attempts {clear,unlock,list,stats} [options]
 
+# Clear Login Attempts & Rate Limit Buckets (clear)
+python manage.py manage_login_attempts clear --all --unlock --clear-axes --clear-cache
+python manage.py manage_login_attempts clear --email user@example.com --unlock
+python manage.py manage_login_attempts clear --ip 127.0.0.1
+python manage.py manage_login_attempts clear --days 30
+python manage.py manage_login_attempts clear --failed-only
+
+# Unlock Locked Accounts (unlock)
+python manage.py manage_login_attempts unlock --all
+python manage.py manage_login_attempts unlock --email user@example.com
+python manage.py manage_login_attempts unlock --user-id <UUID>
+
+# List Recent Login Attempts (list)
+python manage.py manage_login_attempts list --limit 25
+python manage.py manage_login_attempts list --email user@example.com --result failure
+
+# Security Statistics (stats)
+python manage.py manage_login_attempts stats

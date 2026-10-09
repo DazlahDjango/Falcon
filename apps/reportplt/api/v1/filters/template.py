@@ -2,7 +2,7 @@
 from typing import Optional
 from django_filters import rest_framework as filters
 from apps.reportplt.models import ReportTemplate
-from apps.reportplt.constants import TemplateType, SectorType
+from apps.reportplt.constants import TemplateType
 from .base import BaseFilter
 
 class TemplateFilter(BaseFilter):
@@ -11,7 +11,8 @@ class TemplateFilter(BaseFilter):
     """
     template_type = filters.ChoiceFilter(choices=TemplateType.CHOICES)
     category = filters.CharFilter(lookup_expr='icontains')
-    sector = filters.ChoiceFilter(choices=SectorType.CHOICES)
+    sector = filters.UUIDFilter(field_name='sector_id')
+    sector_code = filters.CharFilter(field_name='sector__code', lookup_expr='iexact')
     name = filters.CharFilter(lookup_expr='icontains')
     description = filters.CharFilter(lookup_expr='icontains')
     is_system = filters.BooleanFilter()

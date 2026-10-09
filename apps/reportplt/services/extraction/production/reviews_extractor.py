@@ -1,4 +1,4 @@
-﻿# apps/reportplt/services/extraction/production/reviews_extractor.py
+# apps/reportplt/services/extraction/production/reviews_extractor.py
 """
 Reviews Reporting Extractors — real-data extraction for the Falcon PMS reporting pipeline.
 
@@ -427,18 +427,14 @@ class ReviewsIndividualSummaryExtractor(ReviewsBaseExtractor):
         self.cycle = self._resolve_cycle()
         self._resolve_scope()
 
-        if not self.cycle:
-            return self._shape(
-                metrics={'total_evaluated_employees': 0},
-                executive_summary='No review cycle found for the given filters.',
-                raw_data={'cycle_found': False},
-            )
-
-        qs = FinalRating.objects.filter(review_cycle=self.cycle)
-        if self.tenant_id:
-            qs = qs.filter(tenant_id=self.tenant_id)
-        qs = self._apply_user_scope(qs, 'employee_id')
-        qs = qs.select_related('employee', 'review_cycle')
+        if self.cycle:
+            qs = FinalRating.objects.filter(review_cycle=self.cycle)
+            if self.tenant_id:
+                qs = qs.filter(tenant_id=self.tenant_id)
+            qs = self._apply_user_scope(qs, 'employee_id')
+            qs = qs.select_related('employee', 'review_cycle')
+        else:
+            qs = FinalRating.objects.none()
 
         total = qs.count()
 
@@ -505,7 +501,7 @@ class ReviewsIndividualSummaryExtractor(ReviewsBaseExtractor):
                 'progress': final_score if final_score is not None else 0.0,
                 'target': 100.0,
                 'actual': final_score if final_score is not None else 0.0,
-                'period': self.cycle.name,
+                'period': self.cycle.name if self.cycle else 'Current Period',
             })
 
         avg_final = _round(_safe_divide(score_sum, score_count), 2)
@@ -552,8 +548,9 @@ class ReviewsIndividualSummaryExtractor(ReviewsBaseExtractor):
             },
         ]
 
+        cycle_name = self.cycle.name if self.cycle else 'the current cycle'
         summary = (
-            f"Evaluated {total} employees in {self.cycle.name} with an average final score of "
+            f"Evaluated {total} employees in {cycle_name} with an average final score of "
             f"{avg_final if avg_final is not None else 'n/a'}%. "
             f"{promotion_ready} promotion recommendation(s); {pip_flagged} PIP flag(s)."
         )
@@ -564,7 +561,7 @@ class ReviewsIndividualSummaryExtractor(ReviewsBaseExtractor):
             tables=tables,
             executive_summary=summary,
             raw_data={
-                'cycle_id': str(self.cycle.id),
+                'cycle_id': str(self.cycle.id) if self.cycle else None,
                 'scope': self.resolved_scope,
                 'scorecards': rows,
             },
@@ -599,31 +596,28 @@ class ReviewsCycleComplianceExtractor(ReviewsBaseExtractor):
         self.cycle = self._resolve_cycle()
         self._resolve_scope()
 
-        if not self.cycle:
-            return self._shape(
-                metrics={'total_participants': 0},
-                executive_summary='No review cycle found for the given filters.',
-                raw_data={'cycle_found': False},
-            )
-
-        # Delegate to CycleService where possible.
         progress: Dict[str, Any] = {}
-        try:
-            progress = CycleService.get_cycle_progress(self.cycle.id) or {}
-        except Exception as e:
-            self._error('CycleService.get_cycle_progress', e)
+        if self.cycle:
+            try:
+                progress = CycleService.get_cycle_progress(self.cycle.id) or {}
+            except Exception as e:
+                self._error('CycleService.get_cycle_progress', e)
 
-        # Scope-aware direct counts.
-        self_qs = SelfAssessment.objects.filter(review_cycle=self.cycle)
-        sup_qs = SupervisorReview.objects.filter(review_cycle=self.cycle)
-        final_qs = FinalRating.objects.filter(review_cycle=self.cycle)
-        if self.tenant_id:
-            self_qs = self_qs.filter(tenant_id=self.tenant_id)
-            sup_qs = sup_qs.filter(tenant_id=self.tenant_id)
-            final_qs = final_qs.filter(tenant_id=self.tenant_id)
-        self_qs = self._apply_user_scope(self_qs, 'employee_id')
-        sup_qs = self._apply_user_scope(sup_qs, 'employee_id')
-        final_qs = self._apply_user_scope(final_qs, 'employee_id')
+            # Scope-aware direct counts.
+            self_qs = SelfAssessment.objects.filter(review_cycle=self.cycle)
+            sup_qs = SupervisorReview.objects.filter(review_cycle=self.cycle)
+            final_qs = FinalRating.objects.filter(review_cycle=self.cycle)
+            if self.tenant_id:
+                self_qs = self_qs.filter(tenant_id=self.tenant_id)
+                sup_qs = sup_qs.filter(tenant_id=self.tenant_id)
+                final_qs = final_qs.filter(tenant_id=self.tenant_id)
+            self_qs = self._apply_user_scope(self_qs, 'employee_id')
+            sup_qs = self._apply_user_scope(sup_qs, 'employee_id')
+            final_qs = self._apply_user_scope(final_qs, 'employee_id')
+        else:
+            self_qs = SelfAssessment.objects.none()
+            sup_qs = SupervisorReview.objects.none()
+            final_qs = FinalRating.objects.none()
 
         self_submitted = self_qs.filter(status='submitted').count()
         sup_approved = sup_qs.filter(status='approved').count()
@@ -644,7 +638,8 @@ class ReviewsCycleComplianceExtractor(ReviewsBaseExtractor):
         try:
             dept_matrix = (
                 final_qs.filter(employee__department__isnull=False)
-                .values('employee__department__name')
+                .exclude(employee__department='')
+                .values('employee__department')
                 .annotate(
                     total=Count('id'),
                     locked=Count('id', filter=Q(status='locked')),
@@ -656,21 +651,20 @@ class ReviewsCycleComplianceExtractor(ReviewsBaseExtractor):
                 total = d.get('total', 0) or 0
                 locked = d.get('locked', 0) or 0
                 dept_rows.append({
-                    'department': d.get('employee__department__name') or 'Unassigned',
+                    'department': d.get('employee__department') or 'Unassigned',
                     'total': total,
                     'locked': locked,
                     'completion_rate_pct': _pct(locked, total),
                     'avg_score': _round(d.get('avg_score'), 1, 0.0),
                 })
         except Exception as e:
-            # User.department may be a CharField; group via that instead.
             self._error('department_matrix', e)
 
         metrics = {
-            'cycle_name': self.cycle.name,
-            'cycle_status': self.cycle.status,
-            'start_date': self.cycle.start_date.isoformat() if self.cycle.start_date else None,
-            'end_date': self.cycle.end_date.isoformat() if self.cycle.end_date else None,
+            'cycle_name': self.cycle.name if self.cycle else None,
+            'cycle_status': self.cycle.status if self.cycle else None,
+            'start_date': self.cycle.start_date.isoformat() if self.cycle and self.cycle.start_date else None,
+            'end_date': self.cycle.end_date.isoformat() if self.cycle and self.cycle.end_date else None,
             'total_participants': total_participants,
             'self_submitted': self_submitted,
             'supervisor_approved': sup_approved,
@@ -719,8 +713,9 @@ class ReviewsCycleComplianceExtractor(ReviewsBaseExtractor):
                 ],
             })
 
+        cycle_name = self.cycle.name if self.cycle else 'the current cycle'
         summary = (
-            f"Cycle {self.cycle.name}: {overall_rate}% overall completion "
+            f"Cycle {cycle_name}: {overall_rate}% overall completion "
             f"({ratings_locked}/{total_participants} ratings locked). "
             f"Self-assessment: {self_rate}%, Supervisor approval: {sup_rate}%."
         )
@@ -731,7 +726,7 @@ class ReviewsCycleComplianceExtractor(ReviewsBaseExtractor):
             tables=tables,
             executive_summary=summary,
             raw_data={
-                'cycle_id': str(self.cycle.id),
+                'cycle_id': str(self.cycle.id) if self.cycle else None,
                 'cycle_progress_service': progress,
                 'department_compliance': dept_rows,
             },
@@ -757,16 +752,19 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
         # except to record it.
         self._resolve_scope()
 
-        if not self.cycle:
-            return self._shape(
-                metrics={'total_rated_employees': 0},
-                executive_summary='No review cycle found for the given filters.',
-                raw_data={'cycle_found': False},
+        if self.cycle:
+            qs = FinalRating.objects.filter(review_cycle=self.cycle)
+            if self.tenant_id:
+                qs = qs.filter(tenant_id=self.tenant_id)
+            comp_qs = CompetencyRating.objects.filter(
+                supervisor_review__review_cycle=self.cycle,
+                raw_score__isnull=False,
             )
-
-        qs = FinalRating.objects.filter(review_cycle=self.cycle)
-        if self.tenant_id:
-            qs = qs.filter(tenant_id=self.tenant_id)
+            if self.tenant_id:
+                comp_qs = comp_qs.filter(tenant_id=self.tenant_id)
+        else:
+            qs = FinalRating.objects.none()
+            comp_qs = CompetencyRating.objects.none()
 
         total_rated = qs.count()
         agg = qs.aggregate(
@@ -798,13 +796,6 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
             })
 
         # Competency strengths / weaknesses
-        comp_qs = CompetencyRating.objects.filter(
-            supervisor_review__review_cycle=self.cycle,
-            raw_score__isnull=False,
-        )
-        if self.tenant_id:
-            comp_qs = comp_qs.filter(tenant_id=self.tenant_id)
-
         strongest, weakest = [], []
         if comp_qs.exists():
             comp_avgs = list(
@@ -834,14 +825,15 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
         try:
             dept_qs = (
                 qs.filter(employee__department__isnull=False)
-                .values('employee__department__name')
+                .exclude(employee__department='')
+                .values('employee__department')
                 .annotate(avg_score=Avg('final_score'), count=Count('id'))
                 .order_by('-avg_score')
             )
             for d in dept_qs:
                 score = _round(d.get('avg_score'), 1, 0.0) or 0.0
                 dept_rows.append({
-                    'department': d.get('employee__department__name') or 'Unassigned',
+                    'department': d.get('employee__department') or 'Unassigned',
                     'count': d.get('count', 0) or 0,
                     'avg_score': score,
                     'variance': _round(score - (avg_overall or 0.0), 1, 0.0),
@@ -850,7 +842,7 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
             self._error('dept_ranking', e)
 
         metrics = {
-            'cycle_name': self.cycle.name,
+            'cycle_name': self.cycle.name if self.cycle else None,
             'total_rated_employees': total_rated,
             'avg_overall_score': avg_overall,
             'avg_kpi_score': avg_kpi,
@@ -895,8 +887,9 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
             },
         ]
 
+        cycle_name = self.cycle.name if self.cycle else 'the current cycle'
         summary = (
-            f"Organization performance for {self.cycle.name}: average final score "
+            f"Organization performance for {cycle_name}: average final score "
             f"{avg_overall}% (KPI {avg_kpi}%, Competency {avg_competency}%, std dev {std_dev}). "
             f"{total_rated} employees rated."
         )
@@ -907,7 +900,7 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
             tables=tables,
             executive_summary=summary,
             raw_data={
-                'cycle_id': str(self.cycle.id),
+                'cycle_id': str(self.cycle.id) if self.cycle else None,
                 'rating_distribution': distribution,
                 'department_rankings': dept_rows,
             },
@@ -1052,9 +1045,10 @@ class ReviewsCalibrationImpactExtractor(ReviewsBaseExtractor):
                 ],
             })
 
+        avg_shift_str = f"{avg_adjustment:+.2f}" if isinstance(avg_adjustment, (int, float)) else "0.00"
         summary = (
             f"{total_sessions} calibration session(s) ({completed_sessions} completed) with "
-            f"{total_adjustments} adjustment(s); average shift {avg_adjustment:+.2f}. "
+            f"{total_adjustments} adjustment(s); average shift {avg_shift_str}. "
             f"{len(outlier_list)} outlier(s), {len(bias_list)} manager bias flag(s)."
         )
 

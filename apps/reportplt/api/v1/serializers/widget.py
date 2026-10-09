@@ -57,7 +57,7 @@ class WidgetCreateSerializer(WidgetBaseSerializer):
     """
     class Meta(WidgetBaseSerializer.Meta):
         fields = [
-            'dashboard', 'name', 'widget_type', 'config',
+            'id', 'dashboard', 'name', 'widget_type', 'config',
             'data_config', 'style_config', 'position', 'size',
             'is_active', 'is_visible', 'auto_refresh',
             'refresh_interval', 'title', 'subtitle', 'data_source',
@@ -66,8 +66,14 @@ class WidgetCreateSerializer(WidgetBaseSerializer):
     
     def create(self, validated_data):
         request = self.context.get('request')
-        validated_data['tenant_id'] = request.tenant_id if request else None
-        validated_data['created_by'] = request.user if request else None
+        user = getattr(request, 'user', None)
+        if user and not getattr(user, 'is_authenticated', False):
+            user = None
+        tenant_id = getattr(request, 'tenant_id', None)
+        if not tenant_id and user:
+            tenant_id = getattr(user, 'tenant_id', None)
+        validated_data['tenant_id'] = tenant_id
+        validated_data['created_by'] = user
         return super().create(validated_data)
 
 class WidgetUpdateSerializer(WidgetBaseSerializer):

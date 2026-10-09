@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { FiFilter, FiX } from 'react-icons/fi';
 import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
+import { PresetSelector } from '../presets';
 import './reports.css';
 
 export const ReportFilters = ({
@@ -52,12 +53,24 @@ export const ReportFilters = ({
                     <FiFilter size={16} />
                     Filters
                 </span>
-                {hasActiveFilters() && (
-                    <button className="filters-clear" onClick={onReset}>
-                        <FiX size={14} />
-                        Clear All
-                    </button>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <PresetSelector
+                        currentFilters={filters}
+                        onSelectPreset={(presetId, presetFilters) => {
+                            if (presetFilters) {
+                                Object.entries(presetFilters).forEach(([key, val]) => {
+                                    onFilterChange?.(key, val);
+                                });
+                            }
+                        }}
+                    />
+                    {hasActiveFilters() && (
+                        <button className="filters-clear" onClick={onReset}>
+                            <FiX size={14} />
+                            Clear All
+                        </button>
+                    )}
+                </div>
             </div>
             <div className="filters-grid">
                 <div className="filter-group">

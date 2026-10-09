@@ -12,4 +12,5 @@ export {
   ConfigAlertProvider,
   useConfigAlertContext
 } from './config';
-export * from './global';
+export * from './reports';
+export * from './global';

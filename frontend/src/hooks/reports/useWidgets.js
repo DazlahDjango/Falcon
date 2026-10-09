@@ -49,6 +49,13 @@ import {
     selectWidgetTypes,
 } from '../../store/reports/selectors/widget.selectors';
 
+// Standalone Selector Hooks (Top-Level Component Use)
+export const useWidgetById = (id) => useSelector((state) => selectWidgetById(state, id));
+export const useWidgetsByType = (type) => useSelector((state) => selectWidgetsByType(state, type));
+export const useActiveWidgets = () => useSelector(selectActiveWidgets);
+export const useVisibleWidgets = () => useSelector(selectVisibleWidgets);
+export const useWidgetsByDashboard = (dashboardId) => useSelector((state) => selectWidgetsByDashboard(state, dashboardId));
+
 export const useWidgets = (options = {}) => {
     const {
         autoFetch = true,
@@ -207,11 +214,15 @@ export const useWidgets = (options = {}) => {
         fetchList,
         fetchOne,
         create,
+        createWidget: create,
         update,
+        updateWidget: update,
         remove,
+        deleteWidget: remove,
         fetchData,
         performAction,
         refresh,
+        refreshWidget: refresh,
         fetchTypes,
         fetchByDashboard,
         updateFilters,
@@ -267,5 +278,125 @@ export const useWidgets = (options = {}) => {
         getActive,
         getVisible,
         getByDashboard,
+    ]);
+};
+
+export const useWidget = (id, options = {}) => {
+    const { autoFetch = true } = options;
+    const dispatch = useDispatch();
+    const fetchCalled = useRef(false);
+
+    const widget = useSelector((state) => selectWidgetById(state, id));
+    const currentWidget = useSelector(selectCurrentWidget);
+    const widgetData = useSelector(selectWidgetData);
+    const loading = useSelector(selectWidgetDetailsLoading);
+    const error = useSelector(selectWidgetError);
+
+    const fetchOne = useCallback((widgetId) => {
+        const targetId = widgetId || id;
+        if (!targetId) return Promise.reject(new Error('Widget ID is required'));
+        return dispatch(fetchWidget(targetId)).unwrap();
+    }, [dispatch, id]);
+
+    const updateOne = useCallback((targetIdOrData, data) => {
+        let targetId = id;
+        let updateData = targetIdOrData;
+        if (data !== undefined) {
+            targetId = targetIdOrData;
+            updateData = data;
+        }
+        if (!targetId) return Promise.reject(new Error('Widget ID is required'));
+        if (!updateData) return Promise.reject(new Error('Update data is required'));
+        return dispatch(updateWidget({ id: targetId, data: updateData })).unwrap();
+    }, [dispatch, id]);
+
+    const removeOne = useCallback((widgetId) => {
+        const finalId = widgetId || id;
+        if (!finalId) return Promise.reject(new Error('Widget ID is required'));
+        return dispatch(deleteWidget(finalId)).unwrap();
+    }, [dispatch, id]);
+
+    const fetchDataOne = useCallback((widgetId) => {
+        const finalId = widgetId || id;
+        if (!finalId) return Promise.reject(new Error('Widget ID is required'));
+        return dispatch(fetchWidgetData(finalId)).unwrap();
+    }, [dispatch, id]);
+
+    const performActionOne = useCallback((targetIdOrAction, action) => {
+        let targetId = id;
+        let actionName = targetIdOrAction;
+        if (action !== undefined) {
+            targetId = targetIdOrAction;
+            actionName = action;
+        }
+        if (!targetId) return Promise.reject(new Error('Widget ID is required'));
+        if (!actionName) return Promise.reject(new Error('Action is required'));
+        return dispatch(performWidgetAction({ id: targetId, action: actionName })).unwrap();
+    }, [dispatch, id]);
+
+    const refreshOne = useCallback((widgetId) => {
+        const finalId = widgetId || id;
+        if (!finalId) return Promise.reject(new Error('Widget ID is required'));
+        return dispatch(refreshWidget(finalId)).unwrap();
+    }, [dispatch, id]);
+
+    const clearCurrent = useCallback(() => {
+        dispatch(clearCurrentWidget());
+    }, [dispatch]);
+
+    const clearErrors = useCallback(() => {
+        dispatch(clearWidgetErrors());
+    }, [dispatch]);
+
+    const clearData = useCallback(() => {
+        dispatch(clearWidgetData());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (autoFetch && id && !fetchCalled.current) {
+            fetchCalled.current = true;
+            fetchOne(id);
+        }
+        return () => {
+            clearCurrent();
+        };
+    }, [autoFetch, id, fetchOne, clearCurrent]);
+
+    const resolvedWidget = useMemo(() => {
+        if (currentWidget && currentWidget.id === id) return currentWidget;
+        return widget || currentWidget;
+    }, [currentWidget, widget, id]);
+
+    return useMemo(() => ({
+        widget: resolvedWidget,
+        widgetData,
+        loading,
+        error,
+        fetchOne,
+        update: updateOne,
+        updateWidget: updateOne,
+        remove: removeOne,
+        deleteWidget: removeOne,
+        fetchData: fetchDataOne,
+        performAction: performActionOne,
+        refresh: refreshOne,
+        refreshWidget: refreshOne,
+        clearCurrent,
+        clearErrors,
+        clearData,
+    }), [
+        resolvedWidget,
+        widgetData,
+        loading,
+        error,
+        fetchOne,
+        updateOne,
+        removeOne,
+        fetchDataOne,
+        performActionOne,
+        refreshOne,
+        clearCurrent,
+        clearErrors,
+        clearData,
     ]);
 };

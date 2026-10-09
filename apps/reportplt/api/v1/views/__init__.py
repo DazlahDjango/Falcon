@@ -12,6 +12,8 @@ from .shares import ShareViewSet
 from .audit import AuditViewSet
 from .analytics import AnalyticsViewSet
 from .reporting import ReportingViewSet
+from .distributions import DistributionListViewSet
+from .presets import ReportPresetViewSet
 
 __all__ = [
     'BaseViewSet', 'BaseModelViewSet', 'BaseReadOnlyViewSet',
@@ -19,4 +21,5 @@ __all__ = [
     'ExecutionViewSet', 'ExportViewSet', 'DashboardViewSet',
     'WidgetViewSet', 'FilterViewSet', 'ShareViewSet',
     'AuditViewSet', 'AnalyticsViewSet', 'ReportingViewSet',
+    'DistributionListViewSet', 'ReportPresetViewSet',
 ]

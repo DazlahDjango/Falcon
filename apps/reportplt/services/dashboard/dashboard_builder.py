@@ -1,7 +1,7 @@
 import uuid
 from typing import Dict, Any, List, Optional
 from copy import deepcopy
-from django.db import transaction
+from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from apps.reportplt.models import ReportDashboard, ReportWidget
 from apps.reportplt.constants import DashboardType, WidgetType, DEFAULT_DASHBOARD_CONFIG

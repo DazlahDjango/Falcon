@@ -17,6 +17,7 @@ import { useTemplate } from '../../../hooks/reports';
 import { useReportPermissions } from '../../../hooks/reports';
 import { ReportLoading, ReportError, ReportConfirmDialog } from '../common';
 import { TemplateStatusBadge } from './TemplateStatusBadge';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import './templates.css';
 
 export const TemplateDetail = () => {
@@ -73,30 +74,17 @@ export const TemplateDetail = () => {
         });
     };
 
-    const getTypeLabel = (type) => {
-        const labels = {
-            executive: 'Executive Dashboard',
-            departmental: 'Departmental Scorecard',
-            kpi: 'KPI Report',
-            mission: 'Mission Status Report',
-            compliance: 'Compliance Report',
-            trend: 'Trend Analysis',
-            comparative: 'Comparative Analysis',
-            pip: 'PIP Report',
-            custom: 'Custom Template',
-        };
-        return labels[type] || type;
+    const getTypeLabel = (type, typeDisplay) => {
+        if (typeDisplay) return typeDisplay;
+        return REPORT_TYPE_LABELS[type] || type || 'Custom Template';
     };
 
-    const getSectorLabel = (sector) => {
-        const labels = {
-            commercial: 'Commercial/Corporate',
-            ngo: 'NGO/Non-Profit',
-            public: 'Public Sector',
-            consulting: 'Consulting',
-            all: 'All Sectors',
-        };
-        return labels[sector] || sector;
+    const getSectorLabel = (sector, sectorDisplay) => {
+        if (sectorDisplay) return sectorDisplay;
+        if (typeof sector === 'object' && sector) {
+            return sector.name ? `${sector.name}${sector.sector_type ? ` (${sector.sector_type})` : ''}` : sector.code || 'All Sectors';
+        }
+        return sector || 'All Sectors';
     };
 
     if (loading) {
@@ -166,11 +154,11 @@ export const TemplateDetail = () => {
                         <div className="info-grid">
                             <div className="info-item">
                                 <span className="info-label">Type</span>
-                                <span className="info-value">{getTypeLabel(template.template_type)}</span>
+                                <span className="info-value">{getTypeLabel(template.template_type, template.template_type_display)}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">Sector</span>
-                                <span className="info-value">{getSectorLabel(template.sector)}</span>
+                                <span className="info-value">{getSectorLabel(template.sector, template.sector_display)}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">Category</span>
@@ -227,7 +215,7 @@ export const TemplateDetail = () => {
                                     Owner
                                 </span>
                                 <span className="info-value">
-                                    {template.owner?.name || template.owner?.email || 'System'}
+                                    {template.owner_name || template.created_by_name || template.owner?.name || template.owner?.email || 'System'}
                                 </span>
                             </div>
                             <div className="info-item">
@@ -242,7 +230,7 @@ export const TemplateDetail = () => {
                                     <FiGlobe size={14} />
                                     Sector
                                 </span>
-                                <span className="info-value">{getSectorLabel(template.sector)}</span>
+                                <span className="info-value">{getSectorLabel(template.sector, template.sector_display)}</span>
                             </div>
                             {template.org_size > 0 && (
                                 <div className="info-item">

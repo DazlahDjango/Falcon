@@ -21,17 +21,17 @@ class ReportFilter(BaseModel):
     is_global = models.BooleanField(_('is global'), default=False)
     is_system = models.BooleanField(_('is system'), default=False)
     is_default = models.BooleanField(_('is default'), default=False)
-    config = models.JSONField(_('filter configuration'), default=dict)
-    values = models.JSONField(_('saved values'), default=dict)
+    config = models.JSONField(_('filter configuration'), default=dict, blank=True)
+    values = models.JSONField(_('saved values'), default=dict, blank=True)
     display_label = models.CharField(_('display label'), max_length=255, blank=True)
     placeholder = models.CharField(_('placeholder'), max_length=255, blank=True)
     help_text = models.TextField(_('help text'), blank=True)
     required = models.BooleanField(_('required'), default=False)
     multiple = models.BooleanField(_('multiple'), default=False)
-    options = models.JSONField(_('options'), default=list)
-    default_values = models.JSONField(_('default values'), default=list)
-    validation = models.JSONField(_('validation rules'), default=dict)
-    dependencies = models.JSONField(_('dependencies'), default=list)
+    options = models.JSONField(_('options'), default=list, blank=True)
+    default_values = models.JSONField(_('default values'), default=list, blank=True)
+    validation = models.JSONField(_('validation rules'), default=dict, blank=True)
+    dependencies = models.JSONField(_('dependencies'), default=list, blank=True)
     
     objects = SoftDeleteManager()
     
@@ -57,7 +57,7 @@ class ReportFilter(BaseModel):
         return self.owner_id == user.id
     
     def apply_to_queryset(self, queryset):
-        from ..services.filter_engine import FilterEngine
+        from ..services import FilterEngine
         engine = FilterEngine(self)
         return engine.apply(queryset, self.values)
     

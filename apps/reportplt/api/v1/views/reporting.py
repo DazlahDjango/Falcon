@@ -35,7 +35,7 @@ class ReportingViewSet(BaseViewSet):
 
     @action(detail=False, methods=['post'], url_path='generate')
     @audit_log(action=AuditAction.GENERATE)
-    @rate_limit(rate='10/hour')
+    @rate_limit(rate='1000/hour')
     def generate(self, request):
         serializer = ReportGenerateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -56,7 +56,7 @@ class ReportingViewSet(BaseViewSet):
 
     @action(detail=False, methods=['post'], url_path='export')
     @audit_log(action=AuditAction.EXPORT)
-    @rate_limit(rate='20/hour')
+    @rate_limit(rate='1000/hour')
     def export(self, request):
         serializer = ReportExportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

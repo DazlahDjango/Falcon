@@ -5,6 +5,7 @@ import { AccountsSecurityProvider } from '../contexts/accounts/AccountsSecurityC
 import { TenantProvider } from '../contexts/tenant/TenantContext';
 import { PermissionProvider } from '../contexts/accounts/PermissionContext';
 import { BillingProviders } from '../contexts/billing';
+import { ReportProviders, ReportsProviders } from './ReportProviders';
 import { ConfigProvider, BackupProvider, MaintenanceProvider, DRProvider, ConfigAlertProvider } from '../contexts/config';
 import { WebSocketProvider } from '../contexts/websocket';
 import { ThemeProvider } from '../contexts/global/ThemeContext';
@@ -31,7 +32,9 @@ const Providers = ({ children }) => {
                                                             <DRProvider>
                                                                 <ConfigAlertProvider>
                                                                     <BillingProviders>
-                                                                        {children}
+                                                                        <ReportProviders>
+                                                                            {children}
+                                                                        </ReportProviders>
                                                                     </BillingProviders>
                                                                 </ConfigAlertProvider>
                                                             </DRProvider>
@@ -51,4 +54,5 @@ const Providers = ({ children }) => {
     );
 };
 
+export { ReportProviders, ReportsProviders };
 export default Providers;

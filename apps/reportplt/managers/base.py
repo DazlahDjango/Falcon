@@ -89,3 +89,6 @@ class SoftDeleteManager(TenantAwareManager):
         return self.none()
     def hard_delete(self, **kwargs):
         return super().get_queryset().filter(**kwargs).delete()
+
+
+ReportingBaseManager = SoftDeleteManager

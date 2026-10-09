@@ -1,7 +1,7 @@
 # apps/reportplt/api/v1/serializers/template.py
 from rest_framework import serializers
 from apps.reportplt.models import ReportTemplate
-from apps.reportplt.constants import TemplateType, SectorType
+from apps.reportplt.constants import TemplateType
 from .common import BaseModelSerializer, AuditTrailSerializer
 
 class TemplateBaseSerializer(BaseModelSerializer):
@@ -73,10 +73,22 @@ class TemplateCreateSerializer(TemplateBaseSerializer):
     
     def create(self, validated_data):
         request = self.context.get('request')
-        validated_data['tenant_id'] = request.tenant_id if request else None
-        validated_data['created_by'] = request.user if request else None
-        validated_data['owner'] = request.user if request else None
+        user = getattr(request, 'user', None)
+        if user and not getattr(user, 'is_authenticated', False):
+            user = None
+        tenant_id = getattr(request, 'tenant_id', None)
+        if not tenant_id and user:
+            tenant_id = getattr(user, 'tenant_id', None)
+        validated_data['tenant_id'] = tenant_id
+        validated_data['created_by'] = user
+        validated_data['owner'] = user
         validated_data['version'] = 1
+        if not validated_data.get('sector') and user:
+            tenant = getattr(user, 'tenant', None)
+            if callable(tenant):
+                tenant = tenant()
+            if tenant and getattr(tenant, 'sector', None):
+                validated_data['sector'] = tenant.sector
         return super().create(validated_data)
 
 class TemplateUpdateSerializer(TemplateBaseSerializer):

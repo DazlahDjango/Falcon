@@ -1,0 +1,40 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Report Notification - Falcon PMS{% endblock %}
+
+{% block header_title %}Reporting Notification{% endblock %}
+
+{% block content %}
+<div style="padding: 10px 0;">
+    <h2 style="color: #1e293b; font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 12px;">
+        {{ report.name }}
+    </h2>
+    
+    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+        {{ message }}
+    </p>
+
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+                <td style="color: #64748b; padding: 6px 0; width: 40%;"><strong>Notification Type:</strong></td>
+                <td style="color: #1e293b; padding: 6px 0; font-weight: 500;">{{ notification_type|title }}</td>
+            </tr>
+            <tr>
+                <td style="color: #64748b; padding: 6px 0;"><strong>Report Type:</strong></td>
+                <td style="color: #1e293b; padding: 6px 0; font-weight: 500;">{{ report.report_type|title }}</td>
+            </tr>
+            <tr>
+                <td style="color: #64748b; padding: 6px 0;"><strong>Timestamp:</strong></td>
+                <td style="color: #1e293b; padding: 6px 0;">{{ timestamp|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0 10px;">
+        <a href="{{ site_url|default:'#' }}/reports/{{ report.id }}" class="button" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
+            View Report
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -108,7 +108,7 @@ export const deleteExport = createAsyncThunk(
     'export/deleteExport',
     async (id, { rejectWithValue }) => {
         try {
-            await exportService.delete(id);
+            await exportService.deleteExport(id);
             return id;
         } catch (error) {
             return rejectWithValue(extractApiError(error));

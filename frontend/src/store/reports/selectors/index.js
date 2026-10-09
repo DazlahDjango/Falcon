@@ -9,6 +9,8 @@ export * from './filter.selectors';
 export * from './share.selectors';
 export * from './audit.selectors';
 export * from './analytics.selectors';
+export * from './distribution.selectors';
+export * from './preset.selectors';
 
 export {
     selectReportState,

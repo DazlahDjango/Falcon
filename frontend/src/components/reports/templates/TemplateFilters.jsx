@@ -1,8 +1,8 @@
-// frontend/src/components/reports/templates/TemplateFilters.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FiFilter, FiX } from 'react-icons/fi';
-import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
+import { useSectors } from '../../../hooks/tenant';
+import { REPORT_TYPE_LABELS, REPORT_CATEGORY_LABELS } from '../../../config/constants/reportConstants';
 import './templates.css';
 
 export const TemplateFilters = ({
@@ -11,17 +11,11 @@ export const TemplateFilters = ({
     onReset,
     className = '',
 }) => {
+    const { sectors } = useSectors({ autoFetch: true });
+
     const templateTypes = [
         { value: '', label: 'All Types' },
         ...Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => ({ value, label }))
-    ];
-
-    const sectors = [
-        { value: '', label: 'All Sectors' },
-        { value: 'commercial', label: 'Commercial/Corporate' },
-        { value: 'ngo', label: 'NGO/Non-Profit' },
-        { value: 'public', label: 'Public Sector' },
-        { value: 'consulting', label: 'Consulting' },
     ];
 
     const handleChange = (field, value) => {
@@ -68,9 +62,10 @@ export const TemplateFilters = ({
                         value={filters.sector || ''}
                         onChange={(e) => handleChange('sector', e.target.value)}
                     >
-                        {sectors.map((sector) => (
-                            <option key={sector.value} value={sector.value}>
-                                {sector.label}
+                        <option value="">All Sectors</option>
+                        {sectors && sectors.map((sec) => (
+                            <option key={sec.id} value={sec.id}>
+                                {sec.name} {sec.sector_type ? `(${sec.sector_type})` : ''}
                             </option>
                         ))}
                     </select>
@@ -80,10 +75,18 @@ export const TemplateFilters = ({
                     <input
                         className="filter-input"
                         type="text"
+                        list="filter-category-options"
                         value={filters.category || ''}
                         onChange={(e) => handleChange('category', e.target.value)}
                         placeholder="Filter by category..."
                     />
+                    <datalist id="filter-category-options">
+                        {Object.entries(REPORT_CATEGORY_LABELS).map(([value, label]) => (
+                            <option key={value} value={value}>
+                                {label}
+                            </option>
+                        ))}
+                    </datalist>
                 </div>
                 <div className="filter-group">
                     <label className="filter-label">Published</label>

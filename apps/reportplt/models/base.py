@@ -33,10 +33,15 @@ class BaseModel(models.Model):
     
     def get_tenant(self):
         from apps.tenant.models import Organization
-        try:
-            return Organization.objects.get(id=self.tenant_id)
-        except Organization.DoesNotExist:
+        if not self.tenant_id:
             return None
+        try:
+            return Organization.objects.filter(models.Q(id=self.tenant_id) | models.Q(tenant_id=self.tenant_id)).first()
+        except Exception:
+            try:
+                return Organization.objects.filter(id=self.tenant_id).first()
+            except Exception:
+                return None
     
     @property
     def tenant(self):
@@ -44,3 +49,6 @@ class BaseModel(models.Model):
     
     def __str__(self):
         return f"{self.__class__.__name__}({self.id})"
+
+
+ReportingBaseModel = BaseModel

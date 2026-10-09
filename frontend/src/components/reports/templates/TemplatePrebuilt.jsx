@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { FiEye, FiCheck, FiStar } from 'react-icons/fi';
 import { ReportLoading } from '../common';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import './templates.css';
 
 export const TemplatePrebuilt = ({
@@ -13,30 +14,17 @@ export const TemplatePrebuilt = ({
 }) => {
     const [selectedTemplate, setSelectedTemplate] = useState(null);
 
-    const getTypeLabel = (type) => {
-        const labels = {
-            executive: 'Executive Dashboard',
-            departmental: 'Departmental Scorecard',
-            kpi: 'KPI Report',
-            mission: 'Mission Status',
-            compliance: 'Compliance',
-            trend: 'Trend Analysis',
-            comparative: 'Comparative',
-            pip: 'PIP Report',
-            custom: 'Custom Template',
-        };
-        return labels[type] || type;
+    const getTypeLabel = (type, typeDisplay) => {
+        if (typeDisplay) return typeDisplay;
+        return REPORT_TYPE_LABELS[type] || type || 'Custom Template';
     };
 
-    const getSectorLabel = (sector) => {
-        const labels = {
-            commercial: 'Commercial',
-            ngo: 'NGO',
-            public: 'Public',
-            consulting: 'Consulting',
-            all: 'All Sectors',
-        };
-        return labels[sector] || sector;
+    const getSectorLabel = (sec, secDisplay) => {
+        if (secDisplay) return secDisplay;
+        if (typeof sec === 'object' && sec) {
+            return sec.name ? `${sec.name}${sec.sector_type ? ` (${sec.sector_type})` : ''}` : sec.code || 'All Sectors';
+        }
+        return sec || 'All Sectors';
     };
 
     if (loading) {
@@ -67,7 +55,7 @@ export const TemplatePrebuilt = ({
                         onClick={() => setSelectedTemplate(template.id)}
                     >
                         <div className="prebuilt-card-header">
-                            <span className="prebuilt-type">{getTypeLabel(template.template_type)}</span>
+                            <span className="prebuilt-type">{getTypeLabel(template.template_type, template.template_type_display)}</span>
                             {template.is_popular && (
                                 <span className="popular-badge">
                                     <FiStar size={12} />
@@ -83,7 +71,7 @@ export const TemplatePrebuilt = ({
                             <div className="prebuilt-meta">
                                 <span className="meta-item">
                                     <span className="meta-label">Sector:</span>
-                                    <span className="meta-value">{getSectorLabel(template.sector)}</span>
+                                    <span className="meta-value">{getSectorLabel(template.sector, template.sector_display)}</span>
                                 </span>
                                 <span className="meta-item">
                                     <span className="meta-label">Version:</span>

@@ -3,11 +3,13 @@ from django.urls import re_path
 from apps.reportplt.consumers import (
     DashboardConsumer,
     ReportStatusConsumer,
-    NotificationConsumer
+    NotificationConsumer,
+    LiveReportMetricsConsumer
 )
 
 websocket_urlpatterns = [
     re_path(r'ws/dashboard/(?P<dashboard_id>[^/]+)/$', DashboardConsumer.as_asgi()),
     re_path(r'ws/report/(?P<report_id>[^/]+)/status/$', ReportStatusConsumer.as_asgi()),
+    re_path(r'ws/report/metrics/(?P<tenant_id>[^/]+)/$', LiveReportMetricsConsumer.as_asgi()),
     re_path(r'ws/notifications/$', NotificationConsumer.as_asgi()),
 ]

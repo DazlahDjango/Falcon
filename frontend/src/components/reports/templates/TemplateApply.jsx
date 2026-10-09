@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import { useTemplate, useReports } from '../../../hooks/reports';
 import { ReportLoading, ReportError } from '../common';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import './templates.css';
 
 export const TemplateApply = () => {
@@ -74,19 +75,17 @@ export const TemplateApply = () => {
         return <ReportError error="Template not found" title="Template not found" />;
     }
 
-    const getTypeLabel = (type) => {
-        const labels = {
-            executive: 'Executive Dashboard',
-            departmental: 'Departmental Scorecard',
-            kpi: 'KPI Report',
-            mission: 'Mission Status Report',
-            compliance: 'Compliance Report',
-            trend: 'Trend Analysis',
-            comparative: 'Comparative Analysis',
-            pip: 'PIP Report',
-            custom: 'Custom Template',
-        };
-        return labels[type] || type;
+    const getTypeLabel = (type, typeDisplay) => {
+        if (typeDisplay) return typeDisplay;
+        return REPORT_TYPE_LABELS[type] || type || 'Custom Template';
+    };
+
+    const getSectorLabel = (sec, secDisplay) => {
+        if (secDisplay) return secDisplay;
+        if (typeof sec === 'object' && sec) {
+            return sec.name ? `${sec.name}${sec.sector_type ? ` (${sec.sector_type})` : ''}` : sec.code || 'All Sectors';
+        }
+        return sec || 'All Sectors';
     };
 
     return (
@@ -110,11 +109,11 @@ export const TemplateApply = () => {
                             </div>
                             <div className="info-item">
                                 <span className="label">Type</span>
-                                <span className="value">{getTypeLabel(template.template_type)}</span>
+                                <span className="value">{getTypeLabel(template.template_type, template.template_type_display)}</span>
                             </div>
                             <div className="info-item">
                                 <span className="label">Sector</span>
-                                <span className="value">{template.sector || 'All Sectors'}</span>
+                                <span className="value">{getSectorLabel(template.sector, template.sector_display)}</span>
                             </div>
                             <div className="info-item">
                                 <span className="label">Version</span>

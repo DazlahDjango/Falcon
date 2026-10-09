@@ -60,8 +60,8 @@ class WidgetDataFetcher:
             for kpi in kpis:
                 scores = Score.objects.filter(kpi=kpi).order_by('-year', '-month').prefetch_related('traffic_lights')[:12]
                 entries = [KPIEntryWrapper(s) for s in scores]
+                latest = entries[0] if entries else None
                 if widget.widget_type == WidgetType.KPI:
-                    latest = entries.first()
                     if latest:
                         kpi_data.append({
                             'name': kpi.name,

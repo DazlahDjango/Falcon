@@ -27,6 +27,8 @@ export const REPORT_ENDPOINTS = {
     PUBLIC_REPORTS: `${API_BASE}/reportplt/reports/public/`,
     TYPES: `${API_BASE}/reportplt/reports/types/`,
     STATUSES: `${API_BASE}/reportplt/reports/statuses/`,
+    BULK_DELETE: `${API_BASE}/reportplt/reports/bulk_delete/`,
+    BULK_PUBLISH: `${API_BASE}/reportplt/reports/bulk_publish/`,
     QUERY_PARAMS: {
         REPORT_TYPE: 'report_type',
         STATUS: 'status',
@@ -302,6 +304,38 @@ export const REPORTING_ENDPOINTS = {
 };
 
 // ============================================
+// 13. DISTRIBUTION LIST ENDPOINTS
+// ============================================
+
+export const DISTRIBUTION_ENDPOINTS = {
+    LIST: `${API_BASE}/reportplt/distributions/`,
+    DETAIL: (id) => `${API_BASE}/reportplt/distributions/${id}/`,
+    CREATE: `${API_BASE}/reportplt/distributions/`,
+    UPDATE: (id) => `${API_BASE}/reportplt/distributions/${id}/`,
+    DELETE: (id) => `${API_BASE}/reportplt/distributions/${id}/`,
+    QUERY_PARAMS: {
+        SEARCH: 'search',
+        IS_ACTIVE: 'is_active',
+    },
+};
+
+// ============================================
+// 14. PRESET ENDPOINTS
+// ============================================
+
+export const PRESET_ENDPOINTS = {
+    LIST: `${API_BASE}/reportplt/presets/`,
+    DETAIL: (id) => `${API_BASE}/reportplt/presets/${id}/`,
+    CREATE: `${API_BASE}/reportplt/presets/`,
+    UPDATE: (id) => `${API_BASE}/reportplt/presets/${id}/`,
+    DELETE: (id) => `${API_BASE}/reportplt/presets/${id}/`,
+    QUERY_PARAMS: {
+        SEARCH: 'search',
+        TEMPLATE: 'template',
+    },
+};
+
+// ============================================
 // WEBSOCKET ENDPOINTS
 // ============================================
 
@@ -493,6 +527,8 @@ export default {
     AUDIT_ENDPOINTS,
     ANALYTICS_ENDPOINTS,
     REPORTING_ENDPOINTS,
+    DISTRIBUTION_ENDPOINTS,
+    PRESET_ENDPOINTS,
     REPORT_WS,
     API_STATUS,
     HTTP_STATUS,

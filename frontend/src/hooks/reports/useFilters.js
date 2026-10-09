@@ -53,6 +53,13 @@ import {
     selectAppliedFilters,
 } from '../../store/reports/selectors/filter.selectors';
 
+// Standalone Selector Hooks (Top-Level Component Use)
+export const useFilterById = (id) => useSelector((state) => selectFilterById(state, id));
+export const useFiltersByType = (type) => useSelector((state) => selectFiltersByType(state, type));
+export const useSystemFilters = () => useSelector(selectSystemFilters);
+export const useDefaultFilters = () => useSelector(selectDefaultFilters);
+export const useGlobalFiltersList = () => useSelector(selectGlobalFiltersList);
+
 export const useFilters = (options = {}) => {
     const {
         autoFetch = true,
@@ -194,7 +201,7 @@ export const useFilters = (options = {}) => {
             fetchCalled.current = true;
             fetchList(initialFilters);
         }
-    }, [autoFetch, initialFilters, fetchList]);
+    }, [autoFetch, fetchList, initialFilters]);
 
     useEffect(() => {
         if (autoFetchGlobal && !fetchGlobalCalled.current) {
@@ -241,11 +248,17 @@ export const useFilters = (options = {}) => {
         fetchList,
         fetchOne,
         create,
+        createFilter: create,
         update,
+        updateFilter: update,
         remove,
+        deleteFilter: remove,
         apply,
+        applyFilter: apply,
         setDefault,
+        setDefaultFilter: setDefault,
         duplicate,
+        duplicateFilter: duplicate,
         fetchGlobal,
         fetchMy,
         fetchTypes,
@@ -307,5 +320,123 @@ export const useFilters = (options = {}) => {
         getSystem,
         getDefault,
         getGlobalList,
+    ]);
+};
+
+export const useFilter = (id, options = {}) => {
+    const { autoFetch = true } = options;
+    const dispatch = useDispatch();
+    const fetchCalled = useRef(false);
+
+    const filter = useSelector((state) => selectFilterById(state, id));
+    const currentFilter = useSelector(selectCurrentFilter);
+    const loading = useSelector(selectFilterDetailsLoading);
+    const error = useSelector(selectFilterError);
+
+    const fetchOne = useCallback((filterId) => {
+        const targetId = filterId || id;
+        if (!targetId) return Promise.reject(new Error('Filter ID is required'));
+        return dispatch(fetchFilter(targetId)).unwrap();
+    }, [dispatch, id]);
+
+    const updateOne = useCallback((targetIdOrData, data) => {
+        let targetId = id;
+        let updateData = targetIdOrData;
+        if (data !== undefined) {
+            targetId = targetIdOrData;
+            updateData = data;
+        }
+        if (!targetId) return Promise.reject(new Error('Filter ID is required'));
+        if (!updateData) return Promise.reject(new Error('Update data is required'));
+        return dispatch(updateFilter({ id: targetId, data: updateData })).unwrap();
+    }, [dispatch, id]);
+
+    const removeOne = useCallback((targetId) => {
+        const finalId = targetId || id;
+        if (!finalId) return Promise.reject(new Error('Filter ID is required'));
+        return dispatch(deleteFilter(finalId)).unwrap();
+    }, [dispatch, id]);
+
+    const applyOne = useCallback((targetIdOrValues, values) => {
+        let targetId = id;
+        let applyValues = targetIdOrValues;
+        if (values !== undefined) {
+            targetId = targetIdOrValues;
+            applyValues = values;
+        }
+        if (!targetId) return Promise.reject(new Error('Filter ID is required'));
+        if (!applyValues) return Promise.reject(new Error('Filter values are required'));
+        return dispatch(applyFilter({ id: targetId, values: applyValues })).unwrap();
+    }, [dispatch, id]);
+
+    const setDefaultOne = useCallback((targetId) => {
+        const finalId = targetId || id;
+        if (!finalId) return Promise.reject(new Error('Filter ID is required'));
+        return dispatch(setDefaultFilter(finalId)).unwrap();
+    }, [dispatch, id]);
+
+    const duplicateOne = useCallback((targetIdOrData, newName) => {
+        let targetId = id;
+        let duplicateData = targetIdOrData;
+        if (typeof targetIdOrData === 'string' || typeof targetIdOrData === 'number') {
+            targetId = targetIdOrData;
+            duplicateData = newName;
+        }
+        if (!targetId) return Promise.reject(new Error('Filter ID is required'));
+        return dispatch(duplicateFilter({ id: targetId, newName: duplicateData })).unwrap();
+    }, [dispatch, id]);
+
+    const clearCurrent = useCallback(() => {
+        dispatch(clearCurrentFilter());
+    }, [dispatch]);
+
+    const clearErrors = useCallback(() => {
+        dispatch(clearFilterErrors());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (autoFetch && id && !fetchCalled.current) {
+            fetchCalled.current = true;
+            fetchOne(id);
+        }
+        return () => {
+            clearCurrent();
+        };
+    }, [autoFetch, id, fetchOne, clearCurrent]);
+
+    const resolvedFilter = useMemo(() => {
+        if (currentFilter && currentFilter.id === id) return currentFilter;
+        return filter || currentFilter;
+    }, [currentFilter, filter, id]);
+
+    return useMemo(() => ({
+        filter: resolvedFilter,
+        loading,
+        error,
+        fetchOne,
+        update: updateOne,
+        updateFilter: updateOne,
+        remove: removeOne,
+        deleteFilter: removeOne,
+        apply: applyOne,
+        applyFilter: applyOne,
+        setDefault: setDefaultOne,
+        setDefaultFilter: setDefaultOne,
+        duplicate: duplicateOne,
+        duplicateFilter: duplicateOne,
+        clearCurrent,
+        clearErrors,
+    }), [
+        resolvedFilter,
+        loading,
+        error,
+        fetchOne,
+        updateOne,
+        removeOne,
+        applyOne,
+        setDefaultOne,
+        duplicateOne,
+        clearCurrent,
+        clearErrors,
     ]);
 };

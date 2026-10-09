@@ -29,6 +29,7 @@ def audit_log(action: str = AuditAction.VIEW, detail_fields: Optional[list] = No
             error_message = ''
             report = None
             dashboard = None
+            response = None
             try:
                 response = func(self, request, *args, **kwargs)
                 if hasattr(response, 'status_code') and response.status_code >= 400:
@@ -43,7 +44,7 @@ def audit_log(action: str = AuditAction.VIEW, detail_fields: Optional[list] = No
             finally:
                 duration = (timezone.now() - start_time).total_seconds()
                 try:
-                    details = _build_details(request, response, detail_fields, log_request) if success else {'error': error_message}
+                    details = _build_details(request, response, detail_fields, log_request, kwargs=kwargs) if success else {'error': error_message}
                     if report:
                         from apps.reportplt.models import Report
                         try:
@@ -130,18 +131,24 @@ def log_report_access(func: Callable):
         return func(self, request, *args, **kwargs)
     return wrapper
 
-def _build_details(request, response, detail_fields: Optional[list], log_request: bool) -> Dict[str, Any]:
+def _build_details(
+    request,
+    response,
+    detail_fields: Optional[list],
+    log_request: bool,
+    kwargs: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     details = {}
     if detail_fields:
         for field in detail_fields:
-            if field in kwargs:
+            if kwargs and field in kwargs:
                 details[field] = kwargs[field]
             elif hasattr(request, field):
                 details[field] = getattr(request, field)
-    if log_request:
-        details['request_path'] = request.path
-        details['request_method'] = request.method
-        if request.GET:
+    if log_request and request:
+        details['request_path'] = getattr(request, 'path', '')
+        details['request_method'] = getattr(request, 'method', '')
+        if hasattr(request, 'GET') and request.GET:
             details['query_params'] = dict(request.GET)
     if hasattr(response, 'status_code'):
         details['status_code'] = response.status_code

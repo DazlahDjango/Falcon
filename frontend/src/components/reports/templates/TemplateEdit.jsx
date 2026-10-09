@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSave } from 'react-icons/fi';
 import { useTemplate } from '../../../hooks/reports';
+import { useSectors } from '../../../hooks/tenant';
 import { ReportLoading, ReportError, ReportConfirmDialog } from '../common';
+import { REPORT_TYPE_LABELS, REPORT_CATEGORY_LABELS, REPORT_FORMAT_LABELS } from '../../../config/constants/reportConstants';
 import './templates.css';
 
 export const TemplateEdit = () => {
@@ -19,6 +21,8 @@ export const TemplateEdit = () => {
         clearErrors,
     } = useTemplate(id, { autoFetch: true });
 
+    const { sectors, loading: sectorsLoading } = useSectors({ autoFetch: true });
+
     const [formData, setFormData] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -26,12 +30,14 @@ export const TemplateEdit = () => {
 
     useEffect(() => {
         if (template) {
+            const rawSector = template.sector;
+            const sectorVal = rawSector ? (typeof rawSector === 'object' ? rawSector.id || rawSector.code : rawSector) : '';
             setFormData({
                 name: template.name || '',
                 description: template.description || '',
-                template_type: template.template_type || 'custom',
-                category: template.category || '',
-                sector: template.sector || 'all',
+                template_type: template.template_type || 'kpi_executive_summary',
+                category: template.category || 'strategic',
+                sector: sectorVal === 'all' ? '' : sectorVal,
                 department: template.department || '',
                 layout_config: template.layout_config || { grid_columns: 12, row_height: 100, spacing: 10, sections: ['overview'] },
                 widget_config: template.widget_config || { widgets: [] },
@@ -40,7 +46,7 @@ export const TemplateEdit = () => {
                 chart_config: template.chart_config || { default_chart_type: 'bar', colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'], show_legend: true, show_tooltip: true },
                 table_config: template.table_config || { responsive: true, striped: true, bordered: true, hover: true, sortable: true },
                 style_config: template.style_config || { theme: 'light', font_family: 'Arial', primary_color: '#2563eb' },
-                export_config: template.export_config || { formats: ['pdf', 'excel'], page_size: 'A4', orientation: 'portrait' },
+                export_config: template.export_config || { formats: ['pdf', 'excel', 'csv', 'json', 'html'], page_size: 'A4', orientation: 'portrait' },
                 applicable_industries: template.applicable_industries || [],
                 org_size: template.org_size || 0,
                 is_published: template.is_published || false,
@@ -66,7 +72,11 @@ export const TemplateEdit = () => {
         if (!formData) return;
         setIsSubmitting(true);
         try {
-            await update(id, formData);
+            const payload = {
+                ...formData,
+                sector: formData.sector && formData.sector !== 'all' ? formData.sector : null,
+            };
+            await update(id, payload);
             navigate(`/reports/templates/${id}`);
         } catch (err) {
             console.error('Failed to update template:', err);
@@ -125,25 +135,10 @@ export const TemplateEdit = () => {
         );
     }
 
-    const templateTypes = [
-        { value: 'executive', label: 'Executive Dashboard' },
-        { value: 'departmental', label: 'Departmental Scorecard' },
-        { value: 'kpi', label: 'KPI Report' },
-        { value: 'mission', label: 'Mission Status Report' },
-        { value: 'compliance', label: 'Compliance Report' },
-        { value: 'trend', label: 'Trend Analysis' },
-        { value: 'comparative', label: 'Comparative Analysis' },
-        { value: 'pip', label: 'PIP Report' },
-        { value: 'custom', label: 'Custom Template' },
-    ];
-
-    const sectors = [
-        { value: 'commercial', label: 'Commercial/Corporate' },
-        { value: 'ngo', label: 'NGO/Non-Profit' },
-        { value: 'public', label: 'Public Sector' },
-        { value: 'consulting', label: 'Consulting' },
-        { value: 'all', label: 'All Sectors' },
-    ];
+    const templateTypes = Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => ({
+        value,
+        label,
+    }));
 
     return (
         <div className="template-form-container">
@@ -224,7 +219,7 @@ export const TemplateEdit = () => {
                                 <input
                                     id="template_type"
                                     type="text"
-                                    value={template.template_type}
+                                    value={template.template_type_display || REPORT_TYPE_LABELS[template.template_type] || template.template_type}
                                     disabled
                                     className="disabled-input"
                                 />
@@ -237,9 +232,10 @@ export const TemplateEdit = () => {
                                     value={formData.sector}
                                     onChange={(e) => handleChange('sector', e.target.value)}
                                 >
-                                    {sectors.map((sector) => (
-                                        <option key={sector.value} value={sector.value}>
-                                            {sector.label}
+                                    <option value="">All Sectors (Organization Default)</option>
+                                    {sectors && sectors.map((sec) => (
+                                        <option key={sec.id} value={sec.id}>
+                                            {sec.name} {sec.sector_type ? `(${sec.sector_type})` : ''}
                                         </option>
                                     ))}
                                 </select>
@@ -251,10 +247,18 @@ export const TemplateEdit = () => {
                                 <input
                                     id="category"
                                     type="text"
+                                    list="edit-category-options"
                                     value={formData.category}
                                     onChange={(e) => handleChange('category', e.target.value)}
-                                    placeholder="e.g., Financial, HR, Operational"
+                                    placeholder="e.g., Strategic, Operational, Financial, HR"
                                 />
+                                <datalist id="edit-category-options">
+                                    {Object.entries(REPORT_CATEGORY_LABELS).map(([value, label]) => (
+                                        <option key={value} value={value}>
+                                            {label}
+                                        </option>
+                                    ))}
+                                </datalist>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="department">Department</label>

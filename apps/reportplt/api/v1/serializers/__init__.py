@@ -46,6 +46,8 @@ from .share import (
 from .audit import (
     AuditListSerializer, AuditDetailSerializer
 )
+from .distribution import DistributionListSerializer
+from .preset import ReportPresetSerializer
 from .analytics import (
     TrendAnalysisSerializer, PerformanceAnalysisSerializer,
     ComparativeAnalysisSerializer, PredictiveAnalysisSerializer,
@@ -78,6 +80,7 @@ __all__ = [
     'ShareListSerializer', 'ShareDetailSerializer',
     'ShareCreateSerializer', 'ShareUpdateSerializer',
     'ShareAccessSerializer',
+    'DistributionListSerializer', 'ReportPresetSerializer',
     'AuditListSerializer', 'AuditDetailSerializer',
     'TrendAnalysisSerializer', 'PerformanceAnalysisSerializer',
     'ComparativeAnalysisSerializer', 'PredictiveAnalysisSerializer',

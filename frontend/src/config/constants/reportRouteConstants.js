@@ -61,15 +61,31 @@ export const REPORT_ROUTES = {
 
     // Widgets
     WIDGETS: '/reports/widgets',
+    WIDGET_CREATE: '/reports/widgets/create',
     WIDGET_DETAIL: (id = ':id') => `/reports/widgets/${id}`,
+    WIDGET_EDIT: (id = ':id') => `/reports/widgets/${id}/edit`,
     WIDGET_DATA: (id = ':id') => `/reports/widgets/${id}/data`,
 
     // Filters
     FILTERS: '/reports/filters',
     FILTER_CREATE: '/reports/filters/create',
+    FILTER_DETAIL: (id = ':id') => `/reports/filters/${id}`,
     FILTER_EDIT: (id = ':id') => `/reports/filters/${id}/edit`,
+    FILTER_APPLY: (id = ':id') => `/reports/filters/${id}/apply`,
     MY_FILTERS: '/reports/filters/my',
     GLOBAL_FILTERS: '/reports/filters/global',
+
+    // Distributions
+    DISTRIBUTIONS: '/reports/distributions',
+    DISTRIBUTION_CREATE: '/reports/distributions/create',
+    DISTRIBUTION_DETAIL: (id = ':id') => `/reports/distributions/${id}`,
+    DISTRIBUTION_EDIT: (id = ':id') => `/reports/distributions/${id}/edit`,
+
+    // Presets
+    PRESETS: '/reports/presets',
+    PRESET_CREATE: '/reports/presets/create',
+    PRESET_DETAIL: (id = ':id') => `/reports/presets/${id}`,
+    PRESET_EDIT: (id = ':id') => `/reports/presets/${id}/edit`,
 
     // Shares
     SHARES: '/reports/shares',
@@ -77,6 +93,7 @@ export const REPORT_ROUTES = {
     SHARED_WITH_ME: '/reports/shares/shared-with-me',
     SHARE_CREATE: '/reports/shares/create',
     SHARE_DETAIL: (id = ':id') => `/reports/shares/${id}`,
+    SHARE_EDIT: (id = ':id') => `/reports/shares/${id}/edit`,
 
     // Audits
     AUDITS: '/reports/audits',
@@ -135,6 +152,10 @@ export const LEGACY_REPORT_REDIRECTS = [
     ['/app/reports/exports', REPORT_ROUTES.EXPORTS],
     ['/app/reports/dashboards', REPORT_ROUTES.DASHBOARDS],
     ['/app/reports/analytics', REPORT_ROUTES.ANALYTICS],
+    ['/app/reports/filters', REPORT_ROUTES.FILTERS],
+    ['/app/reports/widgets', REPORT_ROUTES.WIDGETS],
+    ['/app/reports/distributions', REPORT_ROUTES.DISTRIBUTIONS],
+    ['/app/reports/presets', REPORT_ROUTES.PRESETS],
     ['/app/reports/admin', REPORT_ROUTES.ADMIN_OVERVIEW],
     ['/app/reports/my', REPORT_ROUTES.MY_REPORTS],
 ];
