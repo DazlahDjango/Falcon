@@ -1,5 +1,8 @@
 import logging
 import threading
+import uuid
+from contextlib import contextmanager
+from django.db import connection
 from apps.tenant.exceptions import IsolationError
 
 logger = logging.getLogger(__name__)
@@ -11,6 +14,40 @@ class IsolationEnforcer:
     def __init__(self, request=None):
         self.request = request
         self.logger = logging.getLogger(__name__)
+
+    @contextmanager
+    def scope_to_organization(self, organization):
+        """
+        Context manager to scope the current thread and database connection search_path
+        to a specific organization's schema. Restores search_path on exit.
+        """
+        from apps.tenant.context import tenant_context
+        from apps.tenant.models import Organization
+
+        if isinstance(organization, (str, uuid.UUID)):
+            org = Organization.objects.get(id=organization)
+        else:
+            org = organization
+
+        schema_name = getattr(org, 'schema_name', None) or f"org_{str(org.id).replace('-', '_')}"
+        previous_org_id = self.get_thread_org_context()
+        self.set_thread_org_context(str(org.id))
+
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW search_path")
+            previous_search_path = cursor.fetchone()[0]
+            cursor.execute(f'SET search_path TO "{schema_name}", public')
+
+        try:
+            with tenant_context(str(org.id)):
+                yield org
+        finally:
+            self.set_thread_org_context(previous_org_id)
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(f'SET search_path TO {previous_search_path}')
+            except Exception as e:
+                self.logger.debug(f"Failed to restore search path: {e}")
 
     def validate_access(self, requested_org_id, user=None):
         if not requested_org_id:

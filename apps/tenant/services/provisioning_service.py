@@ -25,7 +25,7 @@ class ProvisioningService:
         self.seeder_service = DataSeederService()
         self.migration_service = MigrationService()
 
-    def provision_organization(self, organization_id):
+    def provision_organization(self, organization_id, admin_user_data=None):
         """
         Enterprise-grade provisioning pipeline for a new organization.
         Coordinates:
@@ -41,7 +41,7 @@ class ProvisioningService:
         try:
             schema_name = self.create_schema_step(organization_id)
             self.apply_migrations_step(organization_id)
-            self.seed_initial_data_step(organization_id)
+            self.seed_initial_data_step(organization_id, admin_user_data=admin_user_data)
             return self.notify_provisioning_complete_step(organization_id)
         except Exception as e:
             error_trace = traceback.format_exc()
@@ -123,7 +123,7 @@ class ProvisioningService:
 
         return recovered_count
 
-    def seed_initial_data_step(self, organization_id):
+    def seed_initial_data_step(self, organization_id, admin_user_data=None):
         with transaction.atomic():
             org = Organization.objects.select_for_update().get(id=organization_id)
             self._update_progress(org, 'PROVISIONING_RESOURCES', 'Provisioning Resource Limits', 75, "Setting up quotas...")
@@ -131,7 +131,7 @@ class ProvisioningService:
             self._update_progress(org, 'SEEDING', 'Seeding Default Data', 85, "Seeding default roles...")
             self.seeder_service.seed_default_data(org)
             self._update_progress(org, 'CREATING_ADMIN', 'Creating Client Admin', 92, "Creating organization client admin...")
-            self._create_client_admin(org)
+            self._create_client_admin(org, admin_user_data=admin_user_data)
 
     def notify_provisioning_complete_step(self, organization_id):
         org = Organization.objects.get(id=organization_id)
@@ -292,7 +292,7 @@ class ProvisioningService:
         except Exception as exc:
             self.logger.error("Failed to update organization status during rollback: %s", exc)
 
-    def _create_client_admin(self, org):
+    def _create_client_admin(self, org, admin_user_data=None):
         """Create the default client admin user for the organization."""
         from django.contrib.auth import get_user_model
         from apps.accounts.models import Profile, UserPreference
@@ -306,7 +306,8 @@ class ProvisioningService:
             cursor.execute('SET search_path TO "public"')
 
         User = get_user_model()
-        email = org.contact_email.lower().strip()
+        admin_data = admin_user_data or {}
+        email = (admin_data.get('email') or org.contact_email).lower().strip()
 
         # Check if client admin user already exists
         admin_user = User.objects.filter(email__iexact=email).first()
@@ -318,12 +319,14 @@ class ProvisioningService:
             return admin_user
 
         # Generate a unique username
-        username = email.split('@')[0]
+        username = admin_data.get('username') or email.split('@')[0]
         if User.objects.filter(username__iexact=username).exists():
             username = email
 
-        # Generate a strong temporary password
-        temp_password = secrets.token_urlsafe(12)
+        # Generate a strong temporary password or use provided password
+        temp_password = admin_data.get('password') or secrets.token_urlsafe(12)
+        first_name = admin_data.get('first_name', 'Admin')
+        last_name = admin_data.get('last_name', 'User')
 
         # Create user
         admin_user = User.objects.create_user(
@@ -331,8 +334,8 @@ class ProvisioningService:
             username=username,
             tenant_id=org.id,
             password=temp_password,
-            first_name='Admin',
-            last_name='User',
+            first_name=first_name,
+            last_name=last_name,
             role=User.ROLE_CLIENT_ADMIN,
             is_active=True,
             is_verified=True,
@@ -340,9 +343,10 @@ class ProvisioningService:
             is_staff=True
         )
 
-        # Force password change at first login
-        admin_user.password_change_required = True
-        admin_user.save(update_fields=['password_change_required'])
+        # Force password change at first login if not provided
+        if not admin_data.get('password'):
+            admin_user.password_change_required = True
+            admin_user.save(update_fields=['password_change_required'])
 
         # Create global Profile and UserPreference under public schema
         Profile.objects.get_or_create(user=admin_user, defaults={'tenant_id': org.id})

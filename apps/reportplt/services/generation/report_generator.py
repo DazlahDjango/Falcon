@@ -22,7 +22,7 @@ from apps.reportplt.services.extraction import (
     ConfigsUnifiedExtractor, ConfigsBackupExtractor, ConfigsDRExtractor,
     ConfigsHealthExtractor, ConfigsMaintenanceExtractor, ConfigsSecurityExtractor,
     TenantUnifiedExtractor, TenantLifecycleExtractor, TenantQuotaExtractor,
-    TenantSchemaExtractor, TenantDomainExtractor, TenantBackupExtractor,
+    TenantSchemaExtractor, TenantDomainExtractor,
     KPIDataExtractor, KPIUnifiedExtractor, KPIIndividualScorecardExtractor,
     KPIDepartmentalHeatmapExtractor, KPICascadeTreeExtractor, KPIRedAlertsExtractor,
     KPIValidationComplianceExtractor,
@@ -267,7 +267,7 @@ class ReportGenerator:
         elif rtype == 'tenant_domain_ssl':
             return TenantDomainExtractor(tenant_id=tenant_id, filters=filters).extract()
         elif rtype == 'tenant_backup_audit':
-            return TenantBackupExtractor(tenant_id=tenant_id, filters=filters).extract()
+            return ConfigsBackupExtractor(tenant_id=tenant_id, filters=filters).extract()
         return TenantUnifiedExtractor(tenant_id=tenant_id, filters=filters).extract()
 
     # ------------------------------------------------------------------

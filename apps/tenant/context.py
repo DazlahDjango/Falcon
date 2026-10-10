@@ -20,6 +20,7 @@ Clear at middleware exit:  clear_current_tenant_id()
 The context is automatically cleaned up on response so there is no risk of
 stale state leaking into the next request on the same thread.
 """
+from contextlib import contextmanager
 import threading
 import logging
 
@@ -52,3 +53,18 @@ def clear_current_tenant_id() -> None:
     """
     _thread_local.tenant_id = None
     logger.debug("[TenantContext] Tenant context cleared")
+
+
+@contextmanager
+def tenant_context(tenant_id: str | None):
+    """
+    Context manager to temporarily set the thread-local tenant_id.
+    Restores the previous tenant context on exit.
+    """
+    previous_tenant_id = get_current_tenant_id()
+    try:
+        set_current_tenant_id(tenant_id)
+        yield
+    finally:
+        set_current_tenant_id(previous_tenant_id)
+

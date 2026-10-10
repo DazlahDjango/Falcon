@@ -16,18 +16,23 @@ class DomainService:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def add_domain(self, organization_id, domain_name, is_primary=False):
+    def add_domain(self, organization_id, domain_name=None, is_primary=False, is_verified=False, **kwargs):
+        name = domain_name or kwargs.get('domain')
+        if not name:
+            raise DomainError("Domain name is required")
         with transaction.atomic():
-            if OrganizationDomain.objects.filter(domain=domain_name).exists():
-                raise DomainError(f"Domain '{domain_name}' is already registered")
+            if OrganizationDomain.objects.filter(domain=name).exists():
+                raise DomainError(f"Domain '{name}' is already registered")
             domain = OrganizationDomain.objects.create(
                 organization_id=organization_id,
-                domain=domain_name,
+                domain=name,
                 is_primary=is_primary,
                 status='PENDING',
                 verification_token=uuid.uuid4()
             )
-            self.logger.info(f"Added domain: {domain_name} for organization {organization_id}")
+            if is_verified:
+                self._complete_verification(domain)
+            self.logger.info(f"Added domain: {name} for organization {organization_id}")
             return domain
 
     def verify_domain(self, domain_id):
@@ -198,11 +203,17 @@ class DomainService:
         self.logger.info(f"Set primary domain: {domain.domain}")
         return domain
 
-    def delete_domain(self, domain_id):
+    def delete_domain(self, domain_id, hard=False):
         domain = OrganizationDomain.objects.get(id=domain_id)
-        domain.soft_delete()
-        self.logger.info(f"Deleted domain: {domain.domain}")
+        if hard:
+            domain.hard_delete()
+        else:
+            domain.soft_delete()
+        self.logger.info(f"Deleted domain: {domain.domain} (hard={hard})")
         return True
+
+    def remove_domain(self, domain_id, hard=False):
+        return self.delete_domain(domain_id, hard=hard)
 
     def get_domain(self, domain_id):
         try:
@@ -227,8 +238,22 @@ class DomainService:
         self.logger.info(f"Renewed SSL for {domain.domain}")
         return domain
 
+    def provision_ssl_certificate(self, domain_id):
+        return self.renew_ssl(domain_id)
+
     def check_expiring_ssl(self, days=30):
         return OrganizationDomain.objects.expiring_ssl(days)
+
+    def renew_expiring_ssl_certificates(self, days=30):
+        expiring = self.check_expiring_ssl(days)
+        renewed = []
+        for domain in expiring:
+            try:
+                self._issue_ssl_certificate(domain)
+                renewed.append(domain)
+            except Exception as e:
+                self.logger.error(f"Failed to renew SSL for {domain.domain}: {e}")
+        return renewed
 
     def verify_all_pending(self):
         pending = OrganizationDomain.objects.pending_verification()
