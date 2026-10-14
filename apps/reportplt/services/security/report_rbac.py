@@ -16,12 +16,17 @@ class ReportRBAC:
             return True
         if not self._same_tenant(report):
             return False
-        if getattr(report, 'is_public', False):
+        if getattr(report, 'is_public', False) or getattr(report, 'is_published', False):
             return True
         if getattr(report, 'owner_id', None) == self.user.id or getattr(report, 'created_by_id', None) == self.user.id:
             return True
-        if self.user.role == 'client_admin':
+        if self.user.role in ['client_admin', 'executive', 'hr_admin']:
             return True
+        if self.user.role == 'supervisor' and getattr(report, 'owner_id', None):
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            if User.objects.filter(id=report.owner_id, manager=self.user).exists():
+                return True
         if self.user.role in getattr(report, 'allowed_roles', []):
             return True
         if self.user.department and self.user.department in getattr(report, 'allowed_departments', []):
@@ -79,10 +84,13 @@ class ReportRBAC:
             return False
         if report.owner_id == self.user.id:
             return True
-        if self.user.role == 'client_admin':
+        if self.user.role in ['client_admin', 'hr_admin', 'executive']:
             return True
-        if self.user.role == 'executive':
-            return True
+        if self.user.role == 'supervisor' and getattr(report, 'owner_id', None):
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            if User.objects.filter(id=report.owner_id, manager=self.user).exists():
+                return True
         if self._has_export_share(report):
             return True
         return False
@@ -237,7 +245,7 @@ class ReportRBAC:
         return self.user.is_superuser or self.user.role == 'super_admin'
 
     def _same_tenant(self, obj) -> bool:
-        if hasattr(obj, 'tenant_id'):
+        if hasattr(obj, 'tenant_id') and obj.tenant_id and self.tenant_id:
             return str(obj.tenant_id) == str(self.tenant_id)
         return True
 

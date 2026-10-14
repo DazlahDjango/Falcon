@@ -169,53 +169,31 @@ class ReportGenerator:
 
     def _fetch_report_data(self, report: Report, params: Optional[Dict]) -> Dict[str, Any]:
         try:
-            if report.data_source == 'tasks':
-                return self._fetch_task_data(report, params)
-            elif report.data_source == 'pip':
-                return self._fetch_pip_data(report, params)
-            elif report.data_source == 'combined':
-                return self._fetch_combined_data(report, params)
-            elif report.data_source == 'configs' or report.report_type in [
-                'backup_audit', 'dr_compliance', 'health_sla', 'maintenance_audit',
-                'kms_security', 'system_audit', 'tenant_quota', 'risk_matrix', 'configs_system'
-            ]:
-                return self._fetch_configs_data(report, params)
-            elif report.data_source == 'tenant' or report.report_type in [
-                'tenant_lifecycle', 'tenant_resource_quota', 'tenant_schema_health',
-                'tenant_domain_ssl', 'tenant_backup_audit', 'tenant_executive_summary', 'tenant_platform'
-            ]:
-                return self._fetch_tenant_data(report, params)
-            elif report.data_source == 'kpi' or report.report_type in [
-                'kpi_individual_scorecard', 'kpi_departmental_heatmap', 'kpi_cascade_tree',
-                'kpi_red_alerts', 'kpi_validation_compliance', 'kpi_executive_summary', 'kpi_performance'
-            ]:
+            rtype = getattr(report, 'report_type', '') or ''
+            dsrc = getattr(report, 'data_source', '') or ''
+
+            if rtype.startswith('kpi_') or dsrc == 'kpi':
                 return self._fetch_kpi_engine_data(report, params)
-            elif report.data_source == 'structure' or report.report_type in [
-                'structure_org_chart', 'structure_span_of_control', 'structure_interim_delegation',
-                'structure_cost_center_allocation', 'structure_security_sensitivity',
-                'structure_executive_summary', 'structure_summary'
-            ]:
-                return self._fetch_structure_data(report, params)
-            elif report.data_source == 'accounts' or report.report_type in [
-                'accounts_user_directory', 'accounts_login_security', 'accounts_mfa_compliance',
-                'accounts_audit_trail', 'accounts_role_permission_audit', 'accounts_session_activity',
-                'accounts_password_hygiene', 'accounts_security_anomalies', 'accounts_executive_summary'
-            ]:
-                return self._fetch_accounts_data(report, params)
-            elif report.data_source == 'billing' or report.report_type in [
-                'billing_subscription_summary', 'billing_revenue_financial', 'billing_payment_transactions',
-                'billing_usage_quota_audit', 'billing_dunning_recovery', 'billing_executive_summary',
-                'billing_summary', 'billing_usage'
-            ]:
-                return self._fetch_billing_data(report, params)
-            elif report.data_source == 'reviews' or report.report_type in [
-                'reviews_individual_summary', 'reviews_cycle_compliance',
-                'reviews_organization_performance', 'reviews_calibration_impact',
-                'reviews_pip_tracker', 'reviews_executive_summary', 'reviews_summary'
-            ]:
+            elif rtype.startswith('reviews_') or dsrc == 'reviews':
                 return self._fetch_reviews_data(report, params)
+            elif rtype.startswith('structure_') or dsrc == 'structure':
+                return self._fetch_structure_data(report, params)
+            elif rtype.startswith('accounts_') or dsrc == 'accounts':
+                return self._fetch_accounts_data(report, params)
+            elif rtype.startswith('billing_') or dsrc == 'billing':
+                return self._fetch_billing_data(report, params)
+            elif rtype.startswith('tenant_') or dsrc == 'tenant':
+                return self._fetch_tenant_data(report, params)
+            elif rtype in ['backup_audit', 'dr_compliance', 'health_sla', 'maintenance_audit', 'kms_security', 'system_audit', 'configs_system'] or dsrc == 'configs':
+                return self._fetch_configs_data(report, params)
+            elif dsrc == 'tasks':
+                return self._fetch_task_data(report, params)
+            elif dsrc == 'pip':
+                return self._fetch_pip_data(report, params)
+            elif dsrc == 'combined':
+                return self._fetch_combined_data(report, params)
             else:
-                raise DataSourceError(f"Unsupported data source: {report.data_source}")
+                return self._fetch_reviews_data(report, params)
         except Exception as e:
             raise DataSourceError(f"Failed to fetch data: {str(e)}")
 
@@ -226,14 +204,60 @@ class ReportGenerator:
             return None
         return report.tenant_id
 
+    def _prepare_scoped_filters(self, report: Report, params: Optional[Dict]) -> Dict[str, Any]:
+        filters = dict(report.filters or {})
+        if params:
+            filters.update(params)
+
+        if self.user:
+            role = str(getattr(self.user, 'role', '') or '').lower()
+            is_super = getattr(self.user, 'is_superuser', False) or role == 'super_admin'
+
+            if 'actor_id' not in filters:
+                filters['actor_id'] = str(self.user.id)
+            if 'actor_role' not in filters:
+                filters['actor_role'] = role
+
+            if report.owner_id and 'user_id' not in filters:
+                filters['user_id'] = str(report.owner_id)
+
+            if not is_super:
+                if role == 'staff':
+                    # Staff members are strictly limited to their own personal scope
+                    filters['scope'] = 'self'
+                    filters['user_id'] = str(self.user.id)
+                    filters['actor_id'] = str(self.user.id)
+                    filters['user_email'] = self.user.email
+                    filters['assignee_email'] = self.user.email
+                elif role in ['supervisor', 'manager']:
+                    # Supervisors can view team scope or their direct reports or self
+                    team_ids = [str(self.user.id)]
+                    try:
+                        if hasattr(self.user, 'get_direct_reports'):
+                            team_ids.extend([str(x) for x in self.user.get_direct_reports().values_list('id', flat=True)])
+                        elif hasattr(self.user, 'direct_reports'):
+                            team_ids.extend([str(x) for x in self.user.direct_reports.values_list('id', flat=True)])
+                    except Exception:
+                        pass
+
+                    requested_user_id = filters.get('user_id')
+                    if requested_user_id and str(requested_user_id) not in team_ids:
+                        filters['user_id'] = str(self.user.id)
+
+                    if 'scope' not in filters or filters['scope'] == 'auto':
+                        filters['scope'] = 'team'
+                elif role in ['client_admin', 'hr_admin', 'executive']:
+                    if 'scope' not in filters or filters['scope'] == 'auto':
+                        filters['scope'] = 'organization'
+
+        return filters
+
     # ------------------------------------------------------------------
     # Configs
     # ------------------------------------------------------------------
 
     def _fetch_configs_data(self, report: Report, params: Optional[Dict]) -> Dict[str, Any]:
-        filters = report.filters or {}
-        if params:
-            filters.update(params)
+        filters = self._prepare_scoped_filters(report, params)
         tenant_id = self._resolve_tenant_id(report, filters)
         rtype = getattr(report, 'report_type', '')
         if rtype == 'backup_audit':
@@ -253,9 +277,7 @@ class ReportGenerator:
     # ------------------------------------------------------------------
 
     def _fetch_tenant_data(self, report: Report, params: Optional[Dict]) -> Dict[str, Any]:
-        filters = report.filters or {}
-        if params:
-            filters.update(params)
+        filters = self._prepare_scoped_filters(report, params)
         tenant_id = self._resolve_tenant_id(report, filters)
         rtype = getattr(report, 'report_type', '')
         if rtype == 'tenant_lifecycle':
@@ -275,9 +297,7 @@ class ReportGenerator:
     # ------------------------------------------------------------------
 
     def _fetch_kpi_engine_data(self, report: Report, params: Optional[Dict]) -> Dict[str, Any]:
-        filters = report.filters or {}
-        if params:
-            filters.update(params)
+        filters = self._prepare_scoped_filters(report, params)
         tenant_id = self._resolve_tenant_id(report, filters)
         rtype = getattr(report, 'report_type', '')
         if rtype == 'kpi_individual_scorecard':
@@ -297,9 +317,7 @@ class ReportGenerator:
     # ------------------------------------------------------------------
 
     def _fetch_structure_data(self, report: Report, params) -> Dict[str, Any]:
-        filters = report.filters or {}
-        if params:
-            filters.update(params)
+        filters = self._prepare_scoped_filters(report, params)
         tenant_id = self._resolve_tenant_id(report, filters)
         rtype = getattr(report, 'report_type', '')
         if rtype == 'structure_org_chart':
@@ -322,9 +340,7 @@ class ReportGenerator:
     # ------------------------------------------------------------------
 
     def _fetch_accounts_data(self, report: Report, params) -> Dict[str, Any]:
-        filters = report.filters or {}
-        if params:
-            filters.update(params)
+        filters = self._prepare_scoped_filters(report, params)
         tenant_id = self._resolve_tenant_id(report, filters)
         rtype = getattr(report, 'report_type', '')
 
@@ -356,9 +372,7 @@ class ReportGenerator:
     # ------------------------------------------------------------------
 
     def _fetch_billing_data(self, report: Report, params) -> Dict[str, Any]:
-        filters = report.filters or {}
-        if params:
-            filters.update(params)
+        filters = self._prepare_scoped_filters(report, params)
         tenant_id = self._resolve_tenant_id(report, filters)
         extractor = BillingUnifiedExtractor(tenant_id=tenant_id, filters=filters)
         return extractor.extract()
@@ -368,9 +382,7 @@ class ReportGenerator:
     # ------------------------------------------------------------------
 
     def _fetch_reviews_data(self, report: Report, params) -> Dict[str, Any]:
-        filters = report.filters or {}
-        if params:
-            filters.update(params)
+        filters = self._prepare_scoped_filters(report, params)
         tenant_id = self._resolve_tenant_id(report, filters)
         rtype = getattr(report, 'report_type', '') or ''
 
@@ -394,6 +406,10 @@ class ReportGenerator:
             res['source'] = 'reviews'
         return res
 
+        if isinstance(res, dict):
+            res['source'] = 'reviews'
+        return res
+
     # ------------------------------------------------------------------
     # Legacy KPI / Review / Task / PIP fetchers (kept for 'combined')
     # ------------------------------------------------------------------
@@ -405,22 +421,25 @@ class ReportGenerator:
                 kpis = kpis.filter(department_id__in=report.allowed_departments)
             kpi_list = []
             for kpi in kpis[:1000]:
-                entries = MonthlyActual.objects.filter(kpi=kpi).order_by('-period')
+                entries = MonthlyActual.objects.filter(kpi=kpi).order_by('-year', '-month')
                 if entries.exists():
                     latest = entries.first()
+                    actual_num = float(latest.actual_value) if latest.actual_value is not None else 0.0
+                    target_num = float(kpi.target) if kpi.target is not None else 0.0
+                    prog = (actual_num / target_num * 100) if target_num > 0 else 0.0
                     kpi_list.append({
                         'id': str(kpi.id),
                         'name': kpi.name,
                         'description': kpi.description,
                         'target': kpi.target,
-                        'actual': latest.actual if latest else 0,
-                        'progress': latest.progress if latest else 0,
+                        'actual': actual_num,
+                        'progress': round(prog, 1),
                         'status': latest.status if latest else 'Pending',
                         'department': kpi.department.name if kpi.department else None,
                         'category': kpi.category,
                         'type': kpi.kpi_type,
                         'unit': kpi.unit,
-                        'period': latest.period.isoformat() if latest and latest.period else None
+                        'period': f"{latest.year}-{latest.month:02d}" if latest else None
                     })
             return {
                 'type': 'kpi',

@@ -4,16 +4,20 @@ import PropTypes from 'prop-types';
 import './widgets.css';
 
 export const KPIWidget = ({ widget, data }) => {
+    const sourceData = (data && Object.keys(data).length > 0)
+        ? data
+        : (widget?.config || widget?.data || {});
+
     const {
-        value = 0,
-        target = 0,
-        progress = 0,
-        status = 'Pending',
-        unit = '',
-        trend = 0,
-        trendDirection = 'stable',
-        comparison = {},
-    } = data;
+        value = sourceData.actual ?? sourceData.value ?? 0,
+        target = sourceData.target ?? 0,
+        progress = sourceData.progress ?? (target > 0 ? (value / target) * 100 : 0),
+        status = sourceData.status || (progress >= 100 ? 'Completed' : progress >= 75 ? 'On Track' : progress >= 50 ? 'At Risk' : 'Off Track'),
+        unit = sourceData.unit || '',
+        trend = sourceData.trend || 0,
+        trendDirection = sourceData.trendDirection || (trend > 0 ? 'up' : trend < 0 ? 'down' : 'stable'),
+        comparison = sourceData.comparison || {},
+    } = sourceData;
 
     const getStatusColor = (status) => {
         const colors = {

@@ -11,6 +11,10 @@ import {
     FiUser,
     FiCalendar,
     FiRefreshCw,
+    FiDownload,
+    FiFileText,
+    FiMaximize,
+    FiPrinter,
 } from 'react-icons/fi';
 import { useDashboard } from '../../../hooks/reports';
 import { useReportPermissions } from '../../../hooks/reports';
@@ -22,7 +26,7 @@ import './dashboards.css';
 export const DashboardDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { permissions } = useReportPermissions();
+    const { permissions, isSuperAdmin, isClientAdmin, user } = useReportPermissions();
 
     const {
         dashboard,
@@ -35,6 +39,9 @@ export const DashboardDetail = () => {
     } = useDashboard(id, { autoFetch: true });
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     const handleBack = () => {
         navigate('/reports/dashboards');
@@ -42,6 +49,18 @@ export const DashboardDetail = () => {
 
     const handleEdit = () => {
         navigate(`/reports/dashboards/${id}/edit`);
+    };
+
+    const handleGenerateReport = () => {
+        navigate(`/reports/create?template=${dashboard?.dashboard_type || 'kpi'}&name=${encodeURIComponent(dashboard?.name || 'Dashboard Report')}`);
+    };
+
+    const handleExport = () => {
+        setIsExporting(true);
+        setTimeout(() => {
+            window.print();
+            setIsExporting(false);
+        }, 300);
     };
 
     const handleDelete = () => {
@@ -54,8 +73,19 @@ export const DashboardDetail = () => {
     };
 
     const handleRefresh = async () => {
-        await refreshDashboard(id);
-        await fetchOne(id);
+        setIsRefreshing(true);
+        try {
+            await refreshDashboard(id);
+        } catch (e) {
+            // non-blocking
+        }
+        try {
+            await fetchOne(id);
+        } catch (e) {
+            // non-blocking
+        }
+        setRefreshKey((prev) => prev + 1);
+        setIsRefreshing(false);
     };
 
     const formatDate = (date) => {
@@ -119,9 +149,17 @@ export const DashboardDetail = () => {
                     )}
                 </div>
                 <div className="header-right">
-                    <button className="btn btn-secondary" onClick={handleRefresh}>
-                        <FiRefreshCw size={16} />
-                        Refresh
+                    <button className="btn btn-primary" onClick={handleGenerateReport}>
+                        <FiFileText size={16} />
+                        Generate Report
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleExport} disabled={isExporting}>
+                        <FiDownload size={16} />
+                        {isExporting ? 'Preparing...' : 'Export / Print'}
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleRefresh} disabled={isRefreshing}>
+                        <FiRefreshCw size={16} className={isRefreshing ? 'spin-icon' : ''} />
+                        {isRefreshing ? 'Refreshing...' : 'Refresh'}
                     </button>
                     {permissions.canEditDashboard && (
                         <button className="btn btn-secondary" onClick={handleEdit}>
@@ -129,7 +167,7 @@ export const DashboardDetail = () => {
                             Edit
                         </button>
                     )}
-                    {permissions.canDeleteDashboard && (
+                    {(isSuperAdmin || isClientAdmin || (user && dashboard.owner === user.id)) && (
                         <button className="btn btn-danger" onClick={handleDelete}>
                             <FiTrash2 size={16} />
                             Delete
@@ -184,7 +222,7 @@ export const DashboardDetail = () => {
 
                     <div className="detail-section">
                         <h3>Dashboard Preview</h3>
-                        <DashboardView dashboard={dashboard} preview />
+                        <DashboardView key={`${dashboard.id}-${refreshKey}`} dashboard={dashboard} preview />
                     </div>
                 </div>
 
@@ -198,7 +236,7 @@ export const DashboardDetail = () => {
                                     Owner
                                 </span>
                                 <span className="info-value">
-                                    {dashboard.owner?.name || dashboard.owner?.email || 'Unknown'}
+                                    {dashboard.owner_details?.name || dashboard.owner?.name || dashboard.owner?.email || dashboard.owner_name || (dashboard.is_shared ? 'System / Shared' : 'Organization')}
                                 </span>
                             </div>
                             <div className="info-item">
@@ -218,7 +256,11 @@ export const DashboardDetail = () => {
                             <div className="info-item">
                                 <span className="info-label">Widgets</span>
                                 <span className="info-value">
-                                    {dashboard.widgets?.filter(w => w.is_active).length || 0}
+                                    {Array.isArray(dashboard.widgets)
+                                        ? dashboard.widgets.filter(w => w?.is_active !== false).length
+                                        : (Array.isArray(dashboard.widgets?.results)
+                                            ? dashboard.widgets.results.filter(w => w?.is_active !== false).length
+                                            : (dashboard.widget_count || 0))}
                                 </span>
                             </div>
                         </div>

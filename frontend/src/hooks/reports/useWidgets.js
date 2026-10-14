@@ -132,9 +132,11 @@ export const useWidgets = (options = {}) => {
         return dispatch(fetchWidgetTypes()).unwrap();
     }, [dispatch]);
 
-    const fetchByDashboard = useCallback((dashboardId) => {
+    const fetchByDashboard = useCallback(async (dashboardId) => {
         if (!dashboardId) return Promise.reject(new Error('Dashboard ID is required'));
-        return dispatch(fetchWidgetsByDashboard(dashboardId)).unwrap();
+        const result = await dispatch(fetchWidgetsByDashboard(dashboardId)).unwrap();
+        const raw = result?.data ?? result;
+        return Array.isArray(raw) ? raw : (raw?.results ?? []);
     }, [dispatch]);
 
     const updateFilters = useCallback((newFilters) => {
@@ -165,11 +167,12 @@ export const useWidgets = (options = {}) => {
         dispatch(clearWidgetData());
     }, [dispatch]);
 
-    const getById = useCallback((id) => widgets.find(w => w.id === id), [widgets]);
-    const getByType = useCallback((type) => widgets.filter(w => w.widget_type === type), [widgets]);
-    const getActive = useCallback(() => widgets.filter(w => w.is_active), [widgets]);
-    const getVisible = useCallback(() => widgets.filter(w => w.is_visible), [widgets]);
-    const getByDashboard = useCallback((dashboardId) => widgets.filter(w => w.dashboard === dashboardId), [widgets]);
+    const safeWidgets = useMemo(() => (Array.isArray(widgets) ? widgets : (widgets?.results || [])), [widgets]);
+    const getById = useCallback((id) => safeWidgets.find(w => w.id === id), [safeWidgets]);
+    const getByType = useCallback((type) => safeWidgets.filter(w => w.widget_type === type), [safeWidgets]);
+    const getActive = useCallback(() => safeWidgets.filter(w => w.is_active), [safeWidgets]);
+    const getVisible = useCallback(() => safeWidgets.filter(w => w.is_visible), [safeWidgets]);
+    const getByDashboard = useCallback((dashboardId) => safeWidgets.filter(w => w.dashboard === dashboardId), [safeWidgets]);
 
     useEffect(() => {
         if (autoFetch && !fetchCalled.current) {
@@ -214,6 +217,7 @@ export const useWidgets = (options = {}) => {
         refresh,
         fetchTypes,
         fetchByDashboard,
+        fetchWidgetsByDashboard: fetchByDashboard,
         updateFilters,
         resetAllFilters,
         updatePagination,

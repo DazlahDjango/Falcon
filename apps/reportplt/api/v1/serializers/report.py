@@ -16,14 +16,16 @@ class ReportBaseSerializer(BaseModelSerializer):
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     data_source_display = serializers.CharField(source='get_data_source_display', read_only=True)
     is_accessible = serializers.SerializerMethodField()
+    owner_details = serializers.SerializerMethodField()
+    owner_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Report
         fields = [
             'id', 'name', 'description', 'report_type', 'report_type_display',
             'status', 'status_display', 'default_format', 'category', 'category_display',
-            'data_source', 'data_source_display', 'owner', 'is_scheduled', 'is_system',
-            'is_published', 'is_archived', 'is_public', 'needs_refresh',
+            'data_source', 'data_source_display', 'owner', 'owner_details', 'owner_name',
+            'is_scheduled', 'is_system', 'is_published', 'is_archived', 'is_public', 'needs_refresh',
             'include_executive_summary', 'include_charts', 'include_tables',
             'include_commentary', 'config', 'parameters', 'filters', 'sorting',
             'grouping', 'aggregation', 'allowed_roles', 'allowed_departments',
@@ -44,6 +46,22 @@ class ReportBaseSerializer(BaseModelSerializer):
             return rbac.can_view_report(obj)
         return False
 
+    def get_owner_details(self, obj):
+        if obj.owner:
+            full_name = f"{obj.owner.first_name} {obj.owner.last_name}".strip() or obj.owner.username or obj.owner.email
+            return {
+                'id': str(obj.owner.id),
+                'name': full_name,
+                'email': obj.owner.email,
+                'role': obj.owner.role
+            }
+        return None
+
+    def get_owner_name(self, obj):
+        if obj.owner:
+            return f"{obj.owner.first_name} {obj.owner.last_name}".strip() or obj.owner.username or obj.owner.email
+        return None
+
 class ReportListSerializer(ReportBaseSerializer):
     """
     List serializer for Report model - lightweight.
@@ -52,7 +70,7 @@ class ReportListSerializer(ReportBaseSerializer):
         fields = [
             'id', 'name', 'report_type', 'report_type_display', 'status',
             'status_display', 'category', 'category_display', 'is_published',
-            'is_archived', 'last_generated_at', 'owner', 'is_accessible'
+            'is_archived', 'last_generated_at', 'owner', 'owner_details', 'owner_name', 'is_accessible'
         ]
 
 class ReportDetailSerializer(ReportBaseSerializer):

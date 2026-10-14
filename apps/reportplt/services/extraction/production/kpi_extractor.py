@@ -273,6 +273,28 @@ class KPIIndividualScorecardExtractor:
             actuals = actuals.filter(tenant_id=self.tenant_id)
             scores = scores.filter(tenant_id=self.tenant_id)
 
+        if not user_id and not user_email:
+            actor_id = self.filters.get('actor_id')
+            scope = self.filters.get('scope')
+            if actor_id:
+                actor = User.objects.filter(id=actor_id).first()
+                if actor:
+                    if actor.role == 'staff' or scope == 'self':
+                        user_id = str(actor.id)
+                    elif actor.role in ['supervisor', 'manager'] or scope == 'team':
+                        team_ids = [str(actor.id)]
+                        try:
+                            if hasattr(actor, 'get_direct_reports'):
+                                team_ids.extend([str(x) for x in actor.get_direct_reports().values_list('id', flat=True)])
+                            elif hasattr(actor, 'direct_reports'):
+                                team_ids.extend([str(x) for x in actor.direct_reports.values_list('id', flat=True)])
+                        except Exception:
+                            pass
+                        kpi_weights = kpi_weights.filter(user_id__in=team_ids)
+                        annual_targets = annual_targets.filter(user_id__in=team_ids)
+                        actuals = actuals.filter(user_id__in=team_ids)
+                        scores = scores.filter(user_id__in=team_ids)
+
         if user_id:
             kpi_weights = kpi_weights.filter(user_id=user_id)
             annual_targets = annual_targets.filter(user_id=user_id)

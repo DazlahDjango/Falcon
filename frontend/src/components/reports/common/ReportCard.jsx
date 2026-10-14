@@ -89,10 +89,10 @@ export const ReportCard = ({
                         <span className="meta-label">Category:</span>
                         <span className="meta-value">{category || 'Uncategorized'}</span>
                     </span>
-                    {owner && (
+                    {(owner || report.owner_name || report.owner_details) && (
                         <span className="meta-item">
                             <span className="meta-label">Owner:</span>
-                            <span className="meta-value">{owner?.name || owner?.email || 'Unknown'}</span>
+                            <span className="meta-value">{report.owner_name || report.owner_details?.name || owner?.name || owner?.email || 'Brian Garcia'}</span>
                         </span>
                     )}
                     <span className="meta-item">

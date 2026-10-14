@@ -23,7 +23,10 @@ export const selectWidgetState = (state) => {
 
 export const selectWidgets = createSelector(
     [selectWidgetState],
-    (state) => state.widgets || []
+    (state) => {
+        const w = state?.widgets;
+        return Array.isArray(w) ? w : (w?.results || []);
+    }
 );
 
 export const selectCurrentWidget = createSelector(

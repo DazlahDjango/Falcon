@@ -12,6 +12,7 @@ import {
     FiUser,
     FiTag,
     FiCalendar,
+    FiEye,
 } from 'react-icons/fi';
 import { useReport } from '../../../hooks/reports';
 import { useReportPermissions } from '../../../hooks/reports';
@@ -38,6 +39,7 @@ export const ReportDetail = () => {
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showStatusModal, setShowStatusModal] = useState(false);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [newStatus, setNewStatus] = useState('');
 
     const handleBack = () => {
@@ -55,6 +57,10 @@ export const ReportDetail = () => {
 
     const handleExport = () => {
         navigate(`/reports/${id}/export`);
+    };
+
+    const handlePreview = () => {
+        setShowPreviewModal(true);
     };
 
     const handleDelete = () => {
@@ -131,6 +137,10 @@ export const ReportDetail = () => {
                             {report.status === 'generating' ? 'Generating...' : 'Generate'}
                         </button>
                     )}
+                    <button className="btn btn-secondary" onClick={handlePreview}>
+                        <FiEye size={16} />
+                        Preview
+                    </button>
                     {permissions.canExportReport && (
                         <button className="btn btn-secondary" onClick={handleExport}>
                             <FiDownload size={16} />
@@ -236,6 +246,13 @@ export const ReportDetail = () => {
                         <div className="quick-actions">
                             <button
                                 className="quick-action-btn"
+                                onClick={handlePreview}
+                            >
+                                <FiEye size={20} />
+                                <span>Preview Report</span>
+                            </button>
+                            <button
+                                className="quick-action-btn"
                                 onClick={handleGenerate}
                                 disabled={report.status === 'generating'}
                             >
@@ -328,6 +345,61 @@ export const ReportDetail = () => {
                             <button className="btn btn-primary" onClick={handleStatusChange}>
                                 Update Status
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showPreviewModal && (
+                <div className="status-modal-overlay" onClick={() => setShowPreviewModal(false)}>
+                    <div className="status-modal" style={{ maxWidth: '850px', width: '90%' }} onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div className="flex items-center gap-2">
+                                <FiEye size={20} className="text-blue-600" />
+                                <h3 style={{ margin: 0 }}>Report Document Preview</h3>
+                            </div>
+                            <button className="modal-close" onClick={() => setShowPreviewModal(false)}>
+                                ✕
+                            </button>
+                        </div>
+                        <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', padding: '24px' }}>
+                            <div style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '16px', marginBottom: '20px' }}>
+                                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>{report.name}</h2>
+                                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>{report.description || 'Formal appraisal and performance report dossier.'}</p>
+                                <div style={{ display: 'flex', gap: '16px', marginTop: '12px', fontSize: '0.85rem', color: '#475569' }}>
+                                    <span><strong>Type:</strong> {getTypeLabel(report.report_type)}</span>
+                                    <span><strong>Owner:</strong> {report.owner_name || report.owner_details?.name || report.owner?.name || 'Falcon Technologies'}</span>
+                                    <span><strong>Status:</strong> <span style={{ textTransform: 'capitalize' }}>{report.status}</span></span>
+                                </div>
+                            </div>
+
+                            {report.data ? (
+                                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155', marginBottom: '10px' }}>Report Payload Summary</h4>
+                                    <pre style={{ fontSize: '0.8rem', color: '#334155', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                        {JSON.stringify(report.data, null, 2)}
+                                    </pre>
+                                </div>
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '32px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                                    <p style={{ color: '#64748b', marginBottom: '16px' }}>This report has not been generated yet or contains standard parameters.</p>
+                                    <button className="btn btn-primary" onClick={() => { setShowPreviewModal(false); handleGenerate(); }}>
+                                        <FiPlay size={16} /> Run Full Generation
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <button className="btn btn-outline" onClick={() => setShowPreviewModal(false)}>
+                                Close Preview
+                            </button>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button className="btn btn-secondary" onClick={() => { window.print(); }}>
+                                    <FiPrinter size={16} /> Print
+                                </button>
+                                <button className="btn btn-primary" onClick={() => { setShowPreviewModal(false); handleExport(); }}>
+                                    <FiDownload size={16} /> Proceed to Export
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

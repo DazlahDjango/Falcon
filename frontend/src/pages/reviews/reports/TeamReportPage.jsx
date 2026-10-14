@@ -10,7 +10,7 @@ import '../pages.css';
 
 const TeamReportPage = () => {
   const navigate = useNavigate();
-  const { canViewReports } = useReviewsPermissions();
+  const { canViewReports, isSupervisor, isAdmin, isExecutive, user } = useReviewsPermissions();
   const [selectedManager, setSelectedManager] = useState(null);
   const [selectedCycle, setSelectedCycle] = useState(null);
 
@@ -20,6 +20,21 @@ const TeamReportPage = () => {
   useEffect(() => {
     fetchCycles();
   }, [fetchCycles]);
+
+  useEffect(() => {
+    if (!selectedManager && user?.id) {
+      setSelectedManager(user.id);
+    }
+  }, [user, selectedManager]);
+
+  useEffect(() => {
+    if (!selectedCycle && cycles && cycles.length > 0) {
+      const activeCycle = cycles.find(c => c.status === 'active') || cycles[0];
+      if (activeCycle) {
+        setSelectedCycle(activeCycle.id);
+      }
+    }
+  }, [cycles, selectedCycle]);
 
   if (!canViewReports) {
     return (

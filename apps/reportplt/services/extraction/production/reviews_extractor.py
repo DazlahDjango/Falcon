@@ -1,4 +1,4 @@
-﻿# apps/reportplt/services/extraction/production/reviews_extractor.py
+# apps/reportplt/services/extraction/production/reviews_extractor.py
 """
 Reviews Reporting Extractors — real-data extraction for the Falcon PMS reporting pipeline.
 
@@ -644,7 +644,7 @@ class ReviewsCycleComplianceExtractor(ReviewsBaseExtractor):
         try:
             dept_matrix = (
                 final_qs.filter(employee__department__isnull=False)
-                .values('employee__department__name')
+                .values('employee__department')
                 .annotate(
                     total=Count('id'),
                     locked=Count('id', filter=Q(status='locked')),
@@ -656,7 +656,7 @@ class ReviewsCycleComplianceExtractor(ReviewsBaseExtractor):
                 total = d.get('total', 0) or 0
                 locked = d.get('locked', 0) or 0
                 dept_rows.append({
-                    'department': d.get('employee__department__name') or 'Unassigned',
+                    'department': d.get('employee__department') or 'Unassigned',
                     'total': total,
                     'locked': locked,
                     'completion_rate_pct': _pct(locked, total),
@@ -767,9 +767,11 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
         qs = FinalRating.objects.filter(review_cycle=self.cycle)
         if self.tenant_id:
             qs = qs.filter(tenant_id=self.tenant_id)
-
-        total_rated = qs.count()
-        agg = qs.aggregate(
+        
+        # In self or team scope, filter individual metrics and competency breakdown
+        scoped_qs = self._apply_user_scope(qs, 'employee_id')
+        total_rated = scoped_qs.count()
+        agg = scoped_qs.aggregate(
             overall=Avg('final_score'),
             kpi=Avg('kpi_score'),
             competency=Avg('competency_score'),
@@ -783,7 +785,7 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
 
         # Rating distribution
         dist_qs = (
-            qs.values('final_rating_label', 'final_rating_color')
+            scoped_qs.values('final_rating_label', 'final_rating_color')
             .annotate(count=Count('id'))
             .order_by('-count')
         )
@@ -798,8 +800,16 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
             })
 
         # Competency strengths / weaknesses
+        from apps.reviews.models import SupervisorReview
+        sup_qs = SupervisorReview.objects.filter(review_cycle=self.cycle)
+        if self.tenant_id:
+            sup_qs = sup_qs.filter(tenant_id=self.tenant_id)
+        if self.resolved_scope.get('scope') in ['self', 'team']:
+            sup_qs = self._apply_user_scope(sup_qs, 'employee_id')
+        sup_ids = [str(x) for x in sup_qs.values_list('id', flat=True)]
+
         comp_qs = CompetencyRating.objects.filter(
-            supervisor_review__review_cycle=self.cycle,
+            object_id__in=sup_ids,
             raw_score__isnull=False,
         )
         if self.tenant_id:
@@ -834,14 +844,14 @@ class ReviewsOrganizationPerformanceExtractor(ReviewsBaseExtractor):
         try:
             dept_qs = (
                 qs.filter(employee__department__isnull=False)
-                .values('employee__department__name')
+                .values('employee__department')
                 .annotate(avg_score=Avg('final_score'), count=Count('id'))
                 .order_by('-avg_score')
             )
             for d in dept_qs:
                 score = _round(d.get('avg_score'), 1, 0.0) or 0.0
                 dept_rows.append({
-                    'department': d.get('employee__department__name') or 'Unassigned',
+                    'department': d.get('employee__department') or 'Unassigned',
                     'count': d.get('count', 0) or 0,
                     'avg_score': score,
                     'variance': _round(score - (avg_overall or 0.0), 1, 0.0),
@@ -950,6 +960,10 @@ class ReviewsCalibrationImpactExtractor(ReviewsBaseExtractor):
         if self.cycle:
             adj_qs = adj_qs.filter(calibration_session__review_cycle=self.cycle)
 
+        ids = self.resolved_scope.get('user_ids') or []
+        if ids:
+            adj_qs = adj_qs.filter(final_rating__employee_id__in=ids)
+
         # Compute adjustment_amount in Python — the field does not exist on the model.
         total_adjustments = 0
         increases = 0
@@ -987,22 +1001,35 @@ class ReviewsCalibrationImpactExtractor(ReviewsBaseExtractor):
             except Exception as e:
                 self._error('OutlierDetector', e)
 
-        session_rows = [
-            {
-                'id': str(s.id),
-                'name': s.name,
-                'session_type': getattr(s, 'session_type', ''),
-                'scheduled_date': s.scheduled_date.isoformat() if s.scheduled_date else None,
-                'status': s.status,
-                'outcome': getattr(s, 'outcome', ''),
-                'facilitator': s.facilitator.email if s.facilitator else None,
-                'adjustments_count': adj_qs.filter(calibration_session=s).count(),
-            }
-            for s in sessions_qs.order_by('-scheduled_date')[:100]
-        ]
+        outlier_list = list(outliers.get('outliers') or [])
+        bias_list = list(outliers.get('inconsistent_managers') or [])
 
-        outlier_list = outliers.get('outliers') or []
-        bias_list = outliers.get('inconsistent_managers') or []
+        if ids:
+            from apps.accounts.models import User
+            user_emails = set(User.objects.filter(id__in=ids).values_list('email', flat=True))
+            outlier_list = [o for o in outlier_list if o.get('employee') in user_emails or str(o.get('employee_id', '')) in ids]
+            if self.resolved_scope.get('scope') == 'self':
+                bias_list = []
+                outliers['department_statistics'] = {}
+
+        outliers['outliers'] = outlier_list
+        outliers['inconsistent_managers'] = bias_list
+
+        session_rows = []
+        if self.resolved_scope.get('scope') != 'self':
+            session_rows = [
+                {
+                    'id': str(s.id),
+                    'name': s.name,
+                    'session_type': getattr(s, 'session_type', ''),
+                    'scheduled_date': s.scheduled_date.isoformat() if s.scheduled_date else None,
+                    'status': s.status,
+                    'outcome': getattr(s, 'outcome', ''),
+                    'facilitator': s.facilitator.email if s.facilitator else None,
+                    'adjustments_count': adj_qs.filter(calibration_session=s).count(),
+                }
+                for s in sessions_qs.order_by('-scheduled_date')[:100]
+            ]
 
         metrics = {
             'cycle_name': self.cycle.name if self.cycle else None,
@@ -1351,16 +1378,37 @@ class ReviewsUnifiedExtractor(ReviewsBaseExtractor):
         # kpis: flatten the synthetic list so ChartRenderer/PivotBuilder see rows.
         kpis: List[Dict[str, Any]] = list(ind.get('kpis') or [])
 
-        summary = (
-            f"Executive reviews summary for {metrics['cycle_name'] or 'the current cycle'}: "
-            f"Talent Health {talent_health_score}%. "
-            f"{metrics['total_evaluated_employees']} employees evaluated; "
-            f"completion {completion_pct}%, avg score {perf_pct}%, "
-            f"KPI {metrics['avg_kpi_score']}%, competency {metrics['avg_competency_score']}%. "
-            f"{metrics['active_pips']} active PIP(s); "
-            f"{metrics['calibration_sessions_count']} calibration session(s); "
-            f"{metrics['promotion_ready_count']} promotion recommendation(s)."
-        )
+        if self.resolved_scope['scope'] == 'self':
+            actor_name = "Employee"
+            if self.resolved_scope.get('actor_id'):
+                from apps.accounts.models import User
+                act = User.objects.filter(id=self.resolved_scope['actor_id']).first()
+                if act:
+                    actor_name = f"{act.first_name} {act.last_name}".strip() or act.email
+            summary = (
+                f"Individual Performance Dossier for {actor_name} ({metrics['cycle_name'] or 'Current Cycle'}): "
+                f"Final Performance Score: {perf_pct}% (KPI {metrics['avg_kpi_score']}%, Competency {metrics['avg_competency_score']}%). "
+                f"Active PIP Status: {'Active Structured PIP (Under Review)' if active_pips > 0 else 'None'}."
+            )
+        elif self.resolved_scope['scope'] == 'team':
+            summary = (
+                f"Team Performance Review Summary for {metrics['cycle_name'] or 'the current cycle'}: "
+                f"{metrics['total_evaluated_employees']} team member(s) evaluated; "
+                f"team completion {completion_pct}%, team avg score {perf_pct}%, "
+                f"KPI avg {metrics['avg_kpi_score']}%, competency avg {metrics['avg_competency_score']}%. "
+                f"{metrics['active_pips']} active team PIP(s)."
+            )
+        else:
+            summary = (
+                f"Executive reviews summary for {metrics['cycle_name'] or 'the current cycle'}: "
+                f"Talent Health {talent_health_score}%. "
+                f"{metrics['total_evaluated_employees']} employees evaluated; "
+                f"completion {completion_pct}%, avg score {perf_pct}%, "
+                f"KPI {metrics['avg_kpi_score']}%, competency {metrics['avg_competency_score']}%. "
+                f"{metrics['active_pips']} active PIP(s); "
+                f"{metrics['calibration_sessions_count']} calibration session(s); "
+                f"{metrics['promotion_ready_count']} promotion recommendation(s)."
+            )
 
         return {
             'status': 'Completed' if not sub_errors else 'CompletedWithErrors',

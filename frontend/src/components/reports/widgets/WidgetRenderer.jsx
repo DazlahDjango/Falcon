@@ -8,6 +8,7 @@ import { TableWidget } from './TableWidget';
 import { HeatmapWidget } from './HeatmapWidget';
 import { TrendWidget } from './TrendWidget';
 import { GaugeWidget } from './GaugeWidget';
+import { SummaryWidget } from './SummaryWidget';
 import './widgets.css';
 
 export const WidgetRenderer = ({
@@ -48,7 +49,7 @@ export const WidgetRenderer = ({
 
     const renderWidget = () => {
         const widgetType = widget.widget_type || 'kpi';
-        const widgetData = data || {};
+        const widgetData = (data && Object.keys(data).length > 0) ? data : (widget.data || widget.config || {});
 
         switch (widgetType) {
             case 'kpi':
@@ -104,12 +105,7 @@ export const WidgetRenderer = ({
                     </div>
                 );
             case 'summary':
-                return (
-                    <div className="widget-placeholder">
-                        <span className="placeholder-icon">📄</span>
-                        <p>Summary Card widget</p>
-                    </div>
-                );
+                return <SummaryWidget widget={widget} data={widgetData} />;
             default:
                 return (
                     <div className="widget-placeholder">

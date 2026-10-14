@@ -56,7 +56,7 @@ class DashboardDetailSerializer(DashboardBaseSerializer):
     Detailed serializer for ReportDashboard.
     """
     owner_name = serializers.SerializerMethodField()
-    widgets = WidgetListSerializer(source='widgets.filter', many=True, read_only=True)
+    widgets = WidgetListSerializer(source='widgets.all', many=True, read_only=True)
     
     class Meta(DashboardBaseSerializer.Meta):
         fields = DashboardBaseSerializer.Meta.fields + ['owner_name', 'widgets']

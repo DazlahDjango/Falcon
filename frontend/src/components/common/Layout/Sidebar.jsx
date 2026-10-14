@@ -8,7 +8,7 @@ import {
     FiChevronRight, FiChevronDown, FiChevronUp, FiActivity, FiLock, FiDatabase, FiServer, FiMapPin, FiDollarSign, FiGitBranch, FiTrendingUp,
     FiCloud, FiHeart, FiFlag, FiSliders, FiHardDrive, FiRefreshCw, FiGrid, FiCreditCard, FiFileText as FiReceipt, 
     FiShoppingCart, FiDollarSign as FiCurrency, FiList, FiAlertCircle,
-    FiPieChart, FiKey
+    FiPieChart, FiKey, FiDownload
 } from 'react-icons/fi';
 import { MdDomain, MdBusiness, MdStorage, MdBackup, MdSchema } from 'react-icons/md';
 import { HiOutlineBuildingOffice, HiOutlineUserGroup } from 'react-icons/hi2';
@@ -54,8 +54,21 @@ const Sidebar = ({ isOpen, isCollapsed, onToggle, user, currentPath }) => {
             { path: '/users', name: 'Users', icon: FiUserCheck, roles: ['super_admin', 'client_admin'] },
         ];
         const reportingItems = [
-            { path: '/reports', name: 'Reports', icon: FiBarChart2, roles: ['super_admin', 'client_admin', 'executive'] },
-            { path: '/audit', name: 'Audit Logs', icon: FiActivity, roles: ['super_admin', 'client_admin', 'executive'] },
+            // 1. Core Performance & Dossiers (Staff, Supervisors, Admins)
+            { isHeader: true, name: 'My Performance', roles: ['staff', 'supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reports', name: 'My Reports & Dossiers', icon: FiFileText, roles: ['all'] },
+            { path: '/reports/dashboards', name: 'Report Dashboards', icon: FiGrid, roles: ['all'] },
+            { path: '/reports/exports', name: 'Exports & Downloads', icon: FiDownload, roles: ['all'] },
+
+            // 2. Templates & Automation (Supervisors & Admins)
+            { isHeader: true, name: 'Templates & Schedules', roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reports/templates', name: 'Report Templates', icon: FiLayers, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reports/schedules', name: 'Scheduled Reports', icon: FiCalendar, roles: ['client_admin', 'super_admin', 'executive'] },
+
+            // 3. Analytics & Audit (Supervisors & Admins)
+            { isHeader: true, name: 'Analytics & Governance', roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reports/analytics', name: 'Reporting Analytics', icon: FiTrendingUp, roles: ['supervisor', 'client_admin', 'super_admin', 'executive'] },
+            { path: '/reports/audits', name: 'Report Audit Logs', icon: FiActivity, roles: ['client_admin', 'super_admin', 'executive'] },
         ];
         const settingsItems = [
             { path: '/settings', name: 'Settings', icon: FiSettings, roles: ['super_admin', 'client_admin'] },

@@ -39,10 +39,17 @@ export const DashboardView = ({
         setLoading(true);
         try {
             const result = await fetchWidgetsByDashboard(dashboard.id);
-            setWidgets(result || []);
+            const raw = result?.data ?? result;
+            const items = Array.isArray(raw) ? raw : (raw?.results ?? (Array.isArray(dashboard?.widgets) ? dashboard.widgets : []));
+            setWidgets(Array.isArray(items) ? items : []);
             setError(null);
         } catch (err) {
-            setError(err.message || 'Failed to load widgets');
+            if (Array.isArray(dashboard?.widgets) && dashboard.widgets.length > 0) {
+                setWidgets(dashboard.widgets);
+                setError(null);
+            } else {
+                setError(err.message || 'Failed to load widgets');
+            }
         } finally {
             setLoading(false);
         }
@@ -67,15 +74,19 @@ export const DashboardView = ({
 
     const getWidgetSize = (widget) => {
         const size = widget.size || { w: 4, h: 3 };
+        const w = size.w ?? size.width ?? 6;
+        const h = size.h ?? size.height ?? 4;
         const columns = getGridColumns();
-        const width = (size.w / columns) * 100;
+        const width = Math.min(100, Math.max(10, (w / columns) * 100));
         return {
             width: `${width}%`,
-            height: `${size.h * 100}px`,
+            minHeight: `${h * 75}px`,
         };
     };
 
-    if (loading && widgets.length === 0) {
+    const safeWidgets = Array.isArray(widgets) ? widgets : (widgets?.results || []);
+
+    if (loading && safeWidgets.length === 0) {
         return (
             <div className="dashboard-view-loading">
                 <div className="loading-spinner-small" />
@@ -84,7 +95,7 @@ export const DashboardView = ({
         );
     }
 
-    if (error) {
+    if (error && safeWidgets.length === 0) {
         return (
             <div className="dashboard-view-error">
                 <span className="error-icon">⚠️</span>
@@ -96,7 +107,7 @@ export const DashboardView = ({
         );
     }
 
-    if (widgets.length === 0) {
+    if (safeWidgets.length === 0) {
         return (
             <div className="dashboard-view-empty">
                 <span className="empty-icon">📊</span>
@@ -110,7 +121,7 @@ export const DashboardView = ({
         );
     }
 
-    const activeWidgets = widgets.filter(w => w.is_active !== false);
+    const activeWidgets = safeWidgets.filter(w => w && w.is_active !== false);
 
     return (
         <div
@@ -132,21 +143,30 @@ export const DashboardView = ({
             )}
 
             <div className="dashboard-widgets">
-                {activeWidgets.map((widget) => (
-                    <div
-                        key={widget.id}
-                        className="dashboard-widget"
-                        style={getWidgetSize(widget)}
-                    >
-                        <WidgetRenderer
-                            widget={widget}
-                            preview={preview}
-                            onRefresh={() => {
-                                // Refresh individual widget
+                {activeWidgets.map((widget) => {
+                    const w = widget.size?.w ?? widget.size?.width ?? 6;
+                    const h = widget.size?.h ?? widget.size?.height ?? 4;
+                    return (
+                        <div
+                            key={widget.id}
+                            className="dashboard-widget"
+                            style={{
+                                '--widget-width': Math.min(12, w),
+                                '--widget-height': h,
+                                gridColumn: `span ${Math.min(12, w)}`,
+                                minHeight: `${h * 75}px`,
                             }}
-                        />
-                    </div>
-                ))}
+                        >
+                            <WidgetRenderer
+                                widget={widget}
+                                preview={preview}
+                                onRefresh={() => {
+                                    // Refresh individual widget
+                                }}
+                            />
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

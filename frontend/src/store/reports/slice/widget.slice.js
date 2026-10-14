@@ -132,7 +132,9 @@ export const fetchWidgetsByDashboard = createAsyncThunk(
     async (dashboardId, { rejectWithValue }) => {
         try {
             const response = await widgetService.getWidgetsByDashboard(dashboardId);
-            return { dashboardId, data: response.data };
+            const rawData = response?.data;
+            const items = Array.isArray(rawData) ? rawData : (rawData?.results || []);
+            return { dashboardId, data: items };
         } catch (error) {
             return rejectWithValue(extractApiError(error));
         }
@@ -255,6 +257,19 @@ const widgetSlice = createSlice({
             })
             .addCase(fetchWidgetTypes.fulfilled, (state, action) => {
                 state.types = Array.isArray(action.payload) ? action.payload : [];
+            })
+            .addCase(fetchWidgetsByDashboard.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchWidgetsByDashboard.fulfilled, (state, action) => {
+                state.loading = false;
+                const items = action.payload?.data || [];
+                state.widgets = items;
+            })
+            .addCase(fetchWidgetsByDashboard.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
     },
 });

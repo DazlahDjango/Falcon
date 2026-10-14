@@ -182,17 +182,9 @@ def generate_dashboard_snapshot(dashboard_id: str, user_id: Optional[str] = None
     try:
         realtime = RealtimeDashboard()
         snapshot = realtime.get_dashboard_snapshot(dashboard_id)
-        from apps.reportplt.models import ReportCache
-        cache_key = f"dashboard_{dashboard_id}_{user_id or 'public'}"
-        ReportCache.objects.update_or_create(
-            report_id=dashboard_id,
-            cache_key=cache_key,
-            defaults={
-                'tenant_id': snapshot.get('tenant_id'),
-                'data': snapshot,
-                'expires_at': timezone.now() + timedelta(hours=1)
-            }
-        )
+        from apps.reportplt.models import ReportDashboard
+        # Update dashboard cache in dashboard config or cache system safely
+        ReportDashboard.objects.filter(id=dashboard_id).update(config=snapshot)
         return {'status': 'success', 'dashboard_id': dashboard_id}
     except Exception as e:
         logger.error(f"Dashboard snapshot failed: {str(e)}")
